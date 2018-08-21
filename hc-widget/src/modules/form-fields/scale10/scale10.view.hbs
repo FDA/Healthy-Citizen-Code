@@ -1,0 +1,40 @@
+<div class="form-field">
+    <label
+        for="{{fieldName}}"
+        class="label"
+    >
+        {{fullName}}: {{{sanitize question}}}
+    </label>
+
+    <div class="align-center">
+        <div class="inline-block align-left" style="width: 120px;">{{{sanitize leftSide}}}</div>
+        <div class="inline-block">
+            {{#times 10}}
+                <input
+                    type="radio"
+                    name="{{../fieldName}}"
+                    id="{{../fieldName}}{{inc @index}}"
+                    value="{{inc @index}}"
+                >
+
+                <label
+                    class="label-inline"
+                    for="{{../fieldName}}{{inc @index}}"
+                >
+                    {{inc @index}}
+                </label>
+            {{/times}}
+        </div>
+        <div class="inline-block align-left" style="width: 120px;">{{{sanitize rightSide}}}</div>
+
+        <div class="align-center">SELECT A NUMBER</div>
+    </div>
+
+    <div
+        class="error-message"
+        data-error-name="required"
+        style="display: none;"
+    >
+        Field is required
+    </div>
+</div>

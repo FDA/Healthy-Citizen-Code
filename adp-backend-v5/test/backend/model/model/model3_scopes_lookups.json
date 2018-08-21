@@ -1,0 +1,31 @@
+{
+  "models": {
+    "model3scopes": {
+      "type": "Schema",
+      "fullName": "model3s",
+      "description": "Used for testing lookups with scopes",
+      "fields": {
+        "model4Id": {
+          "type": "ObjectID",
+          "fullName": "model4Id",
+          "lookup": {
+            "table": {
+              "model4s": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsGuest"
+                    },
+                    "where": "{$eq: [false, true]}"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

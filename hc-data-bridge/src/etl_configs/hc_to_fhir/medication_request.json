@@ -1,0 +1,66 @@
+{
+  "extract": [
+    {
+      "path": "/phis/%phiId%",
+      "params": {},
+      "method": "GET",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ],
+  "transform": {
+    "pretransform": {
+      "transform": [
+        "splitMyMedicationsToArray"
+      ]
+    },
+    "dosageInstruction": {
+      "path": "phis.myMedication",
+      "transform": [
+        "myMedicationToDosageInstruction"
+      ]
+    },
+    "authoredOn": {
+      "path": "phis.myMedication.prescribed",
+      "transform": [
+        "getDate"
+      ]
+    },
+    "dispenseRequest": {
+      "path": "phis.myMedication.supply",
+      "transform": [
+        "supplyToDispenseRequest"
+      ]
+    },
+    "extension": {
+      "path": "phis.myMedication",
+      "transform": [
+        "myMedicationToExtension"
+      ]
+    },
+    "subject": {
+      "path": "phis.guid",
+      "transform": [
+        "guidToSubject"
+      ]
+    },
+    "request": {
+      "method": "PUT",
+      "url": "MedicationRequest/%resourceId%"
+    }
+  },
+  "load": [
+    {
+      "path": "/",
+      "params": {
+        "_format": "json"
+      },
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

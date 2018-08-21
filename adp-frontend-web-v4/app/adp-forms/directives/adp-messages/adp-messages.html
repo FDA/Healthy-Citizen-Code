@@ -1,0 +1,64 @@
+<div
+  ng-messages
+  for="fieldModel.$error"
+  class="note note-error">
+  <span ng-if="form.$submitted || fieldModel.$dirty">
+    <span ng-message="required">
+      {{field.fullName}} is required.
+    </span>
+
+    <span ng-message="regex">
+      {{messages['regex']}}
+    </span>
+
+    <span ng-message="minNumber">
+      {{messages['minNumber']}}
+    </span>
+
+    <span ng-message="minString">
+      {{messages['minNumber']}}
+    </span>
+
+    <span ng-message="maxNumber">
+      {{messages['maxNumber']}}
+    </span>
+
+    <span ng-message="maxString">
+      {{messages['maxNumber']}}
+    </span>
+
+    <span ng-message="minLength">
+      {{messages['minLength']}}
+    </span>
+
+    <span ng-message="maxLength">
+      {{messages['maxLength']}}
+    </span>
+
+    <span ng-message="passwordMatch">
+      Passwords do not match.
+    </span>
+
+    <span ng-message="location">
+      Address not found. Please try again.
+    </span>
+
+    <span ng-message="notInFuture">
+      {{messages['notInFuture']}}
+    </span>
+
+    <span ng-message="minDate">
+      {{messages['minDate']}}
+    </span>
+
+    <span ng-message="maxDate">
+      {{messages['maxDate']}}
+    </span>
+  </span>
+
+  <span
+    ng-message="dateValid"
+    ng-if="form.$submitted || fieldModel.$touched">
+    Date is invalid.
+  </span>
+</div>

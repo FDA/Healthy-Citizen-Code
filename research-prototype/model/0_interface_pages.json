@@ -1,0 +1,43 @@
+{
+  "interface": {
+    "pages": {
+      //"home": false,
+      "participants": {
+        "name": "participants",
+        "link": "/participants",
+        "fullName": "Participants De-Identified Personal Health Information (PHI)",
+        "description": "Participants De-Identified Personal Health Information (PHI)",
+        "comment": "This implements a custom participants page",
+        "template": {
+          "type": "file",
+          "link": "page_participants_template.ejs"
+        },
+        "controller": "ParticipantsPageController"
+      },
+      "questionnaireAnswers": {
+        "name": "questionnaireAnswers",
+        "link": "/questionnaireAnswers",
+        "fullName": "Questionnaire Answers",
+        "description": "Questionnaire Answers",
+        "comment": "This implements a custom Questionnaire Answers page",
+        "template": {
+          "type": "file",
+          "link": "page_answers_template.ejs"
+        },
+        "controller": "AnswersPageController"
+      },
+      "icdPage": {
+        "name": "icdPage",
+        "link": "/icdPage",
+        "fullName": "ICD Code Groupings",
+        "description": "ICD Code Groupings",
+        "comment": "This implements a custom ICD code groupings",
+        "template": {
+          "type": "file",
+          "link": "page_icd_template.ejs"
+        },
+        "controller": "IcdPageController"
+      }
+    }
+  }
+}

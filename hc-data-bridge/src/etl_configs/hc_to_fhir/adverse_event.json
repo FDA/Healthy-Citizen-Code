@@ -1,0 +1,60 @@
+{
+  "extract": [
+    {
+      "path": "/phis/%phiId%",
+      "params": {},
+      "method": "GET",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      },
+      "pathToExtract": "phis"
+    }
+  ],
+  "transform": {
+    "pretransform": {
+      "transform": [
+        "splitMyAdverseEventsToArray"
+      ]
+    },
+    "id": {
+      "path": "phis.myAdverseEvent._id",
+      "transform": [
+      ]
+    },
+    "date": {
+      "path": "phis.myAdverseEvent.date",
+      "transform": [
+        "getDate"
+      ]
+    },
+    "subject": {
+      "path": "phis.guid",
+      "transform": [
+        "guidToSubject"
+      ]
+    },
+    "extension": {
+      "path": "phis.myAdverseEvent",
+      "transform": [
+        "myAdverseEventToExtension"
+      ]
+    },
+    "request": {
+      "method": "PUT",
+      "url": "AdverseEvent/%resourceId%"
+    }
+  },
+  "load": [
+    {
+      "path": "/",
+      "params": {
+        "_format": "json"
+      },
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

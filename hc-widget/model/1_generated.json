@@ -1,0 +1,146 @@
+{
+  "models": {
+    "users": {
+      "type": "Schema",
+      "fullName": "Users",
+      "fields": {
+        "userRecordId": {
+          "type": "ObjectID",
+          "fullName": "User Record Id",
+          "required": "1",
+          "lookup": {
+            "table": "userRecords",
+            "foreignKey": "_id",
+            "label": "name"
+          },
+          "visible": "false",
+          "singleRecord": "true"
+        }
+      }
+    },
+    "userRecords": {
+      "type": "Schema",
+      "fullName": "User Records",
+      "singleRecord": "true",
+      "fields": {
+        "name": {
+          "type": "String",
+          "fullName": "Name",
+          "description": "Fake field required for lookup to work"
+        },
+        "widgets": {
+          "type": "Subschema",
+          "fullName": "Widgets",
+          "fields": {
+            "id": {
+              "type": "String",
+              "fullName": "Widget Id",
+              "description": "Widget ID",
+              "required": "1"
+            },
+            "name": {
+              "type": "String",
+              "fullName": "Name",
+              "required": "1"
+            },
+            "type": {
+              "type": "String",
+              "fullName": "Widget Type",
+              "description": "Widget Type",
+              "required": "1",
+              "list": [
+                "adverseEvents",
+                "drugInteraction",
+                "questionnaire"
+              ]
+            },
+            "fontSize": {
+              "type": "Number",
+              "fullName": "Font Size",
+              "description": "Font Size in Pixels",
+              "list": [
+                "12",
+                "13",
+                "14",
+                "16",
+                "18",
+                "20",
+                "22",
+                "24",
+                "26",
+                "28"
+              ]
+            },
+            "fontFace": {
+              "type": "String",
+              "fullName": "Font Face",
+              "list": [
+                "Arial",
+                "Courier"
+              ]
+            },
+            "fontStyle": {
+              "type": "String[]",
+              "fullName": "Font Style",
+              "list": [
+                "bold",
+                "italic",
+                "underline",
+                "strikeout"
+              ]
+            },
+            "welcomeText": {
+              "type": "String",
+              "fullName": "Welcome Text",
+              "show": "row['type']==1"
+            },
+            "thankYouText": {
+              "type": "String",
+              "fullName": "Thank You Text",
+              "required": "1",
+              "show": "row['type']==1"
+            }
+          }
+        }
+      }
+    }
+  },
+  "interface": {
+    "app": {
+      "type": "String",
+      "fullName": "App",
+      "components": {
+        "title": "HVAC R-Log,",
+        "slogan": "Keeps you in compliance with EPA regulations,",
+        "name": "RLog - Individual User,",
+        "description": "Tradelog - RLog - HVAC tracking application,",
+        "keywords": "Tradelog, Rlog"
+      }
+    },
+    "header": {
+      "type": "String",
+      "fullName": "Header",
+      "visible": "1",
+      "components": {
+        "logo": "true,",
+        "alerts": "false"
+      }
+    },
+    "mainMenu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "default": "/home",
+      "fields": {
+        "widgets": {
+          "type": "MenuItem",
+          "fullName": "Widgets",
+          "link": "/userRecords/:userRecordsId/widgets",
+          "icon": {
+            "type": "font-awesome",
+            "link": "fire"
+          }
+        }
+      }
+    }
+  }
+}

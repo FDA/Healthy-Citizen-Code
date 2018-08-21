@@ -1,0 +1,73 @@
+{
+  "extract": [
+    {
+      "path": "/phis/%phiId%",
+      "params": {},
+      "method": "GET",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      },
+      "pathToExtract": "phis"
+    }
+  ],
+  "transform": {
+    "pretransform": {
+      "transform": [
+        "splitMyRecallsToArray"
+      ]
+    },
+    "subject": {
+      "path": "phis.myRecall.subject",
+      "transform": [
+      ]
+    },
+    "details": {
+      "path": "phis.myRecall.details",
+      "transform": [
+      ]
+    },
+    "eventId": {
+      "path": "phis.myRecall.eventId",
+      "transform": [
+      ]
+    },
+    "key": {
+      "path": "phis.myRecall.key",
+      "transform": [
+      ]
+    },
+    "productName": {
+      "path": "phis.myRecall.productName",
+      "transform": [
+      ]
+    },
+    "productType": {
+      "path": "phis.myRecall.productType",
+      "transform": [
+      ]
+    },
+    "date": {
+      "path": "phis.myRecall.date",
+      "transform": [
+        "getDate"
+      ]
+    },
+    "request": {
+      "method": "PUT",
+      "url": "Recall/%resourceId%"
+    }
+  },
+  "load": [
+    {
+      "path": "/",
+      "params": {
+        "_format": "json"
+      },
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

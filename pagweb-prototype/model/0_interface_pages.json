@@ -1,0 +1,102 @@
+{
+  "interface": {
+    "pages": {
+      "questionnaire": {
+        "name": "questionnaire",
+        "link": "/questionnaire",
+        "fullName": "Questionnaire",
+        "description": "Questionnaire widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR questionnaire",
+        "template": {
+          "type": "file",
+          "link": "questionnaire_widget_template.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
+      },
+      "drugInteractions": {
+        "name": "drugInteractions",
+        "link": "/drugInteractions",
+        "fullName": "drugInteractions",
+        "description": "drugInteractions widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR questionnaire",
+        "template": {
+          "type": "file",
+          "link": "drug_interactions_widget_template.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
+      },
+      "adverseEvents": {
+        "name": "adverseEvents",
+        "link": "/adverseEvents",
+        "fullName": "drugInteractions",
+        "description": "Adverse Events widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR Adverse Events",
+        "template": {
+          "type": "file",
+          "link": "adverse_events_widget_template.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
+      },
+      "adverseEventsAlt": {
+        "name": "adverseEventsAlt",
+        "link": "/adverseEventsAlt",
+        "fullName": "adverseEventsAlt",
+        "description": "Adverse Events widget using Smart-on-FHIR, alternative version",
+        "comment": "This implements a custom page with SMART-on-FHIR Adverse Events, alternative version",
+        "template": {
+          "type": "file",
+          "link": "adverse_events_alt_widget_template.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
+      },
+      "recalls": {
+        "name": "recalls",
+        "link": "/recalls",
+        "fullName": "drugInteractions",
+        "description": "Recalls widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR recalls",
+        "template": {
+          "type": "file",
+          "link": "recalls_widget_template.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
+      },
+      "drugsVisualization": {
+        "name": "drugsVisualization",
+        "link": "/drugsVisualization",
+        "fullName": "drugsVisualization",
+        "description": "Drugs Visualization widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR Drugs Visualization",
+        "template": {
+          "type": "file",
+          "link": "drugs_visualization_widget_template.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
+      },
+      "ndcLookup": {
+        "name": "ndcLookup",
+        "link": "/ndcLookup",
+        "fullName": "ndcLookup",
+        "description": "ndcLookup widget",
+        "comment": "This implements a custom page with ndcLookup",
+        "template": {
+          "type": "file",
+          "link": "ndc_lookup_template.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
+      },
+      "multipleWidgets": {
+        "name": "multipleWidgets",
+        "link": "/multipleWidgets",
+        "fullName": "multipleWidgets",
+        "description": "Multiple Widgets Example",
+        "comment": "Multiple Widgets Example",
+        "template": {
+          "type": "file",
+          "link": "multiple-widget_template.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
+      }
+    }
+  }
+}

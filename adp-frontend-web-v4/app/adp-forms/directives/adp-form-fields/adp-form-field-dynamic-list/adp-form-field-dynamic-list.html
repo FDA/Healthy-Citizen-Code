@@ -1,0 +1,26 @@
+<adp-form-field-container
+  adp-data="data"
+  adp-field="adpField">
+
+  <label
+    class="label">
+    {{adpField.fullName}}
+    <span ng-show="adpField.required">&nbsp;*</span>
+
+    <adp-tooltip
+      adp-field="adpField">
+    </adp-tooltip>
+  </label>
+
+  <dynamic-list-control
+    field="adpField"
+    adp-form-data="adpFormData"
+    ui-props="adpFieldUiProps"
+  >
+  </dynamic-list-control>
+
+  <adp-messages
+    adp-field="adpField">
+  </adp-messages>
+
+</adp-form-field-container>

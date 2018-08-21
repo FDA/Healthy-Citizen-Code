@@ -1,0 +1,61 @@
+{
+  "extract": [
+    {
+      "path": "/Procedure",
+      "params": {
+        "subject:Patient": "%patientId%",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "procedureId": {
+      "path": "Procedure.id",
+      "transform": [
+      ]
+    },
+    "sourceType": {},
+    "procedureStartDate": {
+      "path": "Procedure",
+      "transform": [
+        "procedureToProcedureStartDate"
+      ]
+    },
+    "procedureEndDate": {
+      "path": "Procedure",
+      "transform": [
+        "procedureToProcedureEndDate"
+      ]
+    },
+    "providerId": {
+      "path": "Procedure.performer",
+      "transform": [
+        "performerToProviderId"
+      ]
+    },
+    "procedureCode": {
+      "path": "Procedure.code",
+      "transform": [
+        "codeToProcedureCode"
+      ]
+    },
+    "procedureCodeType": {
+      "path": "Procedure.code",
+      "transform": [
+        "codeToProcedureCodeType"
+      ]
+    },
+    "originalProcedureCode": {}
+  },
+  "load": [
+    {
+      "path": "/phis/%phisId%/encounters/%encounterId%/procedures/%resourceId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

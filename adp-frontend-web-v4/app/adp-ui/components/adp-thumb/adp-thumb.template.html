@@ -1,0 +1,24 @@
+<div
+  class="adp-thumb"
+  ng-switch="vm.fileType">
+  <img
+    ng-switch-when="images"
+    class="img-responsive"
+    ng-if="vm.src"
+    ng-src="{{vm.src}}">
+
+  <span
+    ng-switch-when="audio"
+    class="fa-4x fa fa-file-audio-o">
+  </span>
+
+  <span
+    ng-switch-when="video"
+    class="fa-4x fa fa-file-video-o">
+  </span>
+
+  <span
+    ng-switch-when="docs"
+    class="fa-4x fa fa-file-text-o">
+  </span>
+</div>

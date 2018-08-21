@@ -1,0 +1,76 @@
+{
+  models: {
+    "model9list_permissions": {
+      type: "Schema",
+      fields: {
+        "objectValueList": {
+          "type": "String",
+          "list": {
+            "val1": "val1",
+            "val2": "val2",
+            "val3": "val3",
+            "val4": "val4"
+          }
+        },
+        "objectListWithObjectValueList": {
+          "type": "String",
+          "list": {
+            values: {
+              "val1": "val1",
+              "val2": "val2",
+              "val3": "val3",
+              "val4": "val4"
+            }
+          }
+        },
+        "objectListWithReferenceAndNoCustomScopes": {
+          "type": "String",
+          "list": {
+            name: "test2"
+          }
+        },
+        "objectListWithReferenceAndCustomScopes": {
+          "type": "String",
+          "list": {
+            name: "test2",
+            scopes: {
+              userScope: {
+                permissions: "accessAsUser",
+                return: "return $list",
+                where: "return key.endsWith('1') || val.endsWith('2')"
+              }
+            }
+          }
+        }
+      },
+      scopes: {
+        scopeWithPreparation: {
+          permissions: "accessAsUser",
+          prepare: "loadVerifiedCreatorIds",
+          where: "{$in: [this.req.user._id, this.scopeVars.creatorIds]}"
+        }
+      },
+      actions: {
+        "width": 100,
+        "responsivePriority": 50,
+        "fields": {
+          "view": {
+            permissions: [
+              "accessAsUser"
+            ]
+          },
+          "create": {
+            permissions: [
+              "accessAsUser"
+            ]
+          },
+          "update": {
+            permissions: [
+              "accessAsUser"
+            ]
+          },
+        }
+      }
+    }
+  }
+}

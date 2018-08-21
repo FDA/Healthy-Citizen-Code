@@ -1,0 +1,26 @@
+{
+  "extract": [
+    {
+      "path": "/Patient",
+      "params": {
+        "_id": "%id%",
+        "_revinclude": [
+        ],
+        "_format": "json"
+      },
+      "pathToExtract": "piis"
+    }
+  ],
+  "transform": {
+  },
+  "load": [
+    {
+      "path": "/piis/%piiId%/hospitals",
+      "method": "POST",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

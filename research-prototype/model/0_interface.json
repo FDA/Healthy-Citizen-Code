@@ -1,0 +1,83 @@
+{
+  "interface": {
+    "app": {
+      "auth": {
+        "requireAuthentication": false,
+        "enableAuthentication": true,
+        "enableRegistration": true,
+        "enablePermissions": true,
+        "enableUserPasswordReset": false,
+        "enableMfa": false,
+        "requireMfa": false
+      },
+      "type": "ApplicationInterface",
+      "title": "Healthy Citizen Research",
+      "slogan": "Enhancing Public Health Through Citizen-Centric Communications",
+      "name": "HealthyCitizenResearch",
+      "logo": {
+        "large": "/public/logos/logo128x128.png",
+        "small": "/public/logos/logo32x32.png"
+      },
+      "favicon": {
+        "180x180": "/public/favicons/apple-touch-icon.png",
+        "32x32": "/public/favicons/favicon-32x32.png",
+        "16x16": "/public/favicons/favicon-16x16.png",
+        "manifest": "/public/favicons/manifest.json",
+        "maskIcon": "/public/favicons/safari-pinned-tab.svg"
+      },
+      "theme": "default",
+      "description": "Healthy Citizen",
+      "keywords": "Healthy, Citizen, Healthy Citizen"
+    },
+    "loginPage": {
+      "intro": {
+        "template": {
+          "type": "file",
+          "link": "login_intro_template.ejs"
+        }
+      },
+      "parameters": {
+        "signInText": "Sign In",
+        "signUpText": "Create Account",
+        "captcha": "google"
+      }
+    },
+    "header": {
+      "visible": true,
+      "components": {
+        "logo": true,
+        "alerts": false,
+        "projectSelector": false,
+        "languageSelector": false,
+        "fullScreenToggle": true,
+        "search": false,
+        "logoutButton": true,
+        "menuToggle": false
+      }
+    },
+    "footer": {
+      "visible": true,
+      "components": {
+        "copyright": true,
+        "copyrightText": "Healthy Citizen Research &copy; 2016-2018",
+        "lastAccountActivity": false,
+        "status": false
+      }
+    },
+    "skin": "smart-style-3",
+    "showDemoControls": false,
+    "layout": {
+      "fixed": {
+        "header": false,
+        "navigation": true,
+        "ribbon": false,
+        "footer": false
+      },
+      "fixedWidth": false,
+      "rtlSupport": false,
+      "menuPosition": "left",
+      "colorblind": false,
+      "background": "img/pattern/paper.png"
+    }
+  }
+}

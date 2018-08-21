@@ -1,0 +1,37 @@
+/**
+How to link custom pages in main menu:
+- give pages link looking like /<anything>/:id/<key of the custom page in dash-case> if it requires parameters
+or /<key of the custom page in dash-case> if it doesn't require any parameters
+- give IDENTICAL link name to the menu item
+EXAMPLE:
+{
+  "interface": {
+    "pages": {
+      "customPage": {
+        "name": "home",
+        "link": "/whatever/:id/custom-page", // <- use this link in the menu to refer to this page
+      }
+    }
+  }
+}
+
+Try to avoid using numbers or any non-alpha characters in the names
+*/
+
+{
+  "interface": {
+    "pages": {
+      "home": {
+        //"name": "home",
+        "link": "/home",
+        "fullName": "About Conceptant",
+        "description": "Home",
+        "template": {
+          "type": "file",
+          "link": "page_aboutConceptant_template.ejs"
+        },
+        controller: "Default"
+      }
+    }
+  }
+}

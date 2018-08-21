@@ -1,0 +1,254 @@
+{
+  "models": {
+    "participants": {
+      "type": "Schema",
+      "fullName": "Participants De-Identified Protected Health Information (PHI)",
+      actions: {
+        fields: {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: [true, true]}"
+        }
+      },
+      "fields": {
+        "source": {
+          "fullName": "Information Source",
+          "type": "String",
+          "required": false,
+          "visible": true,
+          "description": "From where the participant data was originating"
+        },
+        "sourceId": {
+          "fullName": "The ID for source of the information",
+          "type": "String",
+          "required": false,
+          "visible": false,
+          "description": "The ID from where the participant data was originating"
+        },
+        "guid": {
+          "fullName": "Participant De-Identified ID",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "width": "100",
+          "description": "The Participants De-Identified ID from external provider"
+        },
+        "ageRange": {
+          "fullName": "Age Range",
+          "type": "String",
+          "list": {
+            "name": "ageRanges",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsUser",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "width": 50,
+          "default": "",
+          "required": false,
+          "description": "Age range of participant"
+        },
+        "gender": {
+          "fullName": "Gender",
+          "list": {
+            "name": "genders",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsUser",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "type": "String",
+          "width": 50,
+          "default": "",
+          "required": false,
+          "description": "Gender of participant"
+        },
+        "geographicRegion": {
+          "fullName": "Geographic Region",
+          "type": "String",
+          "list": {
+            "name": "geographicRegions",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsUser",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "default": "",
+          "required": false,
+          "description": "High level geographic region of participant"
+        },
+        "conditions": {
+          "fullName": "Medical Conditions",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Diagnosis of participant"
+        },
+        "procedures": {
+          "fullName": "Medical Procedures",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Past procedures of the participants"
+        },
+        "medicationTypes": {
+          "fullName": "Medications",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "List of current medications of the participant"
+        },
+        "sideEffects": {
+          "fullName": "Side Effects/Adverse Events",
+          "type": "String",
+          "width": 250,
+          "responsivePriority": 200,
+          "default": "",
+          "required": false,
+          "description": "Both side effects and adverse events reported by participant"
+        },
+        "researchNotifications": {
+          "type": "Subschema",
+          "fullName": "Participant Notifications",
+          "description": "Generic notifications for Research to send to the participants",
+          "fields": {
+            "notificationId": {
+              "fullName": "Notification ID",
+              "type": "String",
+              "required": true,
+              "description": "Unique ID of the notification",
+              "comment": "This is not _id equivalent, it needs to be unique across all systems"
+            },
+            "dId": {
+              "fullName": "Participant De-Identified ID",
+              "type": "String",
+              "default": "",
+              "required": false,
+              "colspan": 2,
+              "description": "The Participants De-Identified ID from external provider"
+            },
+            "orgId": {
+              "fullName": "Participant's Organization",
+              "type": "String",
+              "default": "",
+              "required": false,
+              "colspan": 2,
+              "description": "Participant's Organization"
+            },
+            "notificationType": {
+              "fullName": "Type of Notification",
+              "list": {
+                name: "notificationTypes",
+                "scopes": {
+                  "userScope": {
+                    "permissions": "accessAsUser",
+                    return: "return $list",
+                    where: "return true"
+                  }
+                }
+              },
+              "type": "String",
+              "default": "",
+              "required": false,
+              "colspan": 2,
+              "description": "Type of Notification"
+            },
+            "deliveryStatus": {
+              "fullName": "Delivery Status",
+              "type": "String",
+              "list": {
+                name: "deliveryStatuses",
+                "scopes": {
+                  "userScope": {
+                    "permissions": "accessAsUser",
+                    return: "return $list",
+                    where: "return true"
+                  }
+                }
+              },
+              "default": "",
+              "required": false,
+              "colspan": 2,
+              "description": "Delivery Status"
+            },
+            "subject": {
+              "fullName": "Subject",
+              "type": "String",
+              "required": true,
+              "description": "Brief subject of the notification",
+              "comment": "Similar to Subject in emails"
+            },
+            "body": {
+              "fullName": "Subject",
+              "type": "String",
+              "required": true,
+              "description": "Brief subject of the notification",
+              "comment": "Similar to Subject in emails"
+            }
+          }
+        },
+        "answersToQuestionnaires": {
+          "type": "Subschema",
+          "fullName": "Questionnaire answers",
+          "fields": {
+            "questionnaireId": {
+              "type": "LookupObjectID",
+              "fullName": "Questionnaire",
+              "required": true,
+              "description": "The questionnaire the answers are for",
+              "lookup": {
+                "table": {
+                  "questionnaires": {
+                    "foreignKey": "_id",
+                    "label": "questionnaireName",
+                    "scopes": {
+                      "ownRecordScope": {
+                        "permissions": "accessAsUser",
+                        "where": "{$eq: ['$creator', this.req.user._id]}"
+                      }
+                    }
+                  }
+                }
+              }
+            },
+            "answers": {
+              "type": "Mixed",
+              "fullName": "Answers",
+              "description": "Questionnaire answers"
+            }
+          }
+        }
+      }
+    }
+  }
+}

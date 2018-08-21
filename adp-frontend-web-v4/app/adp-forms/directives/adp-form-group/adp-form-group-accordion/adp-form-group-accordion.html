@@ -1,0 +1,37 @@
+<fieldset>
+  <adp-form-field-factory
+    ng-repeat="field in fields.notGrouped track by $index"
+    adp-field="field"
+    adp-form-data="formData">
+  </adp-form-field-factory>
+</fieldset>
+
+<fiedlset
+  adp-accordion
+  adp-accordion-options="formParams">
+  <div>
+    <div
+      class="adp-form-fieldset"
+      ng-class="{'has-errors': groupHasErrors(group.fields, form) }"
+      ng-repeat="(groupName, group) in fields.groups track by $index"
+    >
+
+      <div class="adp-form-group-head">
+        <h4>{{group.fullName}}</h4>
+
+        <adp-form-group-messages
+          form-group="group.fields">
+        </adp-form-group-messages>
+      </div>
+
+      <div class="adp-form-group-body padding-10">
+        <adp-form-field-factory
+          ng-repeat="field in group.fields track by $index"
+          adp-field="field"
+          adp-form-params="$parent.formParams"
+          adp-form-data="$parent.formData">
+        </adp-form-field-factory>
+      </div>
+    </div>
+  </div>
+</fiedlset>

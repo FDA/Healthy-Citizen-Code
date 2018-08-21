@@ -1,0 +1,81 @@
+{
+  "models": {
+    "pools": {
+      "type": "Schema",
+      "fullName": "Pools for Study",
+      actions: {
+        fields: {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
+      "fields": {
+        "source": {
+          "fullName": "The source of the information",
+          "type": "String",
+          "required": false,
+          "visible": false,
+          "description": "Pools for the Study"
+        },
+        "poolName": {
+          "fullName": "Pool Name",
+          "type": "String",
+          "default": "",
+          "required": true,
+          "width": "300",
+          "unique": true,
+          "description": "Pool Name"
+        },
+        "armName": {
+          "fullName": "Arm Name",
+          "type": "LookupObjectID",
+          "required": false,
+          "description": "Arm Name",
+          "lookup": {
+            "table": {
+              "arms": {
+                "foreignKey": "_id",
+                "label": "armName",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: ['$creator', this.req.user._id]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "poolDesc": {
+          "fullName": "Pool Description",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Pool Description"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "extract": [
+    {
+      "path": "/AdverseEvent",
+      "params": {
+        "subject:Patient": "%patientId%",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "_id": {
+      "path": "AdverseEvent.extension",
+      "transform": [
+        "extensionTo_id"
+      ]
+    },
+    "subject": {
+      "path": "AdverseEvent.extension",
+      "transform": [
+        "extensionToSubject"
+      ]
+    },
+    "date": {
+      "path": "AdverseEvent.date",
+      "transform": [
+      ]
+    },
+    "eventId": {
+      "path": "AdverseEvent.extension",
+      "transform": [
+        "extensionToEventId"
+      ]
+    },
+    "details": {
+      "path": "AdverseEvent.extension",
+      "transform": [
+        "extensionToDetails"
+      ]
+    },
+    "productName": {
+      "path": "AdverseEvent.extension",
+      "transform": [
+        "extensionToProductName"
+      ]
+    },
+    "productType": {
+      "path": "AdverseEvent.extension",
+      "transform": [
+        "extensionToProductType"
+      ]
+    },
+    "key": {
+      "path": "AdverseEvent.extension",
+      "transform": [
+        "extensionToKey"
+      ]
+    }
+  },
+  "load": [
+    {
+      "path": "/phis/%phiId%/myAdverseEvents/%resourceId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

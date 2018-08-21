@@ -1,0 +1,80 @@
+<adp-page-loader
+        loading="vm.loading">
+</adp-page-loader>
+
+<adp-content-container
+        class="multi-record"
+        ng-if="!vm.loading">
+
+    <adp-section-container>
+        <adp-page-title>{{ vm.schema.fullName }}</adp-page-title>
+
+        <button
+                ng-if="!vm.schema.serverSide"
+                type="button"
+                ng-click="vm.create()"
+                class="btn btn-primary page-action">
+            Create New
+        </button>
+    </adp-section-container>
+
+    <adp-section-container>
+        <adp-section-title>
+            Create new pool from selected participants
+        </adp-section-title>
+
+        <form
+                ng-submit="poolForm.$valid && vm.createPool()"
+                name="poolForm"
+                class="smart-form client-form">
+
+            <section class="input-container">
+                <label class="label">
+                    New Pool Name
+                </label>
+
+                <label class="input">
+                    <input type="text"
+                           name="poolName"
+                           ng-model="vm.poolParams.name"
+                           ng-required
+                           class="form-control">
+                </label>
+            </section>
+
+            <div class="form-row">
+                <button
+                        ng-if="!vm.schema.serverSide"
+                        type="submit"
+                        ng-disabled="!vm.poolParams.name"
+                        class="btn btn-primary page-action">
+                    Create Pool
+                </button>
+            </div>
+        </form>
+
+    </adp-section-container>
+
+    <adp-section-container
+            ng-if="!vm.pageData.length">
+        <adp-section-title>No data to show.</adp-section-title>
+    </adp-section-container>
+
+    <adp-section-container
+            ng-if="vm.pageData.length">
+
+        <adp-table
+                schema="vm.schema"
+                data="vm.pageData"
+                url="vm.resourceUrl"
+                has-details="vm.hasDetails"
+                filtered-data="vm.filteredData"
+                actions="vm.schema.actions"
+                action-cbs="vm.actionCbs"
+                update="vm.update"
+                delete="vm.delete">
+        </adp-table>
+
+    </adp-section-container>
+
+</adp-content-container>

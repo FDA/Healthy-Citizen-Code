@@ -1,0 +1,121 @@
+{
+  "models": {
+    "poolParticipants": {
+      "type": "Schema",
+      "fullName": "Participants for Pool in Study",
+      actions: {
+        fields: {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
+      "fields": {
+        "source": {
+          "fullName": "The source of the information",
+          "type": "String",
+          "required": false,
+          "visible": false,
+          "description": "source of the data"
+        },
+        "poolId": {
+          "fullName": "Pool",
+          "type": "LookupObjectID",
+          "required": false,
+          "description": "Pool Name",
+          "lookup": {
+            "table": {
+              "pools": {
+                "foreignKey": "_id",
+                "label": "poolName",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: ['$creator', this.req.user._id]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "guid": {
+          "fullName": "Participant De-Identified ID",
+          "comment": "!!! this doesn't seem right, should be a lookup to participants collection",
+          "type": "String",
+          "default": "",
+          "required": true,
+          "width": "100",
+          "description": "The Participants De-Identified ID from external provider"
+        },
+        "confidentialityIndicator": {
+          "fullName": "Confidentiality Indicator",
+          "type": "Boolean",
+          "default": "true",
+          "required": false,
+          "description": "The participant wants their data to remain confidential throughout the study"
+        },
+        "statusCode": {
+          "fullName": "Participant Status",
+          "type": "Number",
+          "list": {
+            name: "participantStatuses",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsUser",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "default": "",
+          "required": true,
+          "description": "Active, inactive, etc"
+        },
+        "statusDate": {
+          "fullName": "Status Active Date",
+          "type": "Date",
+          "default": "",
+          "required": false,
+          "description": "Date the status was in force"
+        },
+        "activeDate": {
+          "fullName": "Participant Available Start Date",
+          "type": "Date",
+          "default": "",
+          "required": false,
+          "description": "Date when the participant can start",
+          "validate": ["min(statusDate)"]
+        },
+        "deactivateDate": {
+          "fullName": "Participant Required End Date",
+          "type": "Date",
+          "default": "",
+          "required": false,
+          "description": "Date when the participant must end",
+          "validate": ["min(activeDate)"]
+        }
+      }
+    }
+  }
+}

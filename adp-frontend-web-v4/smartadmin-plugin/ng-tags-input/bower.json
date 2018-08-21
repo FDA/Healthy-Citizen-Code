@@ -1,0 +1,23 @@
+{
+  "name": "ng-tags-input",
+  "authors": [
+    "ksimanov <ksimanov@gmail.com>"
+  ],
+  "description": "",
+  "dependencies": {
+    "jquery-ui": "~1.11.4"
+  },
+  "main": [
+    "ng-tags-input.js",
+    "ng-tags-input.css"
+  ],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

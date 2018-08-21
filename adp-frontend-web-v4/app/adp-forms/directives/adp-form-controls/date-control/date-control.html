@@ -1,0 +1,37 @@
+<label
+  uib-dropdown
+  is-open="status.isOpen"
+  class="input datepicker-label">
+  <button
+    class="datepicker-toggle"
+    role="button"
+    uib-dropdown-toggle
+    aria-haspopup="true"
+    aria-expanded="false"
+    type="button">
+    <i class="fa fa-calendar"></i>
+  </button>
+
+  <input
+    class="form-control"
+    id="{{field.keyName}}"
+    ng-model="adpFormData[field.keyName]"
+    adp-validate="field"
+    adp-date-formatter="field.subtype"
+    ng-required="field.required"
+    name="{{field.keyName}}"
+    placeholder="Enter date" />
+
+  <div
+    uib-dropdown-menu
+    class="dropdown-menu"
+    role="menu">
+    <datetimepicker
+      ng-change="onDateChange()"
+      ng-model="adpFormData[field.keyName]"
+      before-render="disableFutureDates($dates)"
+      on-set-time="closeDropDown()"
+      data-datetimepicker-config="datepickerOptions">
+    </datetimepicker>
+  </div>
+</label>

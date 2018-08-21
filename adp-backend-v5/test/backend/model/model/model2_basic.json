@@ -1,0 +1,17 @@
+{
+  "models": {
+    "model2s": {
+      "type": "Schema",
+      "fullName": "model2s",
+      "limitReturnedRecords": 3,
+      "fields": {
+        "data": {
+          "type": "String",
+          "comment": "Data",
+          "fullName": "Data Full Name",
+          "description": "Data Description"
+        }
+      }
+    }
+  }
+}

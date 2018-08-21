@@ -1,0 +1,29 @@
+{
+  "name": "hc-app-model",
+  "version": "0.3.1",
+  "description": "Healthy Citizen Application Model",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "./node_modules/.bin/gulp"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@bitbucket.conceptant.com:7999/hc/hc-app-model.git"
+  },
+  "author": "Andrey Mikhalchuk, Joshua Phipps",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "async": "^2.4.1",
+    "fs": "0.0.1-security",
+    "lodash": "^4.17.4",
+    "log4js": "^2.10.0",
+    "moment": "^2.18.1",
+    "mongoose": "^4.10.8"
+  },
+  "devDependencies": {
+    "gulp": "github:gulpjs/gulp#4.0",
+    "gulp-rename": "^1.2.2",
+    "gulp-replace": "^0.6.1"
+  }
+}

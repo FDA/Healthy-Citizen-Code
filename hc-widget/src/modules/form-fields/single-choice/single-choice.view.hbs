@@ -1,0 +1,34 @@
+<div class="form-field">
+    <label
+        for="{{fieldName}}"
+        class="label"
+    >
+        {{fullName}}: {{{sanitize question}}}
+    </label>
+
+    <div>
+        {{#each options}}
+            <input
+                type="radio"
+                name="{{../fieldName}}"
+                id="{{../fieldName}}{{@index}}"
+                value="{{this}}"
+            >
+
+            <label
+                class="label-inline"
+                for="{{../fieldName}}{{@index}}"
+            >
+                {{this}}
+            </label>
+        {{/each}}
+    </div>
+
+    <div
+        class="error-message"
+        data-error-name="required"
+        style="display: none;"
+    >
+        Field is required
+    </div>
+</div>

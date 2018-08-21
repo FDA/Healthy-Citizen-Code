@@ -1,0 +1,45 @@
+<label class="select">
+  <div
+    class="lookup-row clearfix"
+    ng-class="{'lookup-row--multi': subjectNames.length > 1 }"
+    >
+    <div
+      class="lookup-col lookup-col--left"
+      ng-if="subjectNames.length > 1">
+      <select
+        adp-select2
+        style="width:100%"
+        aria-label="{{'subject_' + field.keyName}}"
+        class="select2 form-control"
+        ng-model="selectedSubject.selected"
+        data-placeholder="Choose subject"
+        id="{{'subject_' + field.keyName}}">
+        <option value=""></option>
+
+        <option
+          ng-repeat="(key, subject) in subjects track by $index"
+          value="{{key}}">
+          {{subject.table}}
+        </option>
+      </select>
+      <br><br>
+    </div>
+
+    <div
+      class="lookup-col lookup-col--right"
+      ng-if="selectedSubject.selected || getData()">
+      <input
+        type="text"
+        adp-select2
+        style="width:100%"
+        aria-label="{{field.keyName}}"
+        class="select2 form-control"
+        adp-validate="field"
+        ng-required="field.required"
+        data-options="options"
+        name="{{field.keyName}}"
+        ng-model="adpFormData[field.keyName]"
+        id="{{field.keyName}}">
+    </div>
+  </div>
+</label>

@@ -1,0 +1,11 @@
+// New metaschema
+{
+  metaschema: {
+    fields: {
+      sendToFrontEnd: {
+        default: true,
+        description: "If true then this will be included into /app-model endpoint and exposed as a separate endpoint"
+      }
+    }
+  }
+}

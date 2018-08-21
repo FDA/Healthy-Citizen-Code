@@ -1,0 +1,44 @@
+{
+  "interface": {
+    "dashboardSubtypes": {
+      "fields": {
+        "DashboardBasicTile": {
+          "template": {
+            "type": "file",
+            "link": "dashboard_basic_tile_template.ejs"
+          }
+        },
+        "DashboardBasic2x1Tile": {
+          "template": {
+            "type": "file",
+            "link": "dashboard_basic_tile2x1_template.ejs"
+          }
+        },
+        "DashboardBare4x1Tile": {
+          "template": {
+            "type": "file",
+            "link": "dashboard_bare4x1_tile_template.ejs"
+          }
+        },
+        "DashboardBare3x1Tile": {
+          "template": {
+            "type": "file",
+            "link": "dashboard_bare3x1_tile_template.ejs"
+          }
+        },
+        "DashboardBare2x1Tile": {
+          "template": {
+            "type": "file",
+            "link": "dashboard_bare2x1_tile_template.ejs"
+          }
+        },
+        "DashboardBareTile": {
+          "template": {
+            "type": "file",
+            "link": "dashboard_bare_tile_template.ejs"
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,77 @@
+{
+  "extract": [
+    {
+      "path": "/piis/%piiId%",
+      "params": {},
+      "method": "GET",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      },
+      "pathToExtract": "piis"
+    }
+  ],
+  "transform": {
+    "name": {
+      "path": "piis",
+      "transform": [
+        "piisToName"
+      ]
+    },
+    "birthDate": {
+      "path": "piis.demographics[0].birthDate",
+      "transform": [
+        "getDate"
+      ]
+    },
+    "gender": {
+      "path": "piis.demographics[0].gender",
+      "transform": [
+      ]
+    },
+    "race": {
+      "path": "piis.demographics[0].race",
+      "transform": [
+      ]
+    },
+    "ageRange": {
+      "path": "piis.demographics[0].ageRange",
+      "transform": [
+      ]
+    },
+    "telecom": {
+      "path": "piis.email",
+      "transform": [
+        "emailToTelecom"
+      ]
+    },
+    "address": {
+      "path": "piis",
+      "transform": [
+        "piisToAddress"
+      ]
+    },
+    "extension": {
+      "path": "piis",
+      "transform": [
+        "piisToExtension"
+      ]
+    },
+    "request": {
+      "method": "PUT",
+        "url": "Patient/%resourceId%"
+    }
+  },
+  "load": [
+    {
+      "path": "/",
+      "params": {
+        "_format": "json"
+      },
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

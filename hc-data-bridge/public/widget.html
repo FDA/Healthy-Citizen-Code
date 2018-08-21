@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="en">
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<style type="text/css">
+    html, body, body * {
+        margin: 0;
+        padding: 0;
+    }
+
+    .smart-fhir-widget, .smart-fhir-widget * {
+        box-sizing: border-box;
+    }
+
+    .smart-fhir-widget {
+        border: solid 1px #333;
+        padding: 20px;
+        color: black;
+    }
+
+    .smart-fhir-widget__info {
+        color: steelblue;
+        font-size: 16px;
+        text-align: center;
+    }
+</style>
+<head>
+    <meta charset="UTF-8">
+    <title>Widget</title>
+</head>
+<body>
+
+<div class="smart-fhir-widget">
+    <div class="smart-fhir-widget__info">
+        <span id="smart-fhir-widget-message"></span>
+    </div>
+</div>
+
+</body>
+
+<script>
+  const SmartFhirWidget = (function () {
+    function Widget() {
+      // constructor
+      this.organizationUrls = {
+        'Health Intersections': 'http://test.fhir.org/r3',
+        'Oridashi Health Information Solutions': 'http://demo.oridashi.com.au:8298'
+      };
+      this.searchPath = '/Medication/_search?_summary=count&_format=json';
+      this.ui = {
+        // getDataBtn: null
+        fhirMessage: null
+      };
+
+      this.init();
+    }
+
+    Widget.prototype._initUI = function () {
+//      this.ui.getDataBtn = document.getElementById('smart-fhir-widget-btn');
+      this.ui.fhirMessage = document.getElementById('smart-fhir-widget-message');
+    };
+
+    Widget.prototype._getData = function (e) {
+      const promises = [];
+      for (let organization in this.organizationUrls) {
+        const organizationUrl = this.organizationUrls[organization] + this.searchPath;
+        const promise = fetch(organizationUrl)
+          .then(response => response.json())
+          .then(json => {
+            return {
+              organization,
+              json
+            }
+          });
+        promises.push(promise);
+      }
+      Promise.race(promises)
+        .then((resp) => {
+          this.ui.fhirMessage.innerHTML = `Medications count from ${resp.organization} is ${resp.json.total}.`;
+        })
+        .catch((err) => {
+          this.ui.fhirMessage.innerHTML = `Cannot get Medications count.`;
+        });
+    };
+
+    Widget.prototype.init = function () {
+      this._initUI();
+      this._getData();
+    };
+
+    return Widget;
+  })();
+
+  new SmartFhirWidget();
+</script>
+</html>

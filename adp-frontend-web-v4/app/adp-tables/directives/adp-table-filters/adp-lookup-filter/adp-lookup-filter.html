@@ -1,0 +1,29 @@
+<select
+  ng-if="subjectNames.length > 1"
+  adp-select2
+  style="width: 100%"
+  aria-label="{{'subject_' + field.keyName}}"
+  class="select2 filter-lookup-multi"
+  ng-model="selectedSubject.selected"
+  data-placeholder="Choose subject"
+  id="{{'subject_' + field.keyName}}">
+  <option value=""></option>
+
+  <option
+    ng-repeat="(key, subject) in subjects track by $index"
+    value="{{key}}">
+    {{subject.table}}
+  </option>
+</select>
+
+<input
+  ng-if="selectedSubject.selected || !isEmpty()"
+  type="text"
+  adp-select2
+  style="width:100%"
+  ng-change="change()"
+  class="form-control filter-lookup-multi js-lookup-values"
+  adp-list-formatter
+  data-options="options"
+  ng-model="filteredValue"
+>

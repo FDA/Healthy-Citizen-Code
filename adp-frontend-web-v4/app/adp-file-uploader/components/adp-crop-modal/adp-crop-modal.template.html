@@ -1,0 +1,44 @@
+<div class="modal-header text-center">
+  <h3 class="modal-title">
+    Please select an area for your profile picture.
+  </h3>
+
+  <adp-uploader-errors
+    uploader="vm.uploader">
+  </adp-uploader-errors>
+</div>
+
+<div class="adp-crop-modal-body modal-body">
+  <ui-cropper
+    ng-if="vm.inputImage"
+    image="vm.inputImage"
+    cropject="vm.currentItemCropParams"
+    area-type="rectangle"
+    aspect-ratio="vm.aspectRatio"
+    result-image="vm.outputImage">
+  </ui-cropper>
+</div>
+
+<div class="modal-footer">
+  <button
+    class="btn btn-primary"
+    type="button"
+    ng-click="vm.save()">
+    Save
+  </button>
+
+  <button
+    class="btn btn-primary"
+    type="button"
+    ng-if="vm.items.length > 0"
+    ng-click="vm.next()">
+    Crop next image
+  </button>
+
+  <button
+    class="btn btn-default"
+    type="button"
+    ng-click="vm.cancel()">
+    Cancel
+  </button>
+</div>

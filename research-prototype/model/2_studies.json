@@ -1,0 +1,101 @@
+{
+  "models": {
+    "studies": {
+      "type": "Schema",
+      "fullName": "Studies",
+      "labelRenderer": "study",
+      actions: {
+        fields: {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
+      "fields": {
+        "studyName": {
+          "type": "String",
+          "visibilityPriority": 2,
+          "fullName": "Study Name",
+          "required": true,
+          "visible": true,
+          "width": "100",
+          "description": "Full name of the study."
+        },
+        "populationSize": {
+          "type": "Number",
+          "visibilityPriority": 3,
+          "fullName": "Study Population Size",
+          "required": true,
+          "validate": ["min(1)"],
+          "description": "Define the total size of the study population."
+        },
+        "recruitmentStatus": {
+          "type": "String",
+          "visibilityPriority": 4,
+          "fullName": "Recruitment Status",
+          "list": {
+            "name": "recruitmentStatuses",
+            scopes: {
+              userScope: {
+                permissions: "accessAsUser",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "description": "The current status of recruiting for the study."
+        },
+        "startDate": {
+          "type": "Date",
+          "visibilityPriority": 5,
+          "fullName": "Start Date",
+          "required": false,
+          "description": "The study start date."
+        },
+        "primaryComplete": {
+          "type": "Date",
+          "visibilityPriority": 6,
+          "fullName": "Primary Completion Date",
+          "required": false,
+          "description": "The date the study is slated to close operations.",
+          "validate": ["min($startDate)"]
+        },
+        "studyComplete": {
+          "type": "Date",
+          "visibilityPriority": 7,
+          "fullName": "Study Completion Date",
+          "required": false,
+          "description": "The date the study is slated to be fully completed including analysis.",
+          "validate": ["min($primaryComplete)"]
+        },
+        "studyNotes": {
+          "type": "String",
+          "visibilityPriority": 8,
+          "fullName": "Study Notes",
+          "description": "Study Notes."
+        }
+      }
+    }
+  }
+}

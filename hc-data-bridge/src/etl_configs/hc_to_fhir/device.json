@@ -1,0 +1,65 @@
+{
+  "extract": [
+    {
+      "path": "/phis/%phiId%",
+      "params": {},
+      "method": "GET",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      },
+      "pathToExtract": "phis"
+    }
+  ],
+  "transform": {
+    "pretransform": {
+      "transform": [
+        "splitMyDevicesToArray"
+      ]
+    },
+    "id": {
+      "path": "phis.myDevice.serialNumber",
+      "transform": [
+      ]
+    },
+    "lotNumber": {
+      "path": "phis.myDevice.lot",
+      "transform": [
+      ]
+    },
+    "manufactureDate": {
+    },
+    "expirationDate": {
+    },
+    "status": {
+    },
+    "patient": {
+      "path": "phis.guid",
+      "transform": [
+        "guidToPatient"
+      ]
+    },
+    "extension": {
+      "path": "phis.myDevice",
+      "transform": [
+        "myDeviceToExtension"
+      ]
+    },
+    "request": {
+      "method": "PUT",
+      "url": "Device/%resourceId%"
+    }
+  },
+  "load": [
+    {
+      "path": "/",
+      "params": {
+        "_format": "json"
+      },
+      "method": "POST",
+      "headers": {
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}
