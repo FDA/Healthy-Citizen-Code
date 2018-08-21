@@ -1,0 +1,19 @@
+<table class="{{@root.config.tableClass}}">
+  <thead>
+  <tr>
+    {{#for 0 @root.config.rowLength heads}}
+      <th
+        data-index="{{@index}}"
+        data-sort-key="{{this}}"
+        style="{{@root.config.cellWidth}}"
+      >
+        {{@current}}
+        <span class="sort-by"></span>
+      </th>
+    {{/for}}
+  </tr>
+  </thead>
+
+  {{> partials/tbody }}
+
+</table>

@@ -1,0 +1,18 @@
+<hc-content-container>
+
+    <hc-section-container>
+        <hc-section-title>Questionnaire</hc-section-title>
+        <hc-widget
+          ng-if="!vm.loading && vm.fhirId"
+          widget-id="{{'test-201804020319'}}"
+          fhir-id="{{vm.fhirId}}"
+          hc-research-url="{{vm.hcResearchUrl}}"
+          fhir-data-url="{{vm.fhirDataUrl}}"
+          url="{{vm.url}}"
+        >
+        </hc-widget>
+
+        <p ng-if="!vm.loading && !vm.fhirId">No fhir id found.</p>
+    </hc-section-container>
+
+</hc-content-container>

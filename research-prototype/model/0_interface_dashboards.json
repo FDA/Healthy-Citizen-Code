@@ -1,0 +1,109 @@
+{
+  "interface": {
+    "dashboard": {
+      "type": "Dashboard",
+      "fullName": "Main Dashboard",
+      "comment": "This defines the new main system dashboard. Note that it uses new schema.",
+      "permissions": [
+        "doUserActivities"
+      ],
+      "fields": {
+        "questionnaireProgressChart": {
+          "type": "DashboardItem",
+          "subtype": "DashboardBare4x1Tile",
+          "id": "questionnaireUsers",
+          "fullName": "Total Number of Users the Questionnaire was sent to",
+          "description": "Dashboard chart describes total number of users the questionnaire was sent to",
+          "template": {
+            "type": "file",
+            "link": "dashboard_chart_template.ejs"
+          },
+          "parameters": {
+            "chartId": "questionnaireUsers"
+          }
+        },
+
+        "questionnaireSpentTimeChart": {
+          "type": "DashboardItem",
+          "subtype": "DashboardBare4x1Tile",
+          "id": "questionnaireTime",
+          "fullName": "Average Time",
+          "description": "Dashboard chart describes average time spent on questionnaire vs anticipated time",
+          "template": {
+            "type": "file",
+            "link": "dashboard_chart_template.ejs"
+          },
+          "parameters": {
+            "chartId": "questionnaireSpentTimeChart"
+          }
+        },
+
+        "questionnaireDayChart": {
+          "type": "DashboardItem",
+          "subtype": "DashboardBare4x1Tile",
+          "id": "questionnaireByDay",
+          "fullName": "Number of Questionnaires Responded",
+          "description": "Number of questionnaires responded in the last 30 days grouped by day",
+          "template": {
+            "type": "file",
+            "link": "dashboard_chart_template.ejs"
+          },
+          "parameters": {
+            "chartId": "questionnaireByDay"
+          }
+        },
+
+        "numberOfQuestionnaires": {
+          "type": "DashboardItem",
+          "subtype": "DashboardBasicTile",
+          "id": "numberOfQuestionnaires",
+          "fullName": "Number of Questionnaires",
+          "description": "Number of questionnaires",
+          "template": {
+            "type": "file",
+            "link": "dashboard_number_tile.ejs"
+          },
+          "parameters": {
+            "action": "view",
+            "linkLabel": "View Questionnaires",
+            "link": "/questionnaires"
+          }
+        },
+
+        "numberOfAnswers": {
+          "type": "DashboardItem",
+          "subtype": "DashboardBasicTile",
+          "id": "numberOfAnswers",
+          "fullName": "Number of Answers",
+          "description": "Number of answers",
+          "template": {
+            "type": "file",
+            "link": "dashboard_number_tile.ejs"
+          },
+          "parameters": {
+            "action": "view",
+            "linkLabel": "View answers",
+            "link": "/questionnaireAnswers"
+          }
+        },
+
+        "numberOfParticipants": {
+          "type": "DashboardItem",
+          "subtype": "DashboardBasicTile",
+          "id": "numberOfParticipants",
+          "fullName": "Number of Participants",
+          "description": "Number of participants",
+          "template": {
+            "type": "file",
+            "link": "dashboard_number_tile.ejs"
+          },
+          "parameters": {
+            "action": "view",
+            "linkLabel": "View numbers of participants",
+            "link": "/participants"
+          }
+        }
+      }
+    }
+  }
+}

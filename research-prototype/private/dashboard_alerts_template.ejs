@@ -1,0 +1,10 @@
+<list>
+    <% for (var itemIndex in this) { %>
+    <% var item = this[itemIndex]; var date = new Date(item.date); %>
+    <list-item>
+        <string border>
+            <% (date.getMonth() + 1) + '/' + date.getDate() + '/' + ( date.getYear() % 100 ) + ': ' + item.alert %>
+        </string>
+    </list-item>
+    <% } %>
+</list>

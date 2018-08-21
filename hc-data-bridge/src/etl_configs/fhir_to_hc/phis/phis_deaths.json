@@ -1,0 +1,30 @@
+{
+  "extract": [
+    {
+      "path": "/Patient",
+      "params": {
+        "_id": "%patientId%",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "date": {
+      "path": "Patient",
+      "transform": [
+        "patientToDeathDate"
+      ]
+    }
+  },
+  "load": [
+    {
+      "path": "/phis/%phisId%/deaths/%deathId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

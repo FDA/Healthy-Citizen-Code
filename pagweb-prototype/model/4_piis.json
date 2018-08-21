@@ -1,0 +1,219 @@
+{
+  "models": {
+    "piis": {
+      "type": "Schema",
+      "fullName": "My Profile",
+      "singleRecord": true,
+      "limitReturnedRecords": 1,
+      "fields": {
+        "firstName": {
+          "fullName": "First Name",
+          "type": "String",
+          "default": "",
+          "required": true,
+          "colspan": 2,
+          "description": "Enter your First/Given name."
+        },
+        "lastName": {
+          "fullName": "Last Name",
+          "type": "String",
+          "default": "",
+          "required": true,
+          "colspan": 2,
+          "description": "Enter your Family/Surname name."
+        },
+        "displayName": {
+          "type": "String",
+          "generated": true,
+          "fullName": "Display Name",
+          "description": "The name to display."
+        },
+        "gender": {
+          "type": "String",
+          "list": {
+            name: "genders",
+            scopes: {
+              userScope: {
+                permissions: "accessAsUser",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "fullName": "Gender",
+          "description": "Gender."
+        },
+        "age": {
+          "type": "String",
+          "list": {
+            name: "ages",
+            scopes: {
+              userScope: {
+                permissions: "accessAsUser",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "fullName": "Age",
+          "description": "Age range."
+        },
+        "geographicRegion": {
+          "fullName": "Geographic Region",
+          "type": "String",
+          "list": {
+            "name": "geographicRegions",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsUser",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "default": "",
+          "required": false,
+          "description": "High level geographic region of participant"
+        },
+        "email": {
+          "type": "String",
+          "default": "",
+          "required": true,
+          "subtype": "Email",
+          "fullName": "Email",
+          "description": "Email address. Could be different from the password recovery email."
+        },
+        "fhirId": {
+          "fullName": "Deidentified ID",
+          "type": "String",
+          "default": "",
+          "required": true,
+          "description": "User's Deidentified ID"
+        },
+        "fhirServerUrl": {
+          "type": "String",
+          "subtype": "Url",
+          "fullName": "Hospital Health Record Server URL",
+          "required": true,
+          "description": "Full URL of for the hospital EHR"
+        },
+        "shareData": {
+          "type": "Boolean",
+          "fullName": "Consent to allow Healthy Citizen to access your de-identified health data",
+          "description": "Checking this box will allow Healthy Citizen tools to read from your health records."
+        },
+        "studyData": {
+          "type": "Boolean",
+          "fullName": "Consent to share de-identified health data with Healthy Citizen for research purposes",
+          "description": "Checking this box will allow Healthy Citizen to share your de-identified health data with FDA researchers."
+        },
+        "studyParticipate": {
+          "type": "Boolean",
+          "fullName": "Consent to allow FDA researchers to invite you to participate in studies",
+          "description": "Checking this box will allow FDA researchers to invite you to participate in studies that you qualify for."
+        },
+        "linkedAccounts": {
+          "type": "Array",
+          "visible": false,
+          "fullName": "linkedAccounts",
+          "description": "List of social networks accounts linked to this profile",
+          "fields": {
+            "name": {
+              "type": "String",
+              "generated": true,
+              "visible": false,
+              "fullName": "Provider",
+              "description": "Account provider (such as facebook, twitter etc)"
+            },
+            "data": {
+              "type": "Mixed",
+              "visible": false,
+              "fullName": "Provider Data",
+              "description": "Account provider-specific data"
+            }
+          }
+        },
+        "updated": {
+          "type": "Date",
+          "visible": false,
+          "generated": true,
+          "fullName": "Updated",
+          "description": "The system generated date when the citizen user account was updated."
+        },
+        "created": {
+          "type": "Date",
+          "visible": false,
+          "defaultF": "dateNow",
+          "generated": true,
+          "fullName": "Created",
+          "description": "The system generated date when the citizen user account was created."
+        },
+        "resetPasswordToken": {
+          "type": "String",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Token",
+          "description": "The system assigned token that is sent to the citizen when they request a password reset."
+        },
+        "resetPasswordExpires": {
+          "type": "Date",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Expires",
+          "description": "The date the password token will expire."
+        },
+        "settings": {
+          "type": "Object",
+          "fullName": "Settings",
+          "visible": false,
+          "fields": {
+            "twoFactorAuth": {
+              "fullName": "Two Factor Authentication",
+              "type": "Boolean",
+              "visible": false
+            },
+            "phoneVerified": {
+              "type": "Boolean",
+              "fullName": "Phone Verified",
+              "visible": false
+            },
+            "twoFactorAuthSecretBase32": {
+              "type": "String",
+              "fullName": "Two Factor Authentication Secret",
+              "generated": true,
+              "visible": false
+            }
+          }
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      }
+    }
+  }
+}

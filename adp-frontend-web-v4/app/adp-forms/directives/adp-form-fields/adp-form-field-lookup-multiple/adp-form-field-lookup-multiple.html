@@ -1,0 +1,25 @@
+<adp-form-field-container
+  adp-data="data"
+  adp-field="adpField">
+
+  <label
+    class="label">
+    {{adpField.fullName}} multi
+    <span ng-show="adpField.required">&nbsp;*</span>
+
+    <adp-tooltip
+      adp-field="adpField">
+    </adp-tooltip>
+  </label>
+
+  <lookup-multiple-control
+    field="adpField"
+    adp-form-data="adpFormData"
+    ui-props="adpFieldUiProps"
+  >
+  </lookup-multiple-control>
+
+  <adp-messages
+    adp-field="adpField">
+  </adp-messages>
+</adp-form-field-container>

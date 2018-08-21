@@ -1,0 +1,26 @@
+<adp-form-field-container
+  class="form-field-height"
+  adp-field="adpField">
+
+  <label
+    class="label">
+    {{adpField.fullName}}
+    <span ng-show="adpField.required">&nbsp;*</span>
+
+    <adp-tooltip
+      adp-field="field">
+    </adp-tooltip>
+  </label>
+
+  <imperial-units-control
+    field="adpField"
+    adp-form-data="adpFormData"
+    ui-props="adpFieldUiProps"
+  >
+  </imperial-units-control>
+
+  <adp-messages
+    adp-field="adpField">
+  </adp-messages>
+
+</adp-form-field-container>

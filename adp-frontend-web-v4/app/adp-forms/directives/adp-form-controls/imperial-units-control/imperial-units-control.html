@@ -1,0 +1,30 @@
+<div class="select form-group row">
+  <input
+    type="text"
+    style="display: none;"
+    adp-height-required="field.required"
+    adp-validate="field"
+    ng-model="adpFormData[field.keyName]"
+    name="{{field.keyName}}">
+
+  <div
+    ng-repeat="unit in units track by $index"
+    ng-class="{ 'col-6': units.length > 1, 'col-12': units.length == 1 }"
+    class="col">
+    <select
+      adp-select2
+      aria-label="{{field.keyName + '.' + unit.name}}"
+      ng-change="validate()"
+      adp-convert-to-number
+      class="select2 form-control"
+      data-options="options"
+      ng-model="viewValue[unit.name]">
+      <option value="0">0{{unit.label}}</option>
+      <option
+        ng-repeat="rangeValue in ranges[unit.name] track by $index"
+        value="{{rangeValue.value}}">
+        {{rangeValue.label}}
+      </option>
+    </select>
+  </div>
+</div>

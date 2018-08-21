@@ -1,0 +1,62 @@
+{
+  "extract": [
+    {
+      "path": "/Patient",
+      "params": {
+        "_id": "%patientId%",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "birthDate": {
+      "path": "Patient.birthDate",
+      "transform": []
+    },
+    "ageRange": {
+      "path": "Patient.birthDate",
+      "transform": [
+        "birthDateToAgeRange"
+      ]
+    },
+    "gender": {
+      "path": "Patient.gender",
+      "transform": []
+    },
+    "geographicRegion": {
+      "path": "Patient.address",
+      "transform": [
+        "addressToGeographicRegion"
+      ]
+    },
+    "zip": {
+      "path": "Patient.address",
+      "transform": [
+        "addressToZip"
+      ]
+    },
+    "guid": {
+      "path": "Patient.extension",
+      "transform": [
+        "extensionToGuid"
+      ]
+    },
+    "shareDeidentifiedDataWithResearchers": {
+      "path": "Patient.extension",
+      "transform": [
+        "extensionToShareDeidentifiedDataWithResearchers"
+      ]
+    }
+  },
+  "load": [
+    {
+      "path": "/piis/%piiId%/demographics/%demographicsId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

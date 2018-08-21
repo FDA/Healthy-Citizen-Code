@@ -1,0 +1,69 @@
+{
+  "name": "hc-data-bridge",
+  "version": "1.0.0",
+  "description": "HC data bridge to other protocols",
+  "main": "app.js",
+  "scripts": {
+    "start": "pm2 start server.js",
+    "stop": "pm2 stop all",
+    "logs": "pm2 logs",
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@bitbucket.conceptant.com:7999/hc/hc-data-bridge.git"
+  },
+  "keywords": [
+    "Healthy",
+    "Citizen",
+    "HC",
+    "FHIR",
+    "data",
+    "bridge"
+  ],
+  "author": "ahvetskovich",
+  "license": "ISC",
+  "dependencies": {
+    "JSONStream": "^1.3.1",
+    "app-root-path": "^2.0.1",
+    "axios": "^0.18.0",
+    "bluebird": "^3.5.0",
+    "crawler": "^1.0.5",
+    "csv-parser": "^1.11.0",
+    "datapumps": "^0.5.1",
+    "dotenv": "^4.0.0",
+    "event-stream": "^3.3.4",
+    "faker": "^4.1.0",
+    "fast-csv": "^2.4.1",
+    "fhir.js": "0.0.20",
+    "fs-extra": "^5.0.0",
+    "glob": "^7.1.2",
+    "lodash": "^4.17.4",
+    "log4js": "^2.3.2",
+    "moment": "^2.18.1",
+    "mongodb": "^2.2.30",
+    "mongoose": "^4.10.8",
+    "multer": "^1.3.0",
+    "node-fetch": "^1.7.1",
+    "node-xlsx": "^0.11.0",
+    "object-hash": "^1.3.0",
+    "optimist": "^0.6.1",
+    "p-retry": "^2.0.0",
+    "pdf2json": "^1.1.7",
+    "pm2": "^2.5.0",
+    "promise-streams": "^1.0.1",
+    "relaxed-json": "^1.0.1",
+    "request": "^2.85.0",
+    "request-progress": "^3.0.0",
+    "request-promise": "^4.2.1",
+    "restify": "^5.0.0",
+    "restify-plugins": "^1.6.0",
+    "shelljs": "^0.8.2",
+    "unzip": "^0.1.11",
+    "uuid": "^3.1.0"
+  },
+  "devDependencies": {
+    "eslint-config-airbnb-standard": "^1.6.6",
+    "nodemon": "^1.11.0"
+  }
+}

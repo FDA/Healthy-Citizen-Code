@@ -1,0 +1,78 @@
+<form
+  name="form"
+  class="smart-form client-form"
+  novalidate
+  adp-fullscreen="isFullscreen"
+  ng-submit="submit()"
+  >
+
+  <header class="smart-form-header">
+    <span ng-transclude="header"></span>
+
+    <i
+      class="smart-form-fullscreen fa"
+      ng-if="!disableFullscreen || isFullscreenSupported()"
+      ng-click="toggleFullscreen()"
+      ng-class="{ 'fa-expand': !isFullscreen, 'fa-compress': isFullscreen }"
+    >
+    </i>
+  </header>
+
+  <fieldset
+    class="smart-form-controls"
+    ng-transclude="body">
+  </fieldset>
+
+  <div ng-switch="type">
+    <div ng-switch-when="accordion">
+      <adp-form-group-accordion
+        fields="fields"
+        form-data="formData"
+        form-params="adpFormParams"
+      >
+      </adp-form-group-accordion>
+    </div>
+
+    <div ng-switch-when="wizard">
+      <adp-form-group-wizard
+        fields="fields"
+        form-data="formData"
+        form-params="adpFormParams"
+      >
+      </adp-form-group-wizard>
+    </div>
+
+    <div ng-switch-when="grouping">
+      <adp-form-group-grouping
+        fields="fields"
+        form-data="formData"
+        form-params="adpFormParams"
+      >
+      </adp-form-group-grouping>
+    </div>
+
+    <fieldset ng-switch-default>
+      <adp-form-field-factory
+        ng-repeat="field in fields.notGrouped track by $index"
+        adp-field="field"
+        adp-form-data="formData">
+      </adp-form-field-factory>
+    </fieldset>
+  </div>
+
+  <fieldset
+    class="input-container state-error"
+    ng-if="form.$submitted && errorCount > 0">
+    <div class="note-error col col-12 text-right">
+      <span ng-show="errorCount == 1">
+        {{errorCount}} error found in the form.
+      </span>
+
+      <span ng-show="errorCount >= 2">
+        {{errorCount}} errors found in the form.
+      </span>
+    </div>
+  </fieldset>
+
+  <footer ng-transclude="footer"></footer>
+</form>

@@ -1,0 +1,21 @@
+{
+  "name": "widget-manager",
+  "version": "0.0.1",
+  "description": "Widget Manager App Model",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@bitbucket.conceptant.com:7999/hc/widget-manager.git"
+  },
+  "author": "Andrey Mikhalchuk",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "lodash": "^4.17.4",
+    "log4js": "^2.10.0",
+    "mongoose": "^4.10.8"
+  },
+  "devDependencies": {}
+}

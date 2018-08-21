@@ -1,0 +1,20 @@
+{
+  "name": "hc-util",
+  "version": "0.0.1",
+  "description": "Implementation of Healthy Citizen utility RESTful API",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "ssh://git@bitbucket.conceptant.com:7999/hc/hc-util.git"
+  },
+  "author": "Andrey Mikhalchuk <amikhalchuk@conceptant.com>",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "dotenv": "^5.0.1",
+    "lodash": "^4.17.10",
+    "request": "^2.87.0",
+    "request-promise": "^4.2.2"
+  }
+}

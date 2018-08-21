@@ -1,0 +1,22 @@
+<div class="form-field">
+    <label
+        for="{{fieldName}}"
+        class="label"
+    >
+        {{fullName}}: {{{sanitize question}}}
+    </label>
+
+    <input
+        type="checkbox"
+        id="{{fieldName}}"
+        name="{{fieldName}}"
+    />
+
+    <div
+        class="error-message"
+        data-error-name="required"
+        style="display: none;"
+    >
+        Field is required
+    </div>
+</div>

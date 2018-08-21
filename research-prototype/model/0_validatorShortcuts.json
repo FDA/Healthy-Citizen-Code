@@ -1,0 +1,38 @@
+{
+  "validatorShortcuts": {
+    "dischargeDispositionAndStatusExpired": {
+      "arguments": {
+      },
+      "errorMessages": {
+        "default": "If 'Discharge Disposition' = 'Expired' then 'Discharge Status' = 'Expired'"
+      }
+    },
+    "notBeforeEncounterAdmissionDate": {
+      "arguments": {
+      },
+      "errorMessages": {
+        "default": "This date cannot be before encounter Admission Date ($date)"
+      }
+    },
+    "notAfterEncounterDischargeDate": {
+      "arguments": {
+      },
+      "errorMessages": {
+        "default": "This date cannot be after encounter Discharge Date ($date)"
+      }
+    },
+    "homeLabsTestResultUnit": {
+      "arguments": {
+      },
+      "errorMessages": {
+        "default": "Incorrect result test unit",
+        "1": "Blood Glucose test result is measured in mg/dL",
+        "2": "Blood Pressure test result is measured in ",
+        "3": "Blood Oxygen test result is measured in %",
+        "4": "Weight test result is measured in lbs",
+        "5": "Lung Volume test result is measured in liters",
+        "6": "Heart Rate test result is measured in BPM"
+      }
+    }
+  }
+}

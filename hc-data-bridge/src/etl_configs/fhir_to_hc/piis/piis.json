@@ -1,0 +1,53 @@
+{
+  "extract": [
+    {
+      "path": "/Patient",
+      "params": {
+        "_id": "%patientId%",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "_id": {
+      "path": "Patient.id",
+      "transform": [
+      ]
+    },
+    "firstName": {
+      "path": "Patient.name",
+      "transform": [
+        "nameToGiven"
+      ]
+    },
+    "lastName": {
+      "path": "Patient.name",
+      "transform": [
+        "nameToFamily"
+      ]
+    },
+    "displayName": {
+      "path": "Patient.name",
+      "transform": [
+        "nameToDisplayName"
+      ]
+    },
+    "email": {
+      "path": "Patient.telecom",
+      "transform": [
+        "telecomToEmail"
+      ]
+    }
+  },
+  "load": [
+    {
+      "path": "/piis/%piiId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

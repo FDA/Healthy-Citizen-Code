@@ -1,0 +1,56 @@
+<label class="input">
+  <div
+    class="geo-loader"
+    ng-if="detecting">
+    <span class="fa fa-gear fa-4x fa-spin"></span> <span class="geo-loader-text">Locating...</span>
+  </div>
+
+  <input readonly
+         ng-if="!fieldParams.showAddress"
+         ng-model="adpFormData[labelName]"
+         class="form-control">
+
+  <input places-auto-complete
+         ng-keypress="preventSubmitOnEnter($event)"
+         size=80
+         class="form-control-location form-control"
+         ng-class="{'detecting': detecting}"
+         ng-model="adpFormData[labelName]"
+         types="['address']"
+         ng-disabled="detecting"
+         ng-if="isReady && fieldParams.showAddress"
+         on-place-changed="placeChanged()"/>
+
+  <input type="{{uiProps.uiSubtypeType}}"
+         name="{{field.keyName}}"
+         id="{{field.keyName}}"
+         adp-validate="field"
+         style="display: none;"
+         escape-letters="field.type == 'Number'"
+         ng-model="adpFormData[field.keyName]"
+         ng-required="field.required"
+         class="form-control">
+
+  <adp-messages
+    adp-field="field">
+  </adp-messages>
+
+  <button
+    class="adp-form-field-location-btn btn btn-primary"
+    ng-click="detect()"
+    ng-if="fieldParams.showLocate"
+    type="button">
+    Detect location
+  </button>
+
+  <ng-map
+    ng-if="isReady && fieldParams.showMap"
+    on-click="onClick()"
+    zoom="{{map.zoom}}"
+    center="{{map.center}}">
+    <marker
+      position="{{map.markerPosition}}">
+    </marker>
+  </ng-map>
+
+</label>

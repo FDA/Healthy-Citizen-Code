@@ -1,0 +1,264 @@
+{
+  "models": {
+    "users": {
+      "type": "Schema",
+      "fullName": "Users",
+      "fields": {
+        "userRecordId": {
+          "type": "ObjectID",
+          "fullName": "User Record Id",
+          "required": "true",
+          "lookup": {
+            "table": "userRecords",
+            "foreignKey": "_id",
+            "label": "name"
+          },
+          "visible": "false",
+          "singleRecord": "true"
+        }
+      }
+    },
+    "userRecords": {
+      "type": "Schema",
+      "fullName": "User Records",
+      "singleRecord": "true",
+      "fields": {
+        "name": {
+          "type": "String",
+          "fullName": "Name",
+          "description": "Fake field required for lookup to work"
+        }
+      }
+    },
+    "widgets": {
+      "type": "Schema",
+      "fullName": "Widgets",
+      "actions": {
+        "fullName": "Actions",
+        "fields": {
+          "update": {
+            "fullName": "Update",
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "fullName": "Delete",
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "fullName": "Clone",
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "fullName": "View Details",
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "fullName": "View",
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "fullName": "Create",
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "fullName": "Scopes",
+        "ownRecordScope": {
+          "fullName": "Own Record Scope",
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
+      "fields": {
+        "id": {
+          "type": "String",
+          "fullName": "Widget Id",
+          "description": "Widget ID",
+          "required": "true"
+        },
+        "name": {
+          "type": "String",
+          "fullName": "Widget Name",
+          "description": "Name given to the instance of the widget",
+          "required": "true"
+        },
+        "type": {
+          "type": "String",
+          "fullName": "Widget Type",
+          "description": "Select the type of widget to configure",
+          "required": "true",
+          "list": {
+            "values": {
+              "drugInteraction": "drugInteraction",
+              "questionnaire": "questionnaire",
+              "adverseEvents": "adverseEvents",
+              "recalls": "recalls",
+              "drugsVisualization": "drugsVisualization",
+              "ndcLookup": "ndcLookup",
+              "adverseEventsAlt": "adverseEventsAlt"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "fontSize": {
+          "type": "Number",
+          "fullName": "Font Size",
+          "description": "Font size in pixels to apply to text",
+          "list": {
+            "values": {
+              "12": "12",
+              "13": "13",
+              "14": "14",
+              "16": "16",
+              "18": "18",
+              "20": "20",
+              "22": "22",
+              "24": "24",
+              "26": "26",
+              "28": "28"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "fontFace": {
+          "fullName": "Font Type",
+          "description": "Type of font applied to text",
+          "list": {
+            "values": {
+              "Arial": "Arial",
+              "Helvetica": "Helvetica",
+              "Times New Roman": "Times New Roman",
+              "Verdana": "Verdana",
+              "Georgia": "Georgia",
+              "Garamond": "Garamond",
+              "Palatino": "Palatino",
+              "Bookman": "Bookman",
+              "Comic Sans MS": "Comic Sans MS",
+              "Impact": "Impact",
+              "Courier": "Courier"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "fontStyle": {
+          "type": "String[]",
+          "fullName": "Font Style",
+          "description": "Font style applied to text",
+          "list": {
+            "values": {
+              "bold": "bold",
+              "italic": "italic",
+              "underline": "underline",
+              "strikeout": "strikeout",
+              "none": "none"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "welcomeText": {
+          "type": "String",
+          "fullName": "Questionnaire Welcome Text",
+          "description": "Text presented at the beginning of a  questionnaire",
+          "show": "row['type']=='questionnaire'"
+        },
+        "thankYouText": {
+          "type": "String",
+          "fullName": "Questionnaire Completion Text",
+          "description": "Text presented upon completion of a questionnaire",
+          "show": "row['type']=='questionnaire'"
+        }
+      }
+    }
+  },
+  "interface": {
+    "app": {
+      "fullName": "App",
+      "auth": {
+        "requireAuthentication": false,
+        "enableAuthentication": true,
+        "enableRegistration": true,
+        "enablePermissions": true,
+        "enableUserPasswordReset": false,
+        "enableMfa": false,
+        "requireMfa": false
+      },
+      "title": "Widget Manager",
+      "slogan": "Manage Widgets with HC",
+      "name": "WidgetManager",
+      "description": "HC Widget Manager",
+      "keywords": "Widget, Manager, HC",
+      "theme": "default",
+      "header": {
+        "visible": true,
+        "components": {
+          "logo": true,
+          "alerts": false,
+          "projectSelector": false,
+          "languageSelector": false,
+          "fullScreenToggle": true,
+          "search": false,
+          "logoutButton": true,
+          "menuToggle": false
+        }
+      },
+      "footer": {
+        "visible": true,
+        "components": {
+          "copyright": true,
+          "copyrightText": "Healthy Citizen, 2017-2018",
+          "lastAccountActivity": false,
+          "status": false
+        }
+      }
+    },
+    "mainMenu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "default": "/widgets",
+      "fields": {
+        "widgets": {
+          "type": "MenuItem",
+          "fullName": "Widgets",
+          "link": "/userRecords/:userRecordId/widgets",
+          "icon": {
+            "type": "font-awesome",
+            "link": "fire"
+          }
+        }
+      }
+    }
+  }
+}

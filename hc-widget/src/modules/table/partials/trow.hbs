@@ -1,0 +1,27 @@
+{{#each this}}
+  <tr class="td-accordion-parent">
+    {{#for 0 @root.config.rowLength this}}
+      {{#xif @first '&&' @root.config.accordion}}
+        <td class="td-inner">
+          <button class="accordion-control row"></button>
+          {{{sanitize @current.view}}}
+        </td>
+      {{else}}
+        <td>
+          {{{sanitize @current.view}}}
+        </td>
+      {{/xif}}
+    {{/for}}
+  </tr>
+
+
+  {{#if @root.config.accordion}}
+    <tr class="td-accordion-child is-hidden">
+      <td colspan="{{@root.config.rowLength}}">
+        {{#for @root.config.rowLength @root.config.rowEnd this}}
+          <p><strong>{{@key}}</strong>: {{{sanitize @current.view}}}</p>
+        {{/for}}
+      </td>
+    </tr>
+  {{/if}}
+{{/each}}

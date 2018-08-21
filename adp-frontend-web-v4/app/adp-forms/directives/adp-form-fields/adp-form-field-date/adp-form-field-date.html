@@ -1,0 +1,25 @@
+<adp-form-field-container
+  adp-is-error="isError"
+  adp-field="adpField">
+
+  <label
+    class="label">
+    {{adpField.fullName}}
+    <span ng-show="adpField.required">&nbsp;*</span>
+
+    <adp-tooltip
+      adp-field="adpField">
+    </adp-tooltip>
+  </label>
+
+  <date-control
+    field="adpField"
+    adp-form-data="adpFormData"
+    ui-props="adpFieldUiProps"
+  >
+  </date-control>
+
+  <adp-messages
+    adp-field="adpField">
+  </adp-messages>
+</adp-form-field-container>

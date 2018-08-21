@@ -1,0 +1,53 @@
+<ng-form name="{{field.keyName}}">
+  <div
+    class="subform-frame clearfix"
+    ng-class="{
+    'subform-frame--is-collapsed': !isVisible,
+    'subform-frame--invalid': rootForm.$submitted && form[field.keyName].$invalid
+   }">
+    <h3
+      class="subform-frame__title"
+      ng-class="{
+        'subform-frame__title--invalid': rootForm.$submitted && form[field.keyName].$invalid,
+        'subform-frame__title--opened': isVisible
+      }"
+    >
+      <div>
+        <button
+          type="button"
+          class="subform-frame__collapse subform-frame__btn btn fa fa-2x"
+          ng-click="toggle()"
+          ng-class="{ 'fa-minus-square-o': isVisible, 'fa-plus-square-o': !isVisible }">
+        </button>
+
+        {{field.fullName}}
+
+        <adp-tooltip
+          adp-field="field">
+        </adp-tooltip>
+      </div>
+
+      <div ng-if="rootForm.$submitted && errorCount > 0">
+        <span ng-show="errorCount == 1">
+          {{errorCount}} error found.
+        </span>
+
+          <span ng-show="errorCount >= 2">
+          {{errorCount}} errors found.
+        </span>
+      </div>
+    </h3>
+
+    <div
+      class="subform-frame__content clearfix"
+      ng-hide="!isVisible"
+    >
+      <adp-form-field-factory
+        ng-repeat="subField in fields track by $index"
+        adp-field="subField"
+        adp-field-ui-props="uiProps"
+        adp-form-data="subFormData">
+      </adp-form-field-factory>
+    </div>
+  </div>
+</ng-form>

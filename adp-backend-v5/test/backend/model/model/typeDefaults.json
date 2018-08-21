@@ -1,0 +1,111 @@
+{
+  "typeDefaults": {
+    "comment": "This file provides defaults for various attributes depending on the field type. One can always override these defaults by providing value directly in the field",
+    "fields": {
+      "Schema": {
+        "limitReturnedRecords": 30
+      },
+      "Subschema": {
+        "limitReturnedRecords": 0
+      }
+    }
+  },
+  "subtypeDefaults": {
+    "fields": {
+      "Password": {
+        "width": 80,
+        "validate": [
+          "min(8)",
+          {
+            "validator": "regex",
+            "arguments": {
+              "regex": "((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%!&^*-_]).{8})",
+              "regexOptions": "i"
+            },
+            "errorMessages": {
+              "default": "Password must contain at least one of each: digit 0-9, lowercase character, uppercase character and one special character: @#$%!&^*-_"
+            }
+          }
+        ]
+      },
+      "ImperialHeight": {
+        "transform": [
+          [
+            "heightImperialToMetric",
+            "heightMetricToImperial"
+          ]
+        ],
+        "validate": [
+          {
+            "validator": "imperialHeightRange",
+            "arguments": {
+              "from": [0,1],
+              "to": [9,11]
+            },
+            "errorMessages": {
+              "default": "This height doesn't look reasonable, shoudld be more than 1\" less than 9'11\""
+            }
+          }
+        ]
+      },
+      "ImperialWeight": {
+        "transform": [
+          "trim",
+          [
+            "weightImperialToMetric",
+            "weightMetricToImperial"
+          ]
+        ],
+        "validate": [
+          "min(1)",
+          "max(1400)"
+        ]
+      },
+      "Email": {
+        "width": 150,
+        "validate": [
+          {
+            "validator": "regex",
+            "arguments": {
+              "regex": "^[a-zA-Z0-9.!#$%&’*+\\/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\\.[a-zA-Z0-9-]+)*$",
+              "regexOptions": "i"
+            },
+            "errorMessages": {
+              "default": "Please enter correct email"
+            }
+          }
+        ]
+      },
+      "Url": {
+        "width": 150,
+        "validate": [
+          {
+            "validator": "regex",
+            "arguments": {
+              "regex": "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)*\\/?$",
+              "regexOptions": "i"
+            },
+            "errorMessages": {
+              "default": "Please enter correct URL"
+            }
+          }
+        ]
+      },
+      "Phone": {
+        "width": 80,
+        "validate": [
+          {
+            "validator": "regex",
+            "arguments": {
+              "regex": "\\d{3}[^\\d]*\\d{3}[^\\d]*\\d{4}",
+              "regexOptions": "i"
+            },
+            "errorMessages": {
+              "default": "Please provide correct US phone number"
+            }
+          }
+        ]
+      }
+    }
+  }
+}

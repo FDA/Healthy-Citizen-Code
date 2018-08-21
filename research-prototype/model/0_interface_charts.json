@@ -1,0 +1,115 @@
+{
+  "interface": {
+    "charts": {
+      "questionnaireUsers": {
+        "subtype": "Highcharts",
+        "fullName": "Users by Questionnaire",
+        "description": "Chart describes total number of users the questionnaire was sent to",
+        "specification": {
+          "chart": {
+            "type": "bar",
+            "width": null
+          },
+          "title": {
+            "text": "Questionnaire Users"
+          },
+          "yAxis": {
+            "allowDecimals": false,
+            "min": 0,
+            "title": {
+              "text": "Number of Users"
+            }
+          },
+          "legend": {
+            "reversed": true
+          },
+          "plotOptions": {
+            "series": {
+              "stacking": "normal",
+              "pointWidth": 8
+            }
+          },
+          "credits": {
+            "enabled": false
+          }
+        }
+      },
+
+      "questionnaireSpentTimeChart": {
+        "subtype": "Highcharts",
+        "fullName": "Questionnaire User",
+        "description": "Average time spent on questionnaire vs anticipated time",
+        "specification": {
+          "chart": {
+            "type": "bar",
+            "width": null
+          },
+          "title": {
+            "text": "Average Time Spent on Questionnaire"
+          },
+          "yAxis": {
+            "min": 0,
+            "title": {
+              "text": "Time spent (seconds)",
+              "align": "high"
+            },
+            "labels": {
+              "overflow": "justify"
+            }
+          },
+          "xAxis": {
+            "allowDecimals": false
+          },
+          "tooltip": {
+            "valueSuffix": " seconds"
+          },
+          "plotOptions": {
+            "bar": {
+              "dataLabels": { "enabled": true }
+            },
+            "series": {
+              "pointWidth": 8
+            }
+          },
+          "credits": {
+            "enabled": false
+          }
+        }
+      },
+
+      "questionnaireByDay": {
+        "subtype": "Highcharts",
+        "fullName": "Questionnaires Grouped by Day",
+        "description": "Questionnaires Grouped by Day",
+        "specification": {
+          "chart": {
+            "type": "areaspline",
+            "width": null
+          },
+          "title": {
+            "text": "Questionnaires Completed in the Last 30 Days"
+          },
+          "yAxis": {
+            "title": {
+              "text": "Questionnaires"
+            }
+          },
+          "tooltip": {
+            "shared": true
+          },
+          "credits": {
+            "enabled": false
+          },
+          "legend": {
+            "visible": false
+          },
+          "plotOptions": {
+            "areaspline": {
+              "fillOpacity": 0.5
+            }
+          }
+        }
+      }
+    }
+  }
+}

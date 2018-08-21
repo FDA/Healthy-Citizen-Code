@@ -1,0 +1,17 @@
+{
+  "name": "SmartAdminWidgets",
+  "authors": [
+    "ksimanov <ksimanov@gmail.com>"
+  ],
+  "description": "",
+  "main": ["jarvis.widget.min.js", "jarvis.widget.min.css"],
+  "license": "MIT",
+  "homepage": "",
+  "ignore": [
+    "**/.*",
+    "node_modules",
+    "bower_components",
+    "test",
+    "tests"
+  ]
+}

@@ -1,0 +1,60 @@
+{
+  "extract": [
+    {
+      "path": "/Recall",
+      "params": {
+        "subject:Patient": "%patientId%",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "subject": {
+      "path": "Recall.subject",
+      "transform": [
+      ]
+    },
+    "details": {
+      "path": "Recall.details",
+      "transform": [
+      ]
+    },
+    "eventId": {
+      "path": "Recall.eventId",
+      "transform": [
+      ]
+    },
+    "productName": {
+      "path": "Recall.productName",
+      "transform": [
+      ]
+    },
+    "productType": {
+      "path": "Recall.productType",
+      "transform": [
+      ]
+    },
+    "date": {
+      "path": "Recall.date",
+      "transform": [
+        "getDate"
+      ]
+    },
+    "key": {
+      "path": "Recall.key",
+      "transform": [
+      ]
+    }
+  },
+  "load": [
+    {
+      "path": "/phis/%phiId%/myRecalls/%resourceId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

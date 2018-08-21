@@ -1,0 +1,113 @@
+<hc-content-container>
+    <hc-section-container>
+        <uib-tabset
+                class="multiple-widgets-container"
+                ng-if="!vm.loading && vm.fhirId">
+            <uib-tab index="0">
+                <uib-tab-heading>
+                    <i class="fa fa-lg fa-fw fa-connectdevelop"></i> Drug Interactions Visual lMap
+                </uib-tab-heading>
+
+                <hc-widget
+                        widget-id="{{'test-1524560084575'}}"
+                        fhir-id="{{vm.fhirId}}"
+                        hc-research-url="{{vm.hcResearchUrl}}"
+                        fhir-data-url="{{vm.fhirDataUrl}}"
+                        url="{{vm.url}}"
+                >
+                </hc-widget>
+
+                <p ng-if="!vm.fhirId">No fhir id found.</p>
+            </uib-tab>
+
+            <uib-tab index="1">
+                <uib-tab-heading>
+                    <i class="fa fa-lg fa-fw fa-exclamation-triangle"></i> Adverse Events Alt
+                </uib-tab-heading>
+
+                <hc-widget
+                        widget-id="{{'test-1528713270317'}}"
+                        fhir-id="{{vm.fhirId}}"
+                        hc-research-url="{{vm.hcResearchUrl}}"
+                        fhir-data-url="{{vm.fhirDataUrl}}"
+                        patient-data="vm.patientData"
+                        url="{{vm.url}}"
+                >
+                </hc-widget>
+
+                <p ng-if="!vm.fhirId">No fhir id found.</p>
+            </uib-tab>
+
+            <uib-tab index="2">
+                <uib-tab-heading>
+                    <i class="fa fa-lg fa-fw fa-search"></i> NDC lookup
+                </uib-tab-heading>
+                <!--
+                <p>
+                    Lorem ipsum dolor sit amet, consectetur adipisicing elit. Adipisci assumenda consectetur esse,
+                    iste iure iusto, labore nam natus optio praesentium quia quisquam quo, sapiente unde ut.
+                    Fuga officia quasi rem?
+                </p>
+                -->
+
+                <hc-widget
+                        widget-id="{{'test-1527489059979'}}"
+                        fhir-id="{{vm.fhirId}}"
+                        hc-research-url="{{vm.hcResearchUrl}}"
+                        fhir-data-url="{{vm.fhirDataUrl}}"
+                        url="{{vm.url}}"
+                >
+                </hc-widget>
+
+                <p ng-if="!vm.fhirId">No fhir id found.</p>
+            </uib-tab>
+        </uib-tabset>
+
+    </hc-section-container>
+
+    <hc-section-container>
+        <div class="highlight">
+            <hc-section-title>Multiple widgets initialization.</hc-section-title>
+
+            <p>To embed multiple widget add following code to your page:</p>
+
+            <pre>
+          <code class="html">
+&#x3C;script&#x3E;
+  (function(d, s, id){
+      var js, fjs = d.getElementsByTagName(s)[0];
+      if (d.getElementById(id)) {return;}
+      js = d.createElement(s); js.id = id;
+      js.src = &#x22;https://widget-manager-backend.conceptant.com/widget-server/hc-widget.js&#x22;;
+      fjs.parentNode.insertBefore(js, fjs);
+  }(document, &#x27;script&#x27;, &#x27;hc-widget&#x27;))
+&#x3C;/script&#x3E;
+
+// Drug visualization
+&#x3C;div
+    data-fhir-id=&#x22;your FHIR id&#x22;
+    data-fhir-data-url=&#x22;FHIR server url&#x22;
+    data-widget-id=&#x22;widget id&#x22;
+&#x3C;/div&#x3E;
+
+// Adverse events
+&#x3C;div
+    data-fhir-id=&#x22;your FHIR id&#x22;
+    data-fhir-data-url=&#x22;FHIR server url&#x22;
+    data-widget-id=&#x22;widget id&#x22;
+    data-age=&#x22;35-44&#x22;
+    data-gender=&#x22;M&#x22;
+&#x3C;/div&#x3E;
+
+// NDC lookup
+&#x3C;div
+    data-fhir-id=&#x22;your FHIR id&#x22;
+    data-fhir-data-url=&#x22;FHIR server url&#x22;
+    data-widget-id=&#x22;widget id&#x22;
+&#x3C;/div&#x3E;
+          </code>
+      </pre>
+        </div>
+
+    </hc-section-container>
+</hc-content-container>

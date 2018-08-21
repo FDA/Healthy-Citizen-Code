@@ -1,0 +1,24 @@
+<adp-form-field-container
+  adp-data="data"
+  adp-field="field">
+  <div
+    class="label">
+    {{adpField.fullName}}
+    <span ng-show="adpField.required">&nbsp;*</span>
+
+    <adp-tooltip
+      adp-field="field">
+    </adp-tooltip>
+  </div>
+
+  <div class="input">
+    <adp-file-uploader
+      ng-model="fakeModel"
+      name="{{field.keyName}}"
+      file-required="field.required"
+      field="field"
+      data="adpFormData[field.keyName]">
+    </adp-file-uploader>
+  </div>
+
+</adp-form-field-container>

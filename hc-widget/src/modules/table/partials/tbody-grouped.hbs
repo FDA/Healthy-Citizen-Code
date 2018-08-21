@@ -1,0 +1,20 @@
+{{#each data}}
+
+  <tbody class="group-head" data-index="{{@index}}">
+  <tr class="group">
+    <td class="group" colspan="{{@root.config.rowLength}}">
+      <button
+        data-index="{{@index}}"
+        class="accordion-control group">
+      </button>
+      {{this.display}} <br>
+      {{@root.config.groupTitle}} {{this.total}}
+    </td>
+  </tr>
+  </tbody>
+
+  <tbody class="group-body" data-index="{{@index}}">
+    {{> group-rows }}
+  </tbody>
+
+{{/each}}

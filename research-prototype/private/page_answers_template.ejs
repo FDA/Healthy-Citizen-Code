@@ -1,0 +1,25 @@
+<adp-page-loader
+        loading="vm.loading">
+</adp-page-loader>
+
+<adp-content-container
+        class="multi-record"
+        ng-if="!vm.loading">
+
+    <adp-section-container>
+        <adp-page-title>
+            {{vm.data.fullName}}
+        </adp-page-title>
+    </adp-section-container>
+
+    <adp-section-container ng-if="vm.tableData && vm.tableData.length">
+        <adp-table-client-side
+                data="vm.tableData">
+        </adp-table-client-side>
+    </adp-section-container>
+
+    <adp-section-container ng-if="!vm.tableData || !vm.tableData.length">
+        <adp-section-title>No data to show.</adp-section-title>
+    </adp-section-container>
+
+</adp-content-container>

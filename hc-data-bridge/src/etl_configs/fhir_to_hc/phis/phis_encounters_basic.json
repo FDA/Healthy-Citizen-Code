@@ -1,0 +1,82 @@
+{
+  "extract": [
+    {
+      "path": "/Encounter",
+      "params": {
+        "subject:Patient": "%patientId%",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "encounterId": {
+      "path": "Encounter.id",
+      "transform": [
+      ]
+    },
+    "sourceType": {
+      "path": "Encounter.serviceProvider",
+      "transform": [
+        "serviceProviderToSourceType"
+      ]
+    },
+    "admissionDate": {
+      "path": "Encounter.period",
+      "transform": [
+        "periodToAdmissionDate"
+      ]
+    },
+    "dischargeDate": {
+      "path": "Encounter.period",
+      "transform": [
+        "periodToDischargeDate"
+      ]
+    },
+    "providerId": {
+      "path": "Encounter.serviceProvider",
+      "transform": [
+        "serviceProviderToProviderId"
+      ]
+    },
+    "providerName": {
+      "path": "Encounter.serviceProvider",
+      "transform": [
+        "serviceProviderToProviderName"
+      ]
+    },
+    "encounterType": {
+      "path": "Encounter.class",
+      "transform": [
+        "classToEncounterType"
+      ]
+    },
+    "facilityLocation": {},
+    "facilityCode": {},
+    "dischargeDisposition": {
+      "path": "Encounter.hospitalization",
+      "transform": [
+        "hospitalizationToDischargeDisposition"
+      ]
+    },
+    "dischargeStatus": {
+      "path": "Encounter.hospitalization",
+      "transform": [
+        "hospitalizationToDischargeStatus"
+      ]
+    },
+    "diagnosisRelatedGroup": {},
+    "diagnosisRelatedGroupType": {},
+    "admittingSource": {}
+  },
+  "load": [
+    {
+      "path": "/phis/%phisId%/encounters/%encounterId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

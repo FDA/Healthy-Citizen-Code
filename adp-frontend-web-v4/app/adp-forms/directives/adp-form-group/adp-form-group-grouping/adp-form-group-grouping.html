@@ -1,0 +1,33 @@
+<fieldset>
+  <adp-form-field-factory
+    ng-repeat="field in fields.notGrouped track by $index"
+    adp-field="field"
+    adp-form-data="formData">
+  </adp-form-field-factory>
+</fieldset>
+
+<section id="widget-grid" class=""></section>
+
+<fiedlset
+  adp-jarvis-widgets
+  id="widget-grid"
+  options="formParams">
+  <adp-jarvis-widget-item
+    class="adp-form-fieldset"
+    ng-class="{'has-errors': groupHasErrors(group.fields, form) }"
+    ng-repeat="(groupName, group) in fields.groups track by $index"
+  >
+    <widget-header>
+      {{group.fullName}}
+    </widget-header>
+
+    <widget-body>
+      <adp-form-field-factory
+        ng-repeat="field in group.fields track by $index"
+        adp-field="field"
+        adp-form-params="$parent.formParams"
+        adp-form-data="$parent.formData">
+      </adp-form-field-factory>
+    </widget-body>
+  </adp-jarvis-widget-item>
+</fiedlset>

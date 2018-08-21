@@ -1,0 +1,398 @@
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: Arial, Helvetica, Sans-Serif;
+    font-size: 12px;
+    line-height: 16px;
+    position: relative;
+}
+
+.align-center {
+    text-align: center;
+}
+
+.align-left {
+    text-align: left;
+}
+
+.hidden {
+    display: none !important;
+}
+
+.clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.fleft {
+    float: left;
+}
+
+.fright {
+    float: right;
+}
+
+.loader-wrap {
+    position: relative;
+    height: 200px;
+}
+
+.loader {
+    position: absolute;
+    top: 0;
+    left: 0;
+    right: 0;
+    bottom: 0;
+    margin: auto;
+    border: 6px solid #f3f3f3;
+    border-top: 6px solid #3498db;
+    border-radius: 50%;
+    width: 40px;
+    height: 40px;
+    animation: spin 2s linear infinite;
+}
+
+@keyframes spin {
+    0% { transform: rotate(0deg); }
+    100% { transform: rotate(360deg); }
+}
+
+.content-box {
+    background: white;
+    padding: 8px;
+    border-color: #ccc;
+}
+
+.label {
+    display: block;
+    margin-bottom: 6px;
+    color: #000;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    text-transform: inherit;
+    text-decoration: inherit;
+}
+
+form {
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    text-transform: inherit;
+    text-decoration: inherit;
+}
+
+input {
+    margin-bottom: 6px;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    text-transform: inherit;
+    text-decoration: inherit;
+}
+
+input[readonly] {
+    background-color: #eee;
+    opacity: 1;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    text-transform: inherit;
+    text-decoration: inherit;
+}
+
+.label-inline {
+    display: inline-block;
+    margin-left: 6px;
+    margin-right: 6px;
+    color: #000;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    text-transform: inherit;
+    text-decoration: inherit;
+}
+
+.form-control {
+    width: 100%;
+    display: block;
+    height: 32px;
+    padding: 5px 10px;
+    border: 1px solid #ccc;
+    color: #000;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    text-transform: inherit;
+    text-decoration: inherit;
+}
+
+.form-field {
+    margin-bottom: 10px
+}
+
+.btn {
+    color: #fff;
+    background-color: #275b89;
+    display: inline-block;
+    margin-top: 6px;
+    font-weight: 400;
+    text-align: center;
+    vertical-align: middle;
+    cursor: pointer;
+    border: 1px solid transparent;
+    padding: 0 22px;
+    font-size: 14px;
+    line-height: 29px;
+    border-radius: 2px;
+}
+
+.btn:disabled {
+    opacity: 0.8;
+    cursor: not-allowed
+}
+
+.error-message {
+    color: #b94a48
+}
+
+.inline-block {
+    display: inline-block;
+    vertical-align: top;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    text-transform: inherit;
+    text-decoration: inherit;
+}
+
+table {
+    width: 100%;
+    max-width: 100%;
+    margin-bottom: 20px;
+    border-spacing: 0;
+    border-collapse: collapse;
+    font-size: inherit;
+    line-height: inherit;
+    font-weight: inherit;
+    font-style: inherit;
+    text-transform: inherit;
+    text-decoration: inherit;
+}
+
+table > thead > tr:first-child > th {
+    vertical-align: bottom;
+    border-bottom: 2px solid #ddd;
+}
+
+table td,
+table th {
+    padding: 8px;
+    line-height: 1.42857143;
+    vertical-align: top;
+
+}
+
+table th {
+    font-weight: bold;
+    text-align: left;
+    border: 1px solid #ddd;
+    border-right: none;
+}
+
+table th:last-child,
+table td:last-child{ border-right: 1px solid #ddd; }
+
+table td {
+    border: 1px solid #ddd;
+    border-right: none;
+}
+
+table tr {
+    background-color: #fff;
+}
+
+.table-accordion .td-accordion-parent,
+.table-accordion .td-accordion-child { display: none; }
+
+.table-accordion .is-opened .td-accordion-parent { display: table-row; }
+.table-accordion .is-opened .td-accordion-child { display: table-row; }
+
+.table .accordion-control { background-color: indianred;}
+.table .accordion-control:after { content: '+'; }
+.table .accordion-control.is-active { background-color: mediumseagreen; }
+.table .accordion-control.is-active:after {content: '-'}
+
+.table  .td-accordion-child.is-hidden { display: none; }
+
+table .group {
+    position: relative;
+    padding-left: 35px;
+    background-color: #ccc;
+    font-weight: bold;
+    cursor: pointer;
+    border-bottom: 2px solid #fff;
+}
+
+.content-title {
+    padding: 10px 5px;
+    border-bottom: 1px solid;
+    margin-bottom: 10px;
+}
+
+table .td-inner {
+    position: relative;
+    padding-left: 30px;
+}
+
+.table .accordion-control {
+    position: absolute;
+    margin: auto;
+    top: 0;
+    bottom: 0;
+    left: 5px;
+    width: 20px;
+    height: 20px;
+    padding: 0;
+    border-radius: 50%;
+    line-height: 20px;
+    color: white;
+    font-weight: bold;
+    cursor: pointer;
+    border: 0;
+}
+
+.table-sortable th {
+    cursor: pointer;
+    position: relative;
+}
+
+.sort-by {
+    display: block;
+    position: absolute;
+    top: 0;
+    bottom: 0;
+    right: 5px;
+    margin: auto;
+    padding-right: 18px;
+    opacity: 0.5;
+}
+
+.sort-by:after,
+.sort-by:before {
+    border: 4px solid transparent;
+    content: "";
+    display: block;
+    height: 0;
+    right: 5px;
+    top: 50%;
+    position: absolute;
+    width: 0;
+}
+
+.sort-by:before {
+    border-bottom-color: #666;
+    margin-top: -9px;
+}
+.sort-by:after {
+    border-top-color: #666;
+    margin-top: 1px;
+}
+.sorted_asc .sort-by,
+.sorted_desc .sort-by {
+    opacity: 1;
+}
+
+.sorted_asc .sort-by:before { border-bottom-color: black; }
+.sorted_asc .sort-by:after { display: none; }
+
+.sorted_desc .sort-by:before { display: none; }
+.sorted_desc .sort-by:after { border-top-color: black; }
+
+
+.drugs-visualization-viewport svg {
+    margin: auto;
+}
+
+.drugs-visualization-viewport .node-group,
+.drugs-visualization-viewport .link-group,
+.drugs-visualization-viewport .label-group {
+    pointer-events: all;
+    cursor: pointer;
+}
+
+.drugs-visualization-viewport .hovered .node,
+.drugs-visualization-viewport .hovered .label-rect {
+    fill: #f00 !important;
+    cursor: pointer;
+}
+
+.drugs-visualization-viewport .hovered.link {
+    stroke: #f00 !important;
+}
+
+.drugs-visualization-viewport .node-text {
+    fill: black;
+    font-family: Verdana, sans-serif;
+    font-size: 12px;
+}
+
+.obj-ingredient-text, .obj-disease-text, .obj-pharma-class-text, .obj-physiologic-effect-text {
+    fill: black;
+    font-family: Verdana, sans-serif;
+    font-size: 14px;
+}
+
+
+.obj-drugs-text {
+    fill: black;
+    font-family: Verdana, sans-serif;
+    font-weight: bold;
+    font-size: 24px!important;
+}
+
+.link.inactive,
+.node.inactive,
+.node.inactive + text,
+.label-group.inactive,
+.node.inactive rect,
+.node.inactive text {
+    opacity: .2!important;
+}
+
+.node.inactive.selected rect,
+.node.inactive.selected text {
+    opacity: .6!important;
+}
+
+
+.ndc-lookup input {
+    width: 300px;
+    margin-right: 10px;
+}
+.ndc-lookup .btn {
+    width: 75px;
+    margin-top: 0;
+}
+.ndc-lookup-results {
+    margin-top: 20px;
+    font-size: 14px;
+    line-height: 18px;
+}
+
+.ndc-lookup-results ul {
+    margin-left: 40px;
+    list-style-type: disc;
+}

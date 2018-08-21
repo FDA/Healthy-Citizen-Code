@@ -1,0 +1,117 @@
+{
+  "models": {
+    "arms": {
+      "type": "Schema",
+      "fullName": "Arms for Study",
+      actions: {
+        fields: {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
+      "fields": {
+        "source": {
+          "fullName": "The source of the information",
+          "type": "String",
+          "required": false,
+          "visible": false,
+          "description": "source of the data"
+        },
+        "armName": {
+          "fullName": "Arm Name",
+          "type": "String",
+          "default": "",
+          "required": true,
+          "width": "100",
+          "description": "Name of the arm"
+        },
+        "studyName": {
+          "fullName": "Associated Study Name",
+          "type": "LookupObjectID[]",
+          "required": false,
+          "description": "Study Name that the arm is associated with",
+          "lookup": {
+            "table": {
+              "studies": {
+                "foreignKey": "_id",
+                "label": "studyName",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: ['$creator', this.req.user._id]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "armType": {
+          "fullName": "Arm Type",
+          "type": "String",
+          "list": {
+            name: "armTypes",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsUser",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "default": "Experimental",
+          "required": true,
+          "scopes": {
+            "ownRecordScope": {
+              "permissions": "accessAsUser",
+              "where": "{$eq: ['$creator', this.req.user._id]}"
+            }
+          },
+          "description": "Type of arm"
+        },
+        "armRange": {
+          "fullName": "Arm Target Accrual Number Range",
+          "type": "Number",
+          "default": "",
+          "required": false,
+          "description": "what the total number for the arm needs to be"
+        },
+        "armWeight": {
+          "fullName": "Arm Randomization Weight",
+          "type": "Number",
+          "default": "",
+          "required": false,
+          "description": "the weighting for randomizing the arm"
+        },
+        "armDesc": {
+          "fullName": "Arm Description",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Full description of the arm"
+        }
+      }
+    }
+  }
+}

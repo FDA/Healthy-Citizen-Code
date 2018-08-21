@@ -1,0 +1,71 @@
+{
+  "extract": [
+    {
+      "path": "/Device",
+      "params": {
+        "patient:Patient": "%patientId%",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "productId": {
+      "path": "Device.extension",
+      "transform": [
+        "extensionToProductId"
+      ]
+    },
+    "deviceUsage": {
+      "path": "Device.extension",
+      "transform": [
+        "extensionToDeviceUsage"
+      ]
+    },
+    "prescribed": {
+      "path": "Device.extension",
+      "transform": [
+        "extensionToPrescribed"
+      ]
+    },
+    "start": {
+      "path": "Device.extension",
+      "transform": [
+        "extensionToStart"
+      ]
+    },
+    "end": {
+      "path": "Device.extension",
+      "transform": [
+        "extensionToEnd"
+      ]
+    },
+    "serialNumber": {
+      "path": "Device.extension",
+      "transform": [
+        "extensionToSerialNumber"
+      ]
+    },
+    "lot": {
+      "path": "Device.lotNumber",
+      "transform": [
+      ]
+    },
+    "key": {
+      "path": "Device.extension",
+      "transform": [
+        "extensionToKey"
+      ]
+    }
+  },
+  "load": [
+    {
+      "path": "/phis/%phiId%/myDevices/%resourceId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

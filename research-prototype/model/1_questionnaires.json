@@ -1,0 +1,92 @@
+{
+  "models": {
+    "questionnaires": {
+      "type": "Schema",
+      "fullName": "Questionnaires",
+      "limitReturnedRecords": 50,
+      "description": "Contains various questionnaires",
+      actions: {
+        fields: {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
+      "fields": {
+        "questionnaireName": {
+          "type": "String",
+          "unique": true,
+          "fullName": "Questionnaire Name",
+          "description": "Name of the full questionnaire",
+          "width": "200"
+        },
+        "questionnaireDescription": {
+          "type": "String",
+          "fullName": "Questionnaire Description",
+          "width": "300",
+          "description": "Description or purpose of the questionnaire"
+        },
+        "questionnaireDefinitionFile": {
+          "type": "File",
+          "fullName": "File with Questionnaire Definition",
+          "required": true,
+          "description": ".xls file with questionnaire definition",
+          "width": "300"
+        },
+        "questionnaireDefinition": {
+          "type": "Mixed",
+          "fullName": "Raw Data",
+          "description": "Contains the questionnaire definition in the form of JSON",
+          "render": "questionaire",
+          "width": "400",
+          "formRender": {
+            "formRenderer": "questionaire"
+          }
+
+        },
+        "pools": {
+          "fullName": "Assigned to Pools",
+          "type": "LookupObjectID[]",
+          "required": false,
+          "width": "100",
+          "description": "List of pools the questionnaire is assigned to",
+          "lookup": {
+            "table": {
+              "pools": {
+                "foreignKey": "_id",
+                "label": "poolName",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: ['$creator', this.req.user._id]}"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,20 @@
+{
+  "appenders": {
+    "out": {
+      "type": "console"
+    },
+    "app": {
+      "type": "file",
+      "filename": "logs/adp.log"
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": [
+        "out",
+        "app"
+      ],
+      "level": "trace"
+    }
+  }
+}

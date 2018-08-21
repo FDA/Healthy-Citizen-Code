@@ -1,0 +1,18 @@
+<section class="input-container">
+  <label
+    class="label">
+    {{adpField.fullName}}
+    <span ng-show="adpField.required">&nbsp;*</span>
+
+    <adp-tooltip
+      adp-field="adpField">
+    </adp-tooltip>
+  </label>
+
+  <array-control
+    field="adpField"
+    ui-props="adpFieldUiProps"
+    adp-form-data="adpFormData"
+  >
+  </array-control>
+</section>

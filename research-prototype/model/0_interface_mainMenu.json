@@ -1,0 +1,107 @@
+{
+  "interface": {
+    "mainMenu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "comment": "This defines the main menu that will go into the sidebar",
+      "default": "/studies",
+      "permissions": [
+        "doUserActivities"
+      ],
+      "fields": {
+        "home": false,
+        "testDashboard": {
+          "type": "MenuDashboardLink",
+          "fullName": "Dashboard",
+          "link": "dashboard",
+          "icon": {
+            "type": "font-awesome",
+            "link": "home"
+          },
+          "description": "Some graphs"
+        },
+        "studies": {
+          "type": "MenuGroup",
+          "fullName": "Studies",
+          "description": "Manage your Studies",
+          "link": "/studies",
+          "icon": {
+            "type": "font-awesome",
+            "link": "flask"
+          }
+        },
+        "arms": {
+          "type": "MenuGroup",
+          "fullName": "Arms",
+          "description": "Arms",
+          "link": "/arms",
+          "icon": {
+            "type": "font-awesome",
+            "link": "code-fork"
+          }
+        },
+        "participants": {
+          "type": "MenuItem",
+          "fullName": "Potential Participants",
+          "link": "/participants",
+          "icon": {
+            "type": "font-awesome",
+            "link": "users"
+          },
+          "description": "Potential Participants"
+        },
+        "pools": {
+          "type": "MenuGroup",
+          "fullName": "Pools",
+          "description": "Pools",
+          "link": "/pools",
+          "icon": {
+            "type": "font-awesome",
+            "link": "random"
+          }
+        },
+        "poolParticipants": {
+          "type": "MenuGroup",
+          "fullName": "Pool Participants",
+          "description": "Participants in the Pool",
+          "link": "/poolParticipants",
+          "icon": {
+            "type": "font-awesome",
+            "link": "user-circle-o"
+          }
+        },
+        "questionnaires": {
+          "type": "MenuGroup",
+          "fullName": "Questionnaires",
+          "description": "Research Questionnaires",
+          "link": "/questionnaires",
+          "icon": {
+            "type": "font-awesome",
+            "link": "question-circle"
+          }
+        },
+        "questionnaireAnswers": {
+          "type": "MenuGroup",
+          "fullName": "Questionnaire Answers",
+          "description": "Research Questionnaires",
+          "link": "/questionnaireAnswers",
+          "icon": {
+            "type": "font-awesome",
+            "link": "check-square"
+          }
+        },
+        "icdPage": {
+          "type": "MenuItem",
+          "fullName": "ICD Code Groupings",
+          "link": "/icdPage",
+          "icon": {
+            "type": "font-awesome",
+            "link": "hospital-o"
+          },
+          "description": "ICD Code Groupings"
+        }
+      }
+    }
+  }
+}
+

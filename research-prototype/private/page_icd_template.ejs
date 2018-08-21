@@ -1,0 +1,30 @@
+<adp-page-loader
+        loading="vm.loading">
+</adp-page-loader>
+
+<adp-content-container
+        class="multi-record"
+        ng-if="!vm.loading">
+
+    <adp-section-container>
+        <adp-page-title>
+            {{vm.pageParams.fullName}}
+        </adp-page-title>
+    </adp-section-container>
+
+    <adp-section-container ng-if="vm.icdData.length">
+        <h3>Select Diagnoses:</h3>
+
+        <multi-level-select
+            on-change="vm.onSelectChange"
+            collection="vm.icdData"
+        >
+        </multi-level-select>
+
+    </adp-section-container>
+
+    <adp-section-container ng-if="vm.tableData.length">
+        <adp-table-client-side data="vm.tableData"></adp-table-client-side>
+    </adp-section-container>
+
+</adp-content-container>

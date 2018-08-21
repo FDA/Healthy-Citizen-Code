@@ -1,0 +1,20 @@
+{
+  "appenders": {
+    "out": {
+      "type": "console"
+    },
+    "app": {
+      "type": "file",
+      "filename": "logs/hc.log"
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": [
+        "out",
+        "app"
+      ],
+      "level": "error"
+    }
+  }
+}

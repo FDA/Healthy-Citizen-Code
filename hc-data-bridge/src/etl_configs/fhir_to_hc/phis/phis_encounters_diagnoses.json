@@ -1,0 +1,46 @@
+{
+  "extract": [
+    {
+      "path": "/Encounter",
+      "params": {
+        "subject:Patient": "%patientId%",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "sourceType": {
+    },
+    "admissionDate": {
+    },
+    "providerId": {
+      "path": "Encounter.diagnosis",
+      "transform": [
+        "diagnosisToProviderId"
+      ]
+    },
+    "diagnosisCode": {
+      "path": "Encounter.diagnosis",
+      "transform": [
+        "diagnosisToDiagnosisCode"
+      ]
+    },
+    "diagnosisCodeType": {
+      "path": "Encounter.diagnosis",
+      "transform": [
+        "diagnosisToDiagnosisCodeType"
+      ]
+    }
+  },
+  "load": [
+    {
+      "path": "/phis/%phisId%/encounters/%encounterId%/diagnoses/%diagnoseId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}

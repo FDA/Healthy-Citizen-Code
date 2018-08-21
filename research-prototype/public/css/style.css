@@ -1,0 +1,13 @@
+multi-level-select[data-child] > div { padding-left: 2%; }
+
+
+.raw-questionaire {}
+.cell-questionaire {
+    height: 200px;
+    overflow: hidden;
+}
+
+.table-list .cell-questionaire {
+    height: auto;
+    overflow: auto;
+}

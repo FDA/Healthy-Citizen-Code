@@ -1,0 +1,145 @@
+{
+  "models": {
+    "users": {
+      "type": "Schema",
+      "fullName": "User Data",
+      "singleRecord": true,
+      "limitReturnedRecords": 1,
+      "controller": "user",
+      "schemaTransform": "user",
+      "description": "This collection solely serves the purpose of user authentication. Besides password recovery email there should be no PII in this collection.",
+      "fields": {
+        "phiId": {
+          "type": "ObjectID",
+          "required": true,
+          "lookup": {
+            "table": "phis",
+            "label": "notes"
+          },
+          "visible": false
+        },
+        "piiId": {
+          "type": "ObjectID",
+          "required": true,
+          "lookup": {
+            "table": "piis",
+            "label": "displayName"
+          },
+          "visible": false
+        },
+        "login": {
+          "type": "String",
+          "unique": true,
+          "required": true,
+          "visible": false,
+          "comment": "User login",
+          "fullName": "Login",
+          "description": "Unique user login. Could be email or anything else.",
+          "validate": [
+            "minLength(5)",
+            "maxLength(30)"
+          ]
+        },
+        "email": {
+          "type": "String",
+          "default": "",
+          "required": true,
+          "subtype": "Email",
+          "fullName": "Email",
+          "description": "This email is used for the password recovery purposes only"
+        },
+        "password": {
+          "type": "String",
+          "default": "",
+          "required": true,
+          "subtype": "Password",
+          "fullName": "Password",
+          "description": "The password that the citizen has selected to use with the HealthyCitizen application."
+        },
+        "salt": {
+          "type": "String",
+          "visible": false,
+          "generated": true,
+          "fullName": "Salt",
+          "description": "Password hash function salt"
+        },
+        "accountProvider": {
+          "type": "Array",
+          "fullName": "linkedAccounts",
+          "description": "Social network account providing authentication for this user. Additional social networks can be recorded in PII data",
+          "fields": {
+            "name": {
+              "type": "String",
+              "generated": true,
+              "fullName": "Provider",
+              "description": "Account provider (such as facebook, twitter etc)"
+            },
+            "data": {
+              "type": "Mixed",
+              "visible": false,
+              "fullName": "Provider Data",
+              "description": "Account provider-specific data"
+            }
+          }
+        },
+        "updated": {
+          "type": "Date",
+          "visible": false,
+          "generated": true,
+          "fullName": "Updated",
+          "description": "The system generated date when the citizen user account was updated."
+        },
+        "created": {
+          "type": "Date",
+          "visible": false,
+          "defaultF": "dateNow",
+          "generated": true,
+          "fullName": "Created",
+          "description": "The system generated date when the citizen user account was created."
+        },
+        "resetPasswordToken": {
+          "type": "String",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Token",
+          "description": "The system assigned token that is sent to the citizen when they request a password reset."
+        },
+        "resetPasswordExpires": {
+          "type": "Date",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Expires",
+          "description": "The date the password token will expire."
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      }
+    }
+  }
+}

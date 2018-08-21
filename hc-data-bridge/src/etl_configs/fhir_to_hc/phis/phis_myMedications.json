@@ -1,0 +1,91 @@
+{
+  "extract": [
+    {
+      "path": "/MedicationRequest",
+      "params": {
+        "subject:Patient": "%patientId%",
+        "_include": "MedicationRequest:medication",
+        "_format": "json"
+      },
+      "pathToExtract": ""
+    }
+  ],
+  "transform": {
+    "frequencyTaken": {
+      "path": "MedicationRequest.dosageInstruction",
+      "transform": [
+        "dosageInstructionToFrequencyTaken"
+      ]
+    },
+    "dosage": {
+      "path": "MedicationRequest.dosageInstruction",
+      "transform": [
+        "dosageInstructionToDosage"
+      ]
+    },
+    "dosageUnits": {
+      "path": "MedicationRequest.dosageInstruction",
+      "transform": [
+        "dosageInstructionToDosageUnits"
+      ]
+    },
+    "route": {
+      "path": "MedicationRequest.dosageInstruction",
+      "transform": [
+        "dosageInstructionToRoute"
+      ]
+    },
+    "prescribed": {
+      "path": "MedicationRequest.authoredOn",
+      "transform": [
+        "getDate"
+      ]
+    },
+    "start": {
+      "path": "MedicationRequest.extension",
+      "transform": [
+        "extensionToStart"
+      ]
+    },
+    "end": {
+      "path": "MedicationRequest.extension",
+      "transform": [
+        "extensionToEnd"
+      ]
+    },
+    "productId": {
+      "path": "MedicationRequest.extension",
+      "transform": [
+        "extensionToProductId"
+      ]
+    },
+    "supply": {
+      "path": "MedicationRequest.dispenseRequest.quantity",
+      "transform": [
+        "dispenseRequestQuantityToSupply"
+      ]
+    },
+    "lot": {
+      "path": "MedicationRequest.extension",
+      "transform": [
+        "extensionToLot"
+      ]
+    },
+    "key": {
+      "path": "MedicationRequest.extension",
+      "transform": [
+        "extensionToKey"
+      ]
+    }
+  },
+  "load": [
+    {
+      "path": "/phis/%phisId%/encounters/%encounterId%/procedures/%resourceId%",
+      "method": "PUT",
+      "headers": {
+        "Authorization": "JWT %jwtToken%",
+        "Content-Type": "application/json"
+      }
+    }
+  ]
+}
