@@ -44,8 +44,8 @@
           aria-label="{{field.keyName}}"
           ng-change="change()"
           class="select2 form-control"
-          ng-required="field.required"
-          adp-validate="field"
+          ng-required="isRequired()"
+          adp-validate="validationParams"
           adp-list-formatter
           data-options="options"
           name="{{field.keyName}}"

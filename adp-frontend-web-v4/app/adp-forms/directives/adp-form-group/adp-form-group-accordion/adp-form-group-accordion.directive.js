@@ -11,7 +11,8 @@
       scope: {
         fields: '=',
         formData: '=',
-        formParams: '='
+        formParams: '=',
+        schema: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-group/adp-form-group-accordion/adp-form-group-accordion.html',
       require: '^^form',

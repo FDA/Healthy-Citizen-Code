@@ -10,18 +10,27 @@
     "start": "node --stack-size=40000 app.js",
     "test": "npm run test-backend && npm run test-app-model",
     "test-backend": "node --stack_size=10000 node_modules/mocha/bin/_mocha ./test/backend --reporter spec --timeout 7000 --exit",
+    "test-app-model": "npm run test-app-basic && npm run test-app-specific",
     "test-app-basic": "node --stack_size=10000 node_modules/mocha/bin/_mocha ./test/app-model/basic --reporter spec --timeout 7000 --exit",
-    "test-app-specific": "node --stack_size=10000 test/app-model/app-model-specific.js",
-    "test-app-model": "npm run test-app-basic && npm run test-app-specific"
+    "test-app-specific": "node --stack_size=10000 test/app-model/app-model-specific.js"
   },
   "dependencies": {
+    "apollo-server-restify": "^1.3.6",
     "app-root-path": "^2.1.0",
+    "assert-plus": "^1.0.0",
     "async": "^2.2.0",
     "bcrypt-nodejs": "0.0.3",
     "bluebird": "^3.5.1",
     "crypto": "0.0.3",
     "dotenv": "^4.0.0",
+    "escape-regexp-component": "^1.0.2",
+    "express-device": "^0.4.2",
     "fs-extra": "^4.0.2",
+    "glob": "^7.1.2",
+    "graphql": "^0.13.2",
+    "graphql-compose": "^4.8.2",
+    "graphql-compose-connection": "^3.2.1",
+    "graphql-compose-pagination": "^3.3.0",
     "jimp": "^0.2.28",
     "jsonwebtoken": "^8.2.2",
     "lodash": "^4.17.4",
@@ -31,8 +40,10 @@
     "mkdirp": "^0.5.1",
     "moment": "^2.17.1",
     "mongodb": "^2.2.35",
-    "mongoose": "^5.1.3",
+    "mongoose": "=5.2.8",
+    "nanoid": "^2.0.0",
     "nodemailer": "^3.1.8",
+    "p-event": "^2.1.0",
     "passport": "^0.3.2",
     "passport-jwt": "^4.0.0",
     "passport-local": "^1.0.0",
@@ -45,19 +56,48 @@
     "restify": "^5.2.0",
     "restify-cors-middleware": "^1.0.1",
     "restify-errors": "^5.0.0",
+    "shortid": "^2.2.13",
+    "swagger-jsdoc": "^3.2.3",
+    "swagger-ui-express": "^4.0.1",
+    "swagger-ui-restify": "^3.0.8",
     "uglify-js": "^3.0.16",
     "ws": "^5.2.0"
   },
   "devDependencies": {
     "chai": "^3.5.0",
     "chai-http": "^4.0.0",
+    "eslint": "^5.8.0",
+    "eslint-config-airbnb": "^17.1.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^3.1.0",
+    "eslint-plugin-import": "^2.14.0",
+    "eslint-plugin-mocha": "^5.2.0",
+    "eslint-plugin-prettier": "^3.0.0",
+    "eslint-plugin-promise": "^4.0.1",
+    "eslint-plugin-security": "^1.4.0",
+    "husky": "^1.1.2",
+    "lint-staged": "^8.0.3",
     "mocha": "^5.2.0",
     "pow-mongodb-fixtures": "^0.14.0",
+    "prettier": "^1.14.3",
     "should": "^11.2.0",
     "supertest": "^3.1.0"
   },
   "engines": {
     "node": "9.4.0"
+  },
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "post-commit": "git update-index -g"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write",
+      "git add"
+    ]
   },
   "license": "UNLICENSED",
   "private": true

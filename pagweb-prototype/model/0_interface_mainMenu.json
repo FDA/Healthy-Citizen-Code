@@ -71,10 +71,10 @@
           },
           "description": "SMART-on-FHIR Questionnaire Widget"
         },
-        "SMART-on-FHIR-Adverse-events-alt": {
+        "SMART-on-FHIR-Adverse-events": {
           "type": "MenuItem",
           "fullName": "Adverse Events",
-          "link": "/adverseEventsAlt",
+          "link": "/adverseEvents",
           "icon": {
             "type": "font-awesome",
             "link": "exclamation-triangle"
@@ -121,6 +121,16 @@
           },
           "description": "NDC Lookup Widget"
         },
+        "graphViewWidget": {
+          "type": "MenuItem",
+          "fullName": "Graph View Widget Example",
+          "link": "/graphViewWidget",
+          "icon": {
+            "type": "font-awesome",
+            "link": "pie-chart"
+          },
+          "description": "Multiple Widgets Example"
+        },
         "multipleWidgets": {
           "type": "MenuItem",
           "fullName": "Multiple Widgets Example",
@@ -130,6 +140,16 @@
             "link": "asterisk"
           },
           "description": "Multiple Widgets Example"
+        },
+        "preferences": {
+          "type": "MenuItem",
+          "fullName": "Preferences Widget Example",
+          "link": "/preferences",
+          "icon": {
+            "type": "font-awesome",
+            "link": "asterisk"
+          },
+          "description": "Preferences Widget Example"
         }
       }
     }

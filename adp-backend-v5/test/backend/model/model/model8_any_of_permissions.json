@@ -1,0 +1,34 @@
+{
+  "models": {
+    "model8any_of_scope": {
+      "type": "Schema",
+      "fields": {
+        "number1": {
+          "type": "Number",
+          "description": "Number between 1 and 10"
+        },
+        "number2": {
+          "type": "Number",
+          "description": "Number between 1 and 10"
+        }
+      },
+      "scopes": {
+        "anyOfConditionsScope": {
+          "permissions": [["accessAsUser", "accessAsGuest"]],
+          "where": "{$eq: [true, true]}"
+        }
+      },
+      // can define that both the technician and the manager can edit records, but scopes defines that technicial can only edit own records
+      "actions": {
+        "width": 100,
+        "responsivePriority": 50,
+        "fields": {
+          "view": {
+            "permissions": [["accessAsUser", "accessAsGuest"]],
+            "showInTable": true
+          }
+        }
+      }
+    }
+  }
+}

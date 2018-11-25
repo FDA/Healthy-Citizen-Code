@@ -1,19 +1,16 @@
 <div class="content-box">
-  <h1 class="content-title">NDC Lookup:</h1>
+  <h1 class="content-title">NDC Lookup</h1>
     <h4 class="content-title">The data presented here is for informational purposes only. Please discuss this information with your health practitioner(s)</h4>
 
   <form class="ndc-lookup" novalidate>
-    <div class="clearfix">
-      <input type="text" class="form-control fleft">
-      <button class="btn fleft" type="submit">Find</button>
+    <input type="text" class="ndc-lookup__input form-control">
+    <span class="ndc-lookup__close js-close hidden">close</span>
+    <div class="ndc-lookup__suggestions hidden js-suggestions">
+      <ul class="ndc-lookup__suggestions-list"></ul>
     </div>
 
-    <div class="error-message client" style="display: none;">
-      Doesn't look like NDC. NDC contains only number and '-'.
-    </div>
+    <div class="error-message server hidden"></div>
 
-    <div class="error-message server" style="display: none;"></div>
-
-    <div class="ndc-lookup-results" style="display: none;"></div>
+    <div class="ndc-lookup__results hidden js-results"></div>
   </form>
 </div>

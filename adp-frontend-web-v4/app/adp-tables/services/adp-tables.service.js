@@ -51,13 +51,27 @@
         var displayCondition = AdpSchemaService.isField(field) &&
           !AdpSchemaService.isGroup(field) &&
           _isVisible(field);
-      
+
         if (displayCondition) {
           heads.push(_getHead(field, key));
         }
       });
     
       return _.sortBy(heads, 'order');
+    }
+
+    function getAllHeads(schema) {
+      var heads = [];
+
+      _.each(schema, function (field, key){
+        var displayCondition = _.get(field, 'showInDatatable', true);
+
+        if (displayCondition) {
+          heads.push(_getHead(field, key));
+        }
+      });
+
+      return heads;
     }
 
     function _getHead(val, key) {
@@ -73,7 +87,8 @@
     }
   
     return {
-      getHeads: getHeads
+      getHeads: getHeads,
+      getAllHeads: getAllHeads
     };
   
   }

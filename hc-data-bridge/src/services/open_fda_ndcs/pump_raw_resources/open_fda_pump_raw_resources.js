@@ -11,6 +11,10 @@ const { isValidMongoDbUrl } = require('../../../lib/helper');
 const sh = require('shelljs');
 const objectHash = require('object-hash');
 
+// wget settings
+const CONNECT_TIMEOUT = 5; // sometimes one of many IPs cannot respond, reduce default 60sec to 5 sec
+const TRIES = 5;
+
 class PumpRawResourceOpenFda {
   constructor (settings) {
     const { errors, resultSettings } = this._validateSettings(settings);
@@ -63,7 +67,7 @@ class PumpRawResourceOpenFda {
     return Promise.mapSeries(fileInfos, (fileInfo) => {
       const { url, subDir } = fileInfo;
       const destination = path.resolve(dir, subDir);
-      const command = `wget -N '${url}' -P '${destination}' --progress=dot:mega`;
+      const command = `wget -N '${url}' -P '${destination}' --connect-timeout ${CONNECT_TIMEOUT} --tries ${TRIES} --progress=dot:mega`;
       return new Promise((resolve, reject) => {
         sh.exec(command, (code, stdout, stderr) => {
           if (code === 0) {

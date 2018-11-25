@@ -4,7 +4,10 @@
   <label
     class="label">
     {{adpField.fullName}}
-    <span ng-show="adpField.required">&nbsp;*</span>
+    <adp-required-mark
+      validation-params="validationParams"
+    >
+    </adp-required-mark>
 
     <adp-tooltip
       adp-field="field">
@@ -17,7 +20,7 @@
       style="width:100%"
       aria-label="{{field.keyName}}"
       class="select2 form-control"
-      ng-required="field.required"
+      ng-required="isRequired()"
       name="{{field.keyName}}"
       data-options="options"
       ng-model="adpFormData[field.keyName]"

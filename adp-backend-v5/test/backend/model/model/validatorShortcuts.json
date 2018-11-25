@@ -6,7 +6,7 @@
         "regexOptions": "$2"
       },
       "errorMessages": {
-          "default": "This value doesn't seem right"
+        "default": "This value doesn't seem right"
       }
     },
     "minLength": {
@@ -44,8 +44,7 @@
       }
     },
     "notInFuture": {
-      "arguments": {
-      },
+      "arguments": {},
       "errorMessages": {
         "default": "This date cannot be in the future"
       }

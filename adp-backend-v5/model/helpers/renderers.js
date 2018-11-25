@@ -9,23 +9,32 @@
  * meta - metainformation in datatables format: https://datatables.net/reference/option/columns.render
  */
 
-module.exports = function () {
-    var m = {
-        "googleSearch": function (data, type, row, meta) {
-            var template = '<a href="https://google.com?q=<%= data %>"><%= data %></a>';
-            var templateData = {data: data, row: row, type: type, meta: meta};
+module.exports = function() {
+  var m = {
+    asIs: function(data, type, row, meta) {
+      return data;
+    },
+    googleSearch: function(data, type, row, meta) {
+      var template = '<a href="https://google.com?q=<%= data %>"><%= data %></a>';
+      var templateData = { data: data, row: row, type: type, meta: meta };
 
-            return adpRenderLib.getTemplate(template, templateData);
-        },
-        "link": function(data, type, row, meta) {
-            var template = '<a href="<%= data %>"><%= data %></a>';
-            var templateData = {data: data, row: row, type: type, meta: meta};
+      return adpRenderLib.getTemplate(template, templateData);
+    },
+    link: function(data, type, row, meta) {
+      var template = '<a href="<%= data %>"><%= data %></a>';
+      var templateData = { data: data, row: row, type: type, meta: meta };
 
-            return adpRenderLib.getTemplate(template, templateData);
-        },
-        "percent": function(data, type, row, meta) {
-            return adpRenderLib.getTemplate('<span><%= val*100 %>%</span>', {val: data});
-        }
-    };
-    return m;
+      return adpRenderLib.getTemplate(template, templateData);
+    },
+    percent: function(data, type, row, meta) {
+      var value;
+      if (_.isNil(data)) {
+        value = '-';
+      } else {
+        value = Math.round(data * 100) + '%';
+      }
+      return adpRenderLib.getTemplate('<span><%= val %></span>', { val: value });
+    },
+  };
+  return m;
 };

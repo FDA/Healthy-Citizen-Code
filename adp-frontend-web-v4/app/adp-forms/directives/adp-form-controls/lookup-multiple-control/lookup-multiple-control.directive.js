@@ -5,13 +5,18 @@
     .module('app.adpForms')
     .directive('lookupMultipleControl', lookupMultipleControl);
 
-  function lookupMultipleControl(APP_CONFIG, $timeout) {
+  function lookupMultipleControl(
+    AdpLookupHelpers,
+    $timeout,
+    AdpValidationService
+  ) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/lookup-multiple-control/lookup-multiple-control.html',
       require: '^^form',
@@ -27,6 +32,8 @@
         scope.subjects = scope.field.lookup.table;
         scope.subjectNames = _.keys(scope.field.lookup.table);
         scope.subjectId = scope.field.lookup.id;
+
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
 
         scope.isEmpty = function () {
           var data = scope.getData();
@@ -105,19 +112,29 @@
             scope.$apply();
           },
           ajax: {
-            url: function getLookupEndpoint() {
-              var tableName, endpoint;
-              if (!scope.selectedSubject.selected) return;
-
-              tableName = scope.subjects[scope.selectedSubject.selected].table;
-              endpoint = APP_CONFIG.apiUrl + '/' +  ['lookups', scope.subjectId, tableName].join('/');
-
-              return endpoint;
-            },
             dataType: 'json',
             quietMillis: 300,
+            transport: function (args) {
+              var params = _.clone(args);
+              _.assign(params, {
+                url: AdpLookupHelpers.endpoint(scope),
+                contentType: 'application/json'
+              });
+
+              return $.ajax(params);
+            },
+            params: function() {
+              return {
+                type: AdpLookupHelpers.hasCondition(scope) ? 'POST' : 'GET',
+                method: AdpLookupHelpers.hasCondition(scope) ? 'POST' : 'GET'
+              };
+            },
             data: function (term, page) {
-              return { q: term, page: page };
+              if (AdpLookupHelpers.hasCondition(scope)) {
+                return JSON.stringify(scope.adpFormData);
+              } else {
+                return { q: term, page: page };
+              }
             },
             results: function (response) {
               return { results: response.data, more: response.more };

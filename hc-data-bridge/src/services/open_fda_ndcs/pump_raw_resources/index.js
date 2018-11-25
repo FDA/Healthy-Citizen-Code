@@ -9,7 +9,7 @@ try {
   settings.fileFilter = args.fileFilter ? new Function('file, _', args.fileFilter) : null;
   settings.getDocId = args.getDocId ? new Function('doc, _', args.getDocId) : null;
 } catch (e) {
-  console.log(`Error occurred while parsing args.`);
+  console.log(`Error occurred while parsing args.`, e);
   process.exit(-1);
 }
 

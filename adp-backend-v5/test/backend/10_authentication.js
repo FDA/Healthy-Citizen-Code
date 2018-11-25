@@ -2,23 +2,23 @@
 // TODO: add tests for permissions
 const request = require('supertest');
 const _ = require('lodash');
-const should = require('should');
+require('should');
 const assert = require('assert');
 const reqlib = require('app-root-path').require;
 
 describe('V5 Backend Authentication', () => {
-  before(function () {
-    const dotenv = require('dotenv').load({path: './test/backend/.env.test'});
+  before(function() {
+    require('dotenv').load({ path: './test/backend/.env.test' });
     this.appLib = reqlib('/lib/app')();
     return this.appLib.setup();
   });
 
-  after(function () {
+  after(function() {
     return this.appLib.shutdown();
   });
 
-
-  /*after(function (done) {
+  /*
+  after(function (done) {
     // delete mongoose.connection.models['users'];
     // delete mongoose.connection.models['piis'];
     // delete mongoose.connection.models['phis'];
@@ -34,99 +34,107 @@ describe('V5 Backend Authentication', () => {
       // cb => appLib.db.collection('phis').remove({}, cb),
       // cb => appLib.db.collection('piis').remove({}, cb),
     ], done);
-  });*/
+  });
+  */
+
   // This is a quick sanity check. Most tests are done in CRUD section below
   // Need to write multiple tests for each app.auth setting. For now it requires multiple server starts.
   // Maybe in the future we will implement hot reload with new settings
-  it('should not contain /signup, /account/password, /login, /logout when enableAuthentication=false', function (done) {
-    _.merge(this.appLib.appModel.interface.app.auth,
-      {
-        "enableAuthentication": false
-      });
+  it('should not contain /signup, /account/password, /login, /logout when enableAuthentication=false', function(done) {
+    _.merge(this.appLib.appModel.interface.app.auth, {
+      enableAuthentication: false,
+    });
     this.appLib.resetRoutes();
     request(this.appLib.app)
       .get('/routes')
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
-      .end(function (err, res) {
+      .end((err, res) => {
         res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
         res.body.success.should.equal(true, res.body.message);
         res.body.data.should.have.property('brief');
         // test requireAuthentication
-        const brief = res.body.data.brief;
+        const { brief } = res.body.data;
         assert(!brief.includes('POST /login'));
         assert(!brief.includes('GET /logout'));
-        assert(!brief.includes('POST /signup AUTH'));
+        assert(!brief.includes('POST /signup'));
         assert(!brief.includes('POST /account/password AUTH'));
-        //res.body.data.brief.should.containEql('GET /forgot');
+        // res.body.data.brief.should.containEql('GET /forgot');
         done();
       });
   });
 
-  it('routes should contain /signup, /account/password, /login, /logout when enableAuthentication!=false', function (done) {
-    _.merge(this.appLib.appModel.interface.app.auth,
-      {
-        "enableAuthentication": true
-      });
+  it('routes should contain /signup, /account/password, /login, /logout when enableAuthentication!=false', function(done) {
+    _.merge(this.appLib.appModel.interface.app.auth, {
+      enableAuthentication: true,
+    });
     this.appLib.resetRoutes();
     request(this.appLib.app)
       .get('/routes')
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/)
-      .end(function (err, res) {
+      .end((err, res) => {
         res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
         res.body.success.should.equal(true, res.body.message);
         res.body.data.should.have.property('brief');
-        const brief = res.body.data.brief;
+        const { brief } = res.body.data;
         assert(brief.includes('POST /login'));
         assert(brief.includes('GET /logout'));
-        assert(brief.includes('POST /signup AUTH'));
+        assert(brief.includes('POST /signup'));
         assert(brief.includes('POST /account/password AUTH'));
-        //res.body.data.brief.should.containEql('GET /forgot');
+        // res.body.data.brief.should.containEql('GET /forgot');
         done();
       });
   });
 
-  it('should not get json model without token when requireAuthentication=true', function () {
-    _.merge(this.appLib.appModel.interface.app.auth,
-      {
-        "requireAuthentication": true
-      });
+  it('should get stripped down json model when requireAuthentication=true and token is not provided', function() {
+    _.merge(this.appLib.appModel.interface.app.auth, {
+      requireAuthentication: true,
+    });
     this.appLib.resetRoutes();
-    return new Promise((resolve, reject) => {
+    return (
       request(this.appLib.app)
         .get('/app-model')
         .set('Accept', 'application/json')
         // .set("Authorization", `JWT ${token}`)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .then(res => {
           // console.log(res.body.data);
-          res.statusCode.should.equal(401);
-          res.body.success.should.equal(false);
-          resolve();
-        });
-    });
+          res.statusCode.should.equal(200);
+          res.body.success.should.equal(true);
+
+          const { models, interface: modelInterface } = res.body.data;
+          Object.keys(models).length.should.equal(1);
+          models.users.should.not.be.empty();
+
+          const menuFields = modelInterface.mainMenu.fields;
+          Object.keys(menuFields).length.should.equal(1);
+          menuFields.home.should.not.be.empty();
+
+          const { pages } = modelInterface;
+          Object.keys(pages).length.should.equal(1);
+          pages.home.should.not.be.empty();
+        })
+    );
   });
 
-  it('should get json model as guest when requireAuthentication=false', function () {
-    _.merge(this.appLib.appModel.interface.app.auth,
-      {
-        "requireAuthentication": false
-      });
+  it('should get json model as guest when requireAuthentication=false', function() {
+    _.merge(this.appLib.appModel.interface.app.auth, {
+      requireAuthentication: false,
+    });
     this.appLib.resetRoutes();
-    return new Promise((resolve, reject) => {
+    return (
       request(this.appLib.app)
         .get('/app-model')
         .set('Accept', 'application/json')
         // .set("Authorization", `JWT ${token}`)
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .then(res => {
           // console.log(res.body.data);
           res.statusCode.should.equal(200);
           res.body.success.should.equal(true, res.body.message);
-          resolve();
-        });
-    });
+        })
+    );
   });
 
   /*  it('crud endpoints should contain "isAuthenticated" middleware when requireAuthentication!=false', function (done) {
@@ -155,7 +163,7 @@ describe('V5 Backend Authentication', () => {
           // TODO: determine how to check isAuthenticated for CRUD endpoints
           // const path = [];
           // const authCrudRoutes = new Set();
-          // _.forOwn(appModel.models, (schema, schemaName) => {
+          // _.each(appModel.models, (schema, schemaName) => {
           //   const pluralize = require('pluralize');
           //   let pluralName = pluralize(schemaName, 2);
           //   let qualifiedPath = `/${_.map(path, p => p + '/:' + p + '_id').join("/") + (path.length ? '' : '/')}`;

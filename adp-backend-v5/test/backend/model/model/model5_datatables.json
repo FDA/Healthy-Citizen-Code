@@ -4,7 +4,7 @@
       "type": "Schema",
       "fullName": "model5s",
       "limitReturnedRecords": 3,
-      "defaultSortBy": {"n": -1},
+      "defaultSortBy": { "n": -1 },
       "description": "Used for testing Datatables and sorting support testing",
       "fields": {
         "n": {
@@ -29,26 +29,26 @@
           "description": "Query Test"
         },
         "as": {
-          "type": "Subschema",
-          "defaultSortBy": {"_id": 1},
-          "fullName": "Subschema",
+          "type": "Array",
+          "defaultSortBy": { "_id": 1 },
+          "fullName": "Array",
           "limitReturnedRecords": 4,
-          "description": "Subschema",
+          "description": "Array",
           "fields": {
             "sn": {
               "type": "Number",
-              "fullName": "Subschema Number",
-              "description": "Subschema Number"
+              "fullName": "Array Number",
+              "description": "Array Number"
             },
             "ss": {
               "type": "String",
-              "fullName": "Subschema String",
-              "description": "Subschema String"
+              "fullName": "Array String",
+              "description": "Array String"
             },
             "sd": {
               "type": "Date",
-              "fullName": "Subschema Date",
-              "description": "Subschema Date"
+              "fullName": "Array Date",
+              "description": "Array Date"
             }
           }
         }

@@ -8,11 +8,14 @@
  * meta - metainformation in datatables format: https://datatables.net/reference/option/columns.render
  */
 
-module.exports = function () {
-    var m = {
-        "starMask": function (data, row, modelSchema) {
-            return '********';
-        }
-    };
-    return m;
+module.exports = function() {
+  var m = {
+    asIs: function(data, type, row, meta) {
+      return data;
+    },
+    starMask: function(data, row, modelSchema) {
+      return '********';
+    },
+  };
+  return m;
 };

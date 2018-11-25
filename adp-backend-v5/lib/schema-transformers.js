@@ -2,20 +2,19 @@
  * @module transformers
  * Implements functionality required for "transform" attribute for the app model
  */
-module.exports = function () {
+module.exports = () => {
+  const passportLocalMongoose = require('passport-local-mongoose');
 
-    const passportLocalMongoose = require('passport-local-mongoose');
+  const m = {};
 
-    const m = {};
+  m.user = schema => {
+    schema.plugin(passportLocalMongoose, {
+      usernameField: 'login',
+      hashField: 'password',
+      selectFields: ['piiId', 'phiId', 'login'],
+      // attemptsField, lastLoginField, limitAttempts, maxAttempts
+    });
+  };
 
-    m.user = (schema) => {
-        schema.plugin(passportLocalMongoose, {
-            usernameField: 'login',
-            hashField: 'password',
-            selectFields: ['piiId', 'phiId', 'login']
-            //attemptsField, lastLoginField, limitAttempts, maxAttempts
-        });
-    };
-
-    return m;
+  return m;
 };

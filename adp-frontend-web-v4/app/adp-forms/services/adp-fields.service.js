@@ -17,7 +17,8 @@
       'String:Phone': { uiSubtypeType: 'text', directiveType: 'string' },
       'String:Url': { uiSubtypeType: 'text', directiveType: 'string' },
       'String:Email': { uiSubtypeType: 'email', directiveType: 'string' },
-      'String:Password': { uiSubtypeType: 'password', directiveType: 'string' },
+      'String:PasswordAuth': { uiSubtypeType: 'password', directiveType: 'string' },
+      'String:Password': { directiveType: 'password' },
       'String:Text': { directiveType: 'text' },
       'String[]': { directiveType: 'string-array' },
       'Select': { directiveType: 'select' },
@@ -48,6 +49,7 @@
       'FormRender': { directiveType: 'form-render' },
       'Object': { directiveType: 'object' },
       'Array': { directiveType: 'array' },
+      'Readonly': { directiveType: 'readonly' },
     };
 
     function getUnits(subtype) {
@@ -64,7 +66,14 @@
     // public
     function getTypeProps(field) {
       var fieldType = AdpSchemaService.getTypeProps(field);
+      var fieldInfo = _.get(field, 'fieldInfo', {});
 
+      // render as Readonly and keep field.type
+      if (fieldInfo.read && !fieldInfo.write) {
+        return typeMap['Readonly'];
+      }
+
+      // render as FormRender and keep field.type
       if ('formRender' in field) {
         return typeMap['FormRender'];
       }
@@ -98,6 +107,7 @@
             !AdpSchemaService.isGroup(field) &&
             _isVisible(field);
         })
+        .filter(_applyPermissions)
         .value();
 
       return form;
@@ -113,10 +123,24 @@
       return false;
     }
 
+    // !!! mutation
+    function _applyPermissions(field) {
+      var fieldInfo = _.get(field, 'fieldInfo', {});
+
+      if (!fieldInfo.read && !fieldInfo.write) {
+        return false;
+      }
+
+      return true;
+    }
+
     function prepareData(field, key) {
       field.keyName = key;
-      field.required = !!field.required;
       field.display = true;
+
+      if (!_.isString(field.required)) {
+        field.required = !!field.required;
+      }
 
       if (field.synthesize) {
         field.visible = false;
@@ -163,7 +187,8 @@
             return false;
           }
 
-          return !('fields' in field) && _isVisible(field);
+          return (AdpSchemaService.isField(field) || AdpSchemaService.isGroup(field)) &&
+            _isVisible(field);
         })
         .value();
 

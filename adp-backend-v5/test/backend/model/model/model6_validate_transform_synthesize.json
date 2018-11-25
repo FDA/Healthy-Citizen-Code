@@ -10,18 +10,27 @@
       "description": "Used for testing validators and transformers",
       "transform": "assignD",
       "fields": {
+        "numberWithInlineSynthesizer": {
+          "type": "Number",
+          "description": "Conditional synthesize",
+          "synthesize": {
+            "code": "$action === 'view' ? this.n + 10 : 0"
+          }
+        },
+        "virtualNumberWithInlineSynthesizer": {
+          "type": "String",
+          "description": "Conditional synthesize",
+          "virtual": true,
+          "synthesize": {
+            "code": "$action === 'view' ? 'virtualValueForViewAction' : 'val'"
+          }
+        },
         "n": {
           "type": "Number",
           "fullName": "Number1",
           "description": "Number1",
-          "validate": [
-            "min(6)",
-            "max(25)",
-            "notEqual(9)"
-          ],
-          "transform": [
-            "addOne"
-          ]
+          "validate": ["min(6)", "max(25)", "notEqual(9)"],
+          "transform": ["addOne"]
         },
         "n2": {
           "type": "Number",
@@ -38,25 +47,14 @@
               }
             }
           ],
-          "transform": [
-            "addOne"
-          ]
+          "transform": ["addOne"]
         },
         "s": {
           "type": "String",
           "fullName": "String",
           "description": "String",
-          "transform": [
-            "trim",
-            [
-              "appendQ",
-              "appendW"
-            ]
-          ],
-          "validate": [
-            "minLength(3)",
-            "maxLength(12)"
-          ]
+          "transform": ["trim", ["appendQ", "appendW"]],
+          "validate": ["minLength(3)", "maxLength(12)"]
         },
         "d": {
           "type": "Date",
@@ -75,54 +73,39 @@
           ]
         },
         "as": {
-          "type": "Subschema",
+          "type": "Array",
           "defaultSortBy": {
             "sn": -1
           },
-          "fullName": "Subschema",
+          "fullName": "Array",
           "limitReturnedRecords": 4,
-          "description": "Subschema",
+          "description": "Object",
           "fields": {
             "sn": {
               "type": "Number",
-              "fullName": "Subschema Number1",
-              "description": "Subschema Number1",
-              "transform": [
-                "addOne"
-              ]
+              "fullName": "Array Number1",
+              "description": "Array Number1",
+              "transform": ["addOne"]
             },
             "sn2": {
               "type": "Number",
-              "fullName": "Subschema Number2",
-              "description": "Subschema Number2",
-              "transform": [
-                "addOne"
-              ],
-              "validate": [ "notEqual($sn)" ]
+              "fullName": "Array Number2",
+              "description": "Array Number2",
+              "transform": ["addOne"],
+              "validate": ["notEqual($sn)"]
             },
             "ss": {
               "type": "String",
-              "fullName": "Subschema String",
-              "transform": [
-                "trim",
-                [
-                  "appendQ",
-                  "appendW"
-                ]
-              ],
-              "description": "Subschema String",
-              "validate": [
-                "regex(a|d|g,i)"
-              ]
+              "fullName": "Array String",
+              "transform": ["trim", ["appendQ", "appendW"]],
+              "description": "Object String",
+              "validate": ["regex(a|d|g,i)"]
             },
             "sd": {
               "type": "Date",
-              "fullName": "Subschema Date",
-              "description": "Subschema Date",
-              "validate": [
-                "max(4000-01-01T07:00:00)",
-                "notInFuture()"
-              ]
+              "fullName": "Array Date",
+              "description": "Array Date",
+              "validate": ["max(4000-01-01T07:00:00)", "notInFuture()"]
             }
           }
         },

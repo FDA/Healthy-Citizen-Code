@@ -1,0 +1,25 @@
+{
+  "models": {
+    "drugEvents": {
+      "type": "Schema",
+      "fullName": "Drug Events",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "description": "OpenFDA Drug Events",
+      "fields": {
+        "id": {
+          "type": "String",
+          "visible": true,
+          "fullName": "id",
+          "description": "Unique key to prevent duplicates. Retrieved from field 'safetyreportid'. "
+        },
+        "rawData": {
+          "type": "Mixed",
+          "visible": true,
+          "fullName": "Raw Data",
+          "description": "Contains the pulled data as-is for future reparsing."
+        }
+      }
+    }
+  }
+}

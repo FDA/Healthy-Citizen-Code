@@ -10,7 +10,6 @@
         "Boolean",
         "Mixed", // mongoose type Mixed, i.e. any object with any structure
         "Array",
-        "Subschema",
         "Object", // something with defined structure
         "Schema",
         "ObjectID",
@@ -41,11 +40,11 @@
         "Dashboard",
         "DashboardItem",
         "Group",
-        "Location",
+        "Location"
         // "Barcode" - this is a subtype
       ],
       "fullName": "Type",
-      "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Subschema is an array that should be displayed in the menu. Some types are only available for interface elements and not the model"
+      "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Some types are only available for interface elements and not the model"
     },
     "subtype": {
       "list": [
@@ -96,7 +95,7 @@
     },
     "labelRenderer": {
       "fullName": "Label Renderer",
-      comment: "depreciate this in favor of synthetic fields",
+      "comment": "depreciate this in favor of synthetic fields",
       "description": "Name of the function from LabelRenderers rendering label representing given object. This is used in parent select lists and similar, for instance see encounters."
     },
     "singleRecord": {
@@ -114,9 +113,7 @@
       "fields": {
         "type": {
           "description": "Icon type: font-awesome, in the future: image etc",
-          "list": [
-            "font-awesome"
-          ],
+          "list": ["font-awesome"],
           "default": "font-awesome"
         }
       }
@@ -194,6 +191,12 @@
       "fullName": "Show In Datatable",
       "description": "If set to true (default) then this field will be displayed in the datatables."
     },
+    "showInViewDetails": {
+      "default": true,
+      "type": "Boolean",
+      "fullName": "Show In Form of viewDetails action",
+      "description": "If set to true (default) then this field will be displayed in the viewDetails action form."
+    },
     "showInForm": {
       "default": true,
       "type": "Boolean",
@@ -242,7 +245,10 @@
       "fullName": "Synthesize",
       "description": "Specifies a way to synthesize the field value. If field has this attribute it's treated as synthetic and doesn't require direct user input"
     },
-    // TODO: add synthetic fields
+    "virtual": {
+      "fullName": "Virtual",
+      "description": "Virtual fields is a special case of synthetic fields when the value of the field is not stored in the database, but calculated on the fly during the \"view\" action and other actions that read from the database. The virtual fields are calculated using the same synthesizers and are indicated with attribute \"virtual: true\"."
+    },
     "errorMessages": {
       "fullName": "Error Messages",
       "description": "Error message templates to be used and returned by the validator"
@@ -261,7 +267,7 @@
     },
     "fields": {
       "fullName": "Fields",
-      "description": "For type Subschema defines the list of included fields"
+      "description": "List of included fields"
     },
     "index": {
       "fullName": "Index",
@@ -298,21 +304,14 @@
     },
     "generatorDistribution": {
       "default": "random",
-      "list": [
-        "random",
-        "sequential"
-      ],
+      "list": ["random", "sequential"],
       "fullName": "Distribution",
       "description": "How values from the range of possible values should be picked"
     },
     "menus": {
       "fields": {
         "type": {
-          "list": [
-            "MenuItem",
-            "MenuGroup",
-            "MenuDashboardLink"
-          ],
+          "list": ["MenuItem", "MenuGroup", "MenuDashboardLink"],
           "default": "MenuItem"
         }
       }
@@ -327,9 +326,7 @@
     "pages": {
       "fields": {
         "type": {
-          "list": [
-            "Page"
-          ],
+          "list": ["Page"],
           "default": "Page"
         }
       }
@@ -361,9 +358,7 @@
           "fields": {
             "type": {
               "description": "Icon type: font-awesome, in the future: image etc",
-              "list": [
-                "font-awesome"
-              ],
+              "list": ["font-awesome"],
               "default": "font-awesome"
             },
             "link": {
@@ -377,14 +372,11 @@
         "action": {
           "fields": {
             "type": {
-              "list": [
-                "action",
-                "link"
-              ],
-              "default": "action",
+              "list": ["action", "link"],
+              "default": "action"
             },
             "link": {
-              type: "String",
+              "type": "String"
             }
           }
         }
@@ -394,7 +386,7 @@
       "fullName": "Scopes",
       "required": false,
       "description": "Lists scopes available for the schema records.",
-      "comment": "Schemas/Subschemas have permissions specifying who can view records."
+      "comment": "Schemas have permissions specifying who can execute actions with records."
     }
   }
 }

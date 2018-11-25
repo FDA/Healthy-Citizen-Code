@@ -1,0 +1,84 @@
+{
+  "models": {
+    "userPreferences": {
+      "type": "Schema",
+      "fullName": "User preferences",
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
+      "fields": {
+        "udid": {
+          "type": "String",
+          "fullName": "User deidentified id",
+          "description": "Widget ID",
+          "required": true
+        },
+        "gender": {
+          "type": "String",
+          "list": {
+            name: "genders",
+            scopes: {
+              userScope: {
+                permissions: "accessAsGuest",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "fullName": "Gender",
+          "description": "Gender."
+        },
+        "age": {
+          "type": "String",
+          "list": {
+            name: "ages",
+            scopes: {
+              userScope: {
+                permissions: "accessAsGuest",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          },
+          "fullName": "Age",
+          "description": "Age range."
+        },
+        "geographicRegion": {
+          "type": "String",
+          "list": {
+            name: "geographicRegions",
+            scopes: {
+              userScope: {
+                permissions: "accessAsGuest",
+                return: "return $list",
+                where: "return true"
+              }
+            }
+          }
+        },
+        "medications": {
+          "type": "Object[]",
+          "fullName": "Medications",
+          "description": "Medications interested in",
+          "fields": {
+            "_id": {
+              "type": "String",
+            },
+            "ndc11": {
+              "type": "String",
+            },
+            "brandName": {
+              "type": "String",
+            },
+            "rxcui": {
+              "type": "String",
+            }
+          }
+        }
+      }
+    }
+  }
+}

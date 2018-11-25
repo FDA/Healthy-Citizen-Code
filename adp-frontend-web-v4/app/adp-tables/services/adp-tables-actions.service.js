@@ -14,7 +14,8 @@
         if (!rowData._actions[actionName]) return;
 
         // check action.showInTable is false
-        if ('showInTable' in action && _.isEmpty(action.showInTable)) return;
+        const showInTable = action.showInTable;
+        if (showInTable === false || showInTable === 'false') return;
 
         filteredActions[actionName] = action;
       });
@@ -70,11 +71,9 @@
     }
 
     function createContents(params) {
-      if (params.fullName && 'icon' in params) {
+      if ('icon' in params) {
         return '<i class="fa fa-fw fa-' + params.icon.link + '"></i>';
-      }
-
-      if (params.fullName && !('icon' in params)) {
+      } else {
         return  params.fullName;
       }
     }

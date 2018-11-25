@@ -127,21 +127,21 @@ module.exports = function (/*globalMongoose*/) {
         return {isValid: true};
     }
 
-    function getEndpoint(query) {
-        const endpoint = 'https://api.fda.gov/drug/event.json?search=';
-        let rxcui = `patient.drug.openfda.rxcui:${query.rxcui}`;
-        let age, sex;
+        function getEndpoint(query) {
+            const endpoint = 'https://api.fda.gov/drug/event.json?search=';
+            let rxcui = `patient.drug.openfda.rxcui:${query.rxcui}`;
+            let age, sex;
 
-        if (query.minage && query.maxage) {
-            age = `patient.patientonsetage:[${query.minage}+TO+${query.maxage}]+AND+patient.patientonsetageunit:801`;
+            if (query.minage && query.maxage) {
+                age = `patient.patientonsetage:[${query.minage}+TO+${query.maxage}]+AND+patient.patientonsetageunit:801`;
+            }
+
+            if (query.gender) {
+                sex = `patient.patientsex:${query.gender}`;
+            }
+
+            return endpoint + [rxcui, age, sex].filter(v => !!v).join('+AND+');
         }
-
-        if (query.gender) {
-            sex = `patient.patientsex:${query.gender}`;
-        }
-
-        return endpoint + [rxcui, age, sex].filter(v => !!v).join('+AND+');
-    }
 
     function getUrlWithPagination(paginationState) {
         let skip = paginationState.pagesRequested * REQUEST_STEP;
@@ -182,3 +182,9 @@ module.exports = function (/*globalMongoose*/) {
 
     return m;
 };
+
+
+
+
+
+

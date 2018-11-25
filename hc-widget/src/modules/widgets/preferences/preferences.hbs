@@ -1,0 +1,107 @@
+<form  class="content-box" NOVALIDATE>
+  <h1 class="content-title">Preference</h1>
+
+  <div class="messages">
+    <div class="message message__error hidden">Error.</div>
+    <div class="message message__success hidden">Saved.</div>
+  </div>
+
+  {{#if @root.showImport}}
+    <div class="form-field">
+      <label for="dstu2Url" class="label">
+        FHIR server base URL
+      </label>
+
+      <div>
+        <input
+          type="text"
+          name="dstu2Url"
+          id="dstu2Url"
+        >
+      </div>
+    </div>
+
+    <div class="form-field">
+      <label for="fhirId" class="label">
+        FHIR ID
+      </label>
+
+      <div>
+        <input
+          type="text"
+          name="fhirId"
+          id="fhirId"
+        >
+      </div>
+    </div>
+
+    <div class="form-field">
+      <button
+        class="btn import-data-btn"
+        type="button">
+        Import Data
+      </button>
+    </div>
+  {{/if}}
+
+  <div class="form-field">
+    <label for="gender" class="label">
+      Gender
+    </label>
+
+    <div>
+      <select name="gender" id="gender">
+        <option value="">---</option>
+        <option value="M">Male</option>
+        <option value="F">Female</option>
+        <option value="T">Trans-gender</option>
+        <option value="P">Prefer not to Answer</option>
+      </select>
+    </div>
+  </div>
+
+  <div class="form-field">
+    <label for="geographicRegion" class="label">
+      Geographic Region
+    </label>
+
+    <select id="geographicRegion" name="geographicRegion">
+      <option value="">---</option>
+      <option value="NE">Northeast</option>
+      <option value="SE">Southeast</option>
+      <option value="SW">Southwest</option>
+      <option value="MW">Northwest</option>
+      <option value="NW">Northwest</option>
+    </select>
+  </div>
+
+  <div class="form-field">
+    <label for="age" class="label">
+      Age
+    </label>
+
+    <select name="age" id="age">
+      <option value="">---</option>
+      <option value="0-11">Under 12 years old</option>
+      <option value="12-17">12-17 years old</option>
+      <option value="18-24">18-24 years old</option>
+      <option value="25-34">25-34 years old</option>
+      <option value="35-44">35-44 years old</option>
+      <option value="45-54">45-54 years old</option>
+      <option value="55-64">55-64 years old</option>
+      <option value="65-74">65-74 years old</option>
+      <option value="75-">75 years or older</option>
+    </select>
+  </div>
+
+  <div class="js-widget-lookup"></div>
+  <div class="js-table-lookup"></div>
+
+  <div class="clearfix">
+    <button
+      class="btn fright"
+      type="submit">
+      Submit
+    </button>
+  </div>
+</form>

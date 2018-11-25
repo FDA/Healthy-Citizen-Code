@@ -1,16 +1,15 @@
-module.exports = function () {
+module.exports = () => {
   const WebSocketServer = require('ws').Server;
   const log = require('log4js').getLogger('lib/websocket-server');
-  let m = {};
+  const m = {};
 
-  m.connect = (app) => {
-    m.webSocketServer = new WebSocketServer({server: app, path: "/ws"});
-    m.webSocketServer.on('connection', (ws) => {
+  m.connect = app => {
+    m.webSocketServer = new WebSocketServer({ server: app, path: '/ws' });
+    m.webSocketServer.on('connection', ws => {
       log.trace(`Got new connection: ${ws}`);
-      ws
-        .on('message', (message) => {
-          log.trace('Received WS:', message);
-          /*
+      ws.on('message', message => {
+        log.trace('Received WS:', message);
+        /*
            try {
            var msg = JSON.parse(message);
            if (msg.kind == "System") {
@@ -21,14 +20,14 @@ module.exports = function () {
            console.log("ERROR:", e);
            }
            */
-        })
-        .on('open', function open() {
+      })
+        .on('open', () => {
           log.info('connected');
         })
-        .on('close', function close() {
+        .on('close', () => {
           log.info('disconnected');
         })
-        .on('ping', function error(err) {
+        .on('ping', err => {
           log.info('ping:', err);
         })
         .send(m.createWebsocketEvent('System', 'ConnectedToServer', {}));
@@ -40,9 +39,9 @@ module.exports = function () {
    * This will keep periodically pinging all connected clietns and keep connection alive
    */
   m.pingWebSocketClients = () => {
-    log.trace("Pinging all WS clients");
-    m.webSocketServer.clients.forEach(function each(client) {
-      client.ping("ping");
+    // log.trace("Pinging all WS clients");
+    m.webSocketServer.clients.forEach(client => {
+      client.ping('ping');
     });
     setTimeout(m.pingWebSocketClients, 20000);
   };
@@ -53,17 +52,16 @@ module.exports = function () {
    * @param action
    * @param payload
    */
-  m.createWebsocketEvent = (kind, action, payload) => {
-    return JSON.stringify({
-      kind: kind,
-      action: action,
+  m.createWebsocketEvent = (kind, action, payload) =>
+    JSON.stringify({
+      kind,
+      action,
       created_at: Date.now,
-      parameters: payload
+      parameters: payload,
     });
-  };
 
-  m.WebSocketBroadcast = (data) => {
-    m.webSocketServer.clients.forEach(function each(client) {
+  m.WebSocketBroadcast = data => {
+    m.webSocketServer.clients.forEach(client => {
       client.send(data);
     });
   };

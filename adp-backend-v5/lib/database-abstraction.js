@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const log = require('log4js').getLogger('lib/database-abstraction');
 
 /**
  * @module database-abstraction
@@ -9,9 +8,13 @@ const log = require('log4js').getLogger('lib/database-abstraction');
  * Overall it would be great to get rid of mongoose completely and work directly with the driver.
  * This will be possible with further expansion of this module.
  */
-module.exports = function (appLib) {
+module.exports = appLib => {
   const transformers = require('./transformers')(appLib);
   const m = {};
+
+  m.getConditionForActualRecord = () => ({
+    $and: [{ deletedAt: { $eq: null } }, { _temporary: { $eq: null } }],
+  });
 
   /**
    * Updates ONE document based on mongoConditions
@@ -24,51 +27,73 @@ module.exports = function (appLib) {
    * TODO: optimize queries using $, projection and other features available in mongo at the moment
    * @param action  operation to perform: $set, $push or $pull. Do not use these directly in mongodb query, read note above
    * @param model
+   * @param userContext
+   * @param mongoProjections
    * @param mongoConditions
-   * @param origData associative array containing the data to be updated
+   * @param data
    * @param path the path to the element of appModel that's being updated ("" if the entire record is being updated)
-   * @param cb
    */
-  m.updateItem = (action, model, userContext, mongoConditions, mongoProjections, origData, path) => {
-    let data = _.cloneDeep(origData);
-    //log.trace(`${action} ${path} ${JSON.stringify(origData, null, 4)}`);
-    return transformers.preSaveTransformData(model.modelName, userContext, data, /*[]*/path)
+  m.updateItem = ({ model, userContext, mongoConditions, data, path }) =>
+    // log.trace(`${action} ${path} ${JSON.stringify(data, null, 4)}`);
+    transformers
+      .preSaveTransformData(model.modelName, userContext, data, path)
       .then(() => {
-        const newConditions = Object.assign(mongoConditions, {deletedAt: {$eq: null}, _temporary: {$eq: null}});
+        const newConditions = { $and: [mongoConditions, m.getConditionForActualRecord()] };
         return model.findOneAndUpdate(newConditions, data, { new: true, strict: true });
       })
-      .then((doc) => {
+      .then(doc => {
         if (!doc) {
           throw new Error('You are not allowed to update the item');
         }
-      })
-  };
-
-  m.upsertItem = (action, model, userContext, mongoConditions, mongoProjections, origData, path) => {
-    return model.findOne(mongoConditions)
-      .then((doc) => {
-        if (doc) {
-          return m.updateItem(action, model, userContext, mongoConditions, mongoProjections, origData, path);
-        }
-        return m.createItemCheckingConditions(model, mongoConditions, userContext, origData);
       });
-  };
+
+  m.upsertItem = ({ model, userContext, mongoConditions, data, path }) =>
+    model.findOne(mongoConditions).then(doc => {
+      if (doc) {
+        return m.updateItem({
+          model,
+          userContext,
+          mongoConditions,
+          data,
+          path,
+        });
+      }
+      return m.createItemCheckingConditions(model, mongoConditions, userContext, data);
+    });
 
   /**
    * Creates/saves new item.
    * This creates whole new item, not just a submodel of existin element, so the transformers and validators should be applied to the whole item
    */
-  m.createItem = (model, userContext, origData) => {
-    let data = _.cloneDeep(origData);
-    return transformers.preSaveTransformData(model.modelName, userContext, data, [])
-      .then(() => {
-        // Used for preserving key order in objects.
-        // Recommendation from one of authors: https://github.com/Automattic/mongoose/issues/2749#issuecomment-234737744
-        model.schema.options.retainKeyOrder = true;
-        let record = new model(data);
-        return record.save();
-      })
+  m.createItem = (Model, userContext, origData) => {
+    const data = _.cloneDeep(origData);
+    return transformers.preSaveTransformData(Model.modelName, userContext, data, []).then(() => {
+      // Used for preserving key order in objects.
+      // Recommendation from one of authors: https://github.com/Automattic/mongoose/issues/2749#issuecomment-234737744
+      Model.schema.options.retainKeyOrder = true;
+      const record = new Model(data);
+      return record.save();
+    });
   };
+
+  /**
+   * @param Model - mongoose Model
+   * @param savedItemId - id of saved tepmorary record
+   * @param updatedTempRecord - updated record with unset _temporary flag
+   * @returns {*}
+   */
+  function handleUpdatedTemporaryRecord(Model, savedItemId, updatedTempRecord) {
+    if (!updatedTempRecord) {
+      // remove temporary record immediately
+      return Model.remove({ _id: savedItemId, _temporary: true }).then(() => {
+        throw {
+          code: 'NO_PERMISSIONS_TO_CREATE',
+          message: `Not enough permissions to create the item.`,
+        };
+      });
+    }
+    return Promise.resolve(updatedTempRecord);
+  }
 
   /**
    * Creates item with following steps:
@@ -78,87 +103,88 @@ module.exports = function (appLib) {
    * 4) Otherwise remove whole temporary record.
    * This is done in this way because permission scopes contain mongo conditions.
    * Otherwise we would have to implement own condition parser.
-   * @param model
+   * @param Model
    * @param mongoConditions
    * @param userContext
    * @param origData
    */
-  m.createItemCheckingConditions = (model, mongoConditions, userContext, origData) => {
-    let data = _.cloneDeep(origData);
+  m.createItemCheckingConditions = (Model, mongoConditions, userContext, origData) => {
+    const data = _.cloneDeep(origData);
     let savedItem;
 
-    return transformers.preSaveTransformData(model.modelName, userContext, data, [])
+    return transformers
+      .preSaveTransformData(Model.modelName, userContext, data, [])
       .then(() => {
         // Used for preserving key order in objects.
         // Recommendation from one of authors: https://github.com/Automattic/mongoose/issues/2749#issuecomment-234737744
-        model.schema.options.retainKeyOrder = true;
+        Model.schema.options.retainKeyOrder = true;
         data._temporary = true;
-        let record = new model(data);
+        const record = new Model(data);
         return record.save();
       })
       .then(item => {
         savedItem = item;
-        return model.findOneAndUpdate(
-          {...mongoConditions, _temporary: true, _id: item._id},
-          {$unset: {_temporary: 1}},
-          {new: true})
+        return Model.findOneAndUpdate(
+          { ...mongoConditions, _temporary: true, _id: item._id },
+          { $unset: { _temporary: 1 } },
+          { new: true }
+        );
       })
-      .then(newDoc => {
-        if (!newDoc) {
-          // remove temporary record immediately
-          return model.remove({_id: savedItem._id, _temporary: true})
-            .then(() => {
-              throw new Error(`Not authorized to save the item.`);
-            });
-        }
-        return newDoc;
-      });
+      .then(newDoc => handleUpdatedTemporaryRecord(Model, savedItem._id, newDoc));
   };
 
-  m.removeItem = (model, conditions, cb) => {
-    // model.remove({_id: conditions._id}, cb);
-    model.findOneAndUpdate({
-      ...conditions,
-      deletedAt: {$eq: null},
-      _temporary: {$eq: null}
-    }, {$set: {deletedAt: new Date()}}, (err) => {
-      if (err) {
-        log.error(`Unable to remove item: ${err}`);
-        cb('Internal Server Error');
-      } else {
-        cb();
-      }
-    });
+  m.removeItem = (model, conditions) => {
+    const newConditions = { $and: [conditions, m.getConditionForActualRecord()] };
+    return model.findOneAndUpdate(newConditions, { $set: { deletedAt: new Date() } });
   };
 
-// TODO: rewrite using cursors?
-  m.findItems = (model, userContext, conditions = {}, projections = {}, sort = {}, skip = 0, limit = -1, runPostprocessing = true) => {
-    // build new conditions for skipping soft deleted parent records
-    Object.assign(conditions, {deletedAt: {$eq: null}, _temporary: {$eq: null}});
-    let foundData;
-    return model.find(conditions).sort(sort).skip(skip).limit(limit).lean().exec()
-      .then((data) => {
-        if (data) {
-          foundData = data;
-          transformers.removeSoftDeletedSubschemaElements(appLib.appModel.models[model.modelName], foundData);
+  m.findItems = ({
+    model,
+    userContext,
+    conditions = {},
+    projections = {},
+    sort = {},
+    skip = 0,
+    limit = -1,
+  }) =>
+    m
+      .rawFindItems({ model, userContext, conditions, projections, sort, skip, limit })
+      .then(data => m.postProcess(data, model.modelName, userContext, true));
 
-          if (runPostprocessing) {// some operations like putItems require postprocessing to be skipped
-            return Promise.map(foundData, (el) => transformers.postInitTransformData(model.modelName, userContext, el));
-          }
-        }
-      })
-      .then(() => foundData)
+  // TODO: rewrite using cursors?
+  m.rawFindItems = ({
+    model,
+    conditions = {},
+    projections = {},
+    sort = {},
+    skip = 0,
+    limit = -1,
+  }) => {
+    const newConditions = { $and: [conditions, m.getConditionForActualRecord()] };
+    return model
+      .find(newConditions, projections)
+      .sort(sort)
+      .skip(skip)
+      .limit(limit)
+      .lean()
+      .exec();
   };
 
-  m.aggregateItems = (model, userContext, conditions = {}, projections = {}, sort = {}, skip = 0, limit = -1, runPostprocessing = true) => {
-    // build new conditions for skipping soft deleted parent records
-    const newConditions = {$and: [conditions, {deletedAt: {$eq: null}, _temporary: {$eq: null}}]};
+  m.aggregateItems = (
+    model,
+    conditions = {},
+    projections = {},
+    sort = {},
+    skip = 0,
+    limit = -1
+  ) => {
+    const newConditions = { $and: [conditions, m.getConditionForActualRecord()] };
 
     let aggregate = model.aggregate().match(newConditions);
-    if (Object.keys(projections).length > 0) {
+    if (!_.isEmpty(projections)) {
       aggregate = aggregate.project(projections);
     }
-    if (Object.keys(sort).length > 0) {
+    if (!_.isEmpty(sort)) {
       aggregate = aggregate.sort(sort);
     }
     aggregate = aggregate.skip(skip);
@@ -166,18 +192,19 @@ module.exports = function (appLib) {
       aggregate = aggregate.limit(limit);
     }
 
-    return aggregate.exec()
-      .then(data => {
-        if (!_.isEmpty(data)) {
-          transformers.removeSoftDeletedSubschemaElements(appLib.appModel.models[model.modelName], data);
-          if (runPostprocessing) {
-            // some operations like putItems require postprocessing to be skipped
-            return Promise.mapSeries(data, (el) => transformers.postInitTransformData(model.modelName, userContext, el))
-              .then(() => data);
-          }
-        }
-        return data;
-      });
+    return aggregate.exec();
+  };
+
+  m.postProcess = (data, modelName, userContext, runPostprocessing) => {
+    if (!_.isEmpty(data)) {
+      if (runPostprocessing) {
+        // some operations like putItems require postprocessing to be skipped
+        return Promise.mapSeries(data, el =>
+          transformers.postInitTransformData(modelName, userContext, el)
+        ).then(() => data);
+      }
+    }
+    return Promise.resolve(data);
   };
 
   return m;

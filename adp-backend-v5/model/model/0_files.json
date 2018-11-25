@@ -1,41 +1,42 @@
 {
-  models: {
-    files: {
-      type: "Schema",
-      description: "This collection contains list of files uploaded by users",
-      fields: {
-        originalName: {
-          type: "String",
-          description: "Original file name"
+  "models": {
+    "files": {
+      "type": "Schema",
+      "description": "This collection contains list of files uploaded by users",
+      "fields": {
+        "originalName": {
+          "type": "String",
+          "description": "Original file name"
         },
-        size: {
-          type: "Number",
-          description: "File size in bytes"
+        "size": {
+          "type": "Number",
+          "description": "File size in bytes"
         },
-        mimeType: {
-          type: "String",
-          description: "File MIME type"
+        "mimeType": {
+          "type": "String",
+          "description": "File MIME type"
         },
-        filePath: { // cropped version will have filename ending with "_crop"
-          type: "String",
-          visible: false,
-          description: "File path in local filesystem"
+        "filePath": {
+          // cropped version will have filename ending with "_crop"
+          "type": "String",
+          "visible": false,
+          "description": "File path in local filesystem"
         },
-        croppingParameters: {
-          type: "Mixed",
-          visible: false,
-          description: "Cropping parameters as sent by frontend"
+        "croppingParameters": {
+          "type": "Mixed",
+          "visible": false,
+          "description": "Cropping parameters as sent by frontend"
         },
-        cropped: {
-          type: "Boolean",
-          description: "If true then there is a cropped version of this file"
+        "cropped": {
+          "type": "Boolean",
+          "description": "If true then there is a cropped version of this file"
         },
-        user: {
-          type: "ObjectID",
-          lookup: {
-            table: "users",
-            foreignKey: "_id",
-            label: "login"
+        "user": {
+          "type": "LookupObjectID",
+          "lookup": {
+            "table": "users",
+            "foreignKey": "_id",
+            "label": "login"
           }
         }
       }

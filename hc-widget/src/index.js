@@ -10,6 +10,8 @@ import AdverseEventsAlt from './modules/widgets/adverse-events/adverse-events-al
 import Recalls from './modules/widgets/recalls/recalls';
 import drugsVisualization from './modules/widgets/drugs-visualization/drugs-visualization';
 import ndcLookup from './modules/widgets/ndc-lookup/ndc-lookup';
+import {graphViewWidget} from './modules/widgets/graph-view-widget/';
+import {preferences} from './modules/widgets/preferences/';
 
 const widgetMap = {
   'questionnaire': Questionnaire,
@@ -18,7 +20,9 @@ const widgetMap = {
   'adverseEventsAlt': AdverseEventsAlt,
   'recalls': Recalls,
   'drugsVisualization': drugsVisualization,
-  'ndcLookup': ndcLookup
+  'ndcLookup': ndcLookup,
+  'graphViewWidget': graphViewWidget,
+  'preferences': preferences
 };
 
 // todo: move to css
@@ -30,7 +34,7 @@ const widgetDefaults = {
 
 const hcWidget = function (node, options) {
   //  TODO: do widget id check, throw error for null
-  hcWidgetAPI.getWidgetParams(options.hcWidgetId)
+  hcWidgetAPI.getWidgetParams(options.widgetId)
     .then(params => {
       const opts = Object.assign({}, widgetDefaults, params, options);
       const widget = widgetMap[opts.type];
@@ -39,11 +43,11 @@ const hcWidget = function (node, options) {
     })
     .catch(err => console.log(err));
 };
-window.hcWidget = hcWidget;
+window['hcWidget'] = hcWidget;
 
-const widgets = document.querySelectorAll('[data-hc-widget-id]');
+const widgets = document.querySelectorAll('[data-widget-id]');
 
 for (let i = 0; i < widgets.length; i++) {
   let node = widgets[i];
-  new hcWidget(node, node.dataset);
+  hcWidget(node, node.dataset);
 }

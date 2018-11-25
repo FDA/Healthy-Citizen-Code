@@ -1,4 +1,4 @@
-  {
+{
   "models": {
     "roles": {
       "type": "Schema",
@@ -13,7 +13,7 @@
         },
         "permissions": {
           "type": "String[]",
-          "list": "declaredPermissions",
+          "list": "availablePermissions",
           "fullName": "Permission names"
         }
       }

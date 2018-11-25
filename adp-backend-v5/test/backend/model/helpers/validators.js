@@ -1,4 +1,4 @@
-module.exports = function (vutil) {
-    const m = {};
-    return m;
+module.exports = () => {
+  const m = {};
+  return m;
 };

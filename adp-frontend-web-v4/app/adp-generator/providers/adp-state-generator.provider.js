@@ -165,10 +165,12 @@
      * @param {Object[]} menuItems
      */
     function createDashboards(menuItems) {
-      var dashboard = findDashboard(menuItems);
-      if (!dashboard) return;
+      var dashboards = findDashboard(menuItems);
+      if (!dashboards.length) return;
 
-      _createDashboardState(dashboard);
+      dashboards.forEach(function (dashboard) {
+        _createDashboardState(dashboard);
+      });
     }
 
     /**
@@ -182,9 +184,9 @@
      * @return {Object} menuItem
      */
     function findDashboard(menuItems) {
-      return _.find(menuItems, function (item) {
+      return _.filter(menuItems, function (item) {
         return item.type === 'MenuDashboardLink'
-      })
+      });
     }
 
     /**
@@ -207,7 +209,8 @@
           title: dashboardMenuItem.title,
           // intentional duplication of title to avoid compabillity issues in already implemented applications
           pageParams: {
-            title: dashboardMenuItem.title
+            title: dashboardMenuItem.title,
+            dashboardName: dashboardMenuItem.link
           }
         };
 

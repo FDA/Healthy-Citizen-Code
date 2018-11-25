@@ -7,14 +7,16 @@
 
   function dynamicListMultipleControl(
     AdpFieldsService,
-    AdpFieldFormatUtil
+    AdpFieldFormatUtil,
+    AdpValidationService
   ) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/dynamic-list-multiple-control/dynamic-list-multiple-control.html',
       require: '^^form',
@@ -22,6 +24,8 @@
         scope.form = formCtrl;
         scope.loading = true;
         scope.adpFormData[scope.field.keyName] = scope.adpFormData[scope.field.keyName] || [];
+
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
 
         AdpFieldsService.getListOptionsAsync(scope.field.list)
           .then(init);

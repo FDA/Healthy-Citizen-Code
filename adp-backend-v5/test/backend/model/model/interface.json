@@ -11,10 +11,19 @@
         "requireMfa": false
       },
       "permissions": {
-        "viewPermission": {"description": "viewPermission"},
-        "createPermission": {"description": "createPermission"},
-        "manageReportRecord": {"description": "manageReportRecord"},
-        "accessSpecialRecords": {"description": "accessSpecialRecords"},
+        "accessAsAnyone": {
+          "description": "Default permission for marking something as available to anyone"
+        },
+        "accessAsGuest": { "description": "Default guest permission" },
+        "accessAsUser": { "description": "Default user permission" },
+        "accessAsSuperAdmin": { "description": "Default admin permission" },
+        "createUserAccounts": { "description": "Default createUserAccounts permission" },
+        "accessFromDesktop": { "description": "accessFromDesktop" },
+        "accessFromTv": { "description": "accessFromTv" },
+        "accessFromTablet": { "description": "accessFromTablet" },
+        "accessFromPhone": { "description": "accessFromPhone" },
+        "accessFromBot": { "description": "accessFromBot" },
+        "accessFromCar": { "description": "accessFromCar" }
       }
     },
     "mainMenu": {

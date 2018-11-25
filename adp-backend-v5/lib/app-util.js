@@ -1,41 +1,38 @@
-const APP_VERSION = "0.3.1";
 const fs = require('fs');
-const mongoose = require("mongoose");
+const mongoose = require('mongoose');
 const log = require('log4js').getLogger('lib/app-util');
-const {MongoClient} = require('mongodb');
+const { MongoClient } = require('mongodb');
 const _ = require('lodash');
 const path = require('path');
 const appRoot = require('app-root-path').path;
 
 // TODO: rewrite everything using ES6 Promises instead of async
 // TODO: do I need to export anything besides setup() and start()? Get rid of exporting the rest later if necessary
-module.exports = function (appLib) {
+module.exports = appLib => {
   const m = {};
 
-  const safeRequire = (module) => {
+  const safeRequire = module => {
     const fullModulePath = path.resolve(appRoot, module);
     const fileName = `${fullModulePath}.js`;
     if (fs.existsSync(fileName)) {
-      return require(`${fullModulePath}`);
-    } else {
-      return function () {
-      };
+      return require(fullModulePath);
     }
+    return () => {};
   };
 
   // TODO: unify loadZZZ() methods
-  loadHelper = (corePath, appPath, name, arg) => {
-    if ('undefined' === typeof appLib.appModelHelpers) {
+  const loadHelper = (corePath, appPath, name, arg) => {
+    if (_.isUndefined(appLib.appModelHelpers)) {
       appLib.appModelHelpers = {};
     }
-    let app_model_helper_name = _.upperFirst(_.camelCase(name));
-    let core_file = `${corePath || 'model/'}helpers/${name}`;
-    let app_file_relative = `${process.env.APP_MODEL_DIR}`;
-    let app_file = `${appPath || app_file_relative}/helpers/${name}`;
-    log.trace(`Loading helper ${name} into ${app_model_helper_name} from ${core_file} and ${app_file}`);
-    appLib.appModelHelpers[app_model_helper_name] = _.merge(
-      safeRequire(core_file)(arg),
-      safeRequire(app_file)(arg)
+    const appModelHelperName = _.upperFirst(_.camelCase(name));
+    const coreFile = `${corePath || 'model/'}helpers/${name}`;
+    const appFileRelative = `${process.env.APP_MODEL_DIR}`;
+    const appFile = `${appPath || appFileRelative}/helpers/${name}`;
+    log.trace(`Loading helper ${name} into ${appModelHelperName} from ${coreFile} and ${appFile}`);
+    appLib.appModelHelpers[appModelHelperName] = _.merge(
+      safeRequire(coreFile)(arg),
+      safeRequire(appFile)(arg)
     );
   };
 
@@ -56,33 +53,31 @@ module.exports = function (appLib) {
 
     let dbCon;
     log.trace(`Retrieving roles to permissions data from db`);
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(process.env.MONGODB_URI, (err, db) => {
-        if (err) {
-          reject(`Cannot get connection to ${process.env.MONGODB_URI}`);
-          return;
-        }
-        resolve(db);
+    return MongoClient.connect(process.env.MONGODB_URI)
+      .catch(err => {
+        throw new Error(`Cannot get connection to ${process.env.MONGODB_URI}: ${err}`);
       })
-    })
-      .then((db) => {
+      .then(db => {
         dbCon = db;
-        return dbCon.collection('roles').find().toArray();
+        return dbCon
+          .collection('roles')
+          .find()
+          .toArray();
       })
-      .then((results) => {
+      .then(results => {
         results.forEach(r => {
           const roleName = r.name;
           appLib.appModel.rolesToPermissions[roleName] = r.permissions;
           roles[roleName] = roleName;
         });
 
-        appLib.appModelHelpers['Lists'].roles = roles;
+        appLib.appModelHelpers.Lists.roles = roles;
 
         dbCon.close();
         log.trace(`Successfully retrieved roles to permissions data from db`);
       })
-      .catch((err) => {
-        log.error(`Error occurred while retrieving roles to permissions data from db`);
+      .catch(err => {
+        log.error(`Error occurred while retrieving roles to permissions data from db: ${err}`);
         throw err;
       });
   };
@@ -120,13 +115,21 @@ module.exports = function (appLib) {
     appLib.declaredPermissions = _.get(appLib, 'appModel.interface.app.permissions', {});
     // save declaredPermissionNames for future granting permissions to SuperAdmin
     appLib.declaredPermissionNames = _.keys(appLib.declaredPermissions);
+    const defaultPermissionsNames = _.keys(appLib.accessCfg.PERMISSIONS);
 
-    // inject declaredPermissions to Lists to use it in roles schema
-    const permissionsList = _.reduce(appLib.declaredPermissions, (result, obj, key) => {
-      result[key] = key;
-      return result;
-    }, {});
-    _.set(appLib, 'appModelHelpers.Lists.declaredPermissions', permissionsList);
+    // inject availablePermissions to Lists to use it in roles schema
+    // available permissions are declared permissions except system permissions
+    const availablePermissions = _.reduce(
+      appLib.declaredPermissionNames,
+      (result, permName) => {
+        if (!defaultPermissionsNames.includes(permName)) {
+          result[permName] = permName;
+        }
+        return result;
+      },
+      {}
+    );
+    _.set(appLib, 'appModelHelpers.Lists.availablePermissions', availablePermissions);
   };
 
   m.loadPermissionScopePreparations = (corePath, appPath) => {

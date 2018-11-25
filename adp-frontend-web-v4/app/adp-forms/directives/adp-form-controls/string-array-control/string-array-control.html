@@ -1,8 +1,8 @@
 <tags-input
   class="tags-input-control"
   aria-label="{{field.keyName}}"
-  ng-required="field.required"
-  adp-validate="field"
+  ng-required="isRequired()"
+  adp-validate="validationParams"
   name="{{field.keyName}}"
   ng-model="adpFormData[field.keyName]"
   min-length="1"

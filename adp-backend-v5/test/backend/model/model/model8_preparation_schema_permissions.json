@@ -1,30 +1,30 @@
 {
-  models: {
+  "models": {
     "model8preparations": {
-      type: "Schema",
-      fields: {
-        number1: {
-          type: "Number",
-          description: "Number between 1 and 10"
+      "type": "Schema",
+      "fields": {
+        "number1": {
+          "type": "Number",
+          "description": "Number between 1 and 10"
         },
-        number2: {
-          type: "Number",
-          description: "Number between 1 and 10"
+        "number2": {
+          "type": "Number",
+          "description": "Number between 1 and 10"
         }
       },
-      scopes: {
-        scopeWithPreparation: {
-          permissions: "accessAsUser",
-          prepare: "loadVerifiedCreatorIds",
-          where: "{$in: [this.req.user._id, this.scopeVars.creatorIds]}"
-        },
+      "scopes": {
+        "scopeWithPreparation": {
+          "permissions": "accessAsUser",
+          "prepare": "loadVerifiedCreatorIds",
+          "where": "{$in: [this.req.user._id, this.scopeVars.creatorIds]}"
+        }
       },
-      actions: {
+      "actions": {
         "width": 100,
         "responsivePriority": 50,
         "fields": {
           "view": {
-            permissions: ["accessAsUser"],
+            "permissions": ["accessAsUser"],
             "showInTable": true
           }
         }

@@ -14,20 +14,21 @@ const injectOptions = {
 function scriptsStream() {
   return gulp.src([
     //  file is strictly hardcoded, because of specific SmartAdmin app structure
+    path.join(conf.paths.src, 'sw-manager.js'),
     path.join(conf.paths.tmp, 'api_config.js'),
     path.join(conf.paths.tmp, conf.paths.serverModules),
     path.join(conf.paths.tmp, conf.paths.defaultServerModules),
     path.join(conf.paths.tmp, conf.paths.serverScripts),
     path.join(conf.paths.src, 'app-core.config.js'),
     path.join(conf.paths.src, 'adp-render.lib.js'),
+    path.join(conf.paths.src, 'app.db.js'),
     path.join(conf.paths.src, 'main.js'),
     // moving module definition to the top
     path.join(conf.paths.src, '/**/*.module.js'),
     path.join(conf.paths.src, '/**/module.js'),
     path.join(conf.paths.src, '/**/*.provider.js'),
     path.join(conf.paths.tmp, 'templateCacheHtml.js'),
-    path.join(conf.paths.src, '/**/*.js')
-
+    path.join(conf.paths.src, '/**/!(service-worker).js'),
   ], { read: false });
 }
 

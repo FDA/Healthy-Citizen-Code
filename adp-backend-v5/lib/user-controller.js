@@ -2,37 +2,143 @@
  * Implement user authentication and authorization
  * @returns {{}}
  */
+const log = require('log4js').getLogger('lib/user-controller');
+const mongoose = require('mongoose');
+const jwt = require('jsonwebtoken');
+const passport = require('passport');
+const { ObjectID } = require('mongodb');
+const _ = require('lodash');
 
-module.exports = function (appLib) {
-  const fs = require('fs');
-  const async = require('async');
-  const nodemailer = require('nodemailer');
-  const log = require('log4js').getLogger('lib/user-controller');
-  const mongoose = require('mongoose');
-  const User = mongoose.model('users');
-  const Role = mongoose.model('roles');
-  const jwt = require('jsonwebtoken');
-  const passport = require('passport');
-  const ObjectID = require('mongodb').ObjectID;
+const User = mongoose.model('users');
+
+module.exports = appLib => {
   const transformers = require('./transformers')(appLib);
-  // const butil = require('./backend-util')();
-  const _ = require('lodash');
 
   const m = {};
   m.appLib = appLib;
 
+  m.addAuthRoutes = function() {
+    appLib.addRoute('post', '/login', [m.postLogin, m.postLoginResponse]);
+    /**
+     * @swagger
+     * /login:
+     *   post:
+     *     summary: Login user
+     *     tags:
+     *       - Auth
+     *     parameters:
+     *      -  in: 'body'
+     *         name: loginData
+     *         required: true
+     *         schema:
+     *           type: object
+     *           required:
+     *             - login
+     *             - password
+     *           properties:
+     *             login:
+     *               type: string
+     *               unique: true
+     *             password:
+     *               type: string
+     *               format: password
+     *     responses:
+     *       200:
+     *         description: Successful login
+     *         schema:
+     *           type: object
+     *           properties:
+     *             data:
+     *               type: object
+     *               properties:
+     *                 token:
+     *                   type: string
+     *                   desciption: JWT token
+     *                 user:
+     *                   type: object
+     *                   properties:
+     *                     id:
+     *                       type: string
+     *                       description: user id
+     *                     login:
+     *                       type: string
+     *             success:
+     *               type: boolean
+     */
+
+    appLib.addRoute('get', '/logout', [m.logout]);
+    /**
+     * @swagger
+     * /logout:
+     *   get:
+     *     summary: Logout user
+     *     tags:
+     *       - Auth
+     *     responses:
+     *       200:
+     *         description: Success
+     */
+
+    appLib.addRoute('post', '/signup', [m.postSignup]);
+    /**
+     * @swagger
+     * /signup:
+     *   post:
+     *     summary: Login user
+     *     tags:
+     *       - Auth
+     *     parameters:
+     *       -  in: 'body'
+     *          name: signupData
+     *          required: true
+     *          schema:
+     *           type: object
+     *           required:
+     *             - login
+     *             - email
+     *             - password
+     *           properties:
+     *             login:
+     *               type: string
+     *               unique: true
+     *             email:
+     *               type: string
+     *             password:
+     *               type: string
+     *               format: password
+     *     responses:
+     *       200:
+     *         description: Successfully created new user
+     *         schema:
+     *           type: object
+     *           properties:
+     *             data:
+     *               type: object
+     *               properties:
+     *                 id:
+     *                   type: string
+     *                   description: user id
+     *                 login:
+     *                   type: string
+     *             success:
+     *               type: boolean
+     *             message:
+     *               type: string
+     *               description: message to user
+     */
+
+    appLib.addRoute('post', '/account/password', [m.appLib.isAuthenticated, m.postUpdatePassword]);
+    // appLib.addRoute('get', '/forgot', [m.getForgot]);
+    // appLib.addRoute('post', '/forgot', [m.postForgot]);
+    // appLib.addRoute('get', '/reset/:  token', [m.getReset]);
+    // appLib.addRoute('post', '/reset/:token', [m.postReset]);
+    // appLib.addRoute('post', '/account/delete', [m.appLib.isAuthenticated, m.postDeleteAccount]);
+  };
+
   m.init = () => {
     log.trace('Adding custom routes for User controller');
     if (appLib.getAuthSettings().enableAuthentication !== false) {
-      appLib.addRoute('post', '/login', [m.postLogin]);
-      appLib.addRoute('get', '/logout', [m.logout]);
-      appLib.addRoute('post', '/signup', [m.appLib.isAuthenticated, m.postSignup]);
-      appLib.addRoute('post', '/account/password', [m.appLib.isAuthenticated, m.postUpdatePassword]);
-      //appLib.addRoute('get', '/forgot', [m.getForgot]);
-      //appLib.addRoute('post', '/forgot', [m.postForgot]);
-      //appLib.addRoute('get', '/reset/:  token', [m.getReset]);
-      //appLib.addRoute('post', '/reset/:token', [m.postReset]);
-      //appLib.addRoute('post', '/account/delete', [m.appLib.isAuthenticated, m.postDeleteAccount]);
+      m.addAuthRoutes();
     }
 
     // delete /piis and /phis routes
@@ -48,152 +154,187 @@ module.exports = function (appLib) {
    * Sign in using email and password.
    */
   m.postLogin = (req, res, next) => {
-    passport.authenticate('local', function (err, user, info) {
+    passport.authenticate('local', (err, user, info) => {
       if (err) {
         return next(`ERR: ${err} INFO:${info}`);
-      } else if (!user) {
-        return res.json(401, {success: false, message: 'Invalid credentials.'});
-      } else {
-        req.logIn(user, function (err) {
-          if (err) {
-            next(err);
-          } else {
-            let token = jwt.sign({
-                id: user._id,
-                email: user.email,
-              }, process.env.JWT_SECRET,
-              // {expiresIn: '1d'}, // set expiresIn value to make it expired
-            );
-
-            User.findById(user._id, (err, existingUser) => {
-              if (err) {
-                log.error(`Error finding user: ${err}`);
-                res.json({success: false, message: 'Error finding user'});
-              } else if (!existingUser) {
-                log.error(`Unable to find user: ${user}`);
-                res.json({success: false, message: `Unable to find user`});
-              } else {
-                let linkedRecords = _(appLib.appModel.models.users.fields)
-                  .map((val, key) => {
-                    return {key: key, lookup: val.lookup, required: val.required};
-                  })
-                  .filter((val, key) => {
-                    return val.lookup && val.required;
-                  })
-                  .keyBy('key')
-                  .mapValues((val) => {
-                    return existingUser[val.key];
-                  })
-                  .value();
-                let userData = _.merge(linkedRecords, {
-                  id: user._id,
-                  login: user.login,
-                });
-                res.json({success: true, data: {token: token, user: userData}});
-              }
-            });
-          }
-        });
       }
+      if (!user) {
+        req.loginData = { success: false, message: 'Invalid credentials.' };
+        return next();
+      }
+      req.logIn(user, loginErr => {
+        if (loginErr) {
+          return next(loginErr);
+        }
+
+        const token = jwt.sign(
+          {
+            id: user._id,
+            email: user.email,
+          },
+          process.env.JWT_SECRET
+          // {expiresIn: '1d'}, // set expiresIn value to make it expired
+        );
+
+        User.findById(user._id, (userErr, existingUser) => {
+          if (userErr) {
+            log.error(`Error finding user: ${userErr}`);
+            req.loginData = { success: false, message: 'Error finding user' };
+            return next();
+          }
+          if (!existingUser) {
+            log.error(`Unable to find user: ${user}`);
+            req.loginData = { success: false, message: `Unable to find user` };
+            return next();
+          }
+
+          const linkedRecords = _(appLib.appModel.models.users.fields)
+            .map((val, key) => ({ key, lookup: val.lookup, required: val.required }))
+            .filter(val => val.lookup && val.required)
+            .keyBy('key')
+            .mapValues(val => existingUser[val.key])
+            .value();
+
+          const userData = _.merge(linkedRecords, {
+            id: user._id,
+            login: user.login,
+          });
+          req.loginData = { success: true, data: { token, user: userData } };
+          next();
+        });
+      });
     })(req, res, next);
+  };
+
+  m.postLoginResponse = (req, res) => {
+    const loginData = _.get(req, 'loginData', {});
+    if (loginData.success) {
+      return res.json(loginData);
+    }
+    return res.json(401, loginData);
   };
 
   m.logout = (req, res) => {
     req.logout();
-    res.json({success: true, message: 'User has been logged out'});
+    res.json({ success: true, message: 'User has been logged out' });
   };
 
-  // TODO: Customize this, not all users will have PHI date (and possibly not even PII)
-  m.postSignup = (req, res, next) => {
-    const userPermissions = appLib.accessUtil.getUserPermissions(req);
-    if (!userPermissions.has(m.appLib.accessCfg.PERMISSIONS.createUserAccounts)) {
-      return res.json(401, {success: false, message: `Not authorized to signup`});
+  const userRegisterPromisified = Promise.promisify(User.register, { context: User });
+
+  function handleLinkedRecordField(key, fieldSpec, userContext, linkedRecordsStorage) {
+    const tableLookups = Object.values(fieldSpec.lookup.table);
+    if (tableLookups.length !== 1) {
+      throw `Required table lookups must contain only 1 lookup. ` +
+        `Specified lookup contains more: ${fieldSpec.lookup}`;
+    }
+    const tableLookup = tableLookups[0];
+    const tableName = tableLookup.table;
+    const LinkedModel = mongoose.model(tableName);
+    if (!LinkedModel) {
+      throw `Linked table ${tableName} not found`;
     }
 
-    let createdUser, createdPii, createdPhi;
-    let linkedRecords = {};
+    const linkedRecord = new LinkedModel({});
+    return transformers
+      .preSaveTransformData(tableName, userContext, linkedRecord, [])
+      .then(() => linkedRecord.save())
+      .then(data => {
+        linkedRecordsStorage[key] = data._id;
+      })
+      .catch(() => {
+        throw `Error occurred while creating linked record for ${tableName}`;
+      });
+  }
+  // TODO: Customize this, not all users will have PHI date (and possibly not even PII)
+  m.postSignup = (req, res, next) => {
+    const linkedRecords = {};
 
     // need to pregenerate user doc object id to be able to set it in dependent fields like 'creator'
     const userDocObjectId = new ObjectID();
-    const userContext = {
-      _id: userDocObjectId
-    };
-    return transformers.preSaveTransformData('users', userContext, req.body, [])
+    const userContext = appLib.accessUtil.getUserContext(req);
+    _.set(userContext, 'user._id', userDocObjectId);
+
+    appLib
+      .authenticationCheck(req, res, next)
+      .then(({ user, permissions }) => {
+        req.user = user;
+        appLib.accessUtil.setUserPermissions(req, permissions);
+      })
+      .catch({ code: 401 }, () => {
+        // get guest permissions anyway
+        const permissions = appLib.accessUtil.getPermissionsForUser(null, req.device.type);
+        appLib.accessUtil.setUserPermissions(req, permissions);
+      })
       .then(() => {
+        const userPermissions = appLib.accessUtil.getUserPermissions(req);
+        if (!userPermissions.has(m.appLib.accessCfg.PERMISSIONS.createUserAccounts)) {
+          throw {
+            code: 'CanNotCreateUserAccounts',
+            success: false,
+            message: `Not authorized to signup`,
+          };
+        }
+
+        return transformers.preSaveTransformData('users', userContext, req.body, []);
+      })
+      .catch(err => {
+        throw {
+          code: 'TransformError',
+          message: err.message,
+        };
+      })
+      .then(() =>
         // check if user already exists
-        return User.findOne({login: req.body.login});
-      })
-      .catch((err) => {
-        throw new Error(`Unable to check if the user already exists: ${err}`);
-      })
-      .then((existingUser) => {
+        User.findOne({ login: req.body.login })
+      )
+      .then(existingUser => {
         if (existingUser) {
-          throw new Error(`User ${req.body.login} already exists`);
+          throw `User ${req.body.login} already exists`;
         }
         // TODO: run this recursively so if any n-level collections are also required then create them as well
         // TODO: write tests for this
         // TODO: turn on auto-generator for values
         // create all dependant collections (1 level only)
-        return Promise.map(Object.entries(appLib.appModel.models.users.fields), ([key, fieldSpec]) => {
-          if (fieldSpec.lookup && fieldSpec.required) {
-            const tableLookups = Object.values(fieldSpec.lookup.table);
-            if (tableLookups.length !== 1) {
-              throw new Error(`Required table lookups must contain only 1 lookup. Specified lookup contains more: ${fieldSpec.lookup}`);
-            }
-            const tableLookup = tableLookups[0];
-            const tableName = tableLookup.table;
-            const linkedModel = mongoose.model(tableName);
-            if (!linkedModel) {
-              throw new Error(`Linked table ${tableName} not found`);
-            }
-
-            const linkedRecord = new linkedModel({});
-            return transformers.preSaveTransformData(tableName, userContext, linkedRecord, [])
-              .then(() => linkedRecord.save())
-              .then((data) => {
-                linkedRecords[key] = data._id;
-              })
-              .catch((err) => {
-                const errorMsg = `Error occurred while creating linked record for ${tableName}`;
-                throw new Error(errorMsg);
-              });
-
-          }
-        });
+        const linkedRecordsFields = Object.entries(appLib.appModel.models.users.fields).filter(
+          ([, fieldSpec]) => fieldSpec.lookup && fieldSpec.required
+        );
+        return Promise.map(linkedRecordsFields, ([key, fieldSpec]) =>
+          handleLinkedRecordField(key, fieldSpec, userContext, linkedRecords)
+        );
       })
       .then(() => {
         // create user record
-        let userData = _.merge(linkedRecords, {
+        const userData = _.merge(linkedRecords, {
+          ...req.body,
           _id: userDocObjectId,
-          email: req.body.email,
-          login: req.body.login,
         });
-        return new Promise((resolve, reject) => {
-          User.register(new User(userData), req.body.password, function (err, data) {
-            if (err) {
-              log.error(err);
-              throw new Error(`Unable to create user`);
-            } else {
-              createdUser = data;
-              resolve();
-            }
-          });
-        });
+        // remove recaptcha and other non-model fields
+        const strictUser = new User(userData, true);
+        return userRegisterPromisified(strictUser, strictUser.password);
       })
-      .then(() => {
+      .then(createdUser => {
         res.json({
           success: true,
           message: 'Account had been successfully created',
-          id: createdUser._id, // TODO: drop it, it's in the data
+          // id: createdUser._id, // TODO: drop it, it's in the data
           data: _.merge(linkedRecords, {
             id: createdUser._id,
             login: req.body.login,
           }),
         });
       })
-      .catch((err) => {
+      .catch({ code: 'CanNotCreateUserAccounts' }, err => {
+        res.json(403, { success: err.success, message: err.message });
+      })
+      .catch({ code: 'TransformError' }, err => {
+        res.json(400, { success: false, message: err.message });
+      })
+      .catch(err => {
         log.error(err);
-        res.json(400, {success: false, message: err.message});
+        if (err instanceof Error) {
+          return res.json(400, { success: false, message: 'Unable to create user' });
+        }
+        res.json(400, { success: false, message: err });
       });
   };
 
@@ -208,11 +349,10 @@ module.exports = function (appLib) {
     let userFound;
     // validate user input
     const userContext = appLib.accessUtil.getUserContext(req);
-    return transformers.preSaveTransformData('users', userContext, req.body, ['password'])
-      .then(() => {
-        return User.findById(_.get(req, 'user.id'));
-      })
-      .then((user) => {
+    return transformers
+      .preSaveTransformData('users', userContext, req.body, ['password'])
+      .then(() => User.findById(_.get(req, 'user.id')))
+      .then(user => {
         if (!user) {
           throw new Error(`User was not found.`);
         }
@@ -221,17 +361,18 @@ module.exports = function (appLib) {
       .then(() => {
         // update password
         userFound.password = req.body.password;
-        return userFound.save()
-          .catch((err) => {
-            throw new Error(`Unable to update user password: ${err}`);
-          });
+        return userFound.save();
       })
-      .then((updatedUser) => {
-        res.json({success: true, message: 'User password was successfully updated', id: updatedUser._id});
+      .then(updatedUser => {
+        res.json({
+          success: true,
+          message: 'User password was successfully updated',
+          id: updatedUser._id,
+        });
       })
-      .catch((err) => {
+      .catch(err => {
         log.error(err);
-        res.json(400, {success: false, message: err});
+        res.json(400, { success: false, message: `Unable to update user password` });
       });
   };
 

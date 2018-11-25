@@ -45,8 +45,11 @@
       <adp-form-field-factory
         ng-repeat="subField in fields track by $index"
         adp-field="subField"
+        adp-fields="fields"
         adp-field-ui-props="uiProps"
-        adp-form-data="subFormData">
+        adp-form-data="subFormData"
+        schema="subSchema"
+      >
       </adp-form-field-factory>
     </div>
   </div>

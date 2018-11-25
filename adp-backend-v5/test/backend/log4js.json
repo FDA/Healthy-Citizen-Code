@@ -10,10 +10,7 @@
   },
   "categories": {
     "default": {
-      "appenders": [
-        "out",
-        "app"
-      ],
+      "appenders": ["out", "app"],
       "level": "error"
     }
   }

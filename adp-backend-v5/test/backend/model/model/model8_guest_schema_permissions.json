@@ -1,32 +1,32 @@
 {
-  models: {
-    model8guests: {
-      type: "Schema",
-      fields: {
-        number1: {
-          type: "Number",
-          description: "Number between 1 and 10"
+  "models": {
+    "model8guests": {
+      "type": "Schema",
+      "fields": {
+        "number1": {
+          "type": "Number",
+          "description": "Number between 1 and 10"
         },
-        number2: {
-          type: "Number",
-          description: "Number between 1 and 10"
+        "number2": {
+          "type": "Number",
+          "description": "Number between 1 and 10"
         }
       },
-      scopes: {
-        guestScope: {
-          permissions: {
+      "scopes": {
+        "guestScope": {
+          "permissions": {
             "view": "accessAsGuest"
           },
-          where: "{$eq: [true, true]}"
+          "where": "{$eq: [true, true]}"
         }
       },
       // can define that both the technician and the manager can edit records, but scopes defines that technicial can only edit own records
-      actions: {
+      "actions": {
         "width": 100,
         "responsivePriority": 50,
         "fields": {
           "view": {
-            permissions: ["accessAsGuest"],
+            "permissions": ["accessAsGuest"],
             "showInTable": true
           }
         }

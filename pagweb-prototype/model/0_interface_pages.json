@@ -96,6 +96,30 @@
           "link": "multiple-widget_template.ejs"
         },
         "controller": "QuestionnaireWidgetPageController"
+      },
+      "graphViewWidget": {
+        "name": "graphViewWidget",
+        "link": "/graphViewWidget",
+        "fullName": "graphViewWidget",
+        "description": "Graph View Widget Example",
+        "comment": "Graph View Widget Example",
+        "template": {
+          "type": "file",
+          "link": "graph_view_widget_template.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
+      },
+      "preferences": {
+        "name": "preferences",
+        "link": "/preferences",
+        "fullName": "User preferences",
+        "description": "User preferences Example",
+        "comment": "User preferences Example",
+        "template": {
+          "type": "file",
+          "link": "preferences.ejs"
+        },
+        "controller": "QuestionnaireWidgetPageController"
       }
     }
   }

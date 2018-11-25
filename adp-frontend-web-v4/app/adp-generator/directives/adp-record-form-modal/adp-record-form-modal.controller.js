@@ -10,6 +10,7 @@
     var vm = this;
 
     vm.$onInit = function () {
+      vm.schema = vm.resolve.options.schema;
       vm.fields = vm.resolve.options.fields;
       vm.formParams = vm.resolve.options.formParams;
       vm.data = vm.resolve.options.data || {};

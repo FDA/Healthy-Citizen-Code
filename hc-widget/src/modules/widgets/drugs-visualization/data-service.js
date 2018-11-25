@@ -6,8 +6,8 @@ import objFactory from './models/drug-terms-factory';
 import rxClass from './models/rxclass';
 import relationFactory from './models/relations-factory';
 
-export default function getDrugsRelations(fhirDataUrl, fhirId) {
-  return hcWidgetAPI.getMedicationCodingsFromFhir(fhirDataUrl, fhirId)
+export default function getDrugsRelations(options) {
+  return hcWidgetAPI.getMedicationCodings(options)
     .then(medCodings => {
       if (!medCodings.length) {
         throw new Error('Unable to get medications list.')

@@ -5,7 +5,10 @@
   <label
     class="label">
     {{adpField.fullName}}
-    <span ng-show="adpField.required">&nbsp;*</span>
+    <adp-required-mark
+      validation-params="validationParams"
+    >
+    </adp-required-mark>
 
     <adp-tooltip
       adp-field="field">
@@ -16,6 +19,7 @@
     field="adpField"
     adp-form-data="adpFormData"
     ui-props="adpFieldUiProps"
+    validation-params="validationParams"
   >
   </imperial-units-control>
 

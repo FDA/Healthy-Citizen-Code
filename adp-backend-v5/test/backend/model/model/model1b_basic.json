@@ -5,7 +5,7 @@
         "encounters": {
           "fields": {
             "vitalSigns": {
-              "type": "Subschema",
+              "type": "Array",
               "comment": "VitalSigns Comment",
               "fullName": "Vital Signs Full Name",
               "description": "Vital Signs Description",

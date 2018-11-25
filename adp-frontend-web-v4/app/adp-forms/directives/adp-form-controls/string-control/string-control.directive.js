@@ -5,19 +5,20 @@
     .module('app.adpForms')
     .directive('stringControl', stringControl);
 
-  function stringControl() {
+  function stringControl(AdpValidationService) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/string-control/string-control.html',
       require: '^^form',
       link: function (scope) {
         if (!getData()) {
-          setData('')
+          setData(null)
         }
 
         function setData(value) {
@@ -27,6 +28,8 @@
         function getData() {
           return scope.adpFormData[scope.field.keyName];
         }
+
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
       }
     }
   }

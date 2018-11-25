@@ -5,13 +5,18 @@
     .module('app.adpForms')
     .directive('objectControl', objectControl);
 
-  function objectControl(AdpFieldsService, AdpFormService) {
+  function objectControl(
+    AdpValidationService,
+    AdpFieldsService,
+    AdpFormService
+  ) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/object-control/object-control.html',
       require: '^^form',
@@ -21,12 +26,13 @@
         scope.rootForm = AdpFormService.getRootForm(scope.form);
         scope.isVisible = false;
         scope.errorCount = 0;
+        scope.subSchema = scope.validationParams.schema.fields[scope.field.keyName];
 
         scope.toggle = function () {
           scope.isVisible = !scope.isVisible;
         };
 
-        if (scope.field.required) {
+        if (AdpValidationService.isRequired(scope.validationParams)) {
           scope.fields.forEach(function (field) {
             field.required = true;
           });

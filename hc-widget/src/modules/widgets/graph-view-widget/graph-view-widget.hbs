@@ -1,0 +1,23 @@
+<div class="content-box clearfix">
+  <div class="hc-chart-widget__list">
+    <h2 class="hc-chart-widget__list-title">Potential Side Effects For My Current Medications</h2>
+    <ul>
+      {{#each results}}
+        <li>
+          <a
+            href
+            class="hc-chart-widget__link js-link"
+            data-name="{{@key}}"
+          >
+            {{@key}}
+          </a>
+        </li>
+
+      {{/each}}
+    </ul>
+  </div>
+
+  <div class="hc-chart-widget__chart">
+    <div class="js-charts-container"></div>
+  </div>
+</div>

@@ -4,40 +4,40 @@
  * TODO: test serving public files from multiple directories
  */
 const request = require('supertest');
-const should = require('should');
+require('should');
 const reqlib = require('app-root-path').require;
 
 describe('V5 Backend Basic Routes', () => {
-  before(function () {
-    const dotenv = require('dotenv').load({path: './test/backend/.env.test'});
+  before(function() {
+    require('dotenv').load({ path: './test/backend/.env.test' });
     this.appLib = reqlib('/lib/app')();
     return this.appLib.setup();
   });
 
-  after(function () {
+  after(function() {
     return this.appLib.shutdown();
   });
 
-  describe('GET /', function () {
-    it('responds with backend status', function (done) {
+  describe('GET /', () => {
+    it('responds with backend status', function(done) {
       request(this.appLib.app)
         .get('/')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end((err, res) => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.message.should.equal('HC Backend V5 is working correctly');
           done();
         });
     });
   });
-  describe('GET /schemas', function () {
-    it('responds with list of schemas', function (done) {
+  describe('GET /schemas', () => {
+    it('responds with list of schemas', function(done) {
       request(this.appLib.app)
         .get('/schemas')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end((err, res) => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
           res.body.data.should.have.property('model1s');
@@ -50,13 +50,13 @@ describe('V5 Backend Basic Routes', () => {
         });
     });
   });
-  describe('GET /routes', function () {
-    it('responds with list of basic routes', function (done) {
+  describe('GET /routes', () => {
+    it('responds with list of basic routes', function(done) {
       request(this.appLib.app)
         .get('/routes')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
-        .end(function (err, res) {
+        .end((err, res) => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
           res.body.data.should.have.property('brief');

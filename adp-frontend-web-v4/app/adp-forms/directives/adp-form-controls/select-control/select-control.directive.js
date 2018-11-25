@@ -7,19 +7,21 @@
 
   function selectControl(
     AdpFieldsService,
-    AdpFieldFormatUtil
+    AdpFieldFormatUtil,
+    AdpValidationService
   ) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        fieldUiProps: '='
+        fieldUiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/select-control/select-control.html',
       require: '^^form',
       link: function (scope, el, attrs, formCtrl) {
-        var initialValue = isEmpty() ? '' : getData().toString();
+        var initialValue = isEmpty() ? null : getData().toString();
         setData(initialValue);
 
         scope.form = formCtrl;
@@ -37,6 +39,8 @@
         if (scope.listOfValues.length < 10) {
           scope.options.minimumResultsForSearch = -1;
         }
+
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
 
         function isEmpty() {
           var data = getData();

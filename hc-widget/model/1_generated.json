@@ -1,140 +1,259 @@
 {
   "models": {
-    "users": {
+    "widgets": {
       "type": "Schema",
-      "fullName": "Users",
-      "fields": {
-        "userRecordId": {
-          "type": "ObjectID",
-          "fullName": "User Record Id",
-          "required": "1",
-          "lookup": {
-            "table": "userRecords",
-            "foreignKey": "_id",
-            "label": "name"
+      "fullName": "Widgets",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
           },
-          "visible": "false",
-          "singleRecord": "true"
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
         }
-      }
-    },
-    "userRecords": {
-      "type": "Schema",
-      "fullName": "User Records",
-      "singleRecord": "true",
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{$eq: ['$creator', this.req.user._id]}"
+        }
+      },
       "fields": {
+        "id": {
+          "type": "String",
+          "fullName": "Widget Id",
+          "description": "Widget ID",
+          "required": "1"
+        },
         "name": {
           "type": "String",
-          "fullName": "Name",
-          "description": "Fake field required for lookup to work"
+          "fullName": "Widget Name",
+          "description": "Name given to the instance of the widget",
+          "required": "1"
         },
-        "widgets": {
-          "type": "Subschema",
-          "fullName": "Widgets",
-          "fields": {
-            "id": {
-              "type": "String",
-              "fullName": "Widget Id",
-              "description": "Widget ID",
-              "required": "1"
+        "type": {
+          "type": "String",
+          "fullName": "Widget Type",
+          "description": "Select the type of widget to configure",
+          "required": "1",
+          "list": {
+            "values": {
+              "drugInteraction": "drugInteraction",
+              "questionnaire": "questionnaire",
+              "adverseEvents": "adverseEvents",
+              "recalls": "recalls",
+              "drugsVisualization": "drugsVisualization",
+              "ndcLookup": "ndcLookup",
+              "adverseEventsAlt": "adverseEventsAlt",
+              "graphViewWidget": "graphViewWidget",
+              "preferences": "preferences"
             },
-            "name": {
-              "type": "String",
-              "fullName": "Name",
-              "required": "1"
-            },
-            "type": {
-              "type": "String",
-              "fullName": "Widget Type",
-              "description": "Widget Type",
-              "required": "1",
-              "list": [
-                "adverseEvents",
-                "drugInteraction",
-                "questionnaire"
-              ]
-            },
-            "fontSize": {
-              "type": "Number",
-              "fullName": "Font Size",
-              "description": "Font Size in Pixels",
-              "list": [
-                "12",
-                "13",
-                "14",
-                "16",
-                "18",
-                "20",
-                "22",
-                "24",
-                "26",
-                "28"
-              ]
-            },
-            "fontFace": {
-              "type": "String",
-              "fullName": "Font Face",
-              "list": [
-                "Arial",
-                "Courier"
-              ]
-            },
-            "fontStyle": {
-              "type": "String[]",
-              "fullName": "Font Style",
-              "list": [
-                "bold",
-                "italic",
-                "underline",
-                "strikeout"
-              ]
-            },
-            "welcomeText": {
-              "type": "String",
-              "fullName": "Welcome Text",
-              "show": "row['type']==1"
-            },
-            "thankYouText": {
-              "type": "String",
-              "fullName": "Thank You Text",
-              "required": "1",
-              "show": "row['type']==1"
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
             }
           }
+        },
+        "fontSize": {
+          "type": "Number",
+          "fullName": "Font Size",
+          "description": "Font size in pixels to apply to text",
+          "list": {
+            "values": {
+              "12": "12",
+              "13": "13",
+              "14": "14",
+              "16": "16",
+              "18": "18",
+              "20": "20",
+              "22": "22",
+              "24": "24",
+              "26": "26",
+              "28": "28"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "fontFace": {
+          "fullName": "Font Type",
+          "description": "Type of font applied to text",
+          "list": {
+            "values": {
+              "Arial": "Arial",
+              "Helvetica": "Helvetica",
+              "Times New Roman": "Times New Roman",
+              "Verdana": "Verdana",
+              "Georgia": "Georgia",
+              "Garamond": "Garamond",
+              "Palatino": "Palatino",
+              "Bookman": "Bookman",
+              "Comic Sans MS": "Comic Sans MS",
+              "Impact": "Impact",
+              "Courier": "Courier"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "fontStyle": {
+          "type": "String[]",
+          "fullName": "Font Style",
+          "description": "Font style applied to text",
+          "list": {
+            "values": {
+              "bold": "bold",
+              "italic": "italic",
+              "underline": "underline",
+              "strikeout": "strikeout",
+              "none": "none"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "welcomeText": {
+          "type": "String",
+          "fullName": "Questionnaire Welcome Text",
+          "description": "Text presented at the beginning of a  questionnaire",
+          "show": "row['type']=='questionnaire'",
+          "showInDatatable": "false"
+        },
+        "thankYouText": {
+          "type": "String",
+          "fullName": "Questionnaire Completion Text",
+          "description": "Text presented upon completion of a questionnaire",
+          "show": "row['type']=='questionnaire'",
+          "showInDatatable": "false"
+        },
+        "attractionForce": {
+          "type": "Number",
+          "fullName": "Attraction Force",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": "false"
+        },
+        "repulsionForce": {
+          "type": "Number",
+          "fullName": "Repulsion Force",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": "false"
+        },
+        "showDiagnosis": {
+          "type": "Boolean",
+          "fullName": "Show Diagnosis",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": "false"
+        },
+        "showIngredients": {
+          "type": "Boolean",
+          "fullName": "Show Ingredients",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": "false"
+        },
+        "showPharmaClass": {
+          "type": "Boolean",
+          "fullName": "Show Pharma Class",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": "false"
+        },
+        "showPhysiologicEffect": {
+          "type": "Boolean",
+          "fullName": "Show Physiologic Effect",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": "false"
         }
       }
     }
   },
   "interface": {
     "app": {
-      "type": "String",
       "fullName": "App",
-      "components": {
-        "title": "HVAC R-Log,",
-        "slogan": "Keeps you in compliance with EPA regulations,",
-        "name": "RLog - Individual User,",
-        "description": "Tradelog - RLog - HVAC tracking application,",
-        "keywords": "Tradelog, Rlog"
-      }
-    },
-    "header": {
-      "type": "String",
-      "fullName": "Header",
-      "visible": "1",
-      "components": {
-        "logo": "true,",
-        "alerts": "false"
+      "auth": {
+        "requireAuthentication": false,
+        "enableAuthentication": true,
+        "enableRegistration": true,
+        "enablePermissions": true,
+        "enableUserPasswordReset": false,
+        "enableMfa": false,
+        "requireMfa": false
+      },
+      "title": "Widget Manager",
+      "slogan": "Manage Widgets with HC",
+      "name": "WidgetManager",
+      "description": "HC Widget Manager",
+      "keywords": "Widget, Manager, HC",
+      "theme": "default",
+      "header": {
+        "visible": true,
+        "components": {
+          "logo": true,
+          "alerts": false,
+          "projectSelector": false,
+          "languageSelector": false,
+          "fullScreenToggle": true,
+          "search": false,
+          "logoutButton": true,
+          "menuToggle": false
+        }
+      },
+      "footer": {
+        "visible": true,
+        "components": {
+          "copyright": true,
+          "copyrightText": "Healthy Citizen, 2017-2018",
+          "lastAccountActivity": false,
+          "status": false
+        }
       }
     },
     "mainMenu": {
       "type": "Menu",
       "fullName": "Main Menu",
-      "default": "/home",
+      "default": "/widgets",
       "fields": {
         "widgets": {
           "type": "MenuItem",
           "fullName": "Widgets",
-          "link": "/userRecords/:userRecordsId/widgets",
+          "link": "/widgets",
           "icon": {
             "type": "font-awesome",
             "link": "fire"

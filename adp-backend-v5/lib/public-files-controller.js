@@ -1,5 +1,4 @@
 // based on restify.plugin.static
-'use strict';
 
 const fs = require('fs');
 const path = require('path');
@@ -9,16 +8,14 @@ const assert = require('assert-plus');
 const mime = require('mime');
 const async = require('async');
 
+// /--- Globals
 
-///--- Globals
-
-//const MethodNotAllowedError = errors.MethodNotAllowedError;
-//const NotAuthorizedError = errors.NotAuthorizedError;
-//const ResourceNotFoundError = errors.ResourceNotFoundError;
+// const MethodNotAllowedError = errors.MethodNotAllowedError;
+// const NotAuthorizedError = errors.NotAuthorizedError;
+// const ResourceNotFoundError = errors.ResourceNotFoundError;
 const restifyErrors = require('restify-errors');
 
-
-///--- Functions
+// /--- Functions
 
 /**
  * serves static files.
@@ -31,7 +28,7 @@ const restifyErrors = require('restify-errors');
  * @returns  {Function}
  */
 function serveStatic(options) {
-  let opts = options || {};
+  const opts = options || {};
 
   if (typeof opts.appendRequestPath === 'undefined') {
     opts.appendRequestPath = true;
@@ -47,37 +44,35 @@ function serveStatic(options) {
   assert.bool(opts.appendRequestPath, 'options.appendRequestPath');
 
   function serveFileFromStats(file, err, stats, isGzip, req, res, next) {
-
-    if (typeof req.connectionState === 'function' &&
-      (req.connectionState() === 'close' ||
-        req.connectionState() === 'aborted')) {
+    if (
+      typeof req.connectionState === 'function' &&
+      (req.connectionState() === 'close' || req.connectionState() === 'aborted')
+    ) {
       next(false);
       return;
     }
 
     if (err) {
-      next(new restifyErrors.ResourceNotFoundError(err, '%s', req.path()));
-      return;
-    } else if (!stats.isFile()) {
-      next(new restifyErrors.ResourceNotFoundError('%s does not exist', req.path()));
-      return;
+      return next(new restifyErrors.ResourceNotFoundError(err, '%s', req.path()));
+    }
+    if (!stats.isFile()) {
+      return next(new restifyErrors.ResourceNotFoundError('%s does not exist', req.path()));
     }
 
     if (res.handledGzip && isGzip) {
       res.handledGzip();
     }
 
-    var fstream = fs.createReadStream(file + (isGzip ? '.gz' : ''));
-    var maxAge = opts.maxAge === undefined ? 3600 : opts.maxAge;
-    fstream.once('open', function (fd) {
-      res.cache({maxAge: maxAge});
+    const fstream = fs.createReadStream(file + (isGzip ? '.gz' : ''));
+    const maxAge = opts.maxAge === undefined ? 3600 : opts.maxAge;
+    fstream.once('open', () => {
+      res.cache({ maxAge });
       res.set('Content-Length', stats.size);
       res.set('Content-Type', mime.getType(file));
       res.set('Last-Modified', stats.mtime);
 
       if (opts.charSet) {
-        var type = res.getHeader('Content-Type') +
-          '; charset=' + opts.charSet;
+        const type = `${res.getHeader('Content-Type')}; charset=${opts.charSet}`;
         res.setHeader('Content-Type', type);
       }
 
@@ -86,67 +81,46 @@ function serveStatic(options) {
       }
       res.writeHead(200);
       fstream.pipe(res);
-      fstream.once('close', function () {
+      fstream.once('close', () => {
         next(false);
       });
     });
 
-    res.once('close', function () {
+    res.once('close', () => {
       fstream.close();
     });
   }
 
   function serveNormal(file, req, res, next) {
-    fs.stat(file, function (err, stats) {
+    fs.stat(file, (err, stats) => {
       if (!err && stats.isDirectory() && opts.default) {
         // Serve an index.html page or similar
-        var filePath = path.join(file, opts.default);
-        fs.stat(filePath, function (dirErr, dirStats) {
-          serveFileFromStats(filePath,
-            dirErr,
-            dirStats,
-            false,
-            req,
-            res,
-            next);
+        const filePath = path.join(file, opts.default);
+        fs.stat(filePath, (dirErr, dirStats) => {
+          serveFileFromStats(filePath, dirErr, dirStats, false, req, res, next);
         });
       } else {
-        serveFileFromStats(file,
-          err,
-          stats,
-          false,
-          req,
-          res,
-          next);
+        serveFileFromStats(file, err, stats, false, req, res, next);
       }
     });
   }
 
   function serve(req, res, next) {
-    var file;
+    let file;
 
     if (opts.file) {
-      //serves a direct file
-      file = path.join(opts.directory,
-        decodeURIComponent(opts.file));
+      // serves a direct file
+      file = path.join(opts.directory, decodeURIComponent(opts.file));
+    } else if (opts.appendRequestPath) {
+      file = path.join(opts.directory, decodeURIComponent(req.path()));
     } else {
-      if (opts.appendRequestPath) {
-        file = path.join(opts.directory,
-          decodeURIComponent(req.path()));
-      }
-      else {
-        var dirBasename = path.basename(opts.directory);
-        var reqpathBasename = path.basename(req.path());
+      const dirBasename = path.basename(opts.directory);
+      const reqpathBasename = path.basename(req.path());
 
-        if (path.extname(req.path()) === '' &&
-          dirBasename === reqpathBasename) {
-
-          file = opts.directory;
-        }
-        else {
-          file = path.join(opts.directory,
-            decodeURIComponent(path.basename(req.path())));
-        }
+      if (path.extname(req.path()) === '' && dirBasename === reqpathBasename) {
+        file = opts.directory;
+      } else {
+        file = path.join(opts.directory, decodeURIComponent(path.basename(req.path())));
       }
     }
 
@@ -155,8 +129,9 @@ function serveStatic(options) {
       return;
     }
 
-    let p = path.normalize(opts.directory).replace(/\\/g, '/');
-    let re = new RegExp('^' + escapeRE(p) + '/?.*');
+    const p = path.normalize(opts.directory).replace(/\\/g, '/');
+    /* eslint-disable security/detect-non-literal-regexp */
+    const re = new RegExp(`^${escapeRE(p)}/?.*`);
     if (!re.test(file.replace(/\\/g, '/'))) {
       next(new restifyErrors.NotAuthorizedError('%s', req.path()));
       return;
@@ -168,16 +143,10 @@ function serveStatic(options) {
     }
 
     if (opts.gzip && req.acceptsEncoding('gzip')) {
-      fs.stat(file + '.gz', function (err, stats) {
+      fs.stat(`${file}.gz`, (err, stats) => {
         if (!err) {
           res.setHeader('Content-Encoding', 'gzip');
-          serveFileFromStats(file,
-            err,
-            stats,
-            true,
-            req,
-            res,
-            next);
+          serveFileFromStats(file, err, stats, true, req, res, next);
         } else {
           serveNormal(file, req, res, next);
         }
@@ -185,39 +154,42 @@ function serveStatic(options) {
     } else {
       serveNormal(file, req, res, next);
     }
-
   }
 
   function serveFromMultipleDirectories(req, res, next) {
     if (opts.directories) {
       let fileFound = false;
-      async.eachSeries(opts.directories, (directory, cb) => {
-        if (!fileFound) {
-          opts.directory = directory;
-          serve(req, res, (err) => {
-            if (!err) {
-              fileFound = true;
-            }
+      async.eachSeries(
+        opts.directories,
+        (directory, cb) => {
+          if (!fileFound) {
+            opts.directory = directory;
+            serve(req, res, err => {
+              if (!err) {
+                fileFound = true;
+              }
+              cb();
+            });
+          } else {
             cb();
-          });
-        } else {
-          cb();
+          }
+        },
+        err => {
+          if (!fileFound) {
+            next(new restifyErrors.ResourceNotFoundError(`File '${req.path()}' was not found`));
+          } else {
+            next(err);
+          }
         }
-      }, (err) => {
-        if (!fileFound) {
-          next(new restifyErrors.ResourceNotFoundError(`File '${req.path()}' was not found`));
-        } else {
-          next(err);
-        }
-      });
+      );
     } else if (opts.directory) {
       serve(req, res, next); // work as default
     } else {
       next(new restifyErrors.InternalServerError('Public Directory has not been specified'));
     }
-  };
+  }
 
-  return (serveFromMultipleDirectories);
+  return serveFromMultipleDirectories;
 }
 
 module.exports = serveStatic;

@@ -5,18 +5,20 @@
     .module('app.adpForms')
     .directive('formRenderControl', formRenderControl);
 
-  function formRenderControl() {
+  function formRenderControl(AdpValidationService) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/form-render-control/form-render-control.html',
       require: '^^form',
       link: function (scope) {
         scope.adpFormData[scope.field.keyName] = scope.adpFormData[scope.field.keyName] || '';
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
 
         (function init() {
           renderField();

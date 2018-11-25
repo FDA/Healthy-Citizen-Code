@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const { isValidUrl, isValidMongoDbUrl } = require('../lib/helper');
+const {isValidUrl, isValidMongoDbUrl} = require('../lib/helper');
 const SettingsProvider = require('./settings_provider');
 
 const settingsProvider = new SettingsProvider();
@@ -150,10 +150,20 @@ const validateFhirBundlesLoaderSettings = (settings) => {
 };
 
 const validateRxcuiToNdcSettings = (settings) => {
-  const data = _.pick(settings, ['type', 'mongoUrl']);
+  const data = _.pick(settings, ['type', 'mongoUrl', 'rxcuiCollectionName', 'rxnsatCollectionName', 'medicationMasterCollectionName']);
   if (!isValidMongoDbUrl(settings.mongoUrl)) {
     _.set(data, 'err.destHcUrl', `${settings.mongoUrl} is not a valid mongodb url.`);
   }
+  if (_.isEmpty(settings.rxcuiCollectionName)) {
+    _.set(data, 'err.rxcuiCollectionName', 'Must be string');
+  }
+  if (_.isEmpty(settings.rxnsatCollectionName)) {
+    _.set(data, 'err.rxnsatCollectionName', 'Must be string');
+  }
+  if (_.isEmpty(settings.medicationMasterCollectionName)) {
+    _.set(data, 'err.medicationMasterCollectionName', 'Must be string');
+  }
+
   return data;
 };
 
@@ -183,7 +193,7 @@ const etlTypesToValidation = {
 
 const validateSettings = (settings) => {
   if (!etlTypesToValidation[settings.type]) {
-    return { err: { type: `${settings.type} is not a valid etl strategy.` } };
+    return {err: {type: `${settings.type} is not a valid etl strategy.`}};
   }
   return etlTypesToValidation[settings.type](settings);
 };

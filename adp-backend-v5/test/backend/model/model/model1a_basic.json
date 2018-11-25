@@ -6,13 +6,13 @@
       "limitReturnedRecords": 1,
       "fields": {
         "encounters": {
-          "type": "Subschema",
+          "type": "Array",
           "comment": "Encounters Comment",
           "fullName": "Encounters Full Name",
           "description": "Encounters Description",
           "fields": {
             "diagnoses": {
-              "type": "Subschema",
+              "type": "Array",
               "comment": "Diagnoses Comment",
               "fullName": "Diagnoses Full Name",
               "description": "Diagnoses Description",

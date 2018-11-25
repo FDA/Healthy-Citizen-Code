@@ -1,0 +1,96 @@
+{
+  "models": {
+    "model10field_permissions": {
+      "type": "Schema",
+      "fields": {
+        "rField1": {
+          "type": "String"
+        },
+        "rField2": {
+          "type": "String",
+          "permissions": {
+            "read": [["accessAsUser", "accessAsSuperAdmin"]]
+          }
+        },
+        "rField3": {
+          "type": "String",
+          "permissions": {
+            "read": "accessAsSuperAdmin"
+          }
+        },
+        "wField1": {
+          "type": "String"
+        },
+        "wField2": {
+          "type": "String",
+          "permissions": {
+            "write": [["accessAsUser", "accessAsSuperAdmin"]]
+          }
+        },
+        "wField3": {
+          "type": "String",
+          "permissions": {
+            "write": "accessAsSuperAdmin"
+          }
+        },
+        "rwField1": {
+          "type": "String",
+          "permissions": "accessAsUser"
+        },
+        "rwField2": {
+          "type": "String",
+          "permissions": "accessAsSuperAdmin"
+        },
+        "object1": {
+          "type": "Object",
+          "permissions": "accessAsUser",
+          "fields": {
+            "string1": {
+              "type": "String",
+              "permissions": "accessAsUser",
+            },
+            "string2": {
+              "type": "String",
+              "permissions": "accessAsSuperAdmin",
+            }
+          }
+        },
+        "object2": {
+          "type": "Object",
+          "permissions": "accessAsSuperAdmin",
+          "fields": {
+            "string1": {
+              "type": "String",
+              "permissions": "accessAsUser",
+            },
+            "string2": {
+              "type": "String",
+              "permissions": "accessAsSuperAdmin",
+            }
+          }
+        }
+      },
+      "scopes": {
+        "scope": {
+          "permissions": "accessAsAnyone",
+          "where": "{$eq: [1, 1]}"
+        }
+      },
+      "actions": {
+        "width": 100,
+        "responsivePriority": 50,
+        "fields": {
+          "view": {
+            "permissions": ["accessAsAnyone"]
+          },
+          "create": {
+            "permissions": ["accessAsAnyone"]
+          },
+          "update": {
+            "permissions": ["accessAsAnyone"]
+          }
+        }
+      }
+    }
+  }
+}

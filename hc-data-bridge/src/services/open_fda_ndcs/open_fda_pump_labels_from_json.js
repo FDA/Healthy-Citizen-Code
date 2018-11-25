@@ -1,7 +1,7 @@
 const args = require('optimist').argv;
-const { MongoClient } = require('mongodb');
+const {MongoClient} = require('mongodb');
 const _ = require('lodash');
-const fs = require('fs');
+const fs = require('fs-extra');
 const request = require('request');
 const progress = require('request-progress');
 const readline = require('readline');
@@ -11,8 +11,8 @@ const JSONStream = require('JSONStream');
 const es = require('event-stream');
 const Promise = require('bluebird');
 const fetch = require('node-fetch');
-const { isValidMongoDbUrl } = require('../../lib/helper');
-const { getNormalizedNDCByPackageNDC } = require('../rxnav/ndc_rxcui_helper');
+const {isValidMongoDbUrl} = require('../../lib/helper');
+const {getNormalizedNDCByPackageNDC} = require('../rxnav/ndc_rxcui_helper');
 
 class PumpLabelsOpenFda {
   constructor (params) {
@@ -22,6 +22,11 @@ class PumpLabelsOpenFda {
     this.mongoUrl = params.mongoUrl;
     this.openFdaCollectionName = params.openFdaCollectionName;
     this.medicationMasterCollectionName = params.medicationMasterCollectionName;
+
+    this.zipDir = path.resolve(__dirname, `./resources/zip`);
+    fs.ensureDirSync(this.zipDir);
+    this.jsonDir = path.resolve(__dirname, `./resources/json`);
+    fs.ensureDirSync(this.jsonDir);
   }
 
   pump () {
@@ -29,7 +34,7 @@ class PumpLabelsOpenFda {
       .then((labelFilesInfo) => {
         const jsonStr = JSON.stringify(labelFilesInfo, null, 2);
         const labelFilesInfoPath = path.resolve(__dirname, `./resources/labelFilesInfo.json`);
-        fs.writeFileSync(labelFilesInfoPath, jsonStr);
+        fs.outputFileSync(labelFilesInfoPath, jsonStr);
 
         this.urlsToDownload = labelFilesInfo.partitions.map(p => p.file);
         return this.downloadAndPumpFiles();
@@ -50,8 +55,30 @@ class PumpLabelsOpenFda {
       .then(json => json.results.drug.label);
   }
 
+  getConnection () {
+    return new Promise((resolve, reject) => {
+      MongoClient.connect(this.mongoUrl, (err, dbConnection) => {
+        if (err) {
+          reject(`Cannot get connection to ${mongoUrl}`);
+          return;
+        }
+        this.dbCon = dbConnection;
+        resolve();
+      });
+    });
+  }
+
+  ensureIndexes () {
+    return Promise.all([
+      this.dbCon.collection(this.openFdaCollectionName).ensureIndex({id: 1}),
+      this.dbCon.collection(this.medicationMasterCollectionName).ensureIndex({ndc11: 1}),
+    ]);
+  }
+
   downloadAndPumpFiles () {
-    let promise = Promise.resolve();
+    let promise = this.getConnection()
+      .then(() => this.ensureIndexes());
+
     _.forEach(this.urlsToDownload, (urlToDownload) => {
       promise = promise
         .then(() => this.downloadFile(urlToDownload))
@@ -64,7 +91,7 @@ class PumpLabelsOpenFda {
     const filename = urlToDownload.substring(urlToDownload.lastIndexOf('/'));
     return new Promise((resolve, reject) => {
       console.log(`Started downloading file by url: ${urlToDownload}`);
-      const outputPath = path.resolve(__dirname, `./resources/zip/${filename}`);
+      const outputPath = path.join(this.zipDir, filename);
 
       progress(request(urlToDownload), {})
         .on('progress', (state) => {
@@ -91,18 +118,7 @@ class PumpLabelsOpenFda {
   }
 
   pumpZipFile (zipPath) {
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(this.mongoUrl, (err, dbConnection) => {
-        if (err) {
-          reject(`Cannot get connection to ${mongoUrl}`);
-          return;
-        }
-        this.dbCon = dbConnection;
-        resolve();
-      });
-    })
-      .then(() => this.dbCon.collection(this.openFdaCollectionName).createIndex({ id: 1 }))
-      .then(() => this.parseZipToJson(zipPath))
+    return this.parseZipToJson(zipPath)
       .then((unzippedFiles) => {
         let promise = Promise.resolve();
         _.forEach(unzippedFiles, (unzippedFile) => {
@@ -118,7 +134,6 @@ class PumpLabelsOpenFda {
 
   parseZipToJson (zipPath) {
     return new Promise((resolve) => {
-      const jsonDir = './resources/json';
       const unzippedFiles = [];
       const stream = fs.createReadStream(zipPath)
         .pipe(unzip.Parse())
@@ -126,7 +141,7 @@ class PumpLabelsOpenFda {
           const fileName = entry.path;
           // const { type } = entry; // 'Directory' or 'File'
           // const { size } = entry;
-          const unzippedFile = path.resolve(__dirname, jsonDir, fileName);
+          const unzippedFile = path.resolve(this.jsonDir, fileName);
           unzippedFiles.push(unzippedFile);
           entry.pipe(fs.createWriteStream(unzippedFile));
         });
@@ -151,7 +166,7 @@ class PumpLabelsOpenFda {
               ndc11: _.compact(packageNdc.map(package_ndc => getNormalizedNDCByPackageNDC(package_ndc))),
             };
             return this.upsertCollections(doc);
-          }, { concurrency: 50 });
+          }, {concurrency: 50});
 
           resolve(promise);
         }));
@@ -174,20 +189,23 @@ class PumpLabelsOpenFda {
 
   upsertMedicationMasterDoc (insertedOpenFdaDoc) {
     // Field generic_name from original doc is size 1 array.
-    const medicationNames = insertedOpenFdaDoc.rawData.openfda.generic_name;
+    const genericNames = _.get(insertedOpenFdaDoc, 'rawData.openfda.generic_name.0', '').split(', ');
+    const brandName = _.get(insertedOpenFdaDoc, 'rawData.openfda.brand_name.0', '');
     // one medication can be packaged in many ways => has many ndc11 codes
-    return Promise.map(insertedOpenFdaDoc.ndc11, ndc11 => this.dbCon.collection(this.medicationMasterCollectionName)
-      .findAndModify({ ndc11 }, { _id: 1 }, {
+    return Promise.map(insertedOpenFdaDoc.ndc11, (ndc11, i) => this.dbCon.collection(this.medicationMasterCollectionName)
+      .findAndModify({ndc11}, {_id: 1}, {
         $set: {
-          openFdaData: { id: insertedOpenFdaDoc._id },
-          name: medicationNames[0],
+          openFdaData: {id: insertedOpenFdaDoc._id},
+          genericNames,
+          brandName,
+          srcNdc: _.get(insertedOpenFdaDoc, `rawData.openfda.package_ndc.${i}`, ''),
         },
-      }, { upsert: true }));
+      }, {upsert: true}));
   }
 
   upsertOpenFdaDoc (doc) {
     return this.dbCon.collection(this.openFdaCollectionName)
-      .findAndModify({ id: doc.id }, { _id: 1 }, doc, { new: true, upsert: true })
+      .findAndModify({id: doc.id}, {_id: 1}, doc, {new: true, upsert: true})
       .then(commandResult => commandResult.value);
   }
 }

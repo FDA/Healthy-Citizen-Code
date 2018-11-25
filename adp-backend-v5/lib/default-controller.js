@@ -1,20 +1,19 @@
 const _ = require('lodash');
 const log = require('log4js').getLogger('lib/default-controller');
 const mongoose = require('mongoose');
-const ObjectID = require('mongodb').ObjectID;
-const butil = require('./backend-util');
-const async = require('async');
 const uglify = require('uglify-js');
-const restifyErrors = require('restify-errors');
+// const restifyErrors = require('restify-errors');
+const butil = require('./backend-util');
 
 /**
  * Implements default processing for all data specified in the appModel
  * You can override default behavior with "controller" schema property (see the metaschema)
  * @returns {{}}
  */
-module.exports = function (appLib) {
+module.exports = appLib => {
   const sendJsUtil = require('./send-js-util')(appLib);
   const controllerUtil = require('./default-controller-util')(appLib);
+  const { accessUtil } = appLib;
   const m = {};
 
   /**
@@ -29,7 +28,7 @@ module.exports = function (appLib) {
    */
   m.error = (req, res, next, message, userMessage) => {
     log.error(`URL: ${req.url}, ${message}`);
-    res.json(400, {success: false, message: userMessage || message});
+    res.json(400, { success: false, message: userMessage || message });
     return next();
   };
 
@@ -40,9 +39,8 @@ module.exports = function (appLib) {
    * @param res
    * @param next
    */
-
   m.getRootJson = (req, res, next) => {
-    res.json({success: true, message: `HC Backend V5 is working correctly`});
+    res.json({ success: true, message: `HC Backend V5 is working correctly` });
     next();
   };
 
@@ -53,7 +51,7 @@ module.exports = function (appLib) {
    * @param next
    */
   m.getMetaschemaJson = (req, res, next) => {
-    res.json({success: true, data: appLib.appModel.metaschema});
+    res.json({ success: true, data: appLib.appModel.metaschema });
     next();
   };
 
@@ -64,7 +62,7 @@ module.exports = function (appLib) {
    * @param next
    */
   m.getSchemasJson = (req, res, next) => {
-    res.json({success: true, data: appLib.appModel.models});
+    res.json({ success: true, data: appLib.appModel.models });
     next();
   };
 
@@ -75,37 +73,26 @@ module.exports = function (appLib) {
    * @param next
    */
   m.getAppModelJson = (req, res, next) => {
-    const permissions = appLib.accessUtil.getUserPermissions(req);
-    const appModelForUser = _.cloneDeep(appLib.appModel);
-    delete appModelForUser.rolesToPermissions;
-    delete appModelForUser.usedPermissions;
-
-    _.forEach(appModelForUser.models, (model, modelName) => {
-      const actionsFromScopes = appLib.accessUtil.getAvailActionsFromScopes(model.scopes, permissions);
-      const actionsFromActions = appLib.accessUtil.getAvailActionsFromActions(model.actions, permissions);
-      const intersectedActions = new Set([...actionsFromActions].filter(a => actionsFromScopes.has(a)));
-
-      // delete scopes and permission details
-      delete model.scopes;
-      _.forOwn(model.actions.fields, (actionSettings, actionName) => {
-        if (!intersectedActions.has(actionName)) {
-          delete model.actions.fields[actionName];
-        } else {
-          delete model.actions.fields[actionName].permissions;
-        }
+    appLib
+      .authenticationCheck(req, res, next)
+      .then(({ user, permissions }) => {
+        req.user = user;
+        accessUtil.setUserPermissions(req, permissions);
+        const appModelForUser = accessUtil.getAuthorizedAppModel(req);
+        res.json({ success: true, data: appModelForUser });
+      })
+      .catch({ code: 401 }, () => {
+        const unauthorizedModel = accessUtil.getUnauthorizedAppModel(req);
+        res.json({ success: true, data: unauthorizedModel });
+      })
+      .catch(err => {
+        log.error(err);
+        res.json(500, {
+          success: false,
+          message: `Error occurred while retrieving app model`,
+        });
       });
-    });
-
-    const lists = appLib.accessUtil.getListsForUser(req);
-    // replace every list field contains 'scopes' and 'values' with plain list values
-    _.forEach(lists, (list, listFieldPath) => {
-      _.set(appModelForUser.models, listFieldPath + '.list', list.values);
-    });
-
-    res.json({success: true, data: appModelForUser});
-    next();
   };
-
 
   /**
    * Returns JSON containing definition of a specific dashboard
@@ -114,7 +101,10 @@ module.exports = function (appLib) {
    * @param next
    */
   m.getDashboardJson = (req, res, next) => {
-    res.json({success: true, data: _.get(appLib.appModel, `interface.${req.params.id}`, {})});
+    res.json({
+      success: true,
+      data: _.get(appLib.appModel, `interface.${req.params.id}`, {}),
+    });
     next();
   };
 
@@ -125,12 +115,12 @@ module.exports = function (appLib) {
    * @param next
    */
   m.getListsJson = (req, res, next) => {
-    res.json({success: true, data: appLib.appModelHelpers.Lists});
+    res.json({ success: true, data: appLib.appModelHelpers.Lists });
     next();
   };
 
   m.getTypeDefaults = (req, res, next) => {
-    res.json({success: true, data: appLib.appModel.typeDefaults});
+    res.json({ success: true, data: appLib.appModel.typeDefaults });
     next();
   };
 
@@ -143,7 +133,7 @@ module.exports = function (appLib) {
   m.getInterfaceJson = (req, res, next) => {
     res.json({
       success: true,
-      data: appLib.appModel.hasOwnProperty('interface') ? appLib.appModel['interface'] : {},
+      data: appLib.appModel.interface || {},
     });
     next();
   };
@@ -155,7 +145,10 @@ module.exports = function (appLib) {
    * @param next
    */
   m.getDashboardSubtypesJson = (req, res, next) => {
-    res.json({success: true, data: _.get(appLib.appModel, 'interface.dashboardSubtypes', {})});
+    res.json({
+      success: true,
+      data: _.get(appLib.appModel, 'interface.dashboardSubtypes', {}),
+    });
     next();
   };
 
@@ -166,7 +159,7 @@ module.exports = function (appLib) {
    * @param next
    */
   m.getIsAuthenticated = (req, res, next) => {
-    res.json({success: true, data: 'This token is valid'});
+    res.json({ success: true, data: 'This token is valid' });
     next();
   };
 
@@ -182,24 +175,47 @@ module.exports = function (appLib) {
   };
 
   /**
-   * Returns JSON containing schema for specific schema or subschema
-   * The path to schema/subschema is figured out from req.url. For instance /schema/phi/encounters/diagnoses
+   * Returns JSON containing schema for specific schema
+   * The path to schema is figured out from req.url. For instance /schema/phi/encounters/diagnoses
    * returns schema for phi.encounters.diagnosis
    * @param req
    * @param res
    * @param next
    */
   m.getSchema = (req, res, next) => {
-    let path = req.url.replace(/^\/schema\//, '').replace(/.json$/, '').split('/');
-    let ret = _.clone(_.get(appLib.appModel.models, path.join('.fields.')));
-    delete ret.scopes;
-    if (ret && _.indexOf(['Schema', 'Subschema'], ret.type) >= 0) {
-      // TODO: check why code 200 is not returned by default, getting 426 without explicit specification
-      res.json(200, {success: true, data: ret});
-    } else {
-      res.json(400, {success: false, message: 'This schema or subschema doesn\'t exist'});
-    }
-    next();
+    const path = req.url
+      .replace(/^\/schema\//, '')
+      .replace(/.json$/, '')
+      .split('/');
+
+    appLib
+      .authenticationCheck(req, res, next)
+      .then(({ user, permissions }) => {
+        req.user = user;
+        accessUtil.setUserPermissions(req, permissions);
+        const model = _.clone(_.get(appLib.appModel.models, path.join('.fields.')));
+        accessUtil.handleModelByPermissions(model, permissions);
+        res.json({ success: true, data: model });
+      })
+      .catch({ code: 401 }, () => {
+        res.json(400, { success: false, message: 'Not authorized to get schema' });
+      })
+      .catch(err => {
+        log.error(err);
+        res.json(500, {
+          success: false,
+          message: `Error occurred while retrieving schema`,
+        });
+      });
+
+    // const schema = _.clone(_.get(appLib.appModel.models, path.join('.fields.')));
+    // delete schema.scopes;
+    // if (schema && schema.type === 'Schema') {
+    //   // TODO: check why code 200 is not returned by default, getting 426 without explicit specification
+    //   res.json(200, { success: true, data: schema });
+    // } else {
+    //   res.json(400, { success: false, message: `This schema doesn't exist` });
+    // }
   };
 
   /**
@@ -211,12 +227,84 @@ module.exports = function (appLib) {
    * @returns {*}
    */
   m.isDevelopmentMode = (req, res, next) => {
-    if ('true' == process.env.DEVELOPMENT) {
+    if (process.env.DEVELOPMENT === 'true') {
       return next();
-    } else {
-      res.json(403, {success: false, message: 'This route is only available in development mode'});
     }
+    res.json(403, {
+      success: false,
+      message: 'This route is only available in development mode',
+    });
   };
+
+  function setFilteringConditionPromise(prepareContext, schemeLookup) {
+    const { where, prepare } = schemeLookup;
+    if (!where) {
+      schemeLookup.filteringCondition = {};
+      return Promise.resolve();
+    }
+    const filteringLookupConditionPromise = accessUtil.getWhereConditionPromise(
+      where,
+      prepare,
+      prepareContext
+    );
+    return filteringLookupConditionPromise.then(condition => {
+      schemeLookup.filteringCondition = { $expr: condition };
+    });
+  }
+
+  function schemaLookup(req, res, next, schemeLookup) {
+    const model = mongoose.model(schemeLookup.table);
+    if (!model) {
+      return m.error(req, res, next, `Invalid model name in the URL: ${req.url}`);
+    }
+    // TODO: should I move limit to lookup definition? Or give one ability to override, make it smaller than the one defined on table?
+    const limit = _.get(
+      appLib.appModel,
+      `models.${schemeLookup.table}.limitReturnedRecords`,
+      _.get(appLib.appModel.metaschema, 'limitReturnedRecords.default', -1)
+    );
+    const lookupFields = controllerUtil.getSearchableFields(schemeLookup.table);
+    const skip =
+      req.params.page && parseInt(req.params.page, 10) > 0
+        ? (parseInt(req.params.page, 10) - 1) * limit
+        : 0;
+    const labelFieldName = _.get(schemeLookup, 'label', '_id');
+    const foreignKeyFieldName = _.get(schemeLookup, 'foreignKey', '_id');
+
+    const searchConditions = [];
+    controllerUtil.updateSearchConditions(searchConditions, lookupFields, req.params.q);
+    const overallSearchConditions = searchConditions.length > 0 ? { $or: searchConditions } : {};
+    const lookupQuery = {
+      $and: [overallSearchConditions, schemeLookup.filteringCondition],
+    };
+    const prepareCtx = accessUtil.getPrepareContext(req);
+    const permissions = accessUtil.getUserPermissions(req);
+    const userContext = appLib.accessUtil.getUserContext(req);
+
+    accessUtil
+      .getViewConditionsByPermissionsForLookup(permissions, prepareCtx, schemeLookup, lookupQuery)
+      .then(permLookup =>
+        // TODO: support regexps in lookups (check out git history) ?
+        // TODO: call renderer for the label?
+        appLib.dba.findItems({
+          model,
+          userContext,
+          conditions: permLookup,
+          sort: schemeLookup.sortBy,
+          skip,
+          limit,
+        })
+      )
+      .then(data => {
+        const more = data.length === limit;
+        const ret = _.map(data, row => ({
+          id: _.get(row, foreignKeyFieldName),
+          label: _.get(row, labelFieldName),
+        }));
+        res.json({ success: true, more, data: ret });
+      })
+      .catch(err => m.error(req, res, next, `Unable to return lookup result: ${err}`));
+  }
 
   /**
    * This method returns limited number of entries from a lookup table that match search criteria.
@@ -224,7 +312,6 @@ module.exports = function (appLib) {
    * The limit of returned record is defined per schema, see limitReturnedRecords in metaschema
    * The lookup URL should look like /lookup/<table name/<lookup id>.json?q=<lookup string>&page=<page number>
    * Page Number refers to select2 infinity window approach and returns specified batch of limitReturnedRecords records
-   * TODO: possibly eventually unify it with the CRUD methods using getElement/getQueryParams/filterArray. Especially if lookup in subschemas will need to be supported
    * @param req
    * @param res
    * @param next
@@ -233,103 +320,37 @@ module.exports = function (appLib) {
     const urlParts = butil.getUrlParts(req);
     const [lookupId, tableName] = urlParts.slice(-2);
     if (!lookupId) {
-      return m.error(req, res, next, 'No lookup ID in the URL:' + req.url);
+      return m.error(req, res, next, `No lookup ID in the URL: ${req.url}`);
     }
-    const lookup = _.get(appLib.appLookups, [lookupId, 'table', tableName]);
-    if (!lookup) {
-      return m.error(req, res, next, 'Invalid path to lookup in the URL:' + req.url);
-    }
-    // TODO: L: if necessary support lookups in nested subschemas later. Don't need this now
-    // TODO: remove subSchemaLookup if we use only schema approach
-    if (lookup.table.startsWith('/')) { // this is a subschema lookup
-      subSchemaLookup(lookup, req, res, next);
-    } else { // schema lookup
-      schemaLookup(lookup, req, res, next);
+    const lookup = _.get(appLib.appLookups, lookupId);
+    const schemeLookup = _.clone(_.get(lookup, ['table', tableName]));
+    if (!schemeLookup) {
+      return m.error(req, res, next, `Invalid path to lookup in the URL: ${req.url}`);
     }
 
-    function schemaLookup (lookup, req, res, next) {
-      const model = mongoose.model(lookup.table);
-      if (!model) {
-        return m.error(req, res, next, 'Invalid model name in the URL:' + req.url);
-      }
-      // TODO: should I move limit to lookup definition? Or give one ability to override, make it smaller than the one defined on table?
-      const limit = _.get(appLib.appModel, `models.${lookup.table}.limitReturnedRecords`, _.get(appLib.appModel.metaschema, 'limitReturnedRecords.default', -1)); // note that lookups in subschemas are not supported here yet
-      const lookupFields = controllerUtil.getSearchableFields(lookup.table);
-      const skip = req.params.page && parseInt(req.params.page) > 0 ? (parseInt(req.params.page) - 1) * limit : 0;
-      const labelFieldName = _.get(lookup, 'label', '_id');
-      const foreignKeyFieldName = _.get(lookup, 'foreignKey', '_id');
-
-      const searchConditions = [];
-      controllerUtil.updateSearchConditions(searchConditions, lookupFields, req.params.q);
-      let lookupQuery = searchConditions.length > 0 ? {$or: searchConditions} : {};
-      appLib.accessUtil.getViewConditionsByPermissionsForLookup(req, lookup, lookupQuery)
-        .then((lookupQueryWithPermissions) => {
-          // TODO: support regexps in lookups (check out git history) ?
-          // TODO: call renderer for the label?
-          const userContext = appLib.accessUtil.getUserContext(req);
-          return appLib.dba.findItems(model, userContext, lookupQueryWithPermissions, {}, {}, skip, limit, true);
-        })
-        .then((data) => {
-          const more = data.length === limit;
-          const ret = _.map(data, (row) => {
-            return {
-              id: _.get(row, foreignKeyFieldName),
-              label: _.get(row, labelFieldName),
-            };
-          });
-          res.json({success: true, more: more, data: ret});
-        })
-        .catch((err) => {
-          return m.error(req, res, next, `Unable to return lookup result: ${err}`);
-        });
-    }
-
-    function subSchemaLookup (lookup, req, res, next) {
-      // TODO: support admin function when admin can lookup any user's
-      const tableParts = lookup.table.split('/'); // starts with "/"
-      // Currently only supports table paths like /mainSchema/:recordId/subschema
-      if (tableParts.length != 4) {
-        return m.error(req, res, next, 'Invalid lookup subschema name in:' + lookup.table);
-      } else {
-        let model = mongoose.model(tableParts[1]);
-        if (!model) {
-          return m.error(req, res, next, 'Invalid main schema name in the URL:' + req.url);
-        } else {
-          const recordId = req.user[tableParts[2].substring(1)];
-          model.findById(recordId).lean().exec((err, data) => {
-            if (err) {
-              return m.error(req, res, next, 'Error finding record in model in the URL:' + req.url);
-            } else if (!data) {
-              return m.error(req, res, next, 'No record found in the URL:' + req.url);
-            } else {
-              const records = data[tableParts[3]];
-              const labelName = _.get(lookup, 'label', '_id');
-              const foreignKeyName = _.get(lookup, 'foreignKey', '_id');
-              const ret = _(records).map((row) => {
-                let label = _.get(row, labelName);
-                // TODO: this searches only in label. In the future also search in searchable and use regex
-                if (label.toLowerCase().indexOf(req.params.q.toLowerCase()) >= 0) {
-                  return {
-                    id: _.get(row, foreignKeyName),
-                    label: label,
-                  };
-                } else {
-                  return null;
-                }
-              }).compact().value();
-              res.json({success: true, more: false, data: ret}); // TODO: support pagination in the future
-              next();
-            }
-          });
-        }
-      }
-    }
+    const prepareContext = accessUtil.getPrepareContext(req);
+    setFilteringConditionPromise(prepareContext, schemeLookup)
+      .then(() => {
+        schemaLookup(req, res, next, schemeLookup);
+      })
+      .catch(err => {
+        log.error(err);
+        m.error(req, res, next, `Error occurred during lookup request: ${req.url}`);
+      });
   };
+
+  function getElementsWithFilteredFields(req, actionsToAdd) {
+    return controllerUtil.getElements(req, actionsToAdd).then(({ data, params }) => {
+      const appModel = appLib.appModel.models[params.model.modelName];
+      const userPermissions = accessUtil.getUserPermissions(req);
+      const filteredDocs = accessUtil.filterDocFields(appModel, data, 'view', userPermissions);
+      return { data: filteredDocs, params };
+    });
+  }
 
   /**
    * Returns all  records from the given collection. attribute limitReturnedRecords or the schema may reduce the maximum number
-   * of records returned from this collection at once. Note that in case of tables that require authentication (see requiresAuthentication)
-   * isAuthenticated will prevent from returning unauthorized records, so for such collections this method will return nothing.
+   * of records returned from this collection at once.
    * This supports datatables server-side mode parameters
    * @param req
    * @param res
@@ -337,81 +358,63 @@ module.exports = function (appLib) {
    * @returns {*}
    */
   m.getItems = (req, res, next) => {
-    let queryModel;
-    let queryConditions;
-    let arrayConditions;
-    let elements;
-    async.series({
-      // get data
-      data: (cb) => {
-        // inject custom action for retrieving scope condition
-        req.action = 'datatables';
-        controllerUtil.getElements(req, true)
-          .then(({part, data, parent, parentKey, model, mongoConditions, conditions, mongoProjections}) => {
-            queryConditions = mongoConditions;
-            arrayConditions = conditions;
-            queryModel = model;
-            if (parent && parent[parentKey]) {
-              elements = parent[parentKey]; // if elements == null that means that filtered records need to be calculated in mongo query
-            }
-            cb(null, part);
-          })
-          .catch(err => cb(err));
-      },
-      recordsTotal: (cb) => {
-        if (req.params.draw) {
-          if (elements) {
-            cb(null, elements.length);
-          } else {
-            queryModel.count({}, cb);
-          }
-        } else {
-          cb(null, 0);
+    req.action = 'datatables';
+    return Promise.resolve(getElementsWithFilteredFields(req, true))
+      .bind({})
+      .then(({ data, params }) => {
+        this.data = data;
+        this.model = params.model;
+        this.mongoConditions = params.mongoConditions;
+
+        if (!req.params.draw) {
+          return 0;
         }
-      },
-      recordsFiltered: (cb) => {
-        if (req.params.draw) {
-          if (elements) {
-            cb(null, controllerUtil.filterArray(elements, arrayConditions).length);
-          } else {
-            queryModel.count(queryConditions, cb);
-          }
-        } else {
-          cb(null, 0);
+        return this.model.countDocuments({});
+      })
+      .then(recordsTotal => {
+        this.recordsTotal = recordsTotal;
+
+        if (!req.params.draw) {
+          return 0;
         }
-      },
-    }, (err, results) => {
-      if (err) {
-        res.json(400, {success: false, message: `Unable to retrieve data: ${err}`});
-      } else {
-        if (req.params.draw) {
+        return this.model.countDocuments(this.mongoConditions);
+      })
+      .then(recordsFiltered => {
+        if (!req.params.draw) {
           res.json({
             success: true,
-            recordsTotal: results.recordsTotal,
-            recordsFiltered: results.recordsFiltered,
-            data: results.data,
+            data: this.data,
           });
         } else {
-          res.json({success: true, data: results.data});
+          res.json({
+            success: true,
+            data: this.data,
+            recordsTotal: this.recordsTotal,
+            recordsFiltered,
+          });
         }
-      }
-      next();
-    });
+        next();
+      });
   };
 
   /**
-   * CRUD Read (returns one item from a url like /phis/5871906ea7cddad23a26084d/encounters/test1/diagnoses/test3.json
+   * CRUD Read (returns one item from a url like /itemSchema/5871906ea7cddad23a26084d
    * @param req
    * @param res
    * @param next
    */
   m.getItem = (req, res, next) => {
-    controllerUtil.getElements(req, 'view')
-      .then(({part, data, parent, parentKey, model, mongoConditions, conditions, mongoProjections}) => {
-        res.json({success: true, data: part});
+    getElementsWithFilteredFields(req, 'view')
+      .then(({ data, params }) => {
+        const appModel = appLib.appModel.models[params.model.modelName];
+        const userPermissions = accessUtil.getUserPermissions(req);
+        const filteredDoc = accessUtil.filterDocFields(appModel, data, 'view', userPermissions);
+        res.json({ success: true, data: filteredDoc });
         next();
       })
-      .catch(err => m.error(req, res, next, err, 'Internal error: unable to find requested element'));
+      .catch(err =>
+        m.error(req, res, next, err, 'Internal error: unable to find requested element')
+      );
   };
 
   /**
@@ -421,100 +424,100 @@ module.exports = function (appLib) {
    * @param res
    * @param next
    */
-  m.deleteItem = (req, res, next) => {
-    // 1. For Subschema elems update is required.
-    // Update includes 'validate', 'transform', 'synthesize' stages and requires whole document to be processed.
-    // So we need to get whole document, not enable permissions and then try to update with mongo conditions considering permissions.
-    // 2. For Schema elems simple delete is performed.
-    // So we enable permissions check for getElements.
-    // If no document is retrieved its one of 1) doesn't exist or 2) allowed to be deleted.
-    let getElemsPromise;
-    if (controllerUtil.isModelSchema(req)) {
-      getElemsPromise = controllerUtil.getElements(req, 'delete');
-    } else {
-      getElemsPromise = controllerUtil.getElements(req);
-    }
-
-    return getElemsPromise
-      .then(({part, data, parent, parentKey, model, mongoConditions, conditions, mongoProjections}) => {
-        if (parent == null) { // need to delete whole document
-          appLib.dba.removeItem(model, mongoConditions, (err) => {
-            if (err) {
-              return m.error(req, res, next, err, 'Internal error: unable to delete this item');
-            } else {
-              res.json({success: true});
-              next();
-            }
-          });
-        } else {
-          if (Array.isArray(part) && part.length == 0) {
-            delete parent[parentKey];
-          }
-          if (Array.isArray(parent) || 'object' === typeof parent) {
-            parent[parentKey].deletedAt = new Date();
-          } else {
-            return m.error(req, res, next, err, 'Internal error: unable to delete this item');
-          }
-          const userContext = appLib.accessUtil.getUserContext(req);
-          return appLib.dba.updateItem('$pull', model, userContext, mongoConditions, mongoProjections, data, controllerUtil.getAppModelPath(req))
-            .then(() => {
-              res.json({success: true});
-              next();
-            })
-            .catch((err) => m.error(req, res, next, err, 'Internal error: unable to delete this item'));
+  m.deleteItem = (req, res, next) =>
+    Promise.resolve(controllerUtil.getElements(req, 'delete'))
+      .bind({})
+      .then(({ data, params }) => {
+        this.mongoConditions = params.mongoConditions;
+        this.model = params.model;
+        return controllerUtil.getDeleteLinkedLabelsInfo(data, params.model.modelName);
+      })
+      .then(deleteInfo => {
+        const isAllDeletionsValid = deleteInfo.every(info => info.isValidDelete);
+        if (!isAllDeletionsValid) {
+          throw {
+            code: 'invalidLinkedRecord',
+            deleteInfo,
+          };
         }
+
+        const deleteLinkedRecordsPromises = Promise.map(deleteInfo, info => info.deleteFunc());
+        return Promise.all([
+          appLib.dba.removeItem(this.model, this.mongoConditions),
+          deleteLinkedRecordsPromises,
+        ]);
+      })
+      .then(() => {
+        res.json({ success: true });
+      })
+      .catch({ code: 'invalidLinkedRecord' }, e => {
+        res.json(400, {
+          success: false,
+          info: e.deleteInfo
+            .filter(info => !info.isValidDelete)
+            .map(info => _.pick(info, ['linkedCollection', 'linkedLabel', 'linkedRecords'])),
+          message:
+            'ERROR: Unable to delete this record because there are other records referring. ' +
+            'Please update the referring records and remove reference to this record.',
+        });
       })
       .catch(err => m.error(req, res, next, err, 'Internal error: unable to delete this item'));
-  };
 
   /**
-   * CRUD Update (updates one item from a url like /phis/587179f6ef4807703afd0dfe/encounters/e2/vitalSigns/e2v2.json)
+   * CRUD Update (updates one item from a url like /itemSchema/587179f6ef4807703afd0dfe)
    * Specify the new data for the item as req.body.data
    * NOTE: _id is removed from the new data, so it won't override the original one.
-   * NOTE: you can put nested data, but it won't be accessible via CRUD, because CRUD is completely generated from the appModel, not the content
    * @param req
    * @param res
    * @param next
    */
   m.putItem = (req, res, next) => {
-    if (!req.body.hasOwnProperty('data')) {
-      return m.error(req, res, next, 'New data is not specified');
+    const reqData = req.body.data;
+    if (!reqData) {
+      return m.error(req, res, next, `Incorrect request. Must have 'data' field in request body`);
     }
-    const listErrors = appLib.accessUtil.validateListsValues(req);
+
+    const userPermissions = accessUtil.getUserPermissions(req);
+    const [modelName] = butil.getUrlParts(req);
+    const listErrors = accessUtil.validateListsValues(modelName, reqData, userPermissions);
     if (!_.isEmpty(listErrors)) {
       return m.error(req, res, next, `Incorrect request: ${listErrors.join(' ')}`);
     }
 
-    // get elements without handling scopes for actions, but including transformations
-    return controllerUtil.getElements(req, false, null, false, false)
-      .then(({data, parent, parentKey, model}) => {
-        delete req.body.data._id; // do not override the original document/part id
-        if (parent) { // i.e. only part of the document is being updated
-          parent[parentKey] = _.assign(parent[parentKey], req.body.data);
-        } else {
-          data = _.assign(data, req.body.data);
-        }
+    // get element without handling scopes for actions, but including transformations
+    return controllerUtil
+      .getElements(req)
+      .then(({ data, params }) => {
+        const action = 'update';
+        const appModel = appLib.appModel.models[modelName];
 
-        // get params with considering scope permissions
-        let modelConditions = {};
-        const urlParts = butil.getUrlParts(req);
-        if (urlParts.length >= 2) {
-          try {
-            const objectID = new ObjectID(urlParts[1]);
-            modelConditions = {'_id': objectID };
-          } catch (e) {
-            return Promise.resolve({err: `Invalid object id; ${req.params.id}`});
-          }
-        }
-        return controllerUtil.getQueryParams(req, modelConditions, 'update')
-          .then((params) => {
-            const appModelPath = controllerUtil.getAppModelPath(req);
-            const userContext = appLib.accessUtil.getUserContext(req);
-            return appLib.dba.updateItem('$set', model, userContext, params.mongoConditions, params.mongoProjections, data, appModelPath);
-          })
-          .then(() => res.json({success: true, id: req.body ? req.body.data._id : req.params.id}))
-          .catch(err => m.error(req, res, next, err, err.message));
+        delete req.body.data._id; // do not override the original document/part id
+        controllerUtil.transformLookupKeys(req.body.data, modelName);
+        const filteredDoc = accessUtil.filterDocFields(
+          appModel,
+          req.body.data,
+          action,
+          userPermissions
+        );
+
+        const resultData = _.clone(data);
+        _.merge(resultData, filteredDoc);
+
+        const appModelPath = controllerUtil.getAppModelPath(req);
+        const userContext = accessUtil.getUserContext(req);
+        return Promise.all([
+          appLib.dba.updateItem({
+            model: params.model,
+            userContext,
+            mongoConditions: params.mongoConditions,
+            mongoProjections: params.mongoProjections,
+            data: resultData,
+            path: appModelPath,
+          }),
+          controllerUtil.getUpdateLinkedLabelsPromise(resultData, data, modelName),
+        ]);
       })
+      .then(() => res.json({ success: true, id: req.body ? reqData._id : req.params.id }))
       .catch(err => m.error(req, res, next, err, 'Internal error: unable to update this item'));
   };
 
@@ -528,62 +531,38 @@ module.exports = function (appLib) {
    * @param next
    */
   m.postItem = (req, res, next) => {
-    if (!req.body.data) {
+    const reqBody = req.body.data;
+    if (!reqBody) {
       return m.error(req, res, next, `Incorrect request. Must have 'data' field in request body`);
     }
-    const listErrors = appLib.accessUtil.validateListsValues(req);
+
+    const userPermissions = appLib.accessUtil.getUserPermissions(req);
+    const modelName = butil.getModelNameByReq(req);
+    const listErrors = appLib.accessUtil.validateListsValues(modelName, reqBody, userPermissions);
     if (!_.isEmpty(listErrors)) {
       return m.error(req, res, next, `Incorrect request: ${listErrors.join(' ')}`);
     }
 
-    controllerUtil.getElements(req, false, null, true)
-      .then(({part, data, parent, parentKey, model, mongoConditions, mongoProjections}) => {
-        if ('undefined' == typeof part) { // happens when trying to post to a valid element in data which doesn't exist in the document yet
-          parent[parentKey] = [];
-        }
-        if (false == part && parent && parentKey) { // _presumably_ happens when trying to post to an element in data which doesn't exist in the document yet. TODO: verify that this element is part of app Schema
-          parent[parentKey] = [];
-        }
-        if (parent == null) { // need to add new collection document
-          let modelConditions = {};
-          const urlParts = butil.getUrlParts(req);
-          if (urlParts.length >= 2) {
-            try {
-              const objectID = new ObjectID(urlParts[1]);
-              modelConditions = {'_id': objectID };
-            } catch (e) {
-              return Promise.resolve({err: `Invalid object id; ${req.params.id}`});
-            }
-          }
-          return controllerUtil.getQueryParams(req, modelConditions, 'update')
-            .then((params) => {
-              const userContext = appLib.accessUtil.getUserContext(req);
-              return appLib.dba.createItemCheckingConditions(model, params.mongoConditions, userContext, req.body.data);
-            })
-            .then((item) => {
-              res.json({success: true, id: item._id});
-              next();
-            })
-            .catch((err) => {
-              log.error(err);
-              return m.error(req, res, next, err.message);
-            });
-        } else if ('object' == typeof parent && parentKey !== parseInt(parentKey, 10)) { // adding new element into array/subschema
-          if (parent[parentKey]) {
-            req.body.data._id = butil.generateObjectId();
-            parent[parentKey].push(req.body.data);
-            // TODO: refactor, updating the whole record is ineffective, just use $push
-            const userContext = appLib.accessUtil.getUserContext(req);
-            appLib.dba.updateItem('$push', model, userContext, mongoConditions, mongoProjections, data, [...controllerUtil.getAppModelPath(req), req.body.data._id + ''])
-              .then(() => res.json({success: true, id: req.body.data._id}))
-              .catch((err) => m.error(req, res, next, err, 'Internal error: unable to create this item'));
-          } else {
-            return m.error(req, res, next, `parent[parentKey] doesn't exist. parent: ${JSON.stringify(parent, null, 4)} REQ.BODY.DATA: ${JSON.stringify(req.body.data, null, 4)}`, 'Internal error: unable to create this item');
-          }
-        } else {
-          return m.error(req, res, next, 'Only posting new elements into array or into collection is allowed', 'Internal error: unable to create this item');
-        }
+    const userContext = accessUtil.getUserContext(req);
+    const action = 'create';
+
+    return controllerUtil
+      .getQueryParams(req, action)
+      .then(params =>
+        controllerUtil.createItemWithCheckAndFilter({
+          action,
+          data: reqBody,
+          model: params.model,
+          mongoConditions: params.mongoConditions,
+          userPermissions,
+          userContext,
+        })
+      )
+      .then(item => {
+        res.json({ success: true, id: item._id });
+        next();
       })
+      .catch({ code: 'NO_PERMISSIONS_TO_CREATE' }, err => m.error(req, res, next, err.message))
       .catch(err => m.error(req, res, next, err, 'Internal error: unable to create this item'));
   };
 
@@ -592,7 +571,8 @@ module.exports = function (appLib) {
    * TODO: depricate it, all clients should use /lists instead of /lists.js
    */
   m.getClientSideCodeForLists = (req, res, next) => {
-    let body = sendJsUtil.getJsPrefix('Lists') + sendJsUtil.getJsObjectString(appLib.appModelHelpers.Lists) + '};';
+    const body = `${sendJsUtil.getJsPrefix('Lists') +
+      sendJsUtil.getJsObjectString(appLib.appModelHelpers.Lists)}};`;
     sendJsUtil.sendJavascript(res, body, next);
   };
 
@@ -600,7 +580,8 @@ module.exports = function (appLib) {
    * Returns string representing code for the appModelHelpers.FormRenderers
    */
   m.getClientSideCodeForFormRenderers = (req, res, next) => {
-    let body = sendJsUtil.getJsPrefix('FormRenderers') + sendJsUtil.getJsObjectString(appLib.appModelHelpers.FormRenderers) + '};';
+    const body = `${sendJsUtil.getJsPrefix('FormRenderers') +
+      sendJsUtil.getJsObjectString(appLib.appModelHelpers.FormRenderers)}};`;
     sendJsUtil.sendJavascript(res, body, next);
   };
 
@@ -608,7 +589,8 @@ module.exports = function (appLib) {
    * Returns string representing code for the appModelHelpers.Renderers
    */
   m.getClientSideCodeForRenderers = (req, res, next) => {
-    let body = sendJsUtil.getJsPrefix('Renderers') + sendJsUtil.getJsObjectString(appLib.appModelHelpers.Renderers) + '};';
+    const body = `${sendJsUtil.getJsPrefix('Renderers') +
+      sendJsUtil.getJsObjectString(appLib.appModelHelpers.Renderers)}};`;
     sendJsUtil.sendJavascript(res, body, next);
   };
 
@@ -616,7 +598,8 @@ module.exports = function (appLib) {
    * Returns string representing code for the appModelHelpers.CustomActions
    */
   m.getClientSideCodeForCustomActions = (req, res, next) => {
-    let body = sendJsUtil.getJsPrefix('CustomActions') + sendJsUtil.getJsObjectString(appLib.appModelHelpers.CustomActions) + '};';
+    const body = `${sendJsUtil.getJsPrefix('CustomActions') +
+      sendJsUtil.getJsObjectString(appLib.appModelHelpers.CustomActions)}};`;
     sendJsUtil.sendJavascript(res, body, next);
   };
 
@@ -624,7 +607,8 @@ module.exports = function (appLib) {
    * Returns string representing code for the appModelHelpers.LabelRenderers
    */
   m.getClientSideCodeForLabelRenderers = (req, res, next) => {
-    let body = sendJsUtil.getJsPrefix('LabelRenderers') + sendJsUtil.getJsObjectString(appLib.appModelHelpers.LabelRenderers) + '};';
+    const body = `${sendJsUtil.getJsPrefix('LabelRenderers') +
+      sendJsUtil.getJsObjectString(appLib.appModelHelpers.LabelRenderers)}};`;
     sendJsUtil.sendJavascript(res, body, next);
   };
 
@@ -632,10 +616,11 @@ module.exports = function (appLib) {
    * Returns string representing code for the appModelHelpers.Validators
    */
   m.getClientSideCodeForValidators = (req, res, next) => {
-    let body = 'vutil={' + sendJsUtil.getJsObjectString(appLib.appModelHelpers.ValidatorUtils) + '};' +
-      sendJsUtil.getJsPrefix('Validators') +
-      sendJsUtil.getJsObjectString(appLib.appModelHelpers.Validators) +
-      '};';
+    const body = `vutil={${sendJsUtil.getJsObjectString(
+      appLib.appModelHelpers.ValidatorUtils
+    )}};${sendJsUtil.getJsPrefix('Validators')}${sendJsUtil.getJsObjectString(
+      appLib.appModelHelpers.Validators
+    )}};`;
     sendJsUtil.sendJavascript(res, body, next);
   };
 
@@ -650,7 +635,7 @@ module.exports = function (appLib) {
    * Returns string representing all code for the application
    */
   m.getMinifiedAppModelCode = (req, res, next) => {
-    let miniJs = uglify.minify(sendJsUtil.getAppModelCodeStr());
+    const miniJs = uglify.minify(sendJsUtil.getAppModelCodeStr());
     if (miniJs.error) {
       m.error(req, res, next, `There is a problem with helpers code: ${miniJs.error}`);
     } else {
@@ -658,73 +643,75 @@ module.exports = function (appLib) {
     }
   };
 
+  /*
   m.handlePublicFileNotFound = (req, res, err, next) => {
     if (_.get(err, 'body.code') === 'ResourceNotFound' && _.get(req, 'url').match(/^\/public\//i)) {
-      let serveFileFromStats = (file, err, stats, isGzip, req, res, next) => {
-        if (typeof req.connectionState === 'function' &&
-          (req.connectionState() === 'close' ||
-            req.connectionState() === 'aborted')) {
-          next(false);
+      const serveFileFromStats = (file, sErr, stats, isGzip, sReq, sRes, sNext) => {
+        if (
+          typeof sReq.connectionState === 'function' &&
+          (sReq.connectionState() === 'close' || sReq.connectionState() === 'aborted')
+        ) {
+          sNext(false);
           return;
         }
 
-        if (err) {
-          next(new restifyErrors.ResourceNotFoundError(err, '%s', req.path()));
+        if (sErr) {
+          sNext(new restifyErrors.ResourceNotFoundError(sErr, '%s', sReq.path()));
           return;
-        } else if (!stats.isFile()) {
-          next(new restifyErrors.ResourceNotFoundError('%s does not exist', req.path()));
+        }
+        if (!stats.isFile()) {
+          sNext(new restifyErrors.ResourceNotFoundError('%s does not exist', sReq.path()));
           return;
         }
 
-        if (res.handledGzip && isGzip) {
-          res.handledGzip();
+        if (sRes.handledGzip && isGzip) {
+          sRes.handledGzip();
         }
 
-        let fstream = fs.createReadStream(file + (isGzip ? '.gz' : ''));
-        let opts = {}; // match these to lib/app.js:454
-        let maxAge = opts.maxAge === undefined ? 3600 : opts.maxAge;
-        fstream.once('open', function (fd) {
-          res.cache({maxAge: maxAge});
-          res.set('Content-Length', stats.size);
-          res.set('Content-Type', mime.getType(file));
-          res.set('Last-Modified', stats.mtime);
+        const fstream = fs.createReadStream(file + (isGzip ? '.gz' : ''));
+        const opts = {}; // match these to lib/app.js:454
+        const maxAge = opts.maxAge === undefined ? 3600 : opts.maxAge;
+        fstream.once('open', () => {
+          sRes.cache({ maxAge });
+          sRes.set('Content-Length', stats.size);
+          sRes.set('Content-Type', mime.getType(file));
+          sRes.set('Last-Modified', stats.mtime);
 
           if (opts.charSet) {
-            var type = res.getHeader('Content-Type') +
-              '; charset=' + opts.charSet;
-            res.setHeader('Content-Type', type);
+            const type = `${sRes.getHeader('Content-Type')}; charset=${opts.charSet}`;
+            sRes.setHeader('Content-Type', type);
           }
 
           if (opts.etag) {
-            res.set('ETag', opts.etag(stats, opts));
+            sRes.set('ETag', opts.etag(stats, opts));
           }
-          res.writeHead(200);
-          fstream.pipe(res);
-          fstream.once('close', function () {
-            next(false);
+          sRes.writeHead(200);
+          fstream.pipe(sRes);
+          fstream.once('close', () => {
+            sNext(false);
           });
         });
 
-        res.once('close', function () {
+        sRes.once('close', () => {
           fstream.close();
         });
-
       };
-      let file = `./model/${req.path()}`;
-      fs.stat(file, function (err, stats) {
-        if (!err && stats.isDirectory() && opts.default) {
-          var filePath = path.join(file, opts.default);
-          fs.stat(filePath, function (dirErr, dirStats) {
+      const file = `./model/${req.path()}`;
+      fs.stat(file, (statErr, stats) => {
+        if (!statErr && stats.isDirectory() && opts.default) {
+          const filePath = path.join(file, opts.default);
+          fs.stat(filePath, (dirErr, dirStats) => {
             serveFileFromStats(filePath, dirErr, dirStats, false, req, res, next);
           });
         } else {
-          serveFileFromStats(file, err, stats, false, req, res, next);
+          serveFileFromStats(file, statErr, stats, false, req, res, next);
         }
       });
     } else {
       next(new restifyErrors.ResourceNotFoundError(err));
     }
   };
+*/
 
   return m;
 };

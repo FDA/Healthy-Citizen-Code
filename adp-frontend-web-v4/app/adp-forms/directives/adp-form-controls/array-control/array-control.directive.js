@@ -5,13 +5,18 @@
     .module('app.adpForms')
     .directive('arrayControl', arrayControl);
 
-  function arrayControl(AdpFieldsService, AdpFormService) {
+  function arrayControl(
+    AdpValidationService,
+    AdpFieldsService,
+    AdpFormService
+  ) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/array-control/array-control.html',
       require: '^^form',
@@ -21,6 +26,15 @@
         scope.form = formCtrl;
         scope.rootForm = AdpFormService.getRootForm(scope.form);
         scope.errorCount = [];
+
+        scope.childValidationParams = {
+          field: scope.adpField,
+          fields: scope.adpFields,
+          formData: scope.adpFormData,
+          modelSchema: scope.adpFields,
+          schema: scope.validationParams.schema.fields[scope.field.keyName],
+          $action: scope.validationParams.$action
+        };
 
         scope.getData = getData;
         scope.setData = setData;
@@ -83,7 +97,9 @@
         function getFields(index) {
           var fields = _.clone(scope.fields);
 
-          if (scope.field.required) {
+          // if Array field itself has required attr True,
+          // than all field inside are required too
+          if (AdpValidationService.isRequired(scope.validationParams)) {
             _.each(scope.fields, function (field) {
               field.required = index === 0;
             });

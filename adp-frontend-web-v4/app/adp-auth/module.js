@@ -18,7 +18,10 @@ angular
       })
 
       .state('auth.login', {
-        url: '/login',
+        url: '/login?returnState',
+        params: {
+          returnState: null,
+        },
         views: {
           content: {
             templateUrl: 'app/adp-auth/views/login.html',

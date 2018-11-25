@@ -5,7 +5,7 @@
   "main": "dist/hc-widget.js",
   "scripts": {
     "build": "node ./node_modules/.bin/webpack-cli --config webpack.prod.config.js",
-    "dev": "node node_modules/.bin/webpack-dev-server --config webpack.dev.config.js",
+    "serve-prod": "node node_modules/.bin/webpack-dev-server --config webpack.prod.config.js",
     "start": "node node_modules/.bin/webpack-dev-server --config webpack.dev.config.js"
   },
   "repository": {
@@ -17,22 +17,27 @@
   "dependencies": {
     "babel-core": "^6.26.0",
     "babel-loader": "^7.1.4",
+    "babel-plugin-transform-object-rest-spread": "^6.26.0",
     "babel-polyfill": "^6.26.0",
     "babel-preset-es2015-ie": "^6.7.0",
     "classnames": "^2.2.6",
     "css-loader": "^0.28.9",
+    "graphql-request": "^1.8.2",
     "handlebars": "^4.0.11",
     "handlebars-loader": "^1.6.0",
+    "highcharts": "^6.1.1",
+    "lodash.debounce": "^4.0.8",
     "lodash.get": "^4.4.2",
     "lodash.isarray": "^4.0.0",
     "lodash.map": "^4.6.0",
     "lodash.reduce": "^4.6.0",
+    "lodash.unionby": "^4.8.0",
     "promise-polyfill": "^7.1.2",
     "sanitize-html-x": "^1.7.3",
     "to-string-loader": "^1.1.5",
     "uglifyjs-webpack-plugin": "^1.2.4",
     "webpack": "^4.4.1",
-    "webpack-cli": "^2.0.13",
+    "webpack-cli": "^3.1.2",
     "whatwg-fetch": "^2.0.3"
   },
   "devDependencies": {

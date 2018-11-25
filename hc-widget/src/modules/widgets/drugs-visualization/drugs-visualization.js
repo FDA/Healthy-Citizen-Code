@@ -26,7 +26,9 @@ export default class drugsVisualization {
   }
 
   fetchData() {
-    return getDrugsRelations(this.options.fhirDataUrl, this.options.fhirId);
+    // TODO: temp fix
+    this.options.fhirDataUrl = this.options.stu3Url;
+    return getDrugsRelations(this.options);
   }
 
   createWidget(data) {

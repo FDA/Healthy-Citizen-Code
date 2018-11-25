@@ -5,13 +5,14 @@
     .module('app.adpForms')
     .directive('dateControl', dateControl);
 
-  function dateControl() {
+  function dateControl(AdpValidationService) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/date-control/date-control.html',
       require: '^^form',
@@ -80,6 +81,8 @@
             return validator.validator === 'notInFuture';
           });
         }
+
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
       }
     }
   }

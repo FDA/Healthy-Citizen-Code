@@ -63,8 +63,9 @@
      * @return {Object[]} menuItems
      */
     function createMenuItems(menuInterface, parentMenuItem) {
+      menuInterface = menuInterface || {};
       if (_.isUndefined(menuInterface.fields)) {
-        throw new Error('Property fields in INTERFACE.main_menu not found.');
+       throw new Error('Property fields in INTERFACE.main_menu not found.');
       }
 
       return _.map(menuInterface.fields, function (item, fieldName) {
@@ -148,7 +149,9 @@
      * @param  {{url: String, stateName: String}} menuInterface
      */
     function getDefaultStateParams(menuInterface) {
+      menuInterface = menuInterface || {};
       var state, defaultMenuItem, URL_PARAMS_REGEX = /\/:([^\/\n\r]+)/g;
+      var url;
 
       if ('default' in menuInterface) {
         state = {
@@ -158,10 +161,11 @@
         _logDebug('======= Default page found: \n', state);
       } else {
         defaultMenuItem = _findDefaultInMenu(menuInterface);
+        url = _.get(defaultMenuItem, 'link', '/');
 
         state = {
-          url: defaultMenuItem.link,
-          stateName: _linkToState(defaultMenuItem.link)
+          url: url,
+          stateName: _linkToState(url)
         };
         _logDebug('======= Default page not found. Adding as default page :\n', state);
       }

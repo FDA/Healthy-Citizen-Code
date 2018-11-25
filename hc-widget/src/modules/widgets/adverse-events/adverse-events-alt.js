@@ -28,12 +28,12 @@ export default class AdverseEvents {
   }
 
   fetchData() {
-    const patientData = {
+    this.options.patientData = {
       age: this.options.age,
       gender: this.options.gender
     };
 
-    return hcWidgetAPI.getAdverseEventsAlt(this.options.fhirDataUrl, this.options.fhirId, patientData)
+    return hcWidgetAPI.getAdverseEventsAlt(this.options)
       .then(data => {
         this.$loader.remove();
 

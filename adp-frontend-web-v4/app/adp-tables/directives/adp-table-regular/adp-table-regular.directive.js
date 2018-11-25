@@ -33,6 +33,7 @@
             _createTable();
             _createButtons();
             _bindEvents();
+            _drawTable();
           }, 0);
         })();
 
@@ -99,7 +100,7 @@
             adjastColsAfterFiltration();
           });
 
-          scope.$watch('data', _dataWatcherHandler);
+          scope.$watch('data', _drawTable);
           scope.$on('$destroy', _onDestroy);
 
           if ('filteredData' in scope) {
@@ -152,15 +153,8 @@
           }
         }
 
-
-        function _dataWatcherHandler(newVal, oldVal) {
-          var dataDiff = !_.xor(newVal, oldVal);
-          var filteredData;
-
-          if (dataDiff.length < 0) {
-            return;
-          }
-          filteredData = _filterData(scope.data, scope.heads);
+        function _drawTable() {
+          var filteredData = _filterData(scope.data, scope.heads);
 
           scope.table
             .clear()
@@ -229,12 +223,9 @@
               column.render = function (data, type, row, meta) {
                 var itemIndex = meta.row;
                 var dataRow = scope.data[itemIndex];
-		if(dataRow) {
-                  var dataItem = dataRow[head.name];
-                  return rendererFn(dataItem, type, dataRow, meta);
-		} else {
-		  return '';
-		}
+                var dataItem = dataRow[head.name];
+
+                return rendererFn(dataItem, type, dataRow, meta);
               };
             }
 

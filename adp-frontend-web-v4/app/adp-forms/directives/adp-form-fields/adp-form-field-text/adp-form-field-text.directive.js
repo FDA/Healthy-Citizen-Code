@@ -11,7 +11,8 @@
       scope: {
         adpField: '=',
         adpFormData: '=',
-        adpFieldUiProps: '='
+        adpFieldUiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-fields/adp-form-field-text/adp-form-field-text.html'
     }

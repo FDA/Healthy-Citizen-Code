@@ -24,7 +24,11 @@
       var canHaveAccess = service[strategy]();
 
       if (!canHaveAccess) {
-        $state.go(redirects[strategy]);
+        if (redirects[strategy] === 'auth.login') {
+          $state.go(redirects[strategy], { returnState: $state.current.name });
+        } else {
+          $state.go(redirects[strategy]);
+        }
       }
     };
 

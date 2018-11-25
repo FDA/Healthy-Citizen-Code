@@ -1,0 +1,27 @@
+<table>
+  <thead>
+    <tr>
+      <th>Medication name</th>
+      <th>NDC</th>
+      <th>RxCUI</th>
+      <th></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    {{#each medications}}
+      <tr>
+        <td>{{brandName}}</td>
+        <td>{{ndc11}}</td>
+        <td>{{rxcui}}</td>
+        <td>
+          <button
+            data-index="{{@index}}"
+            class="btn btn-danger js-remove-medication">
+            Remove
+          </button>
+        </td>
+      </tr>
+    {{/each}}
+  </tbody>
+</table>

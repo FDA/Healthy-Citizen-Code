@@ -16,9 +16,9 @@
     class="form-control"
     id="{{field.keyName}}"
     ng-model="adpFormData[field.keyName]"
-    adp-validate="field"
+    adp-validate="validationParams"
     adp-date-formatter="field.subtype"
-    ng-required="field.required"
+    ng-required="isRequired()"
     name="{{field.keyName}}"
     placeholder="Enter date" />
 
