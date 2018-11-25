@@ -26,22 +26,42 @@
       deleteNestedRecord: deleteNestedRecord
     };
 
-    function getData(link) {
-      var getUrl = getResourceUrl(link);
+    function getData(params) {
+      var endpoint = getResourceUrl(params.link);
 
-      return $http.get(getUrl);
+      return $http.get(endpoint)
+        .then(function (response) {
+          return response.data.data || {};
+        })
+        .then(function (data) {
+          return appDb.schema.set(params.fieldName, data)
+            .then(function () {
+              return data;
+            });
+        })
+        .catch(function (err) {
+          console.warn('Data for fetch ' + params.fieldName + ' failed. Falling back to cache', err);
+          return appDb.schema.get(params.fieldName)
+        });
     }
 
-    function getSingleRecordData(link, id) {
-      var getUrl = getResourceUrl(link);
-      if (id) getUrl += '/' + id;
+    function getSingleRecordData(params) {
+      var getUrl = getResourceUrl(params.link);
 
       return $http.get(getUrl)
         .then(function (response) {
           response.data.data = _.isArray(response.data.data) ? response.data.data[0] : response.data.data;
-          response.data.data = response.data.data || {};
-
-          return response;
+          return response.data.data || {};
+        })
+        .then(function (data) {
+          return appDb.schema.set(params.fieldName, data)
+            .then(function () {
+              return data;
+            });
+        })
+        .catch(function (err) {
+          console.warn('Data for fetch ' + params.fieldName + ' failed. Falling back to cache', err);
+          return appDb.schema.get(params.fieldName)
         });
     }
 
@@ -68,13 +88,16 @@
       //   getUrl.pop();
       // }
 
-    return APP_CONFIG.apiUrl + link;
+      return APP_CONFIG.apiUrl + link;
     }
 
     function getDashboardData (dashboardName) {
       var getUrl = getDashboardUrl(dashboardName);
 
-      return $http.get(getUrl);
+      return $http.get(getUrl)
+        .then(function (res) {
+          return res.data.data;
+        });
     }
 
     function getDashboardUrl (dashboardName) {

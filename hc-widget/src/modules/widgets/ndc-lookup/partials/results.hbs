@@ -1,0 +1,11 @@
+<div class="ndc-lookup__results">
+  <p><strong>NDC:</strong> {{ndc11}}</p>
+  <p><strong>Brand Name:</strong> {{brandName}}</p>
+  <p><strong>Other Names:</strong></p>
+
+  <ul class="ndc-lookup__result-list">
+    {{#each genericNames}}
+      <li>{{this}}</li>
+    {{/each}}
+  </ul>
+</div>

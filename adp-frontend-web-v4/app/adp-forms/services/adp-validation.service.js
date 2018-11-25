@@ -146,20 +146,22 @@
       // },
     };
 
-    function addValidators(field, form) {
+    function addValidators(validationParams, form) {
+      var field = validationParams.field;
       var model = form[field.keyName];
 
       return angular.extend(
         model.$validators,
-        _getValidators(field, form)
+        _getValidators(validationParams, form)
       );
     }
 
-    function _getValidators(field, form) {
+    function _getValidators(validationParams, form) {
+      var field = validationParams.field;
       var validators = _.filter(field.validate, _filterNotFound);
       var result = {};
 
-      validators.map(_addValidator.bind(null, form, field, result));
+      validators.map(_addValidator.bind(null, form, validationParams, result));
 
       return result;
     }
@@ -173,7 +175,8 @@
       return isFound;
     }
 
-    function _addValidator(form, field, result, validator) {
+    function _addValidator(form, validationParams, result, validator) {
+      var field = validationParams.field;
       var validatorName = _getValidatorName(validator, field);
 
       result[validatorName] = function (viewValue, modelValue) {
@@ -182,7 +185,7 @@
           modelValue,
           validator['arguments'],
           form,
-          field
+          validationParams
         );
       }
     }
@@ -267,9 +270,25 @@
       }
     }
 
+    function isRequired(validationParams) {
+      var fieldName = validationParams.field.keyName;
+      var data = validationParams.formData[fieldName];
+      var row = validationParams.formData;
+      var modelSchema = validationParams.fields;
+      var $action = validationParams.$action;
+
+      var requiredFunc = new Function(
+        'data, row, modelSchema, $action',
+        'return ' + validationParams.field.required
+      ).bind(null, data, row, modelSchema, $action);
+
+      return requiredFunc;
+    }
+
     return {
       addValidators: addValidators,
-      updateMessages: updateMessages
+      updateMessages: updateMessages,
+      isRequired: isRequired
     };
   }
 })();

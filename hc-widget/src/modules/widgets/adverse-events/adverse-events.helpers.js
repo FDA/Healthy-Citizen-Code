@@ -40,3 +40,15 @@ export function formatEvents(medications) {
 
   return medications;
 }
+
+export function adverseEventsHeads() {
+  return [
+    "Date of Receipt",
+    "Gender",
+    "Age",
+    "Severity",
+    "Reactions",
+    "Safety Report ID",
+    "Medications Involved"
+  ]
+}

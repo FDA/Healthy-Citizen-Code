@@ -11,7 +11,8 @@
       scope: {
         adpField: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-fields/adp-form-field-date/adp-form-field-date.html',
       require: '^^form',

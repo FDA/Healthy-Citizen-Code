@@ -1,71 +1,32 @@
 {
   "models": {
-    "users": {
-      "type": "Schema",
-      "fullName": "Users",
-      "fields": {
-        "userRecordId": {
-          "type": "ObjectID",
-          "fullName": "User Record Id",
-          "required": "true",
-          "lookup": {
-            "table": "userRecords",
-            "foreignKey": "_id",
-            "label": "name"
-          },
-          "visible": "false",
-          "singleRecord": "true"
-        }
-      }
-    },
-    "userRecords": {
-      "type": "Schema",
-      "fullName": "User Records",
-      "singleRecord": "true",
-      "fields": {
-        "name": {
-          "type": "String",
-          "fullName": "Name",
-          "description": "Fake field required for lookup to work"
-        }
-      }
-    },
     "widgets": {
       "type": "Schema",
       "fullName": "Widgets",
       "actions": {
-        "fullName": "Actions",
         "fields": {
           "update": {
-            "fullName": "Update",
             "permissions": "accessAsUser"
           },
           "delete": {
-            "fullName": "Delete",
             "permissions": "accessAsUser"
           },
           "clone": {
-            "fullName": "Clone",
             "permissions": "accessAsUser"
           },
           "viewDetails": {
-            "fullName": "View Details",
             "permissions": "accessAsUser"
           },
           "view": {
-            "fullName": "View",
             "permissions": "accessAsUser"
           },
           "create": {
-            "fullName": "Create",
             "permissions": "accessAsUser"
           }
         }
       },
       "scopes": {
-        "fullName": "Scopes",
         "ownRecordScope": {
-          "fullName": "Own Record Scope",
           "permissions": "accessAsUser",
           "where": "{$eq: ['$creator', this.req.user._id]}"
         }
@@ -75,19 +36,25 @@
           "type": "String",
           "fullName": "Widget Id",
           "description": "Widget ID",
-          "required": "true"
+          "formRender": {
+            "formRenderer": "asIs"
+          },
+          "render": "asIs",
+          "synthesize": "shortId7",
+          "show": "$action !== 'create'",
+          "unique": true
         },
         "name": {
           "type": "String",
           "fullName": "Widget Name",
           "description": "Name given to the instance of the widget",
-          "required": "true"
+          "required": true
         },
         "type": {
           "type": "String",
           "fullName": "Widget Type",
           "description": "Select the type of widget to configure",
-          "required": "true",
+          "required": true,
           "list": {
             "values": {
               "drugInteraction": "drugInteraction",
@@ -96,7 +63,9 @@
               "recalls": "recalls",
               "drugsVisualization": "drugsVisualization",
               "ndcLookup": "ndcLookup",
-              "adverseEventsAlt": "adverseEventsAlt"
+              "adverseEventsAlt": "adverseEventsAlt",
+              "graphViewWidget": "graphViewWidget",
+              "preferences": "preferences"
             },
             "scopes": {
               "userScope": {
@@ -192,13 +161,92 @@
           "type": "String",
           "fullName": "Questionnaire Welcome Text",
           "description": "Text presented at the beginning of a  questionnaire",
-          "show": "row['type']=='questionnaire'"
+          "show": "row['type']=='questionnaire'",
+          "showInDatatable": false
         },
         "thankYouText": {
           "type": "String",
           "fullName": "Questionnaire Completion Text",
           "description": "Text presented upon completion of a questionnaire",
-          "show": "row['type']=='questionnaire'"
+          "show": "row['type']=='questionnaire'",
+          "showInDatatable": false
+        },
+        "attractionForce": {
+          "type": "Number",
+          "fullName": "Attraction Force",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": false
+        },
+        "repulsionForce": {
+          "type": "Number",
+          "fullName": "Repulsion Force",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": false
+        },
+        "showDiagnosis": {
+          "type": "Boolean",
+          "fullName": "Show Diagnosis",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": false
+        },
+        "showIngredients": {
+          "type": "Boolean",
+          "fullName": "Show Ingredients",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": false
+        },
+        "showPharmaClass": {
+          "type": "Boolean",
+          "fullName": "Show Pharma Class",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": false
+        },
+        "showPhysiologicEffect": {
+          "type": "Boolean",
+          "fullName": "Show Physiologic Effect",
+          "show": "row['type']=='drugsVisualization'",
+          "showInDatatable": false
+        },
+        "dataSource": {
+          "type": "String",
+          "fullName": "Data source",
+          "description": "Patient data source selector",
+          "list": {
+            "values": {
+              "userPreferences": "User Preferences",
+              "stu3": "STU3",
+              "dstu2": "DSTU2"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "stu3Url": {
+          "type": "String",
+          "fullName": "STU3 Fhir url",
+          "description": "STU3 Fhir url",
+          "required": true,
+          "show": "row['dataSource']=='stu3'"
+        },
+        "dstu2Url": {
+          "type": "String",
+          "fullName": "DSTU2 Fhir url",
+          "description": "DSTU2 Fhir url",
+          "required": true,
+          "show": "row['dataSource']=='dstu2'"
+        },
+        "fhirDataImport": {
+          "type": "Boolean",
+          "fullName": "FHIR data import",
+          "description": "Select to allow pulling data from a FHIR server",
+          "show": "row['type']=='preferences'"
         }
       }
     }
@@ -252,7 +300,7 @@
         "widgets": {
           "type": "MenuItem",
           "fullName": "Widgets",
-          "link": "/userRecords/:userRecordId/widgets",
+          "link": "/widgets",
           "icon": {
             "type": "font-awesome",
             "link": "fire"

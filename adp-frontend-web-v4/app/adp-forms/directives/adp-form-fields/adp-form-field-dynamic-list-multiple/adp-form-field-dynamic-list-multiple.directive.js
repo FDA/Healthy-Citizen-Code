@@ -11,7 +11,8 @@
       scope: {
         adpField: '=',
         adpFormData: '=',
-        adpFieldUiProps: '='
+        adpFieldUiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-fields/adp-form-field-dynamic-list-multiple/adp-form-field-dynamic-list-multiple.html'
     }

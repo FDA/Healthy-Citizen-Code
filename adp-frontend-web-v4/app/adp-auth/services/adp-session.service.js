@@ -12,8 +12,7 @@
     localStorageService,
     $state,
     AdpNotificationService,
-    $stateRegistry,
-    AppGenerator
+    AdpAppModel
   ) {
     return {
       login: login,
@@ -27,21 +26,36 @@
     };
 
     function login(credentials) {
-      return $http.post(APP_CONFIG.apiUrl + '/login', credentials)
-        .then(function (res) {
-          var dataRef = res.data.data;
+      var fromNetwork = function () {
+        return $http.post(APP_CONFIG.apiUrl + '/login', credentials)
+          .then(function (res) {
+            var dataRef = res.data.data;
 
-          return getAppModel(dataRef.token)
+            return appDb.login.set(dataRef)
+              .then(function () {
+                return dataRef;
+              });
+          })
+          // .catch(function (err) {
+          //   console.warn('APP MODEL request failed. Falling back to cached version.', err);
+          //   return appDb.login.get();
+          // });
+      };
+
+      return fromNetwork()
+        .then(function (data) {
+          return AdpAppModel.getAppModel(data)
             .then(function () {
-              return onLoginSuccess(res);
-            })
+              return onLoginSuccess(data);
+            });
         });
     }
 
     function logout() {
       localStorageService.remove('user');
       localStorageService.remove('token');
-      $state.go('auth.login');
+
+      $state.go('auth.login', { returnState: $state.current.name });
     }
 
     function handleUnauthorized(message) {
@@ -50,10 +64,16 @@
       AdpNotificationService.notifyError(messageText);
     }
 
-    function onLoginSuccess(res) {
-      var dataRef = res.data.data;
-      setUser(dataRef.user);
-      setToken(dataRef.token);
+    function onLoginSuccess(data) {
+      setUser(data.user);
+      setToken(data.token);
+      return afterLoginRedirect();
+    }
+
+    function afterLoginRedirect() {
+      var returnState = $state.params.returnState || window.adpAppStore.defaultState().stateName;
+
+      return $state.go(returnState);
     }
 
     function setUser (user) {
@@ -92,41 +112,6 @@
 
     function getAuthHeaders () {
       return 'JWT ' + getToken();
-    }
-
-    function getAppModel(token) {
-      var req = {
-        method: 'GET',
-        url: [APP_CONFIG.apiUrl, 'app-model'].join('/')
-      };
-
-      if (token) {
-        req.headers = {
-          'Authorization': 'JWT ' + token
-        };
-      }
-
-      return $http(req)
-        .then(_regenerateApp)
-        .catch(function (err) { console.log(err) });
-    }
-
-    function _regenerateApp(res) {
-      var dataRef = res.data.data;
-
-      _.each($stateRegistry.states, function (state) {
-        if (_.startsWith(state.name, 'app.')) {
-          $stateRegistry.deregister(state.name);
-        }
-      });
-
-      window.adpAppStore.appModel(dataRef.models);
-      window.adpAppStore.appInterface(dataRef.interface);
-      window.adpAppStore.mediaTypes(dataRef.mediaTypes);
-
-      AppGenerator.generateApp();
-
-      return res;
     }
   }
 })();

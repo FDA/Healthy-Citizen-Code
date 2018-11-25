@@ -31,7 +31,8 @@ export default class Table {
     heads, data, groupTitle, sortBy, order,
     hasGrouping = false,
     accordion = false,
-    hideCols = 0
+    hideCols = 0,
+    print = false
   }) {
     this.data = data;
     this.heads = heads;
@@ -49,7 +50,8 @@ export default class Table {
       tableClass: classNames('table', 'table-sortable', { 'table-accordion': accordion}),
       accordion,
       hasGrouping,
-      groupTitle
+      groupTitle,
+      print
     };
 
     // define dataTypes
@@ -59,12 +61,6 @@ export default class Table {
     this.$tableEl = $(tpl(this.tableOpts));
     this.tableEl = this.$tableEl.get(0);
     this.setHeadClass();
-
-    // TODO refactor to as init logic
-    if (hasGrouping) {
-      this.tableEl.querySelector('.group-body').classList.add('is-opened');
-      this.tableEl.querySelector('.accordion-control.group').classList.add('is-active');
-    }
 
     this.$tableEl.on('click', (e) => {
       // TODO refactor to map
@@ -80,6 +76,11 @@ export default class Table {
 
       if ($(e.target).matches('.group')) {
         this.toggleGroup.call(this, e);
+        return;
+      }
+
+      if ($(e.target).matches('.js-print')) {
+        this.print.call(this, e);
         return;
       }
     });
@@ -221,5 +222,10 @@ export default class Table {
   // TODO: move top options
   appendTo($el) {
     $el.append(this.$tableEl);
+  }
+
+  print() {
+    const iframe = this.parent.iframe;
+    return Iframe.print(iframe);
   }
 }

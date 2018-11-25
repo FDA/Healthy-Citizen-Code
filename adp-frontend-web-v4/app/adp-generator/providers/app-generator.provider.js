@@ -22,18 +22,11 @@
     function generateApp() {
       var APP_MODEL = window.adpAppStore.appModel();
       var INTERFACE = window.adpAppStore.appInterface();
-      var MENU_ITEMS, DEFAULT_STATE, DASHBOARD;
+      var MENU_ITEMS, DEFAULT_STATE;
 
       try {
         MENU_ITEMS = AdpMenuGeneratorProvider.createMenuItems(INTERFACE.mainMenu);
         window.adpAppStore.menuItems(MENU_ITEMS);
-      } catch(e) {
-        console.log('Menu item creation failed due to error: ', e)
-      }
-
-      try {
-        DASHBOARD = AdpStateGeneratorProvider.findDashboard(MENU_ITEMS);
-        DASHBOARD && $provide.constant('DASHBOARD', DASHBOARD);
       } catch(e) {
         console.log('Menu item creation failed due to error: ', e)
       }

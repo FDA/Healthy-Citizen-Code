@@ -21,9 +21,9 @@
     vm.loading = true;
 
     function getPageData() {
-      return AdpDataService.getSingleRecordData(vm.pageParams.link)
-        .then(function (response) {
-          vm.pageData = response.data.data;
+      return AdpDataService.getSingleRecordData(vm.pageParams, vm.schema)
+        .then(function (data) {
+          vm.pageData = data;
           vm.isNewRecord = _.isEmpty(vm.pageData);
           vm.isEmpty = _.isEmpty(vm.pageData);
 

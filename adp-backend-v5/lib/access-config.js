@@ -1,67 +1,59 @@
-const {MONGO_CONST} = require('./backend-util');
+const { MONGO_CONST } = require('./backend-util');
 
 const DEFAULT_AUTH_SETTINGS = {
-  "requireAuthentication": true,
-  "enableAuthentication": true,
-  "enableRegistration": true,
-  "enablePermissions": false,
-  "enableUserPasswordReset": true,
-  "requireMfa": false,
-  "enableMfa": false,
-  "mfaType": false
+  requireAuthentication: true,
+  enableAuthentication: true,
+  enableRegistration: true,
+  enablePermissions: false,
+  enableUserPasswordReset: true,
+  requireMfa: false,
+  enableMfa: false,
+  mfaType: false,
 };
 
-// default system roles that not depends on app model roles
+// default system roles that do not depends on app model roles
 const ROLES = {
   SuperAdmin: 'SuperAdmin',
   User: 'User',
   Guest: 'Guest',
 };
 
-// default system permissions that not depends on app model permissions
+// default system permissions not depending on app model permissions
 const PERMISSIONS = {
+  accessAsAnyone: 'accessAsAnyone',
   accessAsGuest: 'accessAsGuest',
   accessAsUser: 'accessAsUser',
   accessAsSuperAdmin: 'accessAsSuperAdmin',
   createUserAccounts: 'createUserAccounts',
+  accessFromDesktop: 'accessFromDesktop',
+  accessFromTv: 'accessFromTv',
+  accessFromTablet: 'accessFromTablet',
+  accessFromPhone: 'accessFromPhone',
+  accessFromBot: 'accessFromBot',
+  accessFromCar: 'accessFromCar',
 };
 
 const ROLES_TO_PERMISSIONS = {
   [ROLES.User]: [PERMISSIONS.accessAsUser],
-  [ROLES.Guest]: [PERMISSIONS.accessAsGuest]
+  [ROLES.Guest]: [PERMISSIONS.accessAsGuest],
 };
 
-const DEFAULT_ACTIONS = [
-  'create',
-  'clone',
-  'update',
-  'view',
-  'viewDetails',
-  'delete',
-];
+const DEFAULT_ACTIONS = ['create', 'clone', 'update', 'view', 'viewDetails', 'delete'];
 
-const getAdminLookupScopeForViewAction = () => {
-  return {
-    superAdminScope: {
-      permissions: {
-        view: PERMISSIONS.accessAsSuperAdmin
-      },
-      where: JSON.stringify(MONGO_CONST.EXPR.TRUE)
-    }
-  };
-};
+const getAdminLookupScopeForViewAction = () => ({
+  superAdminScope: {
+    permissions: { view: PERMISSIONS.accessAsSuperAdmin },
+    where: JSON.stringify(MONGO_CONST.EXPR.TRUE),
+  },
+});
 
-const getAdminListScopeForViewAction = () => {
-  return {
-    superAdminScope: {
-      permissions: {
-        view: PERMISSIONS.accessAsSuperAdmin
-      },
-      where: 'return true',
-      'return': 'return $list'
-    }
-  };
-};
+const getAdminListScopeForViewAction = () => ({
+  superAdminScope: {
+    permissions: { view: PERMISSIONS.accessAsSuperAdmin },
+    where: 'return true',
+    return: 'return $list',
+  },
+});
 
 module.exports = {
   DEFAULT_AUTH_SETTINGS,

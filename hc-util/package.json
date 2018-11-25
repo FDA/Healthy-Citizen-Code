@@ -12,8 +12,12 @@
   "author": "Andrey Mikhalchuk <amikhalchuk@conceptant.com>",
   "license": "UNLICENSED",
   "dependencies": {
+    "bluebird": "^3.5.1",
     "dotenv": "^5.0.1",
+    "js-yaml": "^3.12.0",
     "lodash": "^4.17.10",
+    "mongodb": "^2.2.35",
+    "relaxed-json": "^1.0.1",
     "request": "^2.87.0",
     "request-promise": "^4.2.2"
   }

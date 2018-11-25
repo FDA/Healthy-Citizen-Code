@@ -10,7 +10,8 @@
       restrict: 'E',
       scope: {
         adpField: '=',
-        adpFormData: '='
+        adpFormData: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-fields/adp-form-field-parent-select/adp-form-field-parent-select.html',
       link: function (scope) {

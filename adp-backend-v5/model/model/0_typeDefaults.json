@@ -5,9 +5,7 @@
       "String": {
         "width": 150,
         "searchable": true,
-        "transform": [
-          "trim"
-        ]
+        "transform": ["trim"]
       },
       "Date": {
         "width": 85
@@ -28,51 +26,56 @@
             "fullName": "creator",
             "visible": false,
             "synthesize": "creator",
-            "description": "Record Creator"
+            "description": "Record Creator",
+            "permissions": "accessAsSuperAdmin"
           },
           "createdAt": {
             "type": "Date",
             "fullName": "createdAt",
             "visible": false,
             "synthesize": "createdAt",
-            "description": "Record Created At"
+            "description": "Record Created At",
+            "permissions": "accessAsSuperAdmin"
           },
           "updatedAt": {
             "type": "Date",
             "fullName": "updatedAt",
             "visible": false,
             "synthesize": "updatedAt",
-            "description": "Record Updated At"
+            "description": "Record Updated At",
+            "permissions": "accessAsSuperAdmin"
           },
           "deletedAt": {
             "type": "Date",
             "fullName": "deletedAt",
             "visible": false,
-            "description": "Record Deleted At"
+            "description": "Record Deleted At",
+            "permissions": "accessAsSuperAdmin"
           },
           "_temporary": {
             "type": "Boolean",
             "fullName": "_temporary",
-            "visible": "false",
-            "description": "Temporary"
-          },
+            "visible": false,
+            "description": "Temporary",
+            "permissions": "accessAsSuperAdmin"
+          }
         },
         "limitReturnedRecords": 1000,
-        scopes: {
-          superAdminScope: {
-            permissions: "accessAsSuperAdmin",
-            where: "{$eq: [true, true]}"
+        "scopes": {
+          "superAdminScope": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq: [true, true]}"
           }
         },
         "actions": {
-          width: 100,
-          responsivePriority: 50,
-          fields: {
+          "width": 100,
+          "responsivePriority": 50,
+          "fields": {
             "update": {
-              description: "Update record",
-              backgroundColor: "#4CAF50",
-              borderColor: "#388E3C",
-              textColor: "white",
+              "description": "Update record",
+              "backgroundColor": "#4CAF50",
+              "borderColor": "#388E3C",
+              "textColor": "white",
               "icon": {
                 "link": "pencil"
               },
@@ -82,10 +85,10 @@
               }
             },
             "delete": {
-              description: "Delete record",
-              backgroundColor: "#F44336",
-              borderColor: "#f32c1e",
-              textColor: "white",
+              "description": "Delete record",
+              "backgroundColor": "#F44336",
+              "borderColor": "#f32c1e",
+              "textColor": "white",
               "icon": {
                 "link": "trash-o"
               },
@@ -95,10 +98,10 @@
               }
             },
             "clone": {
-              description: "Clone record",
-              backgroundColor: "#4CAF50",
-              borderColor: "#388E3C",
-              textColor: "white",
+              "description": "Clone record",
+              "backgroundColor": "#4CAF50",
+              "borderColor": "#388E3C",
+              "textColor": "white",
               "icon": {
                 "link": "clone"
               },
@@ -108,103 +111,10 @@
               }
             },
             "viewDetails": {
-              description: "View record details",
-              backgroundColor: "#2196F3",
-              borderColor: "#0c7cd5",
-              textColor: "white",
-              "icon": {
-                "link": "eye"
-              },
-              "action": {
-                "type": "action",
-                "link": "viewDetails"
-              }
-            },
-            "view": {
-              "showInTable": false
-            },
-            "create": {
-              "showInTable": false
-            }
-          }
-        }
-      },
-      "Subschema": {
-        "fields": {
-          "creator": {
-            "type": "ObjectID",
-            "fullName": "creator",
-            "visible": "false",
-            "synthesize": "creator"
-          },
-          "createdAt": {
-            "type": "Date",
-            "fullName": "createdAt",
-            "visible": "false",
-            "synthesize": "createdAt"
-          },
-          "updatedAt": {
-            "type": "Date",
-            "fullName": "updatedAt",
-            "visible": "false",
-            "synthesize": "updatedAt"
-          },
-          "deletedAt": {
-            "type": "Date",
-            "fullName": "deletedAt",
-            "visible": "false"
-          },
-          "_temporary": {
-            "type": "Boolean",
-            "fullName": "_temporary",
-            "visible": "false"
-          },
-        },
-        "limitReturnedRecords": 0,
-        "actions": {
-          width: 100,
-          responsivePriority: 50,
-          fields: {
-            "update": {
-              backgroundColor: "#4CAF50",
-              borderColor: "#388E3C",
-              textColor: "white",
-              "icon": {
-                "link": "pencil"
-              },
-              "action": {
-                "type": "action",
-                "link": "update"
-              }
-            },
-            "delete": {
-              backgroundColor: "#F44336",
-              borderColor: "#f32c1e",
-              textColor: "white",
-              "icon": {
-                "link": "trash-o"
-              },
-              "action": {
-                "type": "action",
-                "link": "delete"
-              }
-            },
-            "clone": {
-              backgroundColor: "#4CAF50",
-              borderColor: "#388E3C",
-              textColor: "white",
-              "icon": {
-                "link": "clone"
-              },
-              "action": {
-                "type": "action",
-                "link": "clone"
-              }
-            },
-            "viewDetails": {
-              backgroundColor: "#2196F3",
-              borderColor: "#0c7cd5",
-              textColor: "white",
+              "description": "View record details",
+              "backgroundColor": "#2196F3",
+              "borderColor": "#0c7cd5",
+              "textColor": "white",
               "icon": {
                 "link": "eye"
               },
@@ -239,7 +149,8 @@
               "default": "Password must contain at least one of each: digit 0-9, lowercase character, uppercase character and one special character: @#$%!&^*-_ and be at least 8 characters long"
             }
           }
-        ]
+        ],
+        "transform": [["rewritePasswordAndAddSalt", "cleanupPassword"]]
       },
       "Email": {
         "width": 150,
@@ -292,18 +203,13 @@
       },
       "ImperialHeight": {
         "width": 50,
-        "transform": [
-          [
-            "heightImperialToMetric",
-            "heightMetricToImperial"
-          ]
-        ],
+        "transform": [["heightImperialToMetric", "heightMetricToImperial"]],
         "validate": [
           {
             "validator": "imperialHeightRange",
             "arguments": {
-              "from": [0,1],
-              "to": [8,11]
+              "from": [0, 1],
+              "to": [8, 11]
             },
             "errorMessages": {
               "default": "This height doesn't look reasonable, should be more than 1\" less than 8'11\""
@@ -313,28 +219,13 @@
       },
       "ImperialWeight": {
         "width": 50,
-        "transform": [
-          "trim",
-          [
-            "weightImperialToMetric",
-            "weightMetricToImperial"
-          ]
-        ],
-        "validate": [
-          "min(1)",
-          "max(1000)"
-        ]
+        "transform": ["trim", ["weightImperialToMetric", "weightMetricToImperial"]],
+        "validate": ["min(1)", "max(1000)"]
       },
       "ImperialWeightWithOz": {
         "width": 50,
-        "transform": [
-          "trim",
-          [
-            "weightImperialWithOzToMetric",
-            "weightMetricToImperialWithOz"
-          ]
-        ]
-      },
+        "transform": ["trim", ["weightImperialWithOzToMetric", "weightMetricToImperialWithOz"]]
+      }
     }
   }
 }

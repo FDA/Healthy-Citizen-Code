@@ -6,22 +6,22 @@
     .directive('adpDashboard', adpDashboard);
 
   /** @ngInject */
-  function adpDashboard (
-    AdpDataService,
-    DASHBOARD
-  ) {
+  function adpDashboard (AdpDataService) {
     var INTERFACE = window.adpAppStore.appInterface();
+
     return {
       restrict: 'E',
       replace: true,
+      scope: {
+        dashboardName: '='
+      },
       templateUrl: 'app/adp-dashboard/directives/adp-dashboard/adp-dashboard.html',
       link: function (scope) {
-        var dashboardName =  DASHBOARD.link;
-        scope.dashboardItems = INTERFACE[dashboardName]['fields'];
+        scope.dashboardItems = INTERFACE[scope.dashboardName]['fields'];
 
-        AdpDataService.getDashboardData(dashboardName)
-          .then(function (response) {
-            scope.dashboardData = response.data.data;
+        AdpDataService.getDashboardData(scope.dashboardName)
+          .then(function (data) {
+            scope.dashboardData = data;
           });
       }
     };

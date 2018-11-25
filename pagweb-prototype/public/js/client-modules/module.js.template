@@ -57,11 +57,11 @@
         template: '<div></div>',
         scope: {
           fhirId: '@?',
+          udid: '@?',
           url: '@?',
           hcResearchUrl: '@?',
           fhirDataUrl: '@?',
-          widgetId: '@?',
-          patientData: '=?'
+          widgetId: '@?'
         },
         link: function (scope, element) {
           var params = {
@@ -69,7 +69,8 @@
             url: scope.url,
             hcResearchUrl: scope.hcResearchUrl,
             fhirDataUrl: scope.fhirDataUrl,
-            hcWidgetId: scope.widgetId
+            widgetId: scope.widgetId,
+            udid: scope.udid
           };
 
           if (scope.patientData) {
@@ -103,13 +104,8 @@
             .then(function (response) {
                 const data = response.data.data;
                 vm.fhirId = data.fhirId;
+                vm.udid = data.fhirId;
                 vm.fhirDataUrl = data.fhirServerUrl;
-
-                if (data.age || data.gender) {
-                  vm.patientData = {};
-                  vm.patientData.age = data.age;
-                  vm.patientData.gender = data.gender;
-                }
             });
 
         vm.url = '<!-- widgetUrl -->';

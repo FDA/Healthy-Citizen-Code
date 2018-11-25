@@ -5,13 +5,17 @@
     .module('app.adpForms')
     .directive('lookupControl', lookupControl);
 
-  function lookupControl(APP_CONFIG) {
+  function lookupControl(
+    AdpLookupHelpers,
+    AdpValidationService
+  ) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/lookup-control/lookup-control.html',
       require: '^^form',
@@ -20,6 +24,7 @@
         scope.subjectNames = _.keys(scope.field.lookup.table);
         scope.subjectId = scope.field.lookup.id;
 
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
         scope.isEmpty = function() {
           var data = scope.getData();
           return _.isUndefined(data) || _.isNull(data) || _.isEmpty(data);
@@ -44,7 +49,7 @@
         }
 
         scope.options = {
-          allowClear: true,
+          // allowClear: true,
           placeholder: '-',
           nextSearchTerm: function (selected) {
             if (selected && selected.label) {
@@ -66,19 +71,29 @@
             return state.label;
           },
           ajax: {
-            url: function getLookupEndpoint() {
-              var tableName, endpoint;
-              if (!scope.selectedSubject.selected) return;
+            transport: function (args) {
+              var params = _.clone(args);
+              _.assign(params, {
+                url: AdpLookupHelpers.endpoint(scope),
+                contentType: 'application/json'
+              });
 
-              tableName = scope.subjects[scope.selectedSubject.selected].table;
-              endpoint = APP_CONFIG.apiUrl + '/' +  ['lookups', scope.subjectId, tableName].join('/');
-
-              return endpoint;
+              return $.ajax(params);
             },
             dataType: 'json',
             quietMillis: 300,
+            params: function() {
+              return {
+                type: AdpLookupHelpers.hasCondition(scope) ? 'POST' : 'GET',
+                method: AdpLookupHelpers.hasCondition(scope) ? 'POST' : 'GET'
+              };
+            },
             data: function (term, page) {
-              return { q: term, page: page };
+              if (AdpLookupHelpers.hasCondition(scope)) {
+                return JSON.stringify(scope.adpFormData);
+              } else {
+                return { q: term, page: page };
+              }
             },
             results: function (response) {
               return { results: response.data, more: response.more };
@@ -88,14 +103,14 @@
           onChange: function(e) {
             var value;
 
+            // order is important: for some reason select2 sends e.added and e.removed on reselect of same value
+            // in this case we do nothing
             if (e.added) {
               value = e.added;
               value._id = value.id;
               value.table = scope.selectedSubject.selected;
               scope.setData(value);
-            }
-
-            if (e.removed) {
+            } else if (e.removed) {
               scope.setData(null);
             }
 

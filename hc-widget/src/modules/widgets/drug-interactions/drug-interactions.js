@@ -31,9 +31,9 @@ function createInteraction(data, formatFn, type) {
 function fortmatInteractions(data) {
   return data.map(item => {
     return {
-      'Description': createInteraction(item.description),
+      'Interaction Drugs': createInteraction(item.interactionDrugs),
       'Severity': getSeverity(item.severity),
-      'Interaction Drugs': createInteraction(item.interactionDrugs)
+      'Description': createInteraction(item.description)
     };
   });
 }
@@ -59,7 +59,7 @@ export default class DrugInteractions {
   }
 
   fetchData() {
-    return hcWidgetAPI.getDrugInteractions(this.options.fhirDataUrl, this.options.fhirId)
+    return hcWidgetAPI.getDrugInteractions(this.options)
       .then(data => {
         if (data.count) {
           this.buildTable(data)
@@ -74,7 +74,9 @@ export default class DrugInteractions {
     const heads = Object.keys(data[0]);
 
     const widgetBody = $(drugInteractionsTemplate());
-    const table = new Table({ heads, data, sortBy: 'Severity', order: 'desc' });
+    const table = new Table({ heads, data, sortBy: 'Severity', order: 'desc', print: true });
+    // TODO: replace with root for current widget
+    table.parent = this.parent;
 
     table.appendTo(widgetBody);
     this.parent.append(widgetBody);

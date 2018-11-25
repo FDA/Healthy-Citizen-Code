@@ -29,6 +29,13 @@ export default class Iframe {
     }
   }
 
+  static print(iframe) {
+    const contenWindow = iframe.contentWindow;
+    contenWindow.focus();
+    contenWindow.print();
+    return false;
+  }
+
   createIframe() {
     const iframeOptions = {
       style: {width: '100%'},

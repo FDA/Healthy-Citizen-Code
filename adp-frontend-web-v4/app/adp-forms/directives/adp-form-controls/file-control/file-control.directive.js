@@ -5,13 +5,14 @@
     .module('app.adpForms')
     .directive('fileControl', fileControl);
 
-  function fileControl() {
+  function fileControl(AdpValidationService) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/file-control/file-control.html',
       require: '^^form',
@@ -25,6 +26,8 @@
         if (_.isUndefined(scope.adpFormData[scope.field.keyName])) {
           scope.adpFormData[scope.field.keyName] = [];
         }
+
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
       }
     }
   }

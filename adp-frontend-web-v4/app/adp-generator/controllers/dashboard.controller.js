@@ -6,7 +6,8 @@
     .controller('DashboardController', DashboardController);
 
   /** @ngInject */
-  function DashboardController() {
+  function DashboardController(AdpSchemaService) {
     var vm = this;
+    vm.pageParams = AdpSchemaService.getPageParams();
   }
 })();

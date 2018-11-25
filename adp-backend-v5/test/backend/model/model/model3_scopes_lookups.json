@@ -6,7 +6,7 @@
       "description": "Used for testing lookups with scopes",
       "fields": {
         "model4Id": {
-          "type": "ObjectID",
+          "type": "LookupObjectID",
           "fullName": "model4Id",
           "lookup": {
             "table": {

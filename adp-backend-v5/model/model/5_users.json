@@ -14,7 +14,7 @@
           "type": "String",
           "unique": true,
           "required": true,
-          "visible": false,
+          "visible": true,
           "comment": "User login",
           "fullName": "Login",
           "description": "Unique use login. Could be email or anything else.",

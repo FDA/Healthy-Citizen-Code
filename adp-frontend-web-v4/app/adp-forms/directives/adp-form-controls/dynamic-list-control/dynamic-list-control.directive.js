@@ -7,14 +7,16 @@
 
   function dynamicListControl(
     AdpFieldsService,
-    AdpFieldFormatUtil
+    AdpFieldFormatUtil,
+    AdpValidationService
   ) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/dynamic-list-control/dynamic-list-control.html',
       require: '^^form',
@@ -64,6 +66,8 @@
         function setData(value) {
           return scope.adpFormData[scope.field.keyName] = value;
         }
+
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
       }
     }
   }

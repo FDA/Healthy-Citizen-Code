@@ -24,11 +24,11 @@
   <input type="{{uiProps.uiSubtypeType}}"
          name="{{field.keyName}}"
          id="{{field.keyName}}"
-         adp-validate="field"
+         adp-validate="validationParams"
          style="display: none;"
          escape-letters="field.type == 'Number'"
          ng-model="adpFormData[field.keyName]"
-         ng-required="field.required"
+         ng-required="isRequired()"
          class="form-control">
 
   <adp-messages

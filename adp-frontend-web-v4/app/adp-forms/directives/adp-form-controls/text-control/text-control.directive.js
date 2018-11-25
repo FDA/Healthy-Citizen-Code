@@ -5,13 +5,14 @@
     .module('app.adpForms')
     .directive('textControl', textControl);
 
-  function textControl() {
+  function textControl(AdpValidationService) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/text-control/text-control.html',
       require: '^^form',
@@ -19,6 +20,8 @@
         if (!getData()) {
           setData('')
         }
+
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
 
         function setData(value) {
           return scope.adpFormData[scope.field.keyName] = value;

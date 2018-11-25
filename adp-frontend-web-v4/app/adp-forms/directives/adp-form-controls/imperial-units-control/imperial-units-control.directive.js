@@ -20,6 +20,16 @@
 
         function init() {
           scope.units = AdpFieldsService.getUnits(scope.field.subtype);
+
+          if (scope.field.subtype === 'ImperialWeight' && scope.field.parameters) {
+            var imperialWeightUnit = _.find(scope.units, function(unit) {
+              return unit.label === 'lb';
+            });
+
+            imperialWeightUnit.range[0] = scope.field.parameters.minLb || imperialWeightUnit.range[0];
+            imperialWeightUnit.range[1] = scope.field.parameters.maxLb  + 1 || imperialWeightUnit.range[1];
+          }
+
           removeLimitValidator();
           initModelValue();
           createViewValue();

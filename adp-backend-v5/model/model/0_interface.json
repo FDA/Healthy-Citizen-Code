@@ -1,13 +1,13 @@
 {
-  interface: {
-    app: {
-      title: "ADP Prototype",
-      slogan: "Do it once, do it perfect, repeat",
-      name: "ADP",
-      description: "ADP Prototype",
-      keywords: "Conceptant, ADP, Platform",
-      client: "You",
-      product: "Accelerated Development Platform Demo",
+  "interface": {
+    "app": {
+      "title": "ADP Prototype",
+      "slogan": "Do it once, do it perfect, repeat",
+      "name": "ADP",
+      "description": "ADP Prototype",
+      "keywords": "Conceptant, ADP, Platform",
+      "client": "You",
+      "product": "Accelerated Development Platform Demo",
       "theme": "default", // do I need this?
       "logo": {
         "large": "/public/logo/139x217.png",
@@ -21,33 +21,45 @@
         "maskIcon": "/public/favicons/safari-pinned-tab.svg"
       },
       "permissions": {
-        "accessAsGuest": {"description": 'Default guest permission'},
-        "accessAsUser": {"description": 'Default user permission'},
-        "accessAsSuperAdmin": {"description": 'Default admin permission'},
-        "createUserAccounts": {"description": 'Default createUserAccounts permission'}
-      }
-//      "permissions": [ "accessAsGuest", "accessAsUser"]
-    },
-    layout: {
-      fixed: {
-        header: false,
-        navigation: true,
-        ribbon: false,
-        footer: false
+        "accessAsAnyone": {
+          "description": "Default permission for marking something as available to anyone"
+        },
+        "accessAsGuest": { "description": "Default guest permission" },
+        "accessAsUser": { "description": "Default user permission" },
+        "accessAsSuperAdmin": { "description": "Default admin permission" },
+        "createUserAccounts": { "description": "Default createUserAccounts permission" },
+        "accessFromDesktop": { "description": "accessFromDesktop" },
+        "accessFromTv": { "description": "accessFromTv" },
+        "accessFromTablet": { "description": "accessFromTablet" },
+        "accessFromPhone": { "description": "accessFromPhone" },
+        "accessFromBot": { "description": "accessFromBot" },
+        "accessFromCar": { "description": "accessFromCar" }
       },
-      fixedWidth: false,
-      rtlSupport: false,
-      menuPosition: "top",
-      colorblind: false,
-      background: "/public/img/pattern/paper.png",
-      showDemoControls: false,
-      fixedNavigation: true
+      "preStart": {
+        "normalizeObjectIdLookups": true
+      }
+      //      "permissions": [ "accessAsGuest", "accessAsUser"]
+    },
+    "layout": {
+      "fixed": {
+        "header": false,
+        "navigation": true,
+        "ribbon": false,
+        "footer": false
+      },
+      "fixedWidth": false,
+      "rtlSupport": false,
+      "menuPosition": "top",
+      "colorblind": false,
+      "background": "/public/img/pattern/paper.png",
+      "showDemoControls": false,
+      "fixedNavigation": true
     },
     "loginPage": {
       "intro": {
         "template": {
-          type: "file",
-          link: "login-intro-template.ejs"
+          "type": "file",
+          "link": "login-intro-template.ejs"
         }
       },
       "parameters": {
@@ -67,8 +79,9 @@
         "search": false,
         "logoutButton": true,
         "menuToggle": false,
-        userMenu: false,
-        loginInfo: true
+        "userMenu": false,
+        "loginInfo": true,
+        "breadcrumbs": true
       }
     },
     "footer": {
@@ -80,6 +93,6 @@
         "status": false
       }
     },
-    "skin": "smart-style-6",
+    "skin": "smart-style-6"
   }
 }

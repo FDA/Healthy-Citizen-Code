@@ -33,9 +33,9 @@
     vm.create = createRecord;
 
     function getPageData() {
-      return AdpDataService.getData(vm.pageParams.link)
-        .then(function (response) {
-          vm.pageData = response.data.data;
+      return AdpDataService.getData(vm.pageParams, vm.schema)
+        .then(function (data) {
+          vm.pageData = data;
           vm.loading = false;
         });
     }
@@ -53,6 +53,7 @@
       formParams.actionType = 'create';
 
       var options = {
+        schema: vm.schema,
         fields: vm.fields,
         formParams: formParams,
         link: vm.pageParams.link
@@ -68,6 +69,7 @@
       formParams.actionType = 'clone';
 
       var options = {
+        schema: vm.schema,
         fields: vm.fields,
         formParams: formParams,
         link: vm.pageParams.link
@@ -88,6 +90,7 @@
       formParams.actionType = 'update';
 
       var options = {
+        schema: vm.schema,
         fields: vm.fields,
         formParams: formParams,
         link: vm.pageParams.link,

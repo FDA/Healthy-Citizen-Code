@@ -1,4 +1,4 @@
-module.exports = function () {
-    const m = {};
-    return m;
+module.exports = function() {
+  const m = {};
+  return m;
 };

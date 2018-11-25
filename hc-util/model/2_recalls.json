@@ -1,0 +1,25 @@
+{
+  "models": {
+    "recalls": {
+      "type": "Schema",
+      "fullName": "Recalls",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "description": "OpenFDA drug enforcements",
+      "fields": {
+        "id": {
+          "type": "String",
+          "visible": true,
+          "fullName": "id",
+          "description": "Unique key to prevent duplicates."
+        },
+        "rawData": {
+          "type": "Mixed",
+          "visible": true,
+          "fullName": "Raw Data",
+          "description": "Contains the pulled data as-is for future reparsing."
+        }
+      }
+    }
+  }
+}

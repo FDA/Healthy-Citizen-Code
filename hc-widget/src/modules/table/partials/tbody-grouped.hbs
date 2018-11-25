@@ -1,14 +1,16 @@
 {{#each data}}
 
   <tbody class="group-head" data-index="{{@index}}">
-  <tr class="group">
+  <tr>
     <td class="group" colspan="{{@root.config.rowLength}}">
-      <button
-        data-index="{{@index}}"
-        class="accordion-control group">
-      </button>
-      {{this.display}} <br>
-      {{@root.config.groupTitle}} {{this.total}}
+      <div class="group-head-content group">
+        <button
+          data-index="{{@index}}"
+          class="accordion-control group">
+        </button>
+        {{this.display}} <br>
+        {{@root.config.groupTitle}} {{this.total}}
+      </div>
     </td>
   </tr>
   </tbody>

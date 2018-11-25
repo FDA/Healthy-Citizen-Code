@@ -1,7 +1,9 @@
+import _debounce from 'lodash.debounce';
 import Iframe from '../../iframe';
 import $ from '../../../lib/dom';
 import tpl from './ndc-lookup.hbs';
-import resultsTpl from './ndc-lookup-results.hbs';
+import resultsTpl from './partials/results.hbs';
+import suggestionsTpl from './partials/suggestions.hbs';
 import API from '../../../modules/api';
 import { HttpError } from '../../errors';
 
@@ -9,58 +11,115 @@ export default class NdcLookup {
   constructor(node, options) {
     this.options = options;
     this.options.events = {
-      onLoad: this.onIframeLoad.bind(this)
+      onLoad: this.init.bind(this)
     };
 
-    new Iframe(node, options);
+    this.loading = false;
+    this.resetPage();
+
+    if (!this.options.selection) {
+      new Iframe(node, options);
+    }
   }
 
-  onIframeLoad(iframe) {
-    this.parent = iframe;
+  resetPage() {
+    this.page = 1;
+  }
+
+  init($parent) {
+    this.parent = $parent;
+
     this.$form = $(tpl());
     this.parent.append(this.$form);
 
     this.form = this.$form.get(0);
     this.input = this.form.querySelector('input');
-    this.$results = $(this.form.querySelector('.ndc-lookup-results'));
+    this.$results = $(this.form.querySelector('.js-results'));
+    this.suggestions = this.form.querySelector('.js-suggestions');
+    this.suggestionsList = this.suggestions.querySelector('.ndc-lookup__suggestions-list');
+    this.closeBtn = this.form.querySelector('.js-close');
 
-    this.$form.on('submit', this.onSubmit.bind(this));
+    this.form.addEventListener('submit', e => e.preventDefault());
+    this.input.addEventListener('input', _debounce(e => this.onInput(e), 400));
+    this.input.addEventListener('paste', e => this.onInput(e));
+    this.suggestions.addEventListener('click', (e) => this.selectSuggestion(e));
+    this.closeBtn.addEventListener('click', (e) => this.hideSuggestions(e));
+    this.suggestions.addEventListener('scroll', (e) => this.onScroll(e));
   }
 
-  onSubmit(e) {
-    e.preventDefault();
-    if (!this.isNdc()) {
-      this.showErrorMessage();
+  fetchSuggestions(params) {
+    return API.getDrugInfoByPredicitiveMatchGraphQl(params)
+      .then(data => this.drawSuggestions(data))
+      .catch(err => this.handleError(err));
+  }
+
+  fetchResults(id) {
+    this.hideErrorMessages();
+
+    return API.getDrugInfoById(id)
+      .then(data => {
+        if (this.options.selection) {
+          this.options.onSelection(data);
+        } else {
+          this.drawResults(data);
+        }
+      })
+      .catch(err => this.handleError(err));
+  }
+
+  onInput(e) {
+    this.hideSuggestions();
+    this.resetPage();
+    const params = { q: this.input.value.trim() };
+
+    this.fetchSuggestions(params);
+  }
+
+  onScroll(e) {
+    if (this.loading) {
+      return;
+    }
+    if (e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight) {
+      this.showLoader();
+
+      this.page++;
+      const params = { q: this.input.value.trim(), page: this.page };
+      this.fetchSuggestions(params)
+        .finally(() => this.hideLoader());
+    }
+  }
+
+  showLoader() {
+    this.loading = true;
+    const loader = $('<li class="ndc-lookup__suggestions-item js-loader">Loading...</li>').get(0);
+    this.suggestionsList.appendChild(loader);
+  }
+
+  hideLoader() {
+    const loader = this.suggestionsList.querySelector('.js-loader');
+    $(loader).remove();
+
+    this.loading = false;
+  }
+
+  selectSuggestion(e) {
+    if (!$(e.target).matches('.js-suggestion')) {
       return;
     }
 
-    this.hideErrorMessages();
-    this.disable(true);
+    this.resetPage();
+    const id = e.target.dataset.id;
 
-    API.getDrugInfoByNdcCode(this.input.value.trim())
-      .then(data => this.drawResponse(data))
-      .catch(err => {
-        if (err instanceof HttpError) {
-          this.showServerError(err.message);
-        } else {
-          console.log(err);
-        }
-      })
-      .finally(() => this.disable(false));
+    this.fetchResults(id);
+    this.hideSuggestions();
   }
 
-  isNdc() {
-    let value = this.input.value.trim();
-    return /^[0-9\-]+$/.test(value);
-  }
-
-  showErrorMessage() {
-    let messageNode = this.form.querySelector('.error-message.client');
-    messageNode.style.display = 'block';
-
-    this.$results.get(0).innerHTML = '';
-
-    Iframe.updateIframeHeight();
+  handleError(err) {
+    if (err instanceof HttpError) {
+    this.showServerError(err.message);
+     } else {
+      console.log(err);
+    }
   }
 
   showServerError(message) {
@@ -75,19 +134,38 @@ export default class NdcLookup {
 
   hideErrorMessages() {
     let nodes = this.form.querySelectorAll('.error-message');
-
     nodes.forEach(node => node.style.display = 'none');
     Iframe.updateIframeHeight();
   }
 
-  disable(status) {
-    this.form.querySelector('.btn').disabled = status;
-  }
+  drawResults(data) {
+    const node = $(resultsTpl(data));
 
-  drawResponse(data) {
-    let node = $(resultsTpl(data));
     this.$results.replaceWith(node);
     this.$results = node;
+
+    Iframe.updateIframeHeight();
+  }
+
+  drawSuggestions(data) {
+    const node = $(suggestionsTpl({suggestions: data})).get(0);
+    const formClass = data.length > 0 ? 'ndc-lookup--searching' : 'ndc-lookup--not-found';
+
+    this.form.classList.remove('ndc-lookup--not-found');
+    this.form.classList.add(formClass);
+    this.suggestions.classList.remove('hidden');
+    this.closeBtn.classList.remove('hidden');
+
+    this.suggestionsList.innerHTML += node.innerHTML;
+
+    Iframe.updateIframeHeight();
+  }
+
+  hideSuggestions() {
+    this.form.classList.remove('ndc-lookup--searching', 'ndc-lookup--not-found');
+    this.suggestions.classList.add('hidden');
+    this.closeBtn.classList.add('hidden');
+    this.suggestionsList.innerHTML = '';
 
     Iframe.updateIframeHeight();
   }

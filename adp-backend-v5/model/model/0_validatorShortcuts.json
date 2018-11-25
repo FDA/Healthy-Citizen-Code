@@ -51,13 +51,21 @@
       }
     },
     "notInFuture": {
-      "arguments": {
-      },
+      "arguments": {},
       "ui": {
         "md-datepicker": "md-max-date=\"$now\""
       },
       "errorMessages": {
         "default": "This date cannot be in the future"
+      }
+    },
+    "notInPast": {
+      "arguments": {},
+      "ui": {
+        "md-datepicker": "md-min-date=\"$now\""
+      },
+      "errorMessages": {
+        "default": "This date cannot be in the past"
       }
     },
     "notEqual": {
@@ -77,8 +85,7 @@
       }
     },
     "dynamicListValue": {
-      "arguments": {
-      },
+      "arguments": {},
       "errorMessages": {
         "default": "Please select correct option from this list. Reload the page to refresh the available options"
       }

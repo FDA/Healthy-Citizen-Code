@@ -10,13 +10,6 @@
   &-arrow-right:before { content: "\f061"; }
 }
 
-.yaml {
-  border: none;
-  padding: 0;
-  margin: 0;
-  background: transparent;
-}
-
 #logo {
   margin-top: 0;
   overflow: hidden;
@@ -1020,4 +1013,34 @@ nav ul span.menu-item-parent {
 // WORAROUND for angular-sortable-view
 .modal-dialog {
   transform: none !important;
+}
+
+.yaml {
+  & > .array-list {padding-left: 0;}
+  & > .object-list {padding-left: 0;}
+}
+
+.array-list {
+  padding-left: 0;
+  margin-left: 20px;
+  list-style-type: disc;
+}
+
+.array-item { margin-bottom: 5px; }
+
+.array-item > .object-list { margin-left: 0; }
+
+.object-list {
+  padding-left: 0;
+  margin-left: 20px;
+}
+
+.yaml {max-width: 320px;}
+.dtr-details .yaml {max-width: 100%;}
+.complex-type {display: flex;}
+.complex-type-value {
+  margin-left: 10px;
+  overflow-wrap: break-word;
+  word-break: break-word;
+  hyphens: auto;
 }

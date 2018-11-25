@@ -45,6 +45,12 @@
       var APP_MODEL = window.adpAppStore.appModel();
       var login = _.cloneDeep(APP_MODEL['users']['fields']['login']);
       var password = _.cloneDeep(APP_MODEL['users']['fields']['password']);
+      password.subtype = 'PasswordAuth';
+
+      login.fieldInfo = {
+        write: true,
+        read: true
+      };
 
       // FIXME: remove after password validation fixed
       password.validate = password.validate.slice(1);
@@ -70,10 +76,11 @@
       var email = APP_MODEL['users']['fields']['email'];
       var password = _.cloneDeep(APP_MODEL['users']['fields']['password']);
       // FIXME: remove after password validation fixed
+      password.subtype = 'PasswordAuth';
       password.validate = password.validate.slice(1);
       var passwordConfirmation = _.cloneDeep(password);
 
-      passwordConfirmation.fullName = 'Password confirm';
+      passwordConfirmation.fullName = 'Verify Password';
       passwordConfirmation.validate = [
         {
           validator: 'passwordMatch',
@@ -87,6 +94,10 @@
       ];
 
       login.visible = true;
+      login.fieldInfo = {
+        write: true,
+        read: true
+      };
       email.visible = true;
 
       return {
@@ -101,6 +112,32 @@
           visible: true,
           required: true
         }
+      }
+    }
+
+    function getPasswordSchema() {
+      var APP_MODEL = window.adpAppStore.appModel();
+      var password = _.cloneDeep(APP_MODEL['users']['fields']['password']);
+      password.subtype = 'PasswordAuth';
+
+      var passwordConfirmation = _.cloneDeep(password);
+
+      passwordConfirmation.fullName = 'Verify Password';
+      passwordConfirmation.validate = [
+        {
+          validator: 'passwordMatch',
+          arguments: {
+            matchedField: 'password'
+          },
+          errorMessages: {
+            default: 'Passwords do not match'
+          }
+        }
+      ];
+
+      return {
+        'password': password,
+        'passwordConfirmation': passwordConfirmation
       }
     }
 
@@ -126,6 +163,7 @@
     return {
       getLoginSchema: getLoginSchema,
       getRegisterSchema: getRegisterSchema,
+      getPasswordSchema: getPasswordSchema,
       getTypeProps: getTypeProps,
       getCurrentSchema: getCurrentSchema,
       getPageParams: getPageParams,

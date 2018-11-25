@@ -3,6 +3,10 @@ import lodashMap from 'lodash.map';
 import { HttpError } from './errors';
 import util from '../lib/utils';
 import CONFIG from '../../config.json';
+import { drugInfoPredictiveSearch, prefrencesQuery, recallByProductDescriptionQuery} from './queries';
+
+const NDC_SYSTEM = 'http://hl7.org/fhir/sid/ndc';
+const RXCUI_SYSTEM = 'http://www.nlm.nih.gov/research/umls/rxnorm';
 
 const hcWidgetAPI = {
   getQuestionnaireByFhirId,
@@ -12,24 +16,26 @@ const hcWidgetAPI = {
   getAdverseEventsAlt,
   getRecalls,
   getWidgetParams,
-  getMedicationCodingsFromFhir,
+  getMedicationCodings,
   findInteractionsByRxcuis,
   getMedicationGenericName,
   getRxcuiByNdc,
   startQuestionnaire,
   updateQuestionnaire,
   getRxClass,
-  getDrugInfoByNdcCode
+  getDrugInfoByPredicitiveMatch,
+  getDrugInfoByPredicitiveMatchGraphQl,
+  getDrugInfoById,
 };
 export default hcWidgetAPI;
 
-function startQuestionnaire(params, questionnaireId) {
+function startQuestionnaire (params, questionnaireId) {
   const endpoint = CONFIG.hcResearchUrl + '/start-questionnaire/' + params.fhirId;
 
   const options = {
     method: 'POST',
     headers: {'Content-Type': 'application/json'},
-    body: JSON.stringify({data: {questionnaireId: questionnaireId}})
+    body: JSON.stringify({data: {questionnaireId: questionnaireId}}),
   };
 
   return fetch(endpoint, options)
@@ -43,7 +49,7 @@ function startQuestionnaire(params, questionnaireId) {
     });
 }
 
-function updateQuestionnaire(params, data, isCompleted) {
+function updateQuestionnaire (params, data, isCompleted) {
   const endpoint = CONFIG.hcResearchUrl + '/questionnaire-by-fhirid/' + params.fhirId;
 
   const options = {
@@ -53,9 +59,9 @@ function updateQuestionnaire(params, data, isCompleted) {
       data: {
         questionnaireId: params.questionnaireId,
         answers: data,
-        isCompleted: isCompleted
-      }
-    })
+        isCompleted: isCompleted,
+      },
+    }),
   };
 
   return fetch(endpoint, options)
@@ -69,7 +75,7 @@ function updateQuestionnaire(params, data, isCompleted) {
     });
 }
 
-function getWidgetParams(widgetId) {
+function getWidgetParams (widgetId) {
   const endpoint = `${CONFIG.widgetUrl}/widgets/${widgetId}`;
 
   return fetch(endpoint)
@@ -83,7 +89,7 @@ function getWidgetParams(widgetId) {
     });
 }
 
-function getQuestionnaireByFhirId(fhirId) {
+function getQuestionnaireByFhirId (fhirId) {
   return fetch(CONFIG.hcResearchUrl + '/questionnaire-by-fhirid/' + fhirId)
     .then(res => res.json())
     .then(json => {
@@ -104,11 +110,11 @@ function getQuestionnaireByFhirId(fhirId) {
         _id: data._id,
         status: data.status,
         questions: questions,
-      }
+      };
     });
 }
 
-function getFhirValues({questions, fhirDataUrl, fhirId}) {
+function getFhirValues ({questions, fhirDataUrl, fhirId}) {
   const doRequest = (question) => {
     let fhirFieldPath = lodashGet(question, 'fhirFieldPath');
     let fhirResourceUrl = lodashGet(question, 'fhirResource');
@@ -137,8 +143,8 @@ function getFhirValues({questions, fhirDataUrl, fhirId}) {
   return Promise.all(questions.map(doRequest));
 }
 
-function getDrugInteractions(fhirDataUrl, fhirId) {
-  return getMedicationCodingsFromFhir(fhirDataUrl, fhirId)
+function getDrugInteractions (options) {
+  return getMedicationCodings(options)
     .then(medCodings => {
       const rxcuiPromises = medCodings.map(getRxcuiByNdc);
 
@@ -163,66 +169,202 @@ function getDrugInteractions(fhirDataUrl, fhirId) {
             results.push({
               interactionDrugs: `${firstDrug}, ${secondDrug}`,
               severity: interactionPair.severity,
-              description: interactionPair.description
+              description: interactionPair.description,
             });
-          })
-        })
+          });
+        });
       });
       const count = results.length;
       const list = results;
       return {
         list,
-        count
-      }
+        count,
+      };
     })
     .catch(err => {
       return {
         list: [],
         count: 0,
-      }
+      };
     });
 }
 
-function getMedicationCodingsFromFhir(fhirDataUrl, fhirId) {
+function getMedicationCodingsFromRequestsOrOrders (json) {
+  const entries = lodashGet(json, 'entry', []);
+  const supportedResourceTypes = ['MedicationRequest', 'MedicationOrder'];
+  const medicationCodings = entries
+    .map(entry => {
+      const resType = lodashGet(entry, 'resource.resourceType');
+      if (!supportedResourceTypes.includes(resType)) {
+        return null;
+      }
+      const medCodConcept = lodashGet(entry, 'resource.medicationCodeableConcept');
+      const isNdcSystem = lodashGet(medCodConcept, 'coding.0.system') === NDC_SYSTEM;
+      if (!isNdcSystem) {
+        return null;
+      }
+      return medCodConcept.coding[0];
+    })
+    .filter(medicationCoding => medicationCoding);
+
+  return medicationCodings;
+}
+
+function getMedicationCodingsFromUserPreferences (udid) {
+  return prefrencesQuery({udid})
+    .then(data => {
+      const medications = data.medications || [];
+      const medCodings = medications.map(m => ({
+        system: NDC_SYSTEM,
+        code: m.ndc11,
+        display: m.brandName,
+        rxcui: [m.rxcui],
+      }));
+      return medCodings;
+    });
+}
+
+function getMedicationCodings (options) {
+  let {dataSource, fhirId} = options;
+  if (!dataSource) {
+    dataSource = 'stu3';
+    // throw new Error(`'dataSource' param must be specified to get medications from fhir`);
+  }
+
+  if (dataSource === 'stu3') {
+    // support path 'options.fhirDataUrl' for widgets not using dataSource
+    const fhirDataUrl = options.stu3Url || options.fhirDataUrl;
+    if (!fhirDataUrl) {
+      throw new Error(`One of params 'stu3Url', 'fhirDataUrl' is required for '${dataSource}' dataSource`);
+    }
+    return getMedicationCodingsFromFhirStu3(fhirDataUrl, fhirId);
+  } else if (dataSource === 'dstu2') {
+    const fhirDataUrl = options.dstu2Url;
+    if (!fhirDataUrl) {
+      throw new Error(`Param 'dstu2Url' is required for '${dataSource}' dataSource`);
+    }
+    return getMedicationCodingsFromDstu2(fhirDataUrl, fhirId);
+  } else if (dataSource === 'userPreferences') {
+    const {udid} = options;
+    if (!udid) {
+      throw new Error(`Param 'udid' is required for '${dataSource}' dataSource`);
+    }
+    return getMedicationCodingsFromUserPreferences(udid);
+  }
+}
+
+function getMedicationCodingsFromFhirStu3 (fhirDataUrl, fhirId) {
   // Example: http://test.fhir.org/r3/Patient?_id=pat1&_revinclude=MedicationRequest:subject&_format=json
   // https://sb-fhir-stu3.smarthealthit.org/smartstu3/open/Patient?_id=aa27c71e-30c8-4ceb-8c1c-5641e066c0aa&_revinclude=MedicationRequest:subject&_format=json
   if (!fhirDataUrl || !fhirId) {
     return;
   }
   const fhirUrl = `${fhirDataUrl}/Patient?_id=${fhirId}&_revinclude=MedicationRequest:subject&_format=json`;
-  const ndcSystem = 'http://hl7.org/fhir/sid/ndc';
 
   return fetch(fhirUrl)
     .then(res => {
       if (res.status !== 200) {
         return false;
       }
-      return res.json()
+      return res.json();
     })
     .then(json => {
-      const entries = lodashGet(json, 'entry', []);
-      const medicationCodings = entries
-        .map(entry => {
-          const isMedRequest = lodashGet(entry, 'resource.resourceType') === 'MedicationRequest';
-          if (!isMedRequest) {
-            return null;
-          }
-          const medCodConcept = lodashGet(entry, 'resource.medicationCodeableConcept');
-          const isNdcSystem = lodashGet(medCodConcept, 'coding.0.system') === ndcSystem;
-          if (!isNdcSystem) {
-            return null;
-          }
-          return medCodConcept.coding[0];
-        })
-        .filter(medicationCoding => medicationCoding);
-
-      return medicationCodings;
+      return getMedicationCodingsFromRequestsOrOrders(json);
     })
     .catch(err => []);
 }
 
-function getAdverseEvents(fhirDataUrl, fhirId, patientData) {
-  return getMedicationCodingsFromFhir(fhirDataUrl, fhirId)
+function getMedicationCodingsFromDstu2 (fhirDataUrl, fhirId) {
+  if (!fhirDataUrl || !fhirId) {
+    return;
+  }
+  const options = {
+    headers: {Accept: 'application/json'},
+  };
+  // const getPatient = fetch(`${fhirDataUrl}/Patient/${fhirId}`, options)
+  //   .then(res => res.json());
+  const getMedicationOrders = fetch(`${fhirDataUrl}/MedicationOrder?patient=${fhirId}`, options)
+    .then(res => {
+      if (res.ok) {
+        return res.json();
+      } else {
+        console.log(`Unable to get medication order ${res.statusText}`);
+          throw new HttpError('Unable to get data from fhir server. Please check FHIR Server URL and FHIR id correctness.');
+      }
+    });
+
+  const getMedicationCodings = getMedicationOrders
+    .then(medOrderResp => {
+      const medicationCodingsFromOrders = getMedicationCodingsFromRequestsOrOrders(medOrderResp);
+
+      const medicationReferences = medOrderResp.entry
+        .map(e => lodashGet(e, 'resource.medicationReference.reference'))
+        .filter(r => r);
+
+      const medicationPromises = medicationReferences.map(r => {
+        return fetch(r, options)
+          .then(res => res.json())
+          .catch(err => {
+            console.log(err);
+            return {};
+          });
+      });
+
+      const medications = Promise.all(medicationPromises);
+      return Promise.all([medicationCodingsFromOrders, medications]);
+    })
+    .then(([medicationCodingsFromOrders, medications]) => {
+      const medicationCodingsFromMedications = medications.map(m => {
+        const coding = lodashGet(m, 'code.coding.0');
+        if (!coding) {
+          return null;
+        }
+        const system = coding.system;
+        if (system === RXCUI_SYSTEM) {
+          // maintain compatibility with getRxcuiByNdc format
+          coding.rxcui = [coding.code];
+          return coding;
+        } else if (system === NDC_SYSTEM) {
+          return coding;
+        }
+        return null;
+      }).filter(coding => coding);
+
+      const uniqCodingsMap = {};
+      medicationCodingsFromMedications.concat(medicationCodingsFromOrders).forEach(coding => {
+        const key = coding.code + coding.system;
+        if (!uniqCodingsMap[key]) {
+          uniqCodingsMap[key] = coding;
+        }
+      });
+      return Object.values(uniqCodingsMap);
+    });
+
+  return getMedicationCodings;
+}
+
+function getMedicationCodingsFromFhirDstu2RevInclude (fhirDataUrl, fhirId) {
+  // Example: http://fhirtest.uhn.ca/baseDstu2/Patient?_id=aa27c71e-30c8-4ceb-8c1c-5641e066c0aa&_revinclude=MedicationOrder:patient&_format=json
+  if (!fhirDataUrl || !fhirId) {
+    return;
+  }
+  const fhirUrl = `${fhirDataUrl}/Patient?_id=${fhirId}&_revinclude=MedicationOrder:patient&_format=json`;
+
+  return fetch(fhirUrl)
+    .then(res => {
+      if (res.status !== 200) {
+        return false;
+      }
+      return res.json();
+    })
+    .then(json => {
+      return getMedicationCodingsFromRequestsOrOrders(json);
+    })
+    .catch(err => []);
+}
+
+function getAdverseEvents (options) {
+  return getMedicationCodings(options)
     .then(medCodings => {
       const rxcuiPromises = medCodings.map(getRxcuiByNdc);
       return Promise.all(rxcuiPromises);
@@ -230,7 +372,7 @@ function getAdverseEvents(fhirDataUrl, fhirId, patientData) {
     .then(medCodings => {
       const promises = medCodings.reduce((result, item) => {
         if (item.rxcui.length) {
-          result.push(getAdverseEventsByRxcui(item, patientData));
+          result.push(getAdverseEventsByRxcui(item, options.patientData));
         }
 
         return result;
@@ -239,8 +381,8 @@ function getAdverseEvents(fhirDataUrl, fhirId, patientData) {
     });
 }
 
-function getAdverseEventsAlt(fhirDataUrl, fhirId, patientData) {
-  return getMedicationCodingsFromFhir(fhirDataUrl, fhirId)
+function getAdverseEventsAlt (options) {
+  return getMedicationCodings(options)
     .then(medCodings => {
       const rxcuiPromises = medCodings.map(getRxcuiByNdc);
       return Promise.all(rxcuiPromises);
@@ -248,7 +390,7 @@ function getAdverseEventsAlt(fhirDataUrl, fhirId, patientData) {
     .then(medCodings => {
       const promises = medCodings.reduce((result, item) => {
         if (item.rxcui.length) {
-          result.push(getAdverseEventsByRxcuiAlt(item, patientData));
+          result.push(getAdverseEventsByRxcuiAlt(item, options.patientData));
         }
 
         return result;
@@ -257,8 +399,8 @@ function getAdverseEventsAlt(fhirDataUrl, fhirId, patientData) {
     });
 }
 
-function getRecalls(fhirDataUrl, fhirId) {
-  return getMedicationCodingsFromFhir(fhirDataUrl, fhirId)
+function getRecalls (options) {
+  return getMedicationCodings(options)
     .then(medCodings => {
       const rxcuiPromises = medCodings.map(getRxcuiByNdc);
       return Promise.all(rxcuiPromises);
@@ -275,12 +417,23 @@ function getRecalls(fhirDataUrl, fhirId) {
       return Promise.all(promises);
     })
     .then(medCodings => {
-      const promises = medCodings.map(getRecallByName);
+      const promises = medCodings.map(medCoding => recallByProductDescriptionQuery(medCoding.name)
+        .then(res => {
+          const list = res.recalls.items.map(r => r.rawData);
+          return {
+            list,
+            display: medCoding.display,
+            total: res.recalls.pageInfo.itemCount };
+        }));
       return Promise.all(promises);
     });
 }
 
-function getRxcuiByNdc(medCoding) {
+function getRxcuiByNdc (medCoding) {
+  if (medCoding.rxcui) {
+    return Promise.resolve(medCoding);
+  }
+
   let ndc = medCoding.code;
 
   return fetch(`https://rxnav.nlm.nih.gov/REST/rxcui.json?idtype=NDC&id=${ndc}`)
@@ -297,7 +450,7 @@ function getRxcuiByNdc(medCoding) {
     .catch((err) => []);
 }
 
-function getMedicationGenericName(rxcui) {
+function getMedicationGenericName (rxcui) {
   const endpoint = `https://rxnav.nlm.nih.gov/REST/rxcui/${rxcui}/allrelated.json`;
 
   return fetch(endpoint)
@@ -314,15 +467,15 @@ function getMedicationGenericName(rxcui) {
 
       let name = nameConcept.conceptProperties[0].name;
 
-      if (brandConcept && brandConcept.conceptProperties && brandConcept.conceptProperties.length  === 1) {
-        name += ` ${brandConcept.conceptProperties[0].name}`
+      if (brandConcept && brandConcept.conceptProperties && brandConcept.conceptProperties.length === 1) {
+        name += ` ${brandConcept.conceptProperties[0].name}`;
       }
 
       return name;
     });
 }
 
-function findInteractionsByRxcuis(rxcuis) {
+function findInteractionsByRxcuis (rxcuis) {
   return fetch(`https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${rxcuis.join('+')}`)
     .then(res => {
       if (res.status !== 200) {
@@ -330,10 +483,10 @@ function findInteractionsByRxcuis(rxcuis) {
       }
       return res.json();
     })
-    .catch((err) => ({}))
+    .catch((err) => ({}));
 }
 
-function getAdverseEventsByRxcui(medCoding, patientData) {
+function getAdverseEventsByRxcui (medCoding, patientData) {
   const rxcui = medCoding.rxcui[0];
 
   const params = (data) => {
@@ -356,7 +509,7 @@ function getAdverseEventsByRxcui(medCoding, patientData) {
       // check API reference for patientsex for more details https://open.fda.gov/drug/event/reference/
       const sexes = {
         'M': 1,
-        'F': 2
+        'F': 2,
       };
 
       genderParam = sexes[data.gender] || 0;
@@ -382,7 +535,7 @@ function getAdverseEventsByRxcui(medCoding, patientData) {
       // res, medCoding
       const medicationData = {
         display: medCoding.display,
-        total: res.data.total
+        total: res.data.total,
       };
       medicationData.list = res.data.list;
 
@@ -390,10 +543,10 @@ function getAdverseEventsByRxcui(medCoding, patientData) {
     })
     .catch((err) => {
       return {list: [], display: medCoding.display, total: 0};
-    })
+    });
 }
 
-function getAdverseEventsByRxcuiAlt(medCoding, patientData) {
+function getAdverseEventsByRxcuiAlt (medCoding, patientData) {
   // Example: https://api.fda.gov/drug/event.json?search=patient.drug.openfda.rxcui:310429+AND
   //          +(patient.drug.drugcharacterization:%221%22+%222%22)&limit=20
   const LIMIT = 20;
@@ -419,7 +572,7 @@ function getAdverseEventsByRxcuiAlt(medCoding, patientData) {
       // check API reference for patientsex for more details https://open.fda.gov/drug/event/reference/
       const sexes = {
         'M': 1,
-        'F': 2
+        'F': 2,
       };
 
       genderParam = sexes[data.gender] || 0;
@@ -440,7 +593,7 @@ function getAdverseEventsByRxcuiAlt(medCoding, patientData) {
       'search=',
       `patient.drug.openfda.rxcui:${rxcui}`,
       additionalParams ? '+AND+' + additionalParams : '',
-      `&limit=${LIMIT}`
+      `&limit=${LIMIT}`,
     ].join('');
 
   return fetch(endpoint)
@@ -454,7 +607,7 @@ function getAdverseEventsByRxcuiAlt(medCoding, patientData) {
       // res, medCoding
       const medicationData = {
         display: medCoding.display,
-        total: res.meta.results.total
+        total: res.meta.results.total,
       };
       medicationData.list = res.results;
 
@@ -462,10 +615,10 @@ function getAdverseEventsByRxcuiAlt(medCoding, patientData) {
     })
     .catch((err) => {
       return {list: [], display: medCoding.display, total: 0};
-    })
+    });
 }
 
-function getMedicationDetails(medCoding) {
+function getMedicationDetails (medCoding) {
   // Example https://rxnav.nlm.nih.gov/REST/rxcuihistory/concept.json?rxcui=152923
   const rxcui = medCoding.rxcui[0];
   const endpoint = `https://rxnav.nlm.nih.gov/REST/rxcuihistory/concept.json?rxcui=${rxcui}`;
@@ -481,20 +634,23 @@ function getMedicationDetails(medCoding) {
       medCoding.name = res.rxcuiHistoryConcept.bossConcept[0].bossName;
       return medCoding;
     })
-    .catch((err) => {{}})
+    .catch((err) => {
+      {
+      }
+    });
 }
 
-function getRecallByName(medCoding) {
+function getRecallByName (medCoding) {
   // Example: https://api.fda.gov/drug/event.json?search=patient.drug.openfda.rxcui:00006-0749-54&limit=20
   const LIMIT = 20;
   let name = medCoding.name;
 
   const endpoint = [`https://api.fda.gov/drug/enforcement.json?`,
-          `search=`,
-            `product_description:${name}+AND+`,
-            `status:"Ongoing"`,
-            `&limit=${LIMIT}`
-      ].join('');
+    `search=`,
+    `product_description:${name}+AND+`,
+    `status:"Ongoing"`,
+    `&limit=${LIMIT}`,
+  ].join('');
 
   return fetch(endpoint)
     .then(res => {
@@ -509,10 +665,10 @@ function getRecallByName(medCoding) {
     });
 }
 
-function filterRecall(res, medCoding) {
+  function filterRecall (res, medCoding) {
   const recalls = {
     display: medCoding.display,
-    total: res.meta.results.total
+    total: res.meta.results.total,
   };
 
   recalls.list = res.results;
@@ -520,7 +676,7 @@ function filterRecall(res, medCoding) {
   return recalls;
 }
 
-function getRxClass(medCoding) {
+function getRxClass (medCoding) {
   const rxcui = medCoding.rxcui[0];
   const endpoint = `https://rxnav.nlm.nih.gov/REST/rxclass/class/byRxcui.json?rxcui=${rxcui}`;
 
@@ -533,8 +689,11 @@ function getRxClass(medCoding) {
     });
 }
 
-function getDrugInfoByNdcCode(ndc) {
-  let endpoint = `${CONFIG.hcUrl}/get-drug-info-by-ndc-code/${ndc}`;
+function apiRequest (endpointPart, params) {
+  params = Object.assign({limit: 20, page: 1}, params);
+
+  let stringOfParams = Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
+  let endpoint = `${CONFIG.hcUrl}/${endpointPart}?${stringOfParams}`;
 
   return fetch(endpoint)
     .then(res => res.json())
@@ -545,4 +704,56 @@ function getDrugInfoByNdcCode(ndc) {
         throw new HttpError(json.message);
       }
     });
+}
+
+
+function getDrugInfoByPredicitiveMatch (params) {
+  let stringOfParams = Object.keys(params).map(key => `${key}=${params[key]}`).join('&');
+  let endpoint = `${CONFIG.hcUrl}/get-drug-info-by-match-predictive?${stringOfParams}`;
+
+  return fetch(endpoint)
+    .then(res => res.json())
+    .then(json => {
+      if (json.success) {
+        return json.data;
+      } else {
+        throw new HttpError(json.message);
+      }
+    });
+}
+
+function getDrugInfoByPredicitiveMatchGraphQl (params) {
+  return drugInfoPredictiveSearch(params)
+    .then(resp => {
+      const success = !resp.errors;
+      if (!success) {
+        const message = resp.errors.reduce((res, e) => {
+          res.push(e);
+          return res;
+        }, []).join(', ');
+        throw new HttpError(message);
+      }
+      return resp.medicationMaster.items;
+    })
+    .catch(err => {
+      throw new HttpError(`Error occurred while searching drug info.`);
+    });
+}
+
+function getDrugInfoById (id) {
+  let endpoint = `${CONFIG.hcUrl}/get-drug-info/${id}`;
+
+  return fetch(endpoint)
+    .then(res => res.json())
+    .then(json => {
+      if (json.success) {
+        return json.data;
+      } else {
+        throw new HttpError(json.message);
+      }
+    });
+}
+
+function getDrugInfoByIdGraphQl (id) {
+  return drugInfoById(id);
 }

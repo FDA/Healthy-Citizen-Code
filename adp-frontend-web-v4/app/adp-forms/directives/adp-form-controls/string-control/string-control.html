@@ -1,8 +1,10 @@
-<input type="{{uiProps.uiSubtypeType}}"
-       name="{{field.keyName}}"
-       id="{{field.keyName}}"
-       adp-validate="field"
-       escape-letters="field.type == 'Number'"
-       ng-model="adpFormData[field.keyName]"
-       ng-required="field.required"
-       class="form-control">
+<input
+  type="{{uiProps.uiSubtypeType}}"
+  name="{{field.keyName}}"
+  id="{{field.keyName}}"
+  adp-validate="validationParams"
+  ng-required="isRequired()"
+  escape-letters="field.type == 'Number'"
+  ng-model="adpFormData[field.keyName]"
+  class="form-control"
+>

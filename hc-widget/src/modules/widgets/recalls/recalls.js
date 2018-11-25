@@ -52,7 +52,7 @@ export default class Recalls {
   }
 
   fetchData() {
-    return hcWidgetAPI.getRecalls(this.options.fhirDataUrl, this.options.fhirId)
+    return hcWidgetAPI.getRecalls(this.options)
       .then(data => {
         if (data.length) {
           this.buildTable(data);

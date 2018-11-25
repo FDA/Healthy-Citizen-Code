@@ -1,37 +1,50 @@
-/*
 {
   "metaschema": {
     "type": {
-      "required": "true",
+      "required": true,
       "default": "String",
       "list": [
-        "ApplicationInterface",
-
         "String",
-        "Date",
         "Number",
+        "Date",
         "Boolean",
-        "Mixed",
+        "Mixed", // mongoose type Mixed, i.e. any object with any structure
         "Array",
-        "Subschema",
-        "Object",
+        "Object", // something with defined structure
         "Schema",
         "ObjectID",
+        "LookupObjectID",
+
         "String[]",
         "Date[]",
         "Number[]",
         "Boolean[]",
         "Mixed[]",
+        "Object[]",
         "ObjectID[]",
+        "LookupObjectID[]",
+
+        "Image",
+        "Video",
+        "Audio",
+        "File",
+        "Image[]",
+        "Video[]",
+        "Audio[]",
+        "File[]",
 
         "Menu",
         "MenuGroup",
         "MenuItem",
+        "MenuDashboardLink",
         "Dashboard",
-        "DashboardItem"
+        "DashboardItem",
+        "Group",
+        "Location"
+        // "Barcode" - this is a subtype
       ],
       "fullName": "Type",
-      "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Subschema is an array that should be displayed in the menu. Some types are only available for interface elements and not the model"
+      "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Some types are only available for interface elements and not the model"
     },
     "subtype": {
       "list": [
@@ -42,17 +55,27 @@
         "Text",
         "ImperialHeight",
         "ImperialWeight",
-        "BloodPressure"
+        "ImperialWeightWithOz",
+        "BloodPressure",
+        "Date",
+        "Time",
+        "DateTime",
+        "DynamicList",
+        "Barcode"
       ],
       "fullName": "Field Subtype",
       "description": "Overrides default field visual representation. For instance for type String the default input type is TEXT, but can be overridden here to be PASSWORD"
     },
-
     "width": {
       "default": 100,
       "fullName": "Width",
       "description": "Width of the field as rendered in the datatables",
       "comment": "TODO: discuss with the team and decide if UI attributes should be grouped. For instance 'ui':{width:100,height:200,style:'best'}"
+    },
+    "formWidth": {
+      "default": 12,
+      "fullName": "Form Width",
+      "description": "Width of the field as rendered in in a form (col-md)"
     },
     "colspan": {
       "fullName": "Column Span",
@@ -65,18 +88,35 @@
       "description": "Defines the priority of this field being displayed in datatables",
       "comment": "TODO: discuss with the team and decide if UI attributes should be grouped. For instance 'ui':{width:100,visibilityPriority:200,style:'best', colspan:2}. Or get rid of this"
     },
-
+    "responsivePriority": {
+      "default": 100,
+      "fullName": "Responsive Priority",
+      "description": "Defines the priority of this field being hidden in datatables as described here: https://datatables.net/extensions/responsive/priority (the higher the priority, the sooner the column will be hidden in narrow windows)"
+    },
     "labelRenderer": {
       "fullName": "Label Renderer",
+      "comment": "depreciate this in favor of synthetic fields",
       "description": "Name of the function from LabelRenderers rendering label representing given object. This is used in parent select lists and similar, for instance see encounters."
     },
     "singleRecord": {
       "fullName": "Single Record",
+      "type": "Boolean",
       "description": "Requires special treatment in UI since only one record will be returnedm not need to show datatables"
     },
     "title": {
       "fullName": "Title",
       "description": "The title of the dashboard item or similar tile"
+    },
+    "icon": {
+      "fullName": "Icon",
+      "description": "Icon associated with a given item (for instance menu item)",
+      "fields": {
+        "type": {
+          "description": "Icon type: font-awesome, in the future: image etc",
+          "list": ["font-awesome"],
+          "default": "font-awesome"
+        }
+      }
     },
     "link": {
       "fullName": "Link",
@@ -88,7 +128,13 @@
     },
     "template": {
       "fullName": "Template",
-      "description": "Template representing the dashboard item or tile or similar visual element"
+      "description": "Template representing the dashboard item or tile or similar visual element",
+      "supportsExternalData": true
+    },
+    "data": {
+      "fullName": "Data",
+      "description": "Data for various elements (for instance charts)",
+      "supportsExternalData": true
     },
     "fullName": {
       "required": true,
@@ -99,10 +145,19 @@
       "fullName": "Description",
       "description": "Description of the field meaning. This will be sent to the front-end"
     },
+    "permissions": {
+      "fullName": "Permissions",
+      "description": "Field permissions"
+    },
     "temporary": {
       "fullName": "Temporary",
       "description": "If temporary then it should not be listed as a part of dictionary as this attribute is only used for MVP demo"
     },
+    //    "temporary": {
+    //      "fullName": "Temporary",
+    //      "type": "Boolean",
+    //      "description": "If temporary then it should not be listed as a part of dictionary as this attribute is only used for MVP demo"
+    //    },
     "default": {
       "fullName": "Default Value",
       "description": "Specifies the default value for this field if no value is provided"
@@ -118,8 +173,7 @@
     },
     "listUrl": {
       "fullName": "List URL",
-      "description": "URL of REST EP returning the values",
-      "comment": "We don't use it. Delete?"
+      "description": "URL of REST EP returning the values"
     },
     "comment": {
       "fullName": "Comment",
@@ -127,32 +181,73 @@
     },
     "visible": {
       "default": true,
+      "type": "Boolean",
       "fullName": "Visible",
       "description": "Determines if the field should be visible in the forms by default or not. Can be overridden in a specific form, but will be sent to the front-end"
     },
+    "showInDatatable": {
+      "default": true,
+      "type": "Boolean",
+      "fullName": "Show In Datatable",
+      "description": "If set to true (default) then this field will be displayed in the datatables."
+    },
+    "showInViewDetails": {
+      "default": true,
+      "type": "Boolean",
+      "fullName": "Show In Form of viewDetails action",
+      "description": "If set to true (default) then this field will be displayed in the viewDetails action form."
+    },
+    "showInForm": {
+      "default": true,
+      "type": "Boolean",
+      "fullName": "Show In Form",
+      "description": "If set to true (default) then this field will be displayed in the form."
+    },
     "searchable": {
       "fullName": "Searchable",
+      "type": "Boolean",
       "description": "If true then this field can be searched in order to fin right record in lookups, datatable searches and similar"
     },
     "serverSide": {
       "fullName": "Server-side",
+      "type": "Boolean",
       "description": "If true then most of the handling for these records should be done by the server, i.e. server-side mode for datatables"
     },
     "required": {
       "fullName": "Required",
+      "type": "Boolean",
       "description": "If the attribute is required then no part of the record can be submitted without this attribute"
     },
     "generated": {
       "fullName": "Generated",
-      "description": "If set to true than the field is hidden and its value will be take care of middleware. Can be set to array of function calls which will be called in order to generate the value"
+      "type": "Boolean",
+      "description": "If set to true than the field is hidden and its value will be take care of middleware. Can be set to array of function calls which will be called in order to generate the value",
+      "comment": "This needs to be depreciated eventually in favor of synthetic fields"
     },
     "unique": {
       "fullName": "Unique",
+      "type": "Boolean",
       "description": "If set to true then this attribute value have to be unique across entire collection. You don't need to specify index:true if unique:true"
     },
     "validate": {
       "fullName": "List of Validators",
       "description": "Validates the attribute value against validators specified in the array. Both simplified and advanced form of validators is supported, see 0_validatorShortcuts.json for translation specification"
+    },
+    "render": {
+      "fullName": "Field Renderer",
+      "description": "Renderers provide a way to render the data in a non-default way"
+    },
+    "formRender": {
+      "fullName": "Field Renderer for the forms",
+      "description": "Unlike 'render' this one is used in forms, not in datatables"
+    },
+    "synthesize": {
+      "fullName": "Synthesize",
+      "description": "Specifies a way to synthesize the field value. If field has this attribute it's treated as synthetic and doesn't require direct user input"
+    },
+    "virtual": {
+      "fullName": "Virtual",
+      "description": "Virtual fields is a special case of synthetic fields when the value of the field is not stored in the database, but calculated on the fly during the \"view\" action and other actions that read from the database. The virtual fields are calculated using the same synthesizers and are indicated with attribute \"virtual: true\"."
     },
     "errorMessages": {
       "fullName": "Error Messages",
@@ -172,21 +267,16 @@
     },
     "fields": {
       "fullName": "Fields",
-      "description": "For type Subschema defines the list of included fields"
+      "description": "List of included fields"
     },
     "index": {
       "fullName": "Index",
+      "type": "Boolean",
       "description": "If true then the field need to be indexed"
     },
     "lookup": {
       "fullName": "Lookup",
       "description": "A way to link two collections and lookup for appropriate record in the foreign collection"
-    },
-    "requiresAuthentication": {
-      "default": true,
-      "fullName": "Requires Authentication",
-      "description": "If true then the this schema/subschema will require authentication in order to be manipulated",
-      "comment": "TODO: get rid of it, replace with 'requiresPermissions' attribute"
     },
     "limitReturnedRecords": {
       "fullName": "Limit Returned Records",
@@ -196,16 +286,17 @@
       "fullName": "Controller",
       "description": "If set than this model will use custom controller named as specified in this attribute"
     },
-    "permissions": {
-      "fullName": "Permissions",
-      "description": "Lists permissions associated with given activity/data or role"
-    },
     "defaultSortBy": {
-      "default": { "_id": -1 },
+      "default": {
+        "_id": -1
+      },
       "fullName": "Default Sort By",
       "description": "Unless specified otherwise in the query the backend will sort its GET queries based on this order"
     },
-
+    "parameters": {
+      "fulName": "Parameters",
+      "description": "Various parameters specific for the givern type of field"
+    },
     "generatorSpecification": {
       "default": "2",
       "fullName": "Specification for the generator",
@@ -213,13 +304,89 @@
     },
     "generatorDistribution": {
       "default": "random",
-      "list": [
-        "random",
-        "sequential"
-      ],
+      "list": ["random", "sequential"],
       "fullName": "Distribution",
       "description": "How values from the range of possible values should be picked"
+    },
+    "menus": {
+      "fields": {
+        "type": {
+          "list": ["MenuItem", "MenuGroup", "MenuDashboardLink"],
+          "default": "MenuItem"
+        }
+      }
+    },
+    "app": {
+      "fields": {
+        "type": {
+          "default": "ApplicationInterface"
+        }
+      }
+    },
+    "pages": {
+      "fields": {
+        "type": {
+          "list": ["Page"],
+          "default": "Page"
+        }
+      }
+    },
+    "show": {
+      "fullName": "Show",
+      "description": "Contains condition for showing this field"
+    },
+    "actions": {
+      "fullName": "Actions",
+      "required": false,
+      "description": "Lists actions available for the schema records. Supported default actions: create, update, delete, view, viewDetails",
+      "comment": "different actions may require different roles",
+      "fields": {
+        // TODO: move fields underneath fields
+        "showInTable": {
+          "description": "Used in actions. If true then there should be a button in the datatables view linked to this action",
+          "default": true
+        },
+        "permissions": {
+          "type": "String[]",
+          "default": "authenticated",
+          "fullName": "Permissions",
+          "description": "Lists permissions associated with given activity/data or role. One permission 'authenticated' is set for all logged-in users"
+        },
+        "icon": {
+          "fullName": "Icon",
+          "description": "Icon associated with a given Action",
+          "fields": {
+            "type": {
+              "description": "Icon type: font-awesome, in the future: image etc",
+              "list": ["font-awesome"],
+              "default": "font-awesome"
+            },
+            "link": {
+              "description": "the name of the font-awesome icon or link to the image representing the icon"
+            }
+          }
+        },
+        "fullName": {
+          "description": "If set then this name will be displayed on the button as a label"
+        },
+        "action": {
+          "fields": {
+            "type": {
+              "list": ["action", "link"],
+              "default": "action"
+            },
+            "link": {
+              "type": "String"
+            }
+          }
+        }
+      }
+    },
+    "scopes": {
+      "fullName": "Scopes",
+      "required": false,
+      "description": "Lists scopes available for the schema records.",
+      "comment": "Schemas have permissions specifying who can execute actions with records."
     }
   }
 }
-*/

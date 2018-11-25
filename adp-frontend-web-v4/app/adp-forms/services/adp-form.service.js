@@ -102,7 +102,7 @@
         field.display = displayConditionFn(data, row, modelSchema, $action);
 
         if (!field.display) {
-          formData[field.keyName] = '';
+          delete formData[field.keyName];
         }
       });
     }

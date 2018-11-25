@@ -59,7 +59,7 @@ function createScripts(fileName, body) {
   } else {
     file = body;
   }
-
+  
   return new Promise(function (resolve, reject) {
     bufferToVinyl.stream(new Buffer(file), fileName)
       .pipe(gulp.dest(conf.paths.tmp))
@@ -99,3 +99,8 @@ function writeManifest(body) {
       .on('error', reject);
   })
 }
+
+
+
+
+

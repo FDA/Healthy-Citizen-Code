@@ -4,9 +4,6 @@
     "fields": {
       "Schema": {
         "limitReturnedRecords": 30
-      },
-      "Subschema": {
-        "limitReturnedRecords": 0
       }
     }
   },
@@ -29,18 +26,13 @@
         ]
       },
       "ImperialHeight": {
-        "transform": [
-          [
-            "heightImperialToMetric",
-            "heightMetricToImperial"
-          ]
-        ],
+        "transform": [["heightImperialToMetric", "heightMetricToImperial"]],
         "validate": [
           {
             "validator": "imperialHeightRange",
             "arguments": {
-              "from": [0,1],
-              "to": [9,11]
+              "from": [0, 1],
+              "to": [9, 11]
             },
             "errorMessages": {
               "default": "This height doesn't look reasonable, shoudld be more than 1\" less than 9'11\""
@@ -49,17 +41,8 @@
         ]
       },
       "ImperialWeight": {
-        "transform": [
-          "trim",
-          [
-            "weightImperialToMetric",
-            "weightMetricToImperial"
-          ]
-        ],
-        "validate": [
-          "min(1)",
-          "max(1400)"
-        ]
+        "transform": ["trim", ["weightImperialToMetric", "weightMetricToImperial"]],
+        "validate": ["min(1)", "max(1400)"]
       },
       "Email": {
         "width": 150,

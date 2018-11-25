@@ -1,5 +1,5 @@
 {
-  "name": "adp-web-frontent-v2",
+  "name": "adp-web-frontent-v4",
   "version": "4.0.0",
   "dependencies": {
     "angular": "1.5.8",
@@ -42,13 +42,13 @@
     "libvorbis.js": "^1.1.2",
     "recorderjs": "https://github.com/mattdiamond/Recorderjs.git",
     "ngmap": "^1.18.4",
-    "fetch": "^2.0.3",
     "angular-bootstrap-datetimepicker": "^1.1.4",
     "datatables-buttons": "^1.5.1",
     "datatables.net-fixedheader": "^3.1.3",
     "angular-ui-router": "1.0.15",
     "json2yaml": "https://github.com/jeffsu/json2yaml.git#^0.1.1",
-    "ng-tags-input": "./smartadmin-plugin/ng-tags-input"
+    "ng-tags-input": "./smartadmin-plugin/ng-tags-input",
+    "idb-keyval": "git://github.com/GordonDrop/idb-keyval#^3.1.0"
   },
   "overrides": {
     "json2yaml": {
@@ -125,6 +125,9 @@
     },
     "libvorbis.js": {
       "main": "js/libvorbis.js"
+    },
+    "idb-keyval": {
+      "main": "dist/idb-keyval-iife-compat.min.js"
     }
   },
   "resolutions": {

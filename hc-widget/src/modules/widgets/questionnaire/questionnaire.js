@@ -45,7 +45,7 @@ export default class Questionnaire {
   getFieldValues(data) {
     const requestOpts = {
       questions: data.questions,
-      fhirDataUrl: this.options.fhirDataUrl,
+      fhirDataUrl: this.options.stu3Url,
       fhirId: this.options.fhirId,
     };
 

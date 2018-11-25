@@ -14,14 +14,28 @@
       restrict: 'E',
       scope: {
         adpField: '=',
+        adpFields: '=',
         adpFormData: '=',
         fieldSelection: '=',
-        adpFormParams: '=?'
+        schema: '=',
+        adpFormParams: '=?',
       },
       link: function (scope, element) {
         scope.uiProps = AdpFieldsService.getTypeProps(scope.adpField);
         var fieldWidth = scope.adpField.formWidth || 12;
         scope.className = 'col';
+
+        // TODO: refactor
+        // modelSchema - grouped fields
+        // schema - original ungrouped schema
+        scope.validationParams = {
+          field: scope.adpField,
+          fields: scope.adpFields,
+          formData: scope.adpFormData,
+          modelSchema: scope.adpFields,
+          schema: scope.schema,
+          $action: scope.adpFormParams && scope.adpFormParams.actionType
+        };
 
         if (fieldWidth) {
           scope.className += ' col-' + fieldWidth;
@@ -33,7 +47,9 @@
             'ng-if="adpField.display"',
             'adp-form-data="adpFormData"',
             'adp-field-ui-props="uiProps"',
-            'adp-field="adpField">',
+            'validation-params="validationParams"',
+            'adp-field="adpField"',
+          '>',
           '</adp-form-field-' + scope.uiProps.directiveType + '>'
         ].join(' ');
 

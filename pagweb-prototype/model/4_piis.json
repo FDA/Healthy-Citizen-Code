@@ -28,53 +28,6 @@
           "fullName": "Display Name",
           "description": "The name to display."
         },
-        "gender": {
-          "type": "String",
-          "list": {
-            name: "genders",
-            scopes: {
-              userScope: {
-                permissions: "accessAsUser",
-                return: "return $list",
-                where: "return true"
-              }
-            }
-          },
-          "fullName": "Gender",
-          "description": "Gender."
-        },
-        "age": {
-          "type": "String",
-          "list": {
-            name: "ages",
-            scopes: {
-              userScope: {
-                permissions: "accessAsUser",
-                return: "return $list",
-                where: "return true"
-              }
-            }
-          },
-          "fullName": "Age",
-          "description": "Age range."
-        },
-        "geographicRegion": {
-          "fullName": "Geographic Region",
-          "type": "String",
-          "list": {
-            "name": "geographicRegions",
-            "scopes": {
-              "userScope": {
-                "permissions": "accessAsUser",
-                return: "return $list",
-                where: "return true"
-              }
-            }
-          },
-          "default": "",
-          "required": false,
-          "description": "High level geographic region of participant"
-        },
         "email": {
           "type": "String",
           "default": "",

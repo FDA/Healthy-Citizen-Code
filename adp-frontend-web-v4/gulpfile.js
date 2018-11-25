@@ -41,7 +41,7 @@ gulp.task('other:dist', gulp.parallel(
 ));
 
 gulp.task('serve', gulp.series('tmp', 'other:serve', 'watch', 'browsersync'));
-gulp.task('build', gulp.series('tmp', 'dist', 'other:dist', 'clean:dist', 'mv:dist'));
+gulp.task('build', gulp.series('tmp', 'dist', 'other:dist', 'clean:dist', 'mv:dist', 'service-worker'));
 gulp.task('default', gulp.series('serve'));
 gulp.task('watch', watch);
 

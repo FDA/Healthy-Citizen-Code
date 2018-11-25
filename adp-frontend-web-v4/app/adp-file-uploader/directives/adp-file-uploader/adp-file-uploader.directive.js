@@ -40,7 +40,6 @@
 
         function bindEvents() {
           $scope.uploader.onSuccessItem = onSuccessFileUpload;
-          $scope.uploader.onError = onErrorFileUpload;
           $scope.uploader.onCompleteAll = onUploadCompeleteAll;
 
           $scope.$on('adpFileUploadStart', startUpload);
@@ -78,6 +77,8 @@
 
         function onSuccessFileUpload(item, response) {
           if (!response.success) {
+            item.isSuccess = false;
+            item.isUploaded = false;
             return $scope.$emit('adpFileUploadError', response);
           }
 
@@ -107,10 +108,6 @@
           });
 
           itemToUpdate.cropped = response.data[0].cropped;
-        }
-
-        function onErrorFileUpload(response, status, headers) {
-          $scope.$emit('adpFileUploadError', response, status, headers);
         }
 
         function onUploadCompeleteAll() {

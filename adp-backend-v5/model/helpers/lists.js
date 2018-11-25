@@ -1,7 +1,5 @@
-module.exports = function () {
-    var m = {
+module.exports = () => {
+  const m = {};
 
-    };
-
-    return m;
+  return m;
 };

@@ -1,5 +1,5 @@
-<hc-content-container>
-    <hc-section-container>
+<adp-content-container>
+    <adp-section-container>
         <uib-tabset
                 class="multiple-widgets-container"
                 ng-if="!vm.loading && vm.fhirId">
@@ -11,13 +11,12 @@
                 <hc-widget
                         widget-id="{{'test-1524560084575'}}"
                         fhir-id="{{vm.fhirId}}"
-                        hc-research-url="{{vm.hcResearchUrl}}"
-                        fhir-data-url="{{vm.fhirDataUrl}}"
+                        udid="{{vm.udid}}"
                         url="{{vm.url}}"
                 >
                 </hc-widget>
 
-                <p ng-if="!vm.fhirId">No fhir id found.</p>
+                <p ng-if="!vm.fhirId">No Deidentified User ID found.</p>
             </uib-tab>
 
             <uib-tab index="1">
@@ -28,14 +27,12 @@
                 <hc-widget
                         widget-id="{{'test-1528713270317'}}"
                         fhir-id="{{vm.fhirId}}"
-                        hc-research-url="{{vm.hcResearchUrl}}"
-                        fhir-data-url="{{vm.fhirDataUrl}}"
-                        patient-data="vm.patientData"
+                        udid="{{vm.udid}}"
                         url="{{vm.url}}"
                 >
                 </hc-widget>
 
-                <p ng-if="!vm.fhirId">No fhir id found.</p>
+                <p ng-if="!vm.fhirId">No Deidentified User ID found.</p>
             </uib-tab>
 
             <uib-tab index="2">
@@ -53,21 +50,20 @@
                 <hc-widget
                         widget-id="{{'test-1527489059979'}}"
                         fhir-id="{{vm.fhirId}}"
-                        hc-research-url="{{vm.hcResearchUrl}}"
-                        fhir-data-url="{{vm.fhirDataUrl}}"
+                        udid="{{vm.udid}}"
                         url="{{vm.url}}"
                 >
                 </hc-widget>
 
-                <p ng-if="!vm.fhirId">No fhir id found.</p>
+                <p ng-if="!vm.fhirId">No Deidentified User ID found.</p>
             </uib-tab>
         </uib-tabset>
 
-    </hc-section-container>
+    </adp-section-container>
 
-    <hc-section-container>
+    <adp-section-container>
         <div class="highlight">
-            <hc-section-title>Multiple widgets initialization.</hc-section-title>
+            <adp-section-title>Multiple widgets initialization.</adp-section-title>
 
             <p>To embed multiple widget add following code to your page:</p>
 
@@ -109,5 +105,5 @@
       </pre>
         </div>
 
-    </hc-section-container>
-</hc-content-container>
+    </adp-section-container>
+</adp-content-container>

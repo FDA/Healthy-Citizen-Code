@@ -16,6 +16,7 @@
   ) {
     // TODO: add formatting function only for lookups
     var typeMap = {
+      'String:Password': showPassword,
       'String[]': printStringArray,
       'Number': showNumber,
       'Select': select,
@@ -72,6 +73,10 @@
       return !!items.length ? items.join(', ') : '-';
     }
 
+    function showPassword() {
+      return '********';
+    }
+
     function select (value, schema) {
       if (_.isUndefined(value) || _.isNull(value)) return '-';
 
@@ -87,11 +92,10 @@
       }
     }
 
-    function selectMultiple(value, schema) {
+    function selectMultiple(value) {
       if (_.isUndefined(value) || _.isNull(value) || _.isEmpty(value)) return '-';
 
-      // TODO: fix
-      return JSON.stringify(value);
+      return value.join(', ');
     }
 
     function date (value, schema) {
@@ -245,7 +249,8 @@
       var currentSchema = _.get(schema, 'fields.' + name);
       var fieldType = AdpSchemaService.getTypeProps(currentSchema);
 
-      var isEmpty = value === '' || _.isUndefined(value) || _.isNull(value) ||
+      var isEmpty = _.isUndefined(currentSchema) || name === '_id' ||
+        value === '' || _.isUndefined(value) || _.isNull(value) ||
         (_.isArray(value) && value.length === 0) ||
         (_.isPlainObject(value) && _.isEmpty(value));
 
@@ -257,7 +262,6 @@
         targetObject[name] = value;
         return;
       }
-
 
       if (fieldType === 'Array') {
         targetObject[name] = _formatArray(value, currentSchema);
@@ -272,29 +276,29 @@
       if (_.isNull(objectValue)) {
         return '-';
       }
+
       var formatted = _formatObject(objectValue, schema);
       var cleaned = ObjectUtil.cleanDeep(formatted);
-      var yaml = ['<pre class="yaml">', json2yaml(cleaned, 2), '</pre>'].join('');
 
-      return _.isEmpty(cleaned) ? '-' : yaml;
+      return _.isEmpty(cleaned) ? '-' : ObjectUtil.toHTML(cleaned, schema);
     }
 
     function printArray(arrayOfValues, schema) {
       if (_.isNull(arrayOfValues)) {
         return '-';
       }
-      var formatted =_formatArray(arrayOfValues, schema);
-      var cleaned = ObjectUtil.cleanDeep(formatted);
-      var yaml = ['<pre class="yaml">', json2yaml(cleaned, 2), '</pre>'].join('');
 
-      return _.isEmpty(cleaned) ? '-' : yaml;
+      var formatted = _formatArray(arrayOfValues, schema);
+      var cleaned = ObjectUtil.cleanDeep(formatted);
+
+      return _.isEmpty(cleaned) ? '-' : ObjectUtil.toHTML(cleaned, schema);
     }
 
     function printStringArray(strings) {
       if (_.isEmpty(strings)) {
         return '-';
       }
-      return strings.join(', ')
+      return strings.join(', ');
     }
   }
 })();

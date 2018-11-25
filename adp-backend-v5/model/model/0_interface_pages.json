@@ -30,7 +30,7 @@ Try to avoid using numbers or any non-alpha characters in the names
           "type": "file",
           "link": "page_aboutConceptant_template.ejs"
         },
-        controller: "Default"
+        "controller": "Default"
       }
     }
   }

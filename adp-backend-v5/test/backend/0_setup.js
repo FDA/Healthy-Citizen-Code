@@ -107,7 +107,7 @@ global.checkForEqualityConsideringInjectedFields = function (data, sample) {
  * @param obj
  *!/
 global.fixObjectId = (obj) => {
-  _.forOwn(obj, (val, key) => {
+  _.each(obj, (val, key) => {
     if ('_id' == key) {
       obj[key] += "";
     } else if ('object' == typeof val) {
@@ -117,7 +117,7 @@ global.fixObjectId = (obj) => {
 };
 
 global.deleteObjectId = (obj) => {
-  _.forOwn(obj, (val, key) => {
+  _.each(obj, (val, key) => {
     if ('_id' == key) {
       delete obj[key];
     } else if ('object' == typeof val) {
@@ -127,7 +127,7 @@ global.deleteObjectId = (obj) => {
 };
 */
 
-/*global.sampleData1 = {
+/* global.sampleData1 = {
   "_id": ObjectID("587179f6ef4807703afd0dfe"),
   "encounters": [
     {
@@ -853,9 +853,9 @@ global.expected = {
       }
     }
   }
-};*/
+}; */
 
-/*describe('V5 Backend Tests Setup', () => {
+/* describe('V5 Backend Tests Setup', () => {
   before(function () {
     process.env.LOG4JS_CONFIG = "./test/log4js.json";
     process.env.MONGODB_URI = process.env.MONGODB_TEST_URI || "mongodb://localhost:27017/adp-integration-test";
@@ -867,4 +867,4 @@ global.expected = {
     mongoose.connection.readyState.should.equal(1);
     done();
   });
-});*/
+}); */

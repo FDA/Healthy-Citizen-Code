@@ -2,8 +2,8 @@
   type="{{uiProps.uiSubtypeType}}"
   name="{{field.keyName}}"
   id="{{field.keyName}}"
-  adp-validate="field"
+  adp-validate="validationParams"
   rows="4"
   ng-model="adpFormData[field.keyName]"
-  ng-required="field.required"
+  ng-required="isRequired()"
   class="form-control"></textarea>

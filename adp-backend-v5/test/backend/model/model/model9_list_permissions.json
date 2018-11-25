@@ -1,8 +1,8 @@
 {
-  models: {
+  "models": {
     "model9list_permissions": {
-      type: "Schema",
-      fields: {
+      "type": "Schema",
+      "fields": {
         "objectValueList": {
           "type": "String",
           "list": {
@@ -15,7 +15,7 @@
         "objectListWithObjectValueList": {
           "type": "String",
           "list": {
-            values: {
+            "values": {
               "val1": "val1",
               "val2": "val2",
               "val3": "val3",
@@ -26,49 +26,43 @@
         "objectListWithReferenceAndNoCustomScopes": {
           "type": "String",
           "list": {
-            name: "test2"
+            "name": "test2"
           }
         },
         "objectListWithReferenceAndCustomScopes": {
           "type": "String",
           "list": {
-            name: "test2",
-            scopes: {
-              userScope: {
-                permissions: "accessAsUser",
-                return: "return $list",
-                where: "return key.endsWith('1') || val.endsWith('2')"
+            "name": "test2",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsUser",
+                "return": "return $list",
+                "where": "return key.endsWith('1') || val.endsWith('2')"
               }
             }
           }
         }
       },
-      scopes: {
-        scopeWithPreparation: {
-          permissions: "accessAsUser",
-          prepare: "loadVerifiedCreatorIds",
-          where: "{$in: [this.req.user._id, this.scopeVars.creatorIds]}"
+      "scopes": {
+        "scopeWithPreparation": {
+          "permissions": "accessAsUser",
+          "prepare": "loadVerifiedCreatorIds",
+          "where": "{$in: [this.req.user._id, this.scopeVars.creatorIds]}"
         }
       },
-      actions: {
+      "actions": {
         "width": 100,
         "responsivePriority": 50,
         "fields": {
           "view": {
-            permissions: [
-              "accessAsUser"
-            ]
+            "permissions": ["accessAsUser"]
           },
           "create": {
-            permissions: [
-              "accessAsUser"
-            ]
+            "permissions": ["accessAsUser"]
           },
           "update": {
-            permissions: [
-              "accessAsUser"
-            ]
-          },
+            "permissions": ["accessAsUser"]
+          }
         }
       }
     }

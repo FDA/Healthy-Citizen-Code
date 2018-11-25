@@ -19,7 +19,8 @@
         adpData: '=',
         adpSubmit: '=',
         adpFormParams: '=?',
-        disableFullscreen: '='
+        disableFullscreen: '=',
+        schema: '='
       },
       transclude: {
         'header': '?formHeader',

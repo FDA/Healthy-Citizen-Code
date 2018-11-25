@@ -1,0 +1,83 @@
+{
+  "models": {
+    "medicationMaster": {
+      "type": "Schema",
+      "fullName": "Medication Master",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "description": "Master collection that ties multiple data sources by ndc11 code",
+      "fields": {
+        "ndc11": {
+          "type": "String",
+          "visible": true,
+          "fullName": "NDC11",
+          "description": "NDC11 defines medication and its package. Contains 11 characters"
+        },
+        "srcNdc": {
+          "type": "String",
+          "visible": true,
+          "fullName": "Src NDC",
+          "description": "Source ndc from which normalized ndc11 code was retrieved"
+        },
+        "genericNames": {
+          "type": "String[]",
+          "visible": true,
+          "fullName": "Generic names",
+          "description": "Generic names. Can contain multiple names."
+        },
+        "brandName": {
+          "type": "String",
+          "visible": true,
+          "fullName": "Brand name",
+          "description": "Brand name."
+        },
+        "rxnsatData": {
+          "type": "Object",
+          "visible": true,
+          "fullName": "Rxnsat Data",
+          "description": "Data from RXNSAT table (file RXNSAT.RRF)",
+          "fields": {
+            "id": {
+              "type": "ObjectID",
+              "visible": true,
+              "fullName": "Rxnsat record id",
+              "description": "Rxnsat record id from other collection",
+              "lookup": {
+                "table": "rxnsats",
+                "foreignKey": "_id",
+                "label": "ndc11",
+                "id": "ndc11"
+              }
+            },
+            "rxcui": {
+              "type": "String",
+              "visible": true,
+              "fullName": "Rxcui",
+              "description": "Rxcui is the group to which medication with current ndc11 is attached"
+            }
+          }
+        },
+        "openFdaData": {
+          "type": "Object",
+          "visible": true,
+          "fullName": "Open Fda Data",
+          "description": "Data received from open FDA.",
+          "fields": {
+            "id": {
+              "type": "ObjectID",
+              "visible": true,
+              "fullName": "Open FDA record id",
+              "description": "Open FDA record id from other collection",
+              "lookup": {
+                "table": "medicationsopenfda",
+                "foreignKey": "_id",
+                "label": "id",
+                "id": "id"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

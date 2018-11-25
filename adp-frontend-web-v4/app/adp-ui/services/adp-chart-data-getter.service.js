@@ -28,26 +28,13 @@
         return options;
       },
       'bar': function (data, options) {
-        var categories = _.map(data, function (item) {
-          return item.questionnaire.questionnaireName;
-        });
+        options.xAxis = { categories: data.categories };
+        options.series = data.series;
 
-        var stats = _.reduce(data, function (result, item) {
-          _.each(item.stats, function (stat, key) {
-            result[key] = result[key] || [];
-            result[key].push(stat);
-          });
-          return result;
-        }, {});
-
-        options.xAxis = { categories: categories };
-        options.series = _.map(stats, function (stats, key) {
-          return {
-            name: key,
-            data: stats
-          }
-        });
-
+        return options;
+      },
+      'column': function (data, options) {
+        options.series = data.series;
         return options;
       },
       'pie': function (data, options) {
@@ -72,6 +59,8 @@
             data: data[index]
           };
         });
+
+        options.series = data.series;
 
         return options;
       }

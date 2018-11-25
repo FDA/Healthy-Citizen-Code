@@ -11,7 +11,8 @@
       scope: {
         fields: '=',
         formData: '=',
-        formParams: '='
+        formParams: '=',
+        schema: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-group/adp-form-group-grouping/adp-form-group-grouping.html',
       require: '^^form',

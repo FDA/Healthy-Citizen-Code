@@ -1,19 +1,30 @@
-<table class="{{@root.config.tableClass}}">
-  <thead>
-  <tr>
-    {{#for 0 @root.config.rowLength heads}}
-      <th
-        data-index="{{@index}}"
-        data-sort-key="{{this}}"
-        style="{{@root.config.cellWidth}}"
-      >
-        {{@current}}
-        <span class="sort-by"></span>
-      </th>
-    {{/for}}
-  </tr>
-  </thead>
+<div class="table-widget">
 
-  {{> partials/tbody }}
+  {{#if @root.config.print}}
+    <div class="table-btns align-right">
+      <button class="btn btn-sm js-print">Print</button>
+    </div>
+  {{/if}}
 
-</table>
+  <h2 class="content-title printable align-center">My Medications Potential Interactions</h2>
+
+  <table class="{{@root.config.tableClass}}">
+    <thead>
+    <tr>
+      {{#for 0 @root.config.rowLength heads}}
+        <th
+          data-index="{{@index}}"
+          data-sort-key="{{this}}"
+          style="{{@root.config.cellWidth}}"
+        >
+          {{@current}}
+          <span class="sort-by"></span>
+        </th>
+      {{/for}}
+    </tr>
+    </thead>
+
+    {{> partials/tbody }}
+
+  </table>
+</div>

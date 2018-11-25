@@ -13,20 +13,26 @@
     $http
   ){
     function setData(model) {
-      var promise = model.data.type === 'url' ? _request(model.data) : $q.when(model.data);
+      var promise = model.data.type === 'url' ?
+        _request(model.data) :
+        $q.when(model.data);
 
       return promise
-        .then(function (response) {
-          var data = !!response.data ? response.data.data : response;
+        .then(function (data) {
           return AdpChartDataGetterService.setData(model, data);
         });
     }
 
     function _request(params) {
-      return $http({
+      var req = {
         method: params.method.toUpperCase(),
         url: APP_CONFIG.apiUrl + params.link
-      });
+      };
+
+      return $http(req)
+        .then(function (res) {
+          return res.data.data;
+        });
     }
 
     function evalOptions(options, dataset, chartIndex) {

@@ -6,14 +6,24 @@
       "description": "Used for testing lookups as the table requiring lookups",
       "fields": {
         "model4Id": {
-          "type": "ObjectID",
+          "type": "LookupObjectID",
           "fullName": "model4Id",
           "lookup": {
             "table": "model4s",
             "foreignKey": "_id",
             "label": "name",
-            "lookupFields": ["name", "description"],
             "id": "model4Id"
+          }
+        },
+        "model4IdSortBy": {
+          "type": "LookupObjectID",
+          "fullName": "model4IdSortBy",
+          "lookup": {
+            "table": "model4s",
+            "foreignKey": "_id",
+            "label": "name",
+            "sortBy": { "name": -1 },
+            "id": "model4IdSortBy"
           }
         }
       }

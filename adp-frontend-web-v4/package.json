@@ -56,7 +56,7 @@
   "scripts": {
     "build": "./node_modules/.bin/gulp build",
     "serve": "./node_modules/.bin/gulp serve",
-    "serve:build": "./node_modules/.bin/gulp browsersync:dist",
+    "serve:build": "./node_modules/.bin/gulp build && ./node_modules/.bin/gulp browsersync:dist",
     "clean": "./node_modules/.bin/gulp clean",
     "serve:test": "./node_modules/.bin/webdriver-manager update && ./node_modules/.bin/webdriver-manager start",
     "load:config": "./node_modules/.bin/gulp load:config",
@@ -72,6 +72,7 @@
     "mime": "^2.2.0",
     "orchid-js": "^6.21.0",
     "protractor": "^5.1.2",
-    "request": "^2.81.0"
+    "request": "^2.81.0",
+    "workbox-build": "^3.6.3"
   }
 }

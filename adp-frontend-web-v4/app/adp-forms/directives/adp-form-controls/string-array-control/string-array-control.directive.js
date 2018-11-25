@@ -5,13 +5,14 @@
     .module('app.adpForms')
     .directive('stringArrayControl', stringArrayControl);
 
-  function stringArrayControl() {
+  function stringArrayControl(AdpValidationService) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/string-array-control/string-array-control.html',
       require: '^^form',
@@ -20,6 +21,7 @@
           setData([]);
         }
 
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
         function setData(value) {
           return scope.adpFormData[scope.field.keyName] = value;
         }

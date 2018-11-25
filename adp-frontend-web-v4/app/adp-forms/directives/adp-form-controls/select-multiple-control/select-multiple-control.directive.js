@@ -7,14 +7,16 @@
 
   function selectMultipleControl(
     AdpFieldsService,
-    AdpFieldFormatUtil
+    AdpFieldFormatUtil,
+    AdpValidationService
   ) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/select-multiple-control/select-multiple-control.html',
       require: '^^form',
@@ -26,6 +28,8 @@
           formatResult: AdpFieldFormatUtil.formatSelectLabel,
           formatSelection: AdpFieldFormatUtil.formatSelectSelection
         };
+
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
       }
     }
   }

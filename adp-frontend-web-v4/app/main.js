@@ -1,5 +1,6 @@
 ;(function (window) {
   'use strict';
+
   var $http = angular.injector(['ng']).get('$http');
 
   // todo: replace with module-like object with setters and getters
@@ -43,15 +44,25 @@
   moment.locale('en');
 
   getModel()
-    .then(function () {
+    .then(function (data) {
+        window.adpAppStore.appModel(data.models);
+        window.adpAppStore.appInterface(data.interface);
+        window.adpAppStore.mediaTypes(data.mediaTypes);
+
       $('[adp-app-page-loader]').remove();
       angular.bootstrap(document, ['app']);
-    })
-    .catch(function (err) {
-      console.log(err);
     });
 
-  function getModel() {
+  function getModel(token) {
+    var request = appModelRequest(token);
+
+    return $http(request)
+      .then(function (res) {
+        return res.data.data;
+      });
+  }
+
+  function appModelRequest(token) {
     var token;
     try {
       token = JSON.parse(localStorage.getItem('ls.token'));
@@ -69,13 +80,6 @@
       req.headers = { 'Authorization': 'JWT ' + token };
     }
 
-    return $http(req)
-      .then(function (res) {
-        var dataRef = res.data.data;
-
-        window.adpAppStore.appModel(dataRef.models);
-        window.adpAppStore.appInterface(dataRef.interface);
-        window.adpAppStore.mediaTypes(dataRef.mediaTypes);
-      });
+    return req;
   }
 })(window);

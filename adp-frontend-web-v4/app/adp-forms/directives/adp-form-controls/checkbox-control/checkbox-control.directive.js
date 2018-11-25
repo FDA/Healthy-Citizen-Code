@@ -5,19 +5,20 @@
     .module('app.adpForms')
     .directive('checkboxControl', checkboxControl);
 
-  function checkboxControl() {
+  function checkboxControl(AdpValidationService) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/checkbox-control/checkbox-control.html',
       require: '^^form',
       link: function (scope) {
         if (isEmpty()) {
-          setData(false)
+          setData(null)
         }
 
         function isEmpty() {
@@ -33,6 +34,7 @@
           return scope.adpFormData[scope.field.keyName];
         }
 
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
       }
     }
   }
