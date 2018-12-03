@@ -1,5 +1,5 @@
 import $ from '../../lib/dom';
-import hcWidgetUtils from '../../lib/utils';
+import { map } from '../../lib/utils';
 import formFieldFactory from '../form-fields/form-field-factory';
 import formTemplate from './form.hbs';
 import formPagination from './form-pagination';
@@ -20,7 +20,7 @@ export default class HcWidgetForm {
   }
 
   render() {
-    this.fields = hcWidgetUtils.map(this.data.questions, this.createField.bind(this));
+    this.fields = map(this.data.questions, this.createField.bind(this));
 
     const paginationOptions = {
       pages: this.fields,

@@ -1,25 +1,21 @@
-import Iframe from '../../iframe';
 import tpl from './preferences.hbs';
 import tableTpl from './partials/medications-table.hbs';
+
 import $ from '../../../lib/dom';
+
 import API from '../../api';
 import {prefrencesQuery, prefrencesMutate} from '../../queries';
 import {HttpError} from "../../errors";
+
 import ndcLookup from '../ndc-lookup/ndc-lookup';
+import {updateIframeHeight, widgetError} from '../../../lib/utils';
 import unionBy from 'lodash.unionby';
 
-export default class NdcLookup {
+export default class Preferences {
   constructor(node, options) {
     this.options = options;
-    this.options.events = {
-      onLoad: this.init.bind(this)
-    };
+    this.$el = $(node);
 
-    new Iframe(node, options);
-  }
-
-  init(iframe) {
-    this.parent = iframe;
     this.medications = [];
 
     prefrencesQuery({udid: this.options.udid})
@@ -30,7 +26,7 @@ export default class NdcLookup {
       })
       .catch(err => {
         console.log(err);
-        this.parent.showMessage('Unable to get data.');
+        widgetError('Unable to get data.');
       });
   }
 
@@ -42,9 +38,7 @@ export default class NdcLookup {
       onSelection: selected => this.addMedication(selected)
     });
     const lookupNode = this.form.querySelector('.js-widget-lookup');
-
-    this.lookup = new ndcLookup('unused', widgetOpts);
-    this.lookup.init($(lookupNode));
+    new ndcLookup(lookupNode, widgetOpts);
 
     this.table = this.form.querySelector('.js-table-lookup');
     this.btn = this.form.querySelector('[type="submit"]');
@@ -53,7 +47,7 @@ export default class NdcLookup {
       this.importBtn = this.form.querySelector('.import-data-btn');
     }
 
-    this.parent.append(this.form);
+    this.$el.append(this.form);
   }
 
   addMedication(selected) {
@@ -81,7 +75,7 @@ export default class NdcLookup {
     } else {
       this.table.innerHTML = '';
     }
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 
   populate({medications, ...other}) {
@@ -208,18 +202,18 @@ export default class NdcLookup {
   hideMessages() {
     const messages = this.form.querySelectorAll('.message');
     [].forEach.call(messages, node => node.classList.add('hidden'));
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 
   showSuccess() {
     this.form.querySelector('.message__success').classList.remove('hidden');
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 
   showServerError(message) {
     const errorNode = this.form.querySelector('.message__error');
     errorNode.innerText = message;
     errorNode.classList.remove('hidden');
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 }

@@ -11,7 +11,7 @@
 
     <button
       type="button"
-      ng-if="!vm.editMode && vm.pageData._actions.create"
+      ng-if="!vm.editMode && vm.showCreate"
       ng-click="vm.enterEditMode()"
       class="btn btn-primary page-action">
       Edit

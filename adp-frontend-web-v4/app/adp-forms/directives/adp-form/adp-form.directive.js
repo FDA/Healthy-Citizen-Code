@@ -35,6 +35,7 @@
           scope.typeMap = AdpFormService.getTypeMap();
           scope.type = AdpFormService.getType(scope.adpFormParams);
           scope.fields = AdpFormService.getFormFields(scope.adpFields, scope.type);
+          //
           scope.fieldsWithShow = AdpFormService.filterFieldsWithShow(scope.fields);
           scope.hasShowFields = !!scope.fieldsWithShow.length;
           scope.errorCount = 0;

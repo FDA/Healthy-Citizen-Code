@@ -1,7 +1,7 @@
 import lodashGet from 'lodash.get';
 import lodashMap from 'lodash.map';
 import { HttpError } from './errors';
-import util from '../lib/utils';
+import {find} from '../lib/utils';
 import CONFIG from '../../config.json';
 import { drugInfoPredictiveSearch, prefrencesQuery, recallByProductDescriptionQuery} from './queries';
 
@@ -12,10 +12,10 @@ const hcWidgetAPI = {
   getQuestionnaireByFhirId,
   getFhirValues,
   getDrugInteractions,
+  getWidgetParams,
   getAdverseEvents,
   getAdverseEventsAlt,
   getRecalls,
-  getWidgetParams,
   getMedicationCodings,
   findInteractionsByRxcuis,
   getMedicationGenericName,
@@ -28,6 +28,20 @@ const hcWidgetAPI = {
   getDrugInfoById,
 };
 export default hcWidgetAPI;
+
+function getWidgetParams (widgetId) {
+  const endpoint = `${CONFIG.widgetApiUrl}/widgets/${widgetId}`;
+
+  return fetch(endpoint)
+    .then(res => res.json())
+    .then(json => {
+      if (json.success) {
+        return json.data;
+      } else {
+        throw new Error('Unable to load widget params');
+      }
+    });
+}
 
 function startQuestionnaire (params, questionnaireId) {
   const endpoint = CONFIG.hcResearchUrl + '/start-questionnaire/' + params.fhirId;
@@ -71,20 +85,6 @@ function updateQuestionnaire (params, data, isCompleted) {
         return json;
       } else {
         throw new Error('Unable to start the questionnaire.');
-      }
-    });
-}
-
-function getWidgetParams (widgetId) {
-  const endpoint = `${CONFIG.widgetUrl}/widgets/${widgetId}`;
-
-  return fetch(endpoint)
-    .then(res => res.json())
-    .then(json => {
-      if (json.success === true && json.data) {
-        return json.data;
-      } else {
-        throw new Error('Unable to load widget params');
       }
     });
 }
@@ -240,8 +240,8 @@ function getMedicationCodings (options) {
     return getMedicationCodingsFromFhirStu3(fhirDataUrl, fhirId);
   } else if (dataSource === 'dstu2') {
     const fhirDataUrl = options.dstu2Url;
-    if (!fhirDataUrl) {
-      throw new Error(`Param 'dstu2Url' is required for '${dataSource}' dataSource`);
+    if (!fhirDataUrl || !fhirId) {
+      throw new Error(`Params 'dstu2Url' and 'fhirId' are required for '${dataSource}' dataSource`);
     }
     return getMedicationCodingsFromDstu2(fhirDataUrl, fhirId);
   } else if (dataSource === 'userPreferences') {
@@ -256,9 +256,6 @@ function getMedicationCodings (options) {
 function getMedicationCodingsFromFhirStu3 (fhirDataUrl, fhirId) {
   // Example: http://test.fhir.org/r3/Patient?_id=pat1&_revinclude=MedicationRequest:subject&_format=json
   // https://sb-fhir-stu3.smarthealthit.org/smartstu3/open/Patient?_id=aa27c71e-30c8-4ceb-8c1c-5641e066c0aa&_revinclude=MedicationRequest:subject&_format=json
-  if (!fhirDataUrl || !fhirId) {
-    return;
-  }
   const fhirUrl = `${fhirDataUrl}/Patient?_id=${fhirId}&_revinclude=MedicationRequest:subject&_format=json`;
 
   return fetch(fhirUrl)
@@ -462,8 +459,8 @@ function getMedicationGenericName (rxcui) {
     })
     .then(json => {
       let conceptGroup = json.allRelatedGroup.conceptGroup;
-      let nameConcept = util.find(conceptGroup, item => item.tty === 'IN');
-      let brandConcept = util.find(conceptGroup, item => item.tty === 'BN');
+      let nameConcept = find(conceptGroup, item => item.tty === 'IN');
+      let brandConcept = find(conceptGroup, item => item.tty === 'BN');
 
       let name = nameConcept.conceptProperties[0].name;
 

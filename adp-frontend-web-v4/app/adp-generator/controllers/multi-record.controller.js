@@ -28,24 +28,68 @@
       'update': updateRecord,
       'delete': deleteRecord,
       'viewDetails': viewDetails,
-      'clone': cloneRecord
+      'clone': cloneRecord,
+      'create': createRecord
     };
     vm.create = createRecord;
+
+    function execActionFromParams(params) {
+      var actionName = params.action;
+      var pageAction = vm.actionCbs[actionName];
+      if (!pageAction) {
+        return;
+      }
+
+      var createFn = function () {
+        var createAllowed = !!vm.actions.fields.create;
+        // fall silently
+        if (!createAllowed) {
+          return;
+        }
+
+        pageAction();
+      };
+
+      var otherAction = function () {
+        var id = params['_id'];
+        // fail silently
+        if (!id) {
+          return;
+        }
+
+        var data = _.find(vm.pageData, function (d) {
+          return d['_id'] === id;
+        });
+
+        // fail silently
+        if (!data) {
+          return;
+        }
+
+        // check record permissions
+        if (!data._actions[actionName]) {
+          return;
+        }
+
+        pageAction(data);
+      };
+
+      if (actionName === 'create') {
+        createFn()
+      } else {
+        otherAction();
+      }
+    }
 
     function getPageData() {
       return AdpDataService.getData(vm.pageParams, vm.schema)
         .then(function (data) {
           vm.pageData = data;
+          execActionFromParams($state.params);
           vm.loading = false;
         });
     }
     getPageData();
-
-    // Check state param addRecord, open add popup if true
-    if ($state.params.addRecord) {
-      vm.create();
-      $state.params.addRecord = null;
-    }
 
     // Actions definition
     function createRecord() {

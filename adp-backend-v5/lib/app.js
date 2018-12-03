@@ -31,6 +31,7 @@ module.exports = (opts = {}) => {
   m.log = require('log4js').getLogger('lib/app');
   m.accessCfg = require('./access-config');
   m.butil = require('./backend-util');
+  m.transformers = require('./transformers')(m);
 
   m.accessUtil = require('./access-util')(m);
   m.dba = require('./database-abstraction')(m);

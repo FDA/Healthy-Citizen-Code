@@ -1,6 +1,6 @@
 import _debounce from 'lodash.debounce';
-import Iframe from '../../iframe';
 import $ from '../../../lib/dom';
+import {updateIframeHeight} from '../../../lib/utils';
 import tpl from './ndc-lookup.hbs';
 import resultsTpl from './partials/results.hbs';
 import suggestionsTpl from './partials/suggestions.hbs';
@@ -9,28 +9,21 @@ import { HttpError } from '../../errors';
 
 export default class NdcLookup {
   constructor(node, options) {
+    this.$el = $(node);
     this.options = options;
-    this.options.events = {
-      onLoad: this.init.bind(this)
-    };
-
     this.loading = false;
-    this.resetPage();
 
-    if (!this.options.selection) {
-      new Iframe(node, options);
-    }
+    this.resetPage();
+    this.init();
   }
 
   resetPage() {
     this.page = 1;
   }
 
-  init($parent) {
-    this.parent = $parent;
-
+  init() {
     this.$form = $(tpl());
-    this.parent.append(this.$form);
+    this.$el.append(this.$form);
 
     this.form = this.$form.get(0);
     this.input = this.form.querySelector('input');
@@ -129,13 +122,13 @@ export default class NdcLookup {
 
     this.$results.get(0).innerHTML = '';
 
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 
   hideErrorMessages() {
     let nodes = this.form.querySelectorAll('.error-message');
     nodes.forEach(node => node.style.display = 'none');
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 
   drawResults(data) {
@@ -144,7 +137,7 @@ export default class NdcLookup {
     this.$results.replaceWith(node);
     this.$results = node;
 
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 
   drawSuggestions(data) {
@@ -158,7 +151,7 @@ export default class NdcLookup {
 
     this.suggestionsList.innerHTML += node.innerHTML;
 
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 
   hideSuggestions() {
@@ -167,6 +160,6 @@ export default class NdcLookup {
     this.closeBtn.classList.add('hidden');
     this.suggestionsList.innerHTML = '';
 
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 }

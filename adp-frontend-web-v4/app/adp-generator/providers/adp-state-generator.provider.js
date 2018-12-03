@@ -40,7 +40,6 @@
     views: {
       content: {}
     },
-    params: {addRecord: null},
     data: {}
   };
 
@@ -143,10 +142,15 @@
         var state = _.clone(stateDefault);
         var schemaPath = _getSchemaPath(schemaName, parentSchemaPath);
 
-        state.url = _getStateUrl(schemaPath);
+        state.url = _getStateUrl(schemaPath) + '?action&_id';
         state.data = _getPageData(schemaItem, schemaName, schemaPath);
         state.name = 'app.' + schemaName;
         state.views = _getPageContent(schemaPath);
+
+        state.params = {
+          action: null,
+            '_id': null
+        };
 
         return state;
       } catch (e) {

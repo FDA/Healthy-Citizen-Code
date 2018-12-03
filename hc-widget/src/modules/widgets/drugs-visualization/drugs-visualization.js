@@ -1,27 +1,20 @@
-import Iframe from '../../iframe';
 import getDrugsRelations from './data-service';
 import createView from './drug-visualization-view';
+import {updateIframeHeight, widgetError} from '../../../lib/utils';
+
 import tpl from './drugs-visualization.hbs';
 import $ from '../../../lib/dom';
 
 export default class drugsVisualization {
   constructor(node, options) {
+    this.$el = $(node);
     this.options = options;
-    this.options.events = {
-      onLoad: this.onLoad.bind(this)
-    };
-
-    new Iframe(node, this.options);
-  }
-
-  onLoad(iframe) {
-    this.parent = iframe;
 
     return this.fetchData()
       .then(message => this.createWidget(message))
       .catch(err => {
+        widgetError('Unable to get medications list.');
         console.error(err);
-        this.parent.showMessage('Unable to get medications list.');
       });
   }
 
@@ -35,7 +28,8 @@ export default class drugsVisualization {
     const widgetBody = $(tpl()).get(0);
     const viewport = $('svg', widgetBody).get(0);
 
-    this.parent.append(widgetBody);
+    this.$el.append(widgetBody);
     createView(viewport, data);
+    updateIframeHeight();
   }
 }

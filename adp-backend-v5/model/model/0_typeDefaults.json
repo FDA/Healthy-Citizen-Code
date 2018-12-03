@@ -142,8 +142,8 @@
           {
             "validator": "regex",
             "arguments": {
-              "regex": "((?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%!&^*-_]).{8})",
-              "regexOptions": "i"
+              "regex": "^(?=.*\\d)(?=.*[a-z])(?=.*[A-Z])(?=.*[@#$%!&^*_\\-]).{8,}$",
+              "regexOptions": ""
             },
             "errorMessages": {
               "default": "Password must contain at least one of each: digit 0-9, lowercase character, uppercase character and one special character: @#$%!&^*-_ and be at least 8 characters long"

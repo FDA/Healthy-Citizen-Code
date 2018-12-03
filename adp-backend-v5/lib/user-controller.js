@@ -12,7 +12,7 @@ const _ = require('lodash');
 const User = mongoose.model('users');
 
 module.exports = appLib => {
-  const transformers = require('./transformers')(appLib);
+  const { transformers } = appLib;
 
   const m = {};
   m.appLib = appLib;

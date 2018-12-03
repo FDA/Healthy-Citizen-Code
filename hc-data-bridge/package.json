@@ -32,7 +32,7 @@
     "csv-parser": "^1.12.1",
     "datapumps": "^0.5.1",
     "dotenv": "^4.0.0",
-    "event-stream": "^3.3.6",
+    "event-stream": "3.3.4",
     "faker": "^4.1.0",
     "fast-csv": "^2.4.1",
     "fhir.js": "0.0.20",
@@ -64,6 +64,7 @@
   },
   "devDependencies": {
     "eslint-config-airbnb-standard": "^1.6.7",
-    "nodemon": "^1.18.4"
+    "nodemon": "^1.18.4",
+    "prettier": "^1.14.3"
   }
 }

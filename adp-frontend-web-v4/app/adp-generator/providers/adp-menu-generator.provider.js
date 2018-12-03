@@ -85,8 +85,7 @@
             } else {
               stateName = _linkToState(item.link);
               menuItem.link = item.link;
-              // TODO: refactor to provide params from CurrentUser{} here, not from smartMenuItems.js directive
-              menuItem.stateName = (item.action === 'add') ? stateName + '({addRecord: true})' : stateName;
+              menuItem.stateName = stateName;
             }
           }
 

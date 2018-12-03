@@ -2,6 +2,7 @@ import registerHelpers from './lib/hbs-helpers';
 registerHelpers();
 
 import hcWidgetAPI from './modules/api';
+import {setStylesFromParams, widgetError} from './lib/utils';
 
 import Questionnaire from './modules/widgets/questionnaire/questionnaire';
 import DrugInteractions from './modules/widgets/drug-interactions/drug-interactions';
@@ -25,29 +26,38 @@ const widgetMap = {
   'preferences': preferences
 };
 
-// todo: move to css
 const widgetDefaults = {
   'type': 'questionnaire',
   'thankYouText': 'Thank you for participating in this survey.',
   'welcomeText': 'Hello! Click the button below to start the questionnaire.'
 };
 
-const hcWidget = function (node, options) {
-  //  TODO: do widget id check, throw error for null
-  hcWidgetAPI.getWidgetParams(options.widgetId)
-    .then(params => {
-      const opts = Object.assign({}, widgetDefaults, params, options);
-      const widget = widgetMap[opts.type];
-
-      new widget(node, opts);
-    })
-    .catch(err => console.log(err));
+const inIframe = () => {
+  try {
+    return window.self !== window.top;
+  } catch (e) {
+    return true;
+  }
 };
-window['hcWidget'] = hcWidget;
 
-const widgets = document.querySelectorAll('[data-widget-id]');
+// main init logic
+(function () {
+  if (!inIframe()) {
+    console.error('Widget init interrupted. Reason: Trying to initialize widget outside of iframe.');
+    return;
+  }
+  const WIDGET_BODY_ID = 'hc-widget-body';
+  const widgetConfig = document.querySelector(`#${WIDGET_BODY_ID}`).dataset;
 
-for (let i = 0; i < widgets.length; i++) {
-  let node = widgets[i];
-  hcWidget(node, node.dataset);
-}
+  hcWidgetAPI.getWidgetParams(widgetConfig.widgetId)
+    .then(params => {
+      const opts = Object.assign({}, widgetDefaults, params, widgetConfig);
+      setStylesFromParams(opts);
+
+      new widgetMap[opts.type](document.body, opts);
+    })
+    .catch(err => {
+      console.log(err);
+      widgetError(err.message);
+    });
+})();

@@ -5,14 +5,24 @@
   <title>Visualization Widget Test</title>
 </head>
 <body>
-<!-- widget type is determined only be data-widget-id from the widget server -->
-<script
-  src="http://localhost:9000/hc-widget.js"
+
+<script>
+  (function(d, s, id){
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {return;}
+    js = d.createElement(s); js.id = id;
+    js.src = "http://localhost:9000/hc-widget-loader.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'hc-widget-script'))
+</script>
+
+<div
+  hc-widget
+  data-widget-id="test-1523952340837"
   data-fhir-id="aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
   data-fhir-data-url="https://fhir.conceptant.com/baseDstu3"
-  data-widget-id="test-1523952340837"
 >
-</script>
+</div>
 
 </body>
 </html>

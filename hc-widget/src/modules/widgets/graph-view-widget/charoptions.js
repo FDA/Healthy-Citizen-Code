@@ -1,4 +1,4 @@
-import Iframe from '../../iframe';
+import {updateIframeHeight} from '../../../lib/utils';
 
 export default function getChartOptions(reactions, medicationName) {
   return {
@@ -9,9 +9,8 @@ export default function getChartOptions(reactions, medicationName) {
       type: 'pie',
       backgroundColor: 'rgba(255, 255, 255, 0)',
       events: {
-        redraw: function () {
-          Iframe.updateIframeHeight();
-        }
+        redraw: updateIframeHeight,
+        load: updateIframeHeight,
       }
     },
     title: {

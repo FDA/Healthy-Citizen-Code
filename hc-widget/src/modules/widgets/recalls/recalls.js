@@ -1,9 +1,9 @@
-import Iframe from '../../iframe';
 import hcWidgetAPI from '../../api';
 import $ from '../../../lib/dom';
 import Table from '../../../modules/table/table';
 import recallsTemplate from './recalls.hbs';
 import openFdaHelpers from '../../../modules/open-fda-helpers';
+import {widgetError} from '../../../lib/utils';
 
 function createRecall(data, formatFn, type) {
   return {
@@ -33,21 +33,13 @@ function formatRecalls(recalls) {
 
 export default class Recalls {
   constructor(node, options) {
+    this.$el = $(node);
     this.options = options;
-    this.options.events = {
-      onLoad: this.onIframeLoad.bind(this)
-    };
-
-    new Iframe(node, options);
-  }
-
-  onIframeLoad(iframe) {
-    this.parent = iframe;
 
     this.fetchData()
       .catch(err => {
         console.error(err);
-        this.parent.showMessage(err.message);
+        widgetError(err.message);
       });
   }
 
@@ -55,9 +47,10 @@ export default class Recalls {
     return hcWidgetAPI.getRecalls(this.options)
       .then(data => {
         if (data.length) {
+          this.buildWidgetBody();
           this.buildTable(data);
         } else {
-          throw new Error('Unable to get adverse events.');
+          throw new Error('Unable to get recalls.');
         }
       });
   }
@@ -70,11 +63,15 @@ export default class Recalls {
     }
   }
 
+  buildWidgetBody() {
+    this.widgetBody = $(recallsTemplate());
+    this.$el.append(this.widgetBody);
+  }
+
   buildTable(recalls) {
     const data = formatRecalls(recalls);
     const heads = this.heads(data);
 
-    const widgetBody = $(recallsTemplate());
     const table = new Table({
       heads, data,
       groupTitle: 'Total number of recalls:',
@@ -84,7 +81,6 @@ export default class Recalls {
       order: 'desc'
     });
 
-    table.appendTo(widgetBody);
-    this.parent.append(widgetBody);
+    table.appendTo(this.widgetBody);
   }
 }

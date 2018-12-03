@@ -9,7 +9,7 @@ const _ = require('lodash');
  * This will be possible with further expansion of this module.
  */
 module.exports = appLib => {
-  const transformers = require('./transformers')(appLib);
+  const { transformers } = appLib;
   const m = {};
 
   m.getConditionForActualRecord = () => ({

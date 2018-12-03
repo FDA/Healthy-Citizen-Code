@@ -45,16 +45,15 @@
       var APP_MODEL = window.adpAppStore.appModel();
       var login = _.cloneDeep(APP_MODEL['users']['fields']['login']);
       var password = _.cloneDeep(APP_MODEL['users']['fields']['password']);
+
+      login.showInForm = true;
+      login.fieldInfo = {write: true, read: true};
+
       password.subtype = 'PasswordAuth';
+      password.fieldInfo = { write: true, read: true };
+      password.showInForm = true;
 
-      login.fieldInfo = {
-        write: true,
-        read: true
-      };
-
-      // FIXME: remove after password validation fixed
-      password.validate = password.validate.slice(1);
-      login.visible = true;
+      removeRegexValidator(password);
 
       return {
         'login': login,
@@ -72,12 +71,19 @@
     // hardcode
     function getRegisterSchema() {
       var APP_MODEL = window.adpAppStore.appModel();
+
       var login = _.cloneDeep(APP_MODEL['users']['fields']['login']);
+      login.showInForm = true;
+      login.fieldInfo = {write: true, read: true};
+
       var email = APP_MODEL['users']['fields']['email'];
+      email.showInForm = true;
+
       var password = _.cloneDeep(APP_MODEL['users']['fields']['password']);
-      // FIXME: remove after password validation fixed
+      password.fieldInfo = { write: true, read: true };
+      password.showInForm = true;
       password.subtype = 'PasswordAuth';
-      password.validate = password.validate.slice(1);
+
       var passwordConfirmation = _.cloneDeep(password);
 
       passwordConfirmation.fullName = 'Verify Password';
@@ -92,13 +98,6 @@
           }
         }
       ];
-
-      login.visible = true;
-      login.fieldInfo = {
-        write: true,
-        read: true
-      };
-      email.visible = true;
 
       return {
         'login': login,
@@ -118,6 +117,10 @@
     function getPasswordSchema() {
       var APP_MODEL = window.adpAppStore.appModel();
       var password = _.cloneDeep(APP_MODEL['users']['fields']['password']);
+      removeRegexValidator(password);
+
+      password.fieldInfo = { write: true, read: true };
+      password.showInForm = true;
       password.subtype = 'PasswordAuth';
 
       var passwordConfirmation = _.cloneDeep(password);
@@ -138,6 +141,17 @@
       return {
         'password': password,
         'passwordConfirmation': passwordConfirmation
+      }
+    }
+
+    // check for details https://jira.conceptant.com/browse/HC-1362
+    function removeRegexValidator(field) {
+      var validatorIndex = _.findIndex(field.validate, function (o) {
+        return o.validator === 'regex'
+      });
+
+      if (validatorIndex > -1) {
+        field.validate.splice(validatorIndex, 1);
       }
     }
 

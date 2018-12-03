@@ -1,7 +1,7 @@
-import Iframe from '../../iframe';
 import hcWidgetAPI from '../../api';
 import $ from '../../../lib/dom';
 import Table from '../../../modules/table/table';
+import {widgetError} from '../../../lib/utils';
 
 import drugInteractionsTemplate from './drug-interactions.hbs';
 
@@ -40,21 +40,13 @@ function fortmatInteractions(data) {
 
 export default class DrugInteractions {
   constructor(node, options) {
+    this.$el = $(node);
     this.options = options;
-    this.options.events = {
-      onLoad: this.onIframeLoad.bind(this)
-    };
-
-    new Iframe(node, options);
-  }
-
-  onIframeLoad(iframe) {
-    this.parent = iframe;
 
     this.fetchData()
       .catch(err => {
         console.error(err);
-        this.parent.showMessage(err.message);
+        widgetError(err.message);
       });
   }
 
@@ -62,23 +54,28 @@ export default class DrugInteractions {
     return hcWidgetAPI.getDrugInteractions(this.options)
       .then(data => {
         if (data.count) {
-          this.buildTable(data)
+          this.buildWidgetBody();
+          this.buildTable(data);
         } else {
           throw new Error('Unable to get drugs interactions.')
         }
       });
   }
 
+  buildWidgetBody() {
+    this.widgetBody = $(drugInteractionsTemplate());
+    this.$el.append(this.widgetBody);
+  }
+
   buildTable(drugInteractions) {
     const data = fortmatInteractions(drugInteractions.list);
     const heads = Object.keys(data[0]);
 
-    const widgetBody = $(drugInteractionsTemplate());
-    const table = new Table({ heads, data, sortBy: 'Severity', order: 'desc', print: true });
-    // TODO: replace with root for current widget
-    table.parent = this.parent;
+    const table = new Table({
+      heads, data,
+      sortBy: 'Severity', order: 'desc', print: true
+    });
 
-    table.appendTo(widgetBody);
-    this.parent.append(widgetBody);
+    table.appendTo(this.widgetBody);
   }
 }

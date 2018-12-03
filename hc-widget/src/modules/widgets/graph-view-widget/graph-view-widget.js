@@ -1,12 +1,12 @@
 import _map from 'lodash.map';
 import _Highcharts from '../../../lib/highcharts';
 
-import Iframe from '../../iframe';
 import $ from '../../../lib/dom';
 import tpl from './graph-view-widget.hbs';
 
 import getChartOptions from './charoptions';
 import {adverseEventsQuery, prefrencesQuery} from '../../queries';
+import {widgetError} from "../../../lib/utils";
 
 const prepareData = data => {
   let results = {};
@@ -39,20 +39,17 @@ const prepareData = data => {
 
 export default class NdcLookup {
   constructor(node, options) {
+    this.$el = $(node);
     this.options = options;
-    this.options.events = {
-      onLoad: this.onIframeLoad.bind(this)
-    };
 
-    new Iframe(node, options);
-  }
-
-  onIframeLoad(iframe) {
-    this.parent = iframe;
     this.$loader = $('<div class="loader-wrap"><div class="loader"></div></div>');
-    this.parent.append(this.$loader);
+    this.$el.append(this.$loader);
 
-    this.fetchData();
+    this.fetchData()
+      .catch(err => {
+        console.error(err);
+        widgetError(err.message);
+      });
   }
 
   fetchData() {
@@ -64,17 +61,7 @@ export default class NdcLookup {
           throw new Error('Unable to get adverse events. Medication list is empty.');
         }
       })
-      .then(data => {
-        if (data.length) {
-          this.init(data);
-        } else {
-          throw new Error('Unable to get adverse events.');
-        }
-      })
-      .catch(err => {
-        console.error(err);
-        this.parent.showMessage(err.message);
-      });
+      .then(data => this.init(data));
   }
 
   init(data) {
@@ -93,7 +80,7 @@ export default class NdcLookup {
   build() {
     this.widgetBody = $(tpl({results: this.results})).get(0);
     this.$loader.remove();
-    this.parent.append(this.widgetBody);
+    this.$el.append(this.widgetBody);
   }
 
   bindEvents() {

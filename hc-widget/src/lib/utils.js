@@ -1,14 +1,11 @@
-const hcWidgetUtils = {
-  isArray, forEach, map, get,toCamelCase, find
-};
+import lodashReduce from "lodash.reduce";
+import lodashMap from "lodash.map";
 
-export default hcWidgetUtils;
-
-function isArray(arg) {
+export function isArray(arg) {
   return Object.prototype.toString.call(arg) === '[object Array]';
 }
 
-function forEach(object, cb) {
+export function forEach(object, cb) {
   if (isArray(object)) {
     object.forEach(cb);
   } else {
@@ -20,7 +17,7 @@ function forEach(object, cb) {
   }
 }
 
-function map(object, cb) {
+export function map(object, cb) {
   var newArray = [];
 
   if (isArray(object)) {
@@ -36,7 +33,7 @@ function map(object, cb) {
   return newArray;
 }
 
-function get(object, path, defaultValue) {
+export function get(object, path, defaultValue) {
   function getByPath(object, path) {
     var index = 0;
     var pathParts = path.split('.');
@@ -56,13 +53,13 @@ function get(object, path, defaultValue) {
   return result === undefined ? defaultValue : result;
 }
 
-function toCamelCase(str) {
+export function toCamelCase(str) {
   return str.replace(/\s(.)/g, $1 => $1.toUpperCase())
     .replace(/\s/g, '')
     .replace(/^(.)/, $1 => $1.toLowerCase());
 }
 
-function find(array, cb) {
+export function find(array, cb) {
   for (let i = 0; i < array.length; i++) {
     if (cb(array[i], i)) {
       return array[i];
@@ -70,4 +67,46 @@ function find(array, cb) {
   }
 
   return null;
+}
+
+export function updateIframeHeight() {
+  let iframeName = window.name;
+  let iframe = window.parent.document.querySelector(`iframe[name="${iframeName}"]`);
+  iframe.style.height = document.body.offsetHeight + 'px';
+}
+
+export function setStylesFromParams(widgetConfig) {
+  const rules = {
+    'fontFace': v => `font-family: ${v}, Sans-Serif;`,
+    'fontSize': v => {
+      let fontSize = +v;
+      let lineHeight = fontSize * 1.25;
+
+      return `font-size: ${fontSize}px; line-height: ${lineHeight}px;`
+    },
+    'fontStyle': v => {
+      const map = {
+        'bold': 'font-weight: bold',
+        'italic': 'font-style: italic',
+        'underline': 'text-decoration: underline',
+        'strikeout': 'text-decoration: line-through'
+      };
+
+      return lodashMap(v, rule => map[rule]).join(';');
+    }
+  };
+
+  let styles = lodashReduce(rules, (result, ruleFn, key) => {
+    let option = widgetConfig[key];
+    result += option ? ruleFn(option) : '';
+    return result;
+  }, '');
+
+  document.body.setAttribute('style', styles);
+}
+
+export function widgetError(message) {
+  const div = document.createElement('div');
+  div.innerText = message;
+  document.body.innerHTML = div.outerHTML;
 }

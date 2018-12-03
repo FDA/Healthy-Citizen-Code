@@ -5,7 +5,6 @@ const config = {
   devtool: 'eval',
   devServer: {
     contentBase: defaultConfig.output.path,
-    compress: true,
     port: 9000
   }
 };
