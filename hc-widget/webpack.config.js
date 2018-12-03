@@ -2,9 +2,12 @@ const path = require('path');
 const distPath = path.resolve(__dirname, 'dist');
 
 module.exports = {
-  entry: ['babel-polyfill', 'whatwg-fetch', './src/index.js'],
+  entry: {
+    'hc-widget-loader': './src/script-loader/index.js',
+    'hc-widget': ['babel-polyfill', 'whatwg-fetch', './src/index.js']
+  },
   output: {
-    filename: 'hc-widget.js',
+    filename: '[name].js',
     path: distPath
   },
   module: {

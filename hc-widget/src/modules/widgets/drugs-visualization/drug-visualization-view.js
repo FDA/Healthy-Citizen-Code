@@ -111,6 +111,7 @@ function createLinks(appView, links) {
     .attr('class', link => `link group-${link.groupId()}`)
     .attr('stroke', link => link.prop('stroke'))
     .attr('stroke-width', link => link.prop('strokeWidth'));
+
   return graph.line;
 }
 
@@ -304,7 +305,7 @@ function highlightObject(obj) {
         highlighted = null;
     }
 }
-
+// why here ???
 var selected = {};
 var graph = {};
 var highlighted = null;

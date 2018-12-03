@@ -128,6 +128,10 @@ module.exports = () => {
 
   m.getCropParams = req => {
     const paramsStr = _.get(req, 'body.cropParams');
+    if (!paramsStr) {
+      return;
+    }
+
     let cropParams;
     try {
       cropParams = JSON.parse(paramsStr);

@@ -1,29 +1,23 @@
-import Iframe from '../../iframe';
 import hcWidgetAPI from '../../api';
 import $ from '../../../lib/dom';
+import {widgetError} from '../../../lib/utils';
+
 import Table from '../../../modules/table/table';
 import adverseEventsTemplate from './adverse-events.hbs';
 import { formatEvents } from './adverse-events.helpers'
 
 export default class AdverseEvents {
   constructor(node, options) {
+    this.$el = $(node);
     this.options = options;
-    this.options.events = {
-      onLoad: this.onIframeLoad.bind(this)
-    };
 
-    new Iframe(node, options);
-  }
-
-  onIframeLoad(iframe) {
-    this.parent = iframe;
     this.$loader = $('<div class="loader-wrap"><div class="loader"></div></div>');
-    this.parent.append(this.$loader);
+    this.$el.append(this.$loader);
 
     this.fetchData()
       .catch(err => {
         console.error(err);
-        this.parent.showMessage(err.message);
+        widgetError(err.message);
       });
   }
 
@@ -35,9 +29,9 @@ export default class AdverseEvents {
 
     return hcWidgetAPI.getAdverseEventsAlt(this.options)
       .then(data => {
-        this.$loader.remove();
-
         if (data.length) {
+          this.$loader.remove();
+          this.buildWidgetBody();
           this.buildTable(data);
         } else {
           throw new Error('Unable to get adverse events.');
@@ -53,11 +47,15 @@ export default class AdverseEvents {
     }
   }
 
+  buildWidgetBody() {
+    this.widgetBody = $(adverseEventsTemplate());
+    this.$el.append(this.widgetBody);
+  }
+
   buildTable(medications) {
     const data = formatEvents(medications);
     const heads = this.heads(data);
 
-    const widgetBody = $(adverseEventsTemplate());
     const table = new Table({
       heads, data,
       groupTitle: 'Total number of adverse events:',
@@ -66,7 +64,6 @@ export default class AdverseEvents {
       hideCols: 2,
     });
 
-    table.appendTo(widgetBody);
-    this.parent.append(widgetBody);
+    table.appendTo(this.widgetBody);
   }
 }

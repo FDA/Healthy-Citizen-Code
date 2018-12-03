@@ -42,7 +42,7 @@ module.exports = function (globalMongoose) {
         res.json({success: false, message: 'Unable to find file record'});
       } else {
         // TODO: this is a very hacky way to convert .xls into .json. Use web service in the final version
-        let cmd = `cp ../${data.filePath} /tmp/${tmpfile}.xls && cd ../hc-data-bridge && node generateAppModelByFile.js --inputFilePath=/tmp/${tmpfile}.xls --backendMetaschema --outputModelPath=/tmp/${tmpfile} && echo "-----------CUTLINE---------" &&cat /tmp/${tmpfile}`;
+        let cmd = `cp ${data.filePath} /tmp/${tmpfile}.xls && cd ../hc-data-bridge && node generateAppModelByFile.js --inputFilePath=/tmp/${tmpfile}.xls --backendMetaschema --outputModelPath=/tmp/${tmpfile} && echo "-----------CUTLINE---------" &&cat /tmp/${tmpfile}`;
         exec(cmd, (err, stdout, stderr) => { //
           if (err) {
             res.json({success: false, message: 'Unable to process the .xls file', err: err});
@@ -57,11 +57,11 @@ module.exports = function (globalMongoose) {
   };
 
   m.postQuestionnaire = (req, res, next) => {
-    updateQuestionnaire(req, res, m.appLib.mainController.postItem, next);
+    updateQuestionnaire(req, res, m.appLib.controllers.main.postItem, next);
   };
 
   m.putQuestionnaire = (req, res, next) => {
-    updateQuestionnaire(req, res, m.appLib.mainController.putItem, next);
+    updateQuestionnaire(req, res, m.appLib.controllers.main.putItem, next);
   };
 
   function getInProgressQuestionnaire(fhirId) {
@@ -379,7 +379,7 @@ module.exports = function (globalMongoose) {
         answersToQ.set('answers', newAnswers);
         answersToQ.set('status', questionnaireStatuses.inProgress);
 
-        // calculate spent time if
+        // calculate spent time
         const isCompleted = req.body.data.isCompleted;
         if (isCompleted) {
           const endTime = new Date();

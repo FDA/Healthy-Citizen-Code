@@ -19,6 +19,39 @@ const sampleModel1 = {
     comment: {},
     fields: {},
     subtype: {},
+    visible: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Visible',
+      description:
+        'Determines if the field should be visible in the forms by default or not. Can be overridden in a specific form, but will be sent to the front-end',
+    },
+    showInDatatable: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Datatable',
+      description: 'If set to true (default) then this field will be displayed in the datatables.',
+    },
+    showInViewDetails: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form of viewDetails action',
+      description:
+        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+    },
+    showInForm: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form',
+      description: 'If set to true (default) then this field will be displayed in the form.',
+    },
+    showInGraphQL: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In GraphQL',
+      description:
+        'If set to true (default) then this field will be added to GraphQL type thus it can be present in Query.',
+    },
     permissions: {},
   },
   typeDefaults: {
@@ -64,6 +97,39 @@ const sampleModel2WithLookups = {
     },
     comment: {},
     fields: {},
+    visible: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Visible',
+      description:
+        'Determines if the field should be visible in the forms by default or not. Can be overridden in a specific form, but will be sent to the front-end',
+    },
+    showInDatatable: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Datatable',
+      description: 'If set to true (default) then this field will be displayed in the datatables.',
+    },
+    showInViewDetails: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form of viewDetails action',
+      description:
+        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+    },
+    showInForm: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form',
+      description: 'If set to true (default) then this field will be displayed in the form.',
+    },
+    showInGraphQL: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In GraphQL',
+      description:
+        'If set to true (default) then this field will be added to GraphQL type thus it can be present in Query.',
+    },
     subtype: {},
     lookup: {},
     transform: {},
@@ -140,6 +206,39 @@ const sampleModel3DefaultSortBy = {
     comment: {},
     fields: {},
     subtype: {},
+    visible: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Visible',
+      description:
+        'Determines if the field should be visible in the forms by default or not. Can be overridden in a specific form, but will be sent to the front-end',
+    },
+    showInDatatable: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Datatable',
+      description: 'If set to true (default) then this field will be displayed in the datatables.',
+    },
+    showInViewDetails: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form of viewDetails action',
+      description:
+        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+    },
+    showInForm: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form',
+      description: 'If set to true (default) then this field will be displayed in the form.',
+    },
+    showInGraphQL: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In GraphQL',
+      description:
+        'If set to true (default) then this field will be added to GraphQL type thus it can be present in Query.',
+    },
     defaultSortBy: {},
     permissions: {},
   },
@@ -198,6 +297,39 @@ const sampleModel4ValidatorsAndTransformers = {
     },
     comment: {},
     fields: {},
+    visible: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Visible',
+      description:
+        'Determines if the field should be visible in the forms by default or not. Can be overridden in a specific form, but will be sent to the front-end',
+    },
+    showInDatatable: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Datatable',
+      description: 'If set to true (default) then this field will be displayed in the datatables.',
+    },
+    showInViewDetails: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form of viewDetails action',
+      description:
+        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+    },
+    showInForm: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form',
+      description: 'If set to true (default) then this field will be displayed in the form.',
+    },
+    showInGraphQL: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In GraphQL',
+      description:
+        'If set to true (default) then this field will be added to GraphQL type thus it can be present in Query.',
+    },
     subtype: {},
     validate: {},
     transform: {},

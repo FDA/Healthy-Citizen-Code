@@ -10,7 +10,7 @@ const lookupObjectIDType = `type LookupObjectID {
   `;
 
 function resolveGraphQLType(field) {
-  if (!field.visible) {
+  if (!field.showInGraphQL) {
     return;
   }
   const type = field.type.replace('[]', '');

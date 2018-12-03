@@ -1,7 +1,5 @@
-import hcWidgetUtils from '../lib/utils';
-
-export default function createIframe(opts) {
-  var opts = opts || {};
+export default function iframeDOM(opts) {
+  var opts = Object.assign({}, opts) || {};
   var frame;
   var name = opts.name || guid();
   var style = opts.style || {border: 'none'};
@@ -34,11 +32,13 @@ export default function createIframe(opts) {
   delete attributes.height;
   delete attributes.width;
 
-  hcWidgetUtils.forEach(attributes, function (attr, key) {
+  Object.keys(attributes).forEach(key => {
+    let attr = attributes[key];
     frame.setAttribute(key, attr);
   });
 
-  hcWidgetUtils.forEach(style, function (ruleValue, ruleName) {
+  Object.keys(style).forEach(function (ruleName) {
+    let ruleValue = style[ruleName];
     frame.style[ruleName] = ruleValue;
   });
 
@@ -47,10 +47,10 @@ export default function createIframe(opts) {
   return frame;
 }
 
-function guid() {
-  return 'f' + (Math.random() * (1 << 30)).toString(16).replace('.', '');
-}
-
 function isNumberLike(n) {
   return !isNaN(parseFloat(n)) && isFinite(n);
+}
+
+function guid() {
+  return 'f' + (Math.random() * (1 << 30)).toString(16).replace('.', '');
 }

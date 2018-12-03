@@ -157,7 +157,12 @@ module.exports = function(appLib) {
         appModelPart
       );
       // console.log(`>>> regex val: ${val}, tval: ${typeof val}, regex: ${regex}, regexOptions: ${regexOptions}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (val && regex && regexOptions && !val.match(new RegExp(regex, regexOptions))) {
+      if (
+        val &&
+        regex !== undefined &&
+        regexOptions !== undefined &&
+        !new RegExp(regex, regexOptions).test(val)
+      ) {
         cb(
           vutil.replaceErrorTemplatePlaceholders(
             modelName,

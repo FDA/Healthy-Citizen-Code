@@ -1,6 +1,5 @@
 import hcWidgetAPI from '../api';
-import utils from '../../lib/utils';
-import Iframe from '../iframe';
+import {updateIframeHeight} from '../../lib/utils';
 
 export default function formPagination({pages, controls, beforeTransitionCb, data}) {
   const pagination = {
@@ -92,7 +91,7 @@ export default function formPagination({pages, controls, beforeTransitionCb, dat
 
       this.displayBtns();
       this.setDisabled(false);
-      Iframe.updateIframeHeight();
+      updateIframeHeight();
     },
 
     displayBtns() {

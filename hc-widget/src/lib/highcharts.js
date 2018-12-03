@@ -1,3 +1,4 @@
+// TODO: remove
 import Nodata from 'highcharts/modules/no-data-to-display.src';
 
 let Highcharts;

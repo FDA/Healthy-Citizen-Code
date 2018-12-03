@@ -46,11 +46,6 @@
     }
     getPageData();
 
-    if ($state.params.addRecord) {
-      vm.create();
-      $state.params.addRecord = null;
-    }
-
     function setData(response) {
       vm.parentData = response.data.data;
       vm.pageData = AdpDataService.getNestedData(vm.parentData, vm.pageParams.fieldName);

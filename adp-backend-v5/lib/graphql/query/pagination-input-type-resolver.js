@@ -16,9 +16,8 @@ function addITCResolver(modelName, db) {
         defaultValue: 20,
       },
       skip: 'Int',
-      // ... other args if needed
     },
-    type: [type], // array of cities
+    type: [type],
     resolve: ({ args }) =>
       db
         .find(args.filter)

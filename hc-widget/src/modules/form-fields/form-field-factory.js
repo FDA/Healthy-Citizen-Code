@@ -1,6 +1,6 @@
 import $ from '../../lib/dom';
-import utils from '../../lib/utils';
-import Iframe from '../iframe';
+import {toCamelCase} from '../../lib/utils';
+import {updateIframeHeight} from '../../lib/utils';
 
 import checkboxField from './checkbox/checkbox';
 import textField from './text/text';
@@ -82,19 +82,18 @@ const formField = {
       errorNode.style.display = 'block';
     });
 
-
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   },
 
   hideError() {
     const errorNodes = $('[data-error-name]', this.el);
     errorNodes.forEach(node => node.style.display = 'none');
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 };
 
 export default function formFieldFactory(question, opts) {
-  const fieldTypeObj = fieldMap[utils.toCamelCase(question.type)];
+  const fieldTypeObj = fieldMap[toCamelCase(question.type)];
   const field = Object.assign(Object.create(formField), fieldTypeObj);
 
   field.create(question, opts);

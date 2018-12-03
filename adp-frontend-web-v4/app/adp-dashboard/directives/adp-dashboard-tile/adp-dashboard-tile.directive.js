@@ -50,7 +50,7 @@
         };
         
         function add(destinationState) {
-          $state.go(destinationState, {addRecord: true});
+          $state.go(destinationState, {action: 'create'});
         }
         
         function view(destinationState) {

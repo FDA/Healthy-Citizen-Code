@@ -19,6 +19,7 @@
     vm.fields = vm.schema.fields;
     vm.editMode = false;
     vm.loading = true;
+    vm.showCreate = !!vm.schema.actions.fields.create;
 
     function getPageData() {
       return AdpDataService.getSingleRecordData(vm.pageParams, vm.schema)

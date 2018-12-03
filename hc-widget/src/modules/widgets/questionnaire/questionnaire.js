@@ -1,7 +1,7 @@
-import Iframe from '../../iframe';
 import QuestionnaireStartScreen from './questionnaire-start-screen/questionnaire-start-screen';
 import HcWidgetForm from '../../form/form';
 import hcWidgetAPI from '../../api';
+import {widgetError} from '../../../lib/utils';
 
 const STATUS = {
   IN_PROGRESS: 'In Progress'
@@ -11,21 +11,17 @@ export default class Questionnaire {
   constructor(node, options) {
     this.options = options;
     this.options.events = {
-      onLoad: this.onLoad.bind(this),
-      onSubmit: this.onSubmit.bind(this)
+      onSubmit: () => this.onSubmit()
     };
 
-    new Iframe(node, this.options);
-  }
-
-  onLoad(iframe) {
-    this.parent = iframe;
+    this.$el = parent;
 
     return this.fetchData()
       .then(this.init.bind(this))
       .catch(err => {
+        // TODO: fix showMessage
         console.error(err);
-        this.parent.showMessage('No questionnaire found');
+        widgetError('No questionnaire found');
       });
   }
 
@@ -61,7 +57,7 @@ export default class Questionnaire {
 
   createStartScreen(data) {
     this.startScreen = new QuestionnaireStartScreen(data, this.options, this.onStart.bind(this));
-    this.parent.append(this.startScreen.el);
+    this.$el.append(this.startScreen.el);
   }
 
   onStart(data) {
@@ -71,7 +67,7 @@ export default class Questionnaire {
 
   createForm(data) {
     this.form = new HcWidgetForm(data, this.options);
-    this.parent.append(this.form.el);
+    this.$el.append(this.form.el);
   }
 
   onSubmit() {
@@ -79,7 +75,7 @@ export default class Questionnaire {
       .then(data => {
         let cnt = 5;
         const timeoutFn = () => {
-          this.parent.showMessage(
+          this.$el.showMessage(
             `Thank you for your participation. Next questionnaire will be displayed in ${cnt} seconds...`
           );
           cnt--;
@@ -89,7 +85,7 @@ export default class Questionnaire {
           }
 
           if (cnt === 0) {
-            this.parent.clear();
+            this.$el.clear();
             this.form.destroy();
             this.init(data);
           }
@@ -99,7 +95,7 @@ export default class Questionnaire {
       })
       .catch(err => {
         console.error(err);
-        this.parent.showMessage(this.options['thankYouText']);
+        this.$el.showMessage(this.options['thankYouText']);
       });
   }
 }

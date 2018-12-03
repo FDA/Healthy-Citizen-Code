@@ -4,7 +4,7 @@ import tpl from './table.hbs';
 import tplBody from './partials/tbody.hbs';
 import tplGroupRow from './partials/group-rows.hbs';
 
-import Iframe from '../iframe';
+import {updateIframeHeight} from '../../lib/utils';
 import classNames from 'classnames';
 
 const SORT = {
@@ -60,8 +60,13 @@ export default class Table {
 
     this.$tableEl = $(tpl(this.tableOpts));
     this.tableEl = this.$tableEl.get(0);
+
     this.setHeadClass();
 
+    this.bindEvents();
+  }
+
+  bindEvents() {
     this.$tableEl.on('click', (e) => {
       // TODO refactor to map
       if (e.target.nodeName === 'TH') {
@@ -80,7 +85,7 @@ export default class Table {
       }
 
       if ($(e.target).matches('.js-print')) {
-        this.print.call(this, e);
+        window.print();
         return;
       }
     });
@@ -168,7 +173,7 @@ export default class Table {
 
     rowChild.classList[isActive ? 'add' : 'remove']('is-hidden');
 
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 
   toggleGroup(e) {
@@ -192,7 +197,7 @@ export default class Table {
       targetBtn.classList.add('is-active');
     }
 
-    Iframe.updateIframeHeight();
+    updateIframeHeight();
   }
 
   redraw() {
@@ -219,13 +224,9 @@ export default class Table {
     head.className = 'sorted_' + this.order;
   }
 
-  // TODO: move top options
+  // TODO: move to options
   appendTo($el) {
     $el.append(this.$tableEl);
-  }
-
-  print() {
-    const iframe = this.parent.iframe;
-    return Iframe.print(iframe);
+    updateIframeHeight();
   }
 }

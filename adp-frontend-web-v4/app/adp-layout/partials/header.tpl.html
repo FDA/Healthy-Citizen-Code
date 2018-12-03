@@ -86,21 +86,7 @@
       </li>
     </ul>
 
-    <!-- logout button -->
-    <div id="logout"
-         ng-if="vm.header.components.logoutButton"
-         class="btn-header transparent pull-right">
-        <span>
-          <a ng-click="vm.logout()"
-             title="Sign Out"
-             data-action="userLogout"
-             class="header-logout-btn"
-             data-logout-msg="You can improve your security further after logging out by closing this opened browser">
-            <i class="fa fa-sign-out"></i> <strong><u>L</u>ogout</strong>
-          </a>
-        </span>
-    </div>
-    <!-- end logout button -->
+    <adp-user-dropdown></adp-user-dropdown>
 
     <!-- search mobile button (this is hidden till mobile view port) -->
     <div id="search-mobile" class="btn-header transparent pull-right" data-search-mobile>

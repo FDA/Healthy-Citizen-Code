@@ -203,6 +203,12 @@
       "fullName": "Show In Form",
       "description": "If set to true (default) then this field will be displayed in the form."
     },
+    "showInGraphQL": {
+      "default": true,
+      "type": "Boolean",
+      "fullName": "Show In GraphQL",
+      "description": "If set to true (default) then this field will be added to GraphQL type thus it can be present in Query."
+    },
     "searchable": {
       "fullName": "Searchable",
       "type": "Boolean",

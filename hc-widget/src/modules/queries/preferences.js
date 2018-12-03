@@ -1,5 +1,5 @@
 import { GraphQLClient } from 'graphql-request';
-import { widgetUrl } from '../../../config.json';
+import { widgetApiUrl } from '../../../config.json';
 
 const options = {
   headers: { 'Content-Type': 'application/json' }
@@ -70,7 +70,7 @@ const mutate = ({udid = '', gender = '', age = '', geographicRegion = '', medica
 };
 
 export function prefrencesQuery(params) {
-  const endpoint = `${widgetUrl}/graphql`;
+  const endpoint = `${widgetApiUrl}/graphql`;
   const client = new GraphQLClient(endpoint, options);
 
   return client.request(query(params))
@@ -86,7 +86,7 @@ export function prefrencesQuery(params) {
 }
 
 export function prefrencesMutate(params) {
-  const endpoint = `${widgetUrl}/graphql`;
+  const endpoint = `${widgetApiUrl}/graphql`;
   const client = new GraphQLClient(endpoint, options);
   const q = mutate(params);
 
