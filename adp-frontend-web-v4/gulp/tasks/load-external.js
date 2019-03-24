@@ -7,8 +7,14 @@ const requestPromise = require('../utils/request-promise');
 
 gulp.task('create:config', () => {
   if (!APP_CONFIG) throw new Error('Application config not found.');
+  const configDefaults = {
+    "apiUrl": "http://localhost:5000",
+    "captchaDisabled": false,
+    "debug": false
+  };
+
   const config = {
-    'APP_CONFIG': APP_CONFIG
+    'APP_CONFIG': Object.assign(configDefaults, APP_CONFIG)
   };
 
   const configJson = JSON.stringify(config);

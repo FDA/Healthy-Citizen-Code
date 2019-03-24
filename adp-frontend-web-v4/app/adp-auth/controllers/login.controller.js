@@ -12,8 +12,11 @@
   ) {
     var INTERFACE = window.adpAppStore.appInterface();
     var vm = this;
-    vm.fields = AdpSchemaService.getLoginSchema();
+    vm.schema = AdpSchemaService.getLoginSchema();
+    vm.fields = vm.schema.fields;
     vm.authParams = INTERFACE.loginPage.parameters;
+
+    vm.showSignUp = INTERFACE.app.auth.enableRegistration;
 
     vm.submit = function (formData) {
       return AdpSessionService.login(formData);

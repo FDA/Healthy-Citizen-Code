@@ -7,7 +7,6 @@
 
   function selectControl(
     AdpFieldsService,
-    AdpFieldFormatUtil,
     AdpValidationService
   ) {
     return {
@@ -27,16 +26,21 @@
         scope.form = formCtrl;
         scope.uiProps = scope.adpFieldUiProps;
 
-        scope.listOfValues = AdpFieldsService.getListOfOptions(scope.field.list);
+        scope.listOfOptions = AdpFieldsService.getListOfOptions(scope.field.list);
 
         scope.options = {
-          formatResult: AdpFieldFormatUtil.formatSelectLabel,
-          formatSelection: AdpFieldFormatUtil.formatSelectSelection
+          allowClear: true,
+          formatResult: function (state) {
+            return state.text;
+          },
+          formatSelection: function (state) {
+            return state.text;
+          }
         };
 
         // hiding search input
         // https://github.com/select2/select2/issues/489#issuecomment-100602293
-        if (scope.listOfValues.length < 10) {
+        if (scope.listOfOptions.length < 10) {
           scope.options.minimumResultsForSearch = -1;
         }
 

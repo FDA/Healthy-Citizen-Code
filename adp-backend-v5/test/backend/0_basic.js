@@ -382,21 +382,233 @@ const sampleModel4ValidatorsAndTransformers = {
     },
   },
 };
+const sampleRequiredValidation = {
+  metaschema: {
+    type: {
+      default: 'T2',
+    },
+    comment: {},
+    fields: {},
+    visible: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Visible',
+      description:
+        'Determines if the field should be visible in the forms by default or not. Can be overridden in a specific form, but will be sent to the front-end',
+    },
+    showInDatatable: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Datatable',
+      description: 'If set to true (default) then this field will be displayed in the datatables.',
+    },
+    showInViewDetails: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form of viewDetails action',
+      description:
+        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+    },
+    showInForm: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In Form',
+      description: 'If set to true (default) then this field will be displayed in the form.',
+    },
+    showInGraphQL: {
+      default: true,
+      type: 'Boolean',
+      fullName: 'Show In GraphQL',
+      description:
+        'If set to true (default) then this field will be added to GraphQL type thus it can be present in Query.',
+    },
+    subtype: {},
+    validate: {},
+    transform: {},
+    permissions: {},
+  },
+  models: {
+    complexTypes: {
+      type: 'Schema',
+      fields: {
+        object1: {
+          type: 'Object',
+          description: 'Object level require with nested fields with require',
+          fullName: 'Object level require with nested fields with require',
+          required: true,
+          fields: {
+            string1: {
+              type: 'String',
+              required: true,
+            },
+            string2: {
+              type: 'String',
+            },
+            number: {
+              type: 'Number',
+            },
+            boolean1: {
+              type: 'Boolean',
+              required: true,
+            },
+          },
+        },
+        array1: {
+          type: 'Array',
+          description: 'Required Array',
+          fullName: 'Required Array',
+          required: true,
+          fields: {
+            string: {
+              type: 'String',
+              required: true,
+            },
+            number: {
+              type: 'Number',
+            },
+            boolean1: {
+              type: 'Boolean',
+              required: true,
+            },
+          },
+        },
+        object2: {
+          type: 'Object',
+          fullName: 'Object level require without nested required fields',
+          required: true,
+          fields: {
+            string1: {
+              type: 'String',
+              description: 'String',
+            },
+            string2: {
+              type: 'String',
+              description: 'String',
+            },
+          },
+        },
+        array2: {
+          type: 'Array',
+          fullName: 'Array level require without nested required fields',
+          required: true,
+          fields: {
+            string: {
+              type: 'String',
+            },
+            boolean1: {
+              type: 'Boolean',
+            },
+          },
+        },
+        nested1: {
+          type: 'Object',
+          fullName: 'Object type field with nested objects',
+          description: 'Nested Object level 1',
+          fields: {
+            stringLevel1: {
+              type: 'String',
+              required: true,
+            },
+            level2: {
+              type: 'Object',
+              fullName: 'Nested Object level 2',
+              required: true,
+              fields: {
+                stringLevel2: {
+                  type: 'String',
+                },
+                level3: {
+                  type: 'Object',
+                  fullName: 'Nested Object level 3',
+                  fields: {
+                    stringLevel3: {
+                      type: 'String',
+                      required: true,
+                    },
+                    stringLevel34: {
+                      type: 'String',
+                      width: 100,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+        nested2: {
+          type: 'Array',
+          fullName: 'Array Of Arrays',
+          fields: {
+            string1: {
+              type: 'String',
+              fullName: 'arrayOfArrays String field',
+            },
+            arrayLevel1: {
+              type: 'Array',
+              fullName: 'Array of arrays level 1',
+              fields: {
+                string1: {
+                  type: 'String',
+                  fullName: 'arrayLevel1 String field',
+                },
+                arrayLevel2: {
+                  type: 'Array',
+                  fullName: 'Array of arrays level 2',
+                  fields: {
+                    string1: {
+                      type: 'String',
+                      fullName: 'arrayLevel2 required String field',
+                      required: true,
+                    },
+                    string2: {
+                      type: 'String',
+                      fullName: 'arrayLevel2 not required String field',
+                    },
+                    arrayLevel3: {
+                      type: 'Array',
+                      required: true,
+                      fields: {
+                        string1: {
+                          type: 'String',
+                          fullName: 'String field 1',
+                        },
+                      },
+                    },
+                    objectLevel3: {
+                      type: 'Object',
+                      required: true,
+                      fields: {
+                        string1: {
+                          type: 'String',
+                          fullName: 'String field 1',
+                        },
+                      },
+                    },
+                  },
+                },
+              },
+            },
+          },
+        },
+      },
+    },
+  },
+};
 
 const reqlib = require('app-root-path').require;
 
-const accessCfg = reqlib('/lib/access-config');
+const accessCfg = reqlib('/lib/access/access-config');
 // TODO: add check on transformation array of permissions to objects
 describe('V5 Core Utility', () => {
   describe('validateAndCleanupAppModel', () => {
-    it('removes comments, adds type defaults, assumes type', done => {
+    it('removes comments, adds type defaults, assumes type', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel1),
         getAuthSettings: () => ({}),
         accessCfg,
       };
       const mutil = reqlib('/lib/model')(appLib);
-      const errors = mutil.validateAndCleanupAppModel();
+      const { errors, warnings } = mutil.validateAndCleanupAppModel();
       errors.length.should.equal(0, errors.join('\n')); // sampleModel1 has no errors
       appLib.appModel.models.M1.should.not.have.property('comment'); // comments removed
       appLib.appModel.models.M1.type.should.equal('T2'); // default type assigned
@@ -415,39 +627,38 @@ describe('V5 Core Utility', () => {
       // type defaults should not override existing values
       appLib.appModel.models.M1.should.have.property('A1');
       appLib.appModel.models.M1.A1.should.equal('V3');
-      done();
+
+      warnings.length.should.equal(0, errors.join('\n'));
     });
-    it('validates lookups', done => {
+    it('validates lookups', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel2WithLookups),
         getAuthSettings: () => ({}),
         accessCfg,
       };
       const mutil = reqlib('/lib/model')(appLib);
-      const errors = mutil.validateAndCleanupAppModel();
+      const { errors } = mutil.validateAndCleanupAppModel();
       errors.length.should.equal(3, errors.join('\n'));
       errors[0].should.equal('Lookup in M3.fields.F1 refers to nonexisting collection "M0"');
       errors[1].should.equal('Lookup in M4.fields.F1 refers to nonexisting foreignKey "F1a"');
       errors[2].should.equal('Lookup in M4.fields.F1 refers to nonexisting label "F1a"');
-      done();
     });
-    it('validates defaultSortBy', done => {
+    it('validates defaultSortBy', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel3DefaultSortBy),
         getAuthSettings: () => ({}),
         accessCfg,
       };
       const mutil = reqlib('/lib/model')(appLib);
-      const errors = mutil.validateAndCleanupAppModel();
+      const { errors } = mutil.validateAndCleanupAppModel();
       errors.length.should.equal(3, errors.join('\n'));
       errors[0].should.equal(
         'defaultSortBy in M2 has incorrect format, the sorting order must be either 1 or -1'
       );
       errors[1].should.equal('defaultSortBy in M3 refers to nonexisting field "F2"');
       errors[2].should.equal('defaultSortBy in M4 has incorrect format, must be an object');
-      done();
     });
-    it('validates validators and transformers presence', done => {
+    it('validates validators and transformers presence', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel4ValidatorsAndTransformers),
         getAuthSettings: () => ({}),
@@ -458,7 +669,7 @@ describe('V5 Core Utility', () => {
         },
       };
       const mutil = reqlib('/lib/model')(appLib);
-      const errors = mutil.validateAndCleanupAppModel();
+      const { errors } = mutil.validateAndCleanupAppModel();
       errors.length.should.equal(4, errors.join('\n'));
       errors[0].should.equal(`Validator "validator0" doesn't exist in M2.fields.F1`);
       errors[1].should.equal(`Transformer "transformer0" doesn't exist in M2.fields.F1`);
@@ -466,7 +677,31 @@ describe('V5 Core Utility', () => {
       errors[3].should.equal(
         `Transformer "transformer2,transformer3,transformer4" doesn't look right in M2.fields.F1 (if array then must contain only two elements)`
       );
-      done();
+    });
+    it('validates required field contradictions', () => {
+      const appLib = {
+        appModel: _.cloneDeep(sampleRequiredValidation),
+        getAuthSettings: () => ({}),
+        accessCfg,
+      };
+      const mutil = reqlib('/lib/model')(appLib);
+      const { warnings } = mutil.validateAndCleanupAppModel();
+      warnings.length.should.equal(5, warnings.join('\n'));
+      warnings[0].should.equal(
+        "Model part by path 'complexTypes.object2' is required but doesn't have any required field"
+      );
+      warnings[1].should.equal(
+        "Model part by path 'complexTypes.array2' is required but doesn't have any required field"
+      );
+      warnings[2].should.equal(
+        "Model part by path 'complexTypes.nested1.level2' is required but doesn't have any required field"
+      );
+      warnings[3].should.equal(
+        "Model part by path 'complexTypes.nested2.arrayLevel1.arrayLevel2.arrayLevel3' is required but doesn't have any required field"
+      );
+      warnings[4].should.equal(
+        "Model part by path 'complexTypes.nested2.arrayLevel1.arrayLevel2.objectLevel3' is required but doesn't have any required field"
+      );
     });
   });
 });

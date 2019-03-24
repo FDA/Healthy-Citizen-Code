@@ -1,0 +1,12 @@
+{
+  "hostUrl": "localhost:3000",
+  "basicAuth": {
+    "username": "healthy",
+    "password": "citizen!"
+  },
+  "user": {
+    "login": "ksimanov+0",
+    "password": "Password!1"
+  },
+  "showBrowser": true
+}

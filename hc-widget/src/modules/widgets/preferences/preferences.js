@@ -23,6 +23,7 @@ export default class Preferences {
         this.render();
         this.populate(data);
         this.bindEvents();
+        updateIframeHeight();
       })
       .catch(err => {
         console.log(err);

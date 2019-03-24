@@ -6,26 +6,29 @@
     adp-form-data="formData"
     form-params="adpFormParams"
     schema="schema"
+    validation-params="validationParams"
   >
   </adp-form-field-factory>
 </fieldset>
 
 <fiedlset
+  ng-if="!isEmpty()"
   class="fuelux">
   <div class="widget-body">
     <div class="wizard clearfix">
       <ul class="steps">
         <li
+          ng-show="display(groupName)"
           ng-repeat="(groupName, group) in fields.groups track by $index"
-          ng-click="setCurrent($index)"
+          ng-click="setCurrent(groupName)"
           ng-class="{
-                'active': current == $index,
+                'active': currentName == groupName,
                 'complete': groupCompleted(group.fields, form),
                 'has-errors': groupHasErrors(group.fields, form),
               }">
 
           <span class="badge badge-info">{{$index + 1}}</span>
-          {{group.fullName}}
+          <span ng-bind-html="getHeader(group)"></span>
           <span class="chevron"></span>
         </li>
       </ul>
@@ -35,7 +38,8 @@
           type="button"
           ng-click="prev()"
           class="btn btn-sm btn-default btn-prev"
-          ng-disabled="current < 1">
+          ng-disabled="isFirst()"
+        >
           <i class="fa fa-arrow-left"></i> Prev
         </button>
 
@@ -43,15 +47,16 @@
           type="button"
           class="btn btn-sm btn-success btn-next"
           ng-click="next()"
-          ng-if="current < fieldsLength - 1"
-          ng-disabled="">
+          ng-show="!isLast()"
+        >
           Next <i class="fa fa-arrow-right"></i>
         </button>
 
         <button
           type="submit"
           class="btn btn-sm btn-primary btn-next"
-          ng-show="current == fieldsLength - 1">
+          ng-show="isLast()"
+        >
           Finish <i class="fa fa-check"></i>
         </button>
       </div>
@@ -59,9 +64,10 @@
 
     <div class="step-content clearfix">
       <div
+        ng-show="display(groupName)"
         ng-repeat="(groupName, group) in fields.groups track by $index"
         class="step-pane"
-        ng-class="{'active': current == $index }">
+        ng-class="{'active': currentName == groupName }">
         <h3 class="step-pane-title">
           <strong>Step {{$index + 1}}</strong> - {{group.fullName}}</h3>
 
@@ -72,6 +78,7 @@
           adp-form-params="$parent.formParams"
           adp-form-data="$parent.formData"
           schema="$parent.schema"
+          validation-params="$parent.validationParams"
         >
         </adp-form-field-factory>
       </div>

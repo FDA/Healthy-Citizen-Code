@@ -158,24 +158,47 @@ module.exports = mongoose => {
     },
     rewritePasswordAndAddSalt(path, appModelPart, userContext, next) {
       // TODO: rewrite this temporary fix
-      if (!this.passwordSet) {
-        return next();
+      // fix for updating user via admin panel (no password sent in body)
+      if (userContext.method.toLowerCase() === 'put') {
+        const { url } = userContext;
+        const [schemaName, id] = url.slice(1).split('/');
+        const userIdToUpdate = new ObjectID(id);
+        return mongoose.connection.db
+          .collection(schemaName)
+          .findOne({ _id: userIdToUpdate })
+          .then(doc => {
+            this.password = doc.password;
+            this.salt = doc.salt;
+            next();
+          })
+          .catch(err => {
+            log.error(err);
+            next(`Error rewritePasswordAndAddSalt`);
+          });
       }
-      const plainPassword = _.get(this, path);
-      // for setters inside setPassword func
-      this.set = function(field, val) {
-        this[field] = val;
-      };
-      const setPassword = mongoose.model('users').prototype.setPassword.bind(this);
-      setPassword(plainPassword, () => {
-        delete this.set;
-        delete this.passwordSet;
-        next();
-      });
+
+      if (this.passwordSet) {
+        const plainPassword = _.get(this, path);
+        // for setters inside setPassword func
+        this.set = function(field, val) {
+          this[field] = val;
+        };
+        const setPassword = mongoose.model('users').prototype.setPassword.bind(this);
+        setPassword(plainPassword, () => {
+          delete this.set;
+          delete this.passwordSet;
+          next();
+        });
+        return;
+      }
+
+      return next();
     },
     cleanupPassword(path, appModelPart, userContext, next) {
-      delete this[path];
-      delete this.salt;
+      if (userContext.method.toLowerCase() === 'get') {
+        delete this[path];
+        delete this.salt;
+      }
       next();
     },
   };

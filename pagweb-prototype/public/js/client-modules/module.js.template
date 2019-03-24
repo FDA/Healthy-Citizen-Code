@@ -96,8 +96,8 @@
          * In theory there should be none actually, since this page should be very basic
          */
         var vm = this;
-        var currentUser = AdpSessionService.getUser();
-        var endpoint = [APP_CONFIG.apiUrl, 'piis', currentUser.piiId].join('/');
+        var currentUser = lsService.getUser();
+        var endpoint = [APP_CONFIG.apiUrl, 'users', currentUser.id].join('/');
         vm.fhirId = '';
 
         $http.get(endpoint)

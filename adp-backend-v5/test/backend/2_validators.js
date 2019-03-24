@@ -7,8 +7,9 @@ const assert = require('assert');
 const _ = require('lodash');
 const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
-
 const reqlib = require('app-root-path').require;
+
+const { prepareEnv, getMongoConnection } = reqlib('test/backend/test-util');
 
 describe('V5 Backend Validators', () => {
   const userContext = { _id: 1 };
@@ -37,7 +38,7 @@ describe('V5 Backend Validators', () => {
   };
 
   before(function() {
-    require('dotenv').load({ path: './test/backend/.env.test' });
+    prepareEnv();
     this.appLib = reqlib('/lib/app')();
     return this.appLib.setup().then(() => {
       this.dba = reqlib('/lib/database-abstraction')(this.appLib);
@@ -47,7 +48,10 @@ describe('V5 Backend Validators', () => {
   });
 
   after(function() {
-    return this.appLib.shutdown();
+    return this.appLib
+      .shutdown()
+      .then(() => getMongoConnection())
+      .then(db => db.dropDatabase().then(() => db.close()));
   });
 
   beforeEach(function(done) {

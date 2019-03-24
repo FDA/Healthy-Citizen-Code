@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const appRoot = require('app-root-path').path;
 const swaggerJSDoc = require('swagger-jsdoc');
-const swaggerUi = require('swagger-ui-restify');
+const swaggerUi = require('swagger-ui-express');
 
 const MOUNT_POINT = 'api-docs';
 
@@ -10,8 +10,9 @@ const { getCrudRoutesConfig } = require('./configs/crud-config');
 const { getLookupConfig } = require('./configs/lookup-config');
 
 const connectSwagger = appLib => {
+  const swaggerDefinition = getSwaggerConfig(appLib);
   const swaggerSpec = swaggerJSDoc({
-    swaggerDefinition: getSwaggerConfig(appLib),
+    swaggerDefinition,
     apis: [
       `${appRoot}/server_controllers/**/*.js`,
       `${appRoot}/lib/app.js`,
@@ -20,7 +21,7 @@ const connectSwagger = appLib => {
     ],
   });
 
-  connectSwaggerSpec(appLib.app, MOUNT_POINT, swaggerSpec);
+  connectSwaggerSpec(appLib, MOUNT_POINT, swaggerSpec);
 };
 
 function getSwaggerConfig(appLib) {
@@ -30,7 +31,22 @@ function getSwaggerConfig(appLib) {
   const crudRoutesConfig = getCrudRoutesConfig(models);
 
   const { graphiQlRoute, graphQlRoute } = appLib.graphQl;
-  const graphqlConfig = getGraphqlConfig(graphiQlRoute, graphQlRoute);
+  let graphqlConfig = {};
+  const isGraphiqlConnected = !_.isEmpty(
+    appLib.expressUtil.findRoutes(appLib.app, graphiQlRoute, 'post')
+  );
+  if (isGraphiqlConnected) {
+    graphqlConfig = getGraphqlConfig(graphiQlRoute, graphQlRoute);
+    baseConfig.tags[1] = {
+      name: 'GraphQL',
+      description:
+        'Endpoints of this section will be active only if user specifies the configuration. It must have at least one GraphQL Query.',
+      externalDocs: {
+        url: '/graphiql',
+        description: 'Test interactive ui here',
+      },
+    };
+  }
 
   const lookupConfig = getLookupConfig(models);
 
@@ -40,7 +56,7 @@ function getSwaggerConfig(appLib) {
     graphqlConfig,
     lookupConfig,
     (objValue, srcValue) => {
-      if (_.isArray(objValue)) {
+      if (Array.isArray(srcValue) && Array.isArray(objValue)) {
         return objValue.concat(srcValue);
       }
     }
@@ -52,7 +68,7 @@ function getSwaggerConfig(appLib) {
  * @returns object
  */
 function getBaseSwaggerConfig() {
-  const baseConfig = {
+  return {
     swagger: '2.0',
     info: {
       title: 'API Documentation',
@@ -93,24 +109,12 @@ All responses are wrapped in envelop:
         User: [],
       },
     ],
-    tags: [
-      { name: 'Auth' },
-      {
-        name: 'GraphQL',
-        description:
-          'Endpoints of this section will be active only if user specifies the configuration. It must have at least one graphQL Query.',
-      },
-      { name: 'Meta' },
-      { name: 'File' },
-      { name: 'Lookup' },
-    ],
+    tags: [{ name: 'Auth' }, { name: 'Meta' }, { name: 'File' }, { name: 'Lookup' }],
   };
-  return baseConfig;
 }
 
-function connectSwaggerSpec(app, mountPoint, swaggerSpec) {
-  app.get(`/${mountPoint}/.*`, ...swaggerUi.serve);
-  app.get(`/${mountPoint}`, swaggerUi.setup(swaggerSpec, { baseURL: mountPoint }));
+function connectSwaggerSpec(appLib, mountPoint, swaggerSpec) {
+  appLib.app.use(`/${mountPoint}`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
 }
 
 module.exports = connectSwagger;

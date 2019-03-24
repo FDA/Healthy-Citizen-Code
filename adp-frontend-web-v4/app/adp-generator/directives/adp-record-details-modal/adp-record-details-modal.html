@@ -1,21 +1,29 @@
-<div class="modal-header text-center">
-  <h3 class="modal-title">
-    Record details.
-  </h3>
-</div>
+<div adp-fullscreen>
+  <div class="smart-form client-form">
+    <header class="smart-form-header">
+      <h2 class="semi-bold">
+        Record details
+      </h2>
 
-<div class="modal-body">
-  <adp-table-simple
-    schema="vm.schema"
-    data="vm.itemData">
-  </adp-table-simple>
-</div>
+      <adp-fullscreen-button></adp-fullscreen-button>
+    </header>
+  </div>
 
-<div class="modal-footer">
-  <button
-    class="btn btn-primary"
-    type="button"
-    ng-click="vm.close()">
-    Close
-  </button>
+  <div class="modal-body">
+    <adp-table-simple
+      schema="vm.schema"
+      data="vm.itemData">
+    </adp-table-simple>
+  </div>
+
+  <div class="smart-form client-form">
+    <footer>
+      <button
+        class="btn btn-primary"
+        type="button"
+        ng-click="vm.close()">
+        Close
+      </button>
+    </footer>
+  </div>
 </div>

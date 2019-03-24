@@ -2,15 +2,20 @@ const request = require('supertest');
 require('should');
 const reqlib = require('app-root-path').require;
 
+const { prepareEnv, getMongoConnection } = reqlib('test/backend/test-util');
+
 describe('V5 Backend Dynamic Routes', () => {
   before(function() {
-    require('dotenv').load({ path: './test/backend/.env.test' });
+    prepareEnv();
     this.appLib = reqlib('/lib/app')();
     return this.appLib.setup();
   });
 
   after(function() {
-    return this.appLib.shutdown();
+    return this.appLib
+      .shutdown()
+      .then(() => getMongoConnection())
+      .then(db => db.dropDatabase().then(() => db.close()));
   });
 
   describe('GET /routes', () => {

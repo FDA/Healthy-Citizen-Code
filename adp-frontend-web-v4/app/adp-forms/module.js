@@ -6,7 +6,4 @@
     'ui.bootstrap.datetimepicker',
     'ngTagsInput'
   ]);
-
-  angular
-    .module('app.adpForms');
 })();

@@ -59,9 +59,9 @@
       vm.create = createRecord;
 
       function getPageData() {
-        return AdpDataService.getData(vm.pageParams.link)
-          .then(function (response) {
-            vm.pageData = response.data.data;
+        return AdpDataService.getData(vm.pageParams, vm.schema)
+          .then(function (data) {
+            vm.pageData = data;
             vm.loading = false;
           });
       }

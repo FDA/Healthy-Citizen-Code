@@ -3,19 +3,17 @@
  * @returns {{}}
  */
 module.exports = function (globalMongoose) {
-  const fs = require('fs');
   const _ = require("lodash");
   const crypto = require('crypto');
-  const {exec} = require('child_process');
+  const { exec } = require('child_process');
   const log = require('log4js').getLogger('research-app-model/questionnaire-controller');
-  const ObjectID = require('mongodb').ObjectID;
   const questionnaireStatuses = require('../helpers/questionnaire_helper').statuses;
 
   const mongoose = globalMongoose;
 
-  let m = {};
+  const m = {};
 
-  let getRandomString = () => {
+  const getRandomString = () => {
     return crypto.createHash('md5').update(("" + Date.now() + Math.random() * 1000)).digest("hex").substr(4, 24);
   };
 
@@ -29,10 +27,10 @@ module.exports = function (globalMongoose) {
     appLib.addRoute('get', `/questionnaires-answers`, [appLib.isAuthenticated, m.getQuestionnaireAnswers]);
   };
 
-  let updateQuestionnaire = (req, res, cb, next) => {
-    let tmpfile = getRandomString() + '.json';
-    let uploaded_file_id = _.get(req, "body.data.questionnaireDefinitionFile.0.id");
-    mongoose.model('files').findById(uploaded_file_id, (err, data) => {
+  const updateQuestionnaire = (req, res, cb, next) => {
+    const tmpfile = getRandomString() + '.json';
+    const uploadedFileId = _.get(req, "body.data.questionnaireDefinitionFile.0.id");
+    mongoose.model('files').findById(uploadedFileId, (err, data) => {
       if (err) {
         log.error(err);
         res.json({success: false, message: 'Unable to find file record'});
@@ -42,12 +40,12 @@ module.exports = function (globalMongoose) {
         res.json({success: false, message: 'Unable to find file record'});
       } else {
         // TODO: this is a very hacky way to convert .xls into .json. Use web service in the final version
-        let cmd = `cp ${data.filePath} /tmp/${tmpfile}.xls && cd ../hc-data-bridge && node generateAppModelByFile.js --inputFilePath=/tmp/${tmpfile}.xls --backendMetaschema --outputModelPath=/tmp/${tmpfile} && echo "-----------CUTLINE---------" &&cat /tmp/${tmpfile}`;
+        const cmd = `cp ${data.filePath} /tmp/${tmpfile}.xls && cd ../hc-data-bridge && node generateAppModelByFile.js --inputFilePath=/tmp/${tmpfile}.xls --backendMetaschema --outputModelPath=/tmp/${tmpfile} && echo "-----------CUTLINE---------" &&cat /tmp/${tmpfile}`;
         exec(cmd, (err, stdout, stderr) => { //
           if (err) {
             res.json({success: false, message: 'Unable to process the .xls file', err: err});
           } else {
-            let questionsDefinition = stdout.replace(/[\s\S]*-----------CUTLINE---------/m, '');
+            const questionsDefinition = stdout.replace(/[\s\S]*-----------CUTLINE---------/m, '');
             req.body.data.questionnaireDefinition = JSON.parse(questionsDefinition);
             cb(req, res, next);
           }
@@ -65,126 +63,69 @@ module.exports = function (globalMongoose) {
   };
 
   function getInProgressQuestionnaire(fhirId) {
-    let origAggregationPipeline = [
-        {
-            $project: {
-                _id: 1,
-                pools: 1,
-                questionnaireName: 1,
-                questionnaireDescription: 1,
-                questionnaireDefinition: 1,
-                participants: 1
-            }
-        },
-        {$unwind: "$pools"},
-        {$lookup: {from: "pools", localField: "pools", "foreignField": "_id", "as": "pools"}},
-        {$unwind: "$pools"},
-        {
-            $lookup: {
-                from: "poolparticipants",
-                localField: "pools._id",
-                "foreignField": "poolId",
-                "as": "poolParticipants"
-            }
-        },
-        {$unwind: "$poolParticipants"},
-        {$match: {"poolParticipants.guid": fhirId}},
-        {
-            $lookup: {
-                from: "participants",
-                localField: "poolParticipants.guid",
-                "foreignField": "guid",
-                "as": "participants"
-            }
-        },
-        {$unwind: "$participants"},
-        {$unwind: {"path": "$participants.answersToQuestionnaires", "preserveNullAndEmptyArrays": true}},
-        {"$addFields": {isQuestionIdMatched: {$eq: ["$_id", "$participants.answersToQuestionnaires.questionnaireId"]}}},
-
-        {
-            $match: {
-                $and: [
-                    {'isQuestionIdMatched': true},
-                    {'participants.answersToQuestionnaires.status': {$eq: questionnaireStatuses.inProgress}}
-                ],
-            }
-        },
-        {$limit: 1},
-        {
-            $project:
-                {
-                    'questionnaireName': 1,
-                    'status': '$participants.answersToQuestionnaires.status',
-                    'questionnaireDescription': 1,
-                    'questionnaireDefinition': 1
-                }
+    const pipeline = [
+      {
+        $project: {
+          _id: 1,
+          pools: 1,
+          questionnaireName: 1,
+          questionnaireDescription: 1,
+          questionnaireDefinition: 1,
+          participants: 1
         }
-    ];
-    let hackedAggregationPipeline = [
-        {
-            $project: {
-                _id: 1,
-                pools: 1,
-                questionnaireName: 1,
-                questionnaireDescription: 1,
-                questionnaireDefinition: 1,
-                participants: 1
-            }
-        },
-        {$unwind: "$pools"},
-        { "$addFields": { "poolObjectId": { "$toObjectId": "$pools._id" }, "poolStringId": "$pools._id"}},
-        {$lookup: {from: "pools", localField: "poolObjectId", "foreignField": "_id", "as": "pools"}},
-        {$unwind: "$pools"},
-        {
-            $lookup: {
-                from: "poolParticipants",
-                localField: "poolStringId",
-                "foreignField": "poolId._id",
-                "as": "poolParticipants"
-            }
-        },
-        {$unwind: "$poolParticipants"},
-        {$match: {"poolParticipants.guid": "aa27c71e-30c8-4ceb-8c1c-123456789011"}},
-        {
-            $lookup: {
-                from: "participants",
-                localField: "poolParticipants.guid",
-                "foreignField": "guid",
-                "as": "participants"
-            }
-        },
-        {$unwind: "$participants"},
-        {$unwind: {"path": "$participants.answersToQuestionnaires", "preserveNullAndEmptyArrays": true}},
-        {"$addFields": {isQuestionIdMatched: {$eq: ["$_id", { "$toObjectId": "$participants.answersToQuestionnaires.questionnaireId._id"}]}}},
-        {
-            $match: {
-                $and: [
-                    {'isQuestionIdMatched': true},
-                    {'participants.answersToQuestionnaires.status': {$eq: "In Progress"}}
-                ],
-            }
-        },
-        {$limit: 1},
-        {
-            $project:
-                {
-                    'questionnaireName': 1,
-                    'status': '$participants.answersToQuestionnaires.status',
-                    'questionnaireDescription': 1,
-                    'questionnaireDefinition': 1
-                }
+      },
+      {$unwind: "$pools"},
+      {$lookup: {from: "pools", localField: "pools._id", "foreignField": "_id", "as": "pools"}},
+      {$unwind: "$pools"},
+      {
+        $lookup: {
+          from: "poolParticipants",
+          localField: "pools._id",
+          "foreignField": "poolId._id",
+          "as": "poolParticipants"
         }
-
+      },
+      {$unwind: "$poolParticipants"},
+      {$match: {"poolParticipants.guid": fhirId}},
+      {
+        $lookup: {
+          from: "participants",
+          localField: "poolParticipants.guid",
+          "foreignField": "guid",
+          "as": "participants"
+        }
+      },
+      {$unwind: "$participants"},
+      {$unwind: {"path": "$participants.answersToQuestionnaires", "preserveNullAndEmptyArrays": true}},
+      {"$addFields": {isQuestionIdMatched: {$eq: ["$_id", "$participants.answersToQuestionnaires.questionnaireId._id"]}}},
+      {
+        $match: {
+          $and: [
+            {'isQuestionIdMatched': true},
+            {'participants.answersToQuestionnaires.status': {$eq: questionnaireStatuses.inProgress}}
+          ],
+        }
+      },
+      {$limit: 1},
+      {
+        $project:
+          {
+            'questionnaireName': 1,
+            'status': '$participants.answersToQuestionnaires.status',
+            'questionnaireDescription': 1,
+            'questionnaireDefinition': 1
+          }
+      }
     ];
-    return mongoose.model('questionnaires').aggregate(hackedAggregationPipeline).then(inProgressQuestionnaires => {
-      if (inProgressQuestionnaires && inProgressQuestionnaires.length > 0) {
+    return mongoose.model('questionnaires').aggregate(pipeline).then(inProgressQuestionnaires => {
+      if (!_.isEmpty(inProgressQuestionnaires)) {
         return inProgressQuestionnaires[0];
       }
     });
   }
 
   function getNotStartedQuestionnaire(fhirId) {
-    let origAggregationPipeline = [ // use this aggregation pipeline once ADP-470 is fixed. Note that this pipeline may still need some rewriting
+    const pipeline = [
         {
             $project: {
                 _id: 1,
@@ -200,65 +141,8 @@ module.exports = function (globalMongoose) {
         {$unwind: "$pools"},
         {
             $lookup: {
-                from: "poolparticipants",
-                localField: "pools._id",
-                "foreignField": "poolId",
-                "as": "poolParticipants"
-            }
-        },
-        {$unwind: "$poolParticipants"},
-        {$match: {"poolParticipants.guid": fhirId}},
-        {
-            $lookup: {
-                from: "participants",
-                localField: "poolParticipants.guid",
-                "foreignField": "guid",
-                "as": "participants"
-            }
-        },
-        {$unwind: "$participants"},
-        {$unwind: {"path": "$participants.answersToQuestionnaires", "preserveNullAndEmptyArrays": true}},
-        {
-            $group: {
-                _id: '$_id',
-                startedQuestionnaires: {$addToSet: "$participants.answersToQuestionnaires.questionnaireId"},
-                questionnaireDescription: {$first: '$questionnaireDescription'},
-                questionnaireDefinition: {$first: '$questionnaireDefinition'}
-            }
-        },
-        {"$addFields": {isQuestionStarted: {$in: ["$_id", "$startedQuestionnaires"]}}},
-        {$match: {isQuestionStarted: false}},
-        {$limit: 1},
-        {$limit: 1}, // why twice?
-        {
-            $project:
-                {
-                    'questionnaireName': 1,
-                    'status': questionnaireStatuses.notStarted,
-                    'questionnaireDescription': 1,
-                    'questionnaireDefinition': 1
-                }
-        }
-    ];
-    let hackedAggregationPipeline = [
-        {
-            $project: {
-                _id: 1,
-                pools: 1,
-                questionnaireName: 1,
-                questionnaireDescription: 1,
-                questionnaireDefinition: 1,
-                participants: 1
-            }
-        },
-        {$unwind: "$pools"},
-        { "$addFields": { "poolObjectId": { "$toObjectId": "$pools._id" }, "poolStringId": "$pools._id"}},
-        {$lookup: {from: "pools", localField: "poolObjectId", "foreignField": "_id", "as": "pools"}},
-        {$unwind: "$pools"},
-        {
-            $lookup: {
                 from: "poolParticipants",
-                localField: "poolStringId",
+                localField: "pools._id",
                 "foreignField": "poolId._id",
                 "as": "poolParticipants"
             }
@@ -280,11 +164,12 @@ module.exports = function (globalMongoose) {
                 _id: '$_id',
                 startedQuestionnaires: {$addToSet: "$participants.answersToQuestionnaires.questionnaireId._id"},
                 questionnaireDescription: {$first: '$questionnaireDescription'},
-                questionnaireDefinition: {$first: '$questionnaireDefinition'}
+                questionnaireDefinition: {$first: '$questionnaireDefinition'},
+                questionnaireName: {$first: '$questionnaireName'}
             }
         },
-        {"$addFields": {isQuestionStarted: {$in: [{ "$toString": "$_id"}, "$startedQuestionnaires"]}}},
-        {$match: {isQuestionStarted: false}},
+        {"$addFields": {isQuestionnaireStarted: {$in: ["$_id", "$startedQuestionnaires"]}}},
+        {$match: { isQuestionnaireStarted: false } },
         {$limit: 1},
         {
             $project:
@@ -296,8 +181,9 @@ module.exports = function (globalMongoose) {
                 }
         }
     ];
-    return mongoose.model('questionnaires').aggregate(hackedAggregationPipeline).then(notStartedQuestionnaires => {
-      if (notStartedQuestionnaires && notStartedQuestionnaires.length > 0) {
+
+    return mongoose.model('questionnaires').aggregate(pipeline).then(notStartedQuestionnaires => {
+      if (!_.isEmpty(notStartedQuestionnaires)) {
         return notStartedQuestionnaires[0];
       }
       return null;
@@ -318,13 +204,13 @@ module.exports = function (globalMongoose) {
         }
         return res.json({
           success: true,
-          data: {
-            _id: questionnaire._id,
-            status: questionnaire.status,
-            questionnaireName: questionnaire.questionnaireName,
-            questionnaireDescription: questionnaire.questionnaireDescription,
-            questionnaireDefinition: questionnaire.questionnaireDefinition
-          }
+          data: _.pick(questionnaire, [
+            '_id',
+            'status',
+            'questionnaireName',
+            'questionnaireDescription',
+            'questionnaireDefinition',
+          ])
         });
       }).catch(err => {
         log.error(err);
@@ -348,21 +234,21 @@ module.exports = function (globalMongoose) {
   m.postQuestionnaireAnswers = (req, res, next) => {
     const fhirId = req.params.id;
     const questionnaireId = _.get(req, 'body.data.questionnaireId');
-    if (!questionnaireId) {
-      return res.json({success: false, message: 'Invalid data.questionnaireId. It should be specified.'});
+    if (!questionnaireId || !mongoose.Types.ObjectId.isValid(questionnaireId)) {
+      return res.json({success: false, message: 'Invalid data.questionnaireId. It should be a string represented as valid ObjectID.'});
     }
-    const questionnaireObjId = new ObjectID(questionnaireId);
+    const questionnaireObjectId = mongoose.Types.ObjectId(questionnaireId);
 
     mongoose.model('participants').findOne({
       guid: fhirId,
-      'answersToQuestionnaires.questionnaireId._id': questionnaireId
+      'answersToQuestionnaires.questionnaireId._id': questionnaireObjectId
     })
       .then(participant => {
         if (!participant) {
           throw new QuestionnaireError('Questionnaire not found for specified participant.');
         }
         const answersToQIndex = participant.answersToQuestionnaires
-          .findIndex(answersToQ => answersToQ.questionnaireId._id === questionnaireId);
+          .findIndex(answersToQ => answersToQ.questionnaireId._id.toString() === questionnaireId);
         const answersToQ = participant.answersToQuestionnaires[answersToQIndex];
 
         if (answersToQ.get('endTime')) {
@@ -373,7 +259,7 @@ module.exports = function (globalMongoose) {
           throw new QuestionnaireError('Cannot post answers for not started questionnaire.');
         }
 
-        const dbAnswers = answersToQ.answers;
+        const dbAnswers = answersToQ.answers || {};
         const clientAnswers = _.get(req, 'body.data.answers', {});
         const newAnswers = _.merge(dbAnswers, clientAnswers);
         answersToQ.set('answers', newAnswers);
@@ -410,42 +296,41 @@ module.exports = function (globalMongoose) {
   m.startQuestionnaire = (req, res, next) => {
     const fhirId = req.params.id;
     const questionnaireId = _.get(req, 'body.data.questionnaireId');
-    if (!questionnaireId) {
-      return res.json({success: false, message: 'Invalid data.questionnaireId. It should be specified.'});
+    if (!questionnaireId || !mongoose.Types.ObjectId.isValid(questionnaireId)) {
+      return res.json({success: false, message: 'Invalid data.questionnaireId. It should be a string represented as valid ObjectID.'});
     }
-    //const questionnaireObjectID = new ObjectID(questionnaireId); // this need to be fixed after fixing ADP-470
-    return mongoose.model('participants').findOne({
-      guid: fhirId,
-      'answersToQuestionnaires.questionnaireId._id': questionnaireId
-    })
+    const questionnaireObjectID = mongoose.Types.ObjectId(questionnaireId);
+    return mongoose.model('participants').findOne({ guid: fhirId})
       .then(participant => {
-        if (participant) {
-          throw new QuestionnaireError('Cannot start already started questionnaire.');
+        if (!participant) {
+          throw new QuestionnaireError(`Unable to find participant with De-Identified ID: '${fhirId}'`);
         }
-        return mongoose.model('participants').update({guid: fhirId}, {
-          $addToSet: { // TODO: mongoose runs this query twice, possibly because of this: https://stackoverflow.com/questions/36822745/node-workaround-for-mongoose-pushing-twice-after-saving-twice, replaced with $addToSet. Need to get rid of Mongoose
-            answersToQuestionnaires: {
-              questionnaireId: {
+        return mongoose.model('participants')
+          .update({ guid: fhirId, 'answersToQuestionnaires.questionnaireId._id': { $exists: false } }, {
+            $addToSet: { // TODO: mongoose runs this query twice, possibly because of this: https://stackoverflow.com/questions/36822745/node-workaround-for-mongoose-pushing-twice-after-saving-twice, replaced with $addToSet. Need to get rid of Mongoose
+              answersToQuestionnaires: {
+                questionnaireId: {
                   label: questionnaireId, // not real
                   table: "questionnaires",
-                  _id: questionnaireId
-              },
-              status: questionnaireStatuses.inProgress,
-              startTime: new Date(),
+                  _id: questionnaireObjectID
+                },
+                status: questionnaireStatuses.inProgress,
+                startTime: new Date(),
+              }
             }
-          }
-        }, (err, data) => {
-          if (err) {
-            res.json({success: false, message: 'Unable to start questionnaire'});
-          } else if (!data /* || data.nModified === 0 */) { // workaround for mongodb pushing twice, read above. The second update returns nModified=0
-            res.json({success: false, message: 'Unable to start questionnaire'});
-          } else {
-            res.json({success: true, message: 'Your questionnaire is started'});
-          }
-        });
+          })
+      })
+      .then(data => {
+        const {nModified} = data;
+        if (nModified === 1 ) {
+          return res.json({ success: true, message: 'Your questionnaire is started' });
+        }
+        if (nModified === 0) {
+          return res.json({ success: false, message: 'Cannot start already started questionnaire.' });
+        }
       })
       .catch(err => {
-        log.error(err);
+        log.error(err.stack);
         if (err instanceof QuestionnaireError) {
           return res.json({success: false, message: err.message});
         }
@@ -454,13 +339,13 @@ module.exports = function (globalMongoose) {
   };
 
   m.getQuestionnaireAnswers = (req, res, next) => {
-    let origAggregationPipeline = [
+    const pipeline = [
         {$match: {'answersToQuestionnaires': {$ne: null}}},
         {$unwind: '$answersToQuestionnaires'},
         {
             $group: {
                 _id: {
-                    questionnaireId: "$answersToQuestionnaires.questionnaireId",
+                    questionnaireId: "$answersToQuestionnaires.questionnaireId._id",
                     guid: "$guid"
                 },
                 answers: {$first: "$answersToQuestionnaires.answers"}
@@ -482,47 +367,13 @@ module.exports = function (globalMongoose) {
                 guid: '$_id.guid',
                 questionnaireDescription: '$questionnaire.questionnaireDescription',
                 questionnaireName: '$questionnaire.questionnaireName',
-                questionnaire: '$questionnaire.questionnaireDefinition.questionnaire',
+                questionnaire: '$questionnaire.questionnaireDefinition.Questionnaire',
                 answers: '$answers'
             }
         }
     ];
-    let hackedAggregationPipeline = [
-        {$match: {'answersToQuestionnaires': {$ne: null}}},
-        {$unwind: '$answersToQuestionnaires'},
-        {
-            $group: {
-                _id: {
-                    questionnaireId: "$answersToQuestionnaires.questionnaireId._id",
-                    guid: "$guid"
-                },
-                answers: {$first: "$answersToQuestionnaires.answers"}
-            }
-        },
-        { "$addFields": { "questionnaireObjectId": { "$toObjectId": "$_id.questionnaireId" }}},
-        {
-            $lookup: {
-                from: "questionnaires",
-                localField: "questionnaireObjectId",
-                foreignField: "_id",
-                as: "questionnaire"
-            }
-        },
-        {$unwind: '$questionnaire'},
-        {$match: {"questionnaire.creator": req.user._id}},
-        {
-            $project: {
-                _id: 0,
-                questionnaireId: '$_id.questionnaireId',
-                guid: '$_id.guid',
-                questionnaireDescription: '$questionnaire.questionnaireDescription',
-                questionnaireName: '$questionnaire.questionnaireName',
-                questionnaire: '$questionnaire.questionnaireDefinition.questionnaire',
-                answers: '$answers'
-            }
-        }
-    ];
-    mongoose.model('participants').aggregate(hackedAggregationPipeline, (err, data) => {
+
+    mongoose.model('participants').aggregate(pipeline, (err, data) => {
       if (err) {
         res.json({success: false, message: 'Unable to get the questionnaire answers'});
       } else {

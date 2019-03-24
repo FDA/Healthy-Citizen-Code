@@ -19,7 +19,7 @@
       templateUrl: 'app/adp-tables/directives/adp-table-simple/adp-table-simple.html',
       link: function (scope, element) {
         (function init() {
-          scope.heads = AdpTablesService.getAllHeads(scope.schema.fields);
+          scope.heads = AdpTablesService.getDetailsHeads(scope.schema.fields);
           $timeout(_createTable, 0);
         })();
 

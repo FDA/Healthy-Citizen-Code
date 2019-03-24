@@ -3,24 +3,19 @@
 // TODO: add tests for default foreignKey
 
 const request = require('supertest');
-require('should');
-const _ = require('lodash');
+const should = require('should');
 const { ObjectID } = require('mongodb');
 
 const reqlib = require('app-root-path').require;
 
 const {
   auth: { admin, user, loginWithUser },
+  getMongoConnection,
+  setAppAuthOptions,
+  prepareEnv,
 } = reqlib('test/backend/test-util');
 
 describe('V5 Backend Lookups', () => {
-  const sampleDataModel3 = [
-    // model 2 return is capped to 3 elements
-    {
-      _id: new ObjectID('487179f6ef4807703afd0df0'),
-      model4Id: new ObjectID('587179f6ef4807703afd0df2'),
-    },
-  ];
   const sampleDataModel4 = [
     // model 2 return is capped to 3 elements
     { _id: new ObjectID('587179f6ef4807703afd0df0'), name: 'name1', description: 'description1' },
@@ -42,60 +37,57 @@ describe('V5 Backend Lookups', () => {
     },
   ];
 
+  const sampleDataModel3 = {
+    _id: new ObjectID('487179f6ef4807703afd0df0'),
+    model4Id: {
+      table: 'model4s',
+      label: sampleDataModel4[0].name,
+      _id: sampleDataModel4[0]._id,
+    },
+  };
+
   before(function() {
-    require('dotenv').load({ path: './test/backend/.env.test' });
+    prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return this.appLib.setup();
-    // .then(() => {
-    //   this.appLib.authenticationCheck = (req, res, next) => next(); // disable authentication
-    // });
+    return getMongoConnection().then(db => {
+      this.db = db;
+    });
   });
 
   after(function() {
-    return this.appLib.shutdown();
+    return this.db.dropDatabase().then(() => this.db.close());
   });
 
   beforeEach(function() {
     return Promise.all([
-      this.appLib.db.collection('model3s').remove({}),
-      this.appLib.db.collection('model4s').remove({}),
-      this.appLib.db.collection('users').remove({}),
+      this.db.collection('model3s').remove({}),
+      this.db.collection('model4s').remove({}),
+      this.db.collection('users').remove({}),
+      this.db.collection('mongoMigrateChangeLog').remove({}),
     ]).then(() =>
       Promise.all([
-        this.appLib.db.collection('model4s').insert(sampleDataModel4),
-        this.appLib.db.collection('model3s').insert(sampleDataModel3),
-        this.appLib.db.collection('users').insert(user),
-        this.appLib.db.collection('users').insert(admin),
+        this.db.collection('model4s').insert(sampleDataModel4),
+        this.db.collection('model3s').insert(sampleDataModel3),
+        this.db.collection('users').insert(user),
+        this.db.collection('users').insert(admin),
       ])
     );
   });
 
-  /*
-  describe('updates model', function () {
-    it('adds ref', function (done) {
-      //appLib.db.model('model3s').schema.paths.model4Id.options.ref.should.equal('model4s');
-      done();
-    });
-    it('supports simple populate', function (done) {
-      /!*
-      appLib.db.model('model3s').findOne({}).populate('model4Id').exec((err, data) => {
-          data.model4Id.name.should.equal("name3");
-          data.model4Id.description.should.equal("description3_def");
-          (data.model4Id._id + "").should.equal("587179f6ef4807703afd0df2");
-          done();
-      });
-      *!/
-      done();
-    });
+  afterEach(function() {
+    return this.appLib.shutdown();
   });
-  */
 
   describe('GET /routes', () => {
     it('contains endpoint', function() {
-      return request(this.appLib.app)
-        .get('/routes')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .get('/routes')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
         .then(res => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
@@ -103,16 +95,101 @@ describe('V5 Backend Lookups', () => {
         });
     });
   });
-  describe('returns correct results', () => {
-    it('for specific search', function() {
-      _.merge(this.appLib.appModel.interface.app.auth, {
+
+  describe('should not insert lookups referenced to non-existing records ', () => {
+    it('on POST', function() {
+      setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
       });
-      this.appLib.resetRoutes();
-      return request(this.appLib.app)
-        .get('/lookups/model4Id/model4s?q=abc')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
+
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .post('/model3s')
+            .send({
+              data: {
+                model4Id: {
+                  table: 'model4s',
+                  label: 'some label',
+                  _id: new ObjectID(),
+                },
+                model4IdSortBy: {
+                  table: 'nonexistingCollection',
+                  label: 'some label',
+                  _id: new ObjectID(),
+                },
+              },
+            })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
+        .then(res => {
+          const { success, message } = res.body;
+          should(success).be.equal(false);
+
+          const [cause, fields] = message.split(':');
+          should(cause).be.equal('Found non-existing references in fields');
+
+          const fieldNames = fields.trim().split(', ');
+          should(fieldNames).containDeep(['model4Id', 'model4IdSortBy']);
+        });
+    });
+
+    it('on PUT', function() {
+      setAppAuthOptions(this.appLib, {
+        requireAuthentication: false,
+      });
+
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .put(`/model3s/${sampleDataModel3._id.toString()}`)
+            .send({
+              data: {
+                model4Id: {
+                  table: 'model4s',
+                  label: sampleDataModel4[0].name,
+                  _id: new ObjectID(),
+                },
+                model4IdSortBy: {
+                  table: 'nonexistingCollection',
+                  label: 'some label',
+                  _id: new ObjectID(),
+                },
+              },
+            })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
+        .then(res => {
+          const { success, message } = res.body;
+          should(success).be.equal(false);
+
+          const [cause, fields] = message.split(':');
+          should(cause).be.equal('Found non-existing references in fields');
+
+          const fieldNames = fields.trim().split(', ');
+          should(fieldNames).containDeep(['model4Id', 'model4IdSortBy']);
+        });
+    });
+  });
+
+  describe('returns correct results', () => {
+    it('for specific search', function() {
+      setAppAuthOptions(this.appLib, {
+        requireAuthentication: false,
+      });
+
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .get('/lookups/model4Id/model4s?q=abc')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
         .then(res => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
@@ -122,14 +199,18 @@ describe('V5 Backend Lookups', () => {
         });
     });
     it('with pagination, page 1', function() {
-      _.merge(this.appLib.appModel.interface.app.auth, {
+      setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
       });
-      this.appLib.resetRoutes();
-      return request(this.appLib.app)
-        .get('/lookups/model4Id/model4s?q=name&page=1')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
+
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .get('/lookups/model4Id/model4s?q=name&page=1')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
         .then(res => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
@@ -140,14 +221,18 @@ describe('V5 Backend Lookups', () => {
         });
     });
     it('with pagination, page 2', function() {
-      _.merge(this.appLib.appModel.interface.app.auth, {
+      setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
       });
-      this.appLib.resetRoutes();
-      return request(this.appLib.app)
-        .get('/lookups/model4Id/model4s?q=name&page=2')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
+
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .get('/lookups/model4Id/model4s?q=name&page=2')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
         .then(res => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
@@ -157,14 +242,18 @@ describe('V5 Backend Lookups', () => {
         });
     });
     it('with pagination and sortBy field, page 1', function() {
-      _.merge(this.appLib.appModel.interface.app.auth, {
+      setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
       });
-      this.appLib.resetRoutes();
-      return request(this.appLib.app)
-        .get('/lookups/model4IdSortBy/model4s?q=name&page=1')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
+
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .get('/lookups/model4IdSortBy/model4s?q=name&page=1')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
         .then(res => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
@@ -175,14 +264,18 @@ describe('V5 Backend Lookups', () => {
         });
     });
     it('with pagination and sortBy field, page 2', function() {
-      _.merge(this.appLib.appModel.interface.app.auth, {
+      setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
       });
-      this.appLib.resetRoutes();
-      return request(this.appLib.app)
-        .get('/lookups/model4IdSortBy/model4s?q=name&page=2')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
+
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .get('/lookups/model4IdSortBy/model4s?q=name&page=2')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
         .then(res => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
@@ -194,16 +287,20 @@ describe('V5 Backend Lookups', () => {
   });
   describe('returns correct results for lookups with scopes and enabled permissions', () => {
     it('should return 401 by not authenticated request', function() {
-      _.merge(this.appLib.appModel.interface.app.auth, {
+      setAppAuthOptions(this.appLib, {
         requireAuthentication: true,
         enableAuthentication: true,
         enablePermissions: true,
       });
-      this.appLib.resetRoutes();
-      return request(this.appLib.app)
-        .get('/lookups/Model3scopesModel4id/model4s?q=abc')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
+
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .get('/lookups/Model3scopesModel4id/model4s?q=abc')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
         .then(res => {
           res.statusCode.should.equal(401, JSON.stringify(res, null, 4));
           res.body.success.should.equal(false, res.body.message);
@@ -211,16 +308,20 @@ describe('V5 Backend Lookups', () => {
     });
 
     it('should not return model to guest', function() {
-      _.merge(this.appLib.appModel.interface.app.auth, {
+      setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
         enableAuthentication: true,
         enablePermissions: true,
       });
-      this.appLib.resetRoutes();
-      return request(this.appLib.app)
-        .get('/lookups/Model3scopesModel4id/model4s?q=abc')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/)
+
+      return this.appLib
+        .setup()
+        .then(() =>
+          request(this.appLib.app)
+            .get('/lookups/Model3scopesModel4id/model4s?q=abc')
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+        )
         .then(res => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
@@ -229,12 +330,14 @@ describe('V5 Backend Lookups', () => {
     });
 
     it('should return model to admin', function() {
-      _.merge(this.appLib.appModel.interface.app.auth, {
+      setAppAuthOptions(this.appLib, {
         enableAuthentication: true,
         enablePermissions: true,
       });
-      this.appLib.resetRoutes();
-      return loginWithUser(this.appLib, admin)
+
+      return this.appLib
+        .setup()
+        .then(() => loginWithUser(this.appLib, admin))
         .then(token =>
           request(this.appLib.app)
             .get('/lookups/Model3scopesModel4id/model4s?q=abc')

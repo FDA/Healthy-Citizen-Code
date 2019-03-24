@@ -14,7 +14,9 @@
         var vm = this;
 
         vm.$onInit = function () {
-          vm.fields = AdpSchemaService.getPasswordSchema();
+          vm.schema = AdpSchemaService.getPasswordSchema(vm.resolve.options.field);
+          vm.fields = vm.schema.fields;
+
           vm.data = {};
         };
 

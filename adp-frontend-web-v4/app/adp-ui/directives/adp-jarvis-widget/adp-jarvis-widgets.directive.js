@@ -11,11 +11,25 @@
       template: '<div ng-transclude class="adp-widget-grid jarviswidget-grid clearfix"></div>',
       transclude: true,
       link: function (scope, element) {
-        $timeout(init, 0);
         function init() {
-          var options = _.clone(jarvisWidgetsDefaults);
-          element.jarvisWidgets(options);
+          var options = _.defaults(jarvisWidgetsDefaults, {});
+
+          $timeout(function () {
+            element.jarvisWidgets(options);
+          }, 0);
         }
+
+        scope.$watch(
+          function () {
+            var items = element[0].querySelectorAll('.adp-form-fieldset');
+            return items.length;
+          },
+          function (newValue, oldValue) {
+            if (newValue !== oldValue) {
+              init();
+            }
+          }
+        );
       }
     }
   }

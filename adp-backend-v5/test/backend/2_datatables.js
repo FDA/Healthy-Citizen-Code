@@ -5,11 +5,12 @@
 
 const request = require('supertest');
 require('should');
-const async = require('async');
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
 
 const reqlib = require('app-root-path').require;
+
+const { getMongoConnection, setAppAuthOptions, prepareEnv } = reqlib('test/backend/test-util');
 
 describe('V5 Backend Datatables Support', () => {
   const sampleDataModel5 = [
@@ -168,29 +169,29 @@ describe('V5 Backend Datatables Support', () => {
   ).join('&');
 
   before(function() {
-    require('dotenv').load({ path: './test/backend/.env.test' });
+    prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return this.appLib.setup().then(() => {
-      _.merge(this.appLib.appModel.interface.app.auth, {
-        requireAuthentication: false,
-        enablePermissions: false,
-      });
-      this.appLib.resetRoutes();
+    setAppAuthOptions(this.appLib, {
+      requireAuthentication: false,
+      enablePermissions: false,
+    });
+
+    return Promise.all([getMongoConnection(), this.appLib.setup()]).then(([db]) => {
+      this.db = db;
     });
   });
 
   after(function() {
-    return this.appLib.shutdown();
+    return this.db
+      .dropDatabase()
+      .then(() => Promise.all([this.db.close(), this.appLib.shutdown()]));
   });
 
-  beforeEach(function(done) {
-    async.series(
-      [
-        cb => this.appLib.db.collection('model5s').remove({}, cb),
-        cb => this.appLib.db.collection('model5s').insert(sampleDataModel5, cb),
-      ],
-      done
-    );
+  beforeEach(function() {
+    return this.db
+      .collection('model5s')
+      .remove({})
+      .then(() => this.db.collection('model5s').insert(sampleDataModel5));
   });
 
   describe('1st level', () => {

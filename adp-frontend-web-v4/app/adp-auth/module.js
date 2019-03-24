@@ -18,9 +18,10 @@ angular
       })
 
       .state('auth.login', {
-        url: '/login?returnState',
+        url: '/login?returnState&returnUrl',
         params: {
           returnState: null,
+          returnUrl: null
         },
         views: {
           content: {
@@ -62,20 +63,6 @@ angular
           title: 'Forgot Password',
           htmlId: 'auth-page',
           redirectStrategy: 'guest'
-        }
-      })
-
-      .state('auth.logout', {
-        url: '/logout',
-        data: {
-          redirectStrategy: 'user'
-        },
-        views: {
-          content: {
-            controller: function(AdpSessionService){
-              AdpSessionService.logout();
-            }
-          }
         }
       });
   });

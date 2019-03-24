@@ -10,7 +10,7 @@ const FhirBundlesLoader = require('./pump_processors/fhir_bundles_loader');
 const RxcuiPumpProcessor = require('../services/rxnav/rxcui_pump_processor');
 const DrugInteractionPumpProcessor = require('../services/rxnav/pump_drug_interactions');
 const GinasPumpProcessor = require('../services/ginas/ginas_pump_processor');
-const OpenFDACrawlLabels = require('../services/open_fda_ndcs/open_fda_crawl_labels');
+const OpenFDACrawlLabels = require('./open_fda/open_fda_crawl_labels');
 
 const etlTypeToPumpProcessor = {
   fhirToHc: FhirToHcPumpProcessor,

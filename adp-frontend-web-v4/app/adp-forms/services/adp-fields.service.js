@@ -10,7 +10,8 @@
     APP_CONFIG,
     $http,
     $log,
-    IMPERIAL_UNITS
+    IMPERIAL_UNITS_DEFAULTS,
+    AdpBrowserService
   ) {
     var typeMap = {
       'String': { uiSubtypeType: 'text', directiveType: 'string' },
@@ -50,18 +51,8 @@
       'Object': { directiveType: 'object' },
       'Array': { directiveType: 'array' },
       'Readonly': { directiveType: 'readonly' },
+      'TreeSelector': { directiveType: 'tree-selector' },
     };
-
-    function getUnits(subtype) {
-      var unitsMap = {
-        'ImperialHeight': 'HEIGHT',
-        'ImperialWeightWithOz': 'WEIGHT_OZ',
-        'ImperialWeight': 'WEIGHT',
-      };
-      var typeName = unitsMap[subtype];
-
-      return IMPERIAL_UNITS[typeName];
-    }
 
     // public
     function getTypeProps(field) {
@@ -115,19 +106,15 @@
 
     function _isVisible(field) {
       var isVisible = 'showInForm' in field ? field.showInForm : field.visible;
-      if (typeof isVisible === 'boolean') {
-        return isVisible;
-      } else if (typeof isVisible === 'string') {
-        return isVisible === 'true';
-      }
-      return false;
+
+      return isVisible;
     }
 
     // !!! mutation
     function _applyPermissions(field) {
       var fieldInfo = _.get(field, 'fieldInfo', {});
 
-      if (!fieldInfo.read && !fieldInfo.write) {
+      if (!fieldInfo.read) {
         return false;
       }
 
@@ -136,7 +123,6 @@
 
     function prepareData(field, key) {
       field.keyName = key;
-      field.display = true;
 
       if (!_.isString(field.required)) {
         field.required = !!field.required;
@@ -167,7 +153,7 @@
     }
 
     /**
-     * We are following the convention: key of object value, label is object value
+     * List is object of shape {key, value}
      * @param {Object} list
      * @return {*}
      * @private
@@ -176,6 +162,21 @@
       return _.map(list, function (value, key) {
         return {value: key, label: value}
       });
+    }
+
+    function getValidListValues(values, field) {
+      var listOfValues = _.map(field.list, function (_v, key) {
+        return key;
+      });
+      var filtered = _.intersection(values, listOfValues);
+
+      if (_.isEmpty(filtered)) {
+        return null;
+      } else {
+
+        var isArrayType = field.type.includes('[]');
+        return isArrayType ? filtered : filtered[0];
+      }
     }
 
     function getFormGroupFields(fields) {
@@ -189,6 +190,13 @@
 
           return (AdpSchemaService.isField(field) || AdpSchemaService.isGroup(field)) &&
             _isVisible(field);
+        })
+        .filter(function (field) {
+          if (AdpSchemaService.isGroup(field)) {
+            return true;
+          }
+
+          return _applyPermissions(field);
         })
         .value();
 
@@ -212,6 +220,8 @@
         return lastGroup;
       });
 
+
+
       var groupedFields = {
         notGrouped: grouped.notGrouped,
         groups: {}
@@ -227,8 +237,81 @@
         groupedFields.groups[groupName].fields = group.slice(1);
       });
 
+      groupedFields.groups = _.omitBy(groupedFields.groups, function (group, key) {
+        if (!group.fieldInfo.read) {
+          return true;
+        }
+      });
+
+      _.each(groupedFields.groups, function (group) {
+        var fieldInfo = _.get(group, 'fieldInfo', {});
+
+        if (fieldInfo.read && !fieldInfo.write) {
+          _.each(group.fields, function (f) {
+            f.fieldInfo = _.clone(fieldInfo);
+          });
+        }
+      });
 
       return groupedFields;
+    }
+
+    function getUnits(field) {
+      var subtype = field.subtype;
+      var params = field.params;
+      var units = _.cloneDeep(IMPERIAL_UNITS_DEFAULTS[subtype]);
+
+      var isWeightField = subtype.includes('Weight');
+
+      if (params && isWeightField) {
+        setRangesFromParams(units, params);
+      }
+
+      return units;
+    }
+
+    function setRangesFromParams(units, params) {
+      var imperialWeightUnit = _.find(units, function(unit) {
+        return unit.label === 'lb';
+      });
+
+      imperialWeightUnit.range[0] = params.minLb;
+      imperialWeightUnit.range[1] = params.maxLb  + 1;
+    }
+
+    function autocompleteValue(field) {
+      var fieldAutocomplete = field.autocomplete;
+
+      if (fieldAutocomplete === 'disableMobile') {
+        fieldAutocomplete = AdpBrowserService.isMobile() ? 'disable' : 'enable';
+      }
+
+      var autocompleteStd = {
+        'enable': 'on',
+        'disable': AdpBrowserService.isChrome() ? 'nope' : 'off',
+      };
+
+      if (_.isUndefined(autocompleteStd[fieldAutocomplete])) {
+        return fieldAutocomplete;
+      } else {
+        return autocompleteStd[fieldAutocomplete];
+      }
+    }
+
+    function getHeaderRenderer(params) {
+      var renderName = params.fieldSchema.headerRender;
+      var renderFn = appModelHelpers.HeaderRenderers[renderName];
+
+      if (renderFn) {
+        return renderFn(params);
+      } else {
+        return params.fieldSchema.fullName;
+      }
+    }
+
+    function hasHedearRenderer(fieldSchema) {
+      var renderName = fieldSchema.headerRender;
+      return !!appModelHelpers.HeaderRenderers[renderName];
     }
 
     return {
@@ -237,7 +320,11 @@
       getFormFields: getFormFields,
       getFormGroupFields: getFormGroupFields,
       getListOfOptions: getListOfOptions,
-      getListOptionsAsync: getListOptionsAsync
+      getListOptionsAsync: getListOptionsAsync,
+      getValidListValues: getValidListValues,
+      autocompleteValue: autocompleteValue,
+      getHeaderRenderer: getHeaderRenderer,
+      hasHedearRenderer: hasHedearRenderer,
     };
   }
 })();

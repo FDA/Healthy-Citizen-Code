@@ -14,8 +14,11 @@
   ) {
     var INTERFACE = window.adpAppStore.appInterface();
     var vm = this;
-    vm.fields = AdpSchemaService.getRegisterSchema();
+    vm.schema = AdpSchemaService.getRegisterSchema();
+    vm.fields = vm.schema.fields;
     vm.authParams = INTERFACE.loginPage.parameters;
+
+    vm.showLogin = INTERFACE.app.auth.enableAuthentication;
 
     vm.submit = function (formData) {
       return AdpUserService.create(formData)

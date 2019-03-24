@@ -1,0 +1,93 @@
+{
+  "models": {
+    "model3_propagation": {
+      "type": "Schema",
+      "fullName": "model4s",
+      "limitReturnedRecords": 3,
+      "description": "Used for testing lookups as the table containing lookups",
+      "fields": {
+        "model4sSingleLookupName": {
+          "type": "LookupObjectID",
+          "fullName": "model4SingleLookup",
+          "lookup": {
+            "table": "lookup_test_model1",
+            "foreignKey": "_id",
+            "label": "name",
+            "id": "model4SingleLookup"
+          }
+        },
+        "model4sSingleLookupAnotherName": {
+          "type": "LookupObjectID",
+          "fullName": "model4SingleLookup",
+          "lookup": {
+            "table": "lookup_test_model1",
+            "foreignKey": "_id",
+            "label": "anotherName",
+            "id": "model4SingleLookup"
+          }
+        },
+        "model4s2SingleLookup": {
+          "type": "LookupObjectID",
+          "fullName": "model4SingleLookup",
+          "lookup": {
+            "table": "lookup_test_model2",
+            "foreignKey": "_id",
+            "label": "name",
+            "id": "model4SingleLookup"
+          }
+        },
+        "model4MultipleLookup": {
+          "type": "LookupObjectID[]",
+          "fullName": "model4MultipleLookup",
+          "lookup": {
+            "table": {
+              "lookup_test_model1": {
+                "foreignKey": "_id",
+                "label": "name"
+              },
+              "lookup_test_model2": {
+                "foreignKey": "_id",
+                "label": "name"
+              }
+            },
+            "id": "model4MultipleLookup"
+          }
+        }
+      }
+    },
+    "lookup_test_model1": {
+      "type": "Schema",
+      "fullName": "lookup_test_model1",
+      "limitReturnedRecords": 3,
+      "description": "Used for testing multiple lookups as the table containing lookups",
+      "fields": {
+        "name": {
+          "type": "String",
+          "searchable": true,
+          "fullName": "Name",
+          "description": "Product name"
+        },
+        "anotherName": {
+          "type": "String",
+          "searchable": true,
+          "fullName": "Name",
+          "description": "Product name"
+        }
+      }
+    },
+    "lookup_test_model2": {
+      "type": "Schema",
+      "fullName": "lookup_test_model2",
+      "limitReturnedRecords": 3,
+      "description": "Used for testing multiple lookups as the table containing lookups",
+      "fields": {
+        "name": {
+          "type": "String",
+          "searchable": true,
+          "fullName": "Name",
+          "description": "Product name"
+        }
+      }
+    }
+  }
+}

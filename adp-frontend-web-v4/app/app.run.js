@@ -7,7 +7,17 @@
         $trace.enable('TRANSITION');
       }
     })
+    .run(setupUserData)
     .run(runBlock);
+
+  /** @ngInject */
+  function setupUserData() {
+    var user = lsService.getUser();
+
+    if (_.isNull(user)) {
+      lsService.setGuestUserData();
+    }
+  }
 
   /** @ngInject */
   function runBlock(

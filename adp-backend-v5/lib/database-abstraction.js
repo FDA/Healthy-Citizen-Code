@@ -1,4 +1,7 @@
 const _ = require('lodash');
+const Promise = require('bluebird');
+const log = require('log4js').getLogger('lib/database-abstraction');
+const { AccessError } = require('./errors');
 
 /**
  * @module database-abstraction
@@ -10,42 +13,44 @@ const _ = require('lodash');
  */
 module.exports = appLib => {
   const { transformers } = appLib;
+  const { hashObject, MONGO } = appLib.butil;
+
   const m = {};
 
-  m.getConditionForActualRecord = () => ({
-    $and: [{ deletedAt: { $eq: null } }, { _temporary: { $eq: null } }],
-  });
+  m.getConditionForActualRecord = () =>
+    MONGO.and({ deletedAt: { $eq: null } }, { _temporary: { $eq: null } });
 
   /**
    * Updates ONE document based on mongoConditions
    * This method is tricky because it needs to call transformers and validations on the portion of the document
    * That only sits in the req.body.data
-   * NOTE that the whole record needs to be updated because mongodb does not support updating nested arrays and objects as of 4.2
-   * Some optimization includes using '$' placeholder for arrays, but it only allows diving 1 level down as there cannot
-   * be more than one '$' per condition. Watch after mongodb enhancements in the future versions.
-   * IDEA: if we limit the depth of the database structure to 3 levels we can optimize these queries
-   * TODO: optimize queries using $, projection and other features available in mongo at the moment
-   * @param action  operation to perform: $set, $push or $pull. Do not use these directly in mongodb query, read note above
    * @param model
    * @param userContext
-   * @param mongoProjections
    * @param mongoConditions
    * @param data
    * @param path the path to the element of appModel that's being updated ("" if the entire record is being updated)
    */
-  m.updateItem = ({ model, userContext, mongoConditions, data, path }) =>
-    // log.trace(`${action} ${path} ${JSON.stringify(data, null, 4)}`);
-    transformers
+  m.updateItem = ({ model, userContext, mongoConditions, data, path }) => {
+    const newConditions = MONGO.and(mongoConditions, m.getConditionForActualRecord());
+    return transformers
       .preSaveTransformData(model.modelName, userContext, data, path)
-      .then(() => {
-        const newConditions = { $and: [mongoConditions, m.getConditionForActualRecord()] };
-        return model.findOneAndUpdate(newConditions, data, { new: true, strict: true });
-      })
-      .then(doc => {
-        if (!doc) {
-          throw new Error('You are not allowed to update the item');
+      .then(() => model.replaceOne(newConditions, data))
+      .then(stats => {
+        if (stats.ok !== 1 || stats.nModified < 1) {
+          throw new Error(`Unable to update item`);
         }
+        return appLib.cache.clearCacheForModel(model.modelName);
+      })
+      .catch(err => {
+        log.error(
+          `Unable to replace '${model.modelName}' item by conditions: `,
+          newConditions,
+          '\nError:',
+          err.message
+        );
+        throw new Error('You are not allowed to update the item');
       });
+  };
 
   m.upsertItem = ({ model, userContext, mongoConditions, data, path }) =>
     model.findOne(mongoConditions).then(doc => {
@@ -86,10 +91,7 @@ module.exports = appLib => {
     if (!updatedTempRecord) {
       // remove temporary record immediately
       return Model.remove({ _id: savedItemId, _temporary: true }).then(() => {
-        throw {
-          code: 'NO_PERMISSIONS_TO_CREATE',
-          message: `Not enough permissions to create the item.`,
-        };
+        throw new AccessError(`Not enough permissions to create the item.`);
       });
     }
     return Promise.resolve(updatedTempRecord);
@@ -111,6 +113,7 @@ module.exports = appLib => {
   m.createItemCheckingConditions = (Model, mongoConditions, userContext, origData) => {
     const data = _.cloneDeep(origData);
     let savedItem;
+    let updatedItem;
 
     return transformers
       .preSaveTransformData(Model.modelName, userContext, data, [])
@@ -130,12 +133,19 @@ module.exports = appLib => {
           { new: true }
         );
       })
-      .then(newDoc => handleUpdatedTemporaryRecord(Model, savedItem._id, newDoc));
+      .then(updatedDoc => {
+        updatedItem = updatedDoc;
+        return handleUpdatedTemporaryRecord(Model, savedItem._id, updatedItem);
+      })
+      .then(() => appLib.cache.clearCacheForModel(Model.modelName))
+      .then(() => updatedItem);
   };
 
   m.removeItem = (model, conditions) => {
-    const newConditions = { $and: [conditions, m.getConditionForActualRecord()] };
-    return model.findOneAndUpdate(newConditions, { $set: { deletedAt: new Date() } });
+    const newConditions = MONGO.and(conditions, m.getConditionForActualRecord());
+    return model
+      .findOneAndUpdate(newConditions, { $set: { deletedAt: new Date() } })
+      .then(() => appLib.cache.clearCacheForModel(model.modelName));
   };
 
   m.findItems = ({
@@ -149,9 +159,8 @@ module.exports = appLib => {
   }) =>
     m
       .rawFindItems({ model, userContext, conditions, projections, sort, skip, limit })
-      .then(data => m.postProcess(data, model.modelName, userContext, true));
+      .then(data => m.postTransform(data, model.modelName, userContext));
 
-  // TODO: rewrite using cursors?
   m.rawFindItems = ({
     model,
     conditions = {},
@@ -160,7 +169,7 @@ module.exports = appLib => {
     skip = 0,
     limit = -1,
   }) => {
-    const newConditions = { $and: [conditions, m.getConditionForActualRecord()] };
+    const newConditions = MONGO.and(conditions, m.getConditionForActualRecord());
     return model
       .find(newConditions, projections)
       .sort(sort)
@@ -170,41 +179,96 @@ module.exports = appLib => {
       .exec();
   };
 
-  m.aggregateItems = (
+  m.rawAggregateItems = ({
     model,
     conditions = {},
     projections = {},
     sort = {},
     skip = 0,
-    limit = -1
-  ) => {
-    const newConditions = { $and: [conditions, m.getConditionForActualRecord()] };
+    limit = -1,
+  }) => {
+    const newConditions = MONGO.and(conditions, m.getConditionForActualRecord());
 
-    let aggregate = model.aggregate().match(newConditions);
+    const aggregate = model.aggregate().match(newConditions);
     if (!_.isEmpty(projections)) {
-      aggregate = aggregate.project(projections);
+      aggregate.project(projections);
     }
     if (!_.isEmpty(sort)) {
-      aggregate = aggregate.sort(sort);
+      aggregate.sort(sort);
     }
-    aggregate = aggregate.skip(skip);
+    aggregate.skip(skip);
     if (limit > 0) {
-      aggregate = aggregate.limit(limit);
+      aggregate.limit(limit);
     }
 
     return aggregate.exec();
   };
 
-  m.postProcess = (data, modelName, userContext, runPostprocessing) => {
-    if (!_.isEmpty(data)) {
-      if (runPostprocessing) {
-        // some operations like putItems require postprocessing to be skipped
-        return Promise.mapSeries(data, el =>
-          transformers.postInitTransformData(modelName, userContext, el)
-        ).then(() => data);
-      }
+  m.aggregateItems = ({
+    model,
+    userContext,
+    conditions = {},
+    projections = {},
+    sort = {},
+    skip = 0,
+    limit = -1,
+  }) =>
+    m
+      .rawAggregateItems({
+        model,
+        conditions,
+        projections,
+        sort,
+        skip,
+        limit,
+      })
+      .then(data => m.postTransform(data, model.modelName, userContext));
+
+  m.getItemsUsingCache = ({
+    model,
+    userContext,
+    conditions = {},
+    projections = {},
+    sort = {},
+    skip = 0,
+    limit = -1,
+  }) => {
+    let paramHash;
+    let key;
+    const params = {
+      conditions,
+      projections,
+      sort,
+      skip,
+      limit,
+    };
+    try {
+      paramHash = hashObject(params);
+      key = `${model.modelName}:${paramHash}`;
+    } catch (e) {
+      log.warn(`Unable to hash params`, params, e.stack);
     }
-    return Promise.resolve(data);
+
+    const getPromise = () =>
+      m.aggregateItems({
+        model,
+        userContext,
+        conditions,
+        projections,
+        sort,
+        skip,
+        limit,
+      });
+    return appLib.cache.getUsingCache(getPromise, key);
+  };
+
+  m.postTransform = (data, modelName, userContext) => {
+    if (_.isEmpty(data)) {
+      return Promise.resolve(data);
+    }
+    return Promise.mapSeries(data, el =>
+      transformers.postInitTransformData(modelName, userContext, el)
+    ).then(() => data);
   };
 
   return m;

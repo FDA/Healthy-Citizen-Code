@@ -5,13 +5,16 @@
     .module('app.adpForms')
     .directive('imperialUnitsControl', imperialUnitsControl);
 
-  function imperialUnitsControl(AdpFieldsService) {
+  function imperialUnitsControl(
+    AdpFieldsService
+  ) {
     return {
       restrict: 'E',
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/imperial-units-control/imperial-units-control.html',
       require: '^^form',
@@ -19,16 +22,7 @@
         scope.form = formCtrl;
 
         function init() {
-          scope.units = AdpFieldsService.getUnits(scope.field.subtype);
-
-          if (scope.field.subtype === 'ImperialWeight' && scope.field.parameters) {
-            var imperialWeightUnit = _.find(scope.units, function(unit) {
-              return unit.label === 'lb';
-            });
-
-            imperialWeightUnit.range[0] = scope.field.parameters.minLb || imperialWeightUnit.range[0];
-            imperialWeightUnit.range[1] = scope.field.parameters.maxLb  + 1 || imperialWeightUnit.range[1];
-          }
+          scope.units = AdpFieldsService.getUnits(scope.field);
 
           removeLimitValidator();
           initModelValue();

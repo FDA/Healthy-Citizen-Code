@@ -1,7 +1,6 @@
 const fs = require('fs');
 const mongoose = require('mongoose');
 const log = require('log4js').getLogger('lib/app-util');
-const { MongoClient } = require('mongodb');
 const _ = require('lodash');
 const path = require('path');
 const appRoot = require('app-root-path').path;
@@ -40,48 +39,6 @@ module.exports = appLib => {
     loadHelper(corePath, appPath, 'lists');
   };
 
-  m.loadRolesToPermissions = () => {
-    appLib.appModel.rolesToPermissions = _.clone(appLib.accessCfg.ROLES_TO_PERMISSIONS);
-
-    const allAppPermissionsSet = appLib.accessUtil.getAllAppPermissionsSet();
-    const superAdmin = appLib.accessCfg.ROLES.SuperAdmin;
-    appLib.appModel.rolesToPermissions[superAdmin] = Array.from(allAppPermissionsSet);
-
-    // TODO: should remove some roles from general list?
-    // form roles for appModelHelpers['Lists']
-    const roles = _.clone(appLib.accessCfg.ROLES);
-
-    let dbCon;
-    log.trace(`Retrieving roles to permissions data from db`);
-    return MongoClient.connect(process.env.MONGODB_URI)
-      .catch(err => {
-        throw new Error(`Cannot get connection to ${process.env.MONGODB_URI}: ${err}`);
-      })
-      .then(db => {
-        dbCon = db;
-        return dbCon
-          .collection('roles')
-          .find()
-          .toArray();
-      })
-      .then(results => {
-        results.forEach(r => {
-          const roleName = r.name;
-          appLib.appModel.rolesToPermissions[roleName] = r.permissions;
-          roles[roleName] = roleName;
-        });
-
-        appLib.appModelHelpers.Lists.roles = roles;
-
-        dbCon.close();
-        log.trace(`Successfully retrieved roles to permissions data from db`);
-      })
-      .catch(err => {
-        log.error(`Error occurred while retrieving roles to permissions data from db: ${err}`);
-        throw err;
-      });
-  };
-
   m.loadRenderers = (corePath, appPath) => {
     loadHelper(corePath, appPath, 'renderers');
   };
@@ -92,6 +49,14 @@ module.exports = appLib => {
 
   m.loadLabelRenderers = (corePath, appPath) => {
     loadHelper(corePath, appPath, 'label_renderers');
+  };
+
+  m.loadHeaderRenderers = (corePath, appPath) => {
+    loadHelper(corePath, appPath, 'header_renderers');
+  };
+
+  m.loadLookupLabelRenderers = (corePath, appPath) => {
+    loadHelper(corePath, appPath, 'lookup_label_renderers');
   };
 
   m.loadValidators = (corePath, appPath) => {
@@ -134,6 +99,10 @@ module.exports = appLib => {
 
   m.loadPermissionScopePreparations = (corePath, appPath) => {
     loadHelper(corePath, appPath, 'preparations', mongoose);
+  };
+
+  m.loadHooks = (corePath, appPath) => {
+    loadHelper(corePath, appPath, 'hooks', appLib);
   };
 
   return m;

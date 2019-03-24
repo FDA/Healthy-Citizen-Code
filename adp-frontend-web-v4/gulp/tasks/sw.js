@@ -16,7 +16,7 @@ gulp.task('sw:manifest', () => {
     globPatterns: [
       '**\/*.{html,js,json,css}',
       '**\/*.{otf,svg,ttf,woff,woff2}',
-      '**\/*.{png,gif}'
+      '**\/*.{jpg,png,gif}'
     ],
     globIgnores: ['workers/**/*'],
     // vendors.js is > 2MB :(

@@ -9,11 +9,11 @@
     return {
       restrict: 'E',
       replace: true,
-      scope: {
-        serverSide: '='
-      },
       templateUrl: 'app/adp-tables/directives/adp-table-filters/adp-date-filter/adp-date-filter.html',
       link: function (scope, element) {
+        var columnIndex = $(element).closest('th').index();
+        var $before = $(element).find('input.before');
+        var $after = $(element).find('input.after');
 
         scope.datepickerOptions = {
           dateFormat: BS_DATE_FORMAT,
@@ -23,11 +23,23 @@
           buttonText: ' '
         };
 
-        var columnIndex = $(element).closest('th').index();
-        var $before = $(element).find('input.before');
-        var $after = $(element).find('input.after');
+        _setValueFromUrl();
 
         if (!scope.serverSide) applyDTFilter();
+
+        $(element).on('change', 'input', function (e) {
+          var searchParams = {
+            index: columnIndex,
+            serverSideParams: {
+              filter: 'date',
+              gt: $before.val(),
+              lt: $after.val()
+            }
+          };
+
+          _setFilterToUrl();
+          scope.$emit('redraw', searchParams);
+        });
 
         function applyDTFilter() {
           $.fn.dataTable.ext.search.push(filterDate);
@@ -51,18 +63,21 @@
           }
         }
 
-        $(element).on('change', 'input', function () {
-          var searchParams = {
-            index: columnIndex,
-            serverSideParams: {
-              filter: 'date',
-              gt: $before.val(),
-              lt: $after.val()
-            }
-          };
+        function _setFilterToUrl() {
+          var min = $before.val();
+          var max = $after.val();
 
-          scope.$emit('redraw', searchParams);
-        });
+          scope.head.from = min ? min : null;
+          scope.head.to = max ? max : null;
+        }
+
+        function _setValueFromUrl() {
+          var min = scope.head.from;
+          var max = scope.head.to;
+
+          min && $before.val(min);
+          max && $after.val(max);
+        }
       }
     }
   }

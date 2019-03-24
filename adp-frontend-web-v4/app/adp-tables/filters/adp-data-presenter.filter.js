@@ -9,6 +9,7 @@
     AdpFilePathService,
     AdpSchemaService,
     AdpFieldsService,
+    AdpLookupHelpers,
     DATE_FORMAT,
     TIME_FORMAT,
     DATE_TIME_FORMAT,
@@ -43,7 +44,8 @@
       'Video[]': showFileList,
       'Mixed': mixed,
       'Object': printObject,
-      'Array': printArray
+      'Array': printArray,
+      'TreeSelector': treeSelector
     };
 
     // NOTE: value is record object
@@ -59,43 +61,29 @@
       return typeMap[fieldType](currentVal, fieldSchema, rowData, fieldName);
     };
 
-    function multiselect (value, schema) {
-      var list = AdpFieldsService.getListOfOptions(schema.list);
-
-      var items = _.map(value, function (v) {
-        var found = _.find(list, function(listItem) {
-          return listItem.value === v.toString();
-        });
-
-        return found.label;
-      });
-
-      return !!items.length ? items.join(', ') : '-';
-    }
-
     function showPassword() {
       return '********';
     }
 
     function select (value, schema) {
-      if (_.isUndefined(value) || _.isNull(value)) return '-';
-
-      var list = AdpFieldsService.getListOfOptions(schema.list);
-      var item = _.find(list, function(i) {
-        return i.value === value.toString();
-      });
-
-      if (item) {
-        return item.label || item;
-      } else {
+      if (_.isUndefined(value) || _.isNull(value)) {
         return '-';
       }
+
+      var list = schema.list;
+      var label = list[value];
+
+      return label || value;
     }
 
-    function selectMultiple(value) {
-      if (_.isUndefined(value) || _.isNull(value) || _.isEmpty(value)) return '-';
+    function selectMultiple(value, schema) {
+      if (_.isNil(value) || _.isEmpty(value)) return '-';
+      var list = schema.list;
+      var values = _.map(value, function (v) {
+        return list[v];
+      });
 
-      return value.join(', ');
+      return values.join(', ');
     }
 
     function date (value, schema) {
@@ -109,39 +97,60 @@
       return !!value ? moment(value).format(dateFormat) : '-';
     }
 
-    function lookupLabel(value) {
-      if (_.isUndefined(value) || _.isNull(value) || _.isEmpty(value)) {
+    function lookupLabel(value, fieldSchema, rowData) {
+      if (_.isNil(value) || _.isEmpty(value)) {
         return '-';
       } else {
-        return value.label || value._id;
+        var params = {
+          lookup: value,
+          fieldData: value,
+          formData: rowData,
+          fieldSchema: fieldSchema
+        };
+
+        return [
+          value.table + ' | ' + AdpLookupHelpers.getLabelRenderer(params),
+          '<span class="hidden">' + value._id + '</span>'
+        ].join('');
       }
     }
 
-    function lookupMultiple(value) {
+    function lookupMultiple(value, fieldSchema, rowData) {
       if (_.isEmpty(value)) {
         return '-';
       } else {
         return value.map(function (v) {
-          return v.table + ' | ' + (v.label || v._id);
+          var params = {
+            lookup: v,
+            fieldData: value,
+            formData: rowData,
+            fieldSchema: fieldSchema
+          };
+
+          return [
+            v.table + ' | ' + AdpLookupHelpers.getLabelRenderer(params),
+            '<span class="hidden">' + value._id + '</span>'
+          ].join('');
         }).join('\n');
       }
     }
 
     function showLabel(value, _schema, fullVal, fieldName) {
-      if (_.isUndefined(value)) {
+      if (_.isNil(value) || _.isEmpty(value)) {
         return '-';
       } else {
-        return fullVal[fieldName + '_label'] || value;
+        return fullVal[fieldName + '_label'] || value.toString();
       }
     }
 
     function boolean (value) {
-      var iconName = value ? 'check' : 'times';
+      var boolValue = Boolean(value);
+      var iconName = boolValue ? 'check' : 'times';
 
       return [
         '<i class="fa fa-' + iconName + '"></i>',
         // make searchable
-        '<span class="hidden">' + value + '</span>'
+        '<span class="hidden">' + boolValue + '</span>'
       ].join('');
     }
 
@@ -150,7 +159,7 @@
         return '-';
       }
 
-      var units = AdpFieldsService.getUnits(schema.subtype);
+      var units = AdpFieldsService.getUnits(schema);
       var valueArray = _.isArray(value) ? value : [value];
 
       var valueWithUnits = _.map(units, function(unit, index) {
@@ -299,6 +308,21 @@
         return '-';
       }
       return strings.join(', ');
+    }
+
+    function treeSelector(value) {
+      var result = '';
+
+      _.each(value, function (v) {
+        if (_.isNil(v)) return;
+        result += '<ul class="array-list"><li class="array-item">' + v.label;
+      });
+
+      if (result) {
+        result += '</li></ul>'.repeat(value.length);
+      }
+
+      return result || '-';
     }
   }
 })();

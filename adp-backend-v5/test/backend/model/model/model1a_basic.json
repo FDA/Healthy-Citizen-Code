@@ -5,6 +5,9 @@
       "fullName": "model1s",
       "limitReturnedRecords": 1,
       "fields": {
+        "string": {
+          "type": "String"
+        },
         "encounters": {
           "type": "Array",
           "comment": "Encounters Comment",

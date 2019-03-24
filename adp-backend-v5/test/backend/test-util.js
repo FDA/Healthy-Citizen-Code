@@ -1,10 +1,12 @@
 const assert = require('assert');
+const uuid = require('uuid');
+const Promise = require('bluebird');
 const _ = require('lodash');
 const request = require('supertest');
-const { ObjectID } = require('mongodb');
+const { ObjectID, MongoClient } = require('mongodb');
 const reqlib = require('app-root-path').require;
 
-const { generateObjectId } = reqlib('/lib/backend-util');
+const { generateObjectId, stringifyObjectId } = reqlib('/lib/backend-util');
 
 const isDateString = str => !Number.isNaN(Date.parse(str));
 
@@ -68,14 +70,22 @@ const checkForEqualityConsideringInjectedFields = (data, sample) => {
     // check synthesized updatedAt and createdAt fields for every nested
     const isSyntesizedDateField = path.endsWith('updatedAt') || path.endsWith('createdAt');
     const isActionsFields = path === '_actions';
-    assert(isSyntesizedDateField || isActionsFields);
+    assert(isSyntesizedDateField || isActionsFields, path);
     if (isSyntesizedDateField) {
       const synthesizedDate = _.get(data, path);
-      assert(isDateString(synthesizedDate));
+      assert(isDateString(synthesizedDate), synthesizedDate);
     }
   });
-  assert(objDiff.different.length === 0);
+  assert(objDiff.different.length === 0, JSON.stringify(objDiff, null, 2));
   assert(objDiff.missing_from_first.length === 0);
+};
+
+const prepareEnv = (path = './test/backend/.env.test') => {
+  require('dotenv').load({ path });
+  // generate random database for every test
+  const slashIndex = process.env.MONGODB_URI.lastIndexOf('/');
+  process.env.MONGODB_URI = `${process.env.MONGODB_URI.substring(0, slashIndex + 1)}~${uuid.v4()}`;
+  console.log(process.env.MONGODB_URI);
 };
 
 /**
@@ -195,6 +205,7 @@ fixObjectId(sampleDataToCompare2);
 // this data will be used for post, it won't be in the database
 const sampleData0 = {
   _id: ObjectID('587179f6ef4807703afd0dfd'),
+  string: 'string',
   encounters: [
     {
       _id: generateObjectId('s0e1'),
@@ -402,6 +413,22 @@ const loginWithUser = function(appLib, user) {
     });
 };
 
+const mongoConnect = Promise.promisify(MongoClient.connect);
+const getMongoConnection = (url = process.env.MONGODB_URI) => mongoConnect(url);
+
+const setAppAuthOptions = (appLib, authOptions) => {
+  const overrideAppAuth = {
+    interface: {
+      app: {
+        auth: authOptions,
+      },
+    },
+  };
+  appLib.setOptions({
+    appModelSources: [`${process.env.APP_MODEL_DIR}/model`, overrideAppAuth],
+  });
+};
+
 const user = {
   _id: ObjectID('5a82afdaca4cce2a889b9809'),
   // "salt": "a74f0a5de5a9bf9a022b45e8c56eb04d47b1d7825eec67379294f775e33fca69",
@@ -416,6 +443,13 @@ const user = {
   phiId: ObjectID('5a82afdaca4cce2a889b9902'),
   piiId: ObjectID('5a82afdaca4cce2a889b9003'),
 };
+
+const checkItemSoftDeleted = (db, modelName, _id) =>
+  db
+    .collection(modelName)
+    .findOne({ _id })
+    .then(doc => _.get(doc, 'deletedAt'))
+    .catch(() => null);
 
 module.exports = {
   // reReadModelsAndMongoose,
@@ -438,4 +472,9 @@ module.exports = {
     user,
     loginWithUser,
   },
+  getMongoConnection,
+  setAppAuthOptions,
+  stringifyObjectId,
+  prepareEnv,
+  checkItemSoftDeleted,
 };

@@ -143,6 +143,7 @@ module.exports = function (/*globalMongoose*/) {
 
       })
       .catch((e) => {
+        console.log(`Error occurred while searching drug info  by ndc code '${req.params.ndc}'`, e.stack);
         res.json({success: false, message: `Unable to find information: ${e}`});
       })
       .finally(() => next());
@@ -188,6 +189,7 @@ module.exports = function (/*globalMongoose*/) {
         next();
       })
       .catch((err) => {
+        console.log(`Error occurred while searching for drug by match '${match}'`, err.stack);
         res.json(400, {success: false, message: `Internal error: Unable to get drug by match ${match}`});
       });
   };
@@ -219,6 +221,7 @@ module.exports = function (/*globalMongoose*/) {
         res.json(404, {success: false, message: `Medication not found`});
       })
       .catch((err) => {
+        console.log(`Error occurred while searching for drug info by id '${req.params.id}'`, err.stack);
         res.json(400, {success: false, message: `Internal error: Unable to get medication`});
       });
   };

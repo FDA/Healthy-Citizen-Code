@@ -1,10 +1,16 @@
 ;(function (window) {
   'use strict';
 
-  var $http = angular.injector(['ng']).get('$http');
+  // moment.js default language
+  moment.locale('en');
 
-  // todo: replace with module-like object with setters and getters
-  window.adpAppStore = (function () {
+  // dependencies
+  var $http = angular.injector(['ng']).get('$http');
+  var APP_CONFIG = getAppConfig();
+
+  document.addEventListener('DOMContentLoaded', initApp);
+
+  function createAppStore() {
     var store = {
       'SCHEMAS': {},
       'INTERFACE': {},
@@ -19,6 +25,12 @@
       } else {
         return store[key];
       }
+    }
+
+    function setStore(data) {
+      _getOrSet('SCHEMAS', data.models);
+      _getOrSet('INTERFACE', data.interface);
+      _getOrSet('MEDIA_TYPES', data.mediaTypes);
     }
 
     return {
@@ -36,50 +48,75 @@
       },
       defaultState: function (value) {
         return _getOrSet('DEFAULT_STATE', value);
-      }
+      },
+      setStore: setStore
     }
-  })();
+  }
 
-  // moment.js default language
-  moment.locale('en');
+  function initApp() {
+    window.adpAppStore = createAppStore();
 
-  getModel()
-    .then(function (data) {
-        window.adpAppStore.appModel(data.models);
-        window.adpAppStore.appInterface(data.interface);
-        window.adpAppStore.mediaTypes(data.mediaTypes);
+    getModel()
+      .then(function (data) {
+        window.adpAppStore.setStore(data);
 
-      $('[adp-app-page-loader]').remove();
-      angular.bootstrap(document, ['app']);
-    });
-
-  function getModel(token) {
-    var request = appModelRequest(token);
-
-    return $http(request)
-      .then(function (res) {
-        return res.data.data;
+        $('[adp-app-page-loader]').remove();
+        angular.bootstrap(document, ['app']);
       });
   }
 
-  function appModelRequest(token) {
-    var token;
-    try {
-      token = JSON.parse(localStorage.getItem('ls.token'));
-    } catch (e) {}
+  function getAppConfig() {
+    return angular.injector(['ng', 'APP_MODEL_CONFIG']).get('APP_CONFIG');
+  }
 
-    var APP_CONFIG = angular.injector(['ng', 'APP_MODEL_CONFIG']).get('APP_CONFIG');
-    var endpoint = [APP_CONFIG.apiUrl, 'app-model'].join('/');
+  function request(options) {
+    var token = lsService.getToken();
+    var endpoint = [APP_CONFIG.apiUrl, options.endpoint].join('/');
 
     var req = {
       method: 'GET',
-      url: endpoint
+      url: endpoint,
+      withCredentials: true
     };
 
     if (token) {
       req.headers = { 'Authorization': 'JWT ' + token };
     }
 
-    return req;
+    return $http(req);
+  }
+
+  function getModel() {
+    var endpoint = lsService.isGuest() ? 'build-app-model' : 'app-model';
+
+    return request({endpoint: endpoint})
+      .then(function (res) {
+        if (res.data.success) {
+          return res.data.data;
+        } else {
+          throw new Error('App init error, while getting app model');
+        }
+      })
+      .catch(function (error) {
+        if (error.status === 401) {
+          lsService.removeUserData();
+          lsService.setGuestUserData();
+          _setRedirect();
+
+          return getModel();
+        } else {
+          console.log('Unexpected error on model fetch.', error);
+        }
+      });
+  }
+
+  function _setRedirect() {
+    var redirectUrl = window.location.hash.replace(/#\/(.*)/, function (_a, url) {
+      return url;
+    });
+
+    if (redirectUrl) {
+      window.location.hash = '/login?returnUrl=' + redirectUrl;
+    }
   }
 })(window);

@@ -93,6 +93,9 @@
           var state, parent;
 
           if (!_isState(item)) return;
+          if (_isCustomState(key, parentStateName, interfaceConfig)) {
+            return;
+          }
 
           state = _createState(item, key, parentStateName);
 
@@ -102,9 +105,7 @@
             createStates(item.fields, interfaceConfig, parent);
           }
 
-          if (!_isCustomState(state, interfaceConfig)) {
-            $stateRegistry.register(state);
-          }
+          $stateRegistry.register(state);
         } catch (e) {
           console.error('State creation failed with error: ', e);
           console.error('For schema definition :', item);
@@ -142,15 +143,16 @@
         var state = _.clone(stateDefault);
         var schemaPath = _getSchemaPath(schemaName, parentSchemaPath);
 
-        state.url = _getStateUrl(schemaPath) + '?action&_id';
         state.data = _getPageData(schemaItem, schemaName, schemaPath);
         state.name = 'app.' + schemaName;
         state.views = _getPageContent(schemaPath);
 
         state.params = {
-          action: null,
-            '_id': null
+          action: {value: null, dynamic: true},
+          _id: {value: null, dynamic: true},
+          filter: {value: null, dynamic: true}
         };
+        state.url = _getStateUrl(schemaPath) + '?action&_id&filter';
 
         return state;
       } catch (e) {
@@ -268,7 +270,6 @@
         state.url = _addRulesToUrlParams(pageConfig.link);
 
         state.data = _.extend({
-          redirectStrategy: 'user',
           title: pageConfig.fullName,
           // intentional duplication of title to avoid compabillity issues in already implemented applications
           pageParams: {
@@ -292,14 +293,18 @@
      *
      * @description
      * Return true, if state is custom page.
-     * @param {Object} state - state definition.
+     * @param {String} schemaName
+     * @param {String} parentName
      * @param {Object} interfaceConfig
      * @return {boolean}
      * @private
      */
-    function _isCustomState(state, interfaceConfig) {
+    function _isCustomState(schemaName, parentName, interfaceConfig) {
+      var schemaPath = _getSchemaPath(schemaName, parentName);
+      var stateUrl = _getStateUrl(schemaPath);
+
       return !!_.find(interfaceConfig.pages, function (page) {
-        return page.link === state.url;
+        return page.link === stateUrl;
       });
     }
 

@@ -8,12 +8,17 @@
   /** @ngInject */
   function AdpHttpInterceptor(
     $q,
-    $injector
+    $injector,
+    $rootScope
   ) {
     function isApiRequest(requestUrl) {
-      var APP_CONFIG = $injector.get('APP_CONFIG');
+      var apiUrl = $injector.get('APP_CONFIG').apiUrl;
 
-      return requestUrl.indexOf(APP_CONFIG.apiUrl) > -1;
+      if (_.includes(requestUrl, 'login') || _.includes(requestUrl, 'register')) {
+        return false;
+      }
+
+      return _.includes(requestUrl, apiUrl);
     }
 
     function errorHandler(error) {
@@ -22,25 +27,35 @@
       var $log = $injector.get('$log');
       var AdpNotificationService = $injector.get('AdpNotificationService');
 
+      // by default angular uses $http for a lot of requests
+      // isApiRequest to filter
+      var sessionExpired = isApiRequest(error.config.url) &&
+        error.status === 401;
+
       $log.debug('Response reject: ', error);
 
-      var sessionExpired = error.status === 401 && AdpSessionService.isAuthorized();
-
       if (sessionExpired) {
-        AdpSessionService.handleUnauthorized();
-        return $q.reject(error);
+        return AdpSessionService.handleUnauthorized()
+          .then(function () {
+            return $q.reject(error);
+          });
       }
 
-      AdpNotificationService.notifyError(error.data.message);
+      if (_.hasIn(error, 'data.message')) {
+        AdpNotificationService.notifyError(error.data.message);
+      }
+
       return $q.reject(error);
     }
 
     function requestHandler(config) {
       var AdpSessionService = $injector.get('AdpSessionService');
-
-      if (isApiRequest(config.url) && AdpSessionService.isAuthorized()) {
-        AdpSessionService.setAuthHeaders(config);
+      if (!isApiRequest(config.url)) {
+        return config;
       }
+
+      AdpSessionService.setAuthHeaders(config);
+      $rootScope.lastApiRequest = _.pick(config, ['method', 'headers', 'url', 'withCredentials']);
 
       return config;
     }

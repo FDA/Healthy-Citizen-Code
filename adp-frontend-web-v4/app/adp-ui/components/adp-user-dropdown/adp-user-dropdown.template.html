@@ -1,4 +1,17 @@
-<div class="header-dropdown-list hidden-xs ng-cloak">
+<div class="pull-right"
+  ng-if="vm.showLogin">
+  <div class="btn-header transparent">
+        <span>
+          <a ui-sref="auth.login" title="Login" style="width: auto!important; cursor:pointer !important;">
+            Login
+          </a>
+        </span>
+  </div>
+</div>
+
+<div
+  ng-if="!vm.isGuest"
+  class="header-dropdown-list ng-cloak">
   <div
     class="dropdown"
     dropdown>

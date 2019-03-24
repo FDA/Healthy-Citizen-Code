@@ -9,6 +9,31 @@
       "client": "You",
       "product": "Accelerated Development Platform Demo",
       "theme": "default", // do I need this?
+      "header": {
+        "visible": true,
+        "components": {
+          "logo": true,
+          "alerts": false,
+          "projectSelector": false,
+          "languageSelector": true,
+          "fullScreenToggle": true,
+          "search": false,
+          "logoutButton": true,
+          "menuToggle": false,
+          "userMenu": false,
+          "loginInfo": true,
+          "breadcrumbs": true
+        }
+      },
+      "footer": {
+        "visible": true,
+        "components": {
+          "copyright": true,
+          "copyrightText": "Conceptant &copy; 2016-2019",
+          "lastAccountActivity": false,
+          "status": false
+        }
+      },
       "logo": {
         "large": "/public/logo/139x217.png",
         "small": "/public/logo/69x108.png"
@@ -35,9 +60,7 @@
         "accessFromBot": { "description": "accessFromBot" },
         "accessFromCar": { "description": "accessFromCar" }
       },
-      "preStart": {
-        "normalizeObjectIdLookups": true
-      }
+      "preStart": {}
       //      "permissions": [ "accessAsGuest", "accessAsUser"]
     },
     "layout": {
@@ -66,31 +89,6 @@
         "signInText": "Sign In",
         "signUpText": "Create Account",
         "captcha": "google"
-      }
-    },
-    "header": {
-      "visible": true,
-      "components": {
-        "logo": true,
-        "alerts": false,
-        "projectSelector": false,
-        "languageSelector": true,
-        "fullScreenToggle": true,
-        "search": false,
-        "logoutButton": true,
-        "menuToggle": false,
-        "userMenu": false,
-        "loginInfo": true,
-        "breadcrumbs": true
-      }
-    },
-    "footer": {
-      "visible": true,
-      "components": {
-        "copyright": true,
-        "copyrightText": "Conceptant &copy; 2016-2017",
-        "lastAccountActivity": false,
-        "status": false
       }
     },
     "skin": "smart-style-6"

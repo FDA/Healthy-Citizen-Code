@@ -7,7 +7,8 @@
 
   function lookupControl(
     AdpLookupHelpers,
-    AdpValidationService
+    AdpValidationService,
+    AdpFieldsService
   ) {
     return {
       restrict: 'E',
@@ -48,6 +49,23 @@
           scope.selectedSubject.selected = scope.getData().table;
         }
 
+        function formatLabel(state) {
+          var lookup = {
+            _id: state.id,
+            table: scope.selectedSubject.selected,
+            label: state.label
+          };
+
+          var params = {
+            lookup: lookup,
+            fieldData: scope.getData(),
+            formData: scope.adpFormData,
+            fieldSchema: scope.field
+          };
+
+          return AdpLookupHelpers.getLabelRenderer(params);
+        }
+
         scope.options = {
           // allowClear: true,
           placeholder: '-',
@@ -58,18 +76,8 @@
 
             return '';
           },
-          formatResult: function(state) {
-            // if option group
-            if (!state.id) return state.text;
-
-            return state.label;
-          },
-          formatSelection: function(state) {
-            // if option group
-            if (!state.id) return state.text;
-
-            return state.label;
-          },
+          formatResult: formatLabel,
+          formatSelection: formatLabel,
           ajax: {
             transport: function (args) {
               var params = _.clone(args);
@@ -100,6 +108,12 @@
             },
             cache: true
           },
+          onOpen: function(e) {
+            // HACK assuming that last select2 input is our target
+            var inputs = $('.select2-input');
+            var input = inputs[inputs.length - 1];
+            input.autocomplete = AdpFieldsService.autocompleteValue(scope.field);
+          },
           onChange: function(e) {
             var value;
 
@@ -123,12 +137,11 @@
 
             callback({
               id: data._id,
-              label: data.label
+              label: data.label,
+              table: data.table
             });
           }
-        }
-
-
+        };
       }
     }
   }

@@ -17,7 +17,7 @@
             "code": "$action === 'view' ? this.n + 10 : 0"
           }
         },
-        "virtualNumberWithInlineSynthesizer": {
+        "virtualStringWithInlineSynthesizer": {
           "type": "String",
           "description": "Conditional synthesize",
           "virtual": true,

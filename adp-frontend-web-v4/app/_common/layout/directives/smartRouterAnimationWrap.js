@@ -61,6 +61,9 @@ angular
             var destroyForStart = $transitions.onStart(null, function (transition) {
                 var toState = transition.to();
                 var fromState = transition.from();
+                if (toState.name === fromState.name) {
+                    return;
+                }
 
                 var isAnimRequired = _.some(viewsToMatch, function(view){
                     return _.has(toState.views, view) || _.has(fromState.views, view);

@@ -13,7 +13,7 @@ process.env.APP_MODEL_DIR = path.resolve(appRoot, process.env.APP_MODEL_DIR);
 
 const mocha = new Mocha({
   reporter: 'spec',
-  timeout: 7000,
+  timeout: 15000,
 });
 const files = glob.sync(`${process.env.APP_MODEL_DIR}/test/**/*.js`);
 files.forEach(file => mocha.addFile(file));

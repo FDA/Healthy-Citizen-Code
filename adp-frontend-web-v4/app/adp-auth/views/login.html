@@ -3,6 +3,7 @@
   enable-selector="false"
   adp-submit="vm.submit"
   adp-fields="vm.fields"
+  schema="vm.schema"
   disable-fullscreen="true"
 >
 
@@ -19,9 +20,15 @@
       </button>
     </div>
 
-    <div class="separator text-center"><span class="separator-text">OR</span></div>
+    <div
+      ng-if="vm.showSignUp"
+      class="separator text-center">
+      <span class="separator-text">OR</span>
+    </div>
 
-    <div class="text-center">
+    <div
+      ng-if="vm.showSignUp"
+      class="text-center">
       Need an account?
 
       <a ui-sref="auth.register">

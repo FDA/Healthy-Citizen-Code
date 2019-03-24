@@ -1,32 +1,37 @@
 const request = require('supertest');
-require('should');
+const should = require('should');
 const assert = require('assert');
 const _ = require('lodash');
-
 const reqlib = require('app-root-path').require;
 
 const {
-  deleteObjectId,
   checkForEqualityConsideringInjectedFields,
   samples: { sampleData0, sampleData1, sampleData2, sampleDataToCompare0, sampleDataToCompare2 },
+  getMongoConnection,
+  setAppAuthOptions,
+  prepareEnv,
+  checkItemSoftDeleted,
 } = reqlib('test/backend/test-util');
 
 // NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
 describe('V5 Backend CRUD', () => {
   before(function() {
-    require('dotenv').load({ path: './test/backend/.env.test' });
+    prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return this.appLib.setup().then(() => {
-      _.merge(this.appLib.appModel.interface.app.auth, {
-        requireAuthentication: false,
-        enablePermissions: false,
-      });
-      this.appLib.resetRoutes();
+    setAppAuthOptions(this.appLib, {
+      requireAuthentication: false,
+      enablePermissions: false,
+    });
+
+    return Promise.all([getMongoConnection(), this.appLib.setup()]).then(([db]) => {
+      this.db = db;
     });
   });
 
   after(function() {
-    return this.appLib.shutdown();
+    return this.db
+      .dropDatabase()
+      .then(() => Promise.all([this.db.close(), this.appLib.shutdown()]));
   });
 
   beforeEach(function() {
@@ -37,16 +42,16 @@ describe('V5 Backend CRUD', () => {
       { data: 2 },
       { data: 3 },
     ];
-    return this.appLib.db
+    return this.db
       .collection('model1s')
       .remove({})
-      .then(() => this.appLib.db.collection('model2s').remove({}))
-      .then(() => this.appLib.db.collection('model1s').insert(sampleData1))
-      .then(() => this.appLib.db.collection('model1s').insert(sampleData2))
-      .then(() => this.appLib.db.collection('model2s').insert(sampleDataModel2[0]))
-      .then(() => this.appLib.db.collection('model2s').insert(sampleDataModel2[1]))
-      .then(() => this.appLib.db.collection('model2s').insert(sampleDataModel2[2]))
-      .then(() => this.appLib.db.collection('model2s').insert(sampleDataModel2[3]));
+      .then(() => this.db.collection('model2s').remove({}))
+      .then(() => this.db.collection('model1s').insert(sampleData1))
+      .then(() => this.db.collection('model1s').insert(sampleData2))
+      .then(() => this.db.collection('model2s').insert(sampleDataModel2[0]))
+      .then(() => this.db.collection('model2s').insert(sampleDataModel2[1]))
+      .then(() => this.db.collection('model2s').insert(sampleDataModel2[2]))
+      .then(() => this.db.collection('model2s').insert(sampleDataModel2[3]));
   });
 
   // Create item
@@ -94,7 +99,9 @@ describe('V5 Backend CRUD', () => {
             .expect(404)
             .then(res => {
               // TODO: make these consistent with success=false
-              res.body.message.should.equal('/model1s1/ does not exist');
+              const { message, success } = res.body;
+              success.should.equal(false);
+              message.should.equal('/model1s1/ does not exist');
             })
         );
       });
@@ -184,10 +191,30 @@ describe('V5 Backend CRUD', () => {
               res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
               res.body.success.should.equal(true, res.body.message);
 
-              const { data } = res.body;
-              deleteObjectId(data);
-              deleteObjectId(sampleDataToCompare0);
-              checkForEqualityConsideringInjectedFields(data, sampleDataToCompare0);
+              checkForEqualityConsideringInjectedFields(
+                _.omit(res.body.data, ['_id']),
+                _.omit(sampleDataToCompare0, ['_id'])
+              );
+            });
+        });
+        it('puts empty object', function() {
+          return request(this.appLib.app)
+            .put(`/model1s/${sampleData1._id}`)
+            .send({ data: {} })
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/)
+            .then(res => {
+              res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
+              res.body.success.should.equal(true, res.body.message);
+
+              return request(this.appLib.app)
+                .get(`/model1s/${sampleData1._id}`)
+                .set('Accept', 'application/json')
+                .expect('Content-Type', /json/);
+            })
+            .then(res => {
+              res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
+              res.body.success.should.equal(true, res.body.message);
             });
         });
       });
@@ -213,6 +240,11 @@ describe('V5 Backend CRUD', () => {
             .then(res => {
               res.statusCode.should.equal(400, JSON.stringify(res, null, 4));
               res.body.success.should.equal(false);
+
+              return checkItemSoftDeleted(this.appLib.db, 'model1s', sampleData1._id);
+            })
+            .then(deletedAt => {
+              should(deletedAt).not.be.undefined();
             });
         });
       });

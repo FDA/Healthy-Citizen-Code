@@ -24,7 +24,8 @@
         function showModal() {
           var options = {
             data: scope.adpFormData[scope.adpField.keyName],
-            actionType: 'passwordUpdate'
+            actionType: 'passwordUpdate',
+            field: scope.adpField
           };
 
           AdpModalService.createModal('adpPasswordModal', options)

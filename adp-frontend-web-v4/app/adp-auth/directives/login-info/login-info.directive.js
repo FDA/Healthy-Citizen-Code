@@ -11,7 +11,7 @@
       templateUrl: 'app/adp-auth/directives/login-info/login-info.template.html',
       link: function(scope) {
         var INTERFACE = window.adpAppStore.appInterface();
-        scope.user = AdpSessionService.getUser();
+        scope.user = lsService.getUser();
         scope.disabled = !INTERFACE.header.components.userMenu;
       }
     }

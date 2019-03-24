@@ -17,8 +17,9 @@
       templateUrl: 'app/adp-forms/directives/adp-form-controls/string-control/string-control.html',
       require: '^^form',
       link: function (scope) {
-        if (!getData()) {
-          setData(null)
+        var isEmpty = _.isNil(getData());
+        if (isEmpty) {
+          setData(null);
         }
 
         function setData(value) {

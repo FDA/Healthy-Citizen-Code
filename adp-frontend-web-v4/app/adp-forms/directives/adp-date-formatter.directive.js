@@ -4,9 +4,7 @@
   angular
     .module('app.adpForms')
     .directive('adpDateFormatter', function(
-      DATE_FORMAT,
-      DATE_TIME_FORMAT,
-      TIME_FORMAT
+      AdpValidationService
     ) {
       return {
         require: 'ngModel',
@@ -14,18 +12,8 @@
           adpDateFormatter: '='
         },
         link: function(scope, element, attrs, ngModel) {
-          var dateFormat = getDateFormat(scope.adpDateFormatter);
-
-          function getDateFormat(dateFormat) {
-            var dateFormats = {
-              'Date': DATE_FORMAT,
-              'DateTime': DATE_TIME_FORMAT,
-              'Time': TIME_FORMAT
-            };
-
-            return dateFormats[dateFormat] || dateFormats['Date'];
-          }
-
+          var subtype = scope.adpDateFormatter;
+          var dateFormat = AdpValidationService.getDateFormat(subtype);
           ngModel.$formatters.push(function(date) {
             return date ? moment(date).format(dateFormat) : '';
           });
@@ -45,13 +33,7 @@
           ngModel.$validators.dateValid = function (viewValue) {
             if (!viewValue) return true;
 
-            var formats = [
-              moment.ISO_8601,
-              dateFormat
-            ];
-
-            var d = moment(viewValue, formats, true);
-            return d.isValid();
+            return AdpValidationService.isValidDate(viewValue, subtype);
           }
         }
       };

@@ -2,8 +2,22 @@ const _ = require('lodash');
 const log = require('log4js').getLogger('lib/default-controller');
 const mongoose = require('mongoose');
 const uglify = require('uglify-js');
-// const restifyErrors = require('restify-errors');
-const butil = require('./backend-util');
+const Promise = require('bluebird');
+const { ObjectID } = require('mongodb');
+
+const {
+  getUrlParts,
+  getMongoDuplicateErrorMessage,
+  getModelNameByReq,
+  MONGO,
+} = require('./backend-util');
+const {
+  ValidationError,
+  AccessError,
+  InvalidTokenError,
+  ExpiredTokenError,
+  LinkedRecordError,
+} = require('./errors');
 
 /**
  * Implements default processing for all data specified in the appModel
@@ -28,7 +42,7 @@ module.exports = appLib => {
    */
   m.error = (req, res, next, message, userMessage) => {
     log.error(`URL: ${req.url}, ${message}`);
-    res.json(400, { success: false, message: userMessage || message });
+    res.status(400).json({ success: false, message: userMessage || message });
     return next();
   };
 
@@ -40,7 +54,10 @@ module.exports = appLib => {
    * @param next
    */
   m.getRootJson = (req, res, next) => {
-    res.json({ success: true, message: `HC Backend V5 is working correctly` });
+    res.json({
+      success: true,
+      message: `${process.env.APP_NAME || 'ADP'} Backend V5 is working correctly`,
+    });
     next();
   };
 
@@ -72,7 +89,12 @@ module.exports = appLib => {
    * @param res
    * @param next
    */
-  m.getAppModelJson = (req, res, next) => {
+  m.getAppModelJson = (req, res) => {
+    const appModelForUser = accessUtil.getAuthorizedAppModel(req);
+    res.json({ success: true, data: appModelForUser });
+  };
+
+  m.getBuildAppModelJson = (req, res, next) => {
     appLib
       .authenticationCheck(req, res, next)
       .then(({ user, permissions }) => {
@@ -81,15 +103,15 @@ module.exports = appLib => {
         const appModelForUser = accessUtil.getAuthorizedAppModel(req);
         res.json({ success: true, data: appModelForUser });
       })
-      .catch({ code: 401 }, () => {
+      .catch(InvalidTokenError, ExpiredTokenError, () => {
         const unauthorizedModel = accessUtil.getUnauthorizedAppModel(req);
         res.json({ success: true, data: unauthorizedModel });
       })
       .catch(err => {
         log.error(err);
-        res.json(500, {
+        res.status(500).json({
           success: false,
-          message: `Error occurred while retrieving app model`,
+          message: `Error occurred while retrieving prebuild app model`,
         });
       });
   };
@@ -197,12 +219,12 @@ module.exports = appLib => {
         accessUtil.handleModelByPermissions(model, permissions);
         res.json({ success: true, data: model });
       })
-      .catch({ code: 401 }, () => {
-        res.json(400, { success: false, message: 'Not authorized to get schema' });
+      .catch(InvalidTokenError, ExpiredTokenError, () => {
+        res.status(400).json({ success: false, message: 'Not authorized to get schema' });
       })
       .catch(err => {
         log.error(err);
-        res.json(500, {
+        res.status(500).json({
           success: false,
           message: `Error occurred while retrieving schema`,
         });
@@ -212,9 +234,9 @@ module.exports = appLib => {
     // delete schema.scopes;
     // if (schema && schema.type === 'Schema') {
     //   // TODO: check why code 200 is not returned by default, getting 426 without explicit specification
-    //   res.json(200, { success: true, data: schema });
+    //   res.status(200).json({ success: true, data: schema });
     // } else {
-    //   res.json(400, { success: false, message: `This schema doesn't exist` });
+    //   res.status(400).json({ success: false, message: `This schema doesn't exist` });
     // }
   };
 
@@ -230,13 +252,13 @@ module.exports = appLib => {
     if (process.env.DEVELOPMENT === 'true') {
       return next();
     }
-    res.json(403, {
+    res.status(403).json({
       success: false,
       message: 'This route is only available in development mode',
     });
   };
 
-  function setFilteringConditionPromise(prepareContext, schemeLookup) {
+  function setFilteringConditionPromise(inlineContext, schemeLookup) {
     const { where, prepare } = schemeLookup;
     if (!where) {
       schemeLookup.filteringCondition = {};
@@ -245,11 +267,104 @@ module.exports = appLib => {
     const filteringLookupConditionPromise = accessUtil.getWhereConditionPromise(
       where,
       prepare,
-      prepareContext
+      inlineContext
     );
     return filteringLookupConditionPromise.then(condition => {
-      schemeLookup.filteringCondition = { $expr: condition };
+      schemeLookup.filteringCondition = MONGO.expr(condition);
     });
+  }
+
+  function getTreeSelectorConditions(treeSelectorSpec, model, parentLookup) {
+    if (!parentLookup) {
+      return MONGO.expr(treeSelectorSpec.roots);
+    }
+
+    // get children condition
+    const { foreignKey, parent: parentSpec } = treeSelectorSpec;
+    const [parentRefKey, fieldContainingRef] = Object.entries(parentSpec)[0];
+
+    return model.findOne({ [foreignKey]: parentLookup._id }).then(parentDoc => ({
+      [parentRefKey]: _.get(parentDoc, fieldContainingRef),
+    }));
+  }
+
+  function getTreeSelectorParentLookup(req, treeSelectorSpec) {
+    // label is not necessary
+    // TODO: transform string mongo id to ObjectID considering type of foreignKey instead of using isValid
+    const { foreignKeyVal } = req.query;
+    if (!foreignKeyVal) {
+      return null;
+    }
+
+    return {
+      table: treeSelectorSpec.table,
+      _id: ObjectID.isValid(foreignKeyVal) ? new ObjectID(foreignKeyVal) : foreignKeyVal,
+    };
+  }
+
+  function schemaTreeSelector(req, res, next, treeSelectorSpec) {
+    const collectionName = treeSelectorSpec.table;
+    const model = mongoose.model(collectionName);
+    if (!model) {
+      return m.error(req, res, next, `Invalid model name in the URL: ${req.url}`);
+    }
+    // TODO: should I move limit to lookup definition? Or give one ability to override, make it smaller than the one defined on table?
+    let limit = _.get(
+      appLib.appModel,
+      `models.${collectionName}.limitReturnedRecords`,
+      _.get(appLib.appModel.metaschema, 'limitReturnedRecords.default', -1)
+    );
+    limit = _.toInteger(limit);
+    const lookupFields = controllerUtil.getSearchableFields(collectionName);
+    const skip =
+      req.query.page && parseInt(req.query.page, 10) > 0
+        ? (parseInt(req.query.page, 10) - 1) * limit
+        : 0;
+    const labelFieldName = _.get(treeSelectorSpec, 'label', '_id');
+    const foreignKeyFieldName = _.get(treeSelectorSpec, 'foreignKey', '_id');
+
+    const searchConditions = [];
+    controllerUtil.updateSearchConditions(searchConditions, lookupFields, req.query.q);
+    const overallSearchCondition = searchConditions.length > 0 ? MONGO.or(...searchConditions) : {};
+    const lookupQuery = MONGO.and(overallSearchCondition, treeSelectorSpec.filteringCondition);
+    const inlineCtx = accessUtil.getInlineContext(req);
+    const permissions = accessUtil.getUserPermissions(req);
+    const userContext = appLib.accessUtil.getUserContext(req);
+
+    const treeSelectorParentLookup = getTreeSelectorParentLookup(req, treeSelectorSpec);
+
+    Promise.all([
+      accessUtil.getViewConditionsByPermissionsForLookup(
+        permissions,
+        inlineCtx,
+        treeSelectorSpec,
+        lookupQuery
+      ),
+      getTreeSelectorConditions(treeSelectorSpec, model, treeSelectorParentLookup),
+    ])
+      .then(([viewCondition, treeSelectorCondition]) =>
+        // TODO: support regexps in lookups (check out git history) ?
+        // TODO: call renderer for the label?
+        appLib.dba.getItemsUsingCache({
+          model,
+          userContext,
+          conditions: MONGO.and(viewCondition, treeSelectorCondition),
+          sort: treeSelectorSpec.sortBy,
+          skip,
+          limit,
+        })
+      )
+      .then(data => {
+        const more = data.length === limit;
+        const isLeafFunc = new Function('', `return ${treeSelectorSpec.leaves}`);
+        const ret = _.map(data, row => ({
+          id: _.get(row, foreignKeyFieldName),
+          label: _.get(row, labelFieldName),
+          isLeaf: isLeafFunc.call(row),
+        }));
+        res.json({ success: true, more, data: ret });
+      })
+      .catch(err => m.error(req, res, next, `Unable to return treeselector result: ${err}`));
   }
 
   function schemaLookup(req, res, next, schemeLookup) {
@@ -258,35 +373,34 @@ module.exports = appLib => {
       return m.error(req, res, next, `Invalid model name in the URL: ${req.url}`);
     }
     // TODO: should I move limit to lookup definition? Or give one ability to override, make it smaller than the one defined on table?
-    const limit = _.get(
+    let limit = _.get(
       appLib.appModel,
       `models.${schemeLookup.table}.limitReturnedRecords`,
       _.get(appLib.appModel.metaschema, 'limitReturnedRecords.default', -1)
     );
+    limit = _.toInteger(limit);
     const lookupFields = controllerUtil.getSearchableFields(schemeLookup.table);
     const skip =
-      req.params.page && parseInt(req.params.page, 10) > 0
-        ? (parseInt(req.params.page, 10) - 1) * limit
+      req.query.page && parseInt(req.query.page, 10) > 0
+        ? (parseInt(req.query.page, 10) - 1) * limit
         : 0;
     const labelFieldName = _.get(schemeLookup, 'label', '_id');
     const foreignKeyFieldName = _.get(schemeLookup, 'foreignKey', '_id');
 
     const searchConditions = [];
-    controllerUtil.updateSearchConditions(searchConditions, lookupFields, req.params.q);
-    const overallSearchConditions = searchConditions.length > 0 ? { $or: searchConditions } : {};
-    const lookupQuery = {
-      $and: [overallSearchConditions, schemeLookup.filteringCondition],
-    };
-    const prepareCtx = accessUtil.getPrepareContext(req);
+    controllerUtil.updateSearchConditions(searchConditions, lookupFields, req.query.q);
+    const overallSearchCondition = searchConditions.length > 0 ? MONGO.or(...searchConditions) : {};
+    const lookupQuery = MONGO.and(overallSearchCondition, schemeLookup.filteringCondition);
+    const inlineCtx = accessUtil.getInlineContext(req);
     const permissions = accessUtil.getUserPermissions(req);
     const userContext = appLib.accessUtil.getUserContext(req);
 
     accessUtil
-      .getViewConditionsByPermissionsForLookup(permissions, prepareCtx, schemeLookup, lookupQuery)
+      .getViewConditionsByPermissionsForLookup(permissions, inlineCtx, schemeLookup, lookupQuery)
       .then(permLookup =>
         // TODO: support regexps in lookups (check out git history) ?
         // TODO: call renderer for the label?
-        appLib.dba.findItems({
+        appLib.dba.getItemsUsingCache({
           model,
           userContext,
           conditions: permLookup,
@@ -317,7 +431,7 @@ module.exports = appLib => {
    * @param next
    */
   m.getLookupTableJson = (req, res, next) => {
-    const urlParts = butil.getUrlParts(req);
+    const urlParts = getUrlParts(req);
     const [lookupId, tableName] = urlParts.slice(-2);
     if (!lookupId) {
       return m.error(req, res, next, `No lookup ID in the URL: ${req.url}`);
@@ -328,13 +442,36 @@ module.exports = appLib => {
       return m.error(req, res, next, `Invalid path to lookup in the URL: ${req.url}`);
     }
 
-    const prepareContext = accessUtil.getPrepareContext(req);
-    setFilteringConditionPromise(prepareContext, schemeLookup)
+    const inlineContext = accessUtil.getInlineContext(req);
+    setFilteringConditionPromise(inlineContext, schemeLookup)
       .then(() => {
         schemaLookup(req, res, next, schemeLookup);
       })
       .catch(err => {
-        log.error(err);
+        log.error(err.stack);
+        m.error(req, res, next, `Error occurred during lookup request: ${req.url}`);
+      });
+  };
+
+  m.getTreeSelector = (req, res, next) => {
+    const urlParts = getUrlParts(req);
+    const [treeSelectorId, tableName] = urlParts.slice(-2);
+    if (!treeSelectorId) {
+      return m.error(req, res, next, `No TreeSelector ID in the URL: ${req.url}`);
+    }
+    const table = _.get(appLib.appTreeSelectors, treeSelectorId);
+    const treeSelectorSpec = _.clone(_.get(table, tableName));
+    if (!treeSelectorSpec) {
+      return m.error(req, res, next, `Invalid path to TreeSelector in the URL: ${req.url}`);
+    }
+
+    const inlineContext = accessUtil.getInlineContext(req);
+    setFilteringConditionPromise(inlineContext, treeSelectorSpec)
+      .then(() => {
+        schemaTreeSelector(req, res, next, treeSelectorSpec);
+      })
+      .catch(err => {
+        log.error(err.stack);
         m.error(req, res, next, `Error occurred during lookup request: ${req.url}`);
       });
   };
@@ -358,15 +495,19 @@ module.exports = appLib => {
    * @returns {*}
    */
   m.getItems = (req, res, next) => {
-    req.action = 'datatables';
-    return Promise.resolve(getElementsWithFilteredFields(req, true))
+    const action = 'datatables';
+    req.action = action;
+    const [modelName] = getUrlParts(req);
+
+    return Promise.resolve(appLib.hooks.getPreHookPromise(modelName, req, action))
       .bind({})
+      .then(() => getElementsWithFilteredFields(req, true))
       .then(({ data, params }) => {
         this.data = data;
         this.model = params.model;
         this.mongoConditions = params.mongoConditions;
 
-        if (!req.params.draw) {
+        if (!req.query.draw) {
           return 0;
         }
         return this.model.countDocuments({});
@@ -374,13 +515,17 @@ module.exports = appLib => {
       .then(recordsTotal => {
         this.recordsTotal = recordsTotal;
 
-        if (!req.params.draw) {
+        if (!req.query.draw) {
           return 0;
         }
         return this.model.countDocuments(this.mongoConditions);
       })
       .then(recordsFiltered => {
-        if (!req.params.draw) {
+        this.recordsFiltered = recordsFiltered;
+        return appLib.hooks.getPostHookPromise(modelName, req, action);
+      })
+      .then(() => {
+        if (!req.query.draw) {
           res.json({
             success: true,
             data: this.data,
@@ -390,7 +535,7 @@ module.exports = appLib => {
             success: true,
             data: this.data,
             recordsTotal: this.recordsTotal,
-            recordsFiltered,
+            recordsFiltered: this.recordsFiltered,
           });
         }
         next();
@@ -404,14 +549,19 @@ module.exports = appLib => {
    * @param next
    */
   m.getItem = (req, res, next) => {
-    getElementsWithFilteredFields(req, 'view')
+    const action = 'view';
+    const [modelName] = getUrlParts(req);
+
+    return Promise.resolve(appLib.hooks.getPreHookPromise(modelName, req, action))
+      .bind({})
+      .then(() => getElementsWithFilteredFields(req, action))
       .then(({ data, params }) => {
         const appModel = appLib.appModel.models[params.model.modelName];
         const userPermissions = accessUtil.getUserPermissions(req);
-        const filteredDoc = accessUtil.filterDocFields(appModel, data, 'view', userPermissions);
-        res.json({ success: true, data: filteredDoc });
-        next();
+        this.filteredDoc = accessUtil.filterDocFields(appModel, data, action, userPermissions);
       })
+      .then(() => appLib.hooks.getPostHookPromise(modelName, req, action))
+      .then(() => res.json({ success: true, data: this.filteredDoc }))
       .catch(err =>
         m.error(req, res, next, err, 'Internal error: unable to find requested element')
       );
@@ -424,45 +574,50 @@ module.exports = appLib => {
    * @param res
    * @param next
    */
-  m.deleteItem = (req, res, next) =>
-    Promise.resolve(controllerUtil.getElements(req, 'delete'))
+  m.deleteItem = (req, res, next) => {
+    const action = 'delete';
+    const [modelName] = getUrlParts(req);
+
+    return Promise.resolve(appLib.hooks.getPreHookPromise(modelName, req, action))
       .bind({})
+      .then(() => controllerUtil.getElements(req, action))
       .then(({ data, params }) => {
         this.mongoConditions = params.mongoConditions;
         this.model = params.model;
-        return controllerUtil.getDeleteLinkedLabelsInfo(data, params.model.modelName);
+        return controllerUtil.getLinkedRecordsInfoOnDelete(data, params.model.modelName);
       })
       .then(deleteInfo => {
         const isAllDeletionsValid = deleteInfo.every(info => info.isValidDelete);
         if (!isAllDeletionsValid) {
-          throw {
-            code: 'invalidLinkedRecord',
-            deleteInfo,
-          };
+          const message =
+            'ERROR: Unable to delete this record because there are other records referring. ' +
+            'Please update the referring records and remove reference to this record.';
+          throw new LinkedRecordError(message, deleteInfo);
         }
 
-        const deleteLinkedRecordsPromises = Promise.map(deleteInfo, info => info.deleteFunc());
+        const handleLinkedRecordsOnDeletePromises = Promise.map(deleteInfo, info =>
+          info.handleDeletePromise()
+        );
         return Promise.all([
           appLib.dba.removeItem(this.model, this.mongoConditions),
-          deleteLinkedRecordsPromises,
+          handleLinkedRecordsOnDeletePromises,
         ]);
       })
+      .then(() => appLib.hooks.getPostHookPromise(modelName, req, action))
       .then(() => {
         res.json({ success: true });
       })
-      .catch({ code: 'invalidLinkedRecord' }, e => {
-        res.json(400, {
+      .catch(LinkedRecordError, e => {
+        res.status(400).json({
           success: false,
-          info: e.deleteInfo
+          info: e.data
             .filter(info => !info.isValidDelete)
             .map(info => _.pick(info, ['linkedCollection', 'linkedLabel', 'linkedRecords'])),
-          message:
-            'ERROR: Unable to delete this record because there are other records referring. ' +
-            'Please update the referring records and remove reference to this record.',
+          message: e.message,
         });
       })
       .catch(err => m.error(req, res, next, err, 'Internal error: unable to delete this item'));
-
+  };
   /**
    * CRUD Update (updates one item from a url like /itemSchema/587179f6ef4807703afd0dfe)
    * Specify the new data for the item as req.body.data
@@ -478,47 +633,51 @@ module.exports = appLib => {
     }
 
     const userPermissions = accessUtil.getUserPermissions(req);
-    const [modelName] = butil.getUrlParts(req);
+    const [modelName] = getUrlParts(req);
     const listErrors = accessUtil.validateListsValues(modelName, reqData, userPermissions);
     if (!_.isEmpty(listErrors)) {
       return m.error(req, res, next, `Incorrect request: ${listErrors.join(' ')}`);
     }
 
-    // get element without handling scopes for actions, but including transformations
-    return controllerUtil
-      .getElements(req)
+    controllerUtil.transformLookupKeys(reqData, modelName);
+
+    const action = 'update';
+    return Promise.resolve(appLib.hooks.getPreHookPromise(modelName, req, action))
+      .bind({})
+      .then(() => controllerUtil.checkLookupExistence(reqData, modelName))
+      .then(() => controllerUtil.getElements(req, action))
       .then(({ data, params }) => {
-        const action = 'update';
         const appModel = appLib.appModel.models[modelName];
 
-        delete req.body.data._id; // do not override the original document/part id
-        controllerUtil.transformLookupKeys(req.body.data, modelName);
-        const filteredDoc = accessUtil.filterDocFields(
+        this.doc = data;
+        this.newData = accessUtil.mergeDocs({
           appModel,
-          req.body.data,
+          dbDoc: this.doc,
+          userData: req.body.data,
           action,
-          userPermissions
-        );
-
-        const resultData = _.clone(data);
-        _.merge(resultData, filteredDoc);
+          userPermissions,
+        });
 
         const appModelPath = controllerUtil.getAppModelPath(req);
         const userContext = accessUtil.getUserContext(req);
-        return Promise.all([
-          appLib.dba.updateItem({
-            model: params.model,
-            userContext,
-            mongoConditions: params.mongoConditions,
-            mongoProjections: params.mongoProjections,
-            data: resultData,
-            path: appModelPath,
-          }),
-          controllerUtil.getUpdateLinkedLabelsPromise(resultData, data, modelName),
-        ]);
+        return appLib.dba.updateItem({
+          model: params.model,
+          userContext,
+          mongoConditions: params.mongoConditions,
+          mongoProjections: params.mongoProjections,
+          data: this.newData,
+          path: appModelPath,
+        });
       })
+      .then(() => controllerUtil.getUpdateLinkedLabelsPromise(this.newData, this.doc, modelName))
+      .then(() => appLib.hooks.getPostHookPromise(modelName, req, action))
       .then(() => res.json({ success: true, id: req.body ? reqData._id : req.params.id }))
-      .catch(err => m.error(req, res, next, err, 'Internal error: unable to update this item'));
+      .catch(ValidationError, err => m.error(req, res, next, err.message))
+      .catch(err => {
+        const duplicateErrMsg = getMongoDuplicateErrorMessage(err, appLib);
+        const errMsg = duplicateErrMsg || 'Internal error: unable to update this item';
+        m.error(req, res, next, err, errMsg);
+      });
   };
 
   /**
@@ -536,9 +695,15 @@ module.exports = appLib => {
       return m.error(req, res, next, `Incorrect request. Must have 'data' field in request body`);
     }
 
+    const modelName = getModelNameByReq(req);
     const userPermissions = appLib.accessUtil.getUserPermissions(req);
-    const modelName = butil.getModelNameByReq(req);
-    const listErrors = appLib.accessUtil.validateListsValues(modelName, reqBody, userPermissions);
+    const inlineContext = appLib.accessUtil.getInlineContext(req);
+    const listErrors = appLib.accessUtil.validateListsValues(
+      modelName,
+      reqBody,
+      userPermissions,
+      inlineContext
+    );
     if (!_.isEmpty(listErrors)) {
       return m.error(req, res, next, `Incorrect request: ${listErrors.join(' ')}`);
     }
@@ -546,8 +711,9 @@ module.exports = appLib => {
     const userContext = accessUtil.getUserContext(req);
     const action = 'create';
 
-    return controllerUtil
-      .getQueryParams(req, action)
+    return Promise.resolve(appLib.hooks.getPreHookPromise(modelName, req, action))
+      .bind({})
+      .then(() => controllerUtil.getQueryParams(req, action))
       .then(params =>
         controllerUtil.createItemWithCheckAndFilter({
           action,
@@ -559,11 +725,19 @@ module.exports = appLib => {
         })
       )
       .then(item => {
-        res.json({ success: true, id: item._id });
+        this.item = item;
+        return appLib.hooks.getPostHookPromise(modelName, req, action);
+      })
+      .then(() => {
+        res.json({ success: true, id: this.item._id });
         next();
       })
-      .catch({ code: 'NO_PERMISSIONS_TO_CREATE' }, err => m.error(req, res, next, err.message))
-      .catch(err => m.error(req, res, next, err, 'Internal error: unable to create this item'));
+      .catch(AccessError, ValidationError, err => m.error(req, res, next, err.message))
+      .catch(err => {
+        const duplicateErrMsg = getMongoDuplicateErrorMessage(err, appLib);
+        const errMsg = duplicateErrMsg || 'Internal error: unable to create this item';
+        m.error(req, res, next, err, errMsg);
+      });
   };
 
   /**

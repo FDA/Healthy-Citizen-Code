@@ -42,6 +42,8 @@
     "no-throw-literal": 0,
     // to allow expressions like 'a && b()' or 'a ? b : c()'
     "no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true }],
+    // to allow unused next in express middleware (https://github.com/eslint/eslint/issues/1494)
+    "no-unused-vars": ["error", { "argsIgnorePattern": "next" }],
     // name function only in case its a recursive function
     "func-names": ["error", "never"],
 
@@ -73,6 +75,9 @@
     "security/detect-object-injection": 0,
     "security/detect-possible-timing-attacks": "warn",
     "security/detect-pseudoRandomBytes": "warn",
-    "security/detect-unsafe-regex": "warn"
+    "security/detect-unsafe-regex": "warn",
+
+    // Mocha
+    "mocha/no-exclusive-tests": "error"
   }
 }

@@ -13,25 +13,23 @@
       link: function (scope, element) {
         var $select = $(element).find('select');
         var $input = $(element).find('input');
-        var subtype = scope.subtype;
 
         setDisabled(true);
 
-        $(element).on('keyup change paste', 'input', stringFilterHandler);
-        $(element).on('change', 'select', selectOptionHandler);
+        $(element).on('keyup change paste', 'input', _stringFilterHandler);
+        $(element).on('change', 'select', _selectOptionHandler);
 
-        function stringFilterHandler(e) {
-          // var clipBoardData = e.originalEvent.clipboardData;
+        _setData();
+
+        function _stringFilterHandler() {
           var columnIndex = $(element).closest('th').index();
+          var field = scope.head.field;
 
-          // if (clipBoardData) {
-          //   $input.val(clipBoardData.getData('text').replace(/[\n\r]g/, '\s'));
-          //   return $input.trigger('change');
-          // }
           var input = $input.val();
 
           var searchOption = $select.val();
-          var searchRegex = AdpTablesSearchService.getSearchRegex(input, subtype, searchOption);
+          var searchRegex = AdpTablesSearchService.getSearchRegex(input, field, searchOption);
+          _setFilterData();
 
           var searchParams = {
             columnIndex: columnIndex,
@@ -47,7 +45,7 @@
           scope.$emit('filterChanged', searchParams);
         }
 
-        function selectOptionHandler() {
+        function _selectOptionHandler() {
           var searchOption = $select.val();
           var disabled = (searchOption === 'any');
           setDisabled(disabled);
@@ -59,6 +57,33 @@
           }
           $input.attr('disabled', isDisabled);
           $input.trigger('change');
+        }
+
+        function _setFilterData() {
+          var input = $input.val();
+          var searchOption = $select.val();
+
+          scope.head.data = input === '' ? null : input;
+          scope.head.searchOption = searchOption === 'any' ? null : searchOption;
+        }
+
+        function _setData() {
+          var options = [
+            'contains',
+            'startsWith',
+            'endsWith',
+            'equal',
+          ];
+          var option = scope.head.searchOption;
+          var data = scope.head.data;
+
+          if (options.includes(option)) {
+            $select.val(option);
+          }
+
+          if (!_.isNil(data)) {
+            $input.val(data);
+          }
         }
       }
     }

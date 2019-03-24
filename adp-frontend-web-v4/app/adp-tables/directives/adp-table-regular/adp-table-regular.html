@@ -7,10 +7,7 @@
         ng-if="heads"
         class="hasinput"
         ng-class="head.type">
-        <adp-tables-filter
-          head="head"
-          schema="schema.fields[head.name]"
-          list-name="schema.fields[head.name]['list']">
+        <adp-tables-filter head="head">
         </adp-tables-filter>
       </th>
       <th ng-if="!!actionCbs" ng-style="actionsStyles"></th>
@@ -25,7 +22,11 @@
         ng-class="head.type">
         {{head.fullName}}
       </th>
-      <th ng-if="!!actionCbs"></th>
+      <th
+        ng-if="!!actionCbs"
+        class="action-th"
+      >
+      </th>
     </tr>
   </thead>
 
@@ -36,10 +37,15 @@
       <td
         ng-if="heads"
         ng-repeat="head in heads track by $index"
-        ng-class="head.type">
+        class="head.type"
+      >
         {{head.fullName}}
       </td>
-      <td ng-if="!!actionCbs"></td>
+      <td
+        ng-if="!!actionCbs"
+        class="action-col"
+      >
+      </td>
     </tr>
   </tbody>
 </table>

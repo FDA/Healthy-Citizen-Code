@@ -18,9 +18,8 @@
 
     function getAppModel(userData) {
       var token = userData && userData.token;
-      var req = _request(token);
 
-      return $http(req)
+      return _request(token)
         .then(function (res) {
           return res.data.data;
         })
@@ -28,9 +27,11 @@
     }
 
     function _request(token) {
+      var endpoint = lsService.isGuest() ? 'build-app-model' : 'app-model';
+
       var req = {
         method: 'GET',
-        url: [APP_CONFIG.apiUrl, 'app-model'].join('/')
+        url: [APP_CONFIG.apiUrl, endpoint].join('/')
       };
 
       if (token) {
@@ -39,7 +40,7 @@
         };
       }
 
-      return req;
+      return $http(req);
     }
 
     function _regenerateApp(data) {

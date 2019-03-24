@@ -3,8 +3,8 @@
     "participants": {
       "type": "Schema",
       "fullName": "Participants De-Identified Protected Health Information (PHI)",
-      actions: {
-        fields: {
+      "actions": {
+        "fields": {
           "update": {
             "permissions": "accessAsUser"
           },
@@ -62,8 +62,8 @@
             "scopes": {
               "userScope": {
                 "permissions": "accessAsUser",
-                return: "return $list",
-                where: "return true"
+                "return": "return $list",
+                "where": "return true"
               }
             }
           },
@@ -79,8 +79,8 @@
             "scopes": {
               "userScope": {
                 "permissions": "accessAsUser",
-                return: "return $list",
-                where: "return true"
+                "return": "return $list",
+                "where": "return true"
               }
             }
           },
@@ -98,8 +98,8 @@
             "scopes": {
               "userScope": {
                 "permissions": "accessAsUser",
-                return: "return $list",
-                where: "return true"
+                "return": "return $list",
+                "where": "return true"
               }
             }
           },
@@ -168,12 +168,12 @@
             "notificationType": {
               "fullName": "Type of Notification",
               "list": {
-                name: "notificationTypes",
+                "name": "notificationTypes",
                 "scopes": {
                   "userScope": {
                     "permissions": "accessAsUser",
-                    return: "return $list",
-                    where: "return true"
+                    "return": "return $list",
+                    "where": "return true"
                   }
                 }
               },
@@ -187,12 +187,12 @@
               "fullName": "Delivery Status",
               "type": "String",
               "list": {
-                name: "deliveryStatuses",
+                "name": "deliveryStatuses",
                 "scopes": {
                   "userScope": {
                     "permissions": "accessAsUser",
-                    return: "return $list",
-                    where: "return true"
+                    "return": "return $list",
+                    "where": "return true"
                   }
                 }
               },

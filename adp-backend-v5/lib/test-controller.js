@@ -52,7 +52,7 @@ module.exports = globalMongoose => {
       err => {
         if (err) {
           log.error(err);
-          res.json(400, { success: false, message: err });
+          res.status(400).json({ success: false, message: err });
         } else {
           res.json({ success: true });
         }

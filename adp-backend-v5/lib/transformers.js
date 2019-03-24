@@ -1,3 +1,6 @@
+const Promise = require('bluebird');
+const { ValidationError } = require('./errors');
+
 /**
  * @module transformers
  * Implements functionality required for "transform" attribute for the app model
@@ -281,10 +284,10 @@ module.exports = appLib => {
       if (field.virtual === true) {
         if (_.isArray(data)) {
           _.each(data, doc => {
-            appLib.accessUtil.unsetField(doc, field, fieldPath);
+            appLib.accessUtil.clearField(doc, fieldPath, field);
           });
         } else {
-          appLib.accessUtil.unsetField(data, field, fieldPath);
+          appLib.accessUtil.clearField(data, fieldPath, field);
         }
       }
       // go deeper to find nested fields containing virtual attribute
@@ -318,7 +321,7 @@ module.exports = appLib => {
       .then(() => processAttribute('synthesize', []))
       .then(() => {
         if (errors.length > 0) {
-          throw new Error(errors.join('\n'));
+          throw new ValidationError(errors.join('\n'));
         }
         const appModel = appLib.appModel.models[modelName];
         m.removeVirtualFields(appModel, data);

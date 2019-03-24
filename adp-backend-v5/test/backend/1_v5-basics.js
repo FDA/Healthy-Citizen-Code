@@ -2,19 +2,23 @@ require('should');
 const assert = require('assert');
 const _ = require('lodash');
 const mongoose = require('mongoose');
-
 const reqlib = require('app-root-path').require;
+
+const { prepareEnv, getMongoConnection } = reqlib('test/backend/test-util');
 
 // NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
 describe('V5 Backend Basics', () => {
   before(function() {
-    require('dotenv').load({ path: './test/backend/.env.test' });
+    prepareEnv();
     this.appLib = reqlib('/lib/app')();
     return this.appLib.setup();
   });
 
   after(function() {
-    return this.appLib.shutdown();
+    return this.appLib
+      .shutdown()
+      .then(() => getMongoConnection())
+      .then(db => db.dropDatabase().then(() => db.close()));
   });
 
   describe('appModel builder', () => {

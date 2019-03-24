@@ -50,7 +50,7 @@ module.exports = appLib => {
     log.trace(`Accepting uploaded files: ${JSON.stringify(req.files, null, 4)}`);
 
     const files = Object.values(req.files);
-    handleUpload(files, cropParams)
+    handleUpload(files, req.user, cropParams)
       .then(onSuccess)
       .catch(onError);
   };
@@ -58,7 +58,7 @@ module.exports = appLib => {
   function getFile(cropped, req, res, next) {
     const File = mongoose.model('files');
 
-    Promise.resolve(File.findById(req.params.id))
+    Promise.resolve(File.findById(req.query.id))
       .bind({})
       .then(data => {
         if (!data) {

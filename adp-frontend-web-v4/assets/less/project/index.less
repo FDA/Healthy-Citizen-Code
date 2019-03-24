@@ -84,6 +84,12 @@ body.smart-style-5 .input-container.state-success .select2 {
   color: #fff;
 }
 
+.select2-selection,
+.select2-container .select2-choice {
+  min-height: 32px;
+  height: auto;
+}
+
 .lookup-row .lookup-col {
   width: 100%;
   box-sizing: border-box;
@@ -201,6 +207,9 @@ body.smart-style-6 .input-container.state-error .datepicker[readonly],
   padding-right: 30px;
 }
 
+[adp-fullscreen]:fullscreen {
+  background-color: white;
+}
 .smart-form:fullscreen {
   width: 100%;
   height: 100vh;
@@ -874,10 +883,10 @@ nav ul span.menu-item-parent {
 
 .adp-widget {
   margin-bottom: 20px;
+  border-bottom-width: 1px;
 
-  & > div { border-bottom-width: 1px; }
-  .has-errors & > header { border-color: #A90329 !important; color: #A90329;}
-  .has-errors & > div { border-color: #A90329 !important; }
+  &.has-errors > header { border-color: #A90329 !important; color: #A90329;}
+  &.has-errors > div { border-color: #A90329 !important; }
 }
 .adp-widget-header {
   padding: 0 !important;
@@ -1051,3 +1060,14 @@ nav ul span.menu-item-parent {
   max-height: 30px;
   margin: 10px 0 0 0;
 }
+
+.header-links {
+  padding-top: 16px;
+  color: #fff;
+  margin-right: 6px;
+
+  a {color: #fff;}
+}
+
+tree-selector-control[data-child] > div {
+  margin-top: 10px; padding-left: 2%; }

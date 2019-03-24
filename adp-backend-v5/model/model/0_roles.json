@@ -15,8 +15,24 @@
           "type": "String[]",
           "list": "availablePermissions",
           "fullName": "Permission names"
+        },
+        "system": {
+          "type": "Boolean",
+          "fullName": "System",
+          "description": "If true this role is necessary for system, else role is custom",
+          "visible": false,
+          "default": false
         }
-      }
+      },
+      "hooks": {
+        "post": ["cacheRolesToPermissions"],
+      },
+//      "scopes": {
+//        "superAdminScope": {
+//          "permissions": "accessAsSuperAdmin",
+//          "where": "{$eq: ['$system', false]}"
+//        }
+//      }
     }
   }
 }

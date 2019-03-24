@@ -15,7 +15,8 @@
       scope: {
         field: '=',
         adpFormData: '=',
-        uiProps: '='
+        uiProps: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/location-control/location-control.html',
       require: '^^form',
@@ -139,9 +140,10 @@
           coordsToAddress(scope.map.center);
         };
 
+        // sync input with map
         scope.placeChanged = function() {
           var place = this.getPlace();
-          var promise = !!place.geometry ? $q.when(place) : AdpGeoLocationService.geocode(place.name);
+          var promise = !!place.geometry ? $q.when(place) : AdpGeoLocationService.geocode(place);
 
           promise
             .then(function(place) {
@@ -149,7 +151,7 @@
                 scope.map.center = [place.geometry.location.lat(), place.geometry.location.lng()];
                 scope.map.markerPosition = _.clone(scope.map.center);
 
-                setData(place.name);
+                setData(place.formatted_address);
                 setCenter();
               }
 

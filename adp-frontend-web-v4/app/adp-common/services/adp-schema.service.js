@@ -56,14 +56,17 @@
       removeRegexValidator(password);
 
       return {
-        'login': login,
-        'password': password,
-        'recaptcha': {
-          type: 'String',
-          subtype: 'Recaptcha',
-          fullName: 'Recaptcha',
-          visible: true,
-          required: true
+        type: 'Schema',
+        fields: {
+          'login': login,
+          'password': password,
+          'recaptcha': {
+            type: 'String',
+            subtype: 'Recaptcha',
+            fullName: 'Recaptcha',
+            visible: true,
+            required: true
+          }
         }
       }
     }
@@ -100,25 +103,29 @@
       ];
 
       return {
-        'login': login,
-        'email': email,
-        'password': password,
-        'passwordConfirmation': passwordConfirmation,
-        'recaptcha': {
-          type: 'String',
-          subtype: 'Recaptcha',
-          fullName: 'Recaptcha',
-          visible: true,
-          required: true
+        type: 'Schema',
+        fields: {
+          'login': login,
+          'email': email,
+          'password': password,
+          'passwordConfirmation': passwordConfirmation,
+          'recaptcha': {
+            type: 'String',
+            subtype: 'Recaptcha',
+            fullName: 'Recaptcha',
+            visible: true,
+            required: true
+          }
         }
       }
     }
 
-    function getPasswordSchema() {
+    function getPasswordSchema(field) {
       var APP_MODEL = window.adpAppStore.appModel();
       var password = _.cloneDeep(APP_MODEL['users']['fields']['password']);
       removeRegexValidator(password);
 
+      password.autocomplete = field.autocomplete;
       password.fieldInfo = { write: true, read: true };
       password.showInForm = true;
       password.subtype = 'PasswordAuth';
@@ -139,8 +146,11 @@
       ];
 
       return {
-        'password': password,
-        'passwordConfirmation': passwordConfirmation
+        type: 'Schema',
+        fields: {
+          'password': password,
+          'passwordConfirmation': passwordConfirmation
+        }
       }
     }
 

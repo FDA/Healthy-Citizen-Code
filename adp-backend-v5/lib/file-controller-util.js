@@ -1,3 +1,4 @@
+const crypto = require('crypto');
 const fs = require('fs-extra');
 const path = require('path');
 const _ = require('lodash');
@@ -14,23 +15,76 @@ const jimpReadPromisified = Promise.promisify(jimp.read);
 module.exports = () => {
   const m = {};
 
-  m.handleUpload = (files, cropParams) =>
-    Promise.map(files, file => m.handleSingleFileUpload(file, cropParams));
+  /**
+   * Wrapper that cast file structure given from middleware (like express-fileupload, multer, etc)
+   * @param files
+   * @returns {undefined}
+   */
+  function castFiles(files) {
+    return _.map(files, f => ({
+      path: f.tempFilePath,
+      type: f.mimetype,
+      name: f.name,
+      size: f.size,
+    }));
+  }
 
-  m.handleSingleFileUpload = (file, cropParams) =>
+  m.handleUpload = (files, owner, cropParams) => {
+    const castedFiles = castFiles(files);
+    // using mapSeries to avoid "ParallelSaveError": Can't save() the same doc multiple times in parallel
+    return Promise.mapSeries(castedFiles, file =>
+      m.handleSingleFileUpload(file, owner, cropParams)
+    );
+  };
+
+  m.handleSingleFileUpload = (file, owner, cropParams) =>
     m
-      .createFile(file)
+      .getFileHash(file.path)
+      .then(hash => m.createFile(file, hash, owner))
       .then(savedFile => m.processImage(savedFile, cropParams))
       .then(savedFile => savedFile.save())
       .then(m.fileToObject);
 
-  m.createFile = (reqFile, uploadDestDir = '../uploads') => {
+  /* eslint-disable promise/avoid-new */
+  m.getFileHash = (filePath, algorithm = 'sha1') =>
+    new Promise((resolve, reject) => {
+      const shasum = crypto.createHash(algorithm);
+      try {
+        const stream = fs.createReadStream(filePath);
+        stream.on('data', data => {
+          shasum.update(data);
+        });
+        // making digest
+        stream.on('end', () => {
+          const hash = shasum.digest('base64');
+          return resolve(hash);
+        });
+      } catch (error) {
+        return reject(new Error('Error occurred during hashing file'));
+      }
+    });
+  /* eslint-enable promise/avoid-new */
+
+  m.createFile = (reqFile, hash, owner, uploadDestDir = '../uploads') => {
     const File = mongoose.model('files');
+
+    const ownerLogin = _.get(owner, 'login');
+    let userLookup = null;
+    if (ownerLogin) {
+      userLookup = {
+        table: 'users',
+        label: owner.login,
+        _id: owner.id,
+      };
+    }
+
     const newFile = new File(
       {
         originalName: reqFile.name,
         size: reqFile.size,
         mimeType: reqFile.type,
+        user: userLookup,
+        hash,
       },
       false
     );
@@ -71,6 +125,7 @@ module.exports = () => {
       type: _doc.mimeType,
       id: _doc._id,
       cropped: !!_doc.cropped,
+      hash: _doc.hash,
     };
   };
 

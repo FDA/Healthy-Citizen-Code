@@ -7,6 +7,8 @@ const reqlib = require('app-root-path').require;
 
 const {
   auth: { user, loginWithUser },
+  getMongoConnection,
+  prepareEnv,
 } = reqlib('test/backend/test-util');
 
 const menuPart = {
@@ -195,27 +197,50 @@ const menuPart = {
   },
 };
 
+const authPart = {
+  interface: {
+    app: {
+      auth: {
+        requireAuthentication: true,
+        enablePermissions: true,
+      },
+    },
+  },
+};
+
 describe('V5 Backend Menu Permissions', () => {
   before(function() {
-    require('dotenv').load({ path: './test/backend/.env.test' });
-    this.appLib = reqlib('/lib/app')({
-      appModelSources: [`${process.env.APP_MODEL_DIR}/model`, menuPart],
+    prepareEnv();
+    this.appLib = reqlib('/lib/app')();
+    return getMongoConnection().then(db => {
+      this.db = db;
     });
-    return this.appLib.setup();
   });
 
   after(function() {
+    return this.db.dropDatabase().then(() => this.db.close());
+  });
+
+  beforeEach(function() {
+    return Promise.all([
+      this.db.collection('users').remove({}),
+      this.db.collection('mongoMigrateChangeLog').remove({}),
+    ]).then(() => Promise.all([this.db.collection('users').insert(user)]));
+  });
+
+  afterEach(function() {
     return this.appLib.shutdown();
   });
 
   it('should correctly strip down menu for user', function() {
-    _.merge(this.appLib.appModel.interface.app.auth, {
-      requireAuthentication: true,
-      enablePermissions: true,
-    });
     const { appLib } = this;
-    appLib.resetRoutes();
-    return loginWithUser(appLib, user)
+    appLib.setOptions({
+      appModelSources: [`${process.env.APP_MODEL_DIR}/model`, menuPart, authPart],
+    });
+
+    return this.appLib
+      .setup()
+      .then(() => loginWithUser(appLib, user))
       .then(token =>
         request(appLib.app)
           .get('/app-model')

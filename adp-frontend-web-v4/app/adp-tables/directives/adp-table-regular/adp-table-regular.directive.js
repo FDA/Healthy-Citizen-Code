@@ -7,9 +7,11 @@
 
   function adpTableRegular(
     AdpTablesActionsService,
+    AdpTableFiltersService,
     AdpTablesService,
     $timeout,
-    $filter
+    $filter,
+    $state
   ) {
     return {
       restrict: 'E',
@@ -39,6 +41,7 @@
 
         function _setScopeProperties() {
           scope.heads = AdpTablesService.getHeads(scope.schema.fields);
+          AdpTableFiltersService.parseFilterFromUrl(scope.heads, $state.params.filter);
 
           scope.actionsStyles = {};
           if ('width' in scope.actions) {
@@ -91,13 +94,19 @@
             element.DataTable().columns.adjust();
             _adjustFilterCols();
           });
-          element.on('responsive-resize.dt', _adjustFilterCols);
+
+          element.on('responsive-resize.dt', function () {
+            _adjustFilterCols();
+          });
 
           $(element).on('click.datatableAction', '.btn.table-action', _tableActionHandler);
+
           scope.$on('filterChanged', _tableFilterHandler);
+
           scope.$on('redraw', function () {
+            AdpTableFiltersService.setFiltersDataToUrl(scope.heads);
             scope.table.draw();
-            adjastColsAfterFiltration();
+            // adjastColsAfterFiltration();
           });
 
           scope.$watch('data', _drawTable);
@@ -135,22 +144,7 @@
             .search(searchParams.searchString, searchParams.isRegex, !searchParams.isRegex)
             .draw();
 
-          // WORKAROUND: for some reason dt is hiding actions col, but not the last one of
-          // filters row. So we need to hide it manually. If search is sucessfull dt
-          // auto show these column
-          adjastColsAfterFiltration();
-        }
-
-        function adjastColsAfterFiltration() {
-          if (scope.table.page.info().recordsDisplay === 0) {
-            // actionsCol.css('display', 'none');
-            var filters_cell = element.find('thead tr:first-child th');
-            var head_row_cells = element.find('thead tr:last-child th');
-
-            _.each(filters_cell, function (td, index) {
-              head_row_cells[index].style.display = td.style.display;
-            });
-          }
+          AdpTableFiltersService.setFiltersDataToUrl(scope.heads);
         }
 
         function _drawTable() {
@@ -165,7 +159,7 @@
         function _adjustFilterCols() {
           var filtersCells = element.find('.columnFilters th');
 
-          _.each(element.find('tbody tr:first-child td'), function (tableCell, index) {
+          _.each(element.find('tbody tr:first-child > td'), function (tableCell, index) {
             var displayStyles = tableCell.style.display === 'none' ? 'none' : 'table-cell';
             filtersCells[index].style.display = displayStyles;
           });

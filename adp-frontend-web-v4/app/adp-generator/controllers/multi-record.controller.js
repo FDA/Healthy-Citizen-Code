@@ -36,6 +36,7 @@
     function execActionFromParams(params) {
       var actionName = params.action;
       var pageAction = vm.actionCbs[actionName];
+
       if (!pageAction) {
         return;
       }
@@ -85,66 +86,28 @@
       return AdpDataService.getData(vm.pageParams, vm.schema)
         .then(function (data) {
           vm.pageData = data;
-          execActionFromParams($state.params);
           vm.loading = false;
         });
     }
-    getPageData();
+    getPageData()
+      .then(function () {
+        execActionFromParams($state.params);
+      });
 
     // Actions definition
     function createRecord() {
-      var formParams = _.assign({}, vm.schema.parameters);
-      formParams.actionType = 'create';
-
-      var options = {
-        schema: vm.schema,
-        fields: vm.fields,
-        formParams: formParams,
-        link: vm.pageParams.link
-      };
-
-      AdpGeneratorModalService.formModal(options)
-        .then(getPageData)
-        .then(showMessage);
+      var options = setOptions('create');
+      callRecordModal(options);
     }
 
     function cloneRecord(data) {
-      var formParams = _.assign({}, vm.schema.parameters);
-      formParams.actionType = 'clone';
-
-      var options = {
-        schema: vm.schema,
-        fields: vm.fields,
-        formParams: formParams,
-        link: vm.pageParams.link
-      };
-
-      if (!_.isUndefined(data)) {
-        options.data = _.cloneDeep(data);
-        delete options.data._id;
-      }
-
-      AdpGeneratorModalService.formModal(options)
-        .then(getPageData)
-        .then(showMessage);
+      var options = setOptions('clone', data);
+      callRecordModal(options);
     }
 
     function updateRecord(data) {
-      var formParams = _.assign({}, vm.schema.parameters);
-      formParams.actionType = 'update';
-
-      var options = {
-        schema: vm.schema,
-        fields: vm.fields,
-        formParams: formParams,
-        link: vm.pageParams.link,
-        data: _.cloneDeep(data),
-        id: data._id
-      };
-
-      AdpGeneratorModalService.formModal(options)
-        .then(getPageData)
-        .then(showMessage);
+      var options = setOptions('update', data);
+      callRecordModal(options);
     }
 
     function deleteRecord(data) {
@@ -161,15 +124,6 @@
         .then(showDeleteMessage);
     }
 
-    function showMessage() {
-      var message = vm.isNewRecord ? ' successfully added.' : ' successfully updated.';
-      AdpNotificationService.notifySuccess(vm.schema.fullName + message);
-    }
-
-    function showDeleteMessage() {
-      AdpNotificationService.notifySuccess(vm.schema.fullName + ' successfully deleted.');
-    }
-
     function viewDetails(itemData) {
       var options = {
         schema: vm.schema,
@@ -177,6 +131,47 @@
       };
 
       AdpGeneratorModalService.detailsModal(options);
+    }
+
+    function showMessage(options) {
+      var $action = options.formParams.actionType;
+      var isNewRecord = $action === 'create' || $action === 'clone';
+      var message = isNewRecord ? ' successfully added.' : ' successfully updated.';
+
+      AdpNotificationService.notifySuccess(vm.schema.fullName + message);
+    }
+
+    function showDeleteMessage() {
+      AdpNotificationService.notifySuccess(vm.schema.fullName + ' successfully deleted.');
+    }
+
+    function callRecordModal(options) {
+      AdpGeneratorModalService.formModal(options)
+        .then(getPageData)
+        .then(function () {
+          showMessage(options);
+        });
+    }
+
+    function setOptions($action, data) {
+      var formParams = _.assign({ actionType: $action }, vm.schema.parameters);
+
+      var options = {
+        schema: vm.schema,
+        fields: vm.fields,
+        formParams: formParams,
+        link: vm.pageParams.link
+      };
+
+      if (!_.isUndefined(data)) {
+        options.data = _.cloneDeep(data);
+      }
+
+      if ($action === 'clone') {
+        delete options.data._id;
+      }
+
+      return options;
     }
   }
 })();
