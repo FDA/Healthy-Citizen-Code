@@ -7,8 +7,9 @@
 
   function lookupMultipleControl(
     AdpLookupHelpers,
-    $timeout,
-    AdpValidationService
+    AdpValidationService,
+    AdpFieldsService,
+    $timeout
   ) {
     return {
       restrict: 'E',
@@ -20,7 +21,7 @@
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/lookup-multiple-control/lookup-multiple-control.html',
       require: '^^form',
-      link: function (scope) {
+      link: function (scope, element) {
         // WORKAROUND: this whole file is workaround for select2 v3
         // 1. modelCache is model cache to avoid, because select2 writes incorrect data on change
         // 2. check the scope.options.onChange callback: That where modelCache is changed
@@ -49,18 +50,16 @@
           return scope.adpFormData[scope.field.keyName] = value;
         };
 
-        scope.change = function() {
+        function fromCacheToData() {
           var dataRef = scope.getData();
 
-          $timeout(function () {
-            // we need to keep ref to object, we can't delete it
-            dataRef.length = 0;
-            // $(this).select2('val', dataRef);
-            modelCache.forEach(function (item, index) {
-              dataRef[index] = modelCache[index];
-            });
+          // we need to keep ref to object, we can't delete it
+          dataRef.length = 0;
+          // $(this).select2('val', dataRef);
+          modelCache.forEach(function (item, index) {
+            dataRef[index] = modelCache[index];
           });
-        };
+        }
 
         // contains table name
         scope.selectedSubject = {};
@@ -75,6 +74,24 @@
         scope.selectedSubject.selected = scope.subjectNames.length === 1
           ? scope.subjectNames[0] : '';
 
+        function formatLabel(state) {
+          var lookup = {
+            _id: state.id,
+            table: state.table || scope.selectedSubject.selected,
+            label: state.label
+          };
+
+          var params = {
+            lookup: lookup,
+            fieldData: scope.getData(),
+            formData: scope.adpFormData,
+            fieldSchema: scope.field
+          };
+
+          return AdpLookupHelpers.getLabelRenderer(params);
+        }
+
+
         scope.options = {
           multiple: true,
           nextSearchTerm: function (selected) {
@@ -84,13 +101,8 @@
 
             return '';
           },
-          formatResult: function(state) {
-            return state.label;
-          },
-          formatSelection: function(state) {
-            var table = state.table || scope.selectedSubject.selected;
-            return table + ' | ' +  state.label;
-          },
+          formatResult: formatLabel,
+          formatSelection: formatLabel,
           onChange: function(e) {
             var newValue;
 
@@ -110,6 +122,7 @@
             }
 
             scope.$apply();
+            fromCacheToData();
           },
           ajax: {
             dataType: 'json',
@@ -158,7 +171,13 @@
           }
         };
 
-
+        // HACK
+        $timeout(function () {
+          $timeout(function () {
+            var input = element[0].querySelector('.select2-input');
+            input.autocomplete = AdpFieldsService.autocompleteValue(scope.field);
+          });
+        });
       }
     }
   }

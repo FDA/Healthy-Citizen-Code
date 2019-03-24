@@ -16,7 +16,10 @@ var appDb = (function () {
     },
 
     set: function (data) {
-      return idbKeyval.set(this.name, data, getStore());
+      return idbKeyval.set(this.name, data, getStore())
+        .then(function () {
+          return data;
+        })
     }
   };
 

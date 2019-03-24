@@ -9,6 +9,6 @@ appLib
     app.start();
   })
   .catch(e => {
-    log.error('APP001', e);
+    log.error('APP001', e.stack);
     process.exit(1);
   });

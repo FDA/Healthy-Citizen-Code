@@ -1,0 +1,64 @@
+const puppeteer = require('puppeteer');
+const { TEST_TIMEOUT, getLaunchOptions, loginWithUser, getUrlFor } = require('../../../utils');
+
+describe('basic types', () => {
+  beforeAll(async () => {
+    this.browser = await puppeteer.launch(getLaunchOptions());
+    const context = await this.browser.createIncognitoBrowserContext();
+    this.page = await context.newPage();
+    await loginWithUser(this.page);
+  }, TEST_TIMEOUT);
+
+  afterAll(async () => {
+    await this.browser.close();
+  });
+
+  test(
+    'empty form',
+    async () => {
+      await this.page.goto(getUrlFor('basicTypes'));
+      const createButtonSelector = '.btn.page-action';
+      await this.page.waitFor(createButtonSelector);
+      await this.page.click(createButtonSelector);
+      await this.page.waitFor('form');
+
+      const selectors = {
+        string: 'input#string',
+        stringRequired: 'input#stringRequired',
+        stringMultiple: 'input#stringMultiple',
+        stringMultipleRequired: 'input#stringMultipleRequired',
+        password: 'input#password',
+        text: 'input#text',
+        email: 'input#email',
+        phone: 'input#phone',
+        number: 'input#number',
+        numberRequired: 'input#numberRequired',
+        numberFrom1To10: 'input#numberFrom1To10',
+        boolean: 'input#boolean',
+        booleanRequired: 'input#booleanRequired',
+      };
+
+      const getSnapshot = selectors => {
+        return {
+          string: document.querySelector(selectors.string).value,
+          stringRequired: document.querySelector(selectors.stringRequired).value,
+          stringMultiple: document.querySelector(selectors.stringMultiple).value,
+          stringMultipleRequired: document.querySelector(selectors.stringMultipleRequired).value,
+          password: document.querySelector(selectors.password).value,
+          text: document.querySelector(selectors.text).value,
+          email: document.querySelector(selectors.email).value,
+          phone: document.querySelector(selectors.phone).value,
+          number: document.querySelector(selectors.number).value,
+          numberRequired: document.querySelector(selectors.numberRequired).value,
+          numberFrom1To10: document.querySelector(selectors.numberFrom1To10).value,
+          boolean: document.querySelector(selectors.boolean).value,
+          booleanRequired: document.querySelector(selectors.booleanRequired).value,
+        };
+      };
+
+      const submitButtonSelector = 'form button[type="submit"]';
+      await this.page.click(submitButtonSelector);
+    },
+    TEST_TIMEOUT
+  );
+});

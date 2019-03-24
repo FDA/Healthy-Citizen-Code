@@ -19,7 +19,9 @@
       link: function (scope, el, attrs, formCtrl) {
         scope.form = formCtrl;
         scope.fakeModel = null;
+
         if (scope.field.type.indexOf('[]') > -1) {
+          scope.field['arguments'] = scope.field['arguments'] || {};
           scope.field['arguments'].multiple = true;
         }
 

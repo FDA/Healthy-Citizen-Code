@@ -12,8 +12,9 @@
         options: '='
       },
       link: function (scope, element, attrs) {
-        var options = scope.options || {};
+        var options;
         $timeout(createSelect);
+
         scope.$watch(attrs.ngModel, refreshSelect);
 
         if(attrs.ngOptions) {
@@ -29,13 +30,20 @@
         scope.$on('$destroy', destroy);
 
         function createSelect() {
+          options = scope.options || {};
           element.select2(options);
+
+          element.select2Initialized = true;
 
           if (options.onChange) {
             element.on('change', options.onChange);
           }
 
-          element.select2Initialized = true;
+          $timeout(function () {
+            if (options.onOpen) {
+              element.on('select2-open', options.onOpen);
+            }
+          });
         }
 
         function refreshSelect() {

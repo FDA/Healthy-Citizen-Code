@@ -8,8 +8,7 @@
   function AppGenerator(
     AdpMenuGeneratorProvider,
     AdpStateGeneratorProvider,
-    $urlRouterProvider,
-    $provide
+    $urlRouterProvider
   ) {
     var service = {
       generateApp: generateApp
@@ -35,7 +34,15 @@
         DEFAULT_STATE = AdpMenuGeneratorProvider.getDefaultStateParams(INTERFACE.mainMenu);
         window.adpAppStore.defaultState(DEFAULT_STATE);
 
-        $urlRouterProvider.otherwise(DEFAULT_STATE.url);
+        $urlRouterProvider.otherwise(function () {
+          var authSetting = window.adpAppStore.appInterface().app.auth;
+
+          if (authSetting.requireAuthentication && lsService.isGuest()) {
+            return '/login';
+          } else {
+            return DEFAULT_STATE.url;
+          }
+        });
       } catch (e) {
         console.log('Menu item creation failed due to error: ', e)
       }

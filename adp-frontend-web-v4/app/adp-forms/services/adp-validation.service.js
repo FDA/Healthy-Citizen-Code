@@ -7,8 +7,11 @@
 
   function AdpValidationService (
     DATE_FORMAT,
+    DATE_TIME_FORMAT,
+    TIME_FORMAT,
     AdpSchemaService,
-    $log
+    $log,
+    AdpFormHelpers
   ) {
     var TEMPLATE_REGEX = {
       VAL: /(\$val)/,
@@ -40,7 +43,7 @@
       minNumber: function (viewValue, modelValue, validationArguments) {
         var limit = parseFloat(validationArguments.limit);
 
-        if (viewValue === '') return true;
+        if (_.isNull(viewValue)) return true;
         return viewValue >= limit;
       },
 
@@ -69,7 +72,7 @@
       maxNumber: function (viewValue, modelValue, validationArguments) {
         var limit = parseFloat(validationArguments.limit);
 
-        if (viewValue === '') return true;
+        if (_.isNull(viewValue)) return true;
         return viewValue < limit;
       },
 
@@ -270,25 +273,70 @@
       }
     }
 
-    function isRequired(validationParams) {
+    function _createConditionalRequiredFn(validationParams) {
+      var formParams = validationParams.formParams;
+
+      var params = AdpFormHelpers.getHelperParams(
+        formParams.path,
+        formParams.row,
+        formParams.action,
+        formParams.modelSchema
+      );
+
+      // do not use - non context arguments will be removed
       var fieldName = validationParams.field.keyName;
       var data = validationParams.formData[fieldName];
       var row = validationParams.formData;
-      var modelSchema = validationParams.fields;
+      var modelSchema = validationParams.schema;
       var $action = validationParams.$action;
 
+      // fieldValue, formData, rootSchema, $action
       var requiredFunc = new Function(
         'data, row, modelSchema, $action',
         'return ' + validationParams.field.required
-      ).bind(null, data, row, modelSchema, $action);
+      ).bind(params, data, row, modelSchema, $action);
 
       return requiredFunc;
+    }
+
+    function isRequired(validationParams) {
+      if (_.isBoolean(validationParams.field.required)) {
+        return function () {
+          return validationParams.field.required;
+        };
+      } else {
+        return _createConditionalRequiredFn(validationParams);
+      }
+    }
+
+    function isValidDate(value, subtype) {
+      var dateFormat = getDateFormat(subtype);
+
+      var formats = [
+        moment.ISO_8601,
+        dateFormat
+      ];
+
+      var d = moment(value, formats, true);
+      return d.isValid();
+    }
+
+    function getDateFormat(subtype) {
+      var dateFormats = {
+        'Date': DATE_FORMAT,
+        'DateTime': DATE_TIME_FORMAT,
+        'Time': TIME_FORMAT
+      };
+
+      return dateFormats[subtype] || dateFormats['Date'];
     }
 
     return {
       addValidators: addValidators,
       updateMessages: updateMessages,
-      isRequired: isRequired
+      isRequired: isRequired,
+      isValidDate: isValidDate,
+      getDateFormat: getDateFormat
     };
   }
 })();

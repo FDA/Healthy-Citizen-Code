@@ -9,3 +9,5 @@ model/helpers/form_renderers.js
 model/helpers/label_renderers.js
 model/helpers/validators-util.js
 model/helpers/validators.js
+model/helpers/header_renderers.js
+model/helpers/lookup_label_renderers.js

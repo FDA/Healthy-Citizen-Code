@@ -15,7 +15,7 @@ const multer = require('multer');
 
 const upload = multer();
 // const cpUpload = upload.fields([{ name: 'avatars', maxCount: 1 }, { name: 'avatars2', maxCount: 1 }, { name: 'asd'}]);
-const { transformFilesToModel } = require('./src/services/file_to_model/file_to_model');
+const { transformFilesToModel } = require('./src/services/file_to_model/src/file_to_model');
 
 const server = restify.createServer({ name: process.env.APP_NAME });
 server.on('uncaughtException', (req, res, route, err) => {

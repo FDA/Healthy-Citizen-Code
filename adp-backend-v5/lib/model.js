@@ -7,7 +7,6 @@
 const log = require('log4js').getLogger('lib/model');
 const mongoose = require('mongoose');
 const fs = require('fs-extra');
-const async = require('async');
 const glob = require('glob');
 const _ = require('lodash');
 const appRoot = require('app-root-path').path;
@@ -15,7 +14,7 @@ const RJSON = require('relaxed-json');
 const Promise = require('bluebird');
 
 const { Schema } = mongoose;
-const butil = require('./backend-util');
+const { camelCase2CamelText } = require('./backend-util');
 const schemaTransformers = require('./schema-transformers')();
 const {
   getTransformedInterfaceAppPermissions,
@@ -23,7 +22,7 @@ const {
   transformListPermissions,
   transformMenuPermissions,
   transformPagesPermissions,
-} = require('./transform-permissions');
+} = require('./access/transform-permissions');
 
 module.exports = appLib => {
   const m = {};
@@ -66,6 +65,7 @@ module.exports = appLib => {
     Mixed: mongoose.Schema.Types.Mixed,
     ObjectID: mongoose.Schema.Types.ObjectId,
     LookupObjectID: LookupObjectIDSchema,
+    TreeSelector: [LookupObjectIDSchema],
     'String[]': [String],
     'Date[]': [Date],
     'Number[]': [Number],
@@ -194,14 +194,12 @@ module.exports = appLib => {
     } else if (obj.type === 'Location') {
       mongooseModel[name] = { type: [Number], index: '2d' };
       mongooseModel[`${name}_label`] = { type: String };
-      setMongooseModelAttribute(obj, 'index', mongooseModel[name], 'index', true);
     } else {
       mongooseModel[name] = {
         type: m.mongooseTypesMapping[obj.type],
       };
 
-      setMongooseModelAttribute(obj, 'unique', mongooseModel[name], 'unique', false);
-      setMongooseModelAttribute(obj, 'index', mongooseModel[name], 'index', false);
+      setMongooseIndexesByScheme(obj, mongooseModel, name);
 
       // TODO: min, max
       // TODO: ref: http://stackoverflow.com/questions/26008555/foreign-key-mongoose ?
@@ -231,37 +229,106 @@ module.exports = appLib => {
     }
 
     /**
-     * Sets one mongoose model attribute based on the parameters
-     * @param mObj app JSON model describing the attribute
-     * @param objAttr app JSON attribute name
-     * @param model mongoose model JSON
-     * @param modelAttr mongoose model JSON attribute name
-     * @param useDefault if true then set the attribute to default value defined in schema.js
+     * Sets indexes into mongoose model by json scheme
+     * @param schemeField
+     * @param model
+     * @param name
      */
-    function setMongooseModelAttribute(mObj, objAttr, model, modelAttr, useDefault) {
-      if (mObj[objAttr]) {
-        model[modelAttr] = mObj[objAttr];
-      } else if (useDefault) {
-        model[modelAttr] = appLib.appModel.metaschema[modelAttr].default;
+    function setMongooseIndexesByScheme(schemeField, model, fieldName) {
+      const mongooseField = model[fieldName];
+      if (schemeField.unique) {
+        mongooseField.unique = schemeField.unique;
       }
+
+      // do not generate other indexes(not unique) for tests,
+      // since it affects only search speed and consume time and disk space
+      if (process.env.DEVELOPMENT === 'true') {
+        return;
+      }
+
+      if (schemeField.index) {
+        mongooseField.index = schemeField.index;
+      }
+      const lookupTypes = ['LookupObjectID', 'LookupObjectID[]', 'TreeSelector'];
+
+      // index speedups getUpdateLinkedLabelsPromise
+      if (lookupTypes.includes(schemeField.type)) {
+        // considering single or array types mongoose
+        const type = _.isArray(mongooseField.type) ? mongooseField.type[0] : mongooseField.type;
+        type.index({ _id: 1, table: 1 }, { background: true });
+      }
+    }
+  };
+
+  /**
+   * Function for validating following cases:
+   * 1. If the object is marked as required and
+   * there are no fields marked as required within the object
+   * then this situation is the app schema developer's mistake.
+   * 2. If the array field is marked as required
+   * there are no array element's fields marked as required
+   * then this is the app schema author's mistake.
+   * More info: https://confluence.conceptant.com/display/DEV/Object+and+Array+Types
+   */
+  m.validateRequiredFields = models => {
+    const allErrors = [];
+    _.each(models, (model, modelName) => {
+      const hasRequiredParent = false;
+      const curPath = [modelName];
+      const fieldsErrors = getFieldsErrors(model, curPath, hasRequiredParent);
+      allErrors.push(...fieldsErrors);
+    });
+
+    return allErrors;
+
+    function getFieldsErrors(part, path, hasRequiredParent) {
+      const fieldsErrors = [];
+      const validTypesGoDeeper = ['Schema', 'Object', 'Array'];
+      if (!validTypesGoDeeper.includes(part.type)) {
+        return fieldsErrors;
+      }
+
+      let isPartHasRequiredFields = false;
+      _.each(part.fields, (field, fieldName) => {
+        const isFieldRequired = field.required === true;
+        isPartHasRequiredFields = isPartHasRequiredFields || isFieldRequired;
+        if (validTypesGoDeeper.includes(field.type)) {
+          const nestedFieldsErrors = getFieldsErrors(
+            field,
+            _.concat(path, fieldName),
+            isFieldRequired
+          );
+          fieldsErrors.push(...nestedFieldsErrors);
+        }
+      });
+      if (!isPartHasRequiredFields && hasRequiredParent) {
+        fieldsErrors.push(
+          `Model part by path '${path.join('.')}' is required but doesn't have any required field`
+        );
+      }
+      return fieldsErrors;
     }
   };
 
   /**
    * Validates that the app model matches metaschema
    * Also augments the model with defaults for subtypes, lookups etc
-   * @returns {Array} array containing list of problems in the model
+   * @returns {{warnings: Array, errors: Array}}
    */
   // TODO: rewrite using m.traverseAppModel ?
   // TODO: split this method into multiple functions, it's getting big
+  // TODO: add validation for hooks existence and that its returning Promises
   m.validateAndCleanupAppModel = () => {
     let errors = [];
+    const warnings = [];
     const allowedAttributes = _.keys(appLib.appModel.metaschema);
 
+    setAppAuthSettings();
     validateModelParts(appLib.appModel.models, []);
-    addLookupMeta();
-    handleAppAuthSettings();
     handlePermissions();
+    addLookupMeta();
+    const requiredWarnings = m.validateRequiredFields(appLib.appModel.models);
+    warnings.push(...requiredWarnings);
 
     if (appLib.appModel.interface) {
       validateInterfaceParts(appLib.appModel.interface, []); // TODO: add test for this
@@ -271,12 +338,14 @@ module.exports = appLib => {
         }
       });
     }
-    return errors;
+    return { errors, warnings };
 
     // These validators are called for specific part of the model (vs all attributes of the part, see below) -----
 
     function addLookupMeta() {
+      // used to transform lookup._id sent from fronted as String to ObjectID.
       appLib.lookupFieldsMeta = {};
+      // used to update linked labels when original record is changed
       appLib.labelFieldsMeta = {};
 
       _.each(appLib.appModel.models, (schema, schemaName) => {
@@ -295,7 +364,28 @@ module.exports = appLib => {
                 scheme: schemaName,
                 path: fieldName, // may be nested
                 isMultiple: field.type.endsWith('[]'), // need this info for updating object or array
+                fieldType: field.type,
                 required: field.required,
+                foreignKey: tableLookup.foreignKey,
+              });
+              _.set(appLib.labelFieldsMeta, [tableName, tableLookup.label], lookupPathsMeta);
+            });
+          }
+
+          if (field.type === 'TreeSelector') {
+            const treeSelectorTables = _.omit(field.table, ['id']);
+            _.set(appLib.lookupFieldsMeta, [schemaName, fieldName], treeSelectorTables);
+
+            _.each(treeSelectorTables, (tableLookup, tableName) => {
+              const lookupPathsMeta =
+                _.get(appLib.labelFieldsMeta, [tableName, tableLookup.label]) || [];
+              lookupPathsMeta.push({
+                scheme: schemaName,
+                path: fieldName, // may be nested
+                isMultiple: true, // TreeSelector is always array of LookupObjectID
+                fieldType: field.type,
+                required: field.required,
+                requireLeafSelection: tableLookup.requireLeafSelection,
                 foreignKey: tableLookup.foreignKey,
               });
               _.set(appLib.labelFieldsMeta, [tableName, tableLookup.label], lookupPathsMeta);
@@ -308,11 +398,10 @@ module.exports = appLib => {
     /**
      * Merges the defaults set in the typeDefaults and subtypeDefaults into the appModel part
      * @param part
-     * @param path
      */
     function mergeTypeDefaults(part) {
       part.type = _.get(part, 'type', appLib.appModel.metaschema.type.default);
-      const defaults = _.get(appLib.appModel, `typeDefaults.fields.${part.type}`, {});
+      const defaults = _.get(appLib.appModel, ['typeDefaults', 'fields', part.type], {});
 
       function doNotOverwrite(objValue, srcValue) {
         // objValue is the target value, see https://lodash.com/docs/4.17.10#mergeWith
@@ -329,7 +418,7 @@ module.exports = appLib => {
           return null;
         }
         if (_.isString(srcValue) && _.isString(objValue)) {
-          return srcValue;
+          return objValue;
         }
         return _.mergeWith(objValue, srcValue, doNotOverwrite);
         // return objValue;
@@ -350,7 +439,6 @@ module.exports = appLib => {
     /**
      * Converts transformer definition consisting of just one string into one-element array
      * @param part
-     * @param path
      */
     function convertTransformersToArrays(part) {
       if (_.has(part, 'transform')) {
@@ -363,7 +451,6 @@ module.exports = appLib => {
     /**
      * Converts transformer definition consisting of just one string into one-element array
      * @param part
-     * @param path
      */
     function convertSynthesizersToArrays(part) {
       if (_.has(part, 'synthesize')) {
@@ -495,6 +582,46 @@ module.exports = appLib => {
       }
     }
 
+    function generateLookupId(path) {
+      return _(path)
+        .difference(['fields'])
+        .map(v => _.capitalize(v))
+        .value()
+        .join('');
+    }
+
+    function transformLookupScopes(tableLookup) {
+      if (!appLib.getAuthSettings().enablePermissions) {
+        return;
+      }
+
+      _.each(tableLookup.scopes, scope => {
+        if (_.isString(scope.permissions)) {
+          const permissionName = scope.permissions;
+          scope.permissions = {
+            view: permissionName,
+          };
+        }
+      });
+
+      tableLookup.scopes = _.merge(
+        tableLookup.scopes,
+        appLib.accessUtil.getAdminLookupScopeForViewAction()
+      );
+    }
+
+    function addForeignKeyType(tableLookup) {
+      const { foreignKey } = tableLookup;
+      if (foreignKey === '_id') {
+        tableLookup.foreignKeyType = 'ObjectID';
+      } else {
+        tableLookup.foreignKeyType = _.get(
+          appLib.appModel.models,
+          `${tableLookup.table}.fields.${foreignKey}.type`
+        );
+      }
+    }
+
     function transformLookups(part, path) {
       const { lookup } = part;
 
@@ -525,41 +652,49 @@ module.exports = appLib => {
           addForeignKeyType(tableLookup);
         });
       }
+    }
 
-      function generateLookupId(gPath) {
-        return _(gPath)
-          .difference(['fields'])
-          .map(v => _.capitalize(v))
-          .value()
-          .join('');
+    function transformTreeSelectors(part, path) {
+      const { type, table } = part;
+      if (type !== 'TreeSelector') {
+        return;
       }
 
-      function transformLookupScopes(tableLookup) {
-        _.each(tableLookup.scopes, scope => {
-          if (_.isString(scope.permissions)) {
-            const permissionName = scope.permissions;
-            scope.permissions = {
-              view: permissionName,
-            };
-          }
+      if (_.isString(table)) {
+        const collectionName = table;
+        const pickedFromRoot = _.pick(part, [
+          'label',
+          'parent',
+          'roots',
+          'leaves',
+          'requireLeafSelection',
+          'scopes',
+          'prepare',
+          'where',
+          'sortBy',
+        ]);
+        part.table = {
+          [collectionName]: {
+            ...pickedFromRoot,
+            table: collectionName,
+          },
+        };
+        // TODO: add transforming to extended version
+      } else if (_.isPlainObject(table)) {
+        _.each(table, (tableSpec, tableName) => {
+          tableSpec.table = tableName;
         });
-        tableLookup.scopes = _.merge(
-          tableLookup.scopes,
-          appLib.accessCfg.getAdminLookupScopeForViewAction()
-        );
       }
 
-      function addForeignKeyType(tableLookup) {
-        const { foreignKey } = tableLookup;
-        if (foreignKey === '_id') {
-          tableLookup.foreignKeyType = 'ObjectID';
-        } else {
-          tableLookup.foreignKeyType = _.get(
-            appLib.appModel.models,
-            `${tableLookup.table}.fields.${foreignKey}.type`
-          );
+      part.table.id = part.table.id || generateLookupId(path);
+
+      _.each(part.table, (tableLookup, tableName) => {
+        if (tableName === 'id') {
+          return;
         }
-      }
+        transformLookupScopes(tableLookup);
+        addForeignKeyType(tableLookup);
+      });
     }
 
     /**
@@ -667,7 +802,7 @@ module.exports = appLib => {
       const partKey = path[path.length - 1];
       if (appLib.appModel.metaschema.fullName && !part.fullName) {
         // some tests and potentially apps do not have fullName in metaschema
-        part.fullName = butil.camelCase2CamelText(partKey);
+        part.fullName = camelCase2CamelText(partKey);
       }
     }
 
@@ -750,6 +885,17 @@ module.exports = appLib => {
       }
     }
 
+    function validateFieldName(path) {
+      const lastFieldName = path[path.length - 1];
+      const alphanumericOrQuotesRegExp = /^[\w"]+$/;
+      if (!alphanumericOrQuotesRegExp.test(lastFieldName)) {
+        errors.push(
+          `Field '${lastFieldName}' has invalid name: should contain only alphanumeric and quotes. ` +
+            `Path: '${path.join('.')}'`
+        );
+      }
+    }
+
     /**
      * Loads data specified in external file for all metaschema attributes that have supportsExternalData == true
      * @param part
@@ -795,11 +941,6 @@ module.exports = appLib => {
       );
     }
 
-    /**
-     * Transforms actions
-     * @param part
-     * @param path
-     */
     function transformActions(part) {
       if (part.type === 'Schema') {
         const actions = _.get(part, 'actions', { fields: {} });
@@ -819,20 +960,25 @@ module.exports = appLib => {
             );
           }
         });
-
         part.actions = actions;
       }
     }
 
     function transformFieldPermissions(part) {
+      if (!appLib.getAuthSettings().enablePermissions) {
+        return;
+      }
+
+      // TODO: validate field permissions and throw error on invalid
       const { permissions } = part;
       const isValidType = part.type !== 'Schema' && part.type !== 'Group';
       const isVisible = part.visible === true || part.visible === undefined;
       if (!permissions && isValidType && isVisible) {
+        const { accessAsAnyone } = appLib.accessCfg.PERMISSIONS;
         part.permissions = {
-          view: appLib.accessCfg.PERMISSIONS.accessAsAnyone,
-          create: appLib.accessCfg.PERMISSIONS.accessAsAnyone,
-          update: appLib.accessCfg.PERMISSIONS.accessAsAnyone,
+          view: accessAsAnyone,
+          create: accessAsAnyone,
+          update: accessAsAnyone,
         };
       } else if (_.isString(permissions) || _.isArray(permissions)) {
         part.permissions = {
@@ -841,15 +987,18 @@ module.exports = appLib => {
           update: permissions,
         };
       } else if (_.isPlainObject(permissions)) {
-        const newPermissions = {};
-        if (permissions.read) {
-          newPermissions.view = permissions.read;
-        }
-        if (permissions.write) {
-          newPermissions.create = permissions.write;
-          newPermissions.update = permissions.write;
-        }
-        part.permissions = newPermissions;
+        const { accessAsSuperAdmin } = appLib.accessCfg.PERMISSIONS;
+
+        const { read, write } = permissions;
+        const readPermission = read || accessAsSuperAdmin;
+        const writePermission = write || accessAsSuperAdmin;
+
+        part.permissions = {
+          view: readPermission,
+          create: writePermission,
+          update: writePermission,
+          delete: writePermission,
+        };
       }
     }
 
@@ -1106,10 +1255,10 @@ module.exports = appLib => {
       }
     }
 
-    function handleAppAuthSettings() {
+    function setAppAuthSettings() {
       const authSettings = _.get(appLib.appModel, 'interface.app.auth', {});
       const defaultAuthSettings = _.get(appLib, 'accessCfg.DEFAULT_AUTH_SETTINGS', {});
-      const mergedSettings = _.merge(defaultAuthSettings, authSettings);
+      const mergedSettings = _.merge({}, defaultAuthSettings, authSettings);
 
       if (mergedSettings.requireAuthentication && !mergedSettings.enableAuthentication) {
         log.warn(
@@ -1139,7 +1288,13 @@ module.exports = appLib => {
     }
 
     function transformLists(part) {
-      const adminListScopeForViewAction = appLib.accessCfg.getAdminListScopeForViewAction();
+      if (!part.list) {
+        return;
+      }
+
+      const adminListScopeForViewAction = appLib.getAuthSettings().enablePermissions
+        ? appLib.accessUtil.getAdminListScopeForViewAction()
+        : {};
 
       if (_.isString(part.list)) {
         // transform to object
@@ -1148,11 +1303,10 @@ module.exports = appLib => {
           name: listName,
           scopes: adminListScopeForViewAction,
         };
-        setReturnWhereToList(part.list);
       } else if (_.isPlainObject(part.list)) {
-        const listNewFormatFields = ['name', 'values', 'scopes'];
+        const newFormatListFields = ['name', 'values', 'scopes'];
         const isNewListFormat = _.every(part.list, (field, fieldName) =>
-          listNewFormatFields.includes(fieldName)
+          newFormatListFields.includes(fieldName)
         );
 
         if (isNewListFormat) {
@@ -1165,12 +1319,15 @@ module.exports = appLib => {
             scopes: adminListScopeForViewAction,
           };
         }
-        setReturnWhereToList(part.list);
       }
 
-      function setReturnWhereToList(list) {
-        list.where = list.where || 'return true';
-        list.return = list.return || 'return $list';
+      _.each(part.list.scopes, scope => {
+        setReturnWhereToListScope(scope);
+      });
+
+      function setReturnWhereToListScope(scope) {
+        scope.where = scope.where || 'return true';
+        scope.return = scope.return || 'return $list';
       }
     }
 
@@ -1187,15 +1344,17 @@ module.exports = appLib => {
       makeSureAllTransformersExist(part, path);
       transformLookups(part, path);
       validateLookups(part, path);
+      transformTreeSelectors(part, path);
       // validateSchemaNamesArePlural(part, path);
       generateFullName(part, path);
       validateRequiredAttributes(part, path);
       addValidatorForConditionalRequired(part);
       setDefaultAttributes(part, path);
-      transformActions(part, path);
+      transformActions(part);
       transformFieldPermissions(part);
       collectUsedPermissionNames(part, path);
       handleVisibleAttribute(part, path);
+      validateFieldName(path);
 
       validateFields(validateModelParts, part, path);
 
@@ -1240,69 +1399,68 @@ module.exports = appLib => {
    * @param models JSON defining the model
    * @param cb callback(err)
    */
-  m.generateMongooseModels = (db, models, cb) => {
-    async.eachOfSeries(
-      models,
-      (model, name, asyncCb) => {
-        const mongooseSchemaDefinition = {};
-        m.getMongooseSchemaDefinition(null, model, mongooseSchemaDefinition);
-        let err;
-        try {
-          const schema = new mongoose.Schema(mongooseSchemaDefinition, {
-            collection: name,
-            strict: false,
-            versionKey: false,
-          });
-          if (model.schemaTransform) {
-            if (typeof model.schemaTransform === 'string') {
-              model.schemaTransform = [model.schemaTransform];
-            }
-            model.schemaTransform.forEach(transformer => {
-              schemaTransformers[transformer](schema);
-            });
-          }
-          log.trace(`Generating model ${name}`);
-          // log.trace( `Generating model ${name}:\n${JSON.stringify(mongooseSchemaDefinition,null,4)}` );
-          db.model(name, schema);
-        } catch (e) {
-          err = `Error: ${e}. Unable to generate mongoose model ${name}`;
-          log.error('MDL001', err);
-        }
-        asyncCb(err);
-      },
-      cb
-    );
-  };
-
-  m.generateMongooseModelsPromise = Promise.promisify(m.generateMongooseModels);
-
-  m.removeIrrelevantUniqueIndexes = () => {
-    return appLib.db.db
-      .listCollections()
-      .toArray()
-      .then(collectionInfos => {
-        const collectionNames = collectionInfos.map(info => info.name);
-
-        return Promise.map(collectionNames, collectionName => {
-          const collection = appLib.db.collection(collectionName);
-          const modelUniqueFields = getModelUniqueFields(collectionName);
-          return getRemoveModelIndexesPromise(collection, modelUniqueFields);
+  m.generateMongooseModels = (db, models) =>
+    Promise.map(Object.entries(models), ([name, model]) => {
+      const mongooseSchemaDefinition = {};
+      m.getMongooseSchemaDefinition(null, model, mongooseSchemaDefinition);
+      try {
+        const schema = new mongoose.Schema(mongooseSchemaDefinition, {
+          collection: name,
+          strict: false,
+          versionKey: false,
         });
-      });
 
-    function getRemoveModelIndexesPromise(collection, modelUniqueFields) {
-      return collection.getIndexes({ full: true }).then(indexes =>
-        Promise.map(indexes, index => {
-          if (index.unique === true) {
-            const keyPaths = Object.keys(index.key);
-            const isUniqueIndexNotExistsInSchema =
-              keyPaths.length === 1 && !modelUniqueFields.has(keyPaths[0]);
-            if (isUniqueIndexNotExistsInSchema) {
-              return collection.dropIndex(index.name);
-            }
+        // create index for actual record condition for production
+        if (process.env.DEVELOPMENT !== 'true') {
+          schema.index({ deletedAt: 1, _temporary: 1 }, { background: true });
+        }
+
+        if (model.schemaTransform) {
+          if (typeof model.schemaTransform === 'string') {
+            model.schemaTransform = [model.schemaTransform];
           }
-        })
-      );
+          model.schemaTransform.forEach(transformer => {
+            schemaTransformers[transformer](schema);
+          });
+        }
+        log.trace(`Generating model ${name}`);
+        // log.trace( `Generating model ${name}:\n${JSON.stringify(mongooseSchemaDefinition,null,4)}` );
+        return db.model(name, schema);
+      } catch (e) {
+        log.error('MDL001', `Unable to generate mongoose model ${name}`);
+        throw e;
+      }
+    });
+
+  m.removeIrrelevantUniqueIndexes = collectionName => {
+    const collection = appLib.db.collection(collectionName);
+    const modelUniqueFields = getModelUniqueFields(collectionName);
+    return getRemoveModelIndexesPromise(collection, modelUniqueFields);
+
+    function getRemoveModelIndexesPromise(_collection, _modelUniqueFields) {
+      return _collection
+        .getIndexes({ full: true })
+        .then(indexes =>
+          Promise.map(indexes, index => {
+            if (index.unique === true) {
+              const keyPaths = Object.keys(index.key);
+              const isUniqueIndexNotExistsInSchema =
+                keyPaths.length === 1 && !_modelUniqueFields.has(keyPaths[0]);
+              if (isUniqueIndexNotExistsInSchema) {
+                log.info(`Dropping unique index which does not exists in schema: ${index.name}`);
+                return _collection.dropIndex(index.name);
+              }
+            }
+          })
+        )
+        .catch(err => {
+          if (err.codeName === 'NamespaceNotFound') {
+            // collections does not exist, so skip removing unique indexes
+            return;
+          }
+          log.info(`Error occurred while removing unique indexes for collection '${_collection}'`);
+          throw err;
+        });
     }
 
     function getModelUniqueFields(modelName, uniqueFieldPaths = new Set(), curPath = []) {
@@ -1321,6 +1479,15 @@ module.exports = appLib => {
       });
       return uniqueFieldPaths;
     }
+  };
+
+  m.handleIndexes = () => {
+    const collectionNames = Object.keys(appLib.appModel.models);
+
+    return Promise.mapSeries(collectionNames, collectionName =>
+      // log.info(`Handling indexes for collection '${collectionName}'`);
+      m.removeIrrelevantUniqueIndexes(collectionName)
+    );
   };
 
   return m;

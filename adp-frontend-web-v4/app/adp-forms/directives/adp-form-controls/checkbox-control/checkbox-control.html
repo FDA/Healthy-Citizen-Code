@@ -1,4 +1,5 @@
 <label class="checkbox"
+       id="checkbox-label-{{field.keyName}}"
        for="{{$id + field.keyName}}">
 
   <input type="checkbox"
@@ -10,5 +11,5 @@
          class="form-control">
   <i></i>
 
-  {{field.fullName}} <span ng-show="field.required">&nbsp;*</span>
+  {{field.fullName}} <adp-required-mark validation-params="validationParams"></adp-required-mark>
 </label>

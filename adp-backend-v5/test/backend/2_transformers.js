@@ -7,8 +7,9 @@ const _ = require('lodash');
 const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const request = require('supertest');
-
 const reqlib = require('app-root-path').require;
+
+const { prepareEnv, getMongoConnection } = reqlib('test/backend/test-util');
 
 describe('V5 Backend Transformers', () => {
   const sampleData0 = {
@@ -56,7 +57,7 @@ describe('V5 Backend Transformers', () => {
   };
 
   before(function() {
-    require('dotenv').load({ path: './test/backend/.env.test' });
+    prepareEnv();
     this.appLib = reqlib('/lib/app')();
     this.appLib.isAuthenticated = (req, res, next) => next(); // disable authentication
     return this.appLib.setup().then(() => {
@@ -66,7 +67,10 @@ describe('V5 Backend Transformers', () => {
   });
 
   after(function() {
-    return this.appLib.shutdown();
+    return this.appLib
+      .shutdown()
+      .then(() => getMongoConnection())
+      .then(db => db.dropDatabase().then(() => db.close()));
   });
 
   beforeEach(function() {
@@ -130,16 +134,15 @@ describe('V5 Backend Transformers', () => {
 
             // should not invoke synthesize.code function, as numberWithInlineSynthesizer field is not virtual
             data.numberWithInlineSynthesizer.should.equal(0);
-            // should invoke synthesize function, as virtualNumberWithInlineSynthesizer field is virtual
-            data.virtualNumberWithInlineSynthesizer.should.equal('virtualValueForViewAction');
-            // should.not.exist(data.virtualNumberWithInlineSynthesizer);
+            // should invoke synthesize function, as virtualStringWithInlineSynthesizer field is virtual
+            data.virtualStringWithInlineSynthesizer.should.equal('virtualValueForViewAction');
           })
           .then(() => this.M6.findOne({ _id: new ObjectID(savedId) }))
           .then(docInDB => {
             // not virtual synthesize field is stored as it sent to the client
             docInDB.numberWithInlineSynthesizer.should.equal(0);
             // virtual field is not stored in the db
-            should.not.exist(docInDB.virtualNumberWithInlineSynthesizer);
+            should.not.exist(docInDB.virtualStringWithInlineSynthesizer);
           });
       });
       it('supports standard transformers', function() {
@@ -240,16 +243,16 @@ describe('V5 Backend Transformers', () => {
 
             // should not invoke synthesize.code function, as numberWithInlineSynthesizer field is not virtual
             data.numberWithInlineSynthesizer.should.equal(0);
-            // should invoke synthesize function, as virtualNumberWithInlineSynthesizer field is virtual
-            data.virtualNumberWithInlineSynthesizer.should.equal('virtualValueForViewAction');
-            // should.not.exist(data.virtualNumberWithInlineSynthesizer);
+            // should invoke synthesize function, as virtualStringWithInlineSynthesizer field is virtual
+            data.virtualStringWithInlineSynthesizer.should.equal('virtualValueForViewAction');
+            // should.not.exist(data.virtualStringWithInlineSynthesizer);
           })
           .then(() => this.M6.findOne({ _id: new ObjectID(savedId) }))
           .then(docInDB => {
             // not virtual synthesize field is stored as it sent to the client
             docInDB.numberWithInlineSynthesizer.should.equal(0);
             // virtual field is not stored in the db
-            should.not.exist(docInDB.virtualNumberWithInlineSynthesizer);
+            should.not.exist(docInDB.virtualStringWithInlineSynthesizer);
           });
       });
     });

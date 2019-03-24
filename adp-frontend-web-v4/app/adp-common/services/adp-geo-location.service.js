@@ -25,7 +25,6 @@
       var BASE_URL = 'https://maps.google.com/maps/api/js';
       var params = {
         libraries: 'places',
-        v: '3.29',
         key: APP_CONFIG.googleApiKey
       };
 
@@ -57,8 +56,8 @@
      * @param address string
      * @return Promise(latlng[])]
      */
-    function geocode(address) {
-      return GeoCoder.geocode({'address': address})
+    function geocode(place) {
+      return GeoCoder.geocode({'placeId': place.place_id})
         .then(function(result) {
           if (result[0].types.indexOf('street_address') > -1) {
             return result[0];

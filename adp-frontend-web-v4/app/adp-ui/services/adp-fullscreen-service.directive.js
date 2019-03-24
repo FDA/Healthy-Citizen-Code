@@ -26,6 +26,10 @@
     }
 
     function exitFullscreen() {
+      if (!fullscreenEnabled()) {
+        return;
+      }
+
       if(document.exitFullscreen) {
         document.exitFullscreen();
       } else if(document.mozCancelFullScreen) {

@@ -9,9 +9,19 @@
   <adp-section-container>
     <adp-page-title>{{vm.schema.fullName}}</adp-page-title>
 
+    <adp-page-description schema="vm.schema"></adp-page-description>
+
     <button
       type="button"
-      ng-if="!vm.editMode && vm.showCreate"
+      ng-if="vm.showButton('create')"
+      ng-click="vm.enterEditMode()"
+      class="btn btn-primary page-action">
+      Create
+    </button>
+
+    <button
+      type="button"
+      ng-if="vm.showButton('update')"
       ng-click="vm.enterEditMode()"
       class="btn btn-primary page-action">
       Edit
@@ -19,7 +29,7 @@
 
     <button
       ng-click="vm.cancelEditMode()"
-      ng-if="vm.editMode"
+      ng-if="vm.editing"
       type="button"
       class="btn btn-default page-action">
       Cancel
@@ -27,12 +37,12 @@
   </adp-section-container>
 
   <adp-section-container
-     ng-if="vm.isEmpty && !vm.editMode">
+     ng-if="vm.isEmpty && !vm.editing">
     <adp-section-title>No data to show.</adp-section-title>
   </adp-section-container>
 
   <adp-section-container
-    ng-if="!vm.isEmpty && !vm.editMode">
+    ng-if="!vm.isEmpty && !vm.editing">
 
     <adp-table-simple
       schema="vm.schema"
@@ -43,7 +53,7 @@
 
   <adp-form
     class="single-record-form"
-    ng-if="vm.editMode"
+    ng-if="vm.editing"
     adp-submit="vm.submit"
     adp-data="vm.editData"
     adp-form-params="vm.formParams"
@@ -53,7 +63,7 @@
   >
     <form-footer>
       <button
-        ng-if="vm.isNewRecord"
+        ng-if="vm.isEmpty"
         type="submit"
         class="btn btn-primary">
         Add
@@ -61,7 +71,7 @@
 
       <button
         type="submit"
-        ng-if="!vm.isNewRecord"
+        ng-if="!vm.isEmpty"
         class="btn btn-primary">
         Update
       </button>

@@ -8,12 +8,8 @@
       isMediaTypeSupported: isMediaTypeSupported,
       isMediaRecorderSupported: isMediaRecorderSupported,
       isFullscreenSupported: isFullscreenSupported,
-      isOpera: isOpera,
-      isFirefox: isFirefox,
-      isSafari: isSafari,
       isIE: isIE,
       isEdge: isEdge,
-      isBlink: isBlink,
       isChrome: isChrome,
       isMobile: isMobile
     };
@@ -31,22 +27,6 @@
         document.webkitRequestFullscreen || document.msRequestFullscreen;
     }
 
-    // https://stackoverflow.com/a/9851769/4575370
-    // Opera 8.0+
-    function isOpera() {
-      return (!!window.opr && !!opr.addons) || !!window.opera || navigator.userAgent.indexOf(' OPR/') >= 0;
-    }
-
-    // Firefox 1.0+
-    function isFirefox() {
-      return typeof InstallTrigger !== 'undefined';
-    }
-
-    // Safari 3.0+ "[object HTMLElementConstructor]"
-    function isSafari() {
-      return /constructor/i.test(window.HTMLElement) || (function (p) { return p.toString() === "[object SafariRemoteNotification]"; })(!window['safari'] || (typeof safari !== 'undefined' && safari.pushNotification));
-    }
-
     // Internet Explorer 6-11
     function isIE() {
       return /*@cc_on!@*/false || !!document.documentMode;
@@ -59,16 +39,13 @@
 
     // Chrome 1+
     function isChrome() {
-      return !!window.chrome && !!window.chrome.webstore;
-    }
-
-    // Blink engine detection
-    function isBlink() {
-      return (isChrome || isOpera) && !!window.CSS;
+      return Boolean(window.chrome);
     }
 
     function isMobile() {
-        return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
+      var deviceType = window.adpAppStore.appInterface().app.deviceType;
+
+      return deviceType === 'phone' || deviceType === 'tablet';
     }
   }
 })();

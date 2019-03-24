@@ -6,7 +6,8 @@
   class="select2 filter-lookup-multi"
   ng-model="selectedSubject.selected"
   data-placeholder="Choose subject"
-  id="{{'subject_' + field.keyName}}">
+  id="{{'subject_' + field.keyName}}"
+>
   <option value=""></option>
 
   <option
@@ -17,11 +18,9 @@
 </select>
 
 <input
-  ng-if="selectedSubject.selected || !isEmpty()"
   type="text"
   adp-select2
   style="width:100%"
-  ng-change="change()"
   class="form-control filter-lookup-multi js-lookup-values"
   adp-list-formatter
   data-options="options"

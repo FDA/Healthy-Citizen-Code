@@ -7,38 +7,51 @@ const reqlib = require('app-root-path').require;
 
 const {
   auth: { admin, user, loginWithUser },
+  getMongoConnection,
+  setAppAuthOptions,
+  prepareEnv,
 } = reqlib('test/backend/test-util');
 
 describe('V5 Backend List Permissions', () => {
   before(function() {
-    require('dotenv').load({ path: './test/backend/.env.test' });
+    prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return this.appLib.setup();
+    return getMongoConnection().then(db => {
+      this.db = db;
+    });
   });
 
   after(function() {
-    return this.appLib.shutdown();
+    return this.db.dropDatabase().then(() => this.db.close());
   });
 
   beforeEach(function() {
-    return Promise.all([this.appLib.db.collection('users').remove({})]).then(() =>
+    return Promise.all([
+      this.db.collection('users').remove({}),
+      this.db.collection('mongoMigrateChangeLog').remove({}),
+    ]).then(() =>
       Promise.all([
-        this.appLib.db.collection('users').insert(admin),
-        this.appLib.db.collection('users').insert(user),
+        this.db.collection('users').insert(admin),
+        this.db.collection('users').insert(user),
       ])
     );
+  });
+
+  afterEach(function() {
+    return this.appLib.shutdown();
   });
 
   describe('lists permissions', () => {
     describe('check lists in app-model-code', () => {
       it('should allow admin to access all the lists', function() {
-        _.merge(this.appLib.appModel.interface.app.auth, {
+        const { appLib } = this;
+        setAppAuthOptions(this.appLib, {
           requireAuthentication: true,
           enablePermissions: true,
         });
-        const { appLib } = this;
-        appLib.resetRoutes();
-        return loginWithUser(appLib, admin)
+        return this.appLib
+          .setup()
+          .then(() => loginWithUser(appLib, admin))
           .then(token =>
             request(appLib.app)
               .get('/app-model')
@@ -81,13 +94,14 @@ describe('V5 Backend List Permissions', () => {
       });
 
       it('should allow user to access only lists with user scope', function() {
-        _.merge(this.appLib.appModel.interface.app.auth, {
+        const { appLib } = this;
+        setAppAuthOptions(this.appLib, {
           requireAuthentication: true,
           enablePermissions: true,
         });
-        const { appLib } = this;
-        appLib.resetRoutes();
-        return loginWithUser(appLib, user)
+        return this.appLib
+          .setup()
+          .then(() => loginWithUser(appLib, user))
           .then(token =>
             request(appLib.app)
               .get('/app-model')
@@ -138,19 +152,21 @@ describe('V5 Backend List Permissions', () => {
 
     describe('check security for writing operations', () => {
       it('should allow admin to create item with any valid list values', function() {
-        _.merge(this.appLib.appModel.interface.app.auth, {
-          requireAuthentication: true,
-          enablePermissions: true,
-        });
-        const { appLib } = this;
-        appLib.resetRoutes();
         const model9Sample = {
           objectValueList: 'val1',
           objectListWithObjectValueList: 'val2',
           objectListWithReferenceAndNoCustomScopes: 'val3',
           objectListWithReferenceAndCustomScopes: 'val4',
         };
-        return loginWithUser(appLib, admin)
+
+        const { appLib } = this;
+        setAppAuthOptions(this.appLib, {
+          requireAuthentication: true,
+          enablePermissions: true,
+        });
+        return this.appLib
+          .setup()
+          .then(() => loginWithUser(appLib, admin))
           .then(token =>
             request(appLib.app)
               .post('/model9list_permissions')
@@ -167,19 +183,20 @@ describe('V5 Backend List Permissions', () => {
       });
 
       it('should not allow admin to create item with invalid list values', function() {
-        _.merge(this.appLib.appModel.interface.app.auth, {
-          requireAuthentication: true,
-          enablePermissions: true,
-        });
-        const { appLib } = this;
-        appLib.resetRoutes();
         const model9Sample = {
           objectValueList: 'invalid1',
           objectListWithObjectValueList: 'invalid2',
           objectListWithReferenceAndNoCustomScopes: 'invalid3',
           objectListWithReferenceAndCustomScopes: 'invalid4',
         };
-        return loginWithUser(appLib, admin)
+        const { appLib } = this;
+        setAppAuthOptions(this.appLib, {
+          requireAuthentication: true,
+          enablePermissions: true,
+        });
+        return this.appLib
+          .setup()
+          .then(() => loginWithUser(appLib, admin))
           .then(token =>
             request(appLib.app)
               .post('/model9list_permissions')
@@ -195,12 +212,6 @@ describe('V5 Backend List Permissions', () => {
       });
 
       it('should allow user to create and update item with list values available for that user', function() {
-        _.merge(this.appLib.appModel.interface.app.auth, {
-          requireAuthentication: true,
-          enablePermissions: true,
-        });
-        const { appLib } = this;
-        appLib.resetRoutes();
         const model9Sample = {
           objectValueList: '',
           objectListWithObjectValueList: '',
@@ -210,7 +221,15 @@ describe('V5 Backend List Permissions', () => {
         let savedToken;
         let savedId;
 
-        return loginWithUser(appLib, user)
+        const { appLib } = this;
+        setAppAuthOptions(this.appLib, {
+          requireAuthentication: true,
+          enablePermissions: true,
+        });
+
+        return this.appLib
+          .setup()
+          .then(() => loginWithUser(appLib, user))
           .then(token => {
             savedToken = token;
             return request(appLib.app)
@@ -239,20 +258,21 @@ describe('V5 Backend List Permissions', () => {
       });
 
       it('should not allow user to create item with list values not available for that user', function() {
-        _.merge(this.appLib.appModel.interface.app.auth, {
-          requireAuthentication: true,
-          enablePermissions: true,
-        });
-        const { appLib } = this;
-        appLib.resetRoutes();
         const model9Sample = {
           objectValueList: 'val1',
           objectListWithObjectValueList: 'val2',
           objectListWithReferenceAndNoCustomScopes: 'val3',
           objectListWithReferenceAndCustomScopes: 'val4',
         };
+        const { appLib } = this;
+        setAppAuthOptions(this.appLib, {
+          requireAuthentication: true,
+          enablePermissions: true,
+        });
 
-        return loginWithUser(appLib, user)
+        return this.appLib
+          .setup()
+          .then(() => loginWithUser(appLib, user))
           .then(token =>
             request(appLib.app)
               .post('/model9list_permissions')

@@ -54,7 +54,11 @@ const inIframe = () => {
       const opts = Object.assign({}, widgetDefaults, params, widgetConfig);
       setStylesFromParams(opts);
 
-      new widgetMap[opts.type](document.body, opts);
+      if (widgetMap[opts.type]) {
+        new widgetMap[opts.type](document.body, opts);
+      } else {
+        throw new Error('Can\'t initialize: widget type is not specified.');
+      }
     })
     .catch(err => {
       console.log(err);

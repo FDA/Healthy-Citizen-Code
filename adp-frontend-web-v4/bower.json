@@ -5,7 +5,6 @@
     "angular": "1.5.8",
     "angular-animate": "1.5.8",
     "angular-bootstrap": "2.5.0",
-    "angular-local-storage": "0.5.2",
     "angular-sanitize": "1.5.8",
     "angular-xeditable": "~0.1.8",
     "bootstrap": "3.3.6",
@@ -15,7 +14,7 @@
     "datatables-plugins": "*",
     "datatables-responsive": "~2.1.1",
     "es5-shim": "~3.1.0",
-    "fastclick": "~1.0.3",
+    "fastclick": "~1.0.6",
     "fuelux": "3.1.0",
     "jquery": "2.1.4",
     "jquery-ui": "~1.11.4",
@@ -48,7 +47,8 @@
     "angular-ui-router": "1.0.15",
     "json2yaml": "https://github.com/jeffsu/json2yaml.git#^0.1.1",
     "ng-tags-input": "./smartadmin-plugin/ng-tags-input",
-    "idb-keyval": "git://github.com/GordonDrop/idb-keyval#^3.1.0"
+    "idb-keyval": "git://github.com/GordonDrop/idb-keyval#^3.1.0",
+    "showdown": "^1.9.0"
   },
   "overrides": {
     "json2yaml": {

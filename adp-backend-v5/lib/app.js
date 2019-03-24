@@ -1,20 +1,30 @@
-global.Promise = require('bluebird');
+const Promise = require('bluebird');
+
+const express = require('express');
+const session = require('express-session');
+const MongoStore = require('connect-mongo')(session); // TODO: switch to redis before going to high-performance production
+const bodyParser = require('body-parser');
+const fileUpload = require('express-fileupload');
+const compression = require('compression');
+const cookieParser = require('cookie-parser');
+const cors = require('cors');
+const device = require('express-device');
 
 const appRoot = require('app-root-path').path;
 const mongoose = require('mongoose');
-const restify = require('restify');
-const corsMiddleware = require('restify-cors-middleware');
 const _ = require('lodash');
 const nodePath = require('path');
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const { ExtractJwt } = require('passport-jwt');
 const glob = require('glob');
-const device = require('express-device');
-const mongooseLog = require('log4js').getLogger('mongoose');
-const restifyLog = require('log4js').getLogger('restify');
 const pEvent = require('p-event');
+const { MigrateMongo } = require('migrate-mongo');
+const expressLog = require('log4js').getLogger('express');
+const mongooseLog = require('log4js').getLogger('mongoose');
 
+const getMigrateConfig = require('../migrate/config.js');
+const { InvalidTokenError, ExpiredTokenError } = require('./errors');
 const websocketServer = require('./websocket-server')();
 const publicFilesController = require('./public-files-controller');
 const APP_VERSION = require('../package.json').version;
@@ -25,15 +35,21 @@ const connectSwagger = require('./swagger');
 /**
  * @param opts contains various parameters
  */
-module.exports = (opts = {}) => {
+module.exports = () => {
   const m = {};
-  m.controllers = {};
-  m.log = require('log4js').getLogger('lib/app');
-  m.accessCfg = require('./access-config');
-  m.butil = require('./backend-util');
-  m.transformers = require('./transformers')(m);
 
-  m.accessUtil = require('./access-util')(m);
+  let options = {}; // options for whole module (empty by default)
+  m.controllers = {};
+  m.butil = require('./backend-util');
+  m.expressUtil = require('./express-util');
+  m.log = require('log4js').getLogger('lib/app');
+  m.accessCfg = require('./access/access-config')();
+  m.cache = require('./cache')();
+
+  m.transformers = require('./transformers')(m);
+  m.hooks = require('./hooks')(m);
+
+  m.accessUtil = require('./access/access-util')(m);
   m.dba = require('./database-abstraction')(m);
   m.controllerUtil = require('./default-controller-util')(m);
   const mutil = require('./model')(m);
@@ -49,8 +65,10 @@ module.exports = (opts = {}) => {
   m.graphQl.graphiQlRoute = '/graphiql';
   const connectGraphQl = require('./graphql/connect')(m);
 
+  m.googleMapsClient = require('./google-maps');
+
   /**
-   * Reference to the restify application
+   * Reference to the express application
    */
   m.app = null;
 
@@ -69,9 +87,8 @@ module.exports = (opts = {}) => {
 
   /**
    * Connects to DB and sets various DB parameters
-   * @param cb
    */
-  m.connectToDb = () => {
+  m.connectAppDb = () => {
     if (mongoose.connection.readyState === 1) {
       m.db = mongoose.connection;
       mutil.db = mongoose.connection;
@@ -79,11 +96,11 @@ module.exports = (opts = {}) => {
     }
     mongoose.Promise = global.Promise;
     if (process.env.DEVELOPMENT === 'true') {
-      mongoose.set('debug', (coll, method, query, doc, options) => {
+      mongoose.set('debug', (coll, method, query, doc, opts) => {
         mongooseLog.debug(
           `${method} ${coll}, ${JSON.stringify(query)}, DOC:${JSON.stringify(
             doc
-          )}, OPTIONS:${JSON.stringify(options)}`
+          )}, OPTIONS:${JSON.stringify(opts)}`
         );
       });
     }
@@ -109,56 +126,89 @@ module.exports = (opts = {}) => {
         throw new Error(error);
       });
   };
+
+  const procUncaughtExListener = err => {
+    m.log.error(`LAP004: Uncaught node exception ${err} with call stack ${err.stack}`);
+  };
+
+  m.errorLogger = (err, req, res, next) => {
+    let errMsg = 'Error: ';
+    if (_.isString(err)) {
+      errMsg += err;
+    } else {
+      errMsg += _.get(err, 'stack', _.get(err, 'message', err));
+    }
+    expressLog.error(`${req.method} ${req.url} -> ${res.statusCode} ${errMsg}`);
+  };
+
   m.configureApp = app => {
     m.app = app;
     app.on('uncaughtException', (req, res, route, err) => {
       m.log.error(`LAP001: Uncaught exception ${err} with call stack ${err.stack}`);
-      res.json(500, { success: false, code: 'LAP001', message: `${err}` });
+      res.status(500).json({ success: false, code: 'LAP001', message: `${err}` });
     });
     app.on('InternalServer', (req, res, route, err) => {
       m.log.error(`LAP002: Internal server error ${err}`);
-      res.json(500, { success: false, code: 'LAP002', message: `${err}` });
+      res.status(500).json({ success: false, code: 'LAP002', message: `${err}` });
     });
     app.on('InternalServerError', (req, res, route, err) => {
       m.log.error(`LAP003: Internal server error ${err}`);
-      res.json(500, { success: false, code: 'LAP003', message: `${err}` });
+      res.status(500).json({ success: false, code: 'LAP003', message: `${err}` });
     });
-    process.on('uncaughtException', err => {
-      m.log.error(`LAP004: Uncaught node exception ${err} with call stack ${err.stack}`);
-    });
-    app.on('pre', req => {
-      restifyLog.info(`${req.method} ${req.url}`);
-    });
-    app.on('after', (req, res, route, err) => {
-      if (err) {
-        restifyLog.error(
-          `${req.method} ${req.url} -> ${res.statusCode}${err ? `, ERR:${err}` : ''}`
-        );
-      }
-    });
+    process.on('uncaughtException', procUncaughtExListener);
     // fallback to the core for missing /public static files
-    // app.on('restifyError', mainController.handlePublicFileNotFound);
-    app.use(restify.plugins.queryParser({ mapParams: true }));
-    app.use(restify.plugins.bodyParser({ mapParams: true }));
-    app.use(restify.plugins.gzipResponse());
+    // app.on('expressError', mainController.handlePublicFileNotFound);
+    app.use(bodyParser.urlencoded({ extended: true }));
+    app.use(bodyParser.json());
+    app.use(compression());
     app.use(device.capture());
-    // app.use(restify.requestLogger());
+    app.use(cookieParser());
+    app.use(
+      fileUpload({
+        useTempFiles: true,
+        tempFileDir: '/tmp/',
+      })
+    );
+
     const corsOrigins = process.env.CORS_ORIGIN
-      ? [process.env.CORS_ORIGIN]
-      : ['https://*.conceptant.com', 'http://localhost.conceptant.com*', 'http://localhost*'];
-    const cors = corsMiddleware({
-      preflightMaxAge: 5, // Optional
-      origins: corsOrigins,
-      allowHeaders: ['API-Token', 'Authorization'],
-      exposeHeaders: ['API-Token-Expiry'],
-      credentials: true,
+      ? [RegExp(process.env.CORS_ORIGIN)]
+      : [
+          /https:\/\/.+\.conceptant\.com/,
+          /http:\/\/localhost\.conceptant\.com.*/,
+          /http:\/\/localhost.*/,
+        ];
+    app.use(
+      cors({
+        origin: corsOrigins,
+        methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+        allowedHeaders: ['API-Token', 'Authorization', 'Content-Type', 'Accept'],
+        exposedHeaders: ['API-Token-Expiry'],
+        credentials: true,
+        maxAge: 5,
+      })
+    );
+
+    app.use(
+      session({
+        secret: process.env.JWT_SECRET,
+        resave: false,
+        saveUninitialized: true,
+        sameSite: false,
+        secure: 'auto',
+        name: 'adp.sid',
+        proxy: true,
+        store: new MongoStore({ mongooseConnection: mongoose.connection }),
+      })
+    );
+
+    app.use((req, res, next) => {
+      expressLog.info(`${req.method} ${req.url}`);
+      next();
     });
-    app.pre(cors.preflight);
-    app.use(cors.actual);
   };
 
   m.loadModel = () => {
-    m.appModel = mutil.getCombinedModel(opts.appModelSources);
+    m.appModel = mutil.getCombinedModel(options.appModelSources);
     appUtil.loadLists();
     appUtil.loadRenderers();
     appUtil.loadCustomActions();
@@ -167,28 +217,36 @@ module.exports = (opts = {}) => {
     appUtil.loadSynthesizers();
     appUtil.loadLabelRenderers();
     appUtil.loadFormRenderers();
+    appUtil.loadHeaderRenderers();
+    appUtil.loadLookupLabelRenderers();
     appUtil.loadPermissions();
     appUtil.loadPermissionScopePreparations();
+    appUtil.loadHooks();
 
-    m.appLookups = {}; // model lookups ids will be stored here
+    m.appLookups = {}; // model LookupObjectID and LookupObjectID[] will be stored here by id
+    m.appTreeSelectors = {}; // model TreeSelectors will be stored here by id
 
-    return appUtil.loadRolesToPermissions();
+    // set ROLES_TO_PERMISSIONS on startup to rewrite old cache
+    return m.accessUtil
+      .getRolesToPermissions()
+      .then(rolesToPermissions =>
+        Promise.all([
+          rolesToPermissions,
+          m.cache.setCache(m.cache.keys.ROLES_TO_PERMISSIONS, rolesToPermissions),
+        ])
+      )
+      .then(([rolesToPermissions]) => rolesToPermissions);
   };
 
   /**
    * Generates mongoose models according to the appModel
-   * @param cb
    */
   m.generateMongooseModels = () =>
     mutil
-      .removeIrrelevantUniqueIndexes()
-      .then(() => mutil.generateMongooseModelsPromise(m.db, m.appModel.models))
+      .generateMongooseModels(m.db, m.appModel.models)
+      .then(() => mutil.handleIndexes())
       .then(() => {
         m.log.info('Generated Mongoose models');
-      })
-      .catch(err => {
-        m.log.error(err);
-        throw err;
       });
 
   /**
@@ -199,41 +257,34 @@ module.exports = (opts = {}) => {
    */
   m.addRoute = (verb, route, args) => {
     const methodNames = {
-      get: 'GET',
-      put: 'PUT',
-      post: 'POST',
-      del: 'DELETE',
+      get: 'get',
+      put: 'put',
+      post: 'post',
+      del: 'delete',
     };
-    const existingRoute = _.find(
-      m.app.router.mounts,
-      val => val.method === methodNames[verb] && val.spec.path === route // note that the path must be exactly the same. /path/:id and /path/:idTmp are different paths
-    );
-    if (existingRoute) {
-      m.app.rm(existingRoute.name);
-    }
+    const method = methodNames[verb];
+    const removedRoutes = m.expressUtil.removeRoutes(m.app, route, method);
     // args.unshift(m.isAuthenticated);
     args.unshift(route);
-    m.app[verb](...args);
-    m.log.trace(
-      ` ∟ ${existingRoute ? 'Replaced' : 'Added'} route: ${verb.toUpperCase()} ${route} ${
-        _.includes(args, m.isAuthenticated) ? 'AUTH' : ''
-      }`
-    );
+    m.app[method](...args, m.errorLogger);
+
+    const action = _.isEmpty(removedRoutes) ? 'Added' : 'Replaced';
+    const authRouteNote = _.includes(args, m.isAuthenticated) ? 'AUTH' : '';
+    m.log.trace(` ∟ ${action} route: ${method.toUpperCase()} ${route} ${authRouteNote}`);
   };
 
   /**
-   * Adds routes necessary to perform full CRUG on the global.appModel
-   * @param app the app to add CRUD to
+   * Adds routes necessary to perform full CRUD on the global.appModel
    */
   m.addAppModelRoutes = () => {
     _.each(m.appModel.models, (schema, schemaName) => {
       m.log.debug('Adding routes for schema', schemaName);
       addCrudRoutesToSchema(schemaName, schema, []);
-      addLookupRoutesToSchema(schemaName, schema, []);
+      addRelatedRoutesToSchema(schemaName, schema, []);
     });
 
     /**
-     * This adds routes to the restify app to handle CRUD for a specific schema
+     * This adds routes to the express app to handle CRUD for a specific schema
      * NOTE: unlike lookup method this method is not checking for existing routes
      * @param name the name of the schema
      * @param schema the schema definition
@@ -284,49 +335,81 @@ module.exports = (opts = {}) => {
       }
     }
 
-    /** Adds route to the app so it can run lookups using UI elements such as select2
-     * The request should contain Get parameter q=<search> to perform the search and
-     * optionally page=<number> parameter to show results in infinity scroll as
-     * specified in the select2 documentation
-     * @param schemaName the schemaName of the schema
-     * @param schema the schema definition
-     * @param path the full path to the schema (as array)
+    /**
+     * Adds routes related to schema (lookups, treeselectors)
+     * @param objName
+     * @param obj
+     * @param path
      */
-    function addLookupRoutesToSchema(schemaName, schema, path) {
-      _.each(schema, (attribute, attributeName) => {
-        if (attributeName === 'lookup' && _.isPlainObject(attribute)) {
-          const lookup = attribute;
-          const lookupId = lookup.id;
-          m.appLookups[lookupId] = lookup;
-          m.log.debug(`☞ Adding routes for lookup ${path.join('.')}.${schemaName}`);
-          addRoutes(lookup, lookupId);
-        }
-        if (attributeName === 'fields' && _.isPlainObject(attribute)) {
-          _.each(attribute, (field, fieldName) => {
-            addLookupRoutesToSchema(fieldName, field, path.concat([schemaName]));
-          });
-        }
-      });
+    function addRelatedRoutesToSchema(objName, obj, path) {
+      const { type, fields } = obj;
+      if (type === 'LookupObjectID' || type === 'LookupObjectID[]') {
+        const { lookup } = obj;
+        const lookupId = lookup.id;
+        m.appLookups[lookupId] = lookup;
+        m.log.debug(`☞ Adding routes for lookup ${path.join('.')}.${objName}`);
+        addLookupRoutes(lookup, lookupId);
+      }
 
-      function addRoutes(lookup, lookupId) {
+      if (type === 'TreeSelector') {
+        const { table } = obj;
+        const treeSelectorId = table.id;
+        m.appTreeSelectors[treeSelectorId] = table;
+        m.log.debug(`☞ Adding routes for TreeSelector ${path.join('.')}.${objName}`);
+        addTreeSelectorRoutes(table, treeSelectorId);
+      }
+
+      if (_.isPlainObject(fields)) {
+        _.each(fields, (field, fieldName) => {
+          addRelatedRoutesToSchema(fieldName, field, path.concat([objName]));
+        });
+      }
+
+      /** Adds route to the app so it can run lookups using UI elements such as select2
+       * The request should contain Get parameter q=<search> to perform the search and
+       * optionally page=<number> parameter to show results in infinity scroll as
+       * specified in the select2 documentation
+       * @param lookup
+       * @param lookupId
+       */
+      function addLookupRoutes(lookup, lookupId) {
         _.forEach(lookup.table, tableLookup => {
           const isFilteringLookup = tableLookup.where;
           const tableName = tableLookup.table;
           const lookupPath = `/lookups/${lookupId}/${tableName}`;
+          if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, lookupPath, 'get'))) {
+            m.addRoute('get', lookupPath, [m.isAuthenticated, mainController.getLookupTableJson]);
+          }
+          if (isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, lookupPath, 'post'))) {
+            m.addRoute('post', lookupPath, [m.isAuthenticated, mainController.getLookupTableJson]);
+          }
+        });
+      }
+
+      function addTreeSelectorRoutes(table, treeSelectorId) {
+        _.forEach(table, (tableSpec, tableName) => {
+          if (tableName === 'id') {
+            return;
+          }
+          const isFilteringLookup = tableSpec.where;
+          const treeSelectorPath = `/treeselectors/${treeSelectorId}/${tableName}`;
           if (
             !isFilteringLookup &&
-            !_.some(m.app.router.mounts, r => r.spec.method === 'GET' && r.spec.path === lookupPath)
+            _.isEmpty(m.expressUtil.findRoutes(m.app, treeSelectorPath, 'get'))
           ) {
-            m.addRoute('get', lookupPath, [m.isAuthenticated, mainController.getLookupTableJson]);
+            m.addRoute('get', treeSelectorPath, [
+              m.isAuthenticated,
+              mainController.getTreeSelector,
+            ]);
           }
           if (
             isFilteringLookup &&
-            !_.some(
-              m.app.router.mounts,
-              r => r.spec.method === 'POST' && r.spec.path === lookupPath
-            )
+            _.isEmpty(m.expressUtil.findRoutes(m.app, treeSelectorPath, 'post'))
           ) {
-            m.addRoute('post', lookupPath, [m.isAuthenticated, mainController.getLookupTableJson]);
+            m.addRoute('post', treeSelectorPath, [
+              m.isAuthenticated,
+              mainController.getTreeSelector,
+            ]);
           }
         });
       }
@@ -340,18 +423,11 @@ module.exports = (opts = {}) => {
    * @param next
    */
   m.getRoutesJson = (req, res, next) => {
+    const routesList = m.expressUtil.getRoutes(m.app, m.isAuthenticated);
+
     res.json({
       success: true,
-      data: {
-        brief: _.map(
-          m.app.router.mounts,
-          (route, key) =>
-            `${route.spec.method} ${route.spec.path}${
-              _.includes(m.app.routes[key], m.isAuthenticated) ? ' AUTH' : ''
-            }`
-        ),
-        full: m.app.router.mounts,
-      },
+      data: { brief: routesList },
     });
     next();
   };
@@ -425,15 +501,19 @@ module.exports = (opts = {}) => {
           secretOrKey: process.env.JWT_SECRET, // TODO: move into .env
         },
         (jwtPayload, done) => {
-          User.findOne({ _id: jwtPayload.id }, (err, user) => {
-            if (err) {
+          User.findOne({ _id: jwtPayload.id })
+            .lean()
+            .exec()
+            .then(user => {
+              if (user) {
+                done(null, user);
+              } else {
+                done(null, false);
+              }
+            })
+            .catch(err => {
               done(err, false);
-            } else if (user) {
-              done(null, user);
-            } else {
-              done(null, false);
-            }
-          });
+            });
         }
       )
     );
@@ -450,11 +530,23 @@ module.exports = (opts = {}) => {
         if (err) {
           return reject(`ERR: ${err} INFO:${info}`);
         }
-        if (!user && m.getAuthSettings().requireAuthentication !== false) {
-          return reject({ code: 401 });
+        const jwtErrorName = _.get(info, 'name');
+        const isInvalidToken = jwtErrorName === 'JsonWebTokenError';
+        const jwtMsg = _.get(info, 'message');
+        const isEmptyToken = jwtMsg === 'No auth token';
+        if (
+          isInvalidToken ||
+          (isEmptyToken && m.getAuthSettings().requireAuthentication === true)
+        ) {
+          return reject(new InvalidTokenError());
         }
-        const permissions = m.accessUtil.getPermissionsForUser(user, req.device.type);
-        return resolve({ user, permissions });
+        const isExpiredToken = jwtErrorName === 'TokenExpiredError';
+        if (isExpiredToken) {
+          return reject(new ExpiredTokenError());
+        }
+        return m.accessUtil.getPermissionsForUser(user, req.device.type).then(permissions => {
+          resolve({ user, permissions });
+        });
       })(req, res, next);
     });
   /* eslint-enable promise/avoid-new, prefer-promise-reject-errors */
@@ -466,12 +558,19 @@ module.exports = (opts = {}) => {
         m.accessUtil.setUserPermissions(req, permissions);
         next();
       })
-      .catch({ code: 401 }, () => {
-        res.json(401, { success: false, message: 'User session expired, please login again' });
+      .catch(InvalidTokenError, () => {
+        res.status(401).json({ success: false, message: 'Invalid user session, please login' });
+      })
+      .catch(ExpiredTokenError, () => {
+        res
+          .status(401)
+          .json({ success: false, message: 'User session expired, please login again' });
       })
       .catch(err => {
         m.log.error(err);
-        res.json(500, { success: false, message: `Error occurred during authentication process` });
+        res
+          .status(500)
+          .json({ success: false, message: `Error occurred during authentication process` });
       });
   };
 
@@ -496,7 +595,7 @@ module.exports = (opts = {}) => {
      *         description: "Field 'message' contains backend server version"
      */
 
-    // m.addRoute('get', /\/helpers\/?.*/, [restify.serveStatic({directory: `${process.env.APP_MODEL_DIR}/model`})]);
+    // m.addRoute('get', /\/helpers\/?.*/, [express.serveStatic({directory: `${process.env.APP_MODEL_DIR}/model`})]);
     m.addRoute('get', '/routes', [mainController.isDevelopmentMode, m.getRoutesJson]);
     /**
      * @swagger
@@ -521,7 +620,7 @@ module.exports = (opts = {}) => {
      *                      example: "GET /is-authenticated AUTH"
      *                  full:
      *                    type: object
-     *                    description: contains restify info about route
+     *                    description: contains express info about route
      *              success:
      *                type: boolean
      */
@@ -566,7 +665,13 @@ module.exports = (opts = {}) => {
      *          description: Successful
      */
 
-    m.addRoute('get', '/app-model', [mainController.getAppModelJson]);
+    /**
+     * Returns app model which is necessary to prebuild frontend.
+     * Unlike /app-model it responses with basic model even if jwt token is not provided.
+     */
+    m.addRoute('get', '/build-app-model', [mainController.getBuildAppModelJson]);
+
+    m.addRoute('get', '/app-model', [m.isAuthenticated, mainController.getAppModelJson]);
     /**
      * @swagger
      * /app-model:
@@ -767,9 +872,11 @@ module.exports = (opts = {}) => {
 
     // m.addRoute('get', '/teapot', [mainController.isDevelopmentMode, mainController.sendTeapot]);
 
-    // m.addRoute('get', /\/public\/?.*/, [restify.plugins.serveStatic({directory: `./`})]);
-    // m.addRoute('get', /\/public\/?.*/, [restify.plugins.serveStatic({directory: `${process.env.APP_MODEL_DIR}`})]);
-    m.addRoute('get', '/public/.*', [
+    // m.addRoute('get', /\/public\/?.*/, [express.plugins.serveStatic({directory: `./`})]);
+    // m.addRoute('get', /\/public\/?.*/, [express.plugins.serveStatic({directory: `${process.env.APP_MODEL_DIR}`})]);
+    // m.app.use('public', express.static(process.env.APP_MODEL_DIR));
+    // m.app.use('public', express.static('./model'));
+    m.addRoute('get', '/public/*', [
       publicFilesController({ directories: [`${process.env.APP_MODEL_DIR}`, './model'] }),
     ]);
     // TODO: write tests for the file uploading/thumbnails/cropping etc
@@ -900,19 +1007,46 @@ module.exports = (opts = {}) => {
     m.loadTestController();
 
     const { graphiQlRoute, graphQlRoute } = m.graphQl;
+    m.log.trace('Connecting GraphQL');
     connectGraphQl(graphQlRoute, graphiQlRoute);
+
+    m.log.trace('Connecting Swagger');
     connectSwagger(m);
   };
 
-  m.resetRoutes = () => {
-    m.removeAllRoutes();
-    m.addRoutes();
+  m.addErrorHandlers = () => {
+    m.app.use((req, res) => {
+      if (!res.headersSent) {
+        res.status(404).json({ success: false, message: `${req.path} does not exist` });
+      }
+    });
+
+    m.app.use((error, req, res, next) => {
+      if (!res.headersSent) {
+        res.status(500).json('Internal Server Error');
+      }
+    });
   };
 
+  /**
+   * Absolute paths are not error prone. Its being used in custom prototypes and tests
+   */
   function setAbsoluteEnvPaths() {
     process.env.LOG4JS_CONFIG = nodePath.resolve(appRoot, process.env.LOG4JS_CONFIG);
     process.env.APP_MODEL_DIR = nodePath.resolve(appRoot, process.env.APP_MODEL_DIR);
   }
+
+  m.setOptions = opts => {
+    options = opts;
+  };
+
+  m.migrateMongo = function() {
+    const migrateMongo = new MigrateMongo(getMigrateConfig());
+    return migrateMongo.database
+      .connect()
+      .then(db => Promise.all([db, migrateMongo.up(db)]))
+      .then(([db]) => db.close());
+  };
 
   /**
    * App setup, configures everything but doesn't start the app
@@ -921,22 +1055,25 @@ module.exports = (opts = {}) => {
    */
   m.setup = () => {
     setAbsoluteEnvPaths();
+    m.log.info('Using logger settings from', process.env.LOG4JS_CONFIG);
 
-    return m
-      .connectToDb()
-      .then(() => {
-        m.log.info('Using logger settings from', process.env.LOG4JS_CONFIG);
-        return m.loadModel();
-      })
-      .then(() => {
-        m.log.info(
-          'Loaded rolesToPermissions: ',
-          JSON.stringify(m.appModel.rolesToPermissions, null, 2)
-        );
-        const modelProblems = mutil.validateAndCleanupAppModel();
-        if (modelProblems.length > 0) {
-          throw new Error(modelProblems.join('\n'));
+    return m.cache
+      .init(process.env.REDIS_URL)
+      .then(() => m.cache.clearCacheByKeyPattern('*')) // clear all keys on startup
+      .then(() => m.migrateMongo())
+      .then(() => m.connectAppDb())
+      .then(() => m.loadModel())
+      .then(rolesToPermissions => {
+        m.log.info('Loaded rolesToPermissions: ', JSON.stringify(rolesToPermissions, null, 2));
+
+        const { errors, warnings } = mutil.validateAndCleanupAppModel();
+        if (warnings.length) {
+          m.log.warn(warnings.join('\n'));
         }
+        if (errors.length) {
+          throw new Error(errors.join('\n'));
+        }
+
         return m.generateMongooseModels();
       })
       .then(() => {
@@ -944,11 +1081,13 @@ module.exports = (opts = {}) => {
         return m.executePrestartScripts();
       })
       .then(() => {
-        const app = restify.createServer({ name: process.env.APP_NAME, version: APP_VERSION });
+        m.log.info('Finished executing prestart scripts...');
+        const app = express();
         m.configureApp(app);
-
         m.addUserAuthentication();
+
         m.addRoutes();
+        m.addErrorHandlers();
         // TODO: move route name to config?
         websocketServer.connect(m.app);
 
@@ -956,15 +1095,16 @@ module.exports = (opts = {}) => {
         return m;
       })
       .catch(err => {
-        m.log.error(err);
+        m.log.error(err.message);
         throw err;
       });
   };
 
   m.executePrestartScripts = () => {
-    const scriptMap = {
-      normalizeObjectIdLookups: () => m.controllerUtil.normalizeLookupObjectIds(),
-    };
+    /** scriptMap contains possible scripts to execute before app start */
+    const scriptMap = {};
+    // normalizeObjectIdLookups is no longer used
+    // scriptMap.normalizeObjectIdLookups = () => m.controllerUtil.normalizeLookupObjectIds();
 
     const promises = [];
     _.each(m.appModel.interface.app.preStart, (val, scriptName) => {
@@ -980,7 +1120,7 @@ module.exports = (opts = {}) => {
    * Starts the application. It's been extracted into a separate routine to make testing possible.
    */
   m.start = () => {
-    m.app.listen(process.env.APP_PORT);
+    m.httpInstance = m.app.listen(process.env.APP_PORT);
     m.log.info('App is listening on port', process.env.APP_PORT);
   };
 
@@ -996,13 +1136,14 @@ module.exports = (opts = {}) => {
     ]);
 
     function getCloseAppPromise() {
-      if (!m.app) {
+      process.removeListener('uncaughtException', procUncaughtExListener);
+      if (!m.httpInstance) {
         return Promise.resolve();
       }
-      m.app.close(() => {
+      m.httpInstance.close(() => {
         m.log.trace('Closed app');
       });
-      return pEvent(m.app, 'close');
+      return pEvent(m.httpInstance, 'close');
     }
   };
 

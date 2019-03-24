@@ -5,8 +5,8 @@
     .constant('DATE_FORMAT', 'M/D/YYYY')
     .constant('TIME_FORMAT', 'h:mm a')
     .constant('DATE_TIME_FORMAT', 'M/D/YYYY h:mm a')
-    .constant('IMPERIAL_UNITS', {
-      'HEIGHT': [
+    .constant('IMPERIAL_UNITS_DEFAULTS', {
+      'ImperialHeight': [
         {
           name: 'foots',
           label: '\'',
@@ -18,7 +18,7 @@
           range: [1, 12]
         }
       ],
-      'WEIGHT_OZ': [
+      'ImperialWeightWithOz': [
         {
           name: 'pounds',
           label: 'lb',
@@ -30,7 +30,7 @@
           range: [1, 16]
         }
       ],
-      'WEIGHT': [
+      'ImperialWeight': [
         {
           name: 'pounds',
           label: 'lb',

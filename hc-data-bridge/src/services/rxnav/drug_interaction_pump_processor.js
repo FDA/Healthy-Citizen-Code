@@ -5,9 +5,6 @@ const Group = datapumps.Group;
 const { MongodbMixin, MergeMixin } = datapumps.mixin;
 const MongoClient = require('mongodb').MongoClient;
 const _ = require('lodash');
-const path = require('path');
-const fs = require('fs');
-const stream = require('stream');
 const { findDrugInteractions } = require('./rxnav_api');
 const { getNormalizedNDC } = require('./ndc_rxcui_helper');
 

@@ -40,6 +40,10 @@
             });
         })
         .catch(function (err) {
+          if (err.status === -1) {
+            return;
+          }
+
           console.warn('Data for fetch ' + params.fieldName + ' failed. Falling back to cache', err);
           return appDb.schema.get(params.fieldName)
         });
@@ -66,7 +70,7 @@
     }
 
     function getResourceUrl(link) {
-      // var user = AdpSessionService.getUser();
+      // var user = lsService.getUser();
       // var ids = getIds(user);
       //
       // var getUrl = _
@@ -110,7 +114,8 @@
       return $http.post(apiUrl, { 'data': data });
     }
 
-    function updateRecord(link, data, id) {
+    function updateRecord(link, data) {
+      var id = data._id;
       var apiUrl =  getResourceUrl(link);
 
       if (!_.isUndefined(id)) {

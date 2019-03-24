@@ -5,8 +5,7 @@
     .directive('smartMenuItems', function (
       $http,
       $rootScope,
-      $compile,
-      localStorageService
+      $compile
     ) {
       return {
         restrict: 'A',
@@ -17,7 +16,7 @@
             'font-awesome': 'fa fa-lg fa-fw fa-'
           };
 
-          var user = localStorageService.get('user');
+          var user = lsService.getUser();
 
           function createItem(item, parent, level) {
             var li = $('<li />', {'ui-sref-active-eq': 'active'});

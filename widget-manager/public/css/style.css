@@ -1,0 +1,22 @@
+form-footer div {
+  display: none;
+}
+
+form-footer div:first-child {
+  display: block!important;
+}
+
+#logo {
+    margin-top: 0;
+    padding-top: 0;
+    overflow: hidden;
+    width: 250px;
+}
+
+#logo img {
+    height: 48px !important;
+    width: 120px !important;
+    padding: 0;
+    margin: 0;
+    vertical-align: top;
+}

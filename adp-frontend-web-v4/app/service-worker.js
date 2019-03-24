@@ -27,23 +27,44 @@ workbox.precaching.precacheAndRoute([], {
     "ignoreUrlParametersMatching": [/./]
 });
 
-const mathcRoute = (url, routeName) => {
+const matchRoute = (url, routeName) => {
   var regex = new RegExp(`/${routeName}/`);
   return url.origin === '<!-- apiUrl -->' && regex.test(url.pathname);
+};
+
+const matchPathname = (url, pathname) => {
+  return url.href === `<!-- apiUrl -->/${pathname}`;
+
+};
+
+const cacheConfig = {
+  plugins: [
+    new workbox.cacheableResponse.Plugin({
+      statuses: [0, 200],
+    })
+  ]
 };
 
 // readonly data
 workbox.routing.registerRoute(
   ({url}) => {
-    return mathcRoute(url, 'app-model');
+    return matchPathname(url,'app-model');
   },
-  workbox.strategies.networkFirst(),
+  workbox.strategies.networkFirst(cacheConfig),
   'GET'
 );
 
 workbox.routing.registerRoute(
   ({url}) => {
-    return mathcRoute(url, 'lookups');
+    return matchPathname(url,'build-app-model');
+  },
+  workbox.strategies.networkFirst(cacheConfig),
+  'GET'
+);
+
+workbox.routing.registerRoute(
+  ({url}) => {
+    return matchRoute(url, 'lookups');
   },
   workbox.strategies.networkFirst({
     matchOptions: {
@@ -55,17 +76,8 @@ workbox.routing.registerRoute(
 
 workbox.routing.registerRoute(
   ({url}) => {
-    return mathcRoute(url, 'dashboards');
+    return matchRoute(url, 'dashboards');
   },
-  workbox.strategies.networkFirst(),
+  workbox.strategies.networkFirst(cacheConfig),
   'GET'
 );
-
-// PUT and DELETE
-// workbox.routing.registerRoute(
-//   ({url}) => {
-//     return mathcRoute(url, 'jobs');
-//   },
-//   workbox.strategies.networkFirst(),
-//   'PUT'
-// );

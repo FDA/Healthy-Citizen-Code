@@ -7,8 +7,8 @@
 
   function selectMultipleControl(
     AdpFieldsService,
-    AdpFieldFormatUtil,
-    AdpValidationService
+    AdpValidationService,
+    $timeout
   ) {
     return {
       restrict: 'E',
@@ -20,16 +20,26 @@
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/select-multiple-control/select-multiple-control.html',
       require: '^^form',
-      link: function (scope) {
+      link: function (scope, element, attrs) {
         scope.adpFormData[scope.field.keyName] = scope.adpFormData[scope.field.keyName] || [];
         scope.listOfValues = AdpFieldsService.getListOfOptions(scope.field.list);
 
         scope.options = {
-          formatResult: AdpFieldFormatUtil.formatSelectLabel,
-          formatSelection: AdpFieldFormatUtil.formatSelectSelection
+          formatResult: function (state) {
+            return state.text;
+          },
+          formatSelection: function (state) {
+            return state.text;
+          }
         };
 
         scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
+
+        // HACK
+        $timeout(function () {
+          var input = element[0].querySelector('.select2-input');
+          input.autocomplete = AdpFieldsService.autocompleteValue(scope.field);
+        });
       }
     }
   }

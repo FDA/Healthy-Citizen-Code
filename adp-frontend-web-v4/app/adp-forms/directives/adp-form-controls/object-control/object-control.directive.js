@@ -8,7 +8,8 @@
   function objectControl(
     AdpValidationService,
     AdpFieldsService,
-    AdpFormService
+    AdpFormService,
+    AdpPath
   ) {
     return {
       restrict: 'E',
@@ -16,7 +17,7 @@
         field: '=',
         adpFormData: '=',
         uiProps: '=',
-        validationParams: '='
+        validationParams: '=',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/object-control/object-control.html',
       require: '^^form',
@@ -28,15 +29,47 @@
         scope.errorCount = 0;
         scope.subSchema = scope.validationParams.schema.fields[scope.field.keyName];
 
+        // FORM PARAMS
+        var formParams = {
+          path: AdpPath.next(scope.validationParams.formParams.path, scope.field.keyName),
+          row: scope.validationParams.formParams.row,
+          modelSchema: scope.validationParams.formParams.modelSchema,
+          action: scope.validationParams.formParams.action,
+          visibilityMap: scope.validationParams.formParams.visibilityMap
+        };
+
+        // DEPRECATED: will be replaced with formParams
+        // validationParams fields naming is wrong, use formParams instead
+        // modelSchema - grouped fields
+        // schema - original ungrouped schema
+        scope.nextValidationParams = {
+          field: scope.adpField,
+          fields: scope.adpFields,
+          formData: scope.adpFormData,
+          modelSchema: scope.adpFields,
+          schema: scope.schema,
+          $action: scope.adpFormParams && scope.adpFormParams.actionType,
+
+          formParams: formParams
+        };
+
+        scope.getHeader = function() {
+          scope.hasHeaderRender = AdpFieldsService.hasHedearRenderer(scope.field);
+
+          var params = {
+            fieldData: getData(),
+            formData: scope.adpFormData,
+            fieldSchema: scope.field
+          };
+
+          return AdpFieldsService.getHeaderRenderer(params);
+        };
+
         scope.toggle = function () {
           scope.isVisible = !scope.isVisible;
         };
 
-        if (AdpValidationService.isRequired(scope.validationParams)) {
-          scope.fields.forEach(function (field) {
-            field.required = true;
-          });
-        }
+        // var requiredFn = AdpValidationService.isRequired(scope.validationParams);
 
         if (isEmpty()) {
           setData({})

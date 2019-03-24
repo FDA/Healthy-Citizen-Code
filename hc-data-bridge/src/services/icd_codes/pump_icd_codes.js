@@ -1,3 +1,7 @@
+/**
+ * Current code is deprecated, we switched to pumping from tree representation (see ./pump_icd_tree.js)
+ */
+
 const args = require('optimist').argv;
 
 const path = require('path');

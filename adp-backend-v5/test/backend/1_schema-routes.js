@@ -1,4 +1,5 @@
 const request = require('supertest');
+const merge = require('merge');
 require('should');
 const assert = require('assert');
 const _ = require('lodash');
@@ -7,6 +8,9 @@ const reqlib = require('app-root-path').require;
 const {
   diffObjects,
   auth: { admin, loginWithUser },
+  getMongoConnection,
+  setAppAuthOptions,
+  prepareEnv,
 } = reqlib('test/backend/test-util');
 
 describe('V5 Backend Schema Routes', () => {
@@ -19,6 +23,24 @@ describe('V5 Backend Schema Routes', () => {
         _id: -1,
       },
       fields: {
+        string: {
+          type: 'String',
+          fullName: 'String',
+          visibilityPriority: 100,
+          responsivePriority: 100,
+          showInViewDetails: true,
+          showInDatatable: true,
+          showInForm: true,
+          showInGraphQL: true,
+          fieldInfo: {
+            read: true,
+            write: true,
+          },
+          width: 150,
+          searchable: true,
+          transform: ['trim'],
+          autocomplete: 'enable',
+        },
         encounters: {
           type: 'Array',
           fullName: 'Encounters Full Name',
@@ -65,6 +87,7 @@ describe('V5 Backend Schema Routes', () => {
                     read: true,
                     write: true,
                   },
+                  autocomplete: 'enable',
                 },
               },
               visibilityPriority: 100,
@@ -101,6 +124,7 @@ describe('V5 Backend Schema Routes', () => {
                   showInDatatable: true,
                   showInForm: true,
                   showInGraphQL: true,
+                  autocomplete: 'enable',
                 },
                 array: {
                   type: 'String[]',
@@ -117,6 +141,7 @@ describe('V5 Backend Schema Routes', () => {
                   showInDatatable: true,
                   showInForm: true,
                   showInGraphQL: true,
+                  autocomplete: 'enable',
                 },
               },
               visibilityPriority: 100,
@@ -141,6 +166,7 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          index: true,
         },
         createdAt: {
           type: 'Date',
@@ -158,6 +184,7 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          index: true,
         },
         updatedAt: {
           type: 'Date',
@@ -175,6 +202,7 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          index: true,
         },
         deletedAt: {
           type: 'Date',
@@ -191,6 +219,7 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          index: true,
         },
         _temporary: {
           type: 'Boolean',
@@ -207,6 +236,7 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          index: true,
         },
       },
       actions: {
@@ -292,20 +322,70 @@ describe('V5 Backend Schema Routes', () => {
       },
     };
 
-    require('dotenv').load({ path: './test/backend/.env.test' });
+    prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return this.appLib.setup().then(() => {
-      const additionalData = { fields: this.batchNumberField };
-      this.expectedData = require('merge').recursive(true, this.expected, additionalData);
+    return getMongoConnection().then(db => {
+      this.db = db;
     });
   });
 
   after(function() {
+    return this.db.dropDatabase().then(() => this.db.close());
+  });
+
+  afterEach(function() {
     return this.appLib.shutdown();
   });
 
-  it('responds with correct schema for the model', function() {
-    return loginWithUser(this.appLib, admin)
+  beforeEach(function() {
+    return Promise.all([
+      this.db.collection('users').remove({}),
+      this.db.collection('mongoMigrateChangeLog').remove({}),
+    ]).then(() => Promise.all([this.db.collection('users').insert(admin)]));
+  });
+
+  it('responds with correct schema for the model when enablePermissions=false', function() {
+    setAppAuthOptions(this.appLib, {
+      requireAuthentication: true,
+      enablePermissions: false,
+    });
+    return this.appLib
+      .setup()
+      .then(() => {
+        const additionalData = { fields: this.batchNumberField };
+        this.expectedData = merge.recursive(true, this.expected, additionalData);
+      })
+      .then(() => loginWithUser(this.appLib, admin))
+      .then(token =>
+        request(this.appLib.app)
+          .get('/schema/model1s')
+          .set('Accept', 'application/json')
+          .set('Authorization', `JWT ${token}`)
+          .expect('Content-Type', /json/)
+      )
+      .then(res => {
+        res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
+        res.body.success.should.equal(true, res.body.message);
+        // TODO: use diffObjects everywhere instead of outputting two lengthy objects
+        assert(
+          _.isEqual(res.body.data, this.expectedData),
+          `Diff: ${JSON.stringify(diffObjects(this.expectedData, res.body.data), null, 2)}`
+        );
+      });
+  });
+
+  it('responds with correct schema for the model when enablePermissions=true', function() {
+    setAppAuthOptions(this.appLib, {
+      requireAuthentication: true,
+      enablePermissions: true,
+    });
+    return this.appLib
+      .setup()
+      .then(() => {
+        const additionalData = { fields: this.batchNumberField };
+        this.expectedData = merge.recursive(true, this.expected, additionalData);
+      })
+      .then(() => loginWithUser(this.appLib, admin))
       .then(token =>
         request(this.appLib.app)
           .get('/schema/model1s')

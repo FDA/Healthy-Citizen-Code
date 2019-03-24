@@ -45,23 +45,6 @@ exports.htmlmin = {
   ignoreCustomFragments: [/{{.*?}}/]
 };
 
-exports.browserSync = {
-  server: {
-    baseDir: [exports.paths.tmp, exports.paths.root],
-    routes: {
-      '/bower_components': 'bower_components'
-    }
-  },
-  open: false
-};
-
-exports.browserSyncDist = {
-  server: {
-    baseDir: [exports.paths.dist]
-  },
-  open: false
-};
-
 /**
  *  Common implementation for an error handler of a Gulp plugin
  */
@@ -78,6 +61,13 @@ exports.errorHandler = function (title) {
  */
 exports.wiredep = {
   directory: 'bower_components',
+  fileTypes: {
+    html: {
+      replace: {
+        js: '<script type="application/javascript" src="{{filePath}}"></script>',
+      }
+    }
+  },
   exclude: [
     'bower_components/requirejs',
     'bower_components/jquery-1.11.0',

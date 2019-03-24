@@ -7,32 +7,44 @@
   
   function adpListFilter(
     AdpTablesSearchService,
-    AdpFieldsService
+    AdpFieldsService,
+    $timeout
   ) {
     return {
       restrict: 'E',
       replace: true,
-      scope: {
-        listName: '=',
-        serverSide: '='
-      },
       templateUrl: 'app/adp-tables/directives/adp-table-filters/adp-list-filter/adp-list-filter.html',
       link: function (scope, element) {
         (function init() {
           scope.$select = $(element).find('select');
           scope.$select.select2();
 
-          scope.list = AdpFieldsService.getListOfOptions(scope.listName);
+          scope.list = AdpFieldsService.getListOfOptions(scope.head.field.list);
 
           if (!scope.serverSide) {
             AdpTablesSearchService.addFilter(listFilter);
           }
           _bindEvents();
+          $timeout(_setDataFromUrl)
         })();
 
         function _bindEvents() {
-          $(element).on('change keyup', 'select', scope.$emit.bind(scope, 'redraw'));
+          $(element).on('change keyup', 'select', function () {
+            var valueArray = scope.$select.select2('val');
+            scope.head.data = _.isEmpty(valueArray) ? null : valueArray;
+
+            scope.$emit('redraw')
+          });
           scope.$on('$destroy', _onDestroy)
+        }
+
+        function _setDataFromUrl() {
+          if (_.isNil(scope.head.data)) {
+            return;
+          }
+
+          scope.$select.select2('val', scope.head.data);
+          scope.$select.trigger('change');
         }
 
         function _onDestroy() {

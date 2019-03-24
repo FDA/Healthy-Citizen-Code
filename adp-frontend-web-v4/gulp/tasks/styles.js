@@ -1,6 +1,5 @@
 const gulp = require('gulp');
 const path = require('path');
-const browserSync = require('browser-sync');
 const sourcemaps = require('gulp-sourcemaps');
 const less = require('gulp-less');
 const postcss = require('gulp-postcss');
@@ -25,6 +24,5 @@ function styles() {
     }))
     .pipe(postcss([autoprefixer()]))
     .pipe(sourcemaps.write(path.join('../maps')))
-    .pipe(gulp.dest(path.join(conf.paths.tmp, '/styles')))
-    .pipe(browserSync.stream());
+    .pipe(gulp.dest(path.join(conf.paths.tmp, '/styles')));
 }

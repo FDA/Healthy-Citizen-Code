@@ -14,20 +14,25 @@
       },
       "scopes": {
         "guestScope": {
-          "permissions": {
-            "view": "accessAsGuest"
-          },
+          "permissions": "accessAsGuest",
           "where": "{$eq: [true, true]}"
         }
       },
-      // can define that both the technician and the manager can edit records, but scopes defines that technicial can only edit own records
       "actions": {
         "width": 100,
         "responsivePriority": 50,
         "fields": {
           "view": {
             "permissions": ["accessAsGuest"],
-            "showInTable": true
+          },
+          "create": {
+            "permissions": ["accessAsGuest"],
+          },
+          "update": {
+            "permissions": ["accessAsGuest"],
+          },
+          "delete": {
+            "permissions": ["accessAsGuest"],
           }
         }
       }

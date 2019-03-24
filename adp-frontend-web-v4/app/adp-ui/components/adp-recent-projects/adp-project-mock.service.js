@@ -4,9 +4,9 @@
   angular.module('app.adpUi')
     .factory('AdpProjectMockService', AdpProjectMockService);
 
-  function AdpProjectMockService($http, APP_CONFIG) {
+  function AdpProjectMockService($http) {
     return {
-      list: $http.get.bind(this, APP_CONFIG.apiRootUrl + '/projects.json')
+      list: $http.get.bind(this, '/api/projects.json')
     }
   }
 })();

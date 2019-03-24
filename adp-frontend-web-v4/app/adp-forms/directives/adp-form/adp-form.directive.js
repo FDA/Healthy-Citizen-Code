@@ -7,10 +7,12 @@
 
   function adpForm(
     AdpNotificationService,
-    AdpBrowserService,
     AdpFormService,
+    AdpFormDataUtils,
+    AdpQueryParams,
     $timeout,
-    $q
+    $q,
+    $location
   ) {
     return {
       restrict: 'E',
@@ -29,15 +31,16 @@
       },
       templateUrl: 'app/adp-forms/directives/adp-form/adp-form.html',
       link: function (scope, element) {
+        var visibilityMap = {};
+        scope.visibilityMap = visibilityMap;
         function init() {
           scope.formData = scope.adpData || {};
+          scope.adpFormParams = scope.adpFormParams || {};
 
           scope.typeMap = AdpFormService.getTypeMap();
           scope.type = AdpFormService.getType(scope.adpFormParams);
+          // refactor: rename to render schema
           scope.fields = AdpFormService.getFormFields(scope.adpFields, scope.type);
-          //
-          scope.fieldsWithShow = AdpFormService.filterFieldsWithShow(scope.fields);
-          scope.hasShowFields = !!scope.fieldsWithShow.length;
           scope.errorCount = 0;
 
           scope.loading = false;
@@ -45,17 +48,57 @@
           scope.uploaderCnt = 0;
 
           bindEvents();
+
+          AdpQueryParams.setDataFromQueryParams(scope.formData, scope.schema, $location.search());
+
+          var formParams = {
+            path: null,
+            row: scope.formData,
+            modelSchema: scope.schema,
+            action: scope.adpFormParams && scope.adpFormParams.actionType,
+            visibilityMap: visibilityMap
+          };
+
+          _.each(scope.fields.groups, function (group, name) {
+            visibilityMap[name] = true;
+          });
+
+          // DEPRECATED: will be replaced with formParams
+          // validationParams fields naming is wrong, use formParams instead
+          // modelSchema - grouped fields
+          // schema - original ungrouped schema
+          scope.validationParams = {
+            field: scope.adpField,
+            fields: scope.adpFields,
+            formData: scope.adpFormData,
+            modelSchema: scope.adpFields,
+            schema: scope.schema,
+            $action: scope.adpFormParams && scope.adpFormParams.actionType,
+
+            formParams: formParams
+          };
+
+          $timeout(function () {
+            bindFormEvents();
+            // initial run to setup fields visibility
+            // keep order
+            AdpFormService.compareFieldsWithShow(scope.formData, scope.schema, visibilityMap, scope.adpFormParams.actionType);
+            AdpFormService.compareGroupsWithShow(scope.formData, scope.fields.groups, scope.adpFormParams.actionType, scope.schema, visibilityMap);
+          });
         }
         init();
 
+        // there are two functions to bind events:
+        // the second one is for avoiding error for form when nested form are not rendered
+        // the first one keep order of event triggered by child directives
         function bindEvents() {
           scope.$on('adpFileUploaderInit', function () {
             scope.uploaderCnt++;
           });
           scope.submit = submit;
-          scope.toggleFullscreen = toggleFullscreen;
-          scope.isFullscreenSupported = AdpBrowserService.isFullscreenSupported;
+        }
 
+        function bindFormEvents() {
           scope.$watch('[loading]', updateDisabledState);
           scope.$watch(
             function () { return angular.toJson(scope.form); },
@@ -71,8 +114,10 @@
           scope.loading = true;
 
           handleUploaders(scope.formData)
-            .then(function (data) {
-              return scope.adpSubmit(data);
+            .then(function () {
+              var formData = AdpFormDataUtils.cleanFormData(scope.formData, scope.schema);
+
+              return scope.adpSubmit(formData);
             })
             .catch(function (error) {
               if (error.name === 'UploadError') {
@@ -127,22 +172,25 @@
             .prop('disabled', loading);
         }
 
-        function onFormUpdate() {
+        function onFormUpdate(newVal, oldVal) {
+          if (newVal === oldVal) {
+            return;
+          }
+
+          // refactor: form make one cycle for all deep form checks
           AdpFormService.forceValidation(scope.form);
+          AdpFormService.forceCheckObjectRequired(scope.formData, scope.schema, scope.form);
+
+          // keep order
+          AdpFormService.compareFieldsWithShow(scope.formData, scope.schema, visibilityMap, scope.adpFormParams.actionType);
+          AdpFormService.compareGroupsWithShow(scope.formData, scope.fields.groups, scope.adpFormParams.actionType, scope.schema, visibilityMap);
 
           if (scope.form.$submitted) {
             scope.errorCount = AdpFormService.countErrors(scope.form);
           }
-
-          if (scope.hasShowFields) {
-            AdpFormService.compareFieldsWithShow(scope.fieldsWithShow, scope.formData, scope.adpFormParams);
-          }
         }
 
-        function toggleFullscreen(e) {
-          scope.isFullscreen = !scope.isFullscreen;
-        }
-
+        // refactor: form move to service
         function scrollToError() {
           var $errorNode = $('.ng-invalid').closest('adp-form-field-container');
           var $ngForm = $('.ng-invalid').closest('ng-form');

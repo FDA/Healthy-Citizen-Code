@@ -14,6 +14,7 @@
         "Schema",
         "ObjectID",
         "LookupObjectID",
+        "TreeSelector",
 
         "String[]",
         "Date[]",
@@ -393,6 +394,29 @@
       "required": false,
       "description": "Lists scopes available for the schema records.",
       "comment": "Schemas have permissions specifying who can execute actions with records."
+    },
+    "hooks": {
+      "fullName": "Hooks",
+      "required": false,
+      "description": "Hooks are functions located in model/helpers/hooks returning Promise and invoked before(section 'hooks.pre') or after(section 'hooks.post') action"
+    },
+    "autocomplete": {
+      "fullName": "autocomplete",
+      "required": false,
+      "description": "Enable/disable browser automcomplete. Values = 'enable|disable|disableMobile. Attribute applies to text input fields and all derivatives."
+    },
+    "table": {
+      "fullName": "table",
+      "required": false,
+      "description": "Contains specification for TreeSelector type"
+    },
+    "headerRender": {
+      "fullName": "Header Renderer for Complex Types ang Groups",
+      "description": "Function, returns String that used in the header of a field that has a grouping header around it, i.e. it's applicable to Objects, Arrays and Groups"
+    },
+    "lookupLabelRender": {
+      "fullName": "Label Renderer function for lookups",
+      "description": "Function, that allows to apply formatting for lookup labels"
     }
   }
 }

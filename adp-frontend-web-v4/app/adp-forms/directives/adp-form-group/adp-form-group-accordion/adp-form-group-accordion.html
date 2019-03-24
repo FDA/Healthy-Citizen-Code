@@ -6,6 +6,7 @@
     adp-form-data="formData"
     form-params="adpFormParams"
     schema="schema"
+    validation-params="validationParams"
   >
   </adp-form-field-factory>
 </fieldset>
@@ -15,13 +16,14 @@
   adp-accordion-options="formParams">
   <div>
     <div
+      ng-show="display(groupName)"
       class="adp-form-fieldset"
       ng-class="{'has-errors': groupHasErrors(group.fields, form) }"
       ng-repeat="(groupName, group) in fields.groups track by $index"
     >
 
       <div class="adp-form-group-head">
-        <h4>{{group.fullName}}</h4>
+        <h4 ng-bind-html="$parent.getHeader(group)"></h4>
 
         <adp-form-group-messages
           form-group="group.fields">
@@ -36,6 +38,7 @@
           adp-form-params="$parent.formParams"
           adp-form-data="$parent.formData"
           schema="$parent.schema"
+          validation-params="$parent.validationParams"
         >
         </adp-form-field-factory>
       </div>

@@ -9,7 +9,7 @@
         "rField2": {
           "type": "String",
           "permissions": {
-            "read": [["accessAsUser", "accessAsSuperAdmin"]]
+            "read": [["accessAsUser", "accessAsSuperAdmin"]] // both can read
           }
         },
         "rField3": {
@@ -47,11 +47,11 @@
           "fields": {
             "string1": {
               "type": "String",
-              "permissions": "accessAsUser",
+              "permissions": "accessAsUser"
             },
             "string2": {
               "type": "String",
-              "permissions": "accessAsSuperAdmin",
+              "permissions": "accessAsSuperAdmin"
             }
           }
         },
@@ -61,11 +61,48 @@
           "fields": {
             "string1": {
               "type": "String",
-              "permissions": "accessAsUser",
+              "permissions": "accessAsUser"
             },
             "string2": {
               "type": "String",
-              "permissions": "accessAsSuperAdmin",
+              "permissions": "accessAsSuperAdmin"
+            }
+          }
+        },
+        "array1": {
+          "type": "Array",
+          "permissions": "accessAsUser",
+          "fields": {
+            "string1": {
+              "type": "String",
+              "permissions": {
+                "read": "accessAsUser",
+                "write": "accessAsSuperAdmin"
+              }
+            },
+            "string2": {
+              "type": "String",
+              "permissions": {
+                "read": "accessAsSuperAdmin",
+                "write": "accessAsUser"
+              }
+            }
+          }
+        },
+        "array2": {
+          "type": "Array",
+          "permissions": {
+            "read": "accessAsUser",
+            "write": "accessAsSuperAdmin"
+          },
+          "fields": {
+            "string1": {
+              "type": "String",
+              "permissions": "accessAsUser"
+            },
+            "string2": {
+              "type": "String",
+              "permissions": "accessAsSuperAdmin"
             }
           }
         }

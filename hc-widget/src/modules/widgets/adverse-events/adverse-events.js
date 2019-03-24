@@ -1,3 +1,4 @@
+import lodashGet from 'lodash.get';
 import {adverseEventsQuery, prefrencesQuery} from '../../queries'
 import $ from '../../../lib/dom';
 import Table from '../../../modules/table/table';
@@ -23,7 +24,9 @@ export default class AdverseEvents {
   fetchData() {
     return prefrencesQuery({udid: this.options.udid})
       .then(data => {
-        if ('medications' in data) {
+        var medications = lodashGet(data, 'medications', []);
+
+        if (medications.length) {
           return adverseEventsQuery(data)
         } else {
           throw new Error('Unable to get adverse events. Medication list is empty.');

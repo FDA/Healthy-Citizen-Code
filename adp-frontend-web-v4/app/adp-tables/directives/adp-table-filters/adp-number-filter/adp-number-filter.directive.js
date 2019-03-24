@@ -9,14 +9,12 @@
     return {
       restrict: 'E',
       replace: true,
-      scope: {
-        serverSide: '='
-      },
       templateUrl: 'app/adp-tables/directives/adp-table-filters/adp-number-filter/adp-number-filter.html',
       link: function (scope, element) {
         var columnIndex = $(element).closest('th').index();
         var $min = $(element).find('.min');
         var $max = $(element).find('.max');
+        _setValueFromUrl();
 
         if (!scope.serverSide) {
           applyDTFilters();
@@ -35,6 +33,7 @@
               lt: $max.val()
             }
           };
+          _setFilterToUrl();
 
           scope.$emit('redraw', searchParams);
         });
@@ -42,7 +41,7 @@
         function numberFilter(settings, dataRow){
           var min = $min.val();
           var max = $max.val();
-          var colValue = parseFloat(dataRow[columnIndex]);
+          var colValue = Number(dataRow[columnIndex]);
 
           return isInRange(min, max, colValue);
         }
@@ -53,20 +52,26 @@
           if (!min && !max) {
             return true;
           }
+          min = min || Number.MIN_SAFE_INTEGER;
+          max = max || Number.MAX_SAFE_INTEGER;
 
-          if (!min && colValue < max) {
-            return true;
-          }
+          return _.inRange(colValue, min, max);
+        }
 
-          if (min <= colValue && !max) {
-            return true;
-          }
+        function _setFilterToUrl() {
+          var min = $min.val();
+          var max = $max.val();
 
-          if (min <= colValue && max > colValue) {
-            return true;
-          }
+          scope.head.from = min ? min : null;
+          scope.head.to = max ? max : null;
+        }
 
-          return false;
+        function _setValueFromUrl() {
+          var min = scope.head.from;
+          var max = scope.head.to;
+
+          min && $min.val(min);
+          max && $max.val(max);
         }
       }
     }

@@ -12,14 +12,14 @@
 
   <input places-auto-complete
          ng-keypress="preventSubmitOnEnter($event)"
-         size=80
          class="form-control-location form-control"
-         ng-class="{'detecting': detecting}"
+         ng-class="{ 'detecting': detecting }"
          ng-model="adpFormData[labelName]"
          types="['address']"
          ng-disabled="detecting"
          ng-if="isReady && fieldParams.showAddress"
-         on-place-changed="placeChanged()"/>
+         on-place-changed="placeChanged()"
+  />
 
   <input type="{{uiProps.uiSubtypeType}}"
          name="{{field.keyName}}"
@@ -29,7 +29,8 @@
          escape-letters="field.type == 'Number'"
          ng-model="adpFormData[field.keyName]"
          ng-required="isRequired()"
-         class="form-control">
+         class="form-control"
+  />
 
   <adp-messages
     adp-field="field">

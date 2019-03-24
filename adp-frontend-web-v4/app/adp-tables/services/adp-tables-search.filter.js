@@ -46,14 +46,26 @@
       }
     };
 
-    var filterStrategies = {
-      'string': searchString,
-      'file': searchMultilineString,
-    };
+    function _getStrategy(field, cbName) {
+      var filterStrategies = {
+        'string': searchString,
+        'file': searchMultilineString,
+      };
 
-    function getSearchRegex(input, strategyName, cbName) {
+      var mediaTypes = ["Image", "Video", "Audio", "File",
+        "Image[]", "Video[]", "Audio[]", "File[]"];
+
+      var isMediaType = mediaTypes.includes(field.type);
+      var strategyName = isMediaType ? 'file' : 'string';
+
+      return filterStrategies[strategyName][cbName];
+    }
+
+    function getSearchRegex(input, field, cbName) {
       var escapedInput = escapeRegexChars(input);
-      return filterStrategies[strategyName][cbName](escapedInput);
+      var strategyFn = _getStrategy(field, cbName);
+
+      return strategyFn(escapedInput);
     }
 
     function escapeRegexChars(input) {

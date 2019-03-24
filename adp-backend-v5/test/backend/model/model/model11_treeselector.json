@@ -1,0 +1,174 @@
+{
+  "models": {
+    "model11treeselector": {
+      "type": "Schema",
+      "fullName": "model11treeselector",
+      "limitReturnedRecords": 1,
+      "fields": {
+        "treeSelector": {
+          "type": "TreeSelector",
+          "table": {
+            "treeCollection": {
+              "foreignKey": "_id",
+              "label": "name",
+              "parent": {
+                "parent._id": "_id"
+              },
+              "roots": {
+                "$not": { "$ifNull": ["$parent", false] }
+              },
+              "leaves": "!this.hasChildren",
+              "requireLeafSelection": true,
+              "scopes": {
+                "superAdminScope": {
+                  "permissions": {
+                    "view": "accessAsGuest"
+                  },
+                  "where": "{$eq: [true, true]}"
+                }
+              },
+              "sortBy": {
+                "code": 1
+              }
+            }
+          }
+        },
+      }
+    },
+    "model11treeselector_propagation": {
+      "type": "Schema",
+      "fullName": "model11treeselector_propagation",
+      "limitReturnedRecords": 1,
+      "fields": {
+        "treeSelectorRequiredAllowedNode": {
+          "type": "TreeSelector",
+          "required": true,
+          "table": {
+            "treeCollection": {
+              "foreignKey": "_id",
+              "label": "name",
+              "parent": {
+                "parent._id": "_id"
+              },
+              "roots": {
+                "$not": { "$ifNull": ["$parent", false] }
+              },
+              "leaves": "!this.hasChildren",
+              "requireLeafSelection": false,
+              "scopes": {
+                "superAdminScope": {
+                  "permissions": {
+                    "view": "accessAsGuest"
+                  },
+                  "where": "{$eq: [true, true]}"
+                }
+              },
+              "sortBy": {
+                "code": 1
+              }
+            }
+          }
+        },
+        "treeSelectorRequiredNotAllowedNode": {
+          "type": "TreeSelector",
+          "required": true,
+          "table": {
+            "treeCollection": {
+              "foreignKey": "_id",
+              "label": "name",
+              "parent": {
+                "parent._id": "_id"
+              },
+              "roots": {
+                "$not": { "$ifNull": ["$parent", false] }
+              },
+              "leaves": "!this.hasChildren",
+              "requireLeafSelection": true,
+              "scopes": {
+                "superAdminScope": {
+                  "permissions": {
+                    "view": "accessAsGuest"
+                  },
+                  "where": "{$eq: [true, true]}"
+                }
+              },
+              "sortBy": {
+                "code": 1
+              }
+            }
+          }
+        },
+        "treeSelectorNotRequiredAllowedNode": {
+          "type": "TreeSelector",
+          "table": {
+            "treeCollection": {
+              "foreignKey": "_id",
+              "label": "name",
+              "parent": {
+                "parent._id": "_id"
+              },
+              "roots": {
+                "$not": { "$ifNull": ["$parent", false] }
+              },
+              "leaves": "!this.hasChildren",
+              "requireLeafSelection": false,
+              "scopes": {
+                "superAdminScope": {
+                  "permissions": {
+                    "view": "accessAsGuest"
+                  },
+                  "where": "{$eq: [true, true]}"
+                }
+              },
+              "sortBy": {
+                "code": 1
+              }
+            }
+          }
+        },
+        "treeSelectorNotRequiredNotAllowedNode": {
+          "type": "TreeSelector",
+          "table": {
+            "treeCollection": {
+              "foreignKey": "_id",
+              "label": "name",
+              "parent": {
+                "parent._id": "_id"
+              },
+              "roots": {
+                "$not": { "$ifNull": ["$parent", false] }
+              },
+              "leaves": "!this.hasChildren",
+              "requireLeafSelection": true,
+              "scopes": {
+                "superAdminScope": {
+                  "permissions": {
+                    "view": "accessAsGuest"
+                  },
+                  "where": "{$eq: [true, true]}"
+                }
+              },
+              "sortBy": {
+                "code": 1
+              }
+            }
+          }
+        }
+
+      }
+    },
+    "treeCollection": {
+      "type": "Schema",
+      "fullName": "treeCollection",
+      "limitReturnedRecords": 2,
+      "fields": {
+        "name": {
+          "type": "String"
+        },
+        "hasChildren": {
+          "type": "Boolean"
+        }
+      }
+    }
+  }
+}

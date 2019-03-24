@@ -48,7 +48,7 @@
           "visible": false,
           "generated": true,
           "fullName": "Reset Password Token",
-          "description": "The system assigned t`oken that is sent to the citizen when they request a password reset."
+          "description": "The system assigned token that is sent to the citizen when they request a password reset."
         },
         "resetPasswordExpires": {
           "type": "Date",
@@ -58,9 +58,13 @@
           "description": "The date the password token will expire."
         },
         "roles": {
-          "type": "String[]",
-          "list": "roles",
-          "fullName": "Role names"
+          "type": "LookupObjectID[]",
+          "fullName": "Role names",
+          "lookup": {
+            "table": "roles",
+            "foreignKey": "_id",
+            "label": "name"
+          }
         }
       }
     }

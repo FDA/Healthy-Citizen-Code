@@ -29,6 +29,7 @@
     "lodash.get": "^4.4.2",
     "log4js": "^2.10.0",
     "moment": "^2.22.2",
+    "mongodb": "^2.2.35",
     "mongoose": "^4.13.14",
     "request-promise": "^4.2.2",
     "sanitize-html-x": "^1.7.3",

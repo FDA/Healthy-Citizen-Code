@@ -27,20 +27,53 @@
         scope.rootForm = AdpFormService.getRootForm(scope.form);
         scope.errorCount = [];
 
-        scope.childValidationParams = {
-          field: scope.adpField,
-          fields: scope.adpFields,
+        var formParams = scope.validationParams.formParams;
+
+        // DEPRECATED: will be replaced with formParams
+        // validationParams fields naming is wrong, use formParams instead
+        // modelSchema - grouped fields
+        // schema - original ungrouped schema
+        scope.nextValidationParams = {
+          field: scope.field,
+          fields: scope.fields,
           formData: scope.adpFormData,
           modelSchema: scope.adpFields,
           schema: scope.validationParams.schema.fields[scope.field.keyName],
-          $action: scope.validationParams.$action
+          $action: scope.validationParams.$action,
+
+          formParams: formParams
         };
+        setDefautDisplay();
+
+        scope.display = function(index) {
+          var arrayItemPath = formParams.path + '[' + index + ']';
+          return formParams.visibilityMap[arrayItemPath];
+        };
+
+        function setDisplay(index, value) {
+          var arrayItemPath = formParams.path + '[' + index + ']';
+          formParams.visibilityMap[arrayItemPath] = value;
+        }
+
+        var requiredFn = AdpValidationService.isRequired(scope.validationParams);
 
         scope.getData = getData;
         scope.setData = setData;
         scope.isEmpty = isEmpty;
-        scope.add = add;
+        scope.addArrayItem = addArrayItem;
         scope.remove = remove;
+        scope.isRemoveDisabled = isRemoveDisabled;
+
+        scope.getHeader = function (index) {
+          var params = {
+            fieldData: getData(),
+            formData: scope.adpFormData,
+            fieldSchema: scope.field,
+            index: index
+          };
+
+          return AdpFieldsService.getHeaderRenderer(params);
+        };
 
         scope.getFields = getFields;
         scope.toggle = function (event, index) {
@@ -52,7 +85,7 @@
 
         if (scope.isEmpty()) {
           scope.setData([]);
-          add();
+          addArrayItem();
         }
 
         scope.$watch(
@@ -68,6 +101,14 @@
             }
           });
 
+        function setDefautDisplay() {
+          var data = getData();
+
+          _.each(data, function (_v, i) {
+            setDisplay(i, true)
+          });
+        }
+
         function getData() {
           return scope.adpFormData[scope.field.keyName];
         }
@@ -78,12 +119,16 @@
 
         function isEmpty() {
           var data = getData();
+
           return _.isUndefined(data) || _.isNull(data) || _.isEmpty(data);
         }
 
-        function add() {
+        function addArrayItem() {
           var fieldData = getData();
           fieldData.push({});
+
+          var lastIndex = _.findLastIndex(fieldData);
+          setDisplay(lastIndex, true);
         }
 
         function remove(event, index) {
@@ -94,18 +139,12 @@
           scope.visibilityStatus.splice(index, 1);
         }
 
-        function getFields(index) {
-          var fields = _.clone(scope.fields);
+        function getFields() {
+          return scope.fields;
+        }
 
-          // if Array field itself has required attr True,
-          // than all field inside are required too
-          if (AdpValidationService.isRequired(scope.validationParams)) {
-            _.each(scope.fields, function (field) {
-              field.required = index === 0;
-            });
-          }
-
-          return fields;
+        function isRemoveDisabled() {
+          return requiredFn() && getData().length === 1;
         }
       }
     }

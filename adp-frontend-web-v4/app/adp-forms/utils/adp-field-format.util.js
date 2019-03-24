@@ -5,13 +5,14 @@
     .module('app.adpForms')
     .factory('AdpFieldFormatUtil', AdpFieldFormatUtil);
 
+  // DEPRECATED
   function AdpFieldFormatUtil() {
     // public
     function formatSelectLabel(state) {
       // if option group
       if (!state.id) return state.text;
 
-      var parsedState = JSON.parse(state.text);
+      var parsedState = state.text;
 
       return _.isObject(parsedState.label) ? getFormattedLabel(parsedState.label) : parsedState.label;
     }

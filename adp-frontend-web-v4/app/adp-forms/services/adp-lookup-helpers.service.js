@@ -26,9 +26,36 @@
       return result;
     }
 
+    function getLabelRenderer(params) {
+      var renderName = params.fieldSchema.lookupLabelRender;
+      var renderFn = appModelHelpers.LookupLabelRenderers[renderName];
+
+      if (renderFn) {
+        return renderFn(params);
+      }
+
+      if (renderName) {
+        return labelExpression(renderName, params);
+      }
+
+      return params.lookup.label;
+    }
+
+    function labelExpression(expression, params) {
+      var fn = new Function('lookup, fieldData, formData, fieldSchema', 'return ' + expression);
+
+      try {
+        return fn(params.lookup, params.fieldData, params.formData, params.fieldSchema);
+      } catch (e) {
+        console.log('Error executing lookup label expression', e);
+        return params.lookup.label;
+      }
+    }
+
     return {
       endpoint: getLookupEndpoint,
-      hasCondition: hasCondition
+      hasCondition: hasCondition,
+      getLabelRenderer: getLabelRenderer
     }
   }
 })();

@@ -1,5 +1,3 @@
-// based on restify.plugin.static
-
 const fs = require('fs');
 const path = require('path');
 const escapeRE = require('escape-regexp-component');
@@ -7,15 +5,6 @@ const escapeRE = require('escape-regexp-component');
 const assert = require('assert-plus');
 const mime = require('mime');
 const async = require('async');
-
-// /--- Globals
-
-// const MethodNotAllowedError = errors.MethodNotAllowedError;
-// const NotAuthorizedError = errors.NotAuthorizedError;
-// const ResourceNotFoundError = errors.ResourceNotFoundError;
-const restifyErrors = require('restify-errors');
-
-// /--- Functions
 
 /**
  * serves static files.
@@ -48,15 +37,16 @@ function serveStatic(options) {
       typeof req.connectionState === 'function' &&
       (req.connectionState() === 'close' || req.connectionState() === 'aborted')
     ) {
-      next(false);
-      return;
+      return next(false);
     }
 
     if (err) {
-      return next(new restifyErrors.ResourceNotFoundError(err, '%s', req.path()));
+      const errMsg = `ResourceNotFoundError '${req.path}'`;
+      return next(new Error(errMsg));
     }
     if (!stats.isFile()) {
-      return next(new restifyErrors.ResourceNotFoundError('%s does not exist', req.path()));
+      const errMsg = `${req.path} does not exist`;
+      return next(new Error(errMsg));
     }
 
     if (res.handledGzip && isGzip) {
@@ -66,7 +56,7 @@ function serveStatic(options) {
     const fstream = fs.createReadStream(file + (isGzip ? '.gz' : ''));
     const maxAge = opts.maxAge === undefined ? 3600 : opts.maxAge;
     fstream.once('open', () => {
-      res.cache({ maxAge });
+      res.set('Cache-Control', `public, max-age=${maxAge}`);
       res.set('Content-Length', stats.size);
       res.set('Content-Type', mime.getType(file));
       res.set('Last-Modified', stats.mtime);
@@ -112,34 +102,36 @@ function serveStatic(options) {
       // serves a direct file
       file = path.join(opts.directory, decodeURIComponent(opts.file));
     } else if (opts.appendRequestPath) {
-      file = path.join(opts.directory, decodeURIComponent(req.path()));
+      file = path.join(opts.directory, decodeURIComponent(req.path));
     } else {
       const dirBasename = path.basename(opts.directory);
-      const reqpathBasename = path.basename(req.path());
+      const reqpathBasename = path.basename(req.path);
 
-      if (path.extname(req.path()) === '' && dirBasename === reqpathBasename) {
+      if (path.extname(req.path) === '' && dirBasename === reqpathBasename) {
         file = opts.directory;
       } else {
-        file = path.join(opts.directory, decodeURIComponent(path.basename(req.path())));
+        file = path.join(opts.directory, decodeURIComponent(path.basename(req.path)));
       }
     }
 
     if (req.method !== 'GET' && req.method !== 'HEAD') {
-      next(new restifyErrors.MethodNotAllowedError(req.method));
-      return;
+      const errMsg = `MethodNotAllowedError: ${req.method}`;
+      res.status(405).send({ error: errMsg });
+      return next(errMsg);
     }
 
     const p = path.normalize(opts.directory).replace(/\\/g, '/');
     /* eslint-disable security/detect-non-literal-regexp */
     const re = new RegExp(`^${escapeRE(p)}/?.*`);
+    const errMsg = `NotAuthorizedError ${req.path}`;
     if (!re.test(file.replace(/\\/g, '/'))) {
-      next(new restifyErrors.NotAuthorizedError('%s', req.path()));
-      return;
+      res.status(401).send({ error: errMsg });
+      return next(errMsg);
     }
 
     if (opts.match && !opts.match.test(file)) {
-      next(new restifyErrors.NotAuthorizedError('%s', req.path()));
-      return;
+      res.status(401).send({ error: errMsg });
+      return next(errMsg);
     }
 
     if (opts.gzip && req.acceptsEncoding('gzip')) {
@@ -176,16 +168,19 @@ function serveStatic(options) {
         },
         err => {
           if (!fileFound) {
-            next(new restifyErrors.ResourceNotFoundError(`File '${req.path()}' was not found`));
-          } else {
-            next(err);
+            const errMsg = `File '${req.path}' was not found`;
+            res.status(404).send({ error: errMsg });
+            return next(errMsg);
           }
+          next(err);
         }
       );
     } else if (opts.directory) {
       serve(req, res, next); // work as default
     } else {
-      next(new restifyErrors.InternalServerError('Public Directory has not been specified'));
+      const errMsg = 'Public Directory has not been specified';
+      res.status(500).send({ error: errMsg });
+      next(errMsg);
     }
   }
 

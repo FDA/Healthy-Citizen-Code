@@ -20,9 +20,10 @@
           ng-class="{ 'fa-minus-square-o': isVisible, 'fa-plus-square-o': !isVisible }">
         </button>
 
-        {{field.fullName}}
+        <span ng-bind-html="getHeader()"></span>
 
         <adp-tooltip
+          ng-if="!hasHeaderRender"
           adp-field="field">
         </adp-tooltip>
       </div>
@@ -48,6 +49,7 @@
         adp-fields="fields"
         adp-field-ui-props="uiProps"
         adp-form-data="subFormData"
+        validation-params="nextValidationParams"
         schema="subSchema"
       >
       </adp-form-field-factory>

@@ -5,13 +5,27 @@
       "String": {
         "width": 150,
         "searchable": true,
-        "transform": ["trim"]
+        "transform": ["trim"],
+        "autocomplete": "enable"
+      },
+      "String[]": {
+        "autocomplete": "enable"
+      },
+      "LookupObjectID": {
+        "autocomplete": "enable"
+      },
+      "LookupObjectID[]": {
+        "autocomplete": "enable"
+      },
+      "TreeSelector": {
+        "autocomplete": "enable"
       },
       "Date": {
         "width": 85
       },
       "Number": {
-        "width": 30
+        "width": 30,
+        "autocomplete": "enable"
       },
       "Boolean": {
         "width": 20
@@ -27,7 +41,8 @@
             "visible": false,
             "synthesize": "creator",
             "description": "Record Creator",
-            "permissions": "accessAsSuperAdmin"
+            "permissions": "accessAsSuperAdmin",
+            "index": true
           },
           "createdAt": {
             "type": "Date",
@@ -35,7 +50,8 @@
             "visible": false,
             "synthesize": "createdAt",
             "description": "Record Created At",
-            "permissions": "accessAsSuperAdmin"
+            "permissions": "accessAsSuperAdmin",
+            "index": true
           },
           "updatedAt": {
             "type": "Date",
@@ -43,21 +59,24 @@
             "visible": false,
             "synthesize": "updatedAt",
             "description": "Record Updated At",
-            "permissions": "accessAsSuperAdmin"
+            "permissions": "accessAsSuperAdmin",
+            "index": true
           },
           "deletedAt": {
             "type": "Date",
             "fullName": "deletedAt",
             "visible": false,
             "description": "Record Deleted At",
-            "permissions": "accessAsSuperAdmin"
+            "permissions": "accessAsSuperAdmin",
+            "index": true
           },
           "_temporary": {
             "type": "Boolean",
             "fullName": "_temporary",
             "visible": false,
             "description": "Temporary",
-            "permissions": "accessAsSuperAdmin"
+            "permissions": "accessAsSuperAdmin",
+            "index": true
           }
         },
         "limitReturnedRecords": 1000,
@@ -150,7 +169,8 @@
             }
           }
         ],
-        "transform": [["rewritePasswordAndAddSalt", "cleanupPassword"]]
+        "transform": [["rewritePasswordAndAddSalt", "cleanupPassword"]],
+        "autocomplete": "enable"
       },
       "Email": {
         "width": 150,
@@ -165,7 +185,8 @@
               "default": "Please enter correct email"
             }
           }
-        ]
+        ],
+        "autocomplete": "enable"
       },
       "Url": {
         "width": 150,
@@ -181,7 +202,8 @@
               "default": "Please enter correct URL"
             }
           }
-        ]
+        ],
+        "autocomplete": "enable"
       },
       "Phone": {
         "width": 80,
@@ -196,10 +218,12 @@
               "default": "Please provide correct US phone number"
             }
           }
-        ]
+        ],
+        "autocomplete": "enable"
       },
       "Text": {
-        "width": 180
+        "width": 180,
+        "autocomplete": "enable"
       },
       "ImperialHeight": {
         "width": 50,

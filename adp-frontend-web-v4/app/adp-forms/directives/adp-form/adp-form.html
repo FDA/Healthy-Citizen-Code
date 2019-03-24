@@ -2,20 +2,13 @@
   name="form"
   class="smart-form client-form"
   novalidate
-  adp-fullscreen="isFullscreen"
+  adp-fullscreen
   ng-submit="submit()"
   >
-
   <header class="smart-form-header">
     <span ng-transclude="header"></span>
 
-    <i
-      class="smart-form-fullscreen fa"
-      ng-if="!disableFullscreen || isFullscreenSupported()"
-      ng-click="toggleFullscreen()"
-      ng-class="{ 'fa-expand': !isFullscreen, 'fa-compress': isFullscreen }"
-    >
-    </i>
+    <adp-fullscreen-button></adp-fullscreen-button>
   </header>
 
   <fieldset
@@ -30,6 +23,7 @@
         form-data="formData"
         form-params="adpFormParams"
         schema="schema"
+        validation-params="validationParams"
       >
       </adp-form-group-accordion>
     </div>
@@ -40,6 +34,7 @@
         form-data="formData"
         form-params="adpFormParams"
         schema="schema"
+        validation-params="validationParams"
       >
       </adp-form-group-wizard>
     </div>
@@ -50,6 +45,7 @@
         form-data="formData"
         form-params="adpFormParams"
         schema="schema"
+        validation-params="validationParams"
       >
       </adp-form-group-grouping>
     </div>
@@ -62,6 +58,7 @@
         adp-form-data="formData"
         adp-form-params="adpFormParams"
         schema="schema"
+        validation-params="validationParams"
       >
       </adp-form-field-factory>
     </fieldset>

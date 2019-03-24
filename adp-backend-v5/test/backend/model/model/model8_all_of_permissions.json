@@ -18,14 +18,21 @@
           "where": "{$eq: [true, true]}"
         }
       },
-      // can define that both the technician and the manager can edit records, but scopes defines that technicial can only edit own records
       "actions": {
         "width": 100,
         "responsivePriority": 50,
         "fields": {
           "view": {
             "permissions": ["accessAsUser", "accessAsGuest"],
-            "showInTable": true
+          },
+          "create": {
+            "permissions": ["accessAsUser", "accessAsGuest"],
+          },
+          "update": {
+            "permissions": ["accessAsUser", "accessAsGuest"],
+          },
+          "delete": {
+            "permissions": ["accessAsUser", "accessAsGuest"],
           }
         }
       }

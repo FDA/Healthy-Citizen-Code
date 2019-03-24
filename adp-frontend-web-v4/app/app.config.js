@@ -8,7 +8,6 @@
 
   /** @ngInject */
   function appConfig(
-    localStorageServiceProvider,
     $logProvider,
     APP_CONFIG
   ) {
@@ -18,5 +17,6 @@
   /** @ngInject */
   function httpConfig($httpProvider) {
     $httpProvider.interceptors.push('AdpHttpInterceptor');
+    $httpProvider.defaults.withCredentials = true;
   }
 })();

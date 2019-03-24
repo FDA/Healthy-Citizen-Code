@@ -26,7 +26,7 @@
 
         function onStateChangeStart(transition) {
           var toState = transition.to();
-          if (!AdpSessionService.getUser()) return;
+          if (!lsService.getUser()) return;
 
           scope.breadcrumbs = getBreadcrumbs(toState);
         }
@@ -47,7 +47,7 @@
 
         function getState(stateName, menuItem) {
           var state = $state.get(stateName);
-          var user = AdpSessionService.getUser() || {};
+          var user = lsService.getUser() || {};
           var breadcrumb = {
             content: menuItem.title ? menuItem.title : menuItem,
             stateName: menuItem.stateName

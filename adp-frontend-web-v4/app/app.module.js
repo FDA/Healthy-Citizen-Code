@@ -22,7 +22,6 @@
     'ngAnimate',
     'ui.router',
     'ui.bootstrap',
-    'LocalStorageModule',
     'ngMap',
 
     // Smartadmin Angular Common Module

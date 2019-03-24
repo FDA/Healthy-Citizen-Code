@@ -14,7 +14,7 @@ export default class Questionnaire {
       onSubmit: () => this.onSubmit()
     };
 
-    this.$el = parent;
+    this.$el = node;
 
     return this.fetchData()
       .then(this.init.bind(this))

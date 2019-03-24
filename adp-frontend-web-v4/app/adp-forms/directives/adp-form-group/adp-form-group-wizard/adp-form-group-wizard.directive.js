@@ -5,48 +5,133 @@
     .module('app.adpForms')
     .directive('adpFormGroupWizard', adpFormGroupWizard);
 
-  function adpFormGroupWizard(AdpFormService) {
+  function adpFormGroupWizard(
+    AdpFieldsService,
+    AdpFormService
+  ) {
     return {
       restrict: 'E',
       scope: {
         fields: '=',
         formData: '=',
         formParams: '=',
-        schema: '='
+        schema: '=',
+        validationParams: '='
       },
       templateUrl: 'app/adp-forms/directives/adp-form-group/adp-form-group-wizard/adp-form-group-wizard.html',
       require: '^^form',
       link: function (scope, el, attrs, form) {
-        scope.form = form;
-        scope.current = 0;
-        scope.fieldsLength = _.keys(scope.fields.groups).length;
-        scope.groupHasErrors = AdpFormService.groupHasErrors;
-        scope.groupCompleted = AdpFormService.groupCompleted;
+        (function init() {
+          scope.form = form;
+          scope.groupHasErrors = AdpFormService.groupHasErrors;
+          scope.groupCompleted = AdpFormService.groupCompleted;
 
-        scope.setCurrent = function (step) {
-          var groups = scope.fields.groups,
-            fieldGroup, fieldName;
-          if (step === scope.current) return;
+          scope.groups = getGroups();
+          scope.names = getNames();
+          scope.currentName = getInitialCurrent();
 
-          fieldName = getCurrentGroupName(scope.current);
-          fieldGroup = groups[fieldName].fields;
+          scope.$watch(namesString, onUpdate);
+        })();
+
+        function namesString() {
+          var names = getNames();
+          return names.join(';');
+        }
+
+        function onUpdate(newValue, oldValue) {
+          if (newValue === oldValue) {
+            return;
+          }
+
+          scope.groups = getGroups();
+          scope.names = getNames();
+
+          var currentNameIsNull = scope.names.indexOf(scope.currentName) === -1;
+
+          if (currentNameIsNull) {
+            scope.currentName = getInitialCurrent();
+          }
+        }
+
+        function display(path) {
+          var visibilityMap = scope.validationParams.formParams.visibilityMap;
+          return visibilityMap[path];
+        }
+        scope.display = display;
+
+        function getGroups() {
+          return _.map(scope.fields.groups, function (group) {
+            return display(group.keyName) ? group : null;
+          });
+        }
+
+        function getNames() {
+          return _.reduce(scope.fields.groups, function (acc, group) {
+            if (display(group.keyName)) {
+              acc.push(group.keyName);
+            }
+
+            return acc;
+          }, []);
+        }
+
+        function getInitialCurrent() {
+          return scope.names[0];
+        }
+
+        scope.isEmpty = function() {
+          return _.isEmpty(scope.names);
+        };
+
+        scope.setCurrent = function (name) {
+          if (name === scope.currentName) return;
+
+          var fieldGroup = _.find(scope.groups, ['keyName', name]);
           AdpFormService.setGroupDirty(fieldGroup, scope.form);
 
-          scope.current = step;
+          scope.currentName = name;
         };
 
         scope.next = function () {
-          var next = scope.current + 1;
-          scope.setCurrent(next);
+          var currentIndex = scope.names.indexOf(scope.currentName);
+          var nextName = scope.names[currentIndex + 1];
+
+          scope.setCurrent(nextName);
         };
 
         scope.prev = function () {
-          var prev = scope.current - 1;
-          scope.setCurrent(prev);
+          var currentIndex = scope.names.indexOf(scope.currentName);
+          var prevName = scope.names[currentIndex - 1];
+
+          scope.setCurrent(prevName);
         };
 
-        function getCurrentGroupName(index) {
-          return _.keys(scope.fields.groups)[index];
+        scope.isFirst = function () {
+          return scope.names.indexOf(scope.currentName) === 0;
+        };
+
+        scope.isLast = function () {
+          return scope.names.indexOf(scope.currentName) === scope.names.length - 1;
+        };
+
+        scope.getHeader = function (group) {
+          var params = {
+            fieldData: getData(group),
+            formData: scope.formData,
+            fieldSchema: group,
+          };
+
+          return AdpFieldsService.getHeaderRenderer(params);
+        };
+
+        function getData(group) {
+          var data = {};
+
+          _.each(group.fields, function (f) {
+            data[f.keyName] = scope.formData[f.keyName];
+          });
+
+          return data;
         }
       }
     }

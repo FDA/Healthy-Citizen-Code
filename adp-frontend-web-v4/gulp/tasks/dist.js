@@ -38,15 +38,12 @@ function build() {
     .pipe(jsFilter)
     .pipe(ngAnnotate())
     .pipe(uglifyStream)
-    .pipe(rev())
     .pipe(jsFilter.restore)
 
     .pipe(cssFilter)
     .pipe(cssnano())
-    .pipe(rev())
     .pipe(cssFilter.restore)
 
-    .pipe(revReplace())
     .pipe(sourcemaps.write('maps'))
     .pipe(htmlFilter)
     .pipe(strip())

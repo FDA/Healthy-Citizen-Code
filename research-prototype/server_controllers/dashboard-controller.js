@@ -14,8 +14,9 @@ module.exports = function(globalMongoose) {
     ]);
   };
 
-  const getNotStartedQuestionnaries = userId => {
-    let origAggregationPipeline = [
+  const getNotStartedQuestionnaires = userId => {
+    const pipeline = [
+      { $match: { creator: userId } },
       {
         $project: {
           _id: 1,
@@ -64,7 +65,7 @@ module.exports = function(globalMongoose) {
         $group: {
           _id: { questionaireId: "$_id", guid: "$participants.guid" },
           answeredQuestionnaireIds: {
-            $addToSet: "$participants.answersToQuestionnaires.questionnaireId"
+            $addToSet: "$participants.answersToQuestionnaires.questionnaireId._id"
           },
           questionnaireName: { $first: "$questionnaireName" }
         }
@@ -97,163 +98,14 @@ module.exports = function(globalMongoose) {
         }
       }
     ];
-    let hackedAggregationPipeline = [
-      { $match: { creator: userId } },
-      {
-        $project: {
-          _id: 1,
-          pools: 1,
-          questionnaireName: 1,
-          questionnaireDescription: 1,
-          questionnaireDefinition: 1,
-          participants: 1
-        }
-      },
-      { $unwind: "$pools" },
-      {
-        $addFields: {
-          poolObjectId: { $toObjectId: "$pools._id" },
-          poolStringId: "$pools._id"
-        }
-      },
-      {
-        $lookup: {
-          from: "pools",
-          localField: "poolObjectId",
-          foreignField: "_id",
-          as: "pools"
-        }
-      },
-      { $unwind: "$pools" },
-      {
-        $lookup: {
-          from: "poolParticipants",
-          localField: "poolStringId",
-          foreignField: "poolId._id",
-          as: "poolParticipants"
-        }
-      },
-      { $unwind: "$poolParticipants" },
-      {
-        $lookup: {
-          from: "participants",
-          localField: "poolParticipants.guid",
-          foreignField: "guid",
-          as: "participants"
-        }
-      },
-      { $unwind: "$participants" },
-      {
-        $unwind: {
-          path: "$participants.answersToQuestionnaires",
-          preserveNullAndEmptyArrays: true
-        }
-      },
-      {
-        $group: {
-          _id: { questionaireId: "$_id", guid: "$participants.guid" },
-          answeredQuestionnaireIds: {
-            $addToSet: "$participants.answersToQuestionnaires.questionnaireId"
-          },
-          questionnaireName: { $first: "$questionnaireName" }
-        }
-      },
-      {
-        $addFields: {
-          isQuestionAnswered: {
-            $in: [
-              { $toString: "$_id.questionaireId" },
-              "$answeredQuestionnaireIds._id"
-            ]
-          }
-        }
-      },
-      { $match: { isQuestionAnswered: false } },
-      {
-        $group: {
-          _id: "$_id.questionaireId",
-          count: { $sum: 1 },
-          questionnaireName: { $first: "$questionnaireName" }
-        }
-      },
-      {
-        $project: {
-          questionnaire: {
-            _id: "$_id",
-            questionnaireName: "$questionnaireName"
-          },
-          stats: {
-            [questionnaireStatuses.notStarted]: "$count"
-          },
-          _id: 0
-        }
-      }
-    ];
+
     return mongoose
       .model("questionnaires")
-      .aggregate(hackedAggregationPipeline);
+      .aggregate(pipeline);
   };
 
-  const getInProgressAndCompletedQuestionnaries = userId => {
-    let origAggregationPipeline = [
-      {
-        $project: {
-          answersToQuestionnaires: 1,
-          _id: 0
-        }
-      },
-      {
-        $unwind: "$answersToQuestionnaires"
-      },
-      {
-        $group: {
-          _id: {
-            questionnaireId: "$answersToQuestionnaires.questionnaireId",
-            questionnaireStatus: "$answersToQuestionnaires.status"
-          },
-          answersToQuestionnaires: { $first: "$answersToQuestionnaires" },
-          count: {
-            $sum: 1
-          }
-        }
-      },
-      {
-        $lookup: {
-          from: "questionnaires",
-          localField: "_id.questionnaireId",
-          foreignField: "_id",
-          as: "questionnaire"
-        }
-      },
-      {
-        $unwind: "$questionnaire"
-      },
-      {
-        $group: {
-          _id: "$questionnaire._id",
-          questionnaire: { $first: "$questionnaire" },
-          stats: {
-            $push: {
-              count: "$count",
-              status: {
-                $ifNull: ["$answersToQuestionnaires.status", "Completed"]
-              }
-            }
-          }
-        }
-      },
-      {
-        $project: {
-          _id: 0,
-          questionnaire: {
-            _id: "$_id",
-            questionnaireName: "$questionnaire.questionnaireName"
-          },
-          stats: "$stats"
-        }
-      }
-    ];
-    let hackedAggregationPipeline = [
+  const getInProgressAndCompletedQuestionnaires = userId => {
+    const pipeline = [
       {
         $project: {
           answersToQuestionnaires: 1,
@@ -276,14 +128,9 @@ module.exports = function(globalMongoose) {
         }
       },
       {
-        $addFields: {
-          questionnaireObjectId: { $toObjectId: "$_id.questionnaireId" }
-        }
-      },
-      {
         $lookup: {
           from: "questionnaires",
-          localField: "questionnaireObjectId",
+          localField: "_id.questionnaireId",
           foreignField: "_id",
           as: "questionnaire"
         }
@@ -300,7 +147,7 @@ module.exports = function(globalMongoose) {
             $push: {
               count: "$count",
               status: {
-                $ifNull: ["$answersToQuestionnaires.status", "Completed"]
+                $ifNull: ["$answersToQuestionnaires.status", questionnaireStatuses.completed]
               }
             }
           }
@@ -317,9 +164,10 @@ module.exports = function(globalMongoose) {
         }
       }
     ];
+
     return mongoose
       .model("participants")
-      .aggregate(hackedAggregationPipeline)
+      .aggregate(pipeline)
       .then(docs => {
         _.forEach(docs, doc => {
           const newStats = {};
@@ -346,8 +194,8 @@ module.exports = function(globalMongoose) {
 
   const getQuestionnaireProgressChart = userId => {
     return Promise.all([
-      getInProgressAndCompletedQuestionnaries(userId),
-      getNotStartedQuestionnaries(userId)
+      getInProgressAndCompletedQuestionnaires(userId),
+      getNotStartedQuestionnaires(userId)
     ]).then(([inProgressAndCompletedQ, notStartedQ]) => {
       const result = _(inProgressAndCompletedQ)
         .concat(notStartedQ)
@@ -361,7 +209,7 @@ module.exports = function(globalMongoose) {
   };
 
   const getQuestionnaireSpentTimeChart = userId => {
-    let origAggregationPipeline = [
+    const pipeline = [
       {
         $unwind: "$answersToQuestionnaires"
       },
@@ -375,7 +223,7 @@ module.exports = function(globalMongoose) {
       {
         $lookup: {
           from: "questionnaires",
-          localField: "answersToQuestionnaires.questionnaireId",
+          localField: "answersToQuestionnaires.questionnaireId._id",
           foreignField: "_id",
           as: "questionnaire"
         }
@@ -383,6 +231,7 @@ module.exports = function(globalMongoose) {
       {
         $unwind: "$questionnaire"
       },
+      { $match: { "questionnaire.creator": userId } },
       {
         $group: {
           _id: "$answersToQuestionnaires.questionnaireId",
@@ -406,60 +255,7 @@ module.exports = function(globalMongoose) {
         }
       }
     ];
-    let hackedAggregationPipeline = [
-      {
-        $unwind: "$answersToQuestionnaires"
-      },
-      {
-        $match: {
-          "answersToQuestionnaires.spentTime": {
-            $ne: null
-          }
-        }
-      },
-      {
-        $addFields: {
-          questionnaireObjectId: {
-            $toObjectId: "$answersToQuestionnaires.questionnaireId._id"
-          }
-        }
-      },
-      {
-        $lookup: {
-          from: "questionnaires",
-          localField: "questionnaireObjectId",
-          foreignField: "_id",
-          as: "questionnaire"
-        }
-      },
-      {
-        $unwind: "$questionnaire"
-      },
-      { $match: { "questionnaire.creator": userId } },
-      {
-        $group: {
-          _id: "$answersToQuestionnaires.questionnaireId._id",
-          average: { $avg: "$answersToQuestionnaires.spentTime" },
-          questionnaire: { $first: "$questionnaire" }
-        }
-      },
-      {
-        $project: {
-          questionnaire: {
-            _id: "$_id",
-            questionnaireName: "$questionnaire.questionnaireName"
-          },
-          stats: {
-            average: "$average",
-            anticipated: {
-              $ifNull: ["$questionnaire.anticipatedTime", 0]
-            }
-          },
-          _id: 0
-        }
-      }
-    ];
-    return mongoose.model("participants").aggregate(hackedAggregationPipeline);
+    return mongoose.model("participants").aggregate(pipeline);
   };
 
   const getQuestionnaireDayChart = (days = 30, userId) => {
@@ -480,7 +276,7 @@ module.exports = function(globalMongoose) {
     }
 
     const day0 = new Date(0);
-    let origAggregationPipeline = [
+    const pipeline = [
       {
         $unwind: "$answersToQuestionnaires"
       },
@@ -504,59 +300,6 @@ module.exports = function(globalMongoose) {
       {
         $unwind: "$questionnaire"
       },
-      {
-        $group: {
-          _id: {
-            $add: [
-              {
-                $subtract: [
-                  { $subtract: ["$answersToQuestionnaires.endTime", day0] },
-                  {
-                    $mod: [
-                      { $subtract: ["$answersToQuestionnaires.endTime", day0] },
-                      oneDayInSec
-                    ]
-                  }
-                ]
-              },
-              day0
-            ]
-          },
-          count: { $sum: 1 }
-        }
-      }
-    ];
-    let hackedAggregationPipeline = [
-      {
-        $unwind: "$answersToQuestionnaires"
-      },
-      {
-        $match: {
-          // stats only for finished questionnaires
-          $and: [
-            { "answersToQuestionnaires.endTime": { $ne: null } },
-            { "answersToQuestionnaires.endTime": { $gte: rangeStart } }
-          ]
-        }
-      },
-      {
-        $addFields: {
-          questionnaireObjectId: {
-            $toObjectId: "$answersToQuestionnaires.questionnaireId._id"
-          }
-        }
-      },
-      {
-        $lookup: {
-          from: "questionnaires",
-          localField: "questionnaireObjectId",
-          foreignField: "_id",
-          as: "questionnaire"
-        }
-      },
-      {
-        $unwind: "$questionnaire"
-      },
       { $match: { "questionnaire.creator": userId } },
       {
         $group: {
@@ -580,9 +323,10 @@ module.exports = function(globalMongoose) {
         }
       }
     ];
+
     return mongoose
       .model("participants")
-      .aggregate(hackedAggregationPipeline)
+      .aggregate(pipeline)
       .then(doc => {
         _.forEach(doc, stat => {
           results[stat._id.toISOString()] = stat.count;
@@ -590,7 +334,7 @@ module.exports = function(globalMongoose) {
 
         return [
           {
-            name: "Questionnaires by day for last 30 days",
+            name: `Questionnaires by day for last ${days} days`,
             data: results
           }
         ];
@@ -599,7 +343,7 @@ module.exports = function(globalMongoose) {
 
   const getQuestionnairesCount = userId => {
     // TODO: scope to the current user only
-    return mongoose.model("questionnaires").count({ creator: userId });
+    return mongoose.model("questionnaires").countDocuments({ creator: userId });
   };
 
   const getAnswersCount = userId => {
@@ -617,16 +361,9 @@ module.exports = function(globalMongoose) {
           $unwind: "$answersToQuestionnaires"
         },
         {
-          $addFields: {
-            questionnaireObjectId: {
-              $toObjectId: "$answersToQuestionnaires.questionnaireId._id"
-            }
-          }
-        },
-        {
           $lookup: {
             from: "questionnaires",
-            localField: "questionnaireObjectId",
+            localField: "answersToQuestionnaires.questionnaireId._id",
             foreignField: "_id",
             as: "questionnaires"
           }
@@ -647,7 +384,7 @@ module.exports = function(globalMongoose) {
   };
 
   const getParticipantsCount = () => {
-    return mongoose.model("participants").count();
+    return mongoose.model("participants").countDocuments();
   };
 
   m.dashboard = (req, res, next) => {
@@ -682,6 +419,7 @@ module.exports = function(globalMongoose) {
         }
       )
       .catch(err => {
+        console.error(`Unable to get dashboard data`, err.stack);
         res.json({ success: false, data: err.message });
       });
   };

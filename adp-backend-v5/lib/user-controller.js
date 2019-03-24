@@ -8,8 +8,13 @@ const jwt = require('jsonwebtoken');
 const passport = require('passport');
 const { ObjectID } = require('mongodb');
 const _ = require('lodash');
+const ms = require('ms');
+const Promise = require('bluebird');
 
 const User = mongoose.model('users');
+const { InvalidTokenError, ExpiredTokenError, ValidationError, AccessError } = require('./errors');
+
+const TOKEN_EXPIRES_IN = process.env.TOKEN_EXPIRES_IN || '1day';
 
 module.exports = appLib => {
   const { transformers } = appLib;
@@ -172,8 +177,8 @@ module.exports = appLib => {
             id: user._id,
             email: user.email,
           },
-          process.env.JWT_SECRET
-          // {expiresIn: '1d'}, // set expiresIn value to make it expired
+          process.env.JWT_SECRET,
+          { expiresIn: TOKEN_EXPIRES_IN } // set expiresIn value to make it expired
         );
 
         User.findById(user._id, (userErr, existingUser) => {
@@ -199,7 +204,8 @@ module.exports = appLib => {
             id: user._id,
             login: user.login,
           });
-          req.loginData = { success: true, data: { token, user: userData } };
+          const expiresIn = new Date(Date.now() + ms(TOKEN_EXPIRES_IN));
+          req.loginData = { success: true, data: { token, expiresIn, user: userData } };
           next();
         });
       });
@@ -211,7 +217,7 @@ module.exports = appLib => {
     if (loginData.success) {
       return res.json(loginData);
     }
-    return res.json(401, loginData);
+    return res.status(401).json(loginData);
   };
 
   m.logout = (req, res) => {
@@ -260,28 +266,19 @@ module.exports = appLib => {
         req.user = user;
         appLib.accessUtil.setUserPermissions(req, permissions);
       })
-      .catch({ code: 401 }, () => {
+      .catch(InvalidTokenError, ExpiredTokenError, () =>
         // get guest permissions anyway
-        const permissions = appLib.accessUtil.getPermissionsForUser(null, req.device.type);
-        appLib.accessUtil.setUserPermissions(req, permissions);
-      })
+        appLib.accessUtil.getPermissionsForUser(null, req.device.type).then(permissions => {
+          appLib.accessUtil.setUserPermissions(req, permissions);
+        })
+      )
       .then(() => {
         const userPermissions = appLib.accessUtil.getUserPermissions(req);
         if (!userPermissions.has(m.appLib.accessCfg.PERMISSIONS.createUserAccounts)) {
-          throw {
-            code: 'CanNotCreateUserAccounts',
-            success: false,
-            message: `Not authorized to signup`,
-          };
+          throw new AccessError(`Not authorized to signup`);
         }
 
         return transformers.preSaveTransformData('users', userContext, req.body, []);
-      })
-      .catch(err => {
-        throw {
-          code: 'TransformError',
-          message: err.message,
-        };
       })
       .then(() =>
         // check if user already exists
@@ -323,18 +320,18 @@ module.exports = appLib => {
           }),
         });
       })
-      .catch({ code: 'CanNotCreateUserAccounts' }, err => {
-        res.json(403, { success: err.success, message: err.message });
+      .catch(AccessError, err => {
+        res.status(403).json({ success: false, message: err.message });
       })
-      .catch({ code: 'TransformError' }, err => {
-        res.json(400, { success: false, message: err.message });
+      .catch(ValidationError, err => {
+        res.status(400).json({ success: false, message: err.message });
       })
       .catch(err => {
         log.error(err);
         if (err instanceof Error) {
-          return res.json(400, { success: false, message: 'Unable to create user' });
+          return res.status(400).json({ success: false, message: 'Unable to create user' });
         }
-        res.json(400, { success: false, message: err });
+        res.status(400).json({ success: false, message: err });
       });
   };
 
@@ -372,7 +369,7 @@ module.exports = appLib => {
       })
       .catch(err => {
         log.error(err);
-        res.json(400, { success: false, message: `Unable to update user password` });
+        res.status(400).json({ success: false, message: `Unable to update user password` });
       });
   };
 
@@ -401,7 +398,7 @@ module.exports = appLib => {
    return res.redirect('/');
    }
    User
-   .findOne({passwordResetToken: req.params.token})
+   .findOne({passwordResetToken: req.query.token})
    .where('passwordResetExpires').gt(Date.now())
    .exec((err, user) => {
    if (err) {
@@ -437,7 +434,7 @@ module.exports = appLib => {
    async.waterfall([
    function (done) {
    User
-   .findOne({passwordResetToken: req.params.token})
+   .findOne({passwordResetToken: req.query.token})
    .where('passwordResetExpires').gt(Date.now())
    .exec((err, user) => {
    if (err) {

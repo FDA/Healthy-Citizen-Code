@@ -20,7 +20,6 @@
           "where": "{$eq: [true, false]}"
         }
       },
-      // can define that both the technician and the manager can edit records, but scopes defines that technicial can only edit own records
       "actions": {
         "width": 100,
         "responsivePriority": 50,

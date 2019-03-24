@@ -3,7 +3,11 @@ function getGraphqlConfig(graphiQlRoute, graphQlRoute) {
 
   paths[graphiQlRoute] = {
     get: {
-      summary: `Interactive UI that helps you to send GraphQL queries. More: https://github.com/graphql/graphiql`,
+      summary: `Interactive UI that helps you to send GraphQL queries.`,
+      externalDocs: {
+        url: 'https://github.com/graphql/graphiql',
+        description: 'Learn GraphQL here',
+      },
       description: `In left pan press Ctrl+Space for autocomplete your queries.
 In right pan ('Documentation Explorer') you can familiarize yourself with type structures.  
 
@@ -34,13 +38,6 @@ Query example:
   }
 }
 \`\`\`  
-
-By default following mutations can be applied to models:
-- UpsertOne - updates first found item by matched condition. If item does not exist creates it.
-- UpdateOne - updates first found item by matched condition. If item does not exist nothing is changed.
-- DeleteMany - delete many items by matched condition.
-- DeleteOne - delete first item  by matched condition.
-- Create - creates item.
 `,
       tags: ['GraphQL'],
     },

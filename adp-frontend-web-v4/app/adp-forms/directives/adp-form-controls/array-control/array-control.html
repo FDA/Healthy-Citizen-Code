@@ -1,20 +1,21 @@
 <div class="array-form-frame clearfix">
   <ng-form
+    ng-if="display($index)"
     class="array-ng-form-frame clearfix"
     ng-repeat="dataItem in getData() track by $index"
-    name="{{field.keyName + $index}}">
+    name="{{field.keyName}}[{{$index}}]">
 
     <div
       class="subform-frame clearfix"
       ng-class="{
         'subform-frame--is-collapsed': !visibilityStatus[$index],
-        'subform-frame--invalid': rootForm.$submitted && form[field.keyName + $index].$invalid
+        'subform-frame--invalid': rootForm.$submitted && form[field.keyName + '[' + $index + ']'].$invalid
        }"
     >
       <h3
         class="subform-frame__title"
         ng-class="{
-          'subform-frame__title--invalid': rootForm.$submitted && form[field.keyName + $index].$invalid,
+          'subform-frame__title--invalid': rootForm.$submitted && form[field.keyName + '[' + $index + ']'].$invalid,
           'subform-frame__title--opened': visibilityStatus[$index]
          }"
       >
@@ -30,12 +31,12 @@
           >
           </button>
 
-          {{field.fullName}}
+          <span ng-bind-html="getHeader($index)"></span>
 
           <button
             type="button"
             class="subform-frame__remove subform-frame__btn btn fa fa-trash"
-            ng-disabled="getData().length == 1"
+            ng-disabled="isRemoveDisabled()"
             ng-click="remove($event, $index)"
           >
           </button>
@@ -59,10 +60,11 @@
         ng-hide="!visibilityStatus[$index]"
       >
         <array-controls-factory
-          ng-repeat="subField in getFields($index)"
+          ng-repeat="subField in getFields()"
           field="subField"
           form-data="$parent.dataItem"
-          validation-params="childValidationParams"
+          index="$parent.$index"
+          validation-params="nextValidationParams"
         >
         </array-controls-factory>
       </div>
@@ -77,7 +79,7 @@
   <button
     type="button"
     class="btn btn-default"
-    ng-click="add()"
+    ng-click="addArrayItem()"
   >
     Add new "{{field.fullName}}"
   </button>
