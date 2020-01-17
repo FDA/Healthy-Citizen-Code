@@ -32,7 +32,7 @@
     "angular-ui-bootstrap": "^2.5.6",
     "angular-ui-router": "1.0.15",
     "angularjs-bootstrap-datetimepicker": "^1.1.4",
-    "bootstrap": "3.3.7",
+    "bootstrap": "4.4.1",
     "devextreme": "^19.2.4",
     "exceljs": "^3.4.0",
     "fastclick": "~1.0.6",
