@@ -1,0 +1,20 @@
+<div
+  ng-if="uploader.errors.length"
+  class="adp-uploader-errors-box text-left">
+  <h5 class="semi-bold">Some files was removed due to errors:</h5>
+
+  <ol class="adp-uploader-errors note note-error">
+    <li
+      class="error-message"
+      ng-repeat="error in uploader.errors">
+      {{error.file}}: {{error.message}}
+    </li>
+  </ol>
+
+  <button
+    class="btn btn-danger btn-xs"
+    ng-click="hide()"
+    type="button">
+    Hide
+  </button>
+</div>

@@ -2,7 +2,7 @@ const request = require('supertest');
 require('should');
 const reqlib = require('app-root-path').require;
 
-const { prepareEnv, getMongoConnection } = reqlib('test/backend/test-util');
+const { prepareEnv, getMongoConnection } = reqlib('test/test-util');
 
 describe('V5 Backend Dynamic Routes', () => {
   before(function() {
@@ -11,11 +11,11 @@ describe('V5 Backend Dynamic Routes', () => {
     return this.appLib.setup();
   });
 
-  after(function() {
-    return this.appLib
-      .shutdown()
-      .then(() => getMongoConnection())
-      .then(db => db.dropDatabase().then(() => db.close()));
+  after(async function() {
+    await this.appLib.shutdown();
+    const db = await getMongoConnection();
+    await db.dropDatabase();
+    await db.close();
   });
 
   describe('GET /routes', () => {

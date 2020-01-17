@@ -1,252 +1,340 @@
 const _ = require('lodash');
 const log = require('log4js').getLogger('lib/default-conditions-util');
-const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const Promise = require('bluebird');
-const { getUrlParts, MONGO } = require('./backend-util');
-const { ValidationError } = require('./errors');
+const { JSONPath } = require('jsonpath-plus');
+const { MONGO, getDocValueForExpression } = require('./util/util');
+const { buildLookupsFromDocs } = require('./util/lookups');
+const { buildTreeSelectorsFromDocs } = require('./util/treeselectors');
+const { ValidationError, AccessError, LinkedRecordError } = require('./errors');
 
 module.exports = appLib => {
   const m = {};
+  const { getRequestMeta } = appLib.butil;
 
-  /**
-   * Utility method returning all searchable fields in a given collection based on appModel definition
-   * TODO: extract utility method like this one into a separate file?
-   * @param tableName the name of the table to find searchable fields in
-   */
-  m.getSearchableFields = tableName =>
-    _(appLib.appModel.models[tableName].fields)
-      .map((val, key) => (val.searchable ? key : false))
-      .compact()
-      .value();
+  m.getItems = async (context, actionsToPut) => {
+    context.userContext.action = 'view';
+    const { appModel, userContext } = context;
+    await appLib.hooks.preHook(appModel, userContext);
+    const { items, meta } = await m.getElementsWithFilteredFields({ context, actionsToPut });
+    await appLib.hooks.postHook(appModel, userContext);
+    return { items, meta };
+  };
 
-  /**
-   * Utility method returning mongodb-compatible query for full-text search in given fields
-   * @param searchConditions the query to update with the search terms
-   * @param fields the list of fields
-   * @param term the term to search for
-   */
-  m.updateSearchConditions = (searchConditions, fields, term) => {
-    if (!_.isString(term) || !term.length) {
-      return;
+  m.deleteItem = async (context, session) => {
+    context.userContext.action = 'delete';
+    const { appModel, modelName, userContext, model, mongoParams } = context;
+
+    await appLib.hooks.preHook(appModel, userContext);
+    const { items, meta } = await m.getElements({ context });
+    const data = items[0];
+    if (!data) {
+      log.error(`Unable to delete requested element. Meta: ${getRequestMeta(context, meta)}`);
+      throw new AccessError(`Unable to delete requested element`);
     }
-    fields.forEach(field => {
-      const condition = {};
-      /* eslint-disable security/detect-non-literal-regexp */
-      condition[field] = new RegExp(`${term || ''}.*`, 'i');
-      searchConditions.push(condition);
+
+    const deleteInfo = await m.getLinkedRecordsInfoOnDelete(data, modelName, session);
+    const isAllDeletionsValid = deleteInfo.every(info => info.isValidDelete);
+    if (!isAllDeletionsValid) {
+      const message =
+        'ERROR: Unable to delete this record because there are other records referring. ' +
+        'Please update the referring records and remove reference to this record.';
+      throw new LinkedRecordError(message, deleteInfo);
+    }
+    const handleLinkedRecordsOnDeletePromises = Promise.map(deleteInfo, info => info.handleDeletePromise());
+    await Promise.all([
+      appLib.dba.removeItem(model, mongoParams.conditions, session),
+      handleLinkedRecordsOnDeletePromises,
+    ]);
+    await appLib.hooks.postHook(appModel, userContext);
+  };
+
+  m.putItem = async (context, newItem, session) => {
+    await appLib.validation.validateNewItem(context, newItem);
+    const { appModel, modelName, userContext, model, mongoParams, userPermissions } = context;
+    context.userContext.action = 'update';
+    const { action } = context.userContext;
+
+    await appLib.hooks.preHook(appModel, userContext);
+
+    const { items, meta } = await m.getElements({ context });
+    const data = items[0];
+    if (!data) {
+      log.error(`Unable to update requested element. Meta: ${getRequestMeta(context, meta)}`);
+      throw new ValidationError(`Unable to update requested element`);
+    }
+    const newData = appLib.accessUtil.mergeDocs({
+      appModel,
+      dbDoc: data,
+      userData: newItem,
+      action,
+      userPermissions,
     });
-  };
-
-  /**
-   * Parses HTTP query and retrieves parameters like sorting order, search query, skip, limit and other
-   * parameters required by select2, datatables and possibly other components in the future
-   * TODO: reuse this in getLookupTableJson if possible
-   * @param req
-   * @param modelConditions object with field-value pairs
-   * @param actionsToAdd responsible for actions to inject into document.
-   * If true injects additional conditions and projections for every action.
-   * If false does not inject actions at all.
-   * If array injects for actions specified in array.
-   * @returns {*} {err, urlParts, schemaName, model, conditions, projections, order, skip, limit}
-   */
-  m.getQueryParams = (req, actionsToAdd) => {
-    const urlParts = getUrlParts(req);
-    const schemaName = _.get(urlParts, 0);
-    if (!schemaName) {
-      return Promise.resolve({ err: 'No schema name' });
-    }
-    const model = mongoose.model(schemaName);
-    if (!model) {
-      return Promise.resolve({ err: 'Invalid model name' });
-    }
-
-    let mongoConditions = {};
-    const mongoProjections = {};
-    let order = {};
-    const urlPartsLen = urlParts.length;
-    if (urlPartsLen >= 2) {
-      const itemId = urlParts[urlPartsLen - 1];
-      if (!ObjectID.isValid(itemId)) {
-        return Promise.resolve({ err: `Invalid object id: ${itemId}` });
-      }
-      mongoConditions._id = new ObjectID(itemId);
-    }
-
-    const defaultRecordLimit = appLib.appModel.metaschema.limitReturnedRecords.default || 0;
-    const modelLimit = _.get(
-      appLib.appModel,
-      `models.${schemaName}.limitReturnedRecords`,
-      defaultRecordLimit
-    );
-    const limit = Math.min(modelLimit, req.query.length || modelLimit);
-
-    const skip = req.query.start ? parseInt(req.query.start, 10) : 0;
-    if (req.query.order && (req.query.visible_columns || req.query.columns)) {
-      // supporting sorting in datatables format
-      // it's not quite right way singe maps are not ordered, but this is the best we can do based on just order and visible_columns
-      // TODO: refactor schema so that fields are stored in an array, not assoc array
-      let shownColumns;
-      if (req.query.visible_columns) {
-        shownColumns = _(req.query.visible_columns)
-          .map((v, k) => (v === 'true' ? k : null))
-          .compact()
-          .value();
-      } else {
-        // using req.query.columns, format used by angular datatables
-        shownColumns = _.map(req.query.columns, 'data');
-      }
-      if (Array.isArray(req.query.order)) {
-        _.forEach(req.query.order, val => {
-          if (val.column) {
-            order[shownColumns[val.column]] = val.dir === 'asc' ? 1 : -1;
-          } else {
-            return Promise.resolve({
-              err: 'Incorrect order format (should be an array in datatables format)',
-            });
-          }
-        });
-      } else {
-        return Promise.resolve({ err: 'Incorrect order format (should be an array)' });
-      }
-    } else {
-      // TODO: in the future support less weird formats for sorting
-      order = _.get(
-        appLib.appModel,
-        `models.${schemaName}.defaultSortBy`,
-        appLib.appModel.metaschema.defaultSortBy.default
-      );
-    }
-    const searchConditions = [];
-    const searchValue = _.get(req, 'query.search.value');
-    const { q } = req.query;
-    if (searchValue || q) {
-      // search[value] (or q) is supported with or without datatables, just in case
-      const searchableFields = m.getSearchableFields(schemaName);
-      m.updateSearchConditions(searchConditions, searchableFields, searchValue || q);
-    }
-
-    mongoConditions =
-      searchConditions.length > 0
-        ? MONGO.and(mongoConditions, MONGO.or(...searchConditions))
-        : mongoConditions;
-
-    // Set all the fields projections to handle 'validate', 'transform' and 'synthesize' stages
-    for (const path of _.keys(model.schema.paths)) {
-      mongoProjections[path] = 1;
-    }
-
-    // const modelConditionsKeysNum = _.keys(modelConditions).length;
-    // const isEmptyModelConditions = modelConditionsKeysNum === 0;
-    return handleActionsToAdd().then(() => ({
-      urlParts,
-      schemaName,
+    const updatedItem = await appLib.dba.updateItem({
       model,
-      mongoConditions,
-      mongoProjections,
-      // mongoOrder: isEmptyModelConditions ? order : {},
-      // mongoSkip: isEmptyModelConditions ? skip : 0,
-      // mongoLimit: isEmptyModelConditions ? limit : 0,
-      mongoOrder: order,
-      mongoSkip: skip,
-      mongoLimit: limit,
-    }));
+      userContext,
+      mongoConditions: mongoParams.conditions,
+      data: newData,
+      session,
+    });
+    await m.updateLinkedRecords(newData, data, modelName, session);
 
-    function handleActionsToAdd() {
-      const actionPromises = [];
-      if (actionsToAdd) {
-        if (appLib.getAuthSettings().enablePermissions) {
-          const updateMongoConditionsPromise = appLib.accessUtil
-            .getScopeConditionsForModel(req, actionsToAdd)
-            .then(scopeConditions => {
-              mongoConditions = MONGO.and(mongoConditions, scopeConditions);
-            });
-          actionPromises.push(updateMongoConditionsPromise);
-        }
-
-        if (req.action === 'datatables') {
-          // add action projections to document
-          // for example: {_actions: {view: true, update: true, clone: false, 'SOME_CUSTOM_ACTION': true}}
-          const updateActionProjectionsPromise = appLib.accessUtil
-            .getModelActionProjections(req, actionsToAdd)
-            .then(actionProjections => {
-              _.merge(mongoProjections, actionProjections);
-            });
-          actionPromises.push(updateActionProjectionsPromise);
-        }
-      }
-      return Promise.all(actionPromises);
-    }
+    await appLib.hooks.postHook(appModel, userContext);
+    return updatedItem;
   };
 
-  m.getElements = (req, actionsToAdd = false, modelConditions = {}) =>
-    Promise.resolve(m.getQueryParams(req, actionsToAdd))
-      .bind({})
-      .then(params => {
-        if (params.err) {
-          throw params.err;
-        }
-        this.params = params;
+  m.postItem = async (context, newItem, session) => {
+    await appLib.validation.validateNewItem(context, newItem);
+    const { inlineContext, appModel, userContext, model, mongoParams, userPermissions } = context;
+    context.userContext.action = 'create';
+    const { action } = context.userContext;
 
-        if (!_.isEmpty(modelConditions)) {
-          this.params.mongoConditions = MONGO.and(params.mongoConditions, modelConditions);
-        }
-        const userContext = appLib.accessUtil.getUserContext(req);
-        return appLib.dba.getItemsUsingCache({
-          model: params.model,
-          userContext,
-          conditions: params.mongoConditions,
-          projections: params.mongoProjections,
-          sort: params.mongoOrder,
-          skip: params.mongoSkip,
-          limit: params.mongoLimit,
-        });
-      })
-      .catch(err => {
-        throw new Error(`Error occurred during getting data: ${err}`);
-      })
-      .then(items => {
-        const data = this.params.urlParts.length >= 2 ? items[0] : items;
-        if (!data) {
-          throw new Error('Unable to find any data');
-        }
-        return { data, params: this.params };
+    await appLib.hooks.preHook(appModel, userContext);
+    const scopeConditionsMeta = await appLib.accessUtil.getScopeConditionsMeta(
+      appModel,
+      userPermissions,
+      inlineContext,
+      action
+    );
+    const scopeConditions = scopeConditionsMeta.overallConditions;
+    const item = await appLib.controllerUtil.createItemWithCheckAndFilter({
+      action,
+      data: newItem,
+      model,
+      mongoConditions: MONGO.and(mongoParams.conditions, scopeConditions),
+      userPermissions,
+      userContext,
+      session,
+    });
+    await appLib.hooks.postHook(appModel, userContext);
+    return item;
+  };
+
+  m.upsertItem = async (context, newItem, session) => {
+    await appLib.validation.validateNewItem(context, newItem);
+    const {
+      inlineContext,
+      appModelPath,
+      appModel,
+      modelName,
+      userContext,
+      model,
+      mongoParams,
+      userPermissions,
+    } = context;
+    context.userContext.action = 'upsert';
+    const { action } = context.userContext;
+    await appLib.hooks.preHook(appModel, userContext);
+
+    const { items } = await m.getElements({ context, session });
+    const data = items[0];
+    let upsertedItem;
+    if (data) {
+      // update item
+      const newData = appLib.accessUtil.mergeDocs({
+        appModel,
+        dbDoc: data,
+        userData: newItem,
+        action,
+        userPermissions,
       });
+      upsertedItem = await appLib.dba.updateItem({
+        model,
+        userContext,
+        mongoConditions: mongoParams.conditions,
+        data: newData,
+        path: appModelPath,
+        session,
+      });
+      await m.updateLinkedRecords(newData, data, modelName, session);
+    } else {
+      // create item
+      const scopeConditionsMeta = await appLib.accessUtil.getScopeConditionsMeta(
+        appModel,
+        userPermissions,
+        inlineContext,
+        action
+      );
+      const scopeConditions = scopeConditionsMeta.overallConditions;
+      upsertedItem = await appLib.controllerUtil.createItemWithCheckAndFilter({
+        action,
+        data: newItem,
+        model,
+        mongoConditions: MONGO.and(mongoParams.conditions, scopeConditions),
+        userPermissions,
+        userContext,
+        session,
+      });
+    }
 
-  m.createItemWithCheckAndFilter = ({
+    await appLib.hooks.postHook(appModel, userContext);
+    return upsertedItem;
+  };
+
+  m.getElementsCount = async ({
+    context: { action, appModel, userPermissions, inlineContext, model, mongoParams },
+  }) => {
+    const scopeConditionsMeta = await appLib.accessUtil.getScopeConditionsMeta(
+      appModel,
+      userPermissions,
+      inlineContext,
+      action
+    );
+    const scopeConditions = scopeConditionsMeta.overallConditions;
+    const conditions = MONGO.and(mongoParams.conditions, scopeConditions);
+    return appLib.dba.getCountDocuments(model, conditions);
+  };
+
+  m.getElements = async ({
+    context: { appModel, userPermissions, userContext, inlineContext, model, mongoParams },
+    actionsToPut = false,
+  }) => {
+    const { action } = userContext;
+    const [scopeConditionsMeta, actionFuncsMeta] = await Promise.all([
+      appLib.accessUtil.getScopeConditionsMeta(appModel, userPermissions, inlineContext, action),
+      appLib.accessUtil.getActionFuncsMeta(appModel, userPermissions, inlineContext, actionsToPut),
+    ]);
+
+    const modelConditions = mongoParams.conditions;
+    const scopeConditions = scopeConditionsMeta.overallConditions;
+    mongoParams.conditions = MONGO.and(modelConditions, scopeConditions);
+    const items = await appLib.dba.getItemsUsingCache({
+      model,
+      userContext,
+      mongoParams,
+      actionFuncs: actionFuncsMeta.actionFuncs,
+    });
+
+    const meta = {
+      combinedConditions: mongoParams.conditions,
+      modelConditions,
+      scope: scopeConditionsMeta,
+    };
+    if (!_.isEmpty(actionFuncsMeta.actionFuncs)) {
+      meta.actions = actionFuncsMeta.meta;
+    }
+
+    return { items, meta };
+  };
+
+  m.getElementsWithFilteredFields = async ({
+    context: { appModel, userPermissions, userContext, inlineContext, model, mongoParams },
+    actionsToPut = false,
+  }) => {
+    const { items, meta } = await m.getElements({
+      context: { appModel, userPermissions, userContext, inlineContext, model, mongoParams },
+      actionsToPut,
+    });
+    const { action } = userContext;
+    appLib.accessUtil.filterDocFields(appModel, items, action, userPermissions);
+    return { items, meta };
+  };
+
+  m.getTreeSelectorConditions = async (treeSelectorSpec, model, parentLookup) => {
+    if (!parentLookup) {
+      return treeSelectorSpec.roots;
+    }
+
+    // get children condition
+    const { foreignKey, parent: parentSpec } = treeSelectorSpec;
+    const [parentRefKey, fieldContainingRef] = Object.entries(parentSpec)[0];
+
+    if (foreignKey === fieldContainingRef) {
+      // optimization: not necessary to find doc by foreignKey then find value of parent's fieldContainingRef
+      return { [parentRefKey]: parentLookup._id };
+    }
+
+    const parentDoc = await model.findOne({ [foreignKey]: parentLookup._id }, { [fieldContainingRef]: 1 }).lean();
+    return { [parentRefKey]: _.get(parentDoc, fieldContainingRef) };
+  };
+
+  m.getTreeSelectorParentLookup = (foreignKeyVal, treeSelectorSpec) => {
+    // label is not necessary
+    // TODO: transform string mongo id to ObjectID considering type of foreignKey instead of using isValid
+    if (!foreignKeyVal) {
+      return null;
+    }
+
+    return {
+      table: treeSelectorSpec.table,
+      _id: ObjectID.isValid(foreignKeyVal) ? new ObjectID(foreignKeyVal) : foreignKeyVal,
+    };
+  };
+
+  m.getSchemaLookups = async lookupCtx => {
+    const { model, userContext, userPermissions, inlineContext, tableSpec, mongoParams } = lookupCtx;
+    const { limit, skip, sort, conditions } = mongoParams;
+    const lookupWholeConditions = await appLib.accessUtil.getViewConditionsByPermissionsForLookup(
+      userPermissions,
+      inlineContext,
+      tableSpec,
+      conditions
+    );
+    // TODO: support regexps in lookups (check out git history) ?
+    // TODO: call renderer for the label?
+    const docs = await appLib.dba.getItemsUsingCache({
+      model,
+      userContext,
+      mongoParams: {
+        conditions: lookupWholeConditions,
+        sort,
+        skip,
+        limit,
+      },
+    });
+    const lookups = buildLookupsFromDocs(docs, tableSpec);
+
+    return { lookups, more: lookups.length === limit };
+  };
+
+  m.getTreeSelectorLookups = async treeSelectorCtx => {
+    const {
+      model,
+      userContext,
+      userPermissions,
+      inlineContext,
+      tableSpec,
+      mongoParams,
+      foreignKeyVal,
+    } = treeSelectorCtx;
+    const { limit, skip, sort, conditions } = mongoParams;
+    const treeSelectorParentLookup = m.getTreeSelectorParentLookup(foreignKeyVal, tableSpec);
+
+    const [viewCondition, treeSelectorCondition] = await Promise.all([
+      appLib.accessUtil.getViewConditionsByPermissionsForLookup(userPermissions, inlineContext, tableSpec, conditions),
+      m.getTreeSelectorConditions(tableSpec, model, treeSelectorParentLookup),
+    ]);
+    // TODO: support regexps in lookups (check out git history) ?
+    // TODO: call renderer for the label?
+    const docs = await appLib.dba.getItemsUsingCache({
+      model,
+      userContext,
+      mongoParams: {
+        conditions: MONGO.and(viewCondition, treeSelectorCondition),
+        sort,
+        skip,
+        limit,
+      },
+    });
+    const treeSelectors = buildTreeSelectorsFromDocs(docs, tableSpec);
+
+    return { treeSelectors, more: treeSelectors.length === limit };
+  };
+
+  m.createItemWithCheckAndFilter = async ({
     action,
     data,
     model,
     mongoConditions,
     userPermissions,
     userContext,
+    session,
   }) => {
     const { modelName } = model;
-    m.transformLookupKeys(data, modelName);
-
-    return m.checkLookupExistence(data, modelName).then(() => {
-      const appModel = appLib.appModel.models[modelName];
-      const filteredDoc = appLib.accessUtil.filterDocFields(
-        appModel,
-        data,
-        action,
-        userPermissions
-      );
-      return appLib.dba.createItemCheckingConditions(
-        model,
-        mongoConditions,
-        userContext,
-        filteredDoc
-      );
-    });
+    const appModel = appLib.appModel.models[modelName];
+    const filteredDoc = appLib.accessUtil.filterDocFields(appModel, data, action, userPermissions);
+    return appLib.dba.createItemCheckingConditions(model, mongoConditions, userContext, filteredDoc, session);
   };
-  /**
-   * Returns array containing changesPath (not compatible with lodash or appModel since it contains both path and _id for subschema elements)
-   * The resulting path does NOT contain the model name
-   * NOTE: ?params are not removed from the URL, maybe will need to do it later
-   * @param req
-   */
-  m.getAppModelPath = req => req.url.split('/').slice(2);
 
   /**
    * Transforms string representation of lookups to ObjectID.
@@ -256,23 +344,16 @@ module.exports = appLib => {
    */
   m.transformLookupKeys = (item, modelName) => {
     const lookupFieldsMeta = _.get(appLib.lookupFieldsMeta, modelName);
-    _.each(lookupFieldsMeta, (lookupMeta, fieldName) => {
-      const lookupVal = item[fieldName];
-      if (!lookupVal) {
-        return;
-      }
-
-      const isMultiple = _.isArray(lookupVal);
-      if (isMultiple) {
-        _.each(lookupVal, lookupObj => {
-          transformLookupKeysObj(lookupObj);
-        });
-      } else {
-        transformLookupKeysObj(lookupVal);
-      }
+    _.each(lookupFieldsMeta, lookupMeta => {
+      const { jsonPath } = lookupMeta.paths;
+      const lookupVals = JSONPath({ path: jsonPath, json: item });
+      const lookups = _.flatten(lookupVals).filter(l => l);
+      _.each(lookups, lookupObj => {
+        transformLookupKeysObj(lookupObj);
+      });
 
       function transformLookupKeysObj(lookupObj) {
-        const lookupTableMeta = lookupMeta[lookupObj.table];
+        const lookupTableMeta = lookupMeta.table[lookupObj.table];
         if (!lookupTableMeta) {
           return log.warn(
             `No 'table' field found in lookupObj : ${JSON.stringify(
@@ -281,139 +362,119 @@ module.exports = appLib => {
           );
         }
         const id = _.get(lookupObj, '_id');
-        if (_.get(lookupTableMeta, 'foreignKeyType') === 'ObjectID' && !(id instanceof ObjectID)) {
+        const isForeignKeyTypeObjectId = _.get(lookupTableMeta, 'foreignKeyType') === 'ObjectID';
+        if (isForeignKeyTypeObjectId && !(id instanceof ObjectID)) {
           lookupObj._id = new ObjectID(id);
         }
       }
     });
   };
 
-  /**
-   * Checks lookup existence for LookupObjectID. LookupObjectID[], TreeSelector fields inside item.
-   * Throws ValidationError if there are errors.
-   * @param item
-   * @param modelName
-   * @returns {Promise}
-   */
-  m.checkLookupExistence = (item, modelName) => {
-    const lookupFieldsMeta = _.get(appLib.lookupFieldsMeta, modelName);
-    const checkLookupPromises = [];
-    const conditionForActualRecord = appLib.dba.getConditionForActualRecord();
-
-    _.each(lookupFieldsMeta, (lookupMeta, fieldName) => {
-      const lookupVal = item[fieldName];
-      if (!lookupVal) {
-        return;
-      }
-
-      const isMultiple = _.isArray(lookupVal);
-      if (isMultiple) {
-        const promise = Promise.map(lookupVal, lookupObj => {
-          const { table, _id } = lookupObj;
-          const lookupTableMeta = lookupMeta[table];
-          if (!lookupTableMeta) {
-            return `Lookup for collection ${table} does not exist.`;
-          }
-          const condition = MONGO.and(conditionForActualRecord, {
-            [lookupTableMeta.foreignKey]: _id,
-          });
-
-          return appLib.db
-            .collection(table)
-            .findOne(condition)
-            .then(doc => {
-              if (!doc) {
-                return `Lookup with _id '${_id.toString()}' in collection ${table} does not exist.`;
-              }
-            });
-        }).then(errors => {
-          const errMessages = errors.filter(msg => msg);
-          if (errMessages.length) {
-            return { [fieldName]: errMessages };
-          }
-        });
-
-        checkLookupPromises.push(promise);
-      } else {
-        const { table, _id } = lookupVal;
-        const lookupTableMeta = lookupMeta[table];
-        if (!lookupTableMeta) {
-          return checkLookupPromises.push(
-            Promise.resolve({ [fieldName]: `Lookup for collection ${table} does not exist.` })
-          );
-        }
-        const condition = MONGO.and(conditionForActualRecord, {
-          [lookupTableMeta.foreignKey]: _id,
-        });
-
-        const promise = appLib.db
-          .collection(table)
-          .findOne(condition)
-          .then(doc => {
-            if (!doc) {
-              return {
-                [fieldName]: `Lookup with _id '${_id.toString()}' in collection ${table} does not exist.`,
-              };
-            }
-          });
-
-        checkLookupPromises.push(promise);
-      }
-    });
-
-    if (!checkLookupPromises.length) {
-      return Promise.resolve();
-    }
-
-    return Promise.all(checkLookupPromises).then(errors => {
-      const fieldToErrorMap = _.merge(...errors);
-      if (!_.isEmpty(fieldToErrorMap)) {
-        const errorFields = _.keys(fieldToErrorMap).join(', ');
-        throw new ValidationError(
-          `Found non-existing references in fields: ${errorFields}`,
-          fieldToErrorMap
-        );
-      }
-    });
-  };
-
-  m.getUpdateLinkedLabelsPromise = (newItem, oldItem, modelName) => {
-    // check whether label or foreign key fields in item is changed
+  m.updateLinkedRecords = async (newItem, oldItem, modelName, session) => {
+    // check whether label, data or foreign key fields in item is changed
     // if yes - update corresponding docs in other models
-    const promises = [];
-    const labelFieldsMeta = _.get(appLib.labelFieldsMeta, modelName);
-    _.each(labelFieldsMeta, (labelReferences, labelName) => {
-      _.each(labelReferences, labelReference => {
-        const { scheme, path, isMultiple, foreignKey } = labelReference;
+    const updatePromises = [];
+    const actualRecordCond = appLib.dba.getConditionForActualRecord();
 
-        const newItemLabel = _.get(newItem, labelName);
-        const oldItemLabel = _.get(oldItem, labelName);
+    // used for clearing cache for changed linked records
+    const updatedModels = new Set();
+
+    const labelFieldsMeta = _.get(appLib.labelFieldsMeta, modelName);
+    // TODO: improve efficiency by decreasing number of update requests for same records
+    // TODO: one record may be updated multiple times if it has multiple lookups/treeselector linked to same scheme.
+    _.each(labelFieldsMeta, (labelReferences, label) => {
+      _.each(labelReferences, labelReference => {
+        const {
+          scheme,
+          paths: { itemPath, mongoPath, beforeArrPath, afterArrPath },
+          isMultiple,
+          foreignKey,
+          data,
+        } = labelReference;
+
+        const newItemLabel = getDocValueForExpression(newItem, label);
+        const oldItemLabel = getDocValueForExpression(oldItem, label);
         const isLabelChanged = !_.isEqual(newItemLabel, oldItemLabel);
+
+        const newItemData = {};
+        const oldItemData = {};
+        _.each(data, (dataExpr, dataFieldName) => {
+          newItemData[dataFieldName] = getDocValueForExpression(newItem, dataExpr);
+          oldItemData[dataFieldName] = getDocValueForExpression(oldItem, dataExpr);
+        });
+        const isDataChanged = !_.isEqual(newItemData, oldItemData);
 
         const newItemFKey = _.get(newItem, foreignKey);
         const oldItemFKey = _.get(oldItem, foreignKey);
-        const isForeignKeyValChange = !_.isEqual(newItemFKey, oldItemFKey);
+        const isForeignKeyValChanged = !_.isEqual(newItemFKey, oldItemFKey);
 
-        if (isLabelChanged || isForeignKeyValChange) {
+        if (isLabelChanged || isDataChanged || isForeignKeyValChanged) {
+          updatedModels.add(scheme);
           const model = appLib.db.model(scheme);
           let updatePromise;
-          if (isMultiple) {
-            updatePromise = model.update(
-              { [path]: { $elemMatch: { _id: oldItemFKey, table: modelName } } },
-              { $set: { [`${path}.$._id`]: newItemFKey, [`${path}.$.label`]: newItemLabel } }
+
+          const hasArraysInPath = mongoPath.includes('$[]') || isMultiple;
+          // for TreeSelector path to last array is itemPath
+          const pathToArrayWithoutPosOperators = beforeArrPath ? beforeArrPath.replace(/\.\$\[\]/g, '') : itemPath;
+
+          if (!hasArraysInPath) {
+            const update = {
+              [`${itemPath}._id`]: newItemFKey,
+              [`${itemPath}.label`]: newItemLabel,
+            };
+            if (data) {
+              update[`${itemPath}.data`] = newItemData;
+            }
+            updatePromise = model.updateMany(
+              MONGO.and(actualRecordCond, {
+                [`${itemPath}._id`]: oldItemFKey,
+                [`${itemPath}.table`]: modelName,
+              }),
+              { $set: update },
+              { session }
+            );
+          } else if (isMultiple) {
+            const update = {
+              [`${mongoPath}.$[elem]._id`]: newItemFKey,
+              [`${mongoPath}.$[elem].label`]: newItemLabel,
+            };
+            if (data) {
+              update[`${mongoPath}.$[elem].data`] = newItemData;
+            }
+            updatePromise = model.updateMany(
+              MONGO.and({ [pathToArrayWithoutPosOperators]: { $exists: true } }, actualRecordCond),
+              { $set: update },
+              {
+                arrayFilters: [{ 'elem._id': oldItemFKey, 'elem.table': modelName }],
+                session,
+              }
             );
           } else {
-            updatePromise = model.update(
-              { $and: [{ [`${path}._id`]: oldItemFKey }, { [`${path}.table`]: modelName }] },
-              { $set: { [`${path}._id`]: newItemFKey, [`${path}.label`]: newItemLabel } }
+            const itemPathWithElem = `${beforeArrPath}.$[elem].${afterArrPath}`;
+            const elemPath = `elem.${afterArrPath}`;
+            const update = {
+              [`${itemPathWithElem}._id`]: newItemFKey,
+              [`${itemPathWithElem}.label`]: newItemLabel,
+            };
+            if (data) {
+              update[`${itemPathWithElem}.data`] = newItemData;
+            }
+            updatePromise = model.updateMany(
+              MONGO.and({ [pathToArrayWithoutPosOperators]: { $exists: true } }, actualRecordCond),
+              { $set: update },
+              {
+                arrayFilters: [{ [`${elemPath}._id`]: oldItemFKey, [`${elemPath}.table`]: modelName }],
+                session,
+              }
             );
           }
-          promises.push(updatePromise);
+          updatePromises.push(updatePromise);
         }
       });
     });
 
-    return Promise.all(promises);
+    await Promise.all(updatePromises);
+    return Promise.map([...updatedModels], model => appLib.cache.clearCacheForModel(model));
   };
 
   /**
@@ -421,6 +482,7 @@ module.exports = appLib => {
    * References may be of following types: LookupObjectID, LookupObjectID[], TreeSelector
    * @param itemToDelete - item to delete
    * @param lookupTableName - name of collection containing itemToDelete
+   * @param session
    * @returns [{
    *  isValidDelete - specifies whether deletion of linked docs is valid
    *  linkedCollection - collection containing reference(-s) to itemToDelete
@@ -429,48 +491,66 @@ module.exports = appLib => {
    *  deleteFunc - evaluating deleteFunc() deletes all references to itemToDelete from linkedRecords
    * }]
    */
-  m.getLinkedRecordsInfoOnDelete = (itemToDelete, lookupTableName) => {
+  m.getLinkedRecordsInfoOnDelete = (itemToDelete, lookupTableName, session) => {
     const promises = [];
-    const conditionForActualRecord = appLib.dba.getConditionForActualRecord();
+    const actualRecordCond = appLib.dba.getConditionForActualRecord();
 
     const labelFieldsMeta = _.get(appLib.labelFieldsMeta, lookupTableName);
     _.each(labelFieldsMeta, labelReferences => {
       _.each(labelReferences, labelReference => {
-        promises.push(getLabelReferenceInfoPromise(labelReference));
+        promises.push(getLabelReferenceInfoPromise(labelReference, session));
       });
     });
 
     return Promise.all(promises);
 
-    function getHandleDocsPromise(labelReference) {
+    function getHandleDeletePromise(_labelReference, _session) {
       const {
         scheme,
-        path,
+        paths: { jsonPath, itemPath, mongoPath, beforeArrPath, afterArrPath },
         isMultiple,
         foreignKey,
         fieldType,
         requireLeafSelection,
         required,
-      } = labelReference;
+      } = _labelReference;
       const itemFKey = _.get(itemToDelete, foreignKey);
       const linkedModel = appLib.db.model(scheme);
 
       if (isMultiple && fieldType === 'LookupObjectID[]') {
         return docs =>
-          linkedModel.update(
+          linkedModel.updateMany(
             { _id: { $in: docs.map(doc => doc._id) } },
-            { $pull: { [path]: { _id: itemFKey, table: lookupTableName } } }
+            { $pull: { [mongoPath]: { _id: itemFKey, table: lookupTableName } } },
+            { session: _session }
           );
       }
       if (!isMultiple && fieldType === 'LookupObjectID') {
+        if (beforeArrPath) {
+          return docs =>
+            linkedModel.updateMany(
+              { _id: { $in: docs.map(doc => doc._id) } },
+              {
+                $set: {
+                  [beforeArrPath]: {
+                    [`${afterArrPath}._id`]: itemFKey,
+                    [`${afterArrPath}.table`]: lookupTableName,
+                  },
+                },
+              },
+              { session: _session }
+            );
+        }
         return docs =>
-          linkedModel.update(
+          linkedModel.updateMany(
             { _id: { $in: docs.map(doc => doc._id) } },
-            { $set: { [path]: null } }
+            { $set: { [itemPath]: null } },
+            { session: _session }
           );
       }
 
       if (isMultiple && fieldType === 'TreeSelector') {
+        // More info: https://confluence.conceptant.com/display/DEV/Tree+Selector+Control
         const allowedToSelectNodes = !requireLeafSelection;
 
         if (required && !allowedToSelectNodes) {
@@ -481,73 +561,84 @@ module.exports = appLib => {
 
         return docs => {
           Promise.map(docs, doc => {
-            let treeSelectors;
-            if (allowedToSelectNodes) {
-              const deletedLookupIndex = doc[path].findIndex(
-                lookup => lookup.table === lookupTableName && lookup._id === itemFKey
-              );
-              treeSelectors = doc[path].slice(0, deletedLookupIndex);
-            } else {
-              treeSelectors = null;
-            }
+            const changes = {};
+            JSONPath({
+              path: jsonPath,
+              resultType: 'pointer',
+              json: doc,
+              callback(pointer, resType, payload) {
+                let { value: treeSelector } = payload;
+                if (allowedToSelectNodes) {
+                  const deletedLookupIndex = treeSelector.findIndex(
+                    lookup => lookup.table === lookupTableName && lookup._id.toString() === itemFKey.toString()
+                  );
+                  if (deletedLookupIndex !== -1) {
+                    treeSelector.splice(deletedLookupIndex, treeSelector.length);
+                  }
+                } else {
+                  treeSelector = null;
+                }
+                const lodashPath = pointer.substring(1).replace(/\//g, '.');
+                changes[lodashPath] = treeSelector;
+              },
+            });
 
-            return linkedModel.update({ _id: doc._id }, { $set: { [path]: treeSelectors } });
+            return linkedModel.updateOne({ _id: doc._id }, changes, { session: _session });
           });
         };
       }
 
       log.warn(
-        `Unable to find handler while removing item ${JSON.stringify(
-          itemToDelete
-        )} for labelReference ${JSON.stringify(labelReference)}. Resolved as empty handler`
+        `Unable to find handler while removing item ${JSON.stringify(itemToDelete)} for labelReference ${JSON.stringify(
+          _labelReference
+        )}. Resolved as empty handler`
       );
       return () => {};
     }
 
     function getFindLinkedRecordsCondition(_labelReference) {
-      const { path, isMultiple, foreignKey } = _labelReference;
+      const {
+        paths: { itemPath },
+        isMultiple,
+        foreignKey,
+      } = _labelReference;
       const itemFKey = _.get(itemToDelete, foreignKey);
       if (isMultiple) {
-        return MONGO.and(
-          { [path]: { $elemMatch: { _id: itemFKey, table: lookupTableName } } },
-          conditionForActualRecord
-        );
+        return MONGO.and({ [itemPath]: { $elemMatch: { _id: itemFKey, table: lookupTableName } } }, actualRecordCond);
       }
 
-      return MONGO.and(
-        { [`${path}._id`]: itemFKey },
-        { [`${path}.table`]: lookupTableName },
-        conditionForActualRecord
-      );
+      return MONGO.and({ [`${itemPath}._id`]: itemFKey }, { [`${itemPath}.table`]: lookupTableName }, actualRecordCond);
     }
 
-    function getLabelReferenceInfoPromise(_labelReference) {
-      const { scheme, path, fieldType } = _labelReference;
+    async function getLabelReferenceInfoPromise(_labelReference, _session) {
+      const {
+        scheme,
+        paths: { itemPath },
+        fieldType,
+      } = _labelReference;
       const linkedModel = appLib.db.model(scheme);
 
       const findLinkedRecordsCondition = getFindLinkedRecordsCondition(_labelReference);
-      const handleDocsPromise = getHandleDocsPromise(_labelReference);
+      const handleDeletePromise = getHandleDeletePromise(_labelReference, _session);
 
-      const findLinkedRecordsPromise = linkedModel
-        .find(findLinkedRecordsCondition, { _id: 1, [path]: 1 })
+      const docs = await linkedModel
+        .find(findLinkedRecordsCondition)
         .lean()
         .exec();
 
-      return findLinkedRecordsPromise.then(docs => {
-        // condition to allow performing deleteFunc
-        // for now its:
-        // - not allowed to delete docs if there are linked records in LookupObjectID/LookupObjectID[]
-        // - allowed to delete docs referenced in TreeSelector
-        const isValidDelete = fieldType === 'TreeSelector' || docs.length === 0;
+      // condition to allow performing deleteFunc
+      // for now its:
+      // - not allowed to delete docs if there are linked records in LookupObjectID/LookupObjectID[]
+      // - allowed to delete docs referenced in TreeSelector
+      const isValidDelete = fieldType === 'TreeSelector' || docs.length === 0;
 
-        return {
-          isValidDelete,
-          linkedCollection: scheme,
-          linkedLabel: path,
-          linkedRecords: docs.map(doc => ({ _id: doc._id })),
-          handleDeletePromise: () => handleDocsPromise(docs),
-        };
-      });
+      return {
+        isValidDelete,
+        linkedCollection: scheme,
+        linkedLabel: itemPath,
+        linkedRecords: docs.map(doc => ({ _id: doc._id })),
+        handleDeletePromise: () => handleDeletePromise(docs),
+      };
     }
   };
 
@@ -556,10 +647,8 @@ module.exports = appLib => {
    * For every model checks docs with at least one not empty lookup field and updates String _id to Mongo _id
    * This is universal function that can be used in any other prototype
    */
-  m.normalizeLookupObjectIds = () => {
-    const modelPromises = [];
-
-    _.each(appLib.lookupFieldsMeta, (lookup, modelName) => {
+  m.normalizeLookupObjectIds = () =>
+    Promise.map(appLib.lookupFieldsMeta, async (lookup, modelName) => {
       const lookupFields = Object.keys(lookup);
       const allExistsConditions = lookupFields.map(f =>
         MONGO.and({ [f]: { $exists: true } }, { [f]: { $ne: [] } }, { [f]: { $ne: {} } })
@@ -567,22 +656,17 @@ module.exports = appLib => {
       const condition = MONGO.or(...allExistsConditions);
       const model = appLib.db.model(modelName);
 
-      const updateModelDocsPromise = model
+      const docs = await model
         .find(condition)
         .lean()
-        .exec()
-        .then(docs =>
-          // update each doc
-          Promise.map(docs, doc => {
-            appLib.controllerUtil.transformLookupKeys(doc, modelName);
-            return model.update({ _id: doc._id }, doc);
-          })
-        );
-      modelPromises.push(updateModelDocsPromise);
-    });
+        .exec();
 
-    return Promise.all(modelPromises);
-  };
+      // update each doc
+      return Promise.map(docs, doc => {
+        appLib.controllerUtil.transformLookupKeys(doc, modelName);
+        return model.updateOne({ _id: doc._id }, doc);
+      });
+    });
 
   return m;
 };

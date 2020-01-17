@@ -1,0 +1,37 @@
+{
+  "models": {
+    "model12required": {
+      "type": "Schema",
+      "fullName": "model12required",
+      "fields": {
+        "a1": {
+          "type": "Array",
+          "fields": {
+            "s1": {
+              "type": "String"
+            },
+            "a2": {
+              "type": "Array",
+              "required": "this.parentData[this.index].s1 == 'o11' || this.parentData[this.index].s1 == 'o12'",
+              "fields": {
+                "s2": {
+                  "type": "String",
+                  "required": "_.get(this.parentData, `${this.index-1}.s2`) == 'o21' || _.get(this.parentData, `${this.index+1}.s2`) == 'o22'"
+                },
+                "a3": {
+                  "type": "Array",
+                  "required": "_.get(this.row, `a1.${this.indexes[0]}.s1`) == 'o11' && _.get(this.parentData, `${this.index}.s2`) == 'o21'",
+                  "fields": {
+                    "s3": {
+                      "type": "String"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

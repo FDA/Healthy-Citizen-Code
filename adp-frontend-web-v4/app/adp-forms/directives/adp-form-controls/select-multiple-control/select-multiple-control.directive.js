@@ -33,7 +33,7 @@
           }
         };
 
-        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams.formParams);
 
         // HACK
         $timeout(function () {

@@ -5,7 +5,7 @@
     .module('app.adpForms')
     .directive('adpFormFieldArray', adpFormFieldArray);
 
-  function adpFormFieldArray() {
+  function adpFormFieldArray(visibilityUtils) {
     return {
       restrict: 'E',
       scope: {
@@ -14,7 +14,16 @@
         adpFieldUiProps: '=',
         validationParams: '='
       },
-      templateUrl: 'app/adp-forms/directives/adp-form-fields/adp-form-field-array/adp-form-field-array.html'
+      templateUrl: 'app/adp-forms/directives/adp-form-fields/adp-form-field-array/adp-form-field-array.html',
+      link: function (scope) {
+        function getData() {
+          return scope.adpFormData[scope.adpField.keyName];
+        }
+
+        scope.hasVisibleItems = function () {
+          return visibilityUtils.arrayHasVisibleChild(getData(), scope.validationParams);
+        };
+      }
     }
   }
 })();

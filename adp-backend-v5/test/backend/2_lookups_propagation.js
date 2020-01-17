@@ -8,17 +8,39 @@ const { ObjectID } = require('mongodb');
 
 const reqlib = require('app-root-path').require;
 
-const { getMongoConnection, setAppAuthOptions, prepareEnv } = reqlib('test/backend/test-util');
+const {
+  getMongoConnection,
+  setAppAuthOptions,
+  prepareEnv,
+  checkRestSuccessfulResponse,
+  conditionForActualRecord,
+} = reqlib('test/test-util');
+const {
+  buildGraphQlUpdateOne,
+  buildGraphQlDeleteOne,
+  checkGraphQlSuccessfulResponse,
+  checkGraphQlErrorResponse,
+} = reqlib('test/graphql-util.js');
 
 describe('V5 Backend Lookups', () => {
   const model4sSamples = [
-    { _id: new ObjectID('587179f6ef4807703afd0df0'), name: 'name11', anotherName: 'anotherName11' },
-    { _id: new ObjectID('587179f6ef4807703afd0df1'), name: 'name12', anotherName: 'anotherName12' },
+    {
+      _id: new ObjectID('587179f6ef4807703afd0df0'),
+      name: 'name11',
+      anotherName: 'anotherName11',
+      ...conditionForActualRecord,
+    },
+    {
+      _id: new ObjectID('587179f6ef4807703afd0df1'),
+      name: 'name12',
+      anotherName: 'anotherName12',
+      ...conditionForActualRecord,
+    },
   ];
 
   const model4s2Samples = [
-    { _id: new ObjectID('687179f6ef4807703afd0df0'), name: 'name21' },
-    { _id: new ObjectID('687179f6ef4807703afd0df1'), name: 'name22' },
+    { _id: new ObjectID('687179f6ef4807703afd0df0'), name: 'name21', ...conditionForActualRecord },
+    { _id: new ObjectID('687179f6ef4807703afd0df1'), name: 'name22', ...conditionForActualRecord },
   ];
 
   const model3PropagationSample = {
@@ -60,127 +82,130 @@ describe('V5 Backend Lookups', () => {
         _id: model4s2Samples[1]._id,
       },
     ],
+    ...conditionForActualRecord,
   };
 
-  before(function() {
+  before(async function() {
     prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return getMongoConnection().then(db => {
-      this.db = db;
+    const db = await getMongoConnection();
+    this.db = db;
+  });
+
+  after(async function() {
+    await this.db.dropDatabase();
+    await this.db.close();
+  });
+
+  beforeEach(async function() {
+    await Promise.all([
+      this.db.collection('lookup_test_model1').deleteMany({}),
+      this.db.collection('lookup_test_model2').deleteMany({}),
+      this.db.collection('model3_propagation').deleteMany({}),
+      this.db.collection('mongoMigrateChangeLog').deleteMany({}),
+    ]);
+    await Promise.all([
+      this.db.collection('lookup_test_model1').insertMany(model4sSamples),
+      this.db.collection('lookup_test_model2').insertMany(model4s2Samples),
+      this.db.collection('model3_propagation').insertOne(model3PropagationSample),
+    ]);
+    setAppAuthOptions(this.appLib, {
+      requireAuthentication: false,
     });
-  });
-
-  after(function() {
-    return this.db.dropDatabase().then(() => this.db.close());
-  });
-
-  beforeEach(function() {
-    return Promise.all([
-      this.db.collection('lookup_test_model1').remove({}),
-      this.db.collection('lookup_test_model2').remove({}),
-      this.db.collection('model3_propagation').remove({}),
-      this.db.collection('mongoMigrateChangeLog').remove({}),
-    ]).then(() =>
-      Promise.all([
-        this.db.collection('lookup_test_model1').insert(model4sSamples),
-        this.db.collection('lookup_test_model2').insert(model4s2Samples),
-        this.db.collection('model3_propagation').insert(model3PropagationSample),
-      ])
-    );
+    return this.appLib.setup();
   });
 
   afterEach(function() {
     return this.appLib.shutdown();
   });
 
+  const lookupDocId = model4sSamples[0]._id.toString();
+  const propagationDocId = model3PropagationSample._id.toString();
+  const lookupModelName = 'lookup_test_model1';
+  const propagationModelName = 'model3_propagation';
+
   describe('backpropogation', () => {
-    it('should update label in single and multiple lookups when original record is changed', function() {
-      setAppAuthOptions(this.appLib, {
-        requireAuthentication: false,
-      });
+    describe('should update label in single and multiple lookups when original record is changed', () => {
+      const getTestFunc = function(settings) {
+        return f;
 
-      return this.appLib
-        .setup()
-        .then(() =>
-          request(this.appLib.app)
-            .put('/lookup_test_model1/587179f6ef4807703afd0df0')
-            .send({ data: { name: 'new_name', anotherName: 'new_anotherName' } })
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-        )
-        .then(res => {
-          res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
-          res.body.success.should.equal(true, res.body.message);
+        async function f() {
+          const { makeRequest, checkResponse, checkLookupPropagation } = settings;
+          const req = makeRequest(request(this.appLib.app));
 
-          return request(this.appLib.app)
-            .get('/model3_propagation/487179f6ef4807703afd0df0')
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/);
-        })
-        .then(res => {
-          res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
-          res.body.success.should.equal(true, res.body.message);
+          const res = await req.set('Accept', 'application/json').expect('Content-Type', /json/);
+          checkResponse(res);
+          return checkLookupPropagation(this.db);
+        }
+      };
 
-          // changed label only for one lookup, rest stay the same
-          should(res.body.data).be.deepEqual({
-            _id: '487179f6ef4807703afd0df0',
-            model4sSingleLookupName: {
-              table: 'lookup_test_model1',
+      const putRecord = { name: 'new_name', anotherName: 'new_anotherName' };
+      const checkLookupPropagation = async db => {
+        const doc = await db.collection(propagationModelName).findOne({ _id: ObjectID(propagationDocId) });
+
+        // changed label only for one lookup record, the rest stays the same
+        should(doc).be.deepEqual({
+          _id: ObjectID(propagationDocId),
+          ...conditionForActualRecord,
+          model4sSingleLookupName: {
+            ...model3PropagationSample.model4sSingleLookupName,
+            label: 'new_name',
+          },
+          model4sSingleLookupAnotherName: {
+            ...model3PropagationSample.model4sSingleLookupAnotherName,
+            label: 'new_anotherName',
+          },
+          model4s2SingleLookup: model3PropagationSample.model4s2SingleLookup,
+          model4MultipleLookup: [
+            {
+              ...model3PropagationSample.model4MultipleLookup[0],
               label: 'new_name',
-              _id: '587179f6ef4807703afd0df0',
             },
-            model4sSingleLookupAnotherName: {
-              table: 'lookup_test_model1',
-              label: 'new_anotherName',
-              _id: '587179f6ef4807703afd0df0',
-            },
-            model4s2SingleLookup: {
-              table: 'lookup_test_model2',
-              label: 'name21',
-              _id: '687179f6ef4807703afd0df0',
-            },
-            model4MultipleLookup: [
-              {
-                table: 'lookup_test_model1',
-                label: 'new_name',
-                _id: '587179f6ef4807703afd0df0',
-              },
-              {
-                table: 'lookup_test_model1',
-                label: 'name12',
-                _id: '587179f6ef4807703afd0df1',
-              },
-              {
-                table: 'lookup_test_model2',
-                label: 'name21',
-                _id: '687179f6ef4807703afd0df0',
-              },
-              {
-                table: 'lookup_test_model2',
-                label: 'name22',
-                _id: '687179f6ef4807703afd0df1',
-              },
-            ],
-          });
+            ...model3PropagationSample.model4MultipleLookup.slice(1, 4),
+          ],
         });
+      };
+
+      const restSettings = {
+        makeRequest: r => r.put(`/${lookupModelName}/${lookupDocId}`).send({ data: putRecord }),
+        checkResponse: checkRestSuccessfulResponse,
+        checkLookupPropagation,
+      };
+      const graphqlSettings = {
+        makeRequest: r => r.post('/graphql').send(buildGraphQlUpdateOne(lookupModelName, putRecord, lookupDocId)),
+        checkResponse: checkGraphQlSuccessfulResponse,
+        checkLookupPropagation,
+      };
+
+      it(
+        `REST: should update label in single and multiple lookups when original record is changed`,
+        getTestFunc(restSettings)
+      );
+      it(
+        `GraphQL: should update label in single and multiple lookups when original record is changed`,
+        getTestFunc(graphqlSettings)
+      );
     });
 
-    it('should not allow to delete original record if there are lookups referenced this record', function() {
-      setAppAuthOptions(this.appLib, {
-        requireAuthentication: false,
-      });
+    describe('should not allow to delete original record if there are lookups referenced this record', () => {
+      const getTestFunc = function(settings) {
+        return f;
 
-      return this.appLib
-        .setup()
-        .then(() =>
-          request(this.appLib.app)
-            .del(`/lookup_test_model1/${model4sSamples[0]._id}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-        )
-        .then(res => {
-          res.statusCode.should.equal(400);
-          res.body.success.should.equal(false);
+        async function f() {
+          const { makeRequest, checkResponse } = settings;
+          const req = makeRequest(request(this.appLib.app));
+          if (this.token) {
+            req.set('Authorization', `JWT ${this.token}`);
+          }
+
+          const res = await req.set('Accept', 'application/json').expect('Content-Type', /json/);
+          checkResponse(res);
+        }
+      };
+
+      const restSettings = {
+        makeRequest: r => r.del(`/${lookupModelName}/${lookupDocId}`),
+        checkResponse: res => {
           res.body.message.should.equal(
             'ERROR: Unable to delete this record because there are other records referring. Please update the referring records and remove reference to this record.'
           );
@@ -201,73 +226,111 @@ describe('V5 Backend Lookups', () => {
               linkedRecords: [{ _id: '487179f6ef4807703afd0df0' }],
             },
           ]);
-        });
+        },
+      };
+      const graphqlSettings = {
+        makeRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(lookupModelName, lookupDocId)),
+        checkResponse: checkGraphQlErrorResponse,
+      };
+
+      it(
+        `REST: should not allow to delete original record if there are lookups referenced this record`,
+        getTestFunc(restSettings)
+      );
+      it(
+        `GraphQL: should not allow to delete original record if there are lookups referenced this record`,
+        getTestFunc(graphqlSettings)
+      );
     });
 
-    it('should allow to delete original record if lookups referenced this record are removed (using update)', function() {
-      setAppAuthOptions(this.appLib, {
-        requireAuthentication: false,
-      });
+    describe('should allow to delete original record if lookups referenced this record are removed (using update)', () => {
+      const getTestFunc = function(settings) {
+        return f;
 
-      return this.appLib
-        .setup()
-        .then(() =>
-          request(this.appLib.app)
-            .put(`/model3_propagation/${model3PropagationSample._id}`)
-            .send({
-              data: {
-                model4sSingleLookupAnotherName: null,
-                model4sSingleLookupName: null,
-                model4s2SingleLookup: model3PropagationSample.model4s2SingleLookup,
-                model4MultipleLookup: model3PropagationSample.model4MultipleLookup.slice(2),
-              },
-            })
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-        )
-        .then(res => {
-          res.statusCode.should.equal(200);
-          res.body.success.should.equal(true);
+        async function f() {
+          const { putRequest, checkPutResponse, delRequest, checkDelResponse } = settings;
 
-          // try to delete lookup_test_model1 again after clearing all references to that record
-          return request(this.appLib.app)
-            .del(`/lookup_test_model1/${model4sSamples[0]._id}`)
+          const putRes = await putRequest(request(this.appLib.app))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
-        })
-        .then(res => {
-          res.statusCode.should.equal(200);
-          res.body.success.should.equal(true);
-        });
+          checkPutResponse(putRes);
+          const delRes = await delRequest(request(this.appLib.app))
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/);
+          checkDelResponse(delRes);
+        }
+      };
+
+      const putRecord = {
+        model4sSingleLookupAnotherName: null,
+        model4sSingleLookupName: null,
+        model4s2SingleLookup: model3PropagationSample.model4s2SingleLookup,
+        model4MultipleLookup: model3PropagationSample.model4MultipleLookup.slice(2),
+      };
+
+      const restSettings = {
+        putRequest: r => r.put(`/${propagationModelName}/${propagationDocId}`).send({ data: putRecord }),
+        checkPutResponse: checkRestSuccessfulResponse,
+        delRequest: r => r.del(`/${lookupModelName}/${lookupDocId}`),
+        checkDelResponse: checkRestSuccessfulResponse,
+      };
+      const graphqlSettings = {
+        putRequest: r =>
+          r.post('/graphql').send(buildGraphQlUpdateOne(propagationModelName, putRecord, propagationDocId)),
+        checkPutResponse: checkGraphQlSuccessfulResponse,
+        delRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(lookupModelName, lookupDocId)),
+        checkDelResponse: checkGraphQlSuccessfulResponse,
+      };
+
+      it(
+        `REST: should allow to delete original record if lookups referenced this record are removed (using update)`,
+        getTestFunc(restSettings)
+      );
+      it(
+        `GraphQL: should allow to delete original record if lookups referenced this record are removed (using update)`,
+        getTestFunc(graphqlSettings)
+      );
     });
 
-    it('should allow to delete original record if lookups referenced this record are removed (using delete)', function() {
-      setAppAuthOptions(this.appLib, {
-        requireAuthentication: false,
-      });
+    describe('should allow to delete original record if lookups referenced this record are removed (using delete)', () => {
+      const getTestFunc = function(settings) {
+        return f;
 
-      return this.appLib
-        .setup()
-        .then(() =>
-          request(this.appLib.app)
-            .del(`/model3_propagation/${model3PropagationSample._id}`)
-            .set('Accept', 'application/json')
-            .expect('Content-Type', /json/)
-        )
-        .then(res => {
-          res.statusCode.should.equal(200);
-          res.body.success.should.equal(true);
+        async function f() {
+          const { delDocRequest, checkDelDocResponse, delLookupRequest, checkDelLookupResponse } = settings;
 
-          // try to delete lookup_test_model1 again after clearing all references to that record
-          return request(this.appLib.app)
-            .del(`/lookup_test_model1/${model4sSamples[0]._id}`)
+          const delRes = await delDocRequest(request(this.appLib.app))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
-        })
-        .then(res => {
-          res.statusCode.should.equal(200);
-          res.body.success.should.equal(true);
-        });
+          checkDelDocResponse(delRes);
+          const delLookupRes = await delLookupRequest(request(this.appLib.app))
+            .set('Accept', 'application/json')
+            .expect('Content-Type', /json/);
+          checkDelLookupResponse(delLookupRes);
+        }
+      };
+
+      const restSettings = {
+        delDocRequest: r => r.del(`/${propagationModelName}/${propagationDocId}`),
+        checkDelDocResponse: checkRestSuccessfulResponse,
+        delLookupRequest: r => r.del(`/${lookupModelName}/${lookupDocId}`),
+        checkDelLookupResponse: checkRestSuccessfulResponse,
+      };
+      const graphqlSettings = {
+        delDocRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(propagationModelName, propagationDocId)),
+        checkDelDocResponse: checkGraphQlSuccessfulResponse,
+        delLookupRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(lookupModelName, lookupDocId)),
+        checkDelLookupResponse: checkGraphQlSuccessfulResponse,
+      };
+
+      it(
+        `REST: should allow to delete original record if lookups referenced this record are removed (using delete)`,
+        getTestFunc(restSettings)
+      );
+      it(
+        `GraphQL: should allow to delete original record if lookups referenced this record are removed (using delete)`,
+        getTestFunc(graphqlSettings)
+      );
     });
   });
 });

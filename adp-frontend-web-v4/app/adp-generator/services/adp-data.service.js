@@ -41,11 +41,11 @@
         })
         .catch(function (err) {
           if (err.status === -1) {
+            console.warn('Data for fetch ' + params.fieldName + ' failed. Falling back to cache', err);
+            return appDb.schema.get(params.fieldName);
+
             return;
           }
-
-          console.warn('Data for fetch ' + params.fieldName + ' failed. Falling back to cache', err);
-          return appDb.schema.get(params.fieldName)
         });
     }
 
@@ -54,8 +54,8 @@
 
       return $http.get(getUrl)
         .then(function (response) {
-          response.data.data = _.isArray(response.data.data) ? response.data.data[0] : response.data.data;
-          return response.data.data || {};
+          var data = _.isArray(response.data.data) ? response.data.data[0] : response.data.data;
+          return data || {};
         })
         .then(function (data) {
           return appDb.schema.set(params.fieldName, data)

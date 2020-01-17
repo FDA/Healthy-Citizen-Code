@@ -1,10 +1,10 @@
-import $ from '../../lib/dom';
+import $ from '../../lib/utils/dom';
 // TODO: make it single tpl
 import tpl from './table.hbs';
 import tplBody from './partials/tbody.hbs';
 import tplGroupRow from './partials/group-rows.hbs';
 
-import {updateIframeHeight} from '../../lib/utils';
+import {updateIframeHeight} from '../../lib/utils/utils';
 import classNames from 'classnames';
 
 const SORT = {
@@ -32,7 +32,8 @@ export default class Table {
     hasGrouping = false,
     accordion = false,
     hideCols = 0,
-    print = false
+    print = false,
+    tableClass = null
   }) {
     this.data = data;
     this.heads = heads;
@@ -46,8 +47,7 @@ export default class Table {
     let config = {
       rowLength: rowLength,
       rowEnd: heads.length,
-      cellWidth: `width: ${ 100 / rowLength }%`,
-      tableClass: classNames('table', 'table-sortable', { 'table-accordion': accordion}),
+      tableClass: classNames('table', 'table-sortable', tableClass, { 'table-accordion': accordion }),
       accordion,
       hasGrouping,
       groupTitle,
@@ -61,7 +61,7 @@ export default class Table {
     this.$tableEl = $(tpl(this.tableOpts));
     this.tableEl = this.$tableEl.get(0);
 
-    this.setHeadClass();
+    this.changeHeadClass();
 
     this.bindEvents();
   }
@@ -99,14 +99,13 @@ export default class Table {
     if (this.sorted === index) {
       this.toggleOrder();
     } else {
-      this.tableEl.querySelectorAll('th')[this.sorted].className = '';
       this.sorted = index;
       this.order = SORT.ASC;
     }
 
     this.sort();
     this.redraw();
-    this.setHeadClass();
+    this.changeHeadClass();
   }
 
   initialSortIndex(sortBy) {
@@ -135,7 +134,7 @@ export default class Table {
   sortList(data) {
     let sortKey = this.heads[this.sorted];
     let list = data || this.data;
-    let type = list[0][sortKey].type;
+    let type = list[0][sortKey].data;
 
     list.sort((a, b) => {
       let aValue = convertType(a[sortKey], type),
@@ -177,7 +176,7 @@ export default class Table {
   }
 
   toggleGroup(e) {
-    const activeGroup = this.tableEl.querySelector('.group-body.is-opened');
+    const activeGroup = this.tableEl.querySelector('.group-body:not(.is-hidden)');
     const activeBtn = this.tableEl.querySelector('.accordion-control.group.is-active');
 
     const targetGroupIndex = $(e.target).closest('tbody').get(0).dataset.index;
@@ -186,14 +185,14 @@ export default class Table {
 
     if (activeGroup) {
       if (activeGroup !== targetGroup) {
-        targetGroup.classList.add('is-opened');
+        targetGroup.classList.remove('is-hidden');
         targetBtn.classList.add('is-active');
       }
 
-      activeGroup.classList.remove('is-opened');
+      activeGroup.classList.add('is-hidden');
       activeBtn.classList.remove('is-active');
     } else {
-      targetGroup.classList.add('is-opened');
+      targetGroup.classList.remove('is-hidden');
       targetBtn.classList.add('is-active');
     }
 
@@ -219,9 +218,11 @@ export default class Table {
     }
   }
 
-  setHeadClass() {
+  changeHeadClass() {
     const head = this.tableEl.querySelectorAll('th')[this.sorted];
-    head.className = 'sorted_' + this.order;
+
+    head.classList.remove('sorted_asc', 'sorted_desc');
+    head.classList.add('sorted_' + this.order);
   }
 
   // TODO: move to options

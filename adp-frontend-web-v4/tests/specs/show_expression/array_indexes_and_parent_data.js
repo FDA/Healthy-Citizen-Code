@@ -17,7 +17,7 @@ const {
     clickSubmit
   },
   interceptor: {
-    getRecordIdFromCreateResponse
+    getResponseForCreatedRecord
   }
 } = require('../../utils');
 
@@ -151,7 +151,7 @@ describe('show expression', () => {
         await this.page.waitForSelector(s3);
 
         await clickSubmit(this.page);
-        const id = await getRecordIdFromCreateResponse('helperMethods_showArraysWithIndexes', this.page);
+        const { id } = await getResponseForCreatedRecord('helperMethods_showArraysWithIndexes', this.page);
         await clickEditButton(id, this.page);
 
         const expectedSnapshot1 = {

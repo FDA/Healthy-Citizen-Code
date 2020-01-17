@@ -32,7 +32,7 @@ const uniqResEventNumber = _.uniq(recalls.map(r => r.res_event_number));
 // const combo4 = traverse(recalls,r => r.res_event_number + r.product_code + r.firm_fei_number + r.product_res_number + r.event_date_terminated);
 // const combo5 = traverse(recalls, r => r.res_event_number + r.product_code + r.firm_fei_number + r.product_res_number + r.event_date_terminated + r.k_numbers);
 // const combo6 = traverse(recalls, r => r.res_event_number + r.product_code + r.firm_fei_number + r.product_res_number + r.event_date_terminated + r.k_numbers + r.root_cause_description);
-const combo7 = traverse(recalls, r => r.res_event_number + r.product_code + r.firm_fei_number + r.product_res_number + r.event_date_terminated + r.k_numbers + r.root_cause_description + r.other_submission_description);
+const combo7 = traverse(recalls, r => r.res_event_number + r.product_code + r.firm_fei_number + r.product_res_number + r.event_date_terminated + r.kNumbers + r.root_cause_description + r.other_submission_description);
 // const sha1 = traverse(recalls,r => objectHash.sha1(r));
 
 console.log(uniqResEventNumber.length);

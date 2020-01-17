@@ -1,0 +1,85 @@
+{
+  "env": {
+    "es6": true,
+    "node": true,
+    "jest": true,
+    "jest/globals": true
+  },
+  "globals": {
+    "page": true,
+    "browser": true,
+    "context": true,
+    "jestPuppeteer": true
+  },
+  "plugins": ["jest", "promise"],
+  "extends": ["airbnb-base", "plugin:jest/recommended", "prettier"],
+  "parserOptions": {
+    "ecmaVersion": 2018
+  },
+  "rules": {
+    // "semi": ["error", "never"],
+    // "strict": 0,
+    "no-console": 0,
+    // "new-cap": 0,
+    "no-param-reassign": 0,
+    // "camelcase": 0,
+    "no-underscore-dangle": 0,
+    "no-plusplus": 0,
+    "no-dynamic-require": 0,
+    "comma-dangle": ["error", "always-multiline"],
+    "object-curly-newline": ["error", { "consistent": true }],
+    "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 2 }],
+    // allow use functions before its declaration
+    "no-use-before-define": ["error", { "functions": false, "classes": true }],
+    // allow for.. of
+    "no-restricted-syntax": [
+      "error",
+      // needed for functions with context
+      //"FunctionExpression",
+      "WithStatement",
+      "BinaryExpression[operator='in']"
+    ],
+    // allow new Function
+    "no-new-func": 0,
+    "global-require": 0,
+    "import/no-dynamic-require": 0,
+    // resolve promise on 'close' event requires return
+    "consistent-return": 0,
+    // throw object for bluebird to catch like this: catch({code: 401}..)
+    "no-throw-literal": 0,
+    // to allow expressions like 'a && b()' or 'a ? b : c()'
+    "no-unused-expressions": ["error", { "allowShortCircuit": true, "allowTernary": true }],
+    // name function only in case its a recursive function
+    "func-names": ["error", "never"],
+
+    // Promise config
+    // blubird catch can receive 2 params
+    "promise/valid-params": "off",
+    "promise/always-return": "off",
+    "promise/no-return-wrap": "error",
+    "promise/param-names": "error",
+    "promise/catch-or-return": "error",
+    "promise/no-native": "off",
+    "promise/no-nesting": "warn",
+    "promise/no-promise-in-callback": "warn",
+    "promise/no-callback-in-promise": ["warn", { "exceptions": ["next"] }],
+    "promise/avoid-new": "warn",
+    "promise/no-new-statics": "error",
+    "promise/no-return-in-finally": "warn",
+
+    // Security config
+    "security/detect-buffer-noassert": "warn",
+    "security/detect-child-process": "warn",
+    "security/detect-disable-mustache-escape": "warn",
+    "security/detect-eval-with-expression": "warn",
+    "security/detect-new-buffer": "warn",
+    "security/detect-no-csrf-before-method-override": "warn",
+    "security/detect-non-literal-fs-filename": 0,
+    "security/detect-non-literal-regexp": "warn",
+    "security/detect-non-literal-require": 0,
+    "security/detect-object-injection": 0,
+    "security/detect-possible-timing-attacks": "warn",
+    "security/detect-pseudoRandomBytes": "warn",
+    "security/detect-unsafe-regex": "warn"
+  }
+}

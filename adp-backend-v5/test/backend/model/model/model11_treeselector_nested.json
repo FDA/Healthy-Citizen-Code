@@ -1,0 +1,223 @@
+{
+  "models": {
+    "model11treeselector_nested": {
+      "type": "Schema",
+      "fullName": "model11treeselector_nested",
+      "limitReturnedRecords": 1,
+      "fields": {
+        "nested": {
+          "type": "Object",
+          "fields": {
+            "treeSelector": {
+              "type": "TreeSelector",
+              "table": {
+                "treeCollection": {
+                  "foreignKey": "_id",
+                  "label": "name",
+                  "data": {
+                    "info": "this.name + '-' + this.hasChildren"
+                  },
+                  "parent": {
+                    "parent._id": "_id"
+                  },
+                  "roots": {
+                    "parent._id": {
+                      "$exists": false
+                    }
+                  },
+                  "leaves": "!this.hasChildren",
+                  "requireLeafSelection": true,
+                  "scopes": {
+                    "superAdminScope": {
+                      "permissions": {
+                        "view": "accessAsGuest"
+                      },
+                      "where": "true"
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "model11treeselector_nested_propagation": {
+      "type": "Schema",
+      "fullName": "model11treeselector_nested_propagation",
+      "limitReturnedRecords": 1,
+      "fields": {
+        "nested": {
+          "type": "Object",
+          "fields": {
+            "array1": {
+              "type": "Array",
+              "fields": {
+                "array2": {
+                  "type": "Array",
+                  "fields": {
+                    "treeSelectorRequiredAllowedNode": {
+                      "type": "TreeSelector",
+                      "required": true,
+                      "table": {
+                        "treeCollection": {
+                          "foreignKey": "_id",
+                          "label": "name",
+                          "data": {
+                            "info": "this.name + '-' + this.hasChildren"
+                          },
+                          "parent": {
+                            "parent._id": "_id"
+                          },
+                          "roots": {
+                            "parent._id": {
+                              "$exists": false
+                            }
+                          },
+                          "leaves": "!this.hasChildren",
+                          "requireLeafSelection": false,
+                          "scopes": {
+                            "superAdminScope": {
+                              "permissions": {
+                                "view": "accessAsGuest"
+                              },
+                              "where": "true"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "treeSelectorRequiredNotAllowedNode": {
+                      "type": "TreeSelector",
+                      "required": true,
+                      "table": {
+                        "treeCollection": {
+                          "foreignKey": "_id",
+                          "label": "name",
+                          "data": {
+                            "info": "this.name + '-' + this.hasChildren"
+                          },
+                          "parent": {
+                            "parent._id": "_id"
+                          },
+                          "roots": {
+                            "parent._id": {
+                              "$exists": false
+                            }
+                          },
+                          "leaves": "!this.hasChildren",
+                          "requireLeafSelection": true,
+                          "scopes": {
+                            "superAdminScope": {
+                              "permissions": {
+                                "view": "accessAsGuest"
+                              },
+                              "where": "true"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "treeSelectorNotRequiredAllowedNode": {
+                      "type": "TreeSelector",
+                      "table": {
+                        "treeCollection": {
+                          "foreignKey": "_id",
+                          "label": "name",
+                          "data": {
+                            "info": "this.name + '-' + this.hasChildren"
+                          },
+                          "parent": {
+                            "parent._id": "_id"
+                          },
+                          "roots": {
+                            "parent._id": {
+                              "$exists": false
+                            }
+                          },
+                          "leaves": "!this.hasChildren",
+                          "requireLeafSelection": false,
+                          "scopes": {
+                            "guestScope": {
+                              "permissions": {
+                                "view": "accessAsGuest"
+                              },
+                              "where": "true"
+                            }
+                          }
+                        }
+                      }
+                    },
+                    "treeSelectorNotRequiredNotAllowedNode": {
+                      "type": "TreeSelector",
+                      "table": {
+                        "treeCollection": {
+                          "foreignKey": "_id",
+                          "label": "name",
+                          "data": {
+                            "info": "this.name + '-' + this.hasChildren"
+                          },
+                          "parent": {
+                            "parent._id": "_id"
+                          },
+                          "roots": {
+                            "parent._id": {
+                              "$exists": false
+                            }
+                          },
+                          "leaves": "!this.hasChildren",
+                          "requireLeafSelection": true,
+                          "scopes": {
+                            "guestScope": {
+                              "permissions": {
+                                "view": "accessAsGuest"
+                              },
+                              "where": "true"
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "treeCollection": {
+      "type": "Schema",
+      "fullName": "treeCollection",
+      "limitReturnedRecords": 2,
+      "fields": {
+        "name": {
+          "type": "String"
+        },
+        "hasChildren": {
+          "type": "Boolean"
+        },
+        "parent": {
+          "type": "LookupObjectID",
+          "fullName": "parent",
+          "lookup": {
+            "table": {
+              "treeCollection": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsGuest"
+                    },
+                    "where": "true"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

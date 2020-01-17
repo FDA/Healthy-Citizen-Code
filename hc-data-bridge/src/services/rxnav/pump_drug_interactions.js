@@ -3,25 +3,23 @@ const datapumps = require('datapumps');
 datapumps.Buffer.defaultBufferSize(10000);
 const { Group } = datapumps;
 const { MongodbMixin } = datapumps.mixin;
-const { MongoClient } = require('mongodb');
 const _ = require('lodash');
 const { findDrugInteractions } = require('./rxnav_api');
+const { mongoConnect } = require('../util/mongo');
 
 class DrugInteractionPumpProcessor extends Group {
-  constructor (inputSettings) {
+  constructor(inputSettings) {
     super();
     this.inputSettings = inputSettings;
     const { mongoUrl } = this.inputSettings;
     this.addPumps(mongoUrl);
   }
 
-  checkInitialErrors () {
+  checkInitialErrors() {
     const pumpProcessor = this;
     const { mongoUrl } = this.inputSettings;
     const errorUrls = [];
-    return Promise.all([
-      this.checkConnection(mongoUrl, errorUrls),
-    ]).then((dbConnections) => {
+    return Promise.all([this.checkConnection(mongoUrl, errorUrls)]).then(dbConnections => {
       if (errorUrls.length) {
         throw new Error(`Cannot connect to: ${errorUrls.join(', ')}`);
       }
@@ -29,34 +27,31 @@ class DrugInteractionPumpProcessor extends Group {
     });
   }
 
-  checkConnection (url, errorUrls) {
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(url, (err, db) => {
-        if (err) {
-          errorUrls.push(url);
-          resolve();
-          return;
-        }
-        resolve(db);
-      });
+  checkConnection(url, errorUrls) {
+    return mongoConnect(url).catch(e => {
+      errorUrls.push(url);
     });
   }
 
-  addPumps (mongoUrl) {
+  addPumps(mongoUrl) {
     const pumpProcessor = this;
 
     this.addPump('rxcuiToNdcs')
       .mixin(MongodbMixin(mongoUrl))
       .useCollection('rxcuiToNdcs')
       .from(this.pump('rxcuiToNdcs').find({}, { rxcui: 1 }))
-      .process(data => this.pump('rxnavDrugInteractions').buffer().writeAsync(data.rxcui));
+      .process(data =>
+        this.pump('rxnavDrugInteractions')
+          .buffer()
+          .writeAsync(data.rxcui)
+      );
 
     this.addPump('rxnavDrugInteractions')
       .mixin(MongodbMixin(mongoUrl))
       .useCollection('rxnavDrugInteractions')
       .from(this.pump('rxnavDrugInteractions').buffer())
-      .process(rxcui => findDrugInteractions(rxcui)
-        .then((drugInteraction) => {
+      .process(rxcui =>
+        findDrugInteractions(rxcui).then(drugInteraction => {
           const transformedDrugInteraction = pumpProcessor.transformDrugInteraction(drugInteraction);
           if (!transformedDrugInteraction) {
             console.log(`Rxnav has no data for rxcui ${rxcui}`);
@@ -65,7 +60,7 @@ class DrugInteractionPumpProcessor extends Group {
           const rxcui = transformedDrugInteraction.rxcui;
           return this.pump('rxnavDrugInteractions')
             .update({ rxcui }, transformedDrugInteraction, { upsert: true })
-            .then((commandResult) => {
+            .then(commandResult => {
               if (commandResult.result.nModified === 1) {
                 console.log(`Updated entry in 'rxnavDrugInteractions' with rxcui: ${rxcui}`);
               } else {
@@ -73,11 +68,12 @@ class DrugInteractionPumpProcessor extends Group {
               }
               return false;
             });
-        }));
+        })
+      );
   }
 
   // according to Josh's notes
-  transformDrugInteraction (drugInteraction) {
+  transformDrugInteraction(drugInteraction) {
     // no drug interaction data
     if (!drugInteraction.interactionTypeGroup) {
       return null;
@@ -88,11 +84,11 @@ class DrugInteractionPumpProcessor extends Group {
     result.rxcui = rxcui;
     delete result.nlmDisclaimer;
     delete result.userInput;
-    _.forEach(result.interactionTypeGroup, (interactionTypeGroup) => {
+    _.forEach(result.interactionTypeGroup, interactionTypeGroup => {
       delete interactionTypeGroup.sourceDisclaimer;
 
-      _.forEach(interactionTypeGroup.interactionType, (interactionType) => {
-        _.forEach(interactionType.interactionPair, (interactionPair) => {
+      _.forEach(interactionTypeGroup.interactionType, interactionType => {
+        _.forEach(interactionType.interactionPair, interactionPair => {
           // TODO: resolve how to store second drug info
           // delete interactionPair.interactionConcept;
         });
@@ -101,7 +97,7 @@ class DrugInteractionPumpProcessor extends Group {
     return result;
   }
 
-  processSettings () {
+  processSettings() {
     console.log(`Started processing input settings: ${JSON.stringify(this.inputSettings)}`);
     const pumpProcessor = this;
     return pumpProcessor
@@ -117,7 +113,7 @@ class DrugInteractionPumpProcessor extends Group {
           pumpProcessor.isSuccessful = true;
         }
       })
-      .catch((err) => {
+      .catch(err => {
         console.error(`Pump failed with error: ${err}`);
         pumpProcessor.isSuccessful = false;
       });

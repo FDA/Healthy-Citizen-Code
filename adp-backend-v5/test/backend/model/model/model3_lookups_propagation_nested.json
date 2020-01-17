@@ -1,0 +1,108 @@
+{
+  "models": {
+    "model3_propagation_nested": {
+      "type": "Schema",
+      "fullName": "model4s",
+      "limitReturnedRecords": 3,
+      "description": "Used for testing lookups as the table containing lookups",
+      "fields": {
+        "nested": {
+          "type": "Object",
+          "fields": {
+            "array1": {
+              "type": "Array",
+              "fields": {
+                "array2": {
+                  "type": "Array",
+                  "fields": {
+                    "model4sSingleLookupName": {
+                      "type": "LookupObjectID",
+                      "fullName": "model4SingleLookup",
+                      "lookup": {
+                        "table": "lookup_test_model1_nested",
+                        "foreignKey": "_id",
+                        "label": "name",
+                        "id": "model4sSingleLookupNameNested"
+                      }
+                    },
+                    "model4sSingleLookupAnotherName": {
+                      "type": "LookupObjectID",
+                      "fullName": "model4SingleLookup",
+                      "lookup": {
+                        "table": "lookup_test_model1_nested",
+                        "foreignKey": "_id",
+                        "label": "anotherName",
+                        "id": "model4sSingleLookupAnotherNameNested"
+                      }
+                    },
+                    "model4s2SingleLookup": {
+                      "type": "LookupObjectID",
+                      "fullName": "model4SingleLookup",
+                      "lookup": {
+                        "table": "lookup_test_model2_nested",
+                        "foreignKey": "_id",
+                        "label": "name",
+                        "id": "model4s2SingleLookupNested"
+                      }
+                    },
+                    "model4MultipleLookup": {
+                      "type": "LookupObjectID[]",
+                      "fullName": "model4MultipleLookup",
+                      "lookup": {
+                        "table": {
+                          "lookup_test_model1_nested": {
+                            "foreignKey": "_id",
+                            "label": "name"
+                          },
+                          "lookup_test_model2_nested": {
+                            "foreignKey": "_id",
+                            "label": "name"
+                          }
+                        },
+                        "id": "model4MultipleLookupNested"
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "lookup_test_model1_nested": {
+      "type": "Schema",
+      "fullName": "lookup_test_model1_nested",
+      "limitReturnedRecords": 3,
+      "description": "Used for testing multiple lookups as the table containing lookups",
+      "fields": {
+        "name": {
+          "type": "String",
+          "searchable": true,
+          "fullName": "Name",
+          "description": "Product name"
+        },
+        "anotherName": {
+          "type": "String",
+          "searchable": true,
+          "fullName": "Name",
+          "description": "Product name"
+        }
+      }
+    },
+    "lookup_test_model2_nested": {
+      "type": "Schema",
+      "fullName": "lookup_test_model2_nested",
+      "limitReturnedRecords": 3,
+      "description": "Used for testing multiple lookups as the table containing lookups",
+      "fields": {
+        "name": {
+          "type": "String",
+          "searchable": true,
+          "fullName": "Name",
+          "description": "Product name"
+        }
+      }
+    }
+  }
+}

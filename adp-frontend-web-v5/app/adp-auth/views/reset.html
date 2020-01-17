@@ -1,0 +1,32 @@
+<adp-form
+  class="login-form auth-form"
+  enable-selector="false"
+  adp-submit="vm.submit"
+  adp-fields="vm.fields"
+  schema="vm.schema"
+  disable-fullscreen="true"
+  ng-if="!vm.isReset"
+>
+
+  <form-header>
+   Please enter new password
+    <input name="username" ng-model="vm.login" style="opacity:0; height:1px; width:1px;"/>
+  </form-header>
+
+  <form-footer>
+    <div class="text-center">
+      <button
+        type="submit"
+        class="btn btn-primary">
+        {{vm.authParams.resetPasswordText || "Reset password"}}
+      </button>
+
+    </div>
+  </form-footer>
+
+</adp-form>
+
+<div ng-if="vm.isReset">
+  <h2>Password has been reset</h2>
+  <a ng-click="vm.goLogin()" href="#">Please sign in using your new password</a>
+</div>

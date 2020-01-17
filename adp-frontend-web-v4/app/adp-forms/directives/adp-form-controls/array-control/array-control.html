@@ -1,6 +1,6 @@
 <div class="array-form-frame clearfix">
   <ng-form
-    ng-if="display($index)"
+    ng-if="display($index) && dataItem !== null"
     class="array-ng-form-frame clearfix"
     ng-repeat="dataItem in getData() track by $index"
     name="{{field.keyName}}[{{$index}}]">
@@ -75,10 +75,12 @@
 
 </div>
 
-<div class="array-form-btns clearfix">
+<div
+  ng-show="hasVisibleItems()"
+  class="array-form-btns clearfix">
   <button
     type="button"
-    class="btn btn-default"
+    class="btn btn-default js-array-add-item-btn"
     ng-click="addArrayItem()"
   >
     Add new "{{field.fullName}}"

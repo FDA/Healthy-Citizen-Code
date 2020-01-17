@@ -14,11 +14,7 @@ function getTransformedInterfaceAppPermissions(permissions, errors) {
       if (_.isString(permission)) {
         appPermissions[permission] = { description: permission };
       } else {
-        errors.push(
-          `Found not string app permission ${RJSON.stringify(
-            permission
-          )} in interface.app.permissions`
-        );
+        errors.push(`Found not string app permission ${RJSON.stringify(permission)} in interface.app.permissions`);
       }
     });
     return appPermissions;
@@ -26,33 +22,32 @@ function getTransformedInterfaceAppPermissions(permissions, errors) {
   return undefined;
 }
 
-function getAppModelWithTransformedPermissions(appModel, actionsToInject) {
-  const appModelCopy = _.clone(appModel);
+function expandPermissionsForScopes(scopes, actions) {
+  _.each(scopes, scope => {
+    const permissionName = scope.permissions;
+    if (_.isString(permissionName) || _.isArray(permissionName)) {
+      scope.permissions = {};
+      _.each(actions, action => {
+        scope.permissions[action] = permissionName;
+      });
+    }
+  });
+}
+
+function getAppModelWithTransformedPermissions(appModel) {
+  const appModelCopy = _.cloneDeep(appModel);
   _.each(appModelCopy, model => {
-    _.each(model.scopes, scope => {
-      const permissionName = scope.permissions;
-      if (_.isString(permissionName) || _.isArray(permissionName)) {
-        scope.permissions = {};
-        _.each(actionsToInject, action => {
-          scope.permissions[action] = permissionName;
-        });
-      }
-    });
+    const modelActionNames = _.keys(_.get(model, 'actions.fields'));
+    expandPermissionsForScopes(model.scopes, modelActionNames);
   });
   return appModelCopy;
 }
 
-function transformListPermissions(listsPaths, appModel) {
-  _.each(listsPaths, listPath => {
+function transformListPermissions(listsFields, appModel) {
+  _.each(listsFields, listField => {
+    const listPath = `${listField}.list`;
     const { scopes } = _.get(appModel, listPath);
-    _.each(scopes, scope => {
-      const permissionName = scope.permissions;
-      if (_.isString(permissionName) || _.isArray(permissionName)) {
-        scope.permissions = {
-          view: permissionName,
-        };
-      }
-    });
+    expandPermissionsForScopes(scopes, ['view']);
   });
 }
 
@@ -63,15 +58,7 @@ function transformMenuPermissions(mainMenuItems, actionsToInject) {
 }
 
 function transformMenuItemScopes(menuItem, actionsToInject) {
-  _.each(menuItem.scopes, scope => {
-    const permissionName = scope.permissions;
-    if (_.isString(permissionName) || _.isArray(permissionName)) {
-      scope.permissions = {};
-      _.each(actionsToInject, action => {
-        scope.permissions[action] = permissionName;
-      });
-    }
-  });
+  expandPermissionsForScopes(menuItem.scopes, actionsToInject);
   if (menuItem.type === 'MenuGroup') {
     _.each(menuItem.fields, subMenu => {
       transformMenuItemScopes(subMenu, actionsToInject);
@@ -80,17 +67,7 @@ function transformMenuItemScopes(menuItem, actionsToInject) {
 }
 
 function transformPagesPermissions(pages, actionsToInject) {
-  _.each(pages, page => {
-    _.each(page.scopes, scope => {
-      const permissionName = scope.permissions;
-      if (_.isString(permissionName) || _.isArray(permissionName)) {
-        scope.permissions = {};
-        _.each(actionsToInject, action => {
-          scope.permissions[action] = permissionName;
-        });
-      }
-    });
-  });
+  _.each(pages, page => expandPermissionsForScopes(page.scopes, actionsToInject));
 }
 
 module.exports = {
@@ -99,4 +76,5 @@ module.exports = {
   transformListPermissions,
   transformMenuPermissions,
   transformPagesPermissions,
+  expandPermissionsForScopes,
 };

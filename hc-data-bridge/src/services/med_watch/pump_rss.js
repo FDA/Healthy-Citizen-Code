@@ -2,10 +2,10 @@ const args = require('optimist').argv;
 const Promise = require('bluebird');
 const axios = require('axios');
 const _ = require('lodash');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect } = require('../util/mongo');
 
 const { upsertSafetyAlert, parseSingleAlertPage } = require('./pump_util');
-const { parseString } = require('../util/parse_xls_string');
+const { parseString } = require('../util/parse_xml_string');
 
 const { mongoUrl, medWatchCollectionName } = args;
 const collectionName = medWatchCollectionName || 'medWatch';
@@ -41,7 +41,7 @@ async function handleChannelsInfo(channelsInfo, dbCon) {
 (async () => {
   let dbCon;
   try {
-    dbCon = await mongoConnect(mongoUrl, require('../util/mongo_connection_settings'));
+    dbCon = await mongoConnect(mongoUrl);
     const indexFieldNames = ['productName'];
     await createIndexes(indexFieldNames, dbCon);
     console.log(`DB Indexes created: ${indexFieldNames.join(', ')}`);
@@ -54,10 +54,10 @@ async function handleChannelsInfo(channelsInfo, dbCon) {
   try {
     const { data: xml } = await axios.get(RSS_LINK);
     const rssFeed = await parseString(xml);
-    channelsInfo = rssFeed.rss.channel.map(ch => ({
+    channelsInfo = _.castArray(rssFeed.rss.channel).map(ch => ({
       title: 'MedWatch Safety Alert RSS Feed',
-      lastBuildDate: _.get(ch, 'lastBuildDate.0', 'Not Specified'),
-      links: _.flatten(ch.item.map(item => item.link)),
+      lastBuildDate: _.get(ch, 'lastBuildDate', 'Not Specified'),
+      links: _.flatten(_.castArray(ch.item).map(item => item.link)),
     }));
   } catch (e) {
     console.log(`Unable to get data handle RSS Feed by link '${RSS_LINK}'`, e.stack);

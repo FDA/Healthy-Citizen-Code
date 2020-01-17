@@ -19,7 +19,6 @@
 
   var deps = [
     'ngSanitize',
-    'ngAnimate',
     'ui.router',
     'ui.bootstrap',
     'ngMap',

@@ -4,7 +4,7 @@
 
 const args = require('optimist').argv;
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect, setUpdateAtIfRecordChanged} = require('../util/mongo');
 
 const { mongoUrl } = args;
 if (!mongoUrl) {
@@ -23,7 +23,7 @@ async function linkMedWatchToDrug(medWatchDoc, dbCon) {
 
   const matchedDrugRecords = await dbCon
     .collection(drugCollectionName)
-    .find({ $expr: { $in: [firstWord, '$openfda.brand_name'] } }, { _id: 1 })
+    .find({ $expr: { $in: [firstWord, '$openfda.brandName'] } }, { projection: { _id: 1 } })
     .toArray();
 
   if (matchedDrugRecords.length) {
@@ -33,9 +33,9 @@ async function linkMedWatchToDrug(medWatchDoc, dbCon) {
       _id: medWatchDoc._id,
     };
     await Promise.map(matchedDrugRecords, drug =>
-      dbCon
+      setUpdateAtIfRecordChanged(dbCon
         .collection(drugCollectionName)
-        .findOneAndUpdate({ _id: drug._id }, { $addToSet: { medWatch: medWatchLookup } })
+        , 'updateOne', { _id: drug._id }, { $set: { updatedAt: new Date() }, $addToSet: { medWatch: medWatchLookup } })
     );
     const matchedDrugRecordIds = matchedDrugRecords.map(d => d._id.toString()).join(', ');
     console.log(
@@ -51,8 +51,8 @@ function createIndexes(indexFieldNames, dbCon) {
 
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../util/mongo_connection_settings'));
-    const indexFieldNames = ['openfda.brand_name'];
+    const dbCon = await mongoConnect(mongoUrl);
+    const indexFieldNames = ['openfda.brandName'];
     await createIndexes(indexFieldNames, dbCon);
     console.log(`DB Indexes created: ${indexFieldNames.join(', ')}`);
 

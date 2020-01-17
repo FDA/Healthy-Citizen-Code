@@ -1,0 +1,216 @@
+{
+  "metaschema": {
+    "filters": {
+      "list": {
+        "renderer": {
+          "type": "function",
+          "value": "list"
+        },
+        "where": {
+          "type": "function",
+          "value": "list"
+        }
+      },
+      "listMultiple": {
+        "renderer": {
+          "type": "function",
+          "value": "list"
+        },
+        "where": {
+          "type": "function",
+          "value": "list"
+        }
+      },
+      "dynamicList": {
+        "renderer": {
+          "type": "function",
+          "value": "dynamicList"
+        },
+        "where": {
+          "type": "function",
+          "value": "list"
+        }
+      },
+      "string": {
+        "renderer": {
+          "type": "function",
+          "value": "string"
+        },
+        "where": {
+          "type": "function",
+          "value": "string"
+        }
+      },
+      "stringMultiple": {
+        "renderer": {
+          "type": "function",
+          "value": "string"
+        },
+        "where": {
+          "type": "function",
+          "value": "string"
+        }
+      },
+      "file": {
+        "renderer": {
+          "type": "function",
+          "value": "string"
+        },
+        "where": {
+          "type": "function",
+          "value": "file"
+        }
+      },
+      "fileMultiple": {
+        "renderer": {
+          "type": "function",
+          "value": "string"
+        },
+        "where": {
+          "type": "function",
+          "value": "file"
+        }
+      },
+      "location": {
+        "renderer": {
+          "type": "function",
+          "value": "string"
+        },
+        "where": {
+          "type": "function",
+          "value": "location"
+        }
+      },
+      "date": {
+        "renderer": {
+          "type": "function",
+          "value": "date"
+        },
+        "where": {
+          "type": "function",
+          "value": "date"
+        }
+      },
+      "time": {
+        "renderer": {
+          "type": "function",
+          "value": "time"
+        },
+        "where": {
+          "type": "function",
+          "value": "time"
+        }
+      },
+      "dateTime": {
+        "renderer": {
+          "type": "function",
+          "value": "dateTime"
+        },
+        "where": {
+          "type": "function",
+          "value": "dateTime"
+        }
+      },
+      "number": {
+        "renderer": {
+          "type": "function",
+          "value": "number"
+        },
+        "where": {
+          "type": "function",
+          "value": "number"
+        }
+      },
+      "boolean": {
+        "renderer": {
+          "type": "function",
+          "value": "boolean"
+        },
+        "where": {
+          "type": "function",
+          "value": "boolean"
+        }
+      },
+      "none": {
+        "renderer": {
+          "type": "function",
+          "value": "none"
+        },
+        "where": {
+          "type": "function",
+          "value": "none"
+        }
+      },
+      "objectId": {
+        "renderer": {
+          "type": "function",
+          "value": "objectId"
+        },
+        "where": {
+          "type": "function",
+          "value": "objectId"
+        }
+      },
+      "lookupObjectId": {
+        "renderer": {
+          "type": "function",
+          "value": "lookupObjectId"
+        },
+        "where": {
+          "type": "function",
+          "value": "lookupObjectId"
+        }
+      },
+      "lookupObjectIdMultiple": {
+        "renderer": {
+          "type": "function",
+          "value": "lookupObjectId"
+        },
+        "where": {
+          "type": "function",
+          "value": "lookupObjectId"
+        }
+      },
+      "treeSelector": {
+        "renderer": {
+          "type": "function",
+          "value": "treeSelector"
+        },
+        "where": {
+          "type": "function",
+          "value": "treeSelector"
+        }
+      },
+      "imperialHeight": {
+        "renderer": {
+          "type": "function",
+          "value": "imperialHeight"
+        },
+        "where": {
+          "type": "function",
+          "value": "imperialHeight"
+        }
+      },
+      "imperialWeight": {
+        "renderer": {
+          "type": "function",
+          "value": "imperialWeight"
+        },
+        "where": {
+          "type": "function",
+          "value": "imperialWeight"
+        }
+      },
+      "imperialWeightWithOz": {
+        "renderer": {
+          "type": "function",
+          "value": "imperialWeightWithOz"
+        },
+        "where": {
+          "type": "function",
+          "value": "imperialWeightWithOz"
+        }
+      }
+    }
+  }
+}

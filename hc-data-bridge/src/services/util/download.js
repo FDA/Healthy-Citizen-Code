@@ -4,6 +4,7 @@ const axios = require('axios');
 const uuidv4 = require('uuid/v4');
 const PromiseFtp = require('promise-ftp');
 const Promise = require('bluebird');
+const exec = Promise.promisify(require('child_process').exec);
 const urlParse = require('url-parse');
 const sh = require('shelljs');
 
@@ -46,7 +47,7 @@ async function downloadFileByFtp(ftpUrl, destPath) {
   }
 
   const stream = await ftp.get(pathname);
-  await new Promise(function(resolve, reject) {
+  await new Promise((resolve, reject) => {
     stream.once('close', resolve);
     stream.once('error', reject);
     stream.pipe(fs.createWriteStream(destPath));
@@ -58,25 +59,50 @@ async function downloadFileByFtp(ftpUrl, destPath) {
 const CONNECT_TIMEOUT = 5; // sometimes one of many IPs cannot respond, reduce default 60sec to 5 sec
 const TRIES = 5;
 
-async function downloadUsingWget(fileInfos, parallel = false) {
+/**
+ * Required wget installed (most Linux distributions have wget installed by default)
+ * @param fileInfos
+ * @param parallel
+ * @param additionalParams
+ * @returns {Promise<*>}
+ */
+async function downloadUsingWget(fileInfos, parallel = false, additionalParams = '') {
   const promiseFunc = parallel ? Promise.map : Promise.mapSeries;
 
   return promiseFunc(fileInfos, fileInfo => {
     const { url, destDir } = fileInfo;
-    const command = `wget -N '${url}' -P '${destDir}' --connect-timeout ${CONNECT_TIMEOUT} --tries ${TRIES} --progress=dot:mega`;
+    const command = `wget -N '${url}' -P '${destDir}' --connect-timeout ${CONNECT_TIMEOUT} --tries ${TRIES} --progress=dot:mega --continue ${additionalParams}`;
     return new Promise((resolve, reject) => {
-      sh.exec(command, (code, stdout, stderr) => {
-        if (code !== 0) {
-          console.log(`Unable to download ${url}, file will be skipped`);
+      exec(command, {}, error => {
+        if (error !== null) {
+          console.log(`Unable to download ${url}, file will be skipped. Error: ${error}`);
           return resolve();
         }
+        console.log(`Downloaded ${url}`);
         const fileName = url.substr(url.lastIndexOf('/') + 1);
         const filePath = path.resolve(destDir, fileName);
         resolve(filePath);
       });
     });
-  })
-    .then(filePaths => filePaths.filter(f => f));
+  }).then(filePaths => filePaths.filter(f => f));
 }
 
-module.exports = { downloadFile, downloadFileByHttp, downloadFileByFtp, downloadUsingWget };
+/**
+ * Url may be an ftp url
+ * Required cURL installed (most Linux distributions have cURL installed by default)
+ * @param url
+ * @returns {Promise<void>}
+ */
+async function isUrlExists(url) {
+  try {
+    const response = await exec(`curl -s --head "${url}"`);
+    if (!response || /HTTP\/1\.1 [45]/.test(response)) {
+      return false;
+    }
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+module.exports = { downloadFile, downloadFileByHttp, downloadFileByFtp, downloadUsingWget, isUrlExists };

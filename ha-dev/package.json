@@ -1,0 +1,56 @@
+{
+  "name": "health-advocate",
+  "version": "0.0.1",
+  "description": "HealthAdvocate",
+  "contributors": [
+    "Joshua Phipps",
+    "Andrey Mikhalchuk"
+  ],
+  "scripts": {
+    "start": "webpack-dev-server --mode development",
+    "build": "webpack --mode production",
+    "lint": "eslint ."
+  },
+  "license": "UNLICENSED",
+  "dependencies": {
+    "@babel/polyfill": "^7.2.5",
+    "@babel/runtime": "^7.4.3",
+    "bluebird": "^3.5.1",
+    "d3": "^5.1.0",
+    "dotenv": "^4.0.0",
+    "fs-extra": "^7.0.1",
+    "hc-ui-util": "file:../hc-ui-util",
+    "lodash": "^4.17.15",
+    "log4js": "^6.1.0",
+    "moment": "^2.22.2",
+    "mongodb": "^3.1.13",
+    "mongoose": "^5.7.5",
+    "restify-cookies": "^0.2.5"
+  },
+  "devDependencies": {
+    "@babel/cli": "^7.2.3",
+    "@babel/core": "^7.4.3",
+    "@babel/plugin-proposal-class-properties": "^7.4.0",
+    "@babel/plugin-transform-runtime": "^7.2.0",
+    "@babel/preset-env": "^7.4.3",
+    "babel-eslint": "^10.0.1",
+    "babel-loader": "^8.0.5",
+    "dotenv-webpack": "^1.7.0",
+    "eslint": "^5.3.0",
+    "eslint-config-airbnb-base": "^13.1.0",
+    "eslint-config-prettier": "^4.2.0",
+    "eslint-loader": "^2.1.2",
+    "eslint-plugin-import": "^2.16.0",
+    "eslint-plugin-mocha": "^5.3.0",
+    "eslint-plugin-promise": "^4.1.1",
+    "eslint-plugin-security": "^1.4.0",
+    "file-loader": "^3.0.1",
+    "html-loader": "^0.5.5",
+    "html-webpack-plugin": "^3.2.0",
+    "terser-webpack-plugin": "^1.2.2",
+    "webpack": "^4.29.3",
+    "webpack-cli": "^3.2.3",
+    "webpack-dev-server": "^3.3.1",
+    "webpack-merge": "^4.2.1"
+  }
+}

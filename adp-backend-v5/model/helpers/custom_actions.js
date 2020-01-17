@@ -4,11 +4,7 @@
  * Each handler receives single parameter - data that the DataTables row represents
  */
 
-module.exports = function() {
-  var m = {
-    showTest: function(row) {
-      alert(JSON.stringify(row));
-    },
-  };
+module.exports = () => {
+  const m = {};
   return m;
 };

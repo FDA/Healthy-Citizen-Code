@@ -27,16 +27,21 @@
           markerPosition: [37.753344,-122.409668]
         };
 
+        var fieldDataDefaults = {
+          coordinates: [],
+          label: '',
+        };
+
+        if (_.isEmpty(getData())) {
+          scope.adpFormData[scope.field.keyName] = fieldDataDefaults;
+        }
+
         var fieldParamsDefaults = {
           autodetect: true,
           showMap: true,
           showLocate: true,
           showAddress: true
         };
-
-        scope.adpFormData[scope.field.keyName] = scope.adpFormData[scope.field.keyName] || [];
-        scope.labelName = scope.field.keyName + '_label';
-        scope.adpFormData[scope.labelName] = scope.adpFormData[scope.labelName] || '';
 
         scope.form = formCtrl;
 
@@ -58,9 +63,16 @@
         }
         init();
 
+        function getData() {
+          return scope.adpFormData[scope.field.keyName];
+        }
+
         function setInitialValuePromise() {
-          if (!_.isEmpty(scope.adpFormData[scope.field.keyName])) {
-            return coordsToAddress(scope.adpFormData[scope.field.keyName]);
+          var coordinates = getData().coordinates;
+          var isEmpty = _.compact(coordinates).length === 0;
+
+          if (!isEmpty) {
+            return coordsToAddress(coordinates);
           }
 
           if (scope.fieldParams.autodetect) {
@@ -109,14 +121,19 @@
         }
 
         function setData(address) {
-          scope.adpFormData[scope.field.keyName] = scope.map.center;
+          var coordinates = getData().coordinates;
+          coordinates[0] = scope.map.center[0];
+          coordinates[1] = scope.map.center[1];
+
           setAddress(address);
           scope.detecting = false;
+
           return;
         }
 
         function setAddress(address) {
-          scope.adpFormData[scope.labelName] = address;
+          var location = getData();
+          location.label = address;
         }
 
         function setCenter() {

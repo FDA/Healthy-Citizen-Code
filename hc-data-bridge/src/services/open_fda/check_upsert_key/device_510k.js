@@ -13,10 +13,10 @@ const devices3 = {};
     readStream
       .pipe(JSONStream.parse('results.*'))
       .on('data', (r) => {
-        const key = r.k_number + r.device_name + r.applicant; // 152330 - all elems
-        const key2 = r.k_number + r.device_name; // 152330 - all elems
-        const key3 = r.k_number; // 152330 - all elems
-        console.log(r.k_number)
+        const key = r.kNumber + r.deviceName + r.applicant; // 152330 - all elems
+        const key2 = r.kNumber + r.deviceName; // 152330 - all elems
+        const key3 = r.kNumber; // 152330 - all elems
+        console.log(r.kNumber)
         devices[key] =  (devices[key] || 0) + 1;
         devices2[key2] =  (devices2[key2] || 0) + 1;
         devices3[key3] =  (devices3[key3] || 0) + 1;

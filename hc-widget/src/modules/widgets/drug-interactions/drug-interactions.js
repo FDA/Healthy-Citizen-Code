@@ -1,9 +1,10 @@
-import hcWidgetAPI from '../../api';
-import $ from '../../../lib/dom';
+import { fetchDrugInteractions } from './api';
+import $ from '../../../lib/utils/dom';
 import Table from '../../../modules/table/table';
-import {widgetError} from '../../../lib/utils';
+import { showErrorToUser } from '../../../lib/utils/utils';
 
 import drugInteractionsTemplate from './drug-interactions.hbs';
+import { ResponseError } from '../../../lib/exceptions'
 
 const getSeverity = data => {
   const map = {
@@ -28,7 +29,7 @@ function createInteraction(data, formatFn, type) {
 }
 
 
-function fortmatInteractions(data) {
+function formatInteractions(data) {
   return data.map(item => {
     return {
       'Interaction Drugs': createInteraction(item.interactionDrugs),
@@ -44,20 +45,20 @@ export default class DrugInteractions {
     this.options = options;
 
     this.fetchData()
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        widgetError(err.message);
+        showErrorToUser(ResponseError.DRUG_INTERACTIONS_EMPTY);
       });
   }
 
   fetchData() {
-    return hcWidgetAPI.getDrugInteractions(this.options)
+    return fetchDrugInteractions(this.options)
       .then(data => {
         if (data.count) {
           this.buildWidgetBody();
           this.buildTable(data);
         } else {
-          throw new Error('Unable to get drugs interactions.')
+          throw new ResponseError(ResponseError.DRUG_INTERACTIONS_EMPTY);
         }
       });
   }
@@ -68,12 +69,16 @@ export default class DrugInteractions {
   }
 
   buildTable(drugInteractions) {
-    const data = fortmatInteractions(drugInteractions.list);
+    const data = formatInteractions(drugInteractions.list);
     const heads = Object.keys(data[0]);
 
     const table = new Table({
       heads, data,
-      sortBy: 'Severity', order: 'desc', print: true
+      sortBy: 'Severity',
+      order: 'desc',
+      accordion: true,
+      hideCols: 1,
+      print: true,
     });
 
     table.appendTo(this.widgetBody);

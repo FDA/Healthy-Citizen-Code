@@ -37,9 +37,9 @@ export default {
     };
 
     return drugs.map(drug => {
-      let drugcharacterization = drugcharacterizations[drug.drugcharacterization];
+      let drugcharacterization = drugcharacterizations[drug.drugCharacterization];
 
-      return [drug.medicinalproduct, drugcharacterization].join(' - ');
+      return [drug.medicinalProduct, drugcharacterization].join(' - ');
     }).join('<br>');
   },
 
@@ -51,6 +51,11 @@ export default {
 
     let date = new Date(year, month, day);
 
+    return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
+  },
+
+  dateToMmDdYyyy(dateString) {
+    const date = new Date(dateString);
     return `${date.getMonth() + 1}/${date.getDate()}/${date.getFullYear()}`;
   }
 };

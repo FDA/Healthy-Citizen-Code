@@ -21,8 +21,15 @@ const outputModelPath = getOutputModelPath(args.outputModelPath);
 const options = {
   backendMetaschema: args.backendMetaschema,
   seedMongoUrl: args.seedMongoUrl,
-  skipSheets: [SHEET_TYPES.SCHEMA, SHEET_TYPES.ACTION],
+  skipSheets: [
+    SHEET_TYPES.ACTION,
+    /*SHEET_TYPES.SCHEMA,*/  // necessary for defining types if ~etl tab is missing
+    ],
 };
+if (args.camelCaseColumns) {
+  options.camelCaseColumns = args.camelCaseColumns === 'true';
+}
+
 transformFilesToModel(filePaths, outputModelPath, options)
   .then(() => {
     process.exit(0);

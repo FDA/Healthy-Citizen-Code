@@ -29,7 +29,7 @@
           scope.adpFormData[scope.field.keyName] = [];
         }
 
-        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams.formParams);
       }
     }
   }

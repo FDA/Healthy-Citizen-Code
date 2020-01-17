@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const args = require('optimist').argv;
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect, setUpdateAtIfRecordChanged} = require('../../../util/mongo');
 
 const { mongoUrl, recallCollectionName, drugCollectionName } = args;
 
@@ -13,11 +13,11 @@ if (!mongoUrl || !recallCollectionName || !drugCollectionName) {
 async function linkRecallToDrug(doc, dbCon) {
   const recallLookups = doc.aggregateResult.map(recall => ({
     table: recallCollectionName,
-    label: recall.recall_number,
+    label: recall.recallNumber,
     _id: recall._id,
   }));
 
-  await dbCon.collection(drugCollectionName).update({ _id: doc._id }, { $set: { recallLookups } });
+  await setUpdateAtIfRecordChanged(dbCon.collection(drugCollectionName), 'updateOne', { _id: doc._id }, { $set: { recallLookups } });
 
   console.log(
     `Linked recalls: ${JSON.stringify(recallLookups)} to drug _id: ${doc._id.toString()}`
@@ -32,21 +32,21 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
 
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../../../util/mongo_connection_settings'));
+    const dbCon = await mongoConnect(mongoUrl);
     const recallIndexFieldNames = [
-      'openfda.spl_id',
-      'openfda.spl_set_id',
-      'package_ndc',
-      'product_ndc',
+      'openfda.splId',
+      'openfda.splSetId',
+      'packageNdc',
+      'productNdc',
     ];
     console.log(`Creating Recall DB Indexes: ${recallIndexFieldNames.join(', ')}`);
     await createIndexes(recallIndexFieldNames, recallCollectionName, dbCon);
 
     const drugIndexFieldNames = [
-      'openfda.spl_id',
-      'openfda.spl_set_id',
-      'openfda.package_ndc',
-      'openfda.product_ndc',
+      'openfda.splId',
+      'openfda.splSetId',
+      'openfda.packageNdc',
+      'openfda.productNdc',
     ];
     console.log(`Creating Drug DB Indexes: ${drugIndexFieldNames.join(', ')}`);
     await createIndexes(drugIndexFieldNames, drugCollectionName, dbCon);
@@ -57,10 +57,10 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
         $lookup: {
           from: recallCollectionName,
           let: {
-            spl_id: { $ifNull: ['$openfda.spl_id', []] },
-            spl_set_id: { $ifNull: ['$openfda.spl_set_id', []] },
-            package_ndc: { $ifNull: ['$openfda.package_ndc', []] },
-            product_ndc: { $ifNull: ['$openfda.product_ndc', []] },
+            splId: { $ifNull: ['$openfda.splId', []] },
+            splSetId: { $ifNull: ['$openfda.splSetId', []] },
+            packageNdc: { $ifNull: ['$openfda.packageNdc', []] },
+            productNdc: { $ifNull: ['$openfda.productNdc', []] },
           },
           pipeline: [
             {
@@ -69,25 +69,25 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
                   $or: [
                     {
                       $size: {
-                        $setIntersection: [{ $ifNull: ['$openfda.spl_id', []] }, '$$spl_id'],
+                        $setIntersection: [{ $ifNull: ['$openfda.splId', []] }, '$$splId'],
                       },
                     },
                     {
                       $size: {
                         $setIntersection: [
-                          { $ifNull: ['$openfda.spl_set_id', []] },
-                          '$$spl_set_id',
+                          { $ifNull: ['$openfda.splSetId', []] },
+                          '$$splSetId',
                         ],
                       },
                     },
                     {
                       $size: {
-                        $setIntersection: [{ $ifNull: ['$package_ndc', []] }, '$$package_ndc'],
+                        $setIntersection: [{ $ifNull: ['$packageNdc', []] }, '$$packageNdc'],
                       },
                     },
                     {
                       $size: {
-                        $setIntersection: [{ $ifNull: ['$product_ndc', []] }, '$$product_ndc'],
+                        $setIntersection: [{ $ifNull: ['$productNdc', []] }, '$$productNdc'],
                       },
                     },
                   ],
@@ -110,7 +110,7 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
           _id: 1,
           aggregateResult: {
             _id: 1,
-            recall_number: 1,
+            recallNumber: 1,
           },
         },
       },
@@ -123,8 +123,8 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
       await linkRecallToDrug(doc, dbCon);
     });
     // while (await drugWithRecallCursor.hasNext()) {
-    //   const drugWithRecallRecord = await drugWithRecallCursor.next();
-    //   await linkRecallToDrug(drugWithRecallRecord, dbCon);
+    //   const drugWithRecallDoc = await drugWithRecallCursor.next();
+    //   await linkRecallToDrug(drugWithRecallDoc, dbCon);
     // }
     console.log('\nDone linking Recalls to Drugs');
     process.exit(0);

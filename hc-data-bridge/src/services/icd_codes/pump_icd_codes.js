@@ -1,11 +1,13 @@
 /**
  * Current code is deprecated, we switched to pumping from tree representation (see ./pump_icd_tree.js)
  */
-
+const readline = require('readline');
+const fs = require('fs');
+const Promise = require('bluebird');
 const args = require('optimist').argv;
-
 const path = require('path');
-const { MongoClient } = require('mongodb');
+
+const { mongoConnect, insertOrReplaceDocByCondition } = require('../util/mongo');
 
 const ICD_CM_TEXT_PATH = path.resolve(__dirname, './resources/icd10cm_codes_2018.txt');
 const ICD_CM_COLLECTION_NAME = 'icd10cmcodes';
@@ -13,38 +15,18 @@ const ICD_CM_COLLECTION_NAME = 'icd10cmcodes';
 const ICD_PCS_TEXT_PATH = path.resolve(__dirname, './resources/icd10pcs_codes_2018.txt');
 // const ICD_PCS_COLLECTION_NAME = 'icd10pcscodes';
 
-const readline = require('readline');
-const fs = require('fs');
-const Promise = require('bluebird');
-
-const upsertDoc = (dbCon, collectionName, doc) => {
-  return dbCon.collection(collectionName).update({ icd10Code: doc.icd10Code }, doc, { upsert: true })
-    .then((commandResult) => {
-      if (commandResult.result.nModified === 1) {
-        console.log(`Updated entry in '${collectionName}' with icd10Code: ${doc.icd10Code}`);
-      } else {
-        console.log(`Inserted entry in '${collectionName}' with icd10Code: ${doc.icd10Code}`);
-      }
-      return true;
-    })
-    .catch((err) => {
-      console.log(err);
-      return false;
-    });
-};
+const upsertDoc = (dbCon, collectionName, doc) =>
+  insertOrReplaceDocByCondition(doc, dbCon.collection(collectionName), { icd10Code: doc.icd10Code });
 
 const pumpCodes = (mongoUrl, collectionName, txtPath) => {
   let dbCon = null;
-  return new Promise((resolve, reject) => {
-    MongoClient.connect(mongoUrl, (err, dbConnection) => {
-      if (err) {
-        reject(`Cannot get connection to ${mongoUrl}`);
-        return;
-      }
+  return mongoConnect(mongoUrl)
+    .then(dbConnection => {
       dbCon = dbConnection;
-      resolve();
-    });
-  })
+    })
+    .catch(e => {
+      throw new Error(`Cannot get connection to ${mongoUrl}. ${e.stack}`);
+    })
     .then(() => dbCon.collection(collectionName).createIndex({ icd10Code: 1 }))
     .then(() => {
       const promises = [];
@@ -54,7 +36,7 @@ const pumpCodes = (mongoUrl, collectionName, txtPath) => {
         input: fs.createReadStream(txtPath),
       });
 
-      rl.on('line', (line) => {
+      rl.on('line', line => {
         const [entry, icd10Code, description] = line.match(/([^ ]+)[ ]+(.+)/) || [];
         if (!icd10Code || !description) {
           console.error(`Invalid line: ${line}`);
@@ -63,13 +45,13 @@ const pumpCodes = (mongoUrl, collectionName, txtPath) => {
         }
       });
 
-      return new Promise((resolve) => {
+      return new Promise(resolve => {
         rl.on('close', () => {
           resolve(Promise.all(promises));
         });
       });
     })
-    .catch((err) => {
+    .catch(err => {
       console.log(err);
     });
 };
@@ -83,6 +65,7 @@ if (!mongoUrl) {
 const icdCmCollectionName = args.icdCmCollectionName || ICD_CM_COLLECTION_NAME;
 const { icdPcsCollectionName } = args;
 
+console.log(`Pumping CM codes...`);
 pumpCodes(mongoUrl, icdCmCollectionName, ICD_CM_TEXT_PATH)
   .then(() => {
     console.log('Done with CM codes');
@@ -90,6 +73,7 @@ pumpCodes(mongoUrl, icdCmCollectionName, ICD_CM_TEXT_PATH)
       process.exit(0);
     }
     console.log('===================\n');
+    console.log(`Pumping PCS codes...`)
     return pumpCodes(mongoUrl, icdPcsCollectionName, ICD_PCS_TEXT_PATH);
   })
   .then(() => {

@@ -31,9 +31,9 @@
       'Location' : showLabel,
       'DynamicList': showLabel,
       'DynamicList[]': showLabel,
-      'Number:ImperialHeight': showImperialUnit,
-      'Number:ImperialWeightWithOz': showImperialUnit,
-      'Number:ImperialWeight': showImperialUnit,
+      'Number:ImperialHeight': showImperialUnitWithMultipleValue,
+      'Number:ImperialWeightWithOz': showImperialUnitWithMultipleValue,
+      'Number:ImperialWeight': showImperialUnitWithSingleValue,
       'File': showFileList,
       'Image': showFileList,
       'Audio': showFileList,
@@ -135,12 +135,12 @@
       }
     }
 
-    function showLabel(value, _schema, fullVal, fieldName) {
-      if (_.isNil(value) || _.isEmpty(value)) {
+    function showLabel(value) {
+      if (_.isNil(value.label)) {
         return '-';
-      } else {
-        return fullVal[fieldName + '_label'] || value.toString();
       }
+
+      return value.label;
     }
 
     function boolean (value) {
@@ -154,8 +154,9 @@
       ].join('');
     }
 
-    function showImperialUnit(value, schema) {
-      if (_.isUndefined(value) || value === 0) {
+    function showImperialUnitWithMultipleValue(value, schema) {
+      var isEmpty = value === 0 || !_.compact(value).length;
+      if (isEmpty) {
         return '-';
       }
 
@@ -168,6 +169,18 @@
 
       return valueWithUnits.join(' ');
     }
+
+    function showImperialUnitWithSingleValue(value, schema) {
+      var isEmpty = _.isNil(value) || (value === 0);
+
+      if (isEmpty) {
+        return '-'
+      }
+      var units = AdpFieldsService.getUnits(schema);
+      return value + units[0].label;
+    }
+
+
     function showFileList(fileList) {
       if (_.isEmpty(fileList)) {
         return '-';

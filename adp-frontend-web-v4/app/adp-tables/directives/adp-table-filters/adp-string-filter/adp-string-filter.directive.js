@@ -19,7 +19,7 @@
         $(element).on('keyup change paste', 'input', _stringFilterHandler);
         $(element).on('change', 'select', _selectOptionHandler);
 
-        _setData();
+        _setDataFromQueryParams();
 
         function _stringFilterHandler() {
           var columnIndex = $(element).closest('th').index();
@@ -67,7 +67,7 @@
           scope.head.searchOption = searchOption === 'any' ? null : searchOption;
         }
 
-        function _setData() {
+        function _setDataFromQueryParams() {
           var options = [
             'contains',
             'startsWith',
@@ -77,12 +77,13 @@
           var option = scope.head.searchOption;
           var data = scope.head.data;
 
-          if (options.includes(option)) {
-            $select.val(option);
-          }
-
           if (!_.isNil(data)) {
             $input.val(data);
+          }
+
+          if (options.includes(option)) {
+            $select.val(option);
+            setDisabled(false);
           }
         }
       }

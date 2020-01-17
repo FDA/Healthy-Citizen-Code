@@ -1,0 +1,163 @@
+{
+  "templates": {
+    "default": {
+      "type": "foafVisualization",
+      "objects": {
+        "fields": {
+          "objDrug": {
+            "type": "circle",
+            "radius": 100,
+            "fill": "#f8cfcd",
+            "stroke": "#c97a78",
+            "strokeWidth": "5",
+            "cssObjTextClass": "obj-drugs-text",
+            "textAnchor": "middle",
+            "cssObjClass": "obj-drugs"
+          },
+          "objIngredient": {
+            "type": "circle",
+            "radius": 50,
+            "fill": "#e2d5e8",
+            "stroke": "#b49bc0",
+            "strokeWidth": "3",
+            "cssObjTextClass": "obj-ingredient-text",
+            "textAnchor": "middle",
+            "cssObjClass": "obj-ingredient"
+          },
+          "objDisease": {
+            "type": "circle",
+            "radius": 50,
+            "fill": "#dbe8fc",
+            "stroke": "#7697c5",
+            "strokeWidth": "3",
+            "cssObjTextClass": "obj-disease-text",
+            "textAnchor": "middle",
+            "cssObjClass": "obj-disease"
+          },
+          "objPharmaClass": {
+            "type": "circle",
+            "radius": 50,
+            "fill": "#ffe6cd",
+            "stroke": "#eac46d",
+            "strokeWidth": "3",
+            "cssObjTextClass": "obj-pharma-class-text",
+            "textAnchor": "middle",
+            "cssObjClass": "obj-pharma-class"
+          },
+          "objPhysiologicEffect": {
+            "type": "circle",
+            "radius": 50,
+            "fill": "#d5e9d4",
+            "stroke": "#b3d2a4",
+            "strokeWidth": "3",
+            "cssObjTextClass": "obj-physiologic-effect-text",
+            "textAnchor": "middle",
+            "cssObjClass": "obj-physiologic-effect"
+          }
+        }
+      },
+      "relationships": {
+        "fields": {
+          "relDrugDrug": {
+            "label": "Serious",
+            "rectClass": "relRectDrugDrugSerious",
+            "textClass": "reTextDrugDrugSerious",
+            "textAnchor": "middle",
+            "stroke": "black",
+            "strokeWidth": "3",
+            "rectFill": "#f8cfcd",
+            "rectStroke": "#c97a78",
+            "pathClass": "relPathDrugDrugSerious",
+            "pathArrow": "destination",
+            "pathArrowDestinationClass": "pathDrugDrugSerious"
+          },
+          "relDrugDrugSerious": {
+            "label": "Serious",
+            "rectClass": "relRectDrugDrugSerious",
+            "textClass": "reTextDrugDrugSerious",
+            "textAnchor": "middle",
+            "stroke": "black",
+            "strokeWidth": "5",
+            "pathClass": "relPathDrugDrugSerious",
+            "pathArrow": "destination",
+            "pathArrowDestinationClass": "pathDrugDrugSerious"
+          },
+          "relDrugDrugNotSerious": {
+            "label": "Not Serious",
+            "rectClass": "relRectDrugDrugNotSerious",
+            "textClass": "reTextDrugDrugNotSerious",
+            "textAnchor": "middle",
+            "stroke": "black",
+            "strokeWidth": "2",
+            "pathClass": "relPathDrugDrugNotSerious",
+            "pathArrow": "destination",
+            "pathArrowDestinationClass": "pathDrugDrugNotSerious"
+          },
+          "relDrugDrugSeriousMultiple": {
+            "label": "Serious",
+            "rectClass": "relRectDrugDrugSeriousMultiple",
+            "textClass": "reTextDrugDrugSeriousMultiple",
+            "textAnchor": "middle",
+            "stroke": "black",
+            "strokeWidth": "7",
+            "pathClass": "relPathDrugDrugSeriousMultiple",
+            "pathArrow": "destination",
+            "pathArrowDestinationClass": "pathDrugDrugSeriousMultiple"
+          },
+          "relDrugIngredient": {
+            "label": "Ingredient",
+            "rectClass": "relRectObjIngredient",
+            "textClass": "reTextObjIngredient",
+            "textAnchor": "middle",
+            "stroke": "black",
+            "strokeWidth": "2",
+            "rectFill": "#e2d5e8",
+            "rectStroke": "#b49bc0",
+            "pathClass": "relPathObjIngredient",
+            "pathArrow": "destination",
+            "pathArrowDestinationClass": "pathObjIngredient"
+          },
+          "relDrugDisease": {
+            "label": "Diagnosis",
+            "rectClass": "relRectObjDisease",
+            "textClass": "reTextObjDisease",
+            "textAnchor": "middle",
+            "stroke": "black",
+            "strokeWidth": "2",
+            "rectFill": "#dbe8fc",
+            "rectStroke": "#7697c5",
+            "pathClass": "relPathObjDisease",
+            "pathArrow": "destination",
+            "pathArrowDestinationClass": "pathObjDisease"
+          },
+          "relDrugPharmaClass": {
+            "label": "Pharma Class",
+            "rectClass": "relRectPharmaClass",
+            "textClass": "reTextPharmaClass",
+            "textAnchor": "middle",
+            "stroke": "black",
+            "strokeWidth": "2",
+            "rectFill": "#ffe6cd",
+            "rectStroke": "#eac46d",
+            "pathClass": "relPathPharmaClass",
+            "pathArrow": "destination",
+            "pathArrowDestinationClass": "pathPharmaClass"
+          },
+          "relDrugPhysiologicEffect": {
+            "label": "Physiologic Effect",
+            "rectClass": "relRectPhysiologicEffect",
+            "textClass": "reTextPhysiologicEffect",
+            "textAnchor": "middle",
+            "stroke": "black",
+            "strokeWidth": "2",
+            "rectFill": "#b3d2a4",
+            "rectStroke": "#d5e9d4",
+            "pathClass": "relPathPhysiologicEffect",
+            "pathArrow": "destination",
+            "pathArrowDestinationClass": "pathPhysiologicEffect"
+          }
+        }
+      }
+    }
+  }
+}

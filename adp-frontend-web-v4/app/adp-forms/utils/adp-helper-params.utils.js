@@ -22,8 +22,14 @@
         path: path,
         index: _getItemIndex(path),
         indexes: _getItemIndexes(path),
-        config: _.cloneDeep(APP_CONFIG)
       };
+
+      return params;
+    }
+
+    function getHelperParamsWithConfig(path, formData, action, schema) {
+      var params = getHelperParams(path, formData, action, schema);
+      params.config = _.cloneDeep(APP_CONFIG);
 
       return params;
     }
@@ -61,7 +67,8 @@
     }
 
     return {
-      getHelperParams: getHelperParams
+      getHelperParams: getHelperParams,
+      getHelperParamsWithConfig: getHelperParamsWithConfig
     }
   }
 })();

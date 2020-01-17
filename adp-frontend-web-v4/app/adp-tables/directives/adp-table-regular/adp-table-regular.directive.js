@@ -27,16 +27,12 @@
       templateUrl: 'app/adp-tables/directives/adp-table-regular/adp-table-regular.html',
       link: function (scope, element) {
         (function init() {
-          // setting props outside of _createTable function, because we need to wait for ng-repeats to generate table head
           _setScopeProperties();
 
-          // waiting for ng-repeat to finish in table head
-          $timeout(function () {
-            _createTable();
-            _createButtons();
-            _bindEvents();
-            _drawTable();
-          }, 0);
+          _createTable();
+          _createButtons();
+          _bindEvents();
+          _drawTable();
         })();
 
         function _setScopeProperties() {
@@ -57,15 +53,19 @@
           var columns = _getColumns(scope.heads, scope.schema);
 
           scope.table = element.DataTable({
-              columns: columns,
-              deferRender: true,
-              responsive: {
-                details: {
-                  type: 'column'
-                }
-              },
-              order: _getOrder(scope.heads),
-            });
+            columns: columns,
+            deferRender: true,
+            orderCellsTop: true,
+            responsive: {
+              details: {
+                type: 'column'
+              }
+            },
+            order: _getOrder(scope.heads),
+          });
+
+          // after table filters, titles and table content are rendered
+          $timeout(_adjustFilterCols);
         }
 
         function _createButtons() {
@@ -92,12 +92,9 @@
           // WORKAROUND: for some reason we need to trigger responsive adjust() after table filled with content
           element.on('draw.dt', function () {
             element.DataTable().columns.adjust();
-            _adjustFilterCols();
           });
 
-          element.on('responsive-resize.dt', function () {
-            _adjustFilterCols();
-          });
+          element.on('responsive-resize.dt', _.throttle(_adjustFilterCols, 60));
 
           $(element).on('click.datatableAction', '.btn.table-action', _tableActionHandler);
 
@@ -106,7 +103,6 @@
           scope.$on('redraw', function () {
             AdpTableFiltersService.setFiltersDataToUrl(scope.heads);
             scope.table.draw();
-            // adjastColsAfterFiltration();
           });
 
           scope.$watch('data', _drawTable);
@@ -157,11 +153,25 @@
         }
 
         function _adjustFilterCols() {
-          var filtersCells = element.find('.columnFilters th');
+          var titlesRow = element.find('thead tr:last-child')[0];
+          var filters = element.find('.columnFilters th');
+          var getName = function (el) {
+            var classList = el.className.split(/\s+/);
 
-          _.each(element.find('tbody tr:first-child > td'), function (tableCell, index) {
-            var displayStyles = tableCell.style.display === 'none' ? 'none' : 'table-cell';
-            filtersCells[index].style.display = displayStyles;
+            return _.find(classList, function (name) {
+              return _.startsWith(name, 'name-');
+            });
+          };
+
+          _.each(filters, function (filterCell) {
+            var columnName = getName(filterCell);
+            var titleCell = titlesRow.querySelector('.' + columnName);
+
+            if (_.isNil(titleCell)) {
+              filterCell.style.display = 'none';
+            } else {
+              filterCell.style.display = titleCell.style.display;
+            }
           });
         }
 
@@ -193,19 +203,18 @@
         }
 
         function _getColumns(heads, schema) {
-          var columns = [{
-            'data': 'empty',
-            'className': 'control'
-          }];
+          var columns = [];
 
-          _.map(heads, function (head, index) {
+          _.map(heads, function (head) {
 
             var field = schema.fields[head.name];
             var rendererName = field['render'];
             var rendererFn = appModelHelpers['Renderers'][rendererName];
 
             var column = {
+              'className': 'name-' + head.name,
               'data': head.name,
+              'title': head.fullName,
               'responsivePriority': head.responsivePriority,
             };
 
@@ -217,9 +226,12 @@
               column.render = function (data, type, row, meta) {
                 var itemIndex = meta.row;
                 var dataRow = scope.data[itemIndex];
-                var dataItem = dataRow[head.name];
-
-                return rendererFn(dataItem, type, dataRow, meta);
+		if(dataRow) {
+                  var dataItem = dataRow[head.name];
+                  return rendererFn(dataItem, type, dataRow, meta);
+		} else {
+		  return '';
+		}
               };
             }
 
@@ -231,6 +243,7 @@
           });
 
           columns.push({
+            'className': 'name-actions-columns actions-columns',
             'data': 'actions',
             'sortable': false,
             'searchable': false,

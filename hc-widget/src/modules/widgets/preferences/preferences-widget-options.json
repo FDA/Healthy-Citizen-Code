@@ -1,0 +1,4 @@
+{
+  "fhirDataImport": { "type": "Boolean" },
+  "udid": { "type": "String" }
+}

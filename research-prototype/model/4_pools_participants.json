@@ -28,7 +28,7 @@
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",
-          "where": "{$eq: ['$creator', this.req.user._id]}"
+          "where": "{ creator: { $eq: this.req.user._id } }"
         }
       },
       "fields": {
@@ -52,7 +52,7 @@
                 "scopes": {
                   "ownRecordScope": {
                     "permissions": "accessAsUser",
-                    "where": "{$eq: ['$creator', this.req.user._id]}"
+                    "where": "{ creator: { $eq: this.req.user._id } }"
                   }
                 }
               }
@@ -77,7 +77,7 @@
         },
         "statusCode": {
           "fullName": "Participant Status",
-          "type": "Number",
+          "type": "String",
           "list": {
             name: "participantStatuses",
             "scopes": {

@@ -44,7 +44,7 @@
           scope.options.minimumResultsForSearch = -1;
         }
 
-        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams.formParams);
 
         function isEmpty() {
           var data = getData();

@@ -5,10 +5,10 @@ const _ = require('lodash');
 
 const { Group } = datapumps;
 const { MongodbMixin } = datapumps.mixin;
-const { MongoClient } = require('mongodb');
 const ObjectId = require('mongodb').ObjectID;
 // const logger = require('log4js').getLogger('SyncUsersDevicesMedsProcessor');
 const uuidv4 = require('uuid/v4');
+const { mongoConnect } = require('../../util/mongo');
 
 /**
  * Syncs adverse events, recalls for users by guid
@@ -22,7 +22,7 @@ const uuidv4 = require('uuid/v4');
  */
 
 class SyncAesRecallsProcessor extends Group {
-  constructor (inputSettings) {
+  constructor(inputSettings) {
     super();
     this.inputSettings = inputSettings;
     this.addPumps();
@@ -33,32 +33,29 @@ class SyncAesRecallsProcessor extends Group {
    * Checks whether constructed pump processor is valid
    * @returns {Promise.<T>} promise with errors
    */
-  getConnections () {
+  getConnections() {
     const processor = this;
     const { destHcUrl } = processor.inputSettings;
-    return Promise.all([
-      this.getConnection(destHcUrl),
-    ]).then(connections => Promise.resolve()).catch((url) => {
-      throw new Error(`Cannot connect to: ${url}`);
-    });
-  }
-
-  getConnection (url) {
-    const pumpProcessor = this;
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(url, (err, db) => {
-        if (err) {
-          reject(url);
-          return;
-        }
-        console.log(`Get connection url: ${url} `);
-        pumpProcessor.dbCon = db;
-        resolve(db);
+    return Promise.all([this.getConnection(destHcUrl)])
+      .then(connections => Promise.resolve())
+      .catch(url => {
+        throw new Error(`Cannot connect to: ${url}`);
       });
-    });
   }
 
-  addPumps () {
+  getConnection(url) {
+    return mongoConnect(url)
+      .then(dbConnection => {
+        this.dbCon = dbConnection;
+        console.log(`Get connection url: ${url} `);
+        return dbConnection;
+      })
+      .catch(e => {
+        throw new Error(url);
+      });
+  }
+
+  addPumps() {
     const { destHcUrl, hcUsersData } = this.inputSettings;
     const pumpProcessor = this;
 
@@ -67,7 +64,7 @@ class SyncAesRecallsProcessor extends Group {
       .mixin(MongodbMixin(destHcUrl))
       .useCollection('piis')
       .from(hcUsersData)
-      .process((HC1_data) => {
+      .process(HC1_data => {
         const combinedData = {
           HC1_pii: HC1_data.piis,
           HC1_phi: HC1_data.phis,
@@ -77,11 +74,13 @@ class SyncAesRecallsProcessor extends Group {
           return this.pump('HC2-piis')
             .find({ 'demographics.guid': guid })
             .toArray()
-            .then((HC2_piis) => {
+            .then(HC2_piis => {
               if (!_.isEmpty(HC2_piis)) {
                 combinedData.HC2_pii = HC2_piis[0];
               }
-              this.pump('HC2-piis').buffer().writeAsync(combinedData);
+              this.pump('HC2-piis')
+                .buffer()
+                .writeAsync(combinedData);
             });
         }
         console.warn(`There is no guid in HC1.pii with id ${_.get(combinedData, 'HC1_pii._id')}`);
@@ -92,45 +91,53 @@ class SyncAesRecallsProcessor extends Group {
       .mixin(MongodbMixin(destHcUrl))
       .useCollection('users')
       .from(this.pump('HC2-piis').buffer())
-      .process((combinedData) => {
+      .process(combinedData => {
         const piiId = _.get(combinedData, 'HC2_pii._id');
         if (piiId) {
           return this.pump('HC2-users')
             .find({ piiId: piiId.toString() })
             .toArray()
-            .then((HC2_users) => {
+            .then(HC2_users => {
               if (!_.isEmpty(HC2_users)) {
                 combinedData.HC2_user = HC2_users[0];
               }
-              this.pump('HC2-users').buffer().writeAsync(combinedData);
+              this.pump('HC2-users')
+                .buffer()
+                .writeAsync(combinedData);
             });
         }
-        return this.pump('HC2-users').buffer().writeAsync(combinedData);
+        return this.pump('HC2-users')
+          .buffer()
+          .writeAsync(combinedData);
       });
     this.addPump('HC2-phis')
       .mixin(MongodbMixin(destHcUrl))
       .useCollection('phis')
       .from(this.pump('HC2-users').buffer())
-      .process((combinedData) => {
+      .process(combinedData => {
         const phiId = _.get(combinedData, 'HC2_user.phiId');
         if (phiId) {
           return this.pump('HC2-phis')
             .find({ _id: new ObjectId(phiId) })
             .toArray()
-            .then((HC2_phis) => {
+            .then(HC2_phis => {
               if (!_.isEmpty(HC2_phis)) {
                 combinedData.HC2_phi = HC2_phis[0];
               }
-              this.pump('HC2-phis').buffer().writeAsync(combinedData);
+              this.pump('HC2-phis')
+                .buffer()
+                .writeAsync(combinedData);
             });
         }
-        return this.pump('HC2-phis').buffer().writeAsync(combinedData);
+        return this.pump('HC2-phis')
+          .buffer()
+          .writeAsync(combinedData);
       });
 
     // prepare data
     this.addPump('prepare')
       .from(this.pump('HC2-phis').buffer())
-      .process((combinedData) => {
+      .process(combinedData => {
         const { HC2_user, HC1_pii, HC2_pii, HC1_phi, HC2_phi } = combinedData;
         const piiIdToUpdate = _.get(HC2_pii, '_id', null);
         const phiIdToUpdate = _.get(HC2_phi, '_id', null);
@@ -142,13 +149,14 @@ class SyncAesRecallsProcessor extends Group {
           userToUpdateWith: this.getUserToUpdateWith(HC2_user),
           piiToUpdateWith: this.getPiiToUpdateWith(HC2_pii, HC1_pii),
         };
-        return new Promise((resolve) => {
+        return new Promise(resolve => {
           resolve(pumpProcessor.getPhiToUpdateWith(HC2_phi, HC1_phi));
-        })
-          .then((phiToUpdateWith) => {
-            preparedData.phiToUpdateWith = phiToUpdateWith;
-            return this.pump('prepare').buffer().writeAsync(preparedData);
-          });
+        }).then(phiToUpdateWith => {
+          preparedData.phiToUpdateWith = phiToUpdateWith;
+          return this.pump('prepare')
+            .buffer()
+            .writeAsync(preparedData);
+        });
       });
 
     // stage 3
@@ -156,27 +164,35 @@ class SyncAesRecallsProcessor extends Group {
       .mixin(MongodbMixin(destHcUrl))
       .useCollection('piis')
       .from(this.pump('prepare').buffer())
-      .process((preparedData) => {
+      .process(preparedData => {
         const { piiIdToUpdate, piiToUpdateWith } = preparedData;
         if (!piiIdToUpdate) {
           return this.pump('HC2-pii-update')
             .insert(piiToUpdateWith)
-            .then((result) => {
+            .then(result => {
               const insertedId = result.insertedIds[0];
               preparedData.piiIdToUpdate = insertedId;
               console.log(`Inserted new pii with id: ${insertedId}`);
-              return this.pump('HC2-pii-update').buffer().writeAsync(preparedData);
+              return this.pump('HC2-pii-update')
+                .buffer()
+                .writeAsync(preparedData);
             });
         }
         return this.pump('HC2-pii-update')
           .update({ _id: piiIdToUpdate }, piiToUpdateWith)
-          .then((result) => {
+          .then(result => {
             const error = _.get(result, 'result.writeError');
             if (error) {
-              console.error(`Error occurred during updating pii: ${JSON.stringify(error)}. piiIdToUpdate: ${JSON.stringify(piiIdToUpdate)}. piiToUpdateWith: ${JSON.stringify(piiToUpdateWith)}`);
+              console.error(
+                `Error occurred during updating pii: ${JSON.stringify(error)}. piiIdToUpdate: ${JSON.stringify(
+                  piiIdToUpdate
+                )}. piiToUpdateWith: ${JSON.stringify(piiToUpdateWith)}`
+              );
             }
             console.log(`Modified pii with id ${piiIdToUpdate}`);
-            return this.pump('HC2-pii-update').buffer().writeAsync(preparedData);
+            return this.pump('HC2-pii-update')
+              .buffer()
+              .writeAsync(preparedData);
           });
       });
     // stage 4
@@ -184,27 +200,35 @@ class SyncAesRecallsProcessor extends Group {
       .mixin(MongodbMixin(destHcUrl))
       .useCollection('phis')
       .from(this.pump('HC2-pii-update').buffer())
-      .process((preparedData) => {
+      .process(preparedData => {
         const { phiIdToUpdate, phiToUpdateWith } = preparedData;
         if (!phiIdToUpdate) {
           return this.pump('HC2-phi-update')
             .insert(phiToUpdateWith)
-            .then((result) => {
+            .then(result => {
               const insertedId = result.insertedIds[0];
               preparedData.phiIdToUpdate = insertedId;
               console.log(`Inserted new phi with id: ${insertedId}`);
-              return this.pump('HC2-phi-update').buffer().writeAsync(preparedData);
+              return this.pump('HC2-phi-update')
+                .buffer()
+                .writeAsync(preparedData);
             });
         }
         return this.pump('HC2-phi-update')
           .update({ _id: phiIdToUpdate }, phiToUpdateWith)
-          .then((result) => {
+          .then(result => {
             const error = _.get(result, 'result.writeError');
             if (error) {
-              console.error(`Error occurred during updating phi: ${JSON.stringify(error)}. phiIdToUpdate: ${JSON.stringify(phiIdToUpdate)}. phiToUpdateWith: ${JSON.stringify(phiToUpdateWith)}`);
+              console.error(
+                `Error occurred during updating phi: ${JSON.stringify(error)}. phiIdToUpdate: ${JSON.stringify(
+                  phiIdToUpdate
+                )}. phiToUpdateWith: ${JSON.stringify(phiToUpdateWith)}`
+              );
             }
             console.log(`Modified phi with id ${phiIdToUpdate}`);
-            return this.pump('HC2-phi-update').buffer().writeAsync(preparedData);
+            return this.pump('HC2-phi-update')
+              .buffer()
+              .writeAsync(preparedData);
           });
       });
     // stage 5
@@ -212,7 +236,7 @@ class SyncAesRecallsProcessor extends Group {
       .mixin(MongodbMixin(destHcUrl))
       .useCollection('users')
       .from(this.pump('HC2-phi-update').buffer())
-      .process((preparedData) => {
+      .process(preparedData => {
         const { userToUpdateWith, userIdToUpdate, piiIdToUpdate, phiIdToUpdate } = preparedData;
         // insert piiId and phiId that was inserted in HC2
         userToUpdateWith.piiId = piiIdToUpdate.toString();
@@ -220,7 +244,7 @@ class SyncAesRecallsProcessor extends Group {
         if (!userIdToUpdate) {
           return this.pump('HC2-user-update')
             .insert(userToUpdateWith)
-            .then((result) => {
+            .then(result => {
               const insertedId = result.insertedIds[0];
               preparedData.userIdToUpdate = insertedId;
               console.log(`Inserted new user with id: ${insertedId}`);
@@ -229,10 +253,14 @@ class SyncAesRecallsProcessor extends Group {
         }
         return this.pump('HC2-user-update')
           .update({ _id: userIdToUpdate }, userToUpdateWith)
-          .then((result) => {
+          .then(result => {
             const error = _.get(result, 'result.writeError');
             if (error) {
-              console.error(`Error occurred during updating: ${JSON.stringify(error)}. userIdToUpdate: ${JSON.stringify(userIdToUpdate)}. userToUpdateWith: ${JSON.stringify(userToUpdateWith)}`);
+              console.error(
+                `Error occurred during updating: ${JSON.stringify(error)}. userIdToUpdate: ${JSON.stringify(
+                  userIdToUpdate
+                )}. userToUpdateWith: ${JSON.stringify(userToUpdateWith)}`
+              );
             }
             console.log(`Modified user with id ${userIdToUpdate}`);
             return Promise.resolve(preparedData);
@@ -240,7 +268,7 @@ class SyncAesRecallsProcessor extends Group {
       });
   }
 
-  getPiiToUpdateWith (HC2_pii, HC1_pii) {
+  getPiiToUpdateWith(HC2_pii, HC1_pii) {
     let piiToUpdateWith;
     if (HC2_pii) {
       piiToUpdateWith = _.clone(HC2_pii);
@@ -251,42 +279,42 @@ class SyncAesRecallsProcessor extends Group {
     return piiToUpdateWith;
   }
 
-  getPhiToUpdateWith (HC2_phi, HC1_phi) {
+  getPhiToUpdateWith(HC2_phi, HC1_phi) {
     const phiToUpdateWith = HC2_phi ? _.clone(HC2_phi) : this.createEmptyPhi();
     // need to determine how to sync medications and devices
     phiToUpdateWith.myAdverseEvents = HC1_phi.myAdverseEvents;
     phiToUpdateWith.myRecalls = HC1_phi.myRecalls;
 
     const insertEventsIdsInAdverseEventsPromises = [];
-    _.forEach(phiToUpdateWith.myAdverseEvents, (adverseEvent) => {
+    _.forEach(phiToUpdateWith.myAdverseEvents, adverseEvent => {
       insertEventsIdsInAdverseEventsPromises.push(this.insertAdverseEventEventIdByKey(adverseEvent));
     });
 
     const insertEventIdsInRecallsPromises = [];
-    _.forEach(phiToUpdateWith.myRecalls, (recall) => {
+    _.forEach(phiToUpdateWith.myRecalls, recall => {
       insertEventIdsInRecallsPromises.push(this.insertRecallEventIdByKey(recall));
     });
 
     return Promise.all([
       Promise.all(insertEventsIdsInAdverseEventsPromises),
       Promise.all(insertEventIdsInRecallsPromises),
-    ])
-      .then((_) => {
-        delete phiToUpdateWith._id;
-        return phiToUpdateWith;
-      });
+    ]).then(_ => {
+      delete phiToUpdateWith._id;
+      return phiToUpdateWith;
+    });
   }
 
-  insertRecallEventIdByKey (recall) {
+  insertRecallEventIdByKey(recall) {
     const key = _.get(recall, 'key');
     if (!key) {
       _.set(recall, 'eventId', null);
       return false;
     }
-    return this.dbCon.collection('recalls')
+    return this.dbCon
+      .collection('recalls')
       .find({ key })
       .toArray()
-      .then((recalls) => {
+      .then(recalls => {
         if (!_.isEmpty(recalls)) {
           const recallFound = recalls[0];
           _.set(recall, 'eventId', recallFound._id);
@@ -298,34 +326,37 @@ class SyncAesRecallsProcessor extends Group {
       });
   }
 
-  insertAdverseEventEventIdByKey (adverseEvent) {
+  insertAdverseEventEventIdByKey(adverseEvent) {
     const key = _.get(adverseEvent, 'key');
     if (!key) {
       _.set(adverseEvent, 'eventId', null);
       return false;
     }
-    return this.dbCon.collection('adverseevents')
+    return this.dbCon
+      .collection('adverseevents')
       .find({ key })
       .toArray()
-      .then((adverseEvents) => {
+      .then(adverseEvents => {
         if (!_.isEmpty(adverseEvents)) {
           const adverseEventFound = adverseEvents[0];
           _.set(adverseEvent, 'eventId', adverseEventFound._id);
           _.set(adverseEvent, 'eventId_label', adverseEventFound.subject);
-          console.log(`adverseEvent. eventId: ${adverseEvent.eventId}, key: ${key}, eventId_label: ${adverseEvent.eventId_label}`);
+          console.log(
+            `adverseEvent. eventId: ${adverseEvent.eventId}, key: ${key}, eventId_label: ${adverseEvent.eventId_label}`
+          );
           return true;
         }
         return false;
       });
   }
 
-  getUserToUpdateWith (HC2_user) {
+  getUserToUpdateWith(HC2_user) {
     const userToUpdateWith = HC2_user ? _.clone(HC2_user) : this.getEmptyUser();
     delete userToUpdateWith._id;
     return userToUpdateWith;
   }
 
-  getEmptyUser () {
+  getEmptyUser() {
     return {
       salt: `${uuidv4()}`,
       password: `${uuidv4()}`,
@@ -334,7 +365,7 @@ class SyncAesRecallsProcessor extends Group {
     };
   }
 
-  createEmptyPii () {
+  createEmptyPii() {
     return {
       firstName: '',
       lastName: '',
@@ -346,7 +377,7 @@ class SyncAesRecallsProcessor extends Group {
     };
   }
 
-  createEmptyPhi () {
+  createEmptyPhi() {
     return {
       groupings: [],
       activities: [],
@@ -373,11 +404,11 @@ class SyncAesRecallsProcessor extends Group {
     };
   }
 
-  processSettings () {
+  processSettings() {
     console.log(`Started synchronizing HC data to ${this.inputSettings.destHcUrl}`);
     const pumpProcessor = this;
-    return pumpProcessor.getConnections()
-      .then(() => pumpProcessor
+    return pumpProcessor.getConnections().then(() =>
+      pumpProcessor
         .logErrorsToConsole()
         .start()
         .whenFinished()
@@ -394,10 +425,11 @@ class SyncAesRecallsProcessor extends Group {
           }
           return Promise.resolve(message);
         })
-        .catch((err) => {
+        .catch(err => {
           console.error(`Pump failed with error: ${err}`);
           pumpProcessor.isSuccessful = false;
-        }));
+        })
+    );
   }
 }
 

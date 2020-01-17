@@ -41,14 +41,29 @@
         "Dashboard",
         "DashboardItem",
         "Group",
-        "Location"
-        // "Barcode" - this is a subtype
+        "Location",
+
+        // ex-subtypes
+        "Password",
+        "Email",
+        "Phone",
+        "Url",
+        "Text",
+        "ImperialHeight",
+        "ImperialWeight",
+        "ImperialWeightWithOz",
+        "BloodPressure",
+        "Time",
+        "DateTime",
+        "DynamicList",
+        "Barcode"
       ],
       "fullName": "Type",
       "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Some types are only available for interface elements and not the model"
     },
     "subtype": {
       "list": [
+        "Location",
         "Password",
         "Email",
         "Phone",
@@ -92,7 +107,7 @@
     "responsivePriority": {
       "default": 100,
       "fullName": "Responsive Priority",
-      "description": "Defines the priority of this field being hidden in datatables as described here: https://datatables.net/extensions/responsive/priority (the higher the priority, the sooner the column will be hidden in narrow windows)"
+      "description": "Defines the priority of this field being hidden in datatables as described here: https://js.devexpress.com/Documentation/ApiReference/UI_Widgets/dxDataGrid/Configuration/columns/#hidingPriority (the lower the priority, the sooner the column will be hidden in narrow windows)"
     },
     "labelRenderer": {
       "fullName": "Label Renderer",
@@ -125,7 +140,7 @@
     },
     "linkLabel": {
       "fullName": "View All",
-      "description": "The label of the link in a dashbaord item or a tile"
+      "description": "The label of the link in a dashboard item or a tile"
     },
     "template": {
       "fullName": "Template",
@@ -154,11 +169,6 @@
       "fullName": "Temporary",
       "description": "If temporary then it should not be listed as a part of dictionary as this attribute is only used for MVP demo"
     },
-    //    "temporary": {
-    //      "fullName": "Temporary",
-    //      "type": "Boolean",
-    //      "description": "If temporary then it should not be listed as a part of dictionary as this attribute is only used for MVP demo"
-    //    },
     "default": {
       "fullName": "Default Value",
       "description": "Specifies the default value for this field if no value is provided"
@@ -170,11 +180,7 @@
     },
     "list": {
       "fullName": "List",
-      "comment": "Lists all possible values of this attribute"
-    },
-    "listUrl": {
-      "fullName": "List URL",
-      "description": "URL of REST EP returning the values"
+      "comment": "Lists all possible values of this attribute. List values may be retrieved asynchronously"
     },
     "comment": {
       "fullName": "Comment",
@@ -204,7 +210,7 @@
       "fullName": "Show In Form",
       "description": "If set to true (default) then this field will be displayed in the form."
     },
-    "showInGraphQL": {
+    "showInGraphql": {
       "default": true,
       "type": "Boolean",
       "fullName": "Show In GraphQL",
@@ -244,6 +250,10 @@
       "fullName": "Field Renderer",
       "description": "Renderers provide a way to render the data in a non-default way"
     },
+    "exportRender": {
+      "fullName": "Field Export Renderer",
+      "description": "Same as 'render' but used then exporting to XLSX & CSV"
+    },
     "formRender": {
       "fullName": "Field Renderer for the forms",
       "description": "Unlike 'render' this one is used in forms, not in datatables"
@@ -265,11 +275,11 @@
       "description": "Arguments to be used in the validator"
     },
     "transform": {
-      "fullName": "Trasform",
+      "fullName": "Transform",
       "description": "Lists array functions to be called to transform the data before storing it in the database. You can provide a 2-element array instead of one function to perform transformation before storing value into the database and after retrieving value from the database"
     },
     "schemaTransform": {
-      "fullName": "Schema Trasform",
+      "fullName": "Schema Transform",
       "description": "Lists array functions to be called to transform the model schema"
     },
     "fields": {
@@ -302,12 +312,7 @@
     },
     "parameters": {
       "fulName": "Parameters",
-      "description": "Various parameters specific for the givern type of field"
-    },
-    "generatorSpecification": {
-      "default": "2",
-      "fullName": "Specification for the generator",
-      "description": "See synthetic_generator.js#get_model_records in CorpUtil for examples of how the spec may look like"
+      "description": "Various parameters specific for the given type of field"
     },
     "generatorDistribution": {
       "default": "random",
@@ -417,6 +422,22 @@
     "lookupLabelRender": {
       "fullName": "Label Renderer function for lookups",
       "description": "Function, that allows to apply formatting for lookup labels"
+    },
+    "schemaName": {
+      "fullName": "Schema name inside schema object",
+      "description": "Used for convenience"
+    },
+    "fieldName": {
+      "fullName": "Field name inside field object",
+      "description": "Used for convenience"
+    },
+    "filter": {
+      "fullName": "Filter name, i.e. one of keys used in 'metaschema.filters' object",
+      "description": "Includes renderer (visual part) and where (mongodb query part)"
+    },
+    "generatorSpecification": {
+      "fullName": "Generator Specification",
+      "description": "Used in Synthetic Content Generator"
     }
   }
 }

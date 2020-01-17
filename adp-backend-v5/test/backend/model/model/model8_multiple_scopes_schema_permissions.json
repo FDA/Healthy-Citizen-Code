@@ -15,11 +15,11 @@
       "scopes": {
         "unavailableScope": {
           "permissions": "accessAsGuest",
-          "where": "{$eq: [true, false]}"
+          "where": "false"
         },
         "availableScope": {
           "permissions": "accessAsGuest",
-          "where": "{$eq: [true, true]}"
+          "where": "true"
         }
       },
       "actions": {

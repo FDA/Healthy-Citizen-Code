@@ -3,87 +3,75 @@
  * Implements endpoints of research app methods
  * @returns {{}}
  */
-module.exports = function (globalMongoose) {
-    const mongoose = globalMongoose;
-    const async = require('async');
-    const log = require('log4js').getLogger('research-app-model/pool-controller');
 
-    let m = {};
+const log = require('log4js').getLogger('research-app-model/pool-controller');
 
-    m.init = (appLib) => {
-        appLib.addRoute('post', `/create-pool`, [appLib.isAuthenticated, m.createPool]);
-    };
+module.exports = function(globalMongoose) {
+  const mongoose = globalMongoose;
 
-    m.createPool = (req, res, next) => {
-        let pool;
-        async.series([
-            (cb) => { // try to find pool with this ID
-                mongoose.model('pools').find({
-                    poolName: req.body.name
-                }, (err, data) => {
-                    if(err || !data) {
-                        log.error(`Error while searching for pool: ${err}`);
-                    } else {
-                        pool = data[0];
-                    }
-                    cb(err);
-                });
-            },
-            (cb) => { // create pool if necessary
-                if (!pool) {
-                    mongoose.model('pools').create({
-                        poolName: req.body.name,
-                        poolId: req.body.name,
-                        creator: req.user._id
-                    }, (err, data) => {
-                        if (err) {
-                            log.error(`Error while creating pool: ${err}`);
-                        } else {
-                            pool = data;
-                        }
-                        cb(err);
-                    });
-                } else {
-                    cb();
-                }
-            },
-            (cb) => { // create participants
-                async.eachSeries(req.body.guids, (id, cb) => {
-                    mongoose.model('poolParticipants').create({
-                        poolId: {
-                            _id: pool._id,
-                            label: pool.poolName,
-                            table: "pools"
-                        },
-                        guid: id,
-                        statusCode: 1,
-                        statusDate: new Date(),
-                        activeDate: new Date(),
-                        creator: req.user._id
-                    }, (err, data) => {
-                        if(err) {
-                            log.error(`Error while creating pool participant: ${err}`);
-                        }
-                        cb(err);
-                    });
-                }, cb);
-            }
-        ],(err) => {
-            if(err) {
-                log.error(`Pool creating failed: ${err}`);
-                res.json({
-                    success: false,
-                    message: err
-                });
-            } else {
-                res.json({
-                    success: true,
-                    data: pool
-                });
-            }
-            next();
-        });
-    };
+  const m = {};
 
-    return m;
+  m.init = appLib => {
+    m.appLib = appLib;
+    appLib.addRoute('post', `/add-participants-to-pool`, [appLib.isAuthenticated, m.addParticipantsToPool]);
+  };
+
+  m.addParticipantsToPool = async (req, res) => {
+    const { name: poolName, participantsFilter } = req.body;
+    const { dba, filterParser, appModel } = m.appLib;
+    const creator = req.user._id;
+
+    let pool;
+    try {
+      const poolModel = mongoose.model('pools');
+      pool = await poolModel.findOne({
+        poolName,
+        ...dba.getConditionForActualRecord(),
+      }).lean();
+      if (!pool) {
+        // TODO: add checking user permissions?
+        pool = await poolModel.create({ poolName, creator });
+      }
+    } catch (e) {
+      log.error(`Unable to create a pool`, e.stack);
+      return res.json({ success: false, message: `Unable to create a pool` });
+    }
+
+    const mongoConditions = filterParser.parse(participantsFilter, appModel.models.participants);
+    const participantsToAddPromise = mongoose.model('participants').find(mongoConditions, { _id: 0, guid: 1 }).lean();
+    const existingParticipantsPromise = mongoose.model('poolParticipants').find({ 'poolId._id': pool._id, ...dba.getConditionForActualRecord()}, { _id: 0, guid: 1 }).lean();
+    const [participantsToAdd, existingParticipants] = await Promise.all([participantsToAddPromise, existingParticipantsPromise]);
+
+    const participantsToAddGuids = participantsToAdd.map(p => p.guid);
+    const existingParticipantsGuidsSet = new Set(existingParticipants.map(p => p.guid));
+    const participantsToCreateGuids = participantsToAddGuids.filter(guid => !existingParticipantsGuidsSet.has(guid));
+
+    const nowDate = new Date();
+    const poolParticipants = participantsToCreateGuids.map(pGuid => ({
+      poolId: {
+        _id: pool._id,
+        label: poolName,
+        table: 'pools',
+      },
+      guid: pGuid,
+      statusCode: 1,
+      statusDate: nowDate,
+      activeDate: nowDate,
+      creator,
+    }));
+
+    try {
+      await mongoose.model('poolParticipants').create(poolParticipants);
+    } catch (e) {
+      log.error(`Unable to create poolParticipants`, e.stack);
+      return res.json({
+        success: false,
+        message: `Unable to create poolParticipants`,
+      });
+    }
+
+    res.json({ success: true, data: { pool, createdParticipantGuids: participantsToCreateGuids } });
+  };
+
+  return m;
 };

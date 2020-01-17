@@ -30,7 +30,7 @@
       'Number': { uiSubtypeType: 'number', directiveType: 'string' },
       'Number:ImperialHeight': { directiveType: 'imperial-units' },
       'Number:ImperialWeightWithOz': { directiveType: 'imperial-units' },
-      'Number:ImperialWeight': { directiveType: 'imperial-units' },
+      'Number:ImperialWeight': { directiveType: 'imperial-weight' },
       'LookupObjectID': { directiveType: 'lookup' },
       'LookupObjectID[]': { directiveType: 'lookup-multiple' },
       'Boolean': { uiType: 'checkbox', directiveType: 'checkbox' },
@@ -105,9 +105,7 @@
     }
 
     function _isVisible(field) {
-      var isVisible = 'showInForm' in field ? field.showInForm : field.visible;
-
-      return isVisible;
+      return field.showInForm;
     }
 
     // !!! mutation

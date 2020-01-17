@@ -25,7 +25,7 @@
         scope.subjectNames = _.keys(scope.field.lookup.table);
         scope.subjectId = scope.field.lookup.id;
 
-        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams.formParams);
         scope.isEmpty = function() {
           var data = scope.getData();
           return _.isUndefined(data) || _.isNull(data) || _.isEmpty(data);
@@ -53,7 +53,8 @@
           var lookup = {
             _id: state.id,
             table: scope.selectedSubject.selected,
-            label: state.label
+            label: state.label,
+            data: state.data
           };
 
           var params = {
@@ -104,7 +105,13 @@
               }
             },
             results: function (response) {
-              return { results: response.data, more: response.more };
+              return {
+                results: response.data.map(function (item) {
+                  item.id = item._id;
+                  return item;
+                }),
+                more: response.more
+              };
             },
             cache: true
           },
@@ -138,7 +145,8 @@
             callback({
               id: data._id,
               label: data.label,
-              table: data.table
+              table: data.table,
+              data: data.data
             });
           }
         };

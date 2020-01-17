@@ -34,6 +34,7 @@
           modelSchema: scope.validationParams.formParams.modelSchema,
           action: scope.validationParams.formParams.action,
           visibilityMap: scope.validationParams.formParams.visibilityMap,
+          requiredMap: scope.validationParams.formParams.requiredMap,
         };
 
         // default value

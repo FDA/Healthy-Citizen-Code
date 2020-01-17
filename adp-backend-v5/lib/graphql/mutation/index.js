@@ -1,95 +1,152 @@
-const { schemaComposer } = require('graphql-compose');
+const log = require('log4js').getLogger('graphql/mutation');
+const { MongoIdITC, COMPOSER_TYPES } = require('../type/common');
+const { getOrCreateTypeByModel } = require('../type/model');
+const GraphQlContext = require('../../request-context/graphql/GraphQlContext');
+const { ValidationError, AccessError, LinkedRecordError } = require('../../errors');
 
 const deleteOutputType = `type DeleteType {
       deletedCount: Int
     }`;
 
-// function getInputTypeWithAllFieldsOptional(type) {
-//   const optionalType = type.getITC();
-//   optionalType.makeOptional(optionalType.getFieldNames());
-//   return optionalType;
-// }
+const createOneResolverName = 'createOne';
+const deleteOneResolverName = 'deleteOne';
+const updateOneResolverName = 'updateOne';
+const upsertOneResolverName = 'upsertOne';
 
-function addCreateOneResolver(modelName, db) {
-  const type = schemaComposer.getTC(modelName);
-
+function addCreateOneResolver(model, modelName) {
+  const type = getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT);
   type.addResolver({
     kind: 'mutation',
-    name: 'createOne',
+    name: createOneResolverName,
     args: {
-      record: type.getITC(),
+      record: getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.INPUT_WITHOUT_ID),
     },
     type,
-    resolve: ({ args }) => db.create(args.record),
+    resolve: async ({ args, context }) => {
+      try {
+        const { req, appLib } = context;
+        const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
+        // no filtering for create record
+        graphQlContext.mongoParams = { conditions: {} };
+        return appLib.dba.withTransaction(session =>
+          appLib.controllerUtil.postItem(graphQlContext, args.record, session)
+        );
+      } catch (e) {
+        log.error(e.stack);
+        throw new Error(`Unable to create record`);
+      }
+    },
   });
+
+  return { type, resolver: type.getResolver(createOneResolverName) };
 }
 
-function addDeleteOneResolver(modelName, db) {
-  const type = schemaComposer.getTC(modelName);
+/**
+ * This function helps to avoid 'TypeError: obj.hasOwnProperty is not a function' thrown by mongoose
+ * in node_modules/mongoose/lib/cast.js:32.
+ * The reason why args.filter does not have 'hasOwnProperty' function is that it's created inside 'graphql' module
+ * with Object.create(null). See more: https://stackoverflow.com/questions/47773538/typeerror-obj-hasownproperty-is-not-a-function-when-calling-graphql-mutation
+ * When using '{ ...args.filter }' result object is generated with Object.prototype and therefore have 'hasOwnProperty' function
+ * @param args
+ * @returns {{conditions: {}}}
+ */
+function getMongoParams(args) {
+  return { conditions: { ...args.filter } };
+}
 
+function addDeleteOneResolver(model, modelName) {
+  const type = getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT);
   type.addResolver({
     kind: 'mutation',
-    name: 'deleteOne',
+    name: deleteOneResolverName,
     args: {
-      filter: type.getITC(),
+      filter: MongoIdITC.getTypeNonNull(),
     },
     type: deleteOutputType,
-    resolve: ({ args }) => db.deleteOne(args.filter).then(result => ({ deletedCount: result.n })),
-  });
-}
-
-function addDeleteManyResolver(modelName, db) {
-  const type = schemaComposer.getTC(modelName);
-  type.addResolver({
-    kind: 'mutation',
-    name: 'deleteMany',
-    args: {
-      filter: type.getITC(),
+    resolve: async ({ args, context }) => {
+      try {
+        const { req, appLib } = context;
+        const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
+        graphQlContext.mongoParams = getMongoParams(args);
+        await appLib.dba.withTransaction(session => appLib.controllerUtil.deleteItem(graphQlContext, session));
+        return { deletedCount: 1 };
+      } catch (e) {
+        log.error(e.stack);
+        if (e instanceof ValidationError || e instanceof AccessError || e instanceof LinkedRecordError) {
+          throw e;
+        }
+        throw new Error(`Unable to delete record`);
+      }
     },
-    type: deleteOutputType,
-    resolve: ({ args }) => db.deleteMany(args.filter).then(result => ({ deletedCount: result.n })),
   });
+
+  return { type, resolver: type.getResolver(deleteOneResolverName) };
 }
 
-function addUpsertOneResolver(modelName, db) {
-  const type = schemaComposer.getTC(modelName);
-
+function addUpdateOneResolver(model, modelName) {
+  const type = getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT);
   type.addResolver({
     kind: 'mutation',
-    name: 'upsertOne',
+    name: updateOneResolverName,
     args: {
-      record: type.getITC(),
-      filter: type.getITC(),
-    },
-    type,
-    resolve: ({ args }) =>
-      db
-        .findOneAndUpdate(args.filter, args.record, { upsert: true, new: true })
-        .then(result => result.toObject()),
-  });
-}
-
-function addUpdateOneResolver(modelName, db) {
-  const type = schemaComposer.getTC(modelName);
-  type.addResolver({
-    kind: 'mutation',
-    name: 'updateOne',
-    args: {
-      record: type.getITC(),
-      filter: type.getITC(),
+      filter: MongoIdITC.getTypeNonNull(),
+      record: getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.INPUT_WITHOUT_ID),
     },
     type,
-    resolve: ({ args }) =>
-      db
-        .findOneAndUpdate(args.filter, args.record, { new: true })
-        .then(result => result.toObject()),
+    resolve: async ({ args, context }) => {
+      try {
+        const { req, appLib } = context;
+        const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
+        graphQlContext.mongoParams = getMongoParams(args);
+        return appLib.dba.withTransaction(session =>
+          appLib.controllerUtil.putItem(graphQlContext, args.record, session)
+        );
+      } catch (e) {
+        log.error(e.stack);
+        throw new Error(`Unable to update record`);
+      }
+    },
   });
+
+  return { type, resolver: type.getResolver(updateOneResolverName) };
+}
+
+function addUpsertOneResolver(model, modelName, filterType) {
+  const type = getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT);
+  const inputTypeWithoutId = getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.INPUT_WITHOUT_ID);
+  type.addResolver({
+    kind: 'mutation',
+    name: upsertOneResolverName,
+    args: {
+      record: inputTypeWithoutId,
+      filter: filterType || inputTypeWithoutId,
+    },
+    type,
+    resolve: async ({ args, context }) => {
+      try {
+        const { req, appLib } = context;
+        const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
+        graphQlContext.mongoParams = getMongoParams(args);
+        return appLib.dba.withTransaction(session =>
+          appLib.controllerUtil.upsertItem(graphQlContext, args.record, session)
+        );
+      } catch (e) {
+        log.error(e.stack);
+        throw new Error(`Unable to upsert record`);
+      }
+    },
+  });
+
+  return { type, resolver: type.getResolver(upsertOneResolverName) };
 }
 
 module.exports = {
   addCreateOneResolver,
-  addUpsertOneResolver,
   addUpdateOneResolver,
   addDeleteOneResolver,
-  addDeleteManyResolver,
+  addUpsertOneResolver,
+  createOneResolverName,
+  deleteOneResolverName,
+  updateOneResolverName,
+  upsertOneResolverName,
 };

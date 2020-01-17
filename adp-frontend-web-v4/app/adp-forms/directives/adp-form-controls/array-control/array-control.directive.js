@@ -8,7 +8,8 @@
   function arrayControl(
     AdpValidationService,
     AdpFieldsService,
-    AdpFormService
+    AdpFormService,
+    visibilityUtils
   ) {
     return {
       restrict: 'E',
@@ -55,14 +56,16 @@
           formParams.visibilityMap[arrayItemPath] = value;
         }
 
-        var requiredFn = AdpValidationService.isRequired(scope.validationParams);
-
         scope.getData = getData;
         scope.setData = setData;
         scope.isEmpty = isEmpty;
         scope.addArrayItem = addArrayItem;
         scope.remove = remove;
         scope.isRemoveDisabled = isRemoveDisabled;
+
+        scope.hasVisibleItems = function () {
+          return visibilityUtils.arrayHasVisibleChild(getData(), scope.validationParams);
+        };
 
         scope.getHeader = function (index) {
           var params = {
@@ -144,7 +147,13 @@
         }
 
         function isRemoveDisabled() {
-          return requiredFn() && getData().length === 1;
+          // kind of hack: checking if first element is required
+          var requiredMap = formParams.requiredMap;
+          var path = formParams.path + '[0]';
+          var isFirstRequired = requiredMap[path];
+          var hasOneItem = getData().length === 1;
+
+          return isFirstRequired && hasOneItem;
         }
       }
     }

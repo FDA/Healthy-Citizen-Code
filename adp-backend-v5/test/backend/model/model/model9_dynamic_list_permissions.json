@@ -1,0 +1,62 @@
+{
+  "models": {
+    "model9_dynamic_list_permissions": {
+      "type": "Schema",
+      "fields": {
+        "dynamicList": {
+          "type": "String",
+          "subtype": "DynamicList",
+          "list": {
+            "name": "/singleDynamicList",
+            "scopes": {
+              "specialScope1": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "return": "return $list",
+                "where": "return key.endsWith('1') || val.endsWith('2')"
+              }
+            }
+          }
+        },
+        "arrayDynamicList": {
+          "type": "String[]",
+          "subtype": "DynamicList",
+          "list": {
+            "name": "/arrayDynamicList",
+            "scopes": {
+              "specialScope1": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "return": "return $list",
+                "where": "return key.endsWith('1') || val.endsWith('2')"
+              }
+            }
+          }
+        }
+      },
+      "scopes": {
+        "scopeWithPreparation": {
+          "permissions": "accessAsUser",
+          "where": true
+        }
+      },
+      "actions": {
+        "width": 100,
+        "responsivePriority": 50,
+        "fields": {
+          "view": {
+            "permissions": ["accessAsUser"]
+          },
+          "create": {
+            "permissions": ["accessAsUser"]
+          },
+          "update": {
+            "permissions": ["accessAsUser"]
+          }
+        }
+      }
+    }
+  }
+}

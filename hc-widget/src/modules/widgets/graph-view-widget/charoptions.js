@@ -1,4 +1,4 @@
-import {updateIframeHeight} from '../../../lib/utils';
+import {updateIframeHeight} from '../../../lib/utils/utils';
 
 export default function getChartOptions(reactions, medicationName) {
   return {

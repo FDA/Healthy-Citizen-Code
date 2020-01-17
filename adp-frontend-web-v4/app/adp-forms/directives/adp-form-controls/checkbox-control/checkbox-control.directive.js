@@ -23,7 +23,7 @@
 
         function isEmpty() {
           var data = getData();
-          return _.isUndefined(data) || _.isNull(data);
+          return _.isNil(data);
         }
 
         function setData(value) {
@@ -34,7 +34,7 @@
           return scope.adpFormData[scope.field.keyName];
         }
 
-        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams.formParams);
       }
     }
   }

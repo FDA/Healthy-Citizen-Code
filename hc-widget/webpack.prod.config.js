@@ -1,5 +1,7 @@
-const UglifyJsPlugin = require('uglifyjs-webpack-plugin');
+const TerserPlugin = require('terser-webpack-plugin');
 const defaultConfig = require('./webpack.config.js');
+const Dotenv = require('dotenv-webpack');
+const path = require('path');
 
 const config = {
   mode: 'production',
@@ -7,8 +9,12 @@ const config = {
     hints: false
   },
   plugins: [
-    new UglifyJsPlugin({
-      uglifyOptions: {
+    new Dotenv({
+      path: path.resolve(__dirname, './.env'),
+      safe: true
+    }),
+    new TerserPlugin({
+      terserOptions: {
         mangle: { reserved: ['hcWidget'] }
       }
     })

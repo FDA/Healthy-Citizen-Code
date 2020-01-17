@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const args = require('optimist').argv;
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect, setUpdateAtIfRecordChanged } = require('../../../util/mongo');
 
 const { mongoUrl, recallCollectionName, drugCollectionName } = args;
 
@@ -13,41 +13,39 @@ if (!mongoUrl || !recallCollectionName || !drugCollectionName) {
 async function linkRecallToDrug(drugDoc, dbCon) {
   try {
     const {
-      openfda: { spl_id, spl_set_id, package_ndc, product_ndc },
+      openfda: { splId, splSetId, packageNdc, productNdc },
     } = drugDoc;
 
     const $recallOrCondition = [];
-    _.isArray(spl_id) && spl_id.length && $recallOrCondition.push({ 'openfda.spl_id': spl_id });
-    _.isArray(spl_set_id) &&
-      spl_set_id.length &&
-      $recallOrCondition.push({ 'openfda.spl_set_id': spl_set_id });
-    _.isArray(package_ndc) && package_ndc.length && $recallOrCondition.push({ package_ndc });
-    _.isArray(product_ndc) && product_ndc.length && $recallOrCondition.push({ product_ndc });
+    _.isArray(splId) && splId.length && $recallOrCondition.push({ 'openfda.splId': splId });
+    _.isArray(splSetId) && splSetId.length && $recallOrCondition.push({ 'openfda.splSetId': splSetId });
+    _.isArray(packageNdc) && packageNdc.length && $recallOrCondition.push({ packageNdc });
+    _.isArray(productNdc) && productNdc.length && $recallOrCondition.push({ productNdc });
 
-    const matchedRecallRecords = await dbCon
+    const matchedRecallDocs = await dbCon
       .collection(recallCollectionName)
       .find(
         {
           $or: $recallOrCondition,
         },
-        { _id: 1, recall_number: 1 }
+        { projection: { _id: 1, recallNumber: 1 } }
       )
       .toArray();
 
-    if (matchedRecallRecords.length) {
-      const recallLookups = matchedRecallRecords.map(r => ({
+    if (matchedRecallDocs.length) {
+      const recallLookups = matchedRecallDocs.map(r => ({
         table: recallCollectionName,
-        label: r.recall_number,
+        label: r.recallNumber,
         _id: r._id,
       }));
 
-      await dbCon
-        .collection(drugCollectionName)
-        .findOneAndUpdate({ _id: drugDoc._id }, { $set: { recalls: recallLookups } });
-
-      console.log(
-        `Linked recalls: ${JSON.stringify(recallLookups)} to drug (mongo id: ${drugDoc._id})`
+      await setUpdateAtIfRecordChanged(
+        dbCon.collection(drugCollectionName), 'updateOne',
+        { _id: drugDoc._id },
+        { $set: { recalls: recallLookups } }
       );
+
+      console.log(`Linked recalls: ${JSON.stringify(recallLookups)} to drug (mongo id: ${drugDoc._id})`);
     }
   } catch (e) {
     console.error(`Error while linking drug ${JSON.stringify(drugDoc)}`, e);
@@ -55,31 +53,17 @@ async function linkRecallToDrug(drugDoc, dbCon) {
 }
 
 async function createIndexes(indexFieldNames, collection, dbCon) {
-  return Promise.map(indexFieldNames, fieldName =>
-    dbCon.collection(collection).createIndex({ [fieldName]: 1 })
-  );
+  return Promise.map(indexFieldNames, fieldName => dbCon.collection(collection).createIndex({ [fieldName]: 1 }));
 }
 
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../../../util/mongo_connection_settings'));
-    const recallIndexFieldNames = [
-      'openfda.spl_id',
-      'openfda.spl_set_id',
-      'package_ndc',
-      'product_ndc',
-    ];
-    console.log(
-      `Creating '${recallCollectionName}' DB Indexes: ${recallIndexFieldNames.join(', ')}`
-    );
+    const dbCon = await mongoConnect(mongoUrl);
+    const recallIndexFieldNames = ['openfda.splId', 'openfda.splSetId', 'packageNdc', 'productNdc'];
+    console.log(`Creating '${recallCollectionName}' DB Indexes: ${recallIndexFieldNames.join(', ')}`);
     await createIndexes(recallIndexFieldNames, recallCollectionName, dbCon);
 
-    const drugIndexFieldNames = [
-      'openfda.spl_id',
-      'openfda.spl_set_id',
-      'openfda.package_ndc',
-      'openfda.product_ndc',
-    ];
+    const drugIndexFieldNames = ['openfda.splId', 'openfda.splSetId', 'openfda.packageNdc', 'openfda.productNdc'];
     console.log(`Creating '${drugCollectionName}' DB Indexes: ${drugIndexFieldNames.join(', ')}`);
     await createIndexes(drugIndexFieldNames, drugCollectionName, dbCon);
     console.log(`DB Indexes created`);
@@ -88,10 +72,10 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
       .collection(drugCollectionName)
       .find({
         $or: [
-          { 'openfda.spl_id': { $exists: true, $ne: [] } },
-          { 'openfda.spl_set_id': { $exists: true, $ne: [] } },
-          { 'openfda.package_ndc': { $exists: true, $ne: [] } },
-          { 'openfda.product_ndc': { $exists: true, $ne: [] } },
+          { 'openfda.splId': { $exists: true, $ne: [] } },
+          { 'openfda.splSetId': { $exists: true, $ne: [] } },
+          { 'openfda.packageNdc': { $exists: true, $ne: [] } },
+          { 'openfda.productNdc': { $exists: true, $ne: [] } },
         ],
       })
       .addCursorFlag('noCursorTimeout', true);
@@ -99,8 +83,8 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
     console.log('Searching for Recalls matching Drugs.');
     let drugs = [];
     while (await drugCursor.hasNext()) {
-      const drugRecord = await drugCursor.next();
-      drugs.push(drugRecord);
+      const drugDoc = await drugCursor.next();
+      drugs.push(drugDoc);
       if (drugs.length >= 500) {
         await Promise.map(drugs, d => linkRecallToDrug(d, dbCon));
         drugs = [];

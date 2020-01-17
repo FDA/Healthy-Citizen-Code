@@ -8,7 +8,26 @@
  *  of the tasks
  */
 
-const gutil = require('gulp-util');
+const log = require('fancy-log');
+const colors = require('ansi-colors');
+
+exports.APP_CONFIG = function() {
+  const configDefaults = {
+    "apiUrl": "http://localhost:5000",
+    "captchaDisabled": false,
+    "debug": false
+  };
+
+  var envConfig = {
+    "apiUrl": process.env.API_URL,
+    "captchaDisabled": process.env.CAPTCHA_DISABLED === 'true',
+    "debug": process.env.DEBUG === 'true',
+    "reCaptchaKey": process.env.RECAPTCHA_KEY,
+    "googleApiKey": process.env.GOOGLE_API_KEY
+  };
+
+  return Object.assign(configDefaults, envConfig);
+};
 
 exports.ngModule = 'app';
 
@@ -50,7 +69,7 @@ exports.htmlmin = {
  */
 exports.errorHandler = function (title) {
   return err => {
-    gutil.log(gutil.colors.red(`[${title}]`), err.toString());
+    log(colors.red(`[${title}]`), err.toString());
     this.emit('end');
   };
 };

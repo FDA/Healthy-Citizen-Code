@@ -16,7 +16,7 @@ module.exports = appLib => {
    * @param res
    * @param next
    */
-  m.upload = (req, res, next) => {
+  m.upload = async (req, res, next) => {
     const onSuccess = files => {
       res.json({ success: true, data: files });
       next();
@@ -24,68 +24,71 @@ module.exports = appLib => {
 
     const onError = err => {
       log.error(err);
-      res.json({ success: false, message: 'Error occurred while uploading files' });
+      res.status(401).json({ success: false, message: 'Error occurred while uploading files' });
     };
 
     let cropParams;
     try {
       cropParams = getCropParams(req);
     } catch (e) {
-      return res.json({ success: false, message: e.message });
+      return res.status(401).json({ success: false, message: e.message });
     }
 
     // image crop update
     // todo: move to separated endpoint
     if (_.isEmpty(req.files) && !_.isEmpty(cropParams)) {
-      return updateCrop(req)
-        .then(onSuccess)
-        .catch(onError);
+      try {
+        const data = await updateCrop(req);
+        onSuccess(data);
+      } catch (e) {
+        onError(e);
+      }
     }
 
     if (_.isEmpty(req.files)) {
-      return mainController.error(req, res, next, 'No file or data received');
+      const errMessage = 'No file or data received';
+      return mainController.error(req, res, next, new Error(errMessage), errMessage);
     }
 
     // file creation
     log.trace(`Accepting uploaded files: ${JSON.stringify(req.files, null, 4)}`);
 
     const files = Object.values(req.files);
-    handleUpload(files, req.user, cropParams)
-      .then(onSuccess)
-      .catch(onError);
+    try {
+      const data = await handleUpload(files, appLib.accessUtil.getReqUser(req), cropParams);
+      onSuccess(data);
+    } catch (e) {
+      onError(e);
+    }
   };
 
-  function getFile(cropped, req, res, next) {
-    const File = mongoose.model('files');
+  async function getFile(cropped, req, res, next) {
+    const { id } = req.params;
+    const { ObjectId } = mongoose.Types;
+    if (!ObjectId.isValid(id)) {
+      const errMessage = `Invalid id ${id}`;
+      return mainController.error(req, res, next, new Error(errMessage), errMessage);
+    }
 
-    Promise.resolve(File.findById(req.query.id))
-      .bind({})
-      .then(data => {
-        if (!data) {
-          return mainController.error(req, res, next, 'File not found in the database'); // TODO: should I return 404?
-        }
+    try {
+      const File = mongoose.model('files');
+      const data = await File.findById(new ObjectId(id));
+      if (!data) {
+        const errMessage = 'File not found in the database';
+        return mainController.error(req, res, next, new Error(errMessage), errMessage); // TODO: should I return 404?
+      }
 
-        this.data = data;
-        const initFilePath = path.resolve(data.filePath);
-        this.requestedFilePath = cropped ? `${initFilePath}_cropped` : initFilePath;
-
-        return fs.pathExists(this.requestedFilePath);
-      })
-      .then(exists => {
-        if (exists) {
-          return sendFile(this.requestedFilePath, this.data, req, res, next);
-        }
-        mainController.error(req, res, next, 'File not found on the server'); // TODO: should I return 404?
-      })
-      .catch(err => {
-        mainController.error(
-          req,
-          res,
-          next,
-          err.message,
-          'Error occurred while retrieving the file'
-        );
-      });
+      const initFilePath = path.resolve(data.filePath);
+      const requestedFilePath = cropped ? `${initFilePath}_cropped` : initFilePath;
+      const exists = await fs.pathExists(requestedFilePath);
+      if (exists) {
+        return sendFile(requestedFilePath, data, req, res, next);
+      }
+      const errMessage = 'File not found on the server';
+      mainController.error(req, res, next, new Error(errMessage), errMessage); // TODO: should I return 404?
+    } catch (e) {
+      mainController.error(req, res, next, e, 'Error occurred while retrieving the file');
+    }
   }
 
   /**
@@ -98,9 +101,7 @@ module.exports = appLib => {
   function sendFile(fullPath, data, req, res, next) {
     res.writeHead(200, {
       'Content-Type': data.mimeType,
-      'Content-Disposition': req.url.startsWith('/download')
-        ? `attachment; filename=${data.originalName}`
-        : 'inline',
+      'Content-Disposition': req.url.startsWith('/download') ? `attachment; filename=${data.originalName}` : 'inline',
       // "Content-Length": data.size
     });
     const stream = fs.createReadStream(fullPath);
@@ -135,20 +136,27 @@ module.exports = appLib => {
    * @param next
    */
   m.getFileThumbnail = (req, res, next) => {
+    const { id } = req.params;
+    const { ObjectId } = mongoose.Types;
+    if (!ObjectId.isValid(id)) {
+      const errMessage = `Invalid id ${id}`;
+      return mainController.error(req, res, next, new Error(errMessage), errMessage);
+    }
+
     const File = mongoose.model('files');
 
-    File.findById(req.params.id, (err, data) => {
+    File.findById(new ObjectId(id), (err, data) => {
       if (err) {
-        mainController.error(req, res, next, 'Error occured while retrieving the file');
+        mainController.error(req, res, next, err, 'Error occurred while retrieving the file');
         return;
       }
 
       if (!data) {
-        mainController.error(req, res, next, 'File not found in the database'); // TODO: should I return 404?
+        mainController.error(req, res, next, new Error('File not found in the database')); // TODO: should I return 404?
         return;
       }
 
-      const fullPath = `../${data.filePath}_thumbnail`;
+      const fullPath = `${data.filePath}_thumbnail`;
       if (fs.pathExistsSync(fullPath)) {
         res.writeHead(200, {
           'Content-Type': data.mimeType,
@@ -158,19 +166,10 @@ module.exports = appLib => {
         stream.on('end', next);
         stream.pipe(res);
       } else {
-        const newFullPath = `./model/public/default-thumbnails/${data.mimeType.replace(
-          /\//g,
-          '-'
-        )}.png`;
+        const newFullPath = `./model/public/default-thumbnails/${data.mimeType.replace(/\//g, '-')}.png`;
 
         if (fs.pathExistsSync(newFullPath)) {
-          sendFile(
-            newFullPath,
-            { mimeType: 'image/png', originalName: 'default.png' },
-            req,
-            res,
-            next
-          );
+          sendFile(newFullPath, { mimeType: 'image/png', originalName: 'default.png' }, req, res, next);
         } else if (fs.pathExistsSync('./model/public/default-thumbnails/default.png')) {
           sendFile(
             './model/public/default-thumbnails/default.png',
@@ -180,7 +179,7 @@ module.exports = appLib => {
             next
           );
         } else {
-          mainController.error(req, res, next, 'No thumbnail available');
+          mainController.error(req, res, next, err, 'No thumbnail available');
         }
       } // TODO: also check in app model
     });

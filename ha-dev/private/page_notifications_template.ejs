@@ -1,0 +1,42 @@
+<adp-page-loader
+        loading="vm.loading">
+</adp-page-loader>
+
+<adp-content-container
+        class="multi-record"
+        ng-if="!vm.loading">
+
+    <adp-section-container>
+        <adp-page-title>{{ vm.schema.fullName }}</adp-page-title>
+
+        <adp-page-description schema="vm.schema"></adp-page-description>
+
+        <button
+                ng-if="vm.showCreate"
+                type="button"
+                ng-click="vm.create()"
+                class="btn btn-primary page-action">
+            Create New
+        </button>
+    </adp-section-container>
+
+    <adp-section-container
+            ng-if="!vm.pageData.length">
+        <adp-section-title>No data to show.</adp-section-title>
+    </adp-section-container>
+
+    <adp-section-container
+            class="notifications"
+            ng-if="vm.pageData.length">
+
+        <adp-table
+                schema="vm.schema"
+                data="vm.pageData"
+                url="vm.resourceUrl"
+                actions="vm.schema.actions"
+                action-cbs="vm.actionCbs">
+        </adp-table>
+
+    </adp-section-container>
+
+</adp-content-container>

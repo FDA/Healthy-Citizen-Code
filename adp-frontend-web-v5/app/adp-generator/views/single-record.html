@@ -1,0 +1,88 @@
+<adp-page-loader
+  loading="vm.loading">
+</adp-page-loader>
+
+<adp-content-container
+  class="single-record"
+  ng-if="!vm.loading">
+
+  <adp-section-container>
+    <adp-page-title>{{vm.schema.fullName}}</adp-page-title>
+
+    <adp-page-description schema="vm.schema"></adp-page-description>
+
+    <button
+      type="button"
+      ng-if="vm.showButton(vm.ACTIONS.CREATE)"
+      ng-click="vm.enterEditMode()"
+      class="btn btn-primary page-action">
+      Create
+    </button>
+
+    <button
+      type="button"
+      ng-if="vm.showButton(vm.ACTIONS.UPDATE)"
+      ng-click="vm.enterEditMode()"
+      class="btn btn-primary page-action">
+      Edit
+    </button>
+
+    <button
+      ng-click="vm.cancelEditMode()"
+      ng-if="vm.editing"
+      type="button"
+      class="btn btn-default page-action">
+      Cancel
+    </button>
+  </adp-section-container>
+
+  <adp-section-container
+     ng-if="vm.isEmpty && !vm.editing">
+    <adp-section-title>No data to show.</adp-section-title>
+  </adp-section-container>
+
+  <adp-section-container
+    ng-if="!vm.isEmpty && !vm.editing">
+
+    <adp-record-details
+      schema="vm.schema"
+      data="vm.pageData">
+    </adp-record-details>
+
+  </adp-section-container>
+
+  <adp-form
+    class="single-record-form"
+    ng-if="vm.editing"
+    adp-submit="vm.submit"
+    adp-data="vm.editData"
+    adp-form-params="vm.formParams"
+    adp-fields="vm.schema.fields"
+    schema="vm.schema"
+    disable-fullscreen="true"
+  >
+    <form-footer>
+      <button
+        ng-if="vm.isEmpty"
+        type="submit"
+        class="btn btn-primary">
+        Add
+      </button>
+
+      <button
+        type="submit"
+        ng-if="!vm.isEmpty"
+        class="btn btn-primary">
+        Update
+      </button>
+
+      <button
+        ng-click="vm.cancelEditMode()"
+        type="button"
+        class="btn btn-default">
+        Cancel
+      </button>
+    </form-footer>
+
+  </adp-form>
+</adp-content-container>

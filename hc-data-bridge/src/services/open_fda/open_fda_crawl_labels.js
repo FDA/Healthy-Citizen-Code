@@ -8,16 +8,16 @@ const datapumps = require('datapumps');
 datapumps.Buffer.defaultBufferSize(10000);
 const { Group } = datapumps;
 const { MongodbMixin } = datapumps.mixin;
-const { MongoClient } = require('mongodb');
 const _ = require('lodash');
 const Crawler = require('crawler');
 const { Transform } = require('stream');
 const rp = require('request-promise');
+const { mongoConnect } = require('../util/mongo');
 
 const PAGES_PER_SECOND = 50;
 const ITEMS_PER_PAGE = 100;
 
-// API forbid te request items with param 'skip' that is more than 25000.
+// API forbid an items request with param 'skip' that is more than 25000.
 class OpenFDACrawlLabels extends Group {
   constructor (inputSettings) {
     super();
@@ -57,16 +57,10 @@ class OpenFDACrawlLabels extends Group {
   }
 
   checkConnection (url, errorUrls) {
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(url, (err, db) => {
-        if (err) {
-          errorUrls.push(url);
-          resolve();
-          return;
-        }
-        resolve(db);
+    return mongoConnect(url)
+      .catch(e => {
+        errorUrls.push(url);
       });
-    });
   }
 
   getCrawler (stream) {
@@ -109,7 +103,7 @@ class OpenFDACrawlLabels extends Group {
       .process((elem) => {
         const id = elem.uuid || elem.id; // substance.uuid and structure.id
         return this.pump(pumpName)
-          .update({ id }, elem, { upsert: true })
+          .updateOne({ id }, elem, { upsert: true })
           .then((commandResult) => {
             if (commandResult.result.nModified === 1) {
               console.log(`Updated entry in ${collectionName} with id: ${id}`);

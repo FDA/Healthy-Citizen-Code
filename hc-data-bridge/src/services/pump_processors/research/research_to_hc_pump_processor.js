@@ -5,8 +5,8 @@ const _ = require('lodash');
 
 const { Group } = datapumps;
 const { MongodbMixin } = datapumps.mixin;
-const { MongoClient } = require('mongodb');
 const ObjectId = require('mongodb').ObjectID;
+const { mongoConnect } = require('../../util/mongo');
 
 /**
  * Pumps all PHI records only with corresponding PII field 'shareDeidentifiedDataWithResearchers' = true from HC into Research(participants collection)
@@ -147,17 +147,13 @@ class ResearchToHcPumpProcessor extends Group {
   }
 
   checkConnection (url, errorUrls) {
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(url, (err, db) => {
-        if (err) {
-          errorUrls.push(url);
-          resolve();
-          return;
-        }
-        db.close();
-        resolve(db);
+    return mongoConnect(url)
+      .then(dbConnection => {
+        return dbConnection.close();
+      })
+      .catch(e => {
+        errorUrls.push(url);
       });
-    });
   }
 
   processSettings () {

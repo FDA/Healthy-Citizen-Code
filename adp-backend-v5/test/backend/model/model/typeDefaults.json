@@ -4,11 +4,7 @@
     "fields": {
       "Schema": {
         "limitReturnedRecords": 30
-      }
-    }
-  },
-  "subtypeDefaults": {
-    "fields": {
+      },
       "Password": {
         "width": 80,
         "validate": [
@@ -80,7 +76,7 @@
           {
             "validator": "regex",
             "arguments": {
-              "regex": "\\d{3}[^\\d]*\\d{3}[^\\d]*\\d{4}",
+              "regex": "^(\\+1\\s?)?((\\([2-9][0-9]{2}\\))|[2-9][0-9]{2})[\\s\\-]?[2-9][0-9]{2}[\\s\\-]?[0-9]{4}$",
               "regexOptions": "i"
             },
             "errorMessages": {

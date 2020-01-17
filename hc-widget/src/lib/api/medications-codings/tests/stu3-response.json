@@ -1,0 +1,400 @@
+{
+  "resourceType": "Bundle",
+  "id": "cc25fdcb-169d-497e-a196-89f184a7e5ba",
+  "meta": {
+    "lastUpdated": "2019-08-30T14:39:34.557+00:00"
+  },
+  "type": "searchset",
+  "total": 19,
+  "link": [
+    {
+      "relation": "self",
+      "url": "http://fhir.conceptant.com/baseDstu3/MedicationRequest?_format=json&_include=MedicationRequest%3Apatient&subject%3APatient=aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+    },
+    {
+      "relation": "next",
+      "url": "http://fhir.conceptant.com/baseDstu3?_getpages=cc25fdcb-169d-497e-a196-89f184a7e5ba&_getpagesoffset=10&_count=10&_format=json&_pretty=true&_bundletype=searchset"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00001",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00001",
+        "meta": {
+          "versionId": "13",
+          "lastUpdated": "2018-05-07T23:19:52.431+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "00006074954",
+              "display": "Simvastatin"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2015-01-15"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00002",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00002",
+        "meta": {
+          "versionId": "17",
+          "lastUpdated": "2018-05-07T23:19:52.586+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "00049341030",
+              "display": "Fluconazole"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2015-01-15"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00003",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00003",
+        "meta": {
+          "versionId": "9",
+          "lastUpdated": "2018-05-07T23:19:52.794+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "16590-288-90",
+              "display": "Plavix"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2018-05-02"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00004",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00004",
+        "meta": {
+          "versionId": "17",
+          "lastUpdated": "2018-05-07T23:19:52.950+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "0006-0207-54",
+              "display": "Prinivil"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2018-05-02"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00005",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00005",
+        "meta": {
+          "versionId": "13",
+          "lastUpdated": "2018-05-07T23:19:53.124+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "16590-087-30",
+              "display": "Effexor"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2018-05-02"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00006",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00006",
+        "meta": {
+          "versionId": "19",
+          "lastUpdated": "2018-05-07T23:19:53.286+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "54868-4517-0",
+              "display": "Advair Diskus"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2018-05-02"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00007",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00007",
+        "meta": {
+          "versionId": "13",
+          "lastUpdated": "2018-05-07T23:19:53.438+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "0603-2434-21",
+              "display": "Benztropine"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2018-05-02"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00008",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00008",
+        "meta": {
+          "versionId": "13",
+          "lastUpdated": "2018-05-07T23:19:53.596+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "63402-302-90",
+              "display": "Latuda"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2018-05-02"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00009",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00009",
+        "meta": {
+          "versionId": "13",
+          "lastUpdated": "2018-05-07T23:19:53.746+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "0615-5530-05",
+              "display": "Lisinopril"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2018-05-02"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/MedicationRequest/aaa00010",
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "aaa00010",
+        "meta": {
+          "versionId": "13",
+          "lastUpdated": "2018-05-07T23:19:53.919+00:00"
+        },
+        "status": "completed",
+        "intent": "order",
+        "medicationCodeableConcept": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/sid/ndc",
+              "code": "21695-423-08",
+              "display": "Ventolin HFA"
+            }
+          ]
+        },
+        "subject": {
+          "reference": "Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa"
+        },
+        "authoredOn": "2018-05-02"
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "http://fhir.conceptant.com/baseDstu3/Patient/aa27c71e-30c8-4ceb-8c1c-5641e066c0aa",
+      "resource": {
+        "resourceType": "Patient",
+        "id": "aa27c71e-30c8-4ceb-8c1c-5641e066c0aa",
+        "meta": {
+          "versionId": "2",
+          "lastUpdated": "2018-05-07T23:19:52.261+00:00"
+        },
+        "text": {
+          "status": "generated",
+          "div": "<div xmlns=\"http://www.w3.org/1999/xhtml\"><div class=\"hapiHeaderText\">Ms. Buena <b>JENNA </b></div><table class=\"hapiPropertyTable\"><tbody><tr><td>Address</td><td><span>45671 Florine Islands </span><br/><span>Apt. 213 </span><br/><span>New Bedford </span><span>MA </span><span>US </span></td></tr><tr><td>Date of birth</td><td><span>09 March 1951</span></td></tr></tbody></table></div>"
+        },
+        "name": [
+          {
+            "use": "official",
+            "family": "Jenna",
+            "given": [
+              "Buena"
+            ],
+            "prefix": [
+              "Ms."
+            ]
+          }
+        ],
+        "telecom": [
+          {
+            "system": "phone",
+            "value": "433.867.2146",
+            "use": "home"
+          }
+        ],
+        "gender": "female",
+        "birthDate": "1951-03-09",
+        "address": [
+          {
+            "extension": [
+              {
+                "url": "http://hl7.org/fhir/StructureDefinition/geolocation",
+                "extension": [
+                  {
+                    "url": "latitude",
+                    "valueDecimal": 41.722729537068034
+                  },
+                  {
+                    "url": "longitude",
+                    "valueDecimal": -70.95664799913175
+                  }
+                ]
+              }
+            ],
+            "line": [
+              "45671 Florine Islands",
+              "Apt. 213"
+            ],
+            "city": "New Bedford",
+            "state": "MA",
+            "postalCode": "02743",
+            "country": "US"
+          }
+        ],
+        "maritalStatus": {
+          "coding": [
+            {
+              "system": "http://hl7.org/fhir/v3/MaritalStatus",
+              "code": "S"
+            }
+          ],
+          "text": "S"
+        },
+        "multipleBirthBoolean": false,
+        "communication": [
+          {
+            "language": {
+              "coding": [
+                {
+                  "system": "http://hl7.org/fhir/ValueSet/languages",
+                  "code": "es",
+                  "display": "Spanish"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "include"
+      }
+    }
+  ]
+}

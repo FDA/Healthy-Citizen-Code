@@ -11,7 +11,7 @@
           "lookup": {
             "table": "model4s",
             "foreignKey": "_id",
-            "label": "name",
+            "label": "this.name + '-' + this.description",
             "id": "model4Id"
           }
         },
@@ -24,6 +24,21 @@
             "label": "name",
             "sortBy": { "name": -1 },
             "id": "model4IdSortBy"
+          }
+        },
+        "model4IdData": {
+          "type": "LookupObjectID",
+          "fullName": "model4IdData",
+          "lookup": {
+            "table": "model4s",
+            "foreignKey": "_id",
+            "label": "name",
+            "data": {
+              "info": "this.name + '-' + this.description",
+              "desc": "_.toUpper(this.description)"
+            },
+            "sortBy": { "name": -1 },
+            "id": "model4IdData"
           }
         }
       }

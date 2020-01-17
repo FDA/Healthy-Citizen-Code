@@ -1,4 +1,3 @@
-// global.appModelHelpers = {};
 require('dotenv').load({ path: '.env' });
 const log = require('log4js').getLogger('app');
 const appLib = require('./lib/app')(); // redefined in tests

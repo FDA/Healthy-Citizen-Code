@@ -1,0 +1,31 @@
+{
+  "models": {
+    "model11treeselectorWithFiltering": {
+      "type": "Schema",
+      "fields": {
+        "filteringField": {
+          "type": "String"
+        },
+        "treeSelector": {
+          "type": "TreeSelector",
+          "table": {
+            "treeCollection": {
+              "foreignKey": "_id",
+              "label": "name",
+              "parent": {
+                "parent._id": "_id"
+              },
+              "roots": {
+                "parent._id": { "$exists": false }
+              },
+              "leaves": "!this.hasChildren",
+              "requireLeafSelection": true,
+              "where": "{ 'name': this.form.filteringField }"
+            },
+            "id": "model11treeselectorWithFilteringId"
+          }
+        }
+      }
+    }
+  }
+}

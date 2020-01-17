@@ -1,0 +1,53 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+
+  <script src="../node_modules/d3/dist/d3.js"></script>
+  <script src="//localhost:9000/hc-ui-util.js"></script>
+
+  <style>
+    svg { border: 1px solid red; }
+  </style>
+</head>
+<body>
+  <div>
+    <svg
+      class="drug-interactions-visualization"
+      width="1200"
+      height="768"></svg>
+  </div>
+</body>
+<script>
+  document.addEventListener('DOMContentLoaded', () => {
+    const apiClient = new hcUiUtil.ApiClient({
+      HC_UTIL_URL: 'https://hc-util-backend.conceptant.com',
+    });
+
+    const medications = [{
+      brandName: "levocetirizine dihydrochloride",
+      ndc: "63187-663-60",
+      rxcui: ["855172"],
+    }, {
+      brandName: "Regular Strength Aspirin EC",
+      ndc: "55700-338-30",
+      rxcui: ["198467"],
+    }, {
+      brandName: 'what',
+      rxcui: ['197699']
+    }];
+
+    apiClient.getRxClassesAndInteractionData(medications)
+      .then(data => {
+        const svg = document.querySelector('.drug-interactions-visualization');
+        const {drugInteractionsVisualization} = hcUiUtil.UI;
+        drugInteractionsVisualization(svg, data);
+      });
+  });
+</script>
+</html>

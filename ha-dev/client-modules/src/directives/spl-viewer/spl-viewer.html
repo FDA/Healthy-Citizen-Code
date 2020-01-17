@@ -1,0 +1,14 @@
+<div class="drug-label-sections well">
+  <ul class="list-unstyled">
+    <li ng-repeat="section in data.sections">
+      <h2 class="semi-bold">
+        {{section.title}}
+      </h2>
+
+      <div
+        class="Section"
+        ng-bind-html="toHtml(section.html)"
+      ></div>
+    </li>
+  </ul>
+</div>

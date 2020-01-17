@@ -9,7 +9,7 @@ const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const reqlib = require('app-root-path').require;
 
-const { prepareEnv, getMongoConnection } = reqlib('test/backend/test-util');
+const { prepareEnv, getMongoConnection } = reqlib('test/test-util');
 
 describe('V5 Backend Validators', () => {
   const userContext = { _id: 1 };
@@ -37,21 +37,21 @@ describe('V5 Backend Validators', () => {
     ],
   };
 
-  before(function() {
+  before(async function() {
     prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return this.appLib.setup().then(() => {
-      this.dba = reqlib('/lib/database-abstraction')(this.appLib);
-      this.M6 = mongoose.model('model6s');
-      this.appLib.authenticationCheck = (req, res, next) => next(); // disable authentication
-    });
+    await this.appLib.setup();
+    this.dba = reqlib('/lib/database-abstraction')(this.appLib);
+    this.M6 = mongoose.model('model6s');
+    this.M12 = mongoose.model('model12required');
+    this.appLib.authenticationCheck = (req, res, next) => next(); // disable authentication
   });
 
-  after(function() {
-    return this.appLib
-      .shutdown()
-      .then(() => getMongoConnection())
-      .then(db => db.dropDatabase().then(() => db.close()));
+  after(async function() {
+    await this.appLib.shutdown();
+    const db = await getMongoConnection();
+    await db.dropDatabase();
+    await db.close();
   });
 
   beforeEach(function(done) {
@@ -78,9 +78,7 @@ describe('V5 Backend Validators', () => {
       data.n = 26;
       return this.dba.createItem(this.M6, userContext, data).catch(err => {
         assert(err != null);
-        err.message.should.equal(
-          'Error: Number1: Value 26 is too large, should be less than or equal to 25'
-        );
+        err.message.should.equal('Error: Number1: Value 26 is too large, should be less than or equal to 25');
       });
     });
     it('does not create record with n equal to 9 (before transformation)', function() {
@@ -108,9 +106,7 @@ describe('V5 Backend Validators', () => {
       data.s = 'a';
       return this.dba.createItem(this.M6, userContext, data).catch(err => {
         assert(err != null);
-        err.message.should.equal(
-          'Error: String: Value is too short, should be at least 3 characters long'
-        );
+        err.message.should.equal('Error: String: Value is too short, should be at least 3 characters long');
       });
     });
     it('does not create record with too long string', function() {
@@ -119,10 +115,54 @@ describe('V5 Backend Validators', () => {
       data.s = '0123456789123';
       return this.dba.createItem(this.M6, userContext, data).catch(err => {
         assert(err != null);
-        err.message.should.equal(
-          'Error: String: Value is too long, should be at most 12 characters long'
-        );
+        err.message.should.equal('Error: String: Value is too long, should be at most 12 characters long');
       });
+    });
+
+    it('does not create record with failed dynamic required condition (a2 array)', function() {
+      const data = {
+        a1: [{ s1: 'o11' }],
+      };
+      return this.dba.createItem(this.M12, userContext, data).catch(err => {
+        assert(err != null);
+        err.message.should.equal('Error: A 2: Field is required');
+      });
+    });
+
+    it('does not create record with failed dynamic required condition (a3 array)', function() {
+      const data = {
+        a1: [
+          {
+            s1: 'o11',
+            a2: [
+              {
+                s2: 'o21',
+              },
+            ],
+          },
+        ],
+      };
+      return this.dba.createItem(this.M12, userContext, data).catch(err => {
+        assert(err != null);
+        err.message.should.equal('Error: A 3: Field is required');
+      });
+    });
+
+    it('create record with dynamic required condition', function() {
+      const data = {
+        a1: [
+          {
+            s1: 'o11',
+            a2: [
+              {
+                s2: 'o21',
+                a3: [{ s3: 'o31' }],
+              },
+            ],
+          },
+        ],
+      };
+      return this.dba.createItem(this.M12, userContext, data);
     });
   });
 
@@ -136,44 +176,45 @@ describe('V5 Backend Validators', () => {
         err.message.should.equal('Error: Email: Please enter correct email');
       });
     });
-    it('creates record with correct email', function() {
+    it('creates record with correct email', async function() {
       const data = _.cloneDeep(sampleData0);
       data.email = 'test@test.com';
-      return this.dba.createItem(this.M6, userContext, data).then(record => {
-        assert(record);
-        record.email.should.equal(data.email);
-      });
+      const record = await this.dba.createItem(this.M6, userContext, data);
+      assert(record);
+      record.email.should.equal(data.email);
     });
     // phone
-    it('does not create record with incorrect phone', function() {
+    it('does not create record with incorrect phone', async function() {
       const data = _.cloneDeep(sampleData0);
       data.phone = 'www';
-      return this.dba.createItem(this.M6, userContext, data).catch(err => {
-        err.message.should.equal('Error: Phone: Please provide correct US phone number');
-      });
+      try {
+        await this.dba.createItem(this.M6, userContext, data);
+      } catch (e) {
+        e.message.should.equal('Error: Phone: Please provide correct US phone number');
+      }
     });
-    it('creates record with correct phone', function() {
+    it('creates record with correct phone', async function() {
       const data = _.cloneDeep(sampleData0);
-      data.phone = '123-456-7890';
-      return this.dba.createItem(this.M6, userContext, data).then(record => {
-        record.phone.should.equal(data.phone);
-      });
+      data.phone = '212-234-5678';
+      const record = await this.dba.createItem(this.M6, userContext, data);
+      record.phone.should.equal(data.phone);
     });
     // url
-    it('does not create record with incorrect url', function() {
+    it('does not create record with incorrect url', async function() {
       const data = _.cloneDeep(sampleData0);
       data.url = 'www';
-      return this.dba.createItem(this.M6, userContext, data).catch(err => {
-        assert(err != null);
-        err.message.should.equal('Error: Url: Please enter correct URL');
-      });
+      try {
+        await this.dba.createItem(this.M6, userContext, data);
+      } catch (e) {
+        assert(e != null);
+        e.message.should.equal('Error: Url: Please enter correct URL');
+      }
     });
-    it('creates record with correct url', function() {
+    it('creates record with correct url', async function() {
       const data = _.cloneDeep(sampleData0);
       data.url = 'http://www.www.com';
-      return this.dba.createItem(this.M6, userContext, data).then(record => {
-        record.url.should.equal(data.url);
-      });
+      const record = await this.dba.createItem(this.M6, userContext, data);
+      record.url.should.equal(data.url);
     });
   });
 });

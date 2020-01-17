@@ -9,29 +9,29 @@
  * meta - metainformation in datatables format: https://datatables.net/reference/option/columns.render
  */
 
-module.exports = function() {
-  var m = {
-    asIs: function(data, type, row, meta) {
+module.exports = () => {
+  const m = {
+    asIs(data) {
       return data;
     },
-    googleSearch: function(data, type, row, meta) {
-      var template = '<a href="https://google.com?q=<%= data %>"><%= data %></a>';
-      var templateData = { data: data, row: row, type: type, meta: meta };
+    googleSearch(data, type, row, meta) {
+      const template = '<a href="https://google.com?q=<%= data %>"><%= data %></a>';
+      const templateData = { data, row, type, meta };
 
       return adpRenderLib.getTemplate(template, templateData);
     },
-    link: function(data, type, row, meta) {
-      var template = '<a href="<%= data %>"><%= data %></a>';
-      var templateData = { data: data, row: row, type: type, meta: meta };
+    link(data, type, row, meta) {
+      const template = '<a href="<%= data %>"><%= data %></a>';
+      const templateData = { data, row, type, meta };
 
       return adpRenderLib.getTemplate(template, templateData);
     },
-    percent: function(data, type, row, meta) {
-      var value;
+    percent(data) {
+      let value;
       if (_.isNil(data)) {
         value = '-';
       } else {
-        value = Math.round(data * 100) + '%';
+        value = `${Math.round(data * 100)}%`;
       }
       return adpRenderLib.getTemplate('<span><%= val %></span>', { val: value });
     },

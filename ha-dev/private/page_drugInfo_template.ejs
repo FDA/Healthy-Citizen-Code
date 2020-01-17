@@ -1,0 +1,101 @@
+<a href="/#/profiles">Return back to profiles</a>
+
+<uib-tabset class="multiple-widgets-container">
+    <uib-tab select="vm.fetchReactions()" index="0">
+        <uib-tab-heading>
+            <i class="fa fa-lg fa-fw fa-pie-chart"></i> Adverse Events Effects
+        </uib-tab-heading>
+
+        <div
+                ng-if="vm.loading.drugInfo"
+                class="adp-app-page-loader">
+            <i class="lds-dual-ring"></i>
+        </div>
+
+        <div ng-if="!vm.loading.drugInfo">
+            <drug-reactions-chart
+                    ng-if="vm.reactions"
+                    medication="vm.medication"
+                    reactions="vm.reactions"
+            ></drug-reactions-chart>
+
+            <div class="well" ng-if="vm.errors.drugInfo">
+                <adp-section-title>{{vm.errors.drugInfo}}</adp-section-title>
+            </div>
+        </div>
+
+    </uib-tab>
+
+    <uib-tab select="vm.fetchAdverseEvents()" index="1">
+        <uib-tab-heading>
+            <i class="fa fa-lg fa-fw fa-medkit"></i> Adverse Events
+        </uib-tab-heading>
+
+        <div
+                ng-if="vm.loading.ae"
+                class="adp-app-page-loader">
+            <i class="lds-dual-ring"></i>
+        </div>
+
+        <div ng-if="!vm.loading.ae">
+            <adp-table-regular
+                    ng-if="vm.ae"
+                    schema="vm.schemas.adverseEvents"
+                    data="vm.ae"
+                    actions="{}"
+            ></adp-table-regular>
+
+            <div class="well" ng-if="vm.errors.ae">
+                <adp-section-title>{{vm.errors.ae}}</adp-section-title>
+            </div>
+        </div>
+    </uib-tab>
+
+    <uib-tab select="vm.fetchRecalls()" index="2">
+        <uib-tab-heading>
+            <i class="fa fa-lg fa-fw fa-exclamation-triangle"></i> Recalls
+        </uib-tab-heading>
+
+        <div
+                ng-if="vm.loading.recalls"
+                class="adp-app-page-loader">
+            <i class="lds-dual-ring"></i>
+        </div>
+
+        <div ng-if="!vm.loading.recalls">
+            <adp-table-regular
+                    ng-if="vm.recalls"
+                    schema="vm.schemas.recalls"
+                    data="vm.recalls"
+                    actions="{}"
+            ></adp-table-regular>
+
+            <div class="well" ng-if="vm.errors.recalls">
+                <adp-section-title>{{vm.errors.recalls}}</adp-section-title>
+            </div>
+        </div>
+    </uib-tab>
+
+    <uib-tab select="vm.fetchSpl()" index="3">
+        <uib-tab-heading>
+            <i class="fa fa-lg fa-fw fa-info-circle"></i> Spl
+        </uib-tab-heading>
+
+        <div
+                ng-if="vm.loading.spl"
+                class="adp-app-page-loader">
+            <i class="lds-dual-ring"></i>
+        </div>
+
+        <div ng-if="!vm.loading.spl">
+            <spl-viewer
+                    ng-if="vm.spl"
+                    data="vm.spl"
+            ></spl-viewer>
+
+            <div class="well" ng-if="vm.errors.spl">
+                <adp-section-title>{{vm.errors.spl}}</adp-section-title>
+            </div>
+        </div>
+    </uib-tab>
+</uib-tabset>

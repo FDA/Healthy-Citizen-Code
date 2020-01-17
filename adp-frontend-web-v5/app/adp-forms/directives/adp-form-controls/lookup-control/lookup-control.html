@@ -1,0 +1,32 @@
+<div
+  class="adp-lookup-control-container"
+  ng-class="[columnClass, fieldNameClass]"
+>
+  <lookup-table-selector
+    props="props"
+  >
+  </lookup-table-selector>
+
+  <lookup-selector-single
+    ng-if="!multiple"
+    props="props"
+  >
+  </lookup-selector-single>
+
+  <lookup-selector-multiple
+    ng-if="multiple"
+    props="props"
+  >
+  </lookup-selector-multiple>
+
+  <input
+    type="text"
+    class="hidden"
+    style="width:100%"
+    adp-validate="validationParams"
+    ng-required="isRequired()"
+    name="{{field.fieldName}}"
+    ng-model="adpFormData[field.fieldName]"
+    id="{{field.fieldName}}"
+  >
+</div>

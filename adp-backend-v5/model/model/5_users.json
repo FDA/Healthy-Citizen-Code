@@ -7,8 +7,7 @@
       "singleRecord": true,
       "limitReturnedRecords": 1,
       "controller": "user",
-      "schemaTransform": "user",
-      "description": "This collection solely serves the purpose of user authentication. Besides password recovery email there should be no PII in this collection.",
+      "description": "This collection solely serves the purpose of user authentication.",
       "fields": {
         "login": {
           "type": "String",
@@ -24,6 +23,7 @@
           "type": "String",
           "default": "",
           "required": true,
+          "unique": true,
           "subtype": "Email",
           "fullName": "Email",
           "description": "This email is used for the password recovery purposes only"
@@ -35,13 +35,6 @@
           "subtype": "Password",
           "fullName": "Password",
           "description": "User password. Please make it complex."
-        },
-        "salt": {
-          "type": "String",
-          "visible": false,
-          "generated": true,
-          "fullName": "Salt",
-          "description": "Password hash function salt"
         },
         "resetPasswordToken": {
           "type": "String",

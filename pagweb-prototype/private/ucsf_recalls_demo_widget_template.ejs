@@ -1,0 +1,17 @@
+<adp-content-container>
+
+    <adp-section-container>
+        <hc-widget
+                ng-if="!vm.loading && (vm.fhirId || vm.udid)"
+            widget-id="{{'4JJYROWFU9DNG7XD3XQS2KFZ'}}"
+            fhir-id="{{vm.fhirId}}"
+            udid="{{vm.udid}}"
+            url="{{vm.url}}"
+                rxcuis="{{'311354,1046815,314203,312749,312748'}}"
+        >
+        </hc-widget>
+
+        <p ng-if="!vm.loading && !vm.fhirId">No Deidentified User ID found.</p>
+    </adp-section-container>
+
+</adp-content-container>

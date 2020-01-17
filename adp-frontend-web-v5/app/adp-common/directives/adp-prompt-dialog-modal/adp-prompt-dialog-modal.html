@@ -1,0 +1,30 @@
+<div class="modal-header">
+    <h3 class="modal-title">{{vm.options.title}}</h3>
+</div>
+<div class="modal-body prompt-action-modal">
+    <section class="input-container" ng-class="{'state-error': vm.error}">
+        <input type="text" class="prompt-value" ng-model="vm.value" value="{{vm.value}}" autofocus
+               ng-keyup="vm.keyup($event)"/>
+        <div class="note note-error" ng-if="vm.error">
+      {{vm.error}}
+        </div>
+    </section>
+</div>
+<div class="modal-footer">
+
+    <button
+            class="btn btn-primary"
+            type="submit"
+            ng-click="vm.save()"
+            ng-disabled="vm.error"
+    >
+        {{ vm.saveButtonText }}
+    </button>
+
+    <button
+            class="btn btn-default"
+            type="button"
+            ng-click="vm.cancel()">
+        Cancel
+    </button>
+</div>

@@ -3,12 +3,12 @@ const datapumps = require('datapumps');
 datapumps.Buffer.defaultBufferSize(10000);
 const { Group } = datapumps;
 const { MongodbMixin } = datapumps.mixin;
-const { MongoClient } = require('mongodb');
 const _ = require('lodash');
 const Crawler = require('crawler');
 const { Transform } = require('stream');
 const rp = require('request-promise');
 const Promise = require('bluebird');
+const { mongoConnect } = require('../util/mongo');
 
 const PAGES_PER_SECOND = 100;
 
@@ -58,16 +58,10 @@ class GinasPumpProcessor extends Group {
   }
 
   checkConnection (url, errorUrls) {
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(url, (err, db) => {
-        if (err) {
-          errorUrls.push(url);
-          resolve();
-          return;
-        }
-        resolve(db);
+    return mongoConnect(url)
+      .catch(e => {
+        errorUrls.push(url);
       });
-    });
   }
 
   getCrawler (stream) {

@@ -2,56 +2,41 @@ const args = require('optimist').argv;
 const _ = require('lodash');
 const path = require('path');
 const xlsx = require('node-xlsx');
-const { MongoClient } = require('mongodb');
+const { mongoConnect, insertOrReplaceDocByCondition } = require('../util/mongo');
 
 const COLLECTION_NAME = 'cptcodes';
 const SHEET_NAME_TO_PARSE = 'ALL CPT Codes Combined';
 const XLS_PATH = path.resolve(__dirname, './resources/cpt-pcm-nhsn.xlsx');
 
-const upsertDoc = (dbCon, collectionName, doc) => {
-  return dbCon.collection(collectionName).update({ cptCode: doc.cptCode }, doc, { upsert: true })
-    .then((commandResult) => {
-      if (commandResult.result.nModified === 1) {
-        console.log(`Updated entry in '${collectionName}' with cptCode: ${doc.cptCode}`);
-      } else {
-        console.log(`Inserted entry in '${collectionName}' with cptCode: ${doc.cptCode}`);
+const upsertDoc = (dbCon, collectionName, doc) =>
+  insertOrReplaceDocByCondition(doc, dbCon.collection(collectionName), { cptCode: doc.cptCode });
+
+const pumpFromXls = (mongoUrl, collectionName, xlsPath) =>
+  mongoConnect(mongoUrl)
+    .then(dbCon => {
+      const parsedXls = xlsx.parse(xlsPath, { raw: false });
+      const cptCodesSheet = parsedXls.filter(sheet => sheet.name === SHEET_NAME_TO_PARSE)[0];
+      const promises = [];
+      if (_.isEmpty(cptCodesSheet)) {
+        console.log(`Cannot find sheet name ${SHEET_NAME_TO_PARSE}`);
+        return;
       }
-      return true;
+      const { data } = cptCodesSheet;
+      for (let i = 1; i < data.length; i++) {
+        const row = data[i];
+        const doc = {
+          procedureCodeCategory: row[0],
+          cptCode: row[1],
+          codeDescription: row[2],
+        };
+        promises.push(upsertDoc(dbCon, collectionName, doc));
+      }
+
+      return Promise.all(promises);
+    })
+    .catch(err => {
+      console.log(err);
     });
-};
-
-const pumpFromXls = (mongoUrl, collectionName, xlsPath) => new Promise((resolve, reject) => {
-  MongoClient.connect(mongoUrl, (err, dbCon) => {
-    if (err) {
-      reject(`Cannot get connection to ${mongoUrl}`);
-      return;
-    }
-    resolve(dbCon);
-  });
-})
-  .then((dbCon) => {
-    const parsedXls = xlsx.parse(xlsPath);
-    const sheet = parsedXls.filter(sheet => sheet.name === SHEET_NAME_TO_PARSE)[0];
-    const promises = [];
-    if (_.isEmpty(sheet)) {
-      console.log(`Cannot find sheet name ${SHEET_NAME_TO_PARSE}`);
-      return;
-    }
-    const { data } = sheet;
-    for (let i = 1; i < data.length; i++) {
-      const doc = {
-        procedureCodeCategory: data[i][0],
-        cptCode: data[i][1],
-        codeDescription: data[i][2],
-      };
-      promises.push(upsertDoc(dbCon, collectionName, doc));
-    }
-
-    return Promise.all(promises);
-  })
-  .catch((err) => {
-    console.log(err);
-  });
 
 const { mongoUrl } = args;
 if (!mongoUrl) {
@@ -64,4 +49,8 @@ pumpFromXls(mongoUrl, collectionName, XLS_PATH)
   .then(() => {
     console.log('Done');
     process.exit(0);
+  })
+  .catch(e => {
+    console.log('Error occurred during pumping CPT Codes', e.stack);
+    process.exit(1);
   });

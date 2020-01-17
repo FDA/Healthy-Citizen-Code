@@ -17,7 +17,7 @@
           "permissions": {
             "view": "accessAsGuest"
           },
-          "where": "{$eq: [true, false]}"
+          "where": "false"
         }
       },
       "actions": {

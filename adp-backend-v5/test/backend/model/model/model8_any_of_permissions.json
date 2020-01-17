@@ -15,7 +15,7 @@
       "scopes": {
         "anyOfConditionsScope": {
           "permissions": [["accessAsUser", "accessAsGuest"]],
-          "where": "{$eq: [true, true]}"
+          "where": "true"
         }
       },
       "actions": {

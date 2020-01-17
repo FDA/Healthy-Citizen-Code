@@ -1,0 +1,1350 @@
+{
+  "resourceType": "Bundle",
+  "type": "searchset",
+  "total": 7,
+  "link": [
+    {
+      "relation": "self",
+      "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest?patient=eLsTDB.L9u-r.hYPFN0oYAQ3&_include=MedicationRequest%3Amedication"
+    }
+  ],
+  "entry": [
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eFfN47MrKfcJMjl2FK-dt0ks9LyKi0mquBsV9stiM5NU3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eFfN47MrKfcJMjl2FK-dt0ks9LyKi0mquBsV9stiM5NU3"
+        }
+      ],
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "eFfN47MrKfcJMjl2FK-dt0ks9LyKi0mquBsV9stiM5NU3",
+        "status": "active",
+        "intent": "order",
+        "authoredOn": "2019-06-14T18:56:50Z",
+        "identifier": [
+          {
+            "use": "usual",
+            "system": "urn:oid:1.2.840.114350.1.13.266.3.7.2.798268",
+            "value": "165000391"
+          }
+        ],
+        "category": {
+          "text": "Inpatient",
+          "coding": [
+            {
+              "code": "inpatient",
+              "display": "Inpatient"
+            }
+          ]
+        },
+        "medicationReference": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/eDUp501170Rixxxmv.wm-wqpoi7YR-MHm0JMLHZZefy0pNnTnEmpTBipNhQC0JLvBtIpAPwv9RTgmVcjkZL.8FtrGFD4LtKV42vmHLuXYUmA3",
+          "display": "acetaminophen-codeine (TYLENOL #3)"
+        },
+        "subject": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Patient/eLsTDB.L9u-r.hYPFN0oYAQ3",
+          "display": "Patient, Test"
+        },
+        "requester": {
+          "agent": {
+            "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eGeITTn2ofPLVhYlRmo7MiQ3",
+            "display": "Raman R Khanna, MD"
+          }
+        },
+        "recorder": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eY52-ZCNZWZ.8SCl7dqvPRw3",
+          "display": "Andrew R"
+        },
+        "dosageInstruction": [
+          {
+            "asNeededBoolean": true,
+            "extension": [
+              {
+                "url": "https://open.epic.com/fhir/extensions/admin-amount",
+                "valueQuantity": {
+                  "value": 1,
+                  "unit": "tablet",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "{tbl}"
+                }
+              },
+              {
+                "url": "https://open.epic.com/fhir/extensions/ordered-dose",
+                "valueQuantity": {
+                  "value": 1,
+                  "unit": "tablet",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "{tbl}"
+                }
+              }
+            ],
+            "timing": {
+              "repeat": {
+                "frequency": 1,
+                "period": 4,
+                "periodUnit": "h",
+                "boundsPeriod": {
+                  "start": "2019-06-14T18:56:35Z"
+                }
+              },
+              "code": {
+                "text": "every 4 (four) hours as needed"
+              }
+            },
+            "route": {
+              "text": "Oral",
+              "coding": [
+                {
+                  "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.798268.7025",
+                  "code": "15",
+                  "display": "Oral"
+                },
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "26643006",
+                  "display": "Oral Route"
+                }
+              ]
+            },
+            "doseQuantity": {
+              "value": 1,
+              "unit": "tablet",
+              "system": "http://unitsofmeasure.org",
+              "code": "{tbl}"
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/eDUp501170Rixxxmv.wm-wqpoi7YR-MHm0JMLHZZefy0pNnTnEmpTBipNhQC0JLvBtIpAPwv9RTgmVcjkZL.8FtrGFD4LtKV42vmHLuXYUmA3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/eDUp501170Rixxxmv.wm-wqpoi7YR-MHm0JMLHZZefy0pNnTnEmpTBipNhQC0JLvBtIpAPwv9RTgmVcjkZL.8FtrGFD4LtKV42vmHLuXYUmA3"
+        }
+      ],
+      "resource": {
+        "resourceType": "Medication",
+        "id": "eDUp501170Rixxxmv.wm-wqpoi7YR-MHm0JMLHZZefy0pNnTnEmpTBipNhQC0JLvBtIpAPwv9RTgmVcjkZL.8FtrGFD4LtKV42vmHLuXYUmA3",
+        "isBrand": false,
+        "isOverTheCounter": false,
+        "code": {
+          "text": "acetaminophen-codeine (TYLENOL #3)",
+          "coding": [
+            {
+              "system": "http://www.whocc.no/atc",
+              "code": "N02AJ06"
+            },
+            {
+              "system": "urn:oid:2.16.840.1.113883.6.208",
+              "code": "4165"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "161"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "2670"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "2672"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "216834"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "218221"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "219198"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "220586"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "540435"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "540518"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "702747"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "817579"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "851961"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "993764"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "993781"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "993783"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "993793"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "993796"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "993819"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "993822"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "993837"
+            }
+          ]
+        },
+        "form": {
+          "text": "Tablet",
+          "coding": [
+            {
+              "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.698288.310",
+              "code": "TAB",
+              "display": "Tablet"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "include"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eI-FvqGDzCVn0.K4i8nfxoKFuLiaLPdbFewcurXaunFg3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eI-FvqGDzCVn0.K4i8nfxoKFuLiaLPdbFewcurXaunFg3"
+        }
+      ],
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "eI-FvqGDzCVn0.K4i8nfxoKFuLiaLPdbFewcurXaunFg3",
+        "status": "active",
+        "intent": "order",
+        "authoredOn": "2019-05-13T20:55:57Z",
+        "identifier": [
+          {
+            "use": "usual",
+            "system": "urn:oid:1.2.840.114350.1.13.266.3.7.2.798268",
+            "value": "165000389"
+          }
+        ],
+        "category": {
+          "text": "Inpatient",
+          "coding": [
+            {
+              "code": "inpatient",
+              "display": "Inpatient"
+            }
+          ]
+        },
+        "medicationReference": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/esno9eCTr5rypQ4GvPc0jCdiz3T5zPKh0y-edpob6jx8x1.lz3A5avz5XZSdSMicA70gSPpQhSYXfMAWirf54P.QWRuToZNDgerx3n710qlY3",
+          "display": "Iv Infusion Builder"
+        },
+        "subject": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Patient/eLsTDB.L9u-r.hYPFN0oYAQ3",
+          "display": "Patient, Test"
+        },
+        "requester": {
+          "agent": {
+            "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eGeITTn2ofPLVhYlRmo7MiQ3",
+            "display": "Raman R Khanna, MD"
+          }
+        },
+        "recorder": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/e2M7pnMEDvlizK7.aO9eUlg3",
+          "display": "Admit Supervisor A"
+        },
+        "dosageInstruction": [
+          {
+            "asNeededBoolean": false,
+            "extension": [
+              {
+                "url": "https://open.epic.com/fhir/extensions/ordered-dose",
+                "valueQuantity": {
+                  "value": 75,
+                  "unit": "mL/hr",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "mL/h"
+                }
+              }
+            ],
+            "timing": {
+              "repeat": {
+                "boundsPeriod": {
+                  "start": "2019-05-13T21:15:00Z"
+                }
+              },
+              "code": {
+                "text": "continuous"
+              }
+            },
+            "route": {
+              "text": "Intravenous",
+              "coding": [
+                {
+                  "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.798268.7025",
+                  "code": "11",
+                  "display": "Intravenous"
+                }
+              ]
+            },
+            "doseQuantity": {
+              "value": 75,
+              "unit": "mL/hr",
+              "system": "http://unitsofmeasure.org",
+              "code": "mL/h"
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/esno9eCTr5rypQ4GvPc0jCdiz3T5zPKh0y-edpob6jx8x1.lz3A5avz5XZSdSMicA70gSPpQhSYXfMAWirf54P.QWRuToZNDgerx3n710qlY3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/esno9eCTr5rypQ4GvPc0jCdiz3T5zPKh0y-edpob6jx8x1.lz3A5avz5XZSdSMicA70gSPpQhSYXfMAWirf54P.QWRuToZNDgerx3n710qlY3"
+        }
+      ],
+      "resource": {
+        "resourceType": "Medication",
+        "id": "esno9eCTr5rypQ4GvPc0jCdiz3T5zPKh0y-edpob6jx8x1.lz3A5avz5XZSdSMicA70gSPpQhSYXfMAWirf54P.QWRuToZNDgerx3n710qlY3",
+        "isBrand": false,
+        "isOverTheCounter": false,
+        "code": {
+          "text": "Iv Infusion Builder"
+        },
+        "ingredient": [
+          {
+            "itemReference": {
+              "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/eguTswvbsa-QzZjKU8L8cXw3",
+              "display": "dextrose 5 % and 0.45 % sodium chloride infusion"
+            }
+          },
+          {
+            "itemReference": {
+              "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/eMuR4kwaRqrBXIplt2SFa8g3",
+              "display": "multivitamin adult (INFUVITE) injection"
+            }
+          },
+          {
+            "itemReference": {
+              "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/er5KKiuzFEuMOMLXFvE2Wmg3",
+              "display": "potassium chloride injection 2 mEq/mL"
+            }
+          },
+          {
+            "itemReference": {
+              "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/eo9PIA1bB2LiXJI4h8ky6mQ3",
+              "display": "thiamine (VITAMIN B1) injection 100 mg/mL"
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "include"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eKI.BxicMEEsTehWthMnkmINhGGG4VN46zTCC6UfOjsA3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eKI.BxicMEEsTehWthMnkmINhGGG4VN46zTCC6UfOjsA3"
+        }
+      ],
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "eKI.BxicMEEsTehWthMnkmINhGGG4VN46zTCC6UfOjsA3",
+        "status": "active",
+        "intent": "order",
+        "authoredOn": "2016-07-08T17:25:14Z",
+        "identifier": [
+          {
+            "use": "usual",
+            "system": "urn:oid:1.2.840.114350.1.13.266.3.7.2.798268",
+            "value": "165000388"
+          }
+        ],
+        "category": {
+          "text": "Inpatient",
+          "coding": [
+            {
+              "code": "inpatient",
+              "display": "Inpatient"
+            }
+          ]
+        },
+        "medicationReference": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/ePabnzjzaxTkfvQlIfBno9pW-TOn0-BHU4RubfyKzdduirmPH419otGArwPio3XxlxkXx0ZYDJ3URsO3bVYnx2g3",
+          "display": "B-complex with vitamin C"
+        },
+        "subject": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Patient/eLsTDB.L9u-r.hYPFN0oYAQ3",
+          "display": "Patient, Test"
+        },
+        "requester": {
+          "agent": {
+            "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eGeITTn2ofPLVhYlRmo7MiQ3",
+            "display": "Raman R Khanna, MD"
+          }
+        },
+        "recorder": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eaIetVk54UgniH2yUoZYrsA3",
+          "display": "Admin A"
+        },
+        "dosageInstruction": [
+          {
+            "asNeededBoolean": false,
+            "extension": [
+              {
+                "url": "https://open.epic.com/fhir/extensions/admin-amount",
+                "valueQuantity": {
+                  "value": 1,
+                  "unit": "tablet",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "{tbl}"
+                }
+              },
+              {
+                "url": "https://open.epic.com/fhir/extensions/ordered-dose",
+                "valueQuantity": {
+                  "value": 1,
+                  "unit": "tablet",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "{tbl}"
+                }
+              }
+            ],
+            "timing": {
+              "repeat": {
+                "frequency": 1,
+                "period": 1,
+                "periodUnit": "d",
+                "boundsPeriod": {
+                  "start": "2016-07-08T17:45:00Z"
+                }
+              },
+              "code": {
+                "text": "Daily"
+              }
+            },
+            "route": {
+              "text": "Oral",
+              "coding": [
+                {
+                  "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.798268.7025",
+                  "code": "15",
+                  "display": "Oral"
+                },
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "26643006",
+                  "display": "Oral Route"
+                }
+              ]
+            },
+            "doseQuantity": {
+              "value": 1,
+              "unit": "tablet",
+              "system": "http://unitsofmeasure.org",
+              "code": "{tbl}"
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/ePabnzjzaxTkfvQlIfBno9pW-TOn0-BHU4RubfyKzdduirmPH419otGArwPio3XxlxkXx0ZYDJ3URsO3bVYnx2g3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/ePabnzjzaxTkfvQlIfBno9pW-TOn0-BHU4RubfyKzdduirmPH419otGArwPio3XxlxkXx0ZYDJ3URsO3bVYnx2g3"
+        }
+      ],
+      "resource": {
+        "resourceType": "Medication",
+        "id": "ePabnzjzaxTkfvQlIfBno9pW-TOn0-BHU4RubfyKzdduirmPH419otGArwPio3XxlxkXx0ZYDJ3URsO3bVYnx2g3",
+        "isBrand": false,
+        "isOverTheCounter": true,
+        "code": {
+          "text": "B-complex with vitamin C",
+          "coding": [
+            {
+              "system": "http://www.whocc.no/atc",
+              "code": "A11EB"
+            },
+            {
+              "system": "urn:oid:2.16.840.1.113883.6.208",
+              "code": "2470"
+            }
+          ]
+        },
+        "form": {
+          "text": "Tablet",
+          "coding": [
+            {
+              "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.698288.310",
+              "code": "TAB",
+              "display": "Tablet"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "include"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eSpBdHPtVOmBU5AXu7WVATO01ANN.6g9LHCgxfqyA8eM3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eSpBdHPtVOmBU5AXu7WVATO01ANN.6g9LHCgxfqyA8eM3"
+        }
+      ],
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "eSpBdHPtVOmBU5AXu7WVATO01ANN.6g9LHCgxfqyA8eM3",
+        "status": "active",
+        "intent": "order",
+        "authoredOn": "2016-07-08T17:15:07Z",
+        "identifier": [
+          {
+            "use": "usual",
+            "system": "urn:oid:1.2.840.114350.1.13.266.3.7.2.798268",
+            "value": "165000387"
+          }
+        ],
+        "category": {
+          "text": "Inpatient",
+          "coding": [
+            {
+              "code": "inpatient",
+              "display": "Inpatient"
+            }
+          ]
+        },
+        "medicationReference": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/e.-h7EbY9OlaGr4U5ZQgxMVI0mT2CZ4prd6S05i2gZ0pImgWgoZvnAUJwtXSzGPRt3M-pDeQiQP3RHV-KLAJcm7-OIC3Ng3i.TNcJk.8Lih83",
+          "display": "insulin aspart U-100 (NovoLOG)"
+        },
+        "subject": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Patient/eLsTDB.L9u-r.hYPFN0oYAQ3",
+          "display": "Patient, Test"
+        },
+        "requester": {
+          "agent": {
+            "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eFS8CcAJ9hPLmlb44NFBpsA3",
+            "display": "Michael S Blum, MD"
+          }
+        },
+        "recorder": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eaIetVk54UgniH2yUoZYrsA3",
+          "display": "Admin A"
+        },
+        "dosageInstruction": [
+          {
+            "asNeededBoolean": false,
+            "extension": [
+              {
+                "url": "https://open.epic.com/fhir/extensions/admin-amount",
+                "valueQuantity": {
+                  "value": 1,
+                  "unit": "Units",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "U"
+                }
+              },
+              {
+                "url": "https://open.epic.com/fhir/extensions/ordered-dose",
+                "valueQuantity": {
+                  "value": 1,
+                  "unit": "Units",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "U"
+                }
+              }
+            ],
+            "timing": {
+              "repeat": {
+                "frequency": 3,
+                "period": 1,
+                "periodUnit": "d",
+                "boundsPeriod": {
+                  "start": "2016-07-08T19:30:00Z"
+                }
+              },
+              "code": {
+                "text": "3 (three) times daily before meals"
+              }
+            },
+            "route": {
+              "text": "Subcutaneous",
+              "coding": [
+                {
+                  "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.798268.7025",
+                  "code": "18",
+                  "display": "Subcutaneous"
+                },
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "34206005",
+                  "display": "Subcutaneous Route"
+                }
+              ]
+            },
+            "doseQuantity": {
+              "value": 1,
+              "unit": "Units",
+              "system": "http://unitsofmeasure.org",
+              "code": "U"
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/e.-h7EbY9OlaGr4U5ZQgxMVI0mT2CZ4prd6S05i2gZ0pImgWgoZvnAUJwtXSzGPRt3M-pDeQiQP3RHV-KLAJcm7-OIC3Ng3i.TNcJk.8Lih83",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/e.-h7EbY9OlaGr4U5ZQgxMVI0mT2CZ4prd6S05i2gZ0pImgWgoZvnAUJwtXSzGPRt3M-pDeQiQP3RHV-KLAJcm7-OIC3Ng3i.TNcJk.8Lih83"
+        }
+      ],
+      "resource": {
+        "resourceType": "Medication",
+        "id": "e.-h7EbY9OlaGr4U5ZQgxMVI0mT2CZ4prd6S05i2gZ0pImgWgoZvnAUJwtXSzGPRt3M-pDeQiQP3RHV-KLAJcm7-OIC3Ng3i.TNcJk.8Lih83",
+        "isBrand": false,
+        "isOverTheCounter": false,
+        "code": {
+          "text": "insulin aspart U-100 (NovoLOG)",
+          "coding": [
+            {
+              "system": "http://www.whocc.no/atc",
+              "code": "A10AB05"
+            },
+            {
+              "system": "urn:oid:2.16.840.1.113883.6.208",
+              "code": "44341"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "51428"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "284810"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1653202"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1653204"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1986350"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1986356"
+            }
+          ]
+        },
+        "form": {
+          "text": "Insulin Pen",
+          "coding": [
+            {
+              "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.698288.310",
+              "code": "PENINSULN",
+              "display": "Insulin Pen"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "include"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eVF2GCTPtXXc6WXHhihQpDDNvUTO-Qwhal.6tNlWLUJ83",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/eVF2GCTPtXXc6WXHhihQpDDNvUTO-Qwhal.6tNlWLUJ83"
+        }
+      ],
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "eVF2GCTPtXXc6WXHhihQpDDNvUTO-Qwhal.6tNlWLUJ83",
+        "status": "active",
+        "intent": "order",
+        "authoredOn": "2016-07-08T17:15:07Z",
+        "identifier": [
+          {
+            "use": "usual",
+            "system": "urn:oid:1.2.840.114350.1.13.266.3.7.2.798268",
+            "value": "165000386"
+          }
+        ],
+        "category": {
+          "text": "Inpatient",
+          "coding": [
+            {
+              "code": "inpatient",
+              "display": "Inpatient"
+            }
+          ]
+        },
+        "medicationReference": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/elybJV-nVIgYRukfXg1LCXm.9R0SymArZpYzLsd4anxDjfMEB243gXGY5Ci3-MJuYMIVbIPYenZhaLLFv4CgiAhT.O-Aj7sV77yJ0b5qWPjc3",
+          "display": "LORazepam (ATIVAN)"
+        },
+        "subject": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Patient/eLsTDB.L9u-r.hYPFN0oYAQ3",
+          "display": "Patient, Test"
+        },
+        "requester": {
+          "agent": {
+            "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eFS8CcAJ9hPLmlb44NFBpsA3",
+            "display": "Michael S Blum, MD"
+          }
+        },
+        "recorder": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eaIetVk54UgniH2yUoZYrsA3",
+          "display": "Admin A"
+        },
+        "dosageInstruction": [
+          {
+            "asNeededBoolean": true,
+            "extension": [
+              {
+                "url": "https://open.epic.com/fhir/extensions/admin-amount",
+                "valueQuantity": {
+                  "value": 5,
+                  "unit": "mL",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "mL"
+                }
+              },
+              {
+                "url": "https://open.epic.com/fhir/extensions/ordered-dose",
+                "valueQuantity": {
+                  "value": 10,
+                  "unit": "mg",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "mg"
+                }
+              }
+            ],
+            "timing": {
+              "repeat": {
+                "frequency": 1,
+                "period": 6,
+                "periodUnit": "h",
+                "boundsPeriod": {
+                  "start": "2016-07-08T17:09:21Z"
+                }
+              },
+              "code": {
+                "text": "every 6 (six) hours as needed"
+              }
+            },
+            "route": {
+              "text": "Oral",
+              "coding": [
+                {
+                  "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.798268.7025",
+                  "code": "15",
+                  "display": "Oral"
+                },
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "26643006",
+                  "display": "Oral Route"
+                }
+              ]
+            },
+            "doseQuantity": {
+              "value": 10,
+              "unit": "mg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mg"
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/elybJV-nVIgYRukfXg1LCXm.9R0SymArZpYzLsd4anxDjfMEB243gXGY5Ci3-MJuYMIVbIPYenZhaLLFv4CgiAhT.O-Aj7sV77yJ0b5qWPjc3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/elybJV-nVIgYRukfXg1LCXm.9R0SymArZpYzLsd4anxDjfMEB243gXGY5Ci3-MJuYMIVbIPYenZhaLLFv4CgiAhT.O-Aj7sV77yJ0b5qWPjc3"
+        }
+      ],
+      "resource": {
+        "resourceType": "Medication",
+        "id": "elybJV-nVIgYRukfXg1LCXm.9R0SymArZpYzLsd4anxDjfMEB243gXGY5Ci3-MJuYMIVbIPYenZhaLLFv4CgiAhT.O-Aj7sV77yJ0b5qWPjc3",
+        "isBrand": false,
+        "isOverTheCounter": false,
+        "code": {
+          "text": "LORazepam (ATIVAN)",
+          "coding": [
+            {
+              "system": "http://www.whocc.no/atc",
+              "code": "N05BA06"
+            },
+            {
+              "system": "urn:oid:2.16.840.1.113883.6.208",
+              "code": "16363"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "6470"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "202479"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "311376"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "379604"
+            }
+          ]
+        },
+        "form": {
+          "text": "Concentrate",
+          "coding": [
+            {
+              "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.698288.310",
+              "code": "CONC",
+              "display": "Concentrate"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "include"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/ef9sD49cSt1Xpu8L.Axpa1uPH7GJH.1N10.o5GZUa0wI3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/ef9sD49cSt1Xpu8L.Axpa1uPH7GJH.1N10.o5GZUa0wI3"
+        }
+      ],
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "ef9sD49cSt1Xpu8L.Axpa1uPH7GJH.1N10.o5GZUa0wI3",
+        "status": "active",
+        "intent": "order",
+        "authoredOn": "2016-07-08T17:15:06Z",
+        "identifier": [
+          {
+            "use": "usual",
+            "system": "urn:oid:1.2.840.114350.1.13.266.3.7.2.798268",
+            "value": "165000384"
+          }
+        ],
+        "category": {
+          "text": "Inpatient",
+          "coding": [
+            {
+              "code": "inpatient",
+              "display": "Inpatient"
+            }
+          ]
+        },
+        "medicationReference": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/emBCZyOhrtxsKhzZob7mWQhsQa9YJtLGgbjlb1QtLmG8J3xsPg1eC6FxkTjWMOlkZyZPtaIr-IC6.p-KGT01nuXrOF4AJZF4jII6MCuZLqIw3",
+          "display": "pseudoephedrine (12 HOUR COLD RELIEF)"
+        },
+        "subject": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Patient/eLsTDB.L9u-r.hYPFN0oYAQ3",
+          "display": "Patient, Test"
+        },
+        "requester": {
+          "agent": {
+            "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eFS8CcAJ9hPLmlb44NFBpsA3",
+            "display": "Michael S Blum, MD"
+          }
+        },
+        "recorder": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eaIetVk54UgniH2yUoZYrsA3",
+          "display": "Admin A"
+        },
+        "dosageInstruction": [
+          {
+            "asNeededBoolean": false,
+            "extension": [
+              {
+                "url": "https://open.epic.com/fhir/extensions/admin-amount",
+                "valueQuantity": {
+                  "value": 1,
+                  "unit": "tablet",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "{tbl}"
+                }
+              },
+              {
+                "url": "https://open.epic.com/fhir/extensions/ordered-dose",
+                "valueQuantity": {
+                  "value": 100,
+                  "unit": "mg",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "mg"
+                }
+              }
+            ],
+            "timing": {
+              "repeat": {
+                "frequency": 2,
+                "period": 1,
+                "periodUnit": "d",
+                "boundsPeriod": {
+                  "start": "2016-07-08T17:45:00Z"
+                }
+              },
+              "code": {
+                "text": "2 (two) times daily"
+              }
+            },
+            "route": {
+              "text": "Oral",
+              "coding": [
+                {
+                  "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.798268.7025",
+                  "code": "15",
+                  "display": "Oral"
+                },
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "26643006",
+                  "display": "Oral Route"
+                }
+              ]
+            },
+            "doseQuantity": {
+              "value": 120,
+              "unit": "mg",
+              "system": "http://unitsofmeasure.org",
+              "code": "mg"
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/emBCZyOhrtxsKhzZob7mWQhsQa9YJtLGgbjlb1QtLmG8J3xsPg1eC6FxkTjWMOlkZyZPtaIr-IC6.p-KGT01nuXrOF4AJZF4jII6MCuZLqIw3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/emBCZyOhrtxsKhzZob7mWQhsQa9YJtLGgbjlb1QtLmG8J3xsPg1eC6FxkTjWMOlkZyZPtaIr-IC6.p-KGT01nuXrOF4AJZF4jII6MCuZLqIw3"
+        }
+      ],
+      "resource": {
+        "resourceType": "Medication",
+        "id": "emBCZyOhrtxsKhzZob7mWQhsQa9YJtLGgbjlb1QtLmG8J3xsPg1eC6FxkTjWMOlkZyZPtaIr-IC6.p-KGT01nuXrOF4AJZF4jII6MCuZLqIw3",
+        "isBrand": false,
+        "isOverTheCounter": true,
+        "code": {
+          "text": "pseudoephedrine (12 HOUR COLD RELIEF)",
+          "coding": [
+            {
+              "system": "http://www.whocc.no/atc",
+              "code": "R01BA02"
+            },
+            {
+              "system": "urn:oid:2.16.840.1.113883.6.208",
+              "code": "16937"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "8896"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "91168"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "203302"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "203303"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "215056"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "216399"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "216400"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "216632"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "216634"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "216864"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "217295"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "218515"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "219127"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "219496"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "219501"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "219506"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "219529"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "219673"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "219887"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "220077"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "220080"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "220118"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "220440"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "220650"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "352994"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "405037"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "405363"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "405381"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "602196"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "604826"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "643092"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1049154"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1049156"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1049668"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1050506"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1089107"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1111769"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1111772"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1111816"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1111822"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1358998"
+            },
+            {
+              "system": "http://www.nlm.nih.gov/research/umls/rxnorm",
+              "code": "1361510"
+            }
+          ]
+        },
+        "form": {
+          "text": "Tablet Sustained Release",
+          "coding": [
+            {
+              "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.698288.310",
+              "code": "TABSR",
+              "display": "Tablet Sustained Release"
+            }
+          ]
+        }
+      },
+      "search": {
+        "mode": "include"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/ehxR1YqnKmIRUo8Ptv.sP1HWyvzZmVx8hdROjWKhbo0Y3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest/ehxR1YqnKmIRUo8Ptv.sP1HWyvzZmVx8hdROjWKhbo0Y3"
+        }
+      ],
+      "resource": {
+        "resourceType": "MedicationRequest",
+        "id": "ehxR1YqnKmIRUo8Ptv.sP1HWyvzZmVx8hdROjWKhbo0Y3",
+        "status": "active",
+        "intent": "order",
+        "authoredOn": "2019-05-13T21:01:23Z",
+        "identifier": [
+          {
+            "use": "usual",
+            "system": "urn:oid:1.2.840.114350.1.13.266.3.7.2.798268",
+            "value": "165000390"
+          }
+        ],
+        "category": {
+          "text": "Inpatient",
+          "coding": [
+            {
+              "code": "inpatient",
+              "display": "Inpatient"
+            }
+          ]
+        },
+        "medicationReference": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/eryZmxz4nGIldnYQ3GGfMRzq.4KnxccYtSHQsq1JAbw799fcWKPtLwPrJDCBcqBOgQLQeNUru0V4GakxAKgMbQYVKvhgjtoTVWxkgRWSqpFE3",
+          "display": "Nonformulary Request"
+        },
+        "subject": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Patient/eLsTDB.L9u-r.hYPFN0oYAQ3",
+          "display": "Patient, Test"
+        },
+        "requester": {
+          "agent": {
+            "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/eGeITTn2ofPLVhYlRmo7MiQ3",
+            "display": "Raman R Khanna, MD"
+          }
+        },
+        "recorder": {
+          "reference": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Practitioner/e2M7pnMEDvlizK7.aO9eUlg3",
+          "display": "Admit Supervisor A"
+        },
+        "dosageInstruction": [
+          {
+            "asNeededBoolean": false,
+            "extension": [
+              {
+                "url": "https://open.epic.com/fhir/extensions/ordered-dose",
+                "valueQuantity": {
+                  "value": 30,
+                  "unit": "mg",
+                  "system": "http://unitsofmeasure.org",
+                  "code": "mg"
+                }
+              }
+            ],
+            "timing": {
+              "repeat": {
+                "frequency": 1,
+                "period": 1,
+                "periodUnit": "d",
+                "boundsPeriod": {
+                  "start": "2019-05-14T16:00:00Z"
+                }
+              },
+              "code": {
+                "text": "Daily"
+              }
+            },
+            "route": {
+              "text": "Oral",
+              "coding": [
+                {
+                  "system": "urn:oid:1.2.840.114350.1.13.266.3.7.4.798268.7025",
+                  "code": "15",
+                  "display": "Oral"
+                },
+                {
+                  "system": "http://snomed.info/sct",
+                  "code": "26643006",
+                  "display": "Oral Route"
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "match"
+      }
+    },
+    {
+      "fullUrl": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/eryZmxz4nGIldnYQ3GGfMRzq.4KnxccYtSHQsq1JAbw799fcWKPtLwPrJDCBcqBOgQLQeNUru0V4GakxAKgMbQYVKvhgjtoTVWxkgRWSqpFE3",
+      "link": [
+        {
+          "relation": "self",
+          "url": "https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/Medication/eryZmxz4nGIldnYQ3GGfMRzq.4KnxccYtSHQsq1JAbw799fcWKPtLwPrJDCBcqBOgQLQeNUru0V4GakxAKgMbQYVKvhgjtoTVWxkgRWSqpFE3"
+        }
+      ],
+      "resource": {
+        "resourceType": "Medication",
+        "id": "eryZmxz4nGIldnYQ3GGfMRzq.4KnxccYtSHQsq1JAbw799fcWKPtLwPrJDCBcqBOgQLQeNUru0V4GakxAKgMbQYVKvhgjtoTVWxkgRWSqpFE3",
+        "isBrand": false,
+        "isOverTheCounter": false,
+        "code": {
+          "text": "Nonformulary Request"
+        }
+      },
+      "search": {
+        "mode": "include"
+      }
+    },
+    {
+      "resource": {
+        "resourceType": "OperationOutcome",
+        "issue": [
+          {
+            "severity": "warning",
+            "code": "processing",
+            "details": {
+              "text": "This response includes information available to the authorized user at the time of the request. It may not contain the entire record available in the system.",
+              "coding": [
+                {
+                  "system": "urn:oid:1.2.840.114350.1.13.266.3.7.2.657369",
+                  "code": "4119",
+                  "display": "This response includes information available to the authorized user at the time of the request. It may not contain the entire record available in the system."
+                }
+              ]
+            }
+          }
+        ]
+      },
+      "search": {
+        "mode": "outcome"
+      }
+    }
+  ]
+}

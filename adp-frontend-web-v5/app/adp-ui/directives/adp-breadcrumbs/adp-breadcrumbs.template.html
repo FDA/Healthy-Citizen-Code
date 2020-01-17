@@ -1,0 +1,7 @@
+<ol class="breadcrumb">
+  <li
+    ng-if="breadcrumbs.length"
+    ng-repeat="breadcrumb in breadcrumbs track by $index">
+    <a ng-href="{{breadcrumb.href}}">{{breadcrumb.content}}</a>
+  </li>
+</ol>

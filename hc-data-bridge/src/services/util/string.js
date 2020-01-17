@@ -1,4 +1,5 @@
-function trimSpaceChars (str) {
+/** Converts "\t 1 5 \t" to "1 5" */
+exports.trimSpaceChars = (str) => {
   const nonSpaceRegEx = /\S/;
   let start = 0;
   let end = -1;
@@ -11,7 +12,7 @@ function trimSpaceChars (str) {
     }
   }
 
-  for (let i = str.length - 1; i > 0; i--) {
+  for (let i = str.length - 1; i >= start; i--) {
     const c = str[i];
     if (nonSpaceRegEx.test(c)) {
       end = i;
@@ -20,9 +21,4 @@ function trimSpaceChars (str) {
   }
 
   return str.slice(start, end + 1);
-}
-
-
-module.exports = {
-  trimSpaceChars,
 };

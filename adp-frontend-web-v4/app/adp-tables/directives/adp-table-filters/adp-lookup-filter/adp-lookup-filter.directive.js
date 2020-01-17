@@ -125,7 +125,13 @@
               return { q: term, page: page };
             },
             results: function (response) {
-              return { results: response.data, more: response.more };
+              return {
+                results: response.data.map(function (item) {
+                  item.id = item._id;
+                  return item;
+                }),
+                more: response.more
+              };
             },
             cache: true
           }

@@ -8,49 +8,58 @@ const { ObjectID } = require('mongodb');
 
 const reqlib = require('app-root-path').require;
 
-const { getMongoConnection, setAppAuthOptions, prepareEnv } = reqlib('test/backend/test-util');
+const {
+  getMongoConnection,
+  setAppAuthOptions,
+  prepareEnv,
+  checkRestSuccessfulResponse,
+  conditionForActualRecord,
+} = reqlib('test/test-util');
+const {
+  buildGraphQlUpdateOne,
+  buildGraphQlDeleteOne,
+  buildGraphQlQuery,
+  checkGraphQlSuccessfulResponse,
+  checkGraphQlErrorResponse,
+} = reqlib('test/graphql-util.js');
 
-describe('V5 Backend Lookups', () => {
-  const parent1 = { _id: ObjectID('5c6d437f9ea7665b9d924b00'), name: 'parent1', hasChildren: true };
-  const parent1Lookup = { table: 'treeCollection', label: parent1.name, _id: parent1._id };
+describe('V5 TreeSelectors propagation', () => {
+  const parent = {
+    _id: ObjectID('5c6d437f9ea7665b9d924b00'),
+    name: 'parent',
+    hasChildren: true,
+    ...conditionForActualRecord,
+  };
+  const parentLookup = { table: 'treeCollection', label: parent.name, _id: parent._id };
 
-  const parent1children = [
-    {
-      _id: ObjectID('5c6d43809ea7665b9d928e9b'),
-      parent: parent1Lookup,
-      name: 'child1',
-      hasChildren: false,
-    },
-    {
-      _id: ObjectID('5c6d43809ea7665b9d9298f7'),
-      parent: parent1Lookup,
-      name: 'child2',
-      hasChildren: false,
-    },
-    {
-      _id: ObjectID('5c6d43809ea7665b9d9299e2'),
-      parent: parent1Lookup,
-      name: 'child3',
-      hasChildren: true,
-    },
-  ];
-  const parent2 = {
-    _id: ObjectID('5c6d437f9ea7665b9d924b01'),
-    name: 'parent2',
+  const child1 = {
+    _id: ObjectID('5c6d43809ea7665b9d928e9b'),
+    parent: parentLookup,
+    name: 'child1',
+    hasChildren: true,
+    ...conditionForActualRecord,
+  };
+  const child1Lookup = { table: 'treeCollection', label: child1.name, _id: child1._id };
+
+  const child2 = {
+    _id: ObjectID('5c6d43809ea7665b9d9298f7'),
+    parent: child1Lookup,
+    name: 'child2',
     hasChildren: false,
+    ...conditionForActualRecord,
   };
 
   const treeSelectorData = [
-    parent1Lookup,
+    parentLookup,
     {
       table: 'treeCollection',
-      label: parent1children[0].name,
-      _id: parent1children[0]._id,
+      label: child1.name,
+      _id: child1._id,
     },
     {
       table: 'treeCollection',
-      label: parent1children[1].name,
-      _id: parent1children[1]._id,
+      label: child2.name,
+      _id: child2._id,
     },
   ];
 
@@ -60,128 +69,251 @@ describe('V5 Backend Lookups', () => {
     treeSelectorRequiredNotAllowedNode: treeSelectorData,
     treeSelectorNotRequiredAllowedNode: treeSelectorData,
     treeSelectorNotRequiredNotAllowedNode: treeSelectorData,
+    ...conditionForActualRecord,
   };
 
-  before(function() {
+  before(async function() {
     prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return getMongoConnection().then(db => {
-      this.db = db;
-    });
+    const db = await getMongoConnection();
+    this.db = db;
   });
 
-  after(function() {
-    return this.db.dropDatabase().then(() => this.db.close());
+  after(async function() {
+    await this.db.dropDatabase();
+    await this.db.close();
   });
 
   beforeEach(function() {
     return Promise.all([
-      this.db.collection('treeCollection').remove({}),
-      this.db.collection('model11treeselector_propagation').remove({}),
-      this.db.collection('users').remove({}),
-      this.db.collection('mongoMigrateChangeLog').remove({}),
-    ]).then(() =>
-      Promise.all([
-        this.db.collection('treeCollection').insertMany([parent1, ...parent1children, parent2]),
-        this.db.collection('model11treeselector_propagation').insert(model11treeselectorSample),
-      ])
-    );
+      this.db.collection('treeCollection').deleteMany({}),
+      this.db.collection('model11treeselector_propagation').deleteMany({}),
+      this.db.collection('users').deleteMany({}),
+      this.db.collection('mongoMigrateChangeLog').deleteMany({}),
+    ])
+      .then(() =>
+        Promise.all([
+          this.db.collection('treeCollection').insertMany([parent, child1, child2]),
+          this.db.collection('model11treeselector_propagation').insertOne(model11treeselectorSample),
+        ])
+      )
+      .then(() => {
+        setAppAuthOptions(this.appLib, {
+          requireAuthentication: false,
+        });
+        return this.appLib.setup();
+      });
   });
 
   afterEach(function() {
     return this.appLib.shutdown();
   });
 
-  it(`should update TreeSelector lookups labels when parent's record label field is updated`, function() {
-    setAppAuthOptions(this.appLib, {
-      requireAuthentication: false,
-    });
+  describe(`should update TreeSelector lookups labels and data when parent's record is updated`, () => {
+    const docId = parent._id.toString();
+    const modelName = 'treeCollection';
+    const record = {
+      name: 'new_parent_name',
+    };
+    const getTestFunc = function(settings) {
+      return f;
 
-    return this.appLib
-      .setup()
-      .then(() =>
-        request(this.appLib.app)
-          .put(`/treeCollection/${parent1._id.toString()}`)
-          .send({
-            data: {
-              name: 'new_parent_name',
-            },
-          })
+      function f() {
+        const { makeRequest, checkResponse, checkTreeselectorPropagation } = settings;
+        const req = makeRequest(request(this.appLib.app));
+        if (this.token) {
+          req.set('Authorization', `JWT ${this.token}`);
+        }
+
+        return req
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
-          .expect(200)
-      )
-      .then(res => {
-        res.body.success.should.equal(true, res.body.message);
-        return request(this.appLib.app)
-          .get(`/model11treeselector_propagation/${model11treeselectorSample._id.toString()}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(200);
-      })
-      .then(res => {
-        res.body.success.should.equal(true, res.body.message);
+          .then(res => {
+            checkResponse(res);
+            return checkTreeselectorPropagation(this.db);
+          });
+      }
+    };
 
-        const { data } = res.body;
-
-        // check transformation of label
-        const treeSelectorExpected = [
-          {
-            table: parent1Lookup.table,
-            label: 'new_parent_name',
-            _id: parent1Lookup._id.toString(),
+    const checkTreeselectorPropagation = async db => {
+      const doc = await db
+        .collection('model11treeselector_propagation')
+        .findOne({ _id: model11treeselectorSample._id });
+      // check transformation of label
+      const treeSelectorExpected = [
+        {
+          table: parentLookup.table,
+          label: 'new_parent_name',
+          data: {
+            info: 'new_parent_name-undefined',
           },
-          {
-            ...treeSelectorData[1],
-            _id: treeSelectorData[1]._id.toString(),
-          },
-          {
-            ...treeSelectorData[2],
-            _id: treeSelectorData[2]._id.toString(),
-          },
-        ];
-        should(data).be.deepEqual({
-          _id: model11treeselectorSample._id.toString(),
-          treeSelectorRequiredAllowedNode: treeSelectorExpected,
-          treeSelectorRequiredNotAllowedNode: treeSelectorExpected,
-          treeSelectorNotRequiredAllowedNode: treeSelectorExpected,
-          treeSelectorNotRequiredNotAllowedNode: treeSelectorExpected,
-        });
+          _id: parentLookup._id,
+        },
+        treeSelectorData[1],
+        treeSelectorData[2],
+      ];
+      should(doc).be.deepEqual({
+        _id: model11treeselectorSample._id,
+        treeSelectorRequiredAllowedNode: treeSelectorExpected,
+        treeSelectorRequiredNotAllowedNode: treeSelectorExpected,
+        treeSelectorNotRequiredAllowedNode: treeSelectorExpected,
+        treeSelectorNotRequiredNotAllowedNode: treeSelectorExpected,
+        ...conditionForActualRecord,
       });
+    };
+    const restSettings = {
+      makeRequest: r => r.put(`/${modelName}/${docId}`).send({ data: record }),
+      checkResponse: checkRestSuccessfulResponse,
+      checkTreeselectorPropagation,
+    };
+    const graphqlSettings = {
+      makeRequest: r => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
+      checkResponse: checkGraphQlSuccessfulResponse,
+      checkTreeselectorPropagation,
+    };
+
+    it(
+      `REST: should update TreeSelector lookups labels and data when parent's record is updated`,
+      getTestFunc(restSettings)
+    );
+    it(
+      `GraphQL: should update TreeSelector lookups labels and data when parent's record is updated`,
+      getTestFunc(graphqlSettings)
+    );
   });
 
-  it(`should handle TreeSelector lookups when parent's record label field is deleted`, function() {
+  describe(`should not allow to delete TreeSelector item with children`, () => {
     // More info about handling here: https://confluence.conceptant.com/display/DEV/Tree+Selector+Control
-    setAppAuthOptions(this.appLib, {
-      requireAuthentication: false,
-    });
+    const docId = parent._id.toString();
+    const modelName = 'treeCollection';
+    const getTestFunc = function(settings) {
+      return f;
 
-    return this.appLib
-      .setup()
-      .then(() =>
-        request(this.appLib.app)
-          .del(`/treeCollection/${parent1._id.toString()}`)
+      function f() {
+        const { makeRequest, checkResponse } = settings;
+        const req = makeRequest(request(this.appLib.app));
+        if (this.token) {
+          req.set('Authorization', `JWT ${this.token}`);
+        }
+
+        return req
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
-          .expect(200)
-      )
-      .then(res => {
-        res.body.success.should.equal(true, res.body.message);
-        return request(this.appLib.app)
-          .get(`/model11treeselector_propagation/${model11treeselectorSample._id.toString()}`)
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(200);
-      })
-      .then(res => {
-        res.body.success.should.equal(true, res.body.message);
+          .then(res => {
+            checkResponse(res);
+          });
+      }
+    };
 
+    const restSettings = {
+      makeRequest: r => r.del(`/${modelName}/${docId}`),
+      checkResponse: res => {
+        res.statusCode.should.equal(409);
+
+        const { success, message } = res.body;
+        success.should.equal(false);
+        message.should.equal(
+          `ERROR: Unable to delete this record because there are other records referring. Please update the referring records and remove reference to this record.`
+        );
+      },
+    };
+    const graphqlSettings = {
+      makeRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(modelName, docId)),
+      checkResponse: checkGraphQlErrorResponse,
+    };
+
+    it(`REST: should not allow to delete TreeSelector item with children`, getTestFunc(restSettings));
+    it(`GraphQL: should not allow to delete TreeSelector item with children`, getTestFunc(graphqlSettings));
+  });
+
+  describe(`should handle TreeSelector lookups when leaf without record label field is deleted`, () => {
+    // More info about handling here: https://confluence.conceptant.com/display/DEV/Tree+Selector+Control
+    const getTestFunc = function(settings) {
+      return f;
+
+      async function f() {
+        const { delRequest, getRequest, putRequest, checkGetResponse, checkPutResponse } = settings;
+        await delRequest(request(this.appLib.app))
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/);
+
+        const getRes = await getRequest(request(this.appLib.app))
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/);
+        checkGetResponse(getRes);
+
+        const putRes = await putRequest(request(this.appLib.app))
+          .set('Accept', 'application/json')
+          .expect('Content-Type', /json/);
+        checkPutResponse(putRes);
+      }
+    };
+    const treeSelectorDataAllItems = treeSelectorData.map(elem => ({
+      ...elem,
+      _id: elem._id.toString(),
+    }));
+    const treeDocId = child2._id.toString();
+    const treeCollectionName = `treeCollection`;
+    const propagationCollectionName = `model11treeselector_propagation`;
+    const restSettings = {
+      delRequest: r => r.del(`/${treeCollectionName}/${treeDocId}`),
+      getRequest: r => r.get(`/${propagationCollectionName}/${model11treeselectorSample._id.toString()}`),
+      checkGetResponse: res => {
+        res.body.success.should.equal(true);
         const { data } = res.body;
 
-        const treeSelectorDataAllItems = treeSelectorData.map(elem => ({
-          ...elem,
-          _id: elem._id.toString(),
-        }));
+        should(data).be.deepEqual({
+          _id: model11treeselectorSample._id.toString(),
+          treeSelectorRequiredAllowedNode: treeSelectorDataAllItems.slice(0, 2),
+          treeSelectorRequiredNotAllowedNode: treeSelectorDataAllItems,
+          treeSelectorNotRequiredAllowedNode: treeSelectorDataAllItems.slice(0, 2),
+          treeSelectorNotRequiredNotAllowedNode: null,
+          deletedAt: new Date(0).toISOString(),
+        });
+      },
+      putRequest: r =>
+        r.put(`/${propagationCollectionName}/${model11treeselectorSample._id.toString()}`).send({
+          data: {
+            treeSelectorRequiredAllowedNode: treeSelectorDataAllItems,
+            treeSelectorRequiredNotAllowedNode: treeSelectorDataAllItems,
+            treeSelectorNotRequiredAllowedNode: treeSelectorDataAllItems,
+            treeSelectorNotRequiredNotAllowedNode: treeSelectorDataAllItems,
+          },
+        }),
+      checkPutResponse: res => {
+        const { success, message } = res.body;
+        should(success).be.equal(false);
+
+        const [cause, info] = message.split(':');
+        should(cause).be.equal('Found invalid tree selector data');
+
+        const infoMessages = info.trim().split('. ');
+        should(infoMessages).containDeep([
+          'Unable to find a chain for field "treeSelectorNotRequiredAllowedNode"',
+          'Unable to find a chain for field "treeSelectorNotRequiredNotAllowedNode"',
+          'Unable to find a chain for field "treeSelectorRequiredAllowedNode"',
+          'Unable to find a chain for field "treeSelectorRequiredNotAllowedNode"',
+        ]);
+      },
+    };
+
+    const lookupFields = 'table label _id';
+    const selectFields = `items { _id treeSelectorRequiredAllowedNode{${lookupFields}} treeSelectorRequiredNotAllowedNode{${lookupFields}} treeSelectorNotRequiredAllowedNode{${lookupFields}} treeSelectorNotRequiredNotAllowedNode{${lookupFields}} }`;
+    const graphqlSettings = {
+      delRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(treeCollectionName, treeDocId)),
+      getRequest: r =>
+        r
+          .post('/graphql')
+          .send(
+            buildGraphQlQuery(
+              propagationCollectionName,
+              `{_id: '${model11treeselectorSample._id.toString()}' }`,
+              selectFields
+            )
+          ),
+      checkGetResponse: res => {
+        const data = res.body.data[propagationCollectionName].items[0];
+
         should(data).be.deepEqual({
           _id: model11treeselectorSample._id.toString(),
           treeSelectorRequiredAllowedNode: treeSelectorDataAllItems.slice(0, 2),
@@ -189,36 +321,29 @@ describe('V5 Backend Lookups', () => {
           treeSelectorNotRequiredAllowedNode: treeSelectorDataAllItems.slice(0, 2),
           treeSelectorNotRequiredNotAllowedNode: null,
         });
-
-        // try put data with lookup referenced to deleted treeCollection item
-        return request(this.appLib.app)
-          .put(`/model11treeselector_propagation/${model11treeselectorSample._id.toString()}`)
-          .send({
-            data: {
+      },
+      putRequest: r =>
+        r.post('/graphql').send(
+          buildGraphQlUpdateOne(
+            propagationCollectionName,
+            {
               treeSelectorRequiredAllowedNode: treeSelectorDataAllItems,
               treeSelectorRequiredNotAllowedNode: treeSelectorDataAllItems,
               treeSelectorNotRequiredAllowedNode: treeSelectorDataAllItems,
               treeSelectorNotRequiredNotAllowedNode: treeSelectorDataAllItems,
             },
-          })
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/)
-          .expect(400);
-      })
-      .then(res => {
-        const { success, message } = res.body;
-        should(success).be.equal(false);
-
-        const [cause, fields] = message.split(':');
-        should(cause).be.equal('Found non-existing references in fields');
-
-        const fieldNames = fields.trim().split(', ');
-        should(fieldNames).containDeep([
-          'treeSelectorRequiredAllowedNode',
-          'treeSelectorRequiredNotAllowedNode',
-          'treeSelectorNotRequiredAllowedNode',
-          'treeSelectorNotRequiredNotAllowedNode',
-        ]);
-      });
+            model11treeselectorSample._id.toString()
+          )
+        ),
+      checkPutResponse: checkGraphQlErrorResponse,
+    };
+    it(
+      `REST: should handle TreeSelector lookups when leaf without record label field is deleted`,
+      getTestFunc(restSettings)
+    );
+    it(
+      `GraphQL: should handle TreeSelector lookups when leaf without record label field is deleted`,
+      getTestFunc(graphqlSettings)
+    );
   });
 });

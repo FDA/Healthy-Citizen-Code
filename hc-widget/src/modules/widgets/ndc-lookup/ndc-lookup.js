@@ -1,24 +1,29 @@
 import _debounce from 'lodash.debounce';
-import $ from '../../../lib/dom';
-import {updateIframeHeight} from '../../../lib/utils';
+import $ from '../../../lib/utils/dom';
+import { updateIframeHeight } from '../../../lib/utils/utils';
 import tpl from './ndc-lookup.hbs';
 import resultsTpl from './partials/results.hbs';
 import suggestionsTpl from './partials/suggestions.hbs';
-import API from '../../../modules/api';
-import { HttpError } from '../../errors';
+import {
+  drugInfoPredictiveSearch,
+  drugInfoById,
+} from '../../../lib/api/grugsMaster/drugs';
+import { ResponseError } from '../../../lib/exceptions';
 
+// TODO increase page counter if hasNextPage
 export default class NdcLookup {
   constructor(node, options) {
     this.$el = $(node);
     this.options = options;
     this.loading = false;
 
-    this.resetPage();
+    this.resetRequestParams();
     this.init();
   }
 
-  resetPage() {
-    this.page = 1;
+  resetRequestParams() {
+    this.page = 0;
+    this.hasNextPage = true;
   }
 
   init() {
@@ -33,15 +38,48 @@ export default class NdcLookup {
     this.closeBtn = this.form.querySelector('.js-close');
 
     this.form.addEventListener('submit', e => e.preventDefault());
-    this.input.addEventListener('input', _debounce(e => this.onInput(e), 400));
+    this.input.addEventListener('input', _debounce(e => this.onInput(e), 500));
     this.input.addEventListener('paste', e => this.onInput(e));
     this.suggestions.addEventListener('click', (e) => this.selectSuggestion(e));
     this.closeBtn.addEventListener('click', (e) => this.hideSuggestions(e));
     this.suggestions.addEventListener('scroll', (e) => this.onScroll(e));
   }
 
-  fetchSuggestions(params) {
-    return API.getDrugInfoByPredicitiveMatchGraphQl(params)
+  onInput() {
+    this.hideSuggestions();
+    this.resetRequestParams();
+
+    const query = this.input.value.trim();
+    if (!query) {
+      return;
+    }
+
+    this.fetchSuggestions(query);
+  }
+
+  onScroll(e) {
+    const bottomEdge = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
+
+    console.log(this.page, this.hasNextPage);
+    if (this.loading || !bottomEdge || !this.hasNextPage) {
+      return;
+    }
+
+    this.showLoader();
+
+    this.fetchSuggestions(this.input.value.trim())
+      .then(() => this.hideLoader());
+  }
+
+  fetchSuggestions(query) {
+    this.page += 1;
+    const params = { q: query, page: this.page };
+
+    return drugInfoPredictiveSearch(params)
+      .then((data) => {
+        this.hasNextPage = data.hasNextPage;
+        return data.list;
+      })
       .then(data => this.drawSuggestions(data))
       .catch(err => this.handleError(err));
   }
@@ -49,37 +87,17 @@ export default class NdcLookup {
   fetchResults(id) {
     this.hideErrorMessages();
 
-    return API.getDrugInfoById(id)
-      .then(data => {
+    drugInfoById(id)
+      .then((data) => {
+        const dataItem = data.list[0];
+
         if (this.options.selection) {
-          this.options.onSelection(data);
+          this.options.onSelection(dataItem);
         } else {
-          this.drawResults(data);
+          this.drawResults(dataItem);
         }
       })
       .catch(err => this.handleError(err));
-  }
-
-  onInput(e) {
-    this.hideSuggestions();
-    this.resetPage();
-    const params = { q: this.input.value.trim() };
-
-    this.fetchSuggestions(params);
-  }
-
-  onScroll(e) {
-    if (this.loading) {
-      return;
-    }
-    if (e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight) {
-      this.showLoader();
-
-      this.page++;
-      const params = { q: this.input.value.trim(), page: this.page };
-      this.fetchSuggestions(params)
-        .finally(() => this.hideLoader());
-    }
   }
 
   showLoader() {
@@ -100,7 +118,7 @@ export default class NdcLookup {
       return;
     }
 
-    this.resetPage();
+    this.resetRequestParams();
     const id = e.target.dataset.id;
 
     this.fetchResults(id);
@@ -108,11 +126,10 @@ export default class NdcLookup {
   }
 
   handleError(err) {
-    if (err instanceof HttpError) {
-    this.showServerError(err.message);
-     } else {
-      console.log(err);
+    if (err instanceof ResponseError) {
+      this.showServerError(err.message);
     }
+    console.log(err);
   }
 
   showServerError(message) {
@@ -159,6 +176,7 @@ export default class NdcLookup {
     this.suggestions.classList.add('hidden');
     this.closeBtn.classList.add('hidden');
     this.suggestionsList.innerHTML = '';
+    this.resetRequestParams();
 
     updateIframeHeight();
   }

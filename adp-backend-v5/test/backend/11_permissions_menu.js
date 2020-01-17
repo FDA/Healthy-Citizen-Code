@@ -9,7 +9,7 @@ const {
   auth: { user, loginWithUser },
   getMongoConnection,
   prepareEnv,
-} = reqlib('test/backend/test-util');
+} = reqlib('test/test-util');
 
 const menuPart = {
   interface: {
@@ -209,91 +209,82 @@ const authPart = {
 };
 
 describe('V5 Backend Menu Permissions', () => {
-  before(function() {
+  before(async function() {
     prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return getMongoConnection().then(db => {
-      this.db = db;
-    });
+    const db = await getMongoConnection();
+    this.db = db;
   });
 
-  after(function() {
-    return this.db.dropDatabase().then(() => this.db.close());
+  after(async function() {
+    await this.db.dropDatabase();
+    await this.db.close();
   });
 
-  beforeEach(function() {
-    return Promise.all([
-      this.db.collection('users').remove({}),
-      this.db.collection('mongoMigrateChangeLog').remove({}),
-    ]).then(() => Promise.all([this.db.collection('users').insert(user)]));
+  beforeEach(async function() {
+    await Promise.all([
+      this.db.collection('users').deleteMany({}),
+      this.db.collection('mongoMigrateChangeLog').deleteMany({}),
+    ]);
+    await Promise.all([this.db.collection('users').insertOne(user)]);
   });
 
   afterEach(function() {
     return this.appLib.shutdown();
   });
 
-  it('should correctly strip down menu for user', function() {
+  it('should correctly strip down menu for user', async function() {
     const { appLib } = this;
     appLib.setOptions({
       appModelSources: [`${process.env.APP_MODEL_DIR}/model`, menuPart, authPart],
     });
 
-    return this.appLib
-      .setup()
-      .then(() => loginWithUser(appLib, user))
-      .then(token =>
-        request(appLib.app)
-          .get('/app-model')
-          .set('Accept', 'application/json')
-          .set('Authorization', `JWT ${token}`)
-          .expect('Content-Type', /json/)
-      )
-      .then(res => {
-        res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
-        res.body.success.should.equal(true, res.body.message);
+    await this.appLib.setup();
+    const token = await loginWithUser(appLib, user);
 
-        const { fields: menuFields } = res.body.data.interface.mainMenu;
-        const {
-          menuDashboardLinkNoScopes,
-          menuDashboardLinkWithScopes,
-          menuDashboardLinkWithImpracticableScope,
-          menuItemNoScopes,
-          menuItemWithScopes,
-          menuItemWithImpracticableScope,
-          menuGroupNoScopes,
-          menuGroupWithScopes,
-          menuGroupWithImpracticableScope,
-        } = menuFields;
-        const srcMenuFields = menuPart.interface.mainMenu.fields;
+    const res = await request(appLib.app)
+      .get('/app-model')
+      .set('Accept', 'application/json')
+      .set('Authorization', `JWT ${token}`)
+      .expect('Content-Type', /json/);
+    res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
+    res.body.success.should.equal(true, res.body.message);
 
-        _.isEqual(
-          menuDashboardLinkNoScopes,
-          srcMenuFields.menuDashboardLinkNoScopes
-        ).should.be.true();
-        const menuDashboardLinkWithScopesOmitted = _.omit(
-          srcMenuFields.menuDashboardLinkWithScopes,
-          ['scopes']
-        );
-        _.isEqual(menuDashboardLinkWithScopes, menuDashboardLinkWithScopesOmitted).should.be.true();
-        _.isUndefined(menuDashboardLinkWithImpracticableScope).should.be.true();
+    const { fields: menuFields } = res.body.data.interface.mainMenu;
+    const {
+      menuDashboardLinkNoScopes,
+      menuDashboardLinkWithScopes,
+      menuDashboardLinkWithImpracticableScope,
+      menuItemNoScopes,
+      menuItemWithScopes,
+      menuItemWithImpracticableScope,
+      menuGroupNoScopes,
+      menuGroupWithScopes,
+      menuGroupWithImpracticableScope,
+    } = menuFields;
+    const srcMenuFields = menuPart.interface.mainMenu.fields;
 
-        _.isEqual(menuItemNoScopes, srcMenuFields.menuItemNoScopes).should.be.true();
-        const menuItemWithScopesOmitted = _.omit(srcMenuFields.menuItemWithScopes, ['scopes']);
-        _.isEqual(menuItemWithScopes, menuItemWithScopesOmitted).should.be.true();
-        _.isUndefined(menuItemWithImpracticableScope).should.be.true();
+    _.isEqual(menuDashboardLinkNoScopes, srcMenuFields.menuDashboardLinkNoScopes).should.be.true();
+    const menuDashboardLinkWithScopesOmitted = _.omit(srcMenuFields.menuDashboardLinkWithScopes, ['scopes']);
+    _.isEqual(menuDashboardLinkWithScopes, menuDashboardLinkWithScopesOmitted).should.be.true();
+    _.isUndefined(menuDashboardLinkWithImpracticableScope).should.be.true();
 
-        const menuGroupNoScopesOmitted = _.omit(srcMenuFields.menuGroupNoScopes, [
-          'fields.nestedMenuItemWithAvailableScopes.scopes',
-          'fields.nestedMenuItemWithImpracticableScope',
-        ]);
-        _.isEqual(menuGroupNoScopes, menuGroupNoScopesOmitted).should.be.true();
-        const menuGroupWithScopesOmitted = _.omit(srcMenuFields.menuGroupWithScopes, [
-          'scopes',
-          'fields.nestedMenuItemWithAvailableScopes.scopes',
-          'fields.nestedMenuItemWithImpracticableScope',
-        ]);
-        _.isEqual(menuGroupWithScopes, menuGroupWithScopesOmitted).should.be.true();
-        _.isUndefined(menuGroupWithImpracticableScope).should.be.true();
-      });
+    _.isEqual(menuItemNoScopes, srcMenuFields.menuItemNoScopes).should.be.true();
+    const menuItemWithScopesOmitted = _.omit(srcMenuFields.menuItemWithScopes, ['scopes']);
+    _.isEqual(menuItemWithScopes, menuItemWithScopesOmitted).should.be.true();
+    _.isUndefined(menuItemWithImpracticableScope).should.be.true();
+
+    const menuGroupNoScopesOmitted = _.omit(srcMenuFields.menuGroupNoScopes, [
+      'fields.nestedMenuItemWithAvailableScopes.scopes',
+      'fields.nestedMenuItemWithImpracticableScope',
+    ]);
+    _.isEqual(menuGroupNoScopes, menuGroupNoScopesOmitted).should.be.true();
+    const menuGroupWithScopesOmitted = _.omit(srcMenuFields.menuGroupWithScopes, [
+      'scopes',
+      'fields.nestedMenuItemWithAvailableScopes.scopes',
+      'fields.nestedMenuItemWithImpracticableScope',
+    ]);
+    _.isEqual(menuGroupWithScopes, menuGroupWithScopesOmitted).should.be.true();
+    _.isUndefined(menuGroupWithImpracticableScope).should.be.true();
   });
 });

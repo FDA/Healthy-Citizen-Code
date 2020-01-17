@@ -1,10 +1,10 @@
-import lodashGet from 'lodash.get';
-import {adverseEventsQuery, prefrencesQuery} from '../../queries'
-import $ from '../../../lib/dom';
+import { fetchAdverseEventsForMedications } from '../../../lib/api/adverse-events/adverse-events-for-medications';
+import $ from '../../../lib/utils/dom';
 import Table from '../../../modules/table/table';
 import adverseEventsTemplate from './adverse-events.hbs';
 import { formatEvents, adverseEventsHeads } from './adverse-events.helpers'
-import {widgetError} from '../../../lib/utils';
+import { showErrorToUser } from '../../../lib/utils/utils';
+import { ResponseError } from '../../../lib/exceptions';
 
 export default class AdverseEvents {
   constructor(node, options) {
@@ -15,27 +15,18 @@ export default class AdverseEvents {
     this.$el.append(this.$loader);
 
     this.fetchData()
-      .catch(err => {
-        console.error(err);
-        widgetError(err.message)
+      .catch((err) => {
+        showErrorToUser(ResponseError.ADVERSE_EVENTS_EMPTY);
+        console.log(err);
       });
   }
 
   fetchData() {
-    return prefrencesQuery({udid: this.options.udid})
-      .then(data => {
-        var medications = lodashGet(data, 'medications', []);
-
-        if (medications.length) {
-          return adverseEventsQuery(data)
-        } else {
-          throw new Error('Unable to get adverse events. Medication list is empty.');
-        }
-      })
-      .then(data => {
+    return fetchAdverseEventsForMedications(this.options)
+      .then((events) => {
         this.$loader.remove();
         this.buildWidgetBody();
-        this.buildTable(data);
+        this.buildTable(events);
       });
   }
 
@@ -44,8 +35,8 @@ export default class AdverseEvents {
     this.$el.append(this.widgetBody);
   }
 
-  buildTable(medications) {
-    const data = formatEvents(medications);
+  buildTable(events) {
+    const data = formatEvents(events);
     const heads = adverseEventsHeads(data);
 
     const table = new Table({

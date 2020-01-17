@@ -11,7 +11,8 @@
     TIME_FORMAT,
     AdpSchemaService,
     $log,
-    AdpFormHelpers
+    AdpFormHelpers,
+    AdpPath
   ) {
     var TEMPLATE_REGEX = {
       VAL: /(\$val)/,
@@ -273,39 +274,48 @@
       }
     }
 
-    function _createConditionalRequiredFn(validationParams) {
-      var formParams = validationParams.formParams;
-
-      var params = AdpFormHelpers.getHelperParams(
+    function _createConditionalRequiredFn(formParams) {
+      var params = AdpFormHelpers.getHelperParamsWithConfig(
         formParams.path,
         formParams.row,
         formParams.action,
         formParams.modelSchema
       );
 
-      // do not use - non context arguments will be removed
-      var fieldName = validationParams.field.keyName;
-      var data = validationParams.formData[fieldName];
-      var row = validationParams.formData;
-      var modelSchema = validationParams.schema;
-      var $action = validationParams.$action;
+      // DEPRECATED: do not use - non context arguments will be removed
+      var schemaPath = AdpPath.schemaPath(formParams.path);
+      var field = _.get(formParams.modelSchema.fields, schemaPath);
+      var data = _.get(formParams.row, formParams.path);
+      var row = formParams.row;
+      var modelSchema = formParams.modelSchema;
+      var $action = formParams.action;
 
       // fieldValue, formData, rootSchema, $action
       var requiredFunc = new Function(
         'data, row, modelSchema, $action',
-        'return ' + validationParams.field.required
+        'return ' + field.required
       ).bind(params, data, row, modelSchema, $action);
 
       return requiredFunc;
     }
 
-    function isRequired(validationParams) {
-      if (_.isBoolean(validationParams.field.required)) {
-        return function () {
-          return validationParams.field.required;
-        };
+    function isRequired(formParams) {
+      return function () {
+        var path = formParams.path;
+        return formParams.requiredMap[path] || false;
+      }
+    }
+
+    function getRequiredFn(formParams) {
+      var schemaPath = AdpPath.schemaPath(formParams.path);
+      var field = _.get(formParams.modelSchema.fields, schemaPath);
+
+      if (_.isString(field.required)) {
+        return _createConditionalRequiredFn(formParams);
       } else {
-        return _createConditionalRequiredFn(validationParams);
+        return function () {
+          return !!field.required;
+        };
       }
     }
 
@@ -335,8 +345,9 @@
       addValidators: addValidators,
       updateMessages: updateMessages,
       isRequired: isRequired,
+      getRequiredFn: getRequiredFn,
       isValidDate: isValidDate,
-      getDateFormat: getDateFormat
+      getDateFormat: getDateFormat,
     };
   }
 })();

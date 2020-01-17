@@ -16,6 +16,7 @@ const _ = require('lodash');
 const nodePath = require('path');
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
+const LocalStrategy = require('passport-local').Strategy;
 const { ExtractJwt } = require('passport-jwt');
 const glob = require('glob');
 const pEvent = require('p-event');
@@ -27,7 +28,8 @@ const getMigrateConfig = require('../migrate/config.js');
 const { InvalidTokenError, ExpiredTokenError } = require('./errors');
 const websocketServer = require('./websocket-server')();
 const publicFilesController = require('./public-files-controller');
-const APP_VERSION = require('../package.json').version;
+const { version: APP_VERSION, name: APP_NAME } = require('../package.json');
+const { comparePassword } = require('./util/password');
 const connectSwagger = require('./swagger');
 
 // TODO: rewrite everything using ES6 Promises instead of async
@@ -37,98 +39,89 @@ const connectSwagger = require('./swagger');
  */
 module.exports = () => {
   const m = {};
-
   let options = {}; // options for whole module (empty by default)
-  m.controllers = {};
-  m.butil = require('./backend-util');
+
+  m.errors = require('./errors');
+  m.butil = require('./util/util');
   m.expressUtil = require('./express-util');
-  m.log = require('log4js').getLogger('lib/app');
-  m.accessCfg = require('./access/access-config')();
-  m.cache = require('./cache')();
-
-  m.transformers = require('./transformers')(m);
-  m.hooks = require('./hooks')(m);
-
-  m.accessUtil = require('./access/access-util')(m);
-  m.dba = require('./database-abstraction')(m);
-  m.controllerUtil = require('./default-controller-util')(m);
-  const mutil = require('./model')(m);
-  const mainController = require('./default-controller')(m);
-  const appUtil = require('./app-util')(m);
-  const fileController = require('./file-controller')(m);
-
-  m.fileControllerUtil = require('./file-controller-util')();
-  m.controllers.main = mainController;
-
-  m.graphQl = require('./graphql')(m);
-  m.graphQl.graphQlRoute = '/graphql';
-  m.graphQl.graphiQlRoute = '/graphiql';
-  const connectGraphQl = require('./graphql/connect')(m);
-
-  m.googleMapsClient = require('./google-maps');
-
-  /**
-   * Reference to the express application
-   */
-  m.app = null;
-
-  /**
-   * Need to make sure that users understand that we will keep link to all their current connections to send proper notifications
-   * @type {{}}
-   */
-  m.userConnections = {};
-
-  /**
-   * Mongoose db connection
-   */
-  m.db = null;
+  m.accessCfg = require('./access/access-config');
+  m.elasticSearch = require('./elastic-search');
+  m.cache = require('./cache')({
+    redisUrl: process.env.REDIS_URL,
+    keyPrefix: process.env.REDIS_KEY_PREFIX,
+  });
 
   m.getAuthSettings = () => m.appModel.interface.app.auth;
 
   /**
    * Connects to DB and sets various DB parameters
    */
-  m.connectAppDb = () => {
+  m.connectAppDb = async () => {
     if (mongoose.connection.readyState === 1) {
-      m.db = mongoose.connection;
-      mutil.db = mongoose.connection;
-      return Promise.resolve();
+      return mongoose.connection;
     }
-    mongoose.Promise = global.Promise;
+
+    mongoose.Promise = Promise;
+    mongoose.set('useNewUrlParser', true);
+    mongoose.set('useFindAndModify', false);
+    mongoose.set('useCreateIndex', true);
+    mongoose.set('useUnifiedTopology', true);
     if (process.env.DEVELOPMENT === 'true') {
-      mongoose.set('debug', (coll, method, query, doc, opts) => {
-        mongooseLog.debug(
-          `${method} ${coll}, ${JSON.stringify(query)}, DOC:${JSON.stringify(
-            doc
-          )}, OPTIONS:${JSON.stringify(opts)}`
-        );
+      const getMessage = args => {
+        function getOptsWithoutSession(opts) {
+          if (opts && opts.session) {
+            return _.omit(opts, 'session');
+          }
+          return opts;
+        }
+        const { stringifyLog } = m.butil;
+
+        if (args.length === 2) {
+          const [coll, method] = args;
+          return `${method} ${coll}`;
+        }
+        if (args.length === 3) {
+          const [coll, method, doc] = args;
+          return `${method} ${coll}, ${stringifyLog(doc)}`;
+        }
+        if (args.length === 4) {
+          const [coll, method, doc, opts] = args;
+          return `${method} ${coll}, ${stringifyLog(doc)}, OPTIONS:${stringifyLog(getOptsWithoutSession(opts))}`;
+        }
+        if (args.length === 5) {
+          const [coll, method, query, doc, opts] = args;
+          return `${method} ${coll}, ${stringifyLog(query)}, ${stringifyLog(doc)}, OPTIONS:${getOptsWithoutSession(
+            opts
+          )}`;
+        }
+        return args.toString();
+      };
+
+      mongoose.set('debug', (...args) => {
+        try {
+          mongooseLog.debug(getMessage(args));
+        } catch (e) {
+          mongooseLog.debug(args.toString());
+        }
       });
     }
-    return mongoose
-      .connect(
-        process.env.MONGODB_URI,
-        { useNewUrlParser: true }
-      )
-      .then(connected => {
-        if (mongoose.connection.readyState !== 1) {
-          throw new Error(connected);
-        }
-        mutil.db = mongoose.connection;
-        m.db = mongoose.connection;
-        return connected;
-      })
-      .catch(error => {
-        m.log.error(
-          `LAP003: MongoDB connection error. Please make sure MongoDB is running at ${
-            process.env.MONGODB_URI
-          }: ${error}`
-        );
-        throw new Error(error);
-      });
+
+    try {
+      const connected = await mongoose.connect(process.env.MONGODB_URI);
+      if (mongoose.connection.readyState !== 1) {
+        throw new Error(connected);
+      }
+      return mongoose.connection;
+    } catch (e) {
+      m.log.error(
+        `LAP003: MongoDB connection error. Please make sure MongoDB is running at ${process.env.MONGODB_URI}`
+      );
+      throw new Error(e);
+    }
   };
 
   const procUncaughtExListener = err => {
-    m.log.error(`LAP004: Uncaught node exception ${err} with call stack ${err.stack}`);
+    m.log.error(`LAP004: Uncaught node exception`, err.stack);
   };
 
   m.errorLogger = (err, req, res, next) => {
@@ -144,20 +137,18 @@ module.exports = () => {
   m.configureApp = app => {
     m.app = app;
     app.on('uncaughtException', (req, res, route, err) => {
-      m.log.error(`LAP001: Uncaught exception ${err} with call stack ${err.stack}`);
+      m.log.error(`LAP001: Uncaught exception`, err.stack);
       res.status(500).json({ success: false, code: 'LAP001', message: `${err}` });
     });
     app.on('InternalServer', (req, res, route, err) => {
-      m.log.error(`LAP002: Internal server error ${err}`);
+      m.log.error(`LAP002: Internal server error`, err.stack);
       res.status(500).json({ success: false, code: 'LAP002', message: `${err}` });
     });
     app.on('InternalServerError', (req, res, route, err) => {
-      m.log.error(`LAP003: Internal server error ${err}`);
+      m.log.error(`LAP003: Internal server error`, err.stack);
       res.status(500).json({ success: false, code: 'LAP003', message: `${err}` });
     });
     process.on('uncaughtException', procUncaughtExListener);
-    // fallback to the core for missing /public static files
-    // app.on('expressError', mainController.handlePublicFileNotFound);
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json());
     app.use(compression());
@@ -172,11 +163,7 @@ module.exports = () => {
 
     const corsOrigins = process.env.CORS_ORIGIN
       ? [RegExp(process.env.CORS_ORIGIN)]
-      : [
-          /https:\/\/.+\.conceptant\.com/,
-          /http:\/\/localhost\.conceptant\.com.*/,
-          /http:\/\/localhost.*/,
-        ];
+      : [/https:\/\/.+\.conceptant\.com/, /http:\/\/localhost\.conceptant\.com.*/, /http:\/\/localhost.*/];
     app.use(
       cors({
         origin: corsOrigins,
@@ -207,47 +194,14 @@ module.exports = () => {
     });
   };
 
-  m.loadModel = () => {
-    m.appModel = mutil.getCombinedModel(options.appModelSources);
-    appUtil.loadLists();
-    appUtil.loadRenderers();
-    appUtil.loadCustomActions();
-    appUtil.loadValidators();
-    appUtil.loadTransformers();
-    appUtil.loadSynthesizers();
-    appUtil.loadLabelRenderers();
-    appUtil.loadFormRenderers();
-    appUtil.loadHeaderRenderers();
-    appUtil.loadLookupLabelRenderers();
-    appUtil.loadPermissions();
-    appUtil.loadPermissionScopePreparations();
-    appUtil.loadHooks();
-
-    m.appLookups = {}; // model LookupObjectID and LookupObjectID[] will be stored here by id
-    m.appTreeSelectors = {}; // model TreeSelectors will be stored here by id
-
-    // set ROLES_TO_PERMISSIONS on startup to rewrite old cache
-    return m.accessUtil
-      .getRolesToPermissions()
-      .then(rolesToPermissions =>
-        Promise.all([
-          rolesToPermissions,
-          m.cache.setCache(m.cache.keys.ROLES_TO_PERMISSIONS, rolesToPermissions),
-        ])
-      )
-      .then(([rolesToPermissions]) => rolesToPermissions);
-  };
-
   /**
    * Generates mongoose models according to the appModel
    */
-  m.generateMongooseModels = () =>
-    mutil
-      .generateMongooseModels(m.db, m.appModel.models)
-      .then(() => mutil.handleIndexes())
-      .then(() => {
-        m.log.info('Generated Mongoose models');
-      });
+  m.generateMongooseModels = async () => {
+    await m.mutil.generateMongooseModels(m.db, m.appModel.models);
+    await m.mutil.handleIndexes();
+    m.log.info('Generated Mongoose models');
+  };
 
   /**
    * Adds routes to the application router
@@ -261,6 +215,7 @@ module.exports = () => {
       put: 'put',
       post: 'post',
       del: 'delete',
+      use: 'use',
     };
     const method = methodNames[verb];
     const removedRoutes = m.expressUtil.removeRoutes(m.app, route, method);
@@ -291,25 +246,22 @@ module.exports = () => {
      * @param path the full path to the schema (as array)
      */
     function addCrudRoutesToSchema(name, schema, path) {
+      const mainController = m.controllers.main;
+
       const callbacks = [];
       // TODO: update this code, now it's implemented with permissions
       // isAuthenticated is added in addRoute
       callbacks.push(m.isAuthenticated);
       // add standard CRUD
       // let name = pluralize(name, 2);
-      const qualifiedPath = `/${_.map(path, p => `${p}/:${p}_id`).join('/') +
-        (path.length === 0 ? '' : '/')}`;
+      const qualifiedPath = `/${_.map(path, p => `${p}/:${p}_id`).join('/') + (path.length === 0 ? '' : '/')}`;
       const unqualifiedPath = `/schema/${path.join('/') + (path.length === 0 ? '' : '/')}`;
       m.addRoute('get', `${unqualifiedPath}${name}`, [mainController.getSchema]); // this just returns schema, no auth is required
-      m.addRoute('get', `${qualifiedPath}${name}`, callbacks.concat([mainController.getItems])); // should this even be allowed for pii/phis? Check limitReturnedRecords
+      m.addRoute('get', `${qualifiedPath}${name}`, callbacks.concat([mainController.getItems]));
       m.addRoute('post', `${qualifiedPath}${name}`, callbacks.concat([mainController.postItem]));
       m.addRoute('get', `${qualifiedPath}${name}/:id`, callbacks.concat([mainController.getItem]));
       m.addRoute('put', `${qualifiedPath}${name}/:id`, callbacks.concat([mainController.putItem]));
-      m.addRoute(
-        'del',
-        `${qualifiedPath}${name}/:id`,
-        callbacks.concat([mainController.deleteItem])
-      );
+      m.addRoute('del', `${qualifiedPath}${name}/:id`, callbacks.concat([mainController.deleteItem]));
       /* delete this code once frontend is fixed and start sending data in correct form: ADP-134
       if(schema.singleRecord) { // duplicate all endpoints for single-record pages without need to specify :id
           m.addRoute('get', `${qualifiedPath}${name}`, callbacks.concat([mainController.getItem]));
@@ -321,15 +273,11 @@ module.exports = () => {
       // TODO: this is to be depriciated in favor of server_controllers
       if (schema.controller) {
         // add custom routes
-        const controllerPath = require('path').resolve(
-          appRoot,
-          'lib',
-          `${schema.controller}-controller`
-        );
+        const controllerPath = require('path').resolve(appRoot, 'lib', `${schema.controller}-controller`);
         try {
           m.controllers[schema.controller] = require(controllerPath)(m);
         } catch (e) {
-          m.log.error(`Unable to load custom controller '${controllerPath}': ${e}`);
+          m.log.error(`Unable to load custom controller '${controllerPath}'`, e.stack);
           process.exit(1);
         }
       }
@@ -342,6 +290,8 @@ module.exports = () => {
      * @param path
      */
     function addRelatedRoutesToSchema(objName, obj, path) {
+      const mainController = m.controllers.main;
+
       const { type, fields } = obj;
       if (type === 'LookupObjectID' || type === 'LookupObjectID[]') {
         const { lookup } = obj;
@@ -378,10 +328,10 @@ module.exports = () => {
           const tableName = tableLookup.table;
           const lookupPath = `/lookups/${lookupId}/${tableName}`;
           if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, lookupPath, 'get'))) {
-            m.addRoute('get', lookupPath, [m.isAuthenticated, mainController.getLookupTableJson]);
+            m.addRoute('get', lookupPath, [m.isAuthenticated, mainController.getLookupTable]);
           }
           if (isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, lookupPath, 'post'))) {
-            m.addRoute('post', lookupPath, [m.isAuthenticated, mainController.getLookupTableJson]);
+            m.addRoute('post', lookupPath, [m.isAuthenticated, mainController.getLookupTable]);
           }
         });
       }
@@ -393,23 +343,11 @@ module.exports = () => {
           }
           const isFilteringLookup = tableSpec.where;
           const treeSelectorPath = `/treeselectors/${treeSelectorId}/${tableName}`;
-          if (
-            !isFilteringLookup &&
-            _.isEmpty(m.expressUtil.findRoutes(m.app, treeSelectorPath, 'get'))
-          ) {
-            m.addRoute('get', treeSelectorPath, [
-              m.isAuthenticated,
-              mainController.getTreeSelector,
-            ]);
+          if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, treeSelectorPath, 'get'))) {
+            m.addRoute('get', treeSelectorPath, [m.isAuthenticated, mainController.getTreeSelector]);
           }
-          if (
-            isFilteringLookup &&
-            _.isEmpty(m.expressUtil.findRoutes(m.app, treeSelectorPath, 'post'))
-          ) {
-            m.addRoute('post', treeSelectorPath, [
-              m.isAuthenticated,
-              mainController.getTreeSelector,
-            ]);
+          if (isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, treeSelectorPath, 'post'))) {
+            m.addRoute('post', treeSelectorPath, [m.isAuthenticated, mainController.getTreeSelector]);
           }
         });
       }
@@ -432,28 +370,9 @@ module.exports = () => {
     next();
   };
 
-  /**
-   * This reloads app model from definition
-   * @param req
-   * @param res
-   * @param next
-   */
-  m.getReloadModel = (req, res, next) => {
-    mongoose.models = {};
-    m.setup()
-      .then(() => {
-        res.json({ success: true });
-        next();
-      })
-      .catch(e => {
-        m.log.error('APP001', e);
-        process.exit(1);
-      });
-  };
-
   // TODO: delete after mobile app refactoring, only required for mobile app framework backward compatibility
   m.addDashboardEndpoints = () => {
-    m.addRoute('get', '/dashboards/:id', [m.isAuthenticated, mainController.getDashboardJson]);
+    m.addRoute('get', '/dashboards/:id', [m.isAuthenticated, m.controllers.main.getDashboardJson]);
   };
 
   m.loadControllers = appModelPath => {
@@ -469,18 +388,7 @@ module.exports = () => {
         lib.init(m);
       });
     } catch (e) {
-      m.log.error(`Unable to load custom controllers`, e);
-      process.exit(2);
-    }
-  };
-
-  m.loadTestController = () => {
-    m.log.trace('Loading test controller:');
-    try {
-      const lib = require('./test-controller')(mongoose);
-      lib.init(m);
-    } catch (e) {
-      m.log.error(`Unable to load test controller: ${e}`);
+      m.log.error(`Unable to load custom controllers`, e.stack);
       process.exit(2);
     }
   };
@@ -492,7 +400,25 @@ module.exports = () => {
   m.addUserAuthentication = () => {
     const User = mongoose.model('users');
 
-    passport.use(User.createStrategy()); // local strategy, see https://github.com/saintedlama/passport-local-mongoose
+    passport.use(
+      new LocalStrategy({ usernameField: 'login', passwordField: 'password' }, async (login, password, cb) => {
+        try {
+          const user = await User.findOne({ $or: [{ login }, { email: login }] });
+          if (!user) {
+            return cb('Invalid login or password');
+          }
+
+          const isMatched = await comparePassword(password, user.password);
+          if (!isMatched) {
+            return cb('Invalid login or password');
+          }
+          return cb(null, user);
+        } catch (e) {
+          return cb(e);
+        }
+      })
+    );
+
     passport.use(
       'jwt',
       new JwtStrategy(
@@ -500,25 +426,31 @@ module.exports = () => {
           jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme('JWT'),
           secretOrKey: process.env.JWT_SECRET, // TODO: move into .env
         },
-        (jwtPayload, done) => {
-          User.findOne({ _id: jwtPayload.id })
-            .lean()
-            .exec()
-            .then(user => {
-              if (user) {
-                done(null, user);
-              } else {
-                done(null, false);
-              }
-            })
-            .catch(err => {
-              done(err, false);
-            });
+        async (jwtPayload, done) => {
+          try {
+            const user = await User.findOne({ _id: jwtPayload.id })
+              .lean()
+              .exec();
+            if (user) {
+              done(null, user);
+            } else {
+              done(null, false);
+            }
+          } catch (e) {
+            done(e, false);
+          }
         }
       )
     );
-    passport.serializeUser(User.serializeUser());
-    passport.deserializeUser(User.deserializeUser());
+
+    passport.serializeUser((user, cb) => cb(null, user._id));
+    passport.deserializeUser(async (id, cb) => {
+      const user = await User.findById(id);
+      if (user) {
+        return cb(null, user);
+      }
+      return cb(new Error(`User with id ${id} is not found`));
+    });
     m.app.use(passport.initialize());
     m.app.use(passport.session());
   };
@@ -530,22 +462,26 @@ module.exports = () => {
         if (err) {
           return reject(`ERR: ${err} INFO:${info}`);
         }
+
         const jwtErrorName = _.get(info, 'name');
         const isInvalidToken = jwtErrorName === 'JsonWebTokenError';
         const jwtMsg = _.get(info, 'message');
         const isEmptyToken = jwtMsg === 'No auth token';
-        if (
-          isInvalidToken ||
-          (isEmptyToken && m.getAuthSettings().requireAuthentication === true)
-        ) {
+        const isRequiredAuth = m.getAuthSettings().requireAuthentication === true;
+        if (isInvalidToken || (isEmptyToken && isRequiredAuth)) {
           return reject(new InvalidTokenError());
         }
         const isExpiredToken = jwtErrorName === 'TokenExpiredError';
         if (isExpiredToken) {
           return reject(new ExpiredTokenError());
         }
-        return m.accessUtil.getPermissionsForUser(user, req.device.type).then(permissions => {
-          resolve({ user, permissions });
+        if (!info && !user) {
+          // if token payload is valid but user is not found by that payload
+          return reject(new InvalidTokenError());
+        }
+        return m.accessUtil.getRolesAndPermissionsForUser(user, req.device.type).then(({ roles, permissions }) => {
+          m.accessUtil.setReqAuth({ req, user, roles, permissions });
+          resolve();
         });
       })(req, res, next);
     });
@@ -553,24 +489,18 @@ module.exports = () => {
 
   m.isAuthenticated = (req, res, next) => {
     m.authenticationCheck(req, res, next)
-      .then(({ user, permissions }) => {
-        req.user = user;
-        m.accessUtil.setUserPermissions(req, permissions);
+      .then(() => {
         next();
       })
       .catch(InvalidTokenError, () => {
         res.status(401).json({ success: false, message: 'Invalid user session, please login' });
       })
       .catch(ExpiredTokenError, () => {
-        res
-          .status(401)
-          .json({ success: false, message: 'User session expired, please login again' });
+        res.status(401).json({ success: false, message: 'User session expired, please login again' });
       })
       .catch(err => {
-        m.log.error(err);
-        res
-          .status(500)
-          .json({ success: false, message: `Error occurred during authentication process` });
+        m.log.error(err.stack);
+        res.status(500).json({ success: false, message: `Error occurred during authentication process` });
       });
   };
 
@@ -581,6 +511,9 @@ module.exports = () => {
   };
 
   m.addRoutes = () => {
+    const mainController = m.controllers.main;
+    const { fileController } = m;
+
     // development and system endpoints
     m.addRoute('get', '/', [mainController.getRootJson]);
     /**
@@ -623,20 +556,6 @@ module.exports = () => {
      *                    description: contains express info about route
      *              success:
      *                type: boolean
-     */
-
-    m.addRoute('get', '/reload-model', [mainController.isDevelopmentMode, m.getReloadModel]);
-    /**
-     * @swagger
-     * /reload-model:
-     *   get:
-     *     summary: Reloads app model from definition.
-     *     description: This route is only available in development mode
-     *     tags:
-     *       - Management
-     *     responses:
-     *       200:
-     *          description: Successful
      */
 
     m.addRoute('get', '/metaschema', [mainController.getMetaschemaJson]);
@@ -705,90 +624,6 @@ module.exports = () => {
      * /typeDefaults:
      *   get:
      *     summary: Returns all type defaults.
-     *     description: Does not check AUTH.
-     *     tags:
-     *       - Meta
-     *     responses:
-     *       200:
-     *          description: Successful
-     */
-
-    m.addRoute('get', '/lists.js', [mainController.getClientSideCodeForLists]);
-    /**
-     * @swagger
-     * /lists.js:
-     *   get:
-     *     summary: Returns string representing code for all lists.
-     *     description: Does not check AUTH.
-     *     tags:
-     *       - Meta
-     *     responses:
-     *       200:
-     *          description: Successful
-     */
-
-    m.addRoute('get', '/renderers.js', [mainController.getClientSideCodeForRenderers]);
-    /**
-     * @swagger
-     * /renderers.js:
-     *   get:
-     *     summary: Returns string representing code for all renderers.
-     *     description: Does not check AUTH.
-     *     tags:
-     *       - Meta
-     *     responses:
-     *       200:
-     *          description: Successful
-     */
-
-    m.addRoute('get', '/custom-actions.js', [mainController.getClientSideCodeForCustomActions]);
-    /**
-     * @swagger
-     * /custom-actions.js:
-     *   get:
-     *     summary: Returns string representing code for all custom actions.
-     *     description: Does not check AUTH.
-     *     tags:
-     *       - Meta
-     *     responses:
-     *       200:
-     *          description: Successful
-     */
-
-    m.addRoute('get', '/form-renderers.js', [mainController.getClientSideCodeForFormRenderers]);
-    /**
-     * @swagger
-     * /form-renderers.js:
-     *   get:
-     *     summary: Returns string representing code for all custom actions.
-     *     description: Does not check AUTH.
-     *     tags:
-     *       - Meta
-     *     responses:
-     *       200:
-     *          description: Successful
-     */
-
-    m.addRoute('get', '/label_renderers.js', [mainController.getClientSideCodeForLabelRenderers]);
-    /**
-     * @swagger
-     * /label_renderers.js:
-     *   get:
-     *     summary: Returns string representing code for all label renderers.
-     *     description: Does not check AUTH.
-     *     tags:
-     *       - Meta
-     *     responses:
-     *       200:
-     *          description: Successful
-     */
-
-    m.addRoute('get', '/validators.js', [mainController.getClientSideCodeForValidators]);
-    /**
-     * @swagger
-     * /validators.js:
-     *   get:
-     *     summary: Returns string representing code for all validators.
      *     description: Does not check AUTH.
      *     tags:
      *       - Meta
@@ -870,16 +705,9 @@ module.exports = () => {
      *         description: Server error occurred during authentication process
      */
 
-    // m.addRoute('get', '/teapot', [mainController.isDevelopmentMode, mainController.sendTeapot]);
-
-    // m.addRoute('get', /\/public\/?.*/, [express.plugins.serveStatic({directory: `./`})]);
-    // m.addRoute('get', /\/public\/?.*/, [express.plugins.serveStatic({directory: `${process.env.APP_MODEL_DIR}`})]);
-    // m.app.use('public', express.static(process.env.APP_MODEL_DIR));
-    // m.app.use('public', express.static('./model'));
     m.addRoute('get', '/public/*', [
       publicFilesController({ directories: [`${process.env.APP_MODEL_DIR}`, './model'] }),
     ]);
-    // TODO: write tests for the file uploading/thumbnails/cropping etc
     m.addRoute('post', '/upload', [fileController.upload]);
     /**
      * @swagger
@@ -1003,12 +831,14 @@ module.exports = () => {
     // endpoints for all models
     m.addAppModelRoutes();
     m.addDashboardEndpoints(); // TODO: remove this after mobile update
-    m.loadControllers(process.env.APP_MODEL_DIR);
-    m.loadTestController();
 
-    const { graphiQlRoute, graphQlRoute } = m.graphQl;
+    const { addAll, graphQlRoute } = m.graphQl;
+    addAll();
+
+    m.loadControllers(process.env.APP_MODEL_DIR);
+
     m.log.trace('Connecting GraphQL');
-    connectGraphQl(graphQlRoute, graphiQlRoute);
+    m.connectGraphQl(graphQlRoute);
 
     m.log.trace('Connecting Swagger');
     connectSwagger(m);
@@ -1017,13 +847,19 @@ module.exports = () => {
   m.addErrorHandlers = () => {
     m.app.use((req, res) => {
       if (!res.headersSent) {
-        res.status(404).json({ success: false, message: `${req.path} does not exist` });
+        const message = `${req.path} does not exist`;
+        m.log.error(message);
+        res.status(404).json({ success: false, message });
       }
     });
 
     m.app.use((error, req, res, next) => {
       if (!res.headersSent) {
-        res.status(500).json('Internal Server Error');
+        const { type, statusCode, stack, body } = error;
+        m.log.error(
+          `Error type: '${type}', statusCode: ${statusCode},${body ? `\nbody: ${body}\n` : ''} stack: ${stack}`
+        );
+        res.status(500).json(error.message || 'Internal Server Error');
       }
     });
   };
@@ -1032,72 +868,145 @@ module.exports = () => {
    * Absolute paths are not error prone. Its being used in custom prototypes and tests
    */
   function setAbsoluteEnvPaths() {
-    process.env.LOG4JS_CONFIG = nodePath.resolve(appRoot, process.env.LOG4JS_CONFIG);
-    process.env.APP_MODEL_DIR = nodePath.resolve(appRoot, process.env.APP_MODEL_DIR);
+    setAbsoluteEnvPath('LOG4JS_CONFIG');
+    setAbsoluteEnvPath('APP_MODEL_DIR');
+
+    function setAbsoluteEnvPath(key) {
+      if (process.env[key]) {
+        process.env[key] = nodePath.resolve(appRoot, process.env[key]);
+      }
+    }
+  }
+
+  function prepareEnv() {
+    setAbsoluteEnvPaths();
+    process.env.CREATE_INDEXES = process.env.CREATE_INDEXES || 'true';
+    process.env.APP_PORT = process.env.APP_PORT || 8000;
+    process.env.ES_MAX_RETRIES = process.env.ES_MAX_RETRIES || 4;
   }
 
   m.setOptions = opts => {
     options = opts;
   };
 
-  m.migrateMongo = function() {
+  m.migrateMongo = async function() {
     const migrateMongo = new MigrateMongo(getMigrateConfig());
-    return migrateMongo.database
-      .connect()
-      .then(db => Promise.all([db, migrateMongo.up(db)]))
-      .then(([db]) => db.close());
+    const db = await migrateMongo.database.connect();
+    await migrateMongo.up(db);
+    await db.close();
   };
+
+  async function cacheRolesToPermissions() {
+    // set ROLES_TO_PERMISSIONS on startup to rewrite old cache
+    const rolesToPermissions = await m.accessUtil.getRolesToPermissions();
+    await m.cache.setCache(m.cache.keys.ROLES_TO_PERMISSIONS, rolesToPermissions);
+    m.log.info('Loaded rolesToPermissions: ', JSON.stringify(rolesToPermissions, null, 2));
+  }
+
+  function setInitProperties() {
+    m.transformers = require('./transformers')(m);
+    m.hooks = require('./hooks')(m);
+    m.validation = require('./validation')(m);
+    m.filterUtil = require('./filter/util');
+    m.filterParser = require('./filter/filter-parser')(m);
+
+    m.accessUtil = require('./access/access-util')(m);
+    m.dba = require('./database-abstraction')(m);
+    m.mutil = require('./model')(m);
+
+    m.graphQl = require('./graphql')(m);
+    m.graphQl.graphQlRoute = '/graphql';
+    m.graphQl.graphiQlRoute = m.graphQl.graphQlRoute; // same endpoint (express-graphql cannot set to other)
+    m.connectGraphQl = require('./graphql/connect')(m);
+
+    m.googleMapsClient = require('./google-maps');
+
+    /**
+     * Reference to the express application
+     */
+    m.app = null;
+
+    /**
+     * Need to make sure that users understand that we will keep link to all their current connections to send proper notifications
+     * @type {{}}
+     */
+    m.userConnections = {};
+
+    /**
+     * Mongoose db connection
+     */
+    m.db = null;
+  }
+
+  function setControllerProperties() {
+    m.controllers = {};
+    m.controllerUtil = require('./default-controller-util')(m);
+    m.controllers.main = require('./default-controller')(m);
+    m.fileController = require('./file-controller')(m);
+    m.fileControllerUtil = require('./file-controller-util')();
+  }
 
   /**
    * App setup, configures everything but doesn't start the app
    * For tests just setup the app
    * For the actual server also call app.start();
    */
-  m.setup = () => {
-    setAbsoluteEnvPaths();
+  m.setup = async () => {
+    prepareEnv();
+    m.log = require('log4js').getLogger('lib/app');
     m.log.info('Using logger settings from', process.env.LOG4JS_CONFIG);
 
-    return m.cache
-      .init(process.env.REDIS_URL)
-      .then(() => m.cache.clearCacheByKeyPattern('*')) // clear all keys on startup
-      .then(() => m.migrateMongo())
-      .then(() => m.connectAppDb())
-      .then(() => m.loadModel())
-      .then(rolesToPermissions => {
-        m.log.info('Loaded rolesToPermissions: ', JSON.stringify(rolesToPermissions, null, 2));
+    setInitProperties();
+    m.db = await m.connectAppDb();
+    m.isMongoReplicaSet = m.butil.isMongoReplicaSet(m.db);
 
-        const { errors, warnings } = mutil.validateAndCleanupAppModel();
-        if (warnings.length) {
-          m.log.warn(warnings.join('\n'));
-        }
-        if (errors.length) {
-          throw new Error(errors.join('\n'));
-        }
+    await m.cache.init();
+    await m.cache.clearCacheByKeyPattern('*'); // clear all keys on startup
+    await m.migrateMongo();
 
-        return m.generateMongooseModels();
-      })
-      .then(() => {
-        m.log.info('Executing prestart scripts...');
-        return m.executePrestartScripts();
-      })
-      .then(() => {
-        m.log.info('Finished executing prestart scripts...');
-        const app = express();
-        m.configureApp(app);
-        m.addUserAuthentication();
+    m.appModel = m.mutil.getCombinedModel(options.appModelSources);
+    const helperDirPaths = [`model/helpers`, `${process.env.APP_MODEL_DIR}/helpers`];
+    m.helperUtil = await require('./helper-util')(m, helperDirPaths);
+    m.allActionsNames = [...m.accessCfg.DEFAULT_ACTIONS, ..._.keys(m.appModelHelpers.CustomActions)];
+    m.accessUtil.setAvailablePermissions();
 
-        m.addRoutes();
-        m.addErrorHandlers();
-        // TODO: move route name to config?
-        websocketServer.connect(m.app);
+    const { errors, warnings } = m.mutil.validateAndCleanupAppModel();
+    if (warnings.length) {
+      const warningsList = warnings.map((w, index) => `${index + 1}) ${w}`).join('\n');
+      m.log.warn(`Warnings during model building:\n${warningsList}`);
+    }
+    if (errors.length) {
+      throw new Error(errors.join('\n'));
+    }
+    await m.generateMongooseModels();
+    await cacheRolesToPermissions();
 
-        m.log.info(`HC Backend server v${APP_VERSION} has been set up`);
-        return m;
-      })
-      .catch(err => {
-        m.log.error(err.message);
-        throw err;
-      });
+    m.log.info('Executing prestart scripts...');
+    await m.executePrestartScripts();
+    m.log.info('Finished executing prestart scripts.');
+
+    const esConfig = m.elasticSearch.getEsConfig();
+    if (esConfig) {
+      m.log.info('Starting real-time Mongo-ES sync...');
+      const mongoUrl = process.env.MONGODB_URI;
+      await m.elasticSearch.startRealTimeSync(m.isMongoReplicaSet, m.appModel.models, mongoUrl, esConfig, true);
+    }
+
+    const app = express();
+    m.configureApp(app);
+    m.addUserAuthentication();
+
+    // build baseAppModel once to reuse it in models responses for specific users
+    m.baseAppModel = m.accessUtil.getBaseAppModel();
+
+    setControllerProperties();
+    m.addRoutes();
+    m.addErrorHandlers();
+    // TODO: move route name to config?
+    websocketServer.connect(m.app);
+
+    m.log.info(`${APP_NAME} Backend v${APP_VERSION} is running`);
+    return m;
   };
 
   m.executePrestartScripts = () => {
@@ -1135,10 +1044,10 @@ module.exports = () => {
       mongoose.connection.close().then(() => m.log.trace('Closed mongoose.connection')),
     ]);
 
-    function getCloseAppPromise() {
+    async function getCloseAppPromise() {
       process.removeListener('uncaughtException', procUncaughtExListener);
       if (!m.httpInstance) {
-        return Promise.resolve();
+        return;
       }
       m.httpInstance.close(() => {
         m.log.trace('Closed app');

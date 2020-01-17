@@ -1,0 +1,18 @@
+{
+  "interface": {
+    "app": {
+      "generatorSpecification": [
+        {
+          "generator": "fileListPregenerator"
+        },
+        {
+          "generator": "addressPregenerator",
+          "params": {
+            "number": 5,
+            "forceNewGeneration": false
+          }
+        }
+      ]
+    }
+  }
+}

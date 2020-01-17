@@ -1,6 +1,6 @@
 const args = require('optimist').argv;
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect } = require('../util/mongo');
 
 const {handleSafetyAlertsPages} = require('./pump_util');
 
@@ -25,7 +25,7 @@ function createIndexes(indexFieldNames, dbCon) {
 
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../util/mongo_connection_settings'));
+    const dbCon = await mongoConnect(mongoUrl);
     const indexFieldNames = ['productName'];
     await createIndexes(indexFieldNames, dbCon);
     console.log(`DB Indexes created: ${indexFieldNames.join(', ')}`);

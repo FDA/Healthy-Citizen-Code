@@ -1,0 +1,25 @@
+<section
+  field-container="{{adpField.fieldName}}"
+  class="input-container">
+  <label
+    ng-show="hasVisibleItems()"
+    class="label">
+    {{adpField.fullName}}
+    <adp-required-mark
+      validation-params="validationParams"
+    >
+    </adp-required-mark>
+
+    <adp-tooltip
+      adp-field="adpField">
+    </adp-tooltip>
+  </label>
+
+  <array-control
+    field="adpField"
+    ui-props="adpFieldUiProps"
+    validation-params="validationParams"
+    adp-form-data="adpFormData"
+  >
+  </array-control>
+</section>

@@ -39,7 +39,7 @@
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",
-          "where": "{$eq: ['$creator', this.req.user._id]}"
+          "where": "{creator: {$eq: this.req.user._id}}"
         }
       },
       "fields": {
@@ -51,7 +51,7 @@
             "formRenderer": "asIs"
           },
           "render": "asIs",
-          "synthesize": "shortId7",
+          "synthesize": "id24",
           "show": "$action !== 'create'",
           "unique": true
         },
@@ -72,6 +72,7 @@
               "questionnaire": "questionnaire",
               "adverseEvents": "adverseEvents",
               "recalls": "recalls",
+              "ucsfRecalls": "ucsfRecalls",
               "drugsVisualization": "drugsVisualization",
               "ndcLookup": "ndcLookup",
               "adverseEventsAlt": "adverseEventsAlt",
@@ -218,6 +219,27 @@
           "show": "row['type']=='drugsVisualization'",
           "showInDatatable": false
         },
+        "algorithm": {
+          "list": {
+            "values": {
+              "openfda": "OpenFDA",
+              "conceptant": "Conceptant"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          },
+          "permissions": {
+            "read": "accessAsSuperAdmin",
+            "write": "accessAsSuperAdmin"
+          }
+        },
         "dataSource": {
           "type": "String",
           "fullName": "Data source",
@@ -226,7 +248,9 @@
             "values": {
               "userPreferences": "User Preferences",
               "stu3": "STU3",
-              "dstu2": "DSTU2"
+              "dstu2": "DSTU2",
+              "epicStu3WithOauth2": "EPIC STU3 with OAuth2 and Launch Code From the Current Session",
+              "epicStu3WithOauth2AndLaunchCode": "EPIC STU3 with OAuth2 And Launch Code From the Endpoint"
             },
             "scopes": {
               "userScope": {
@@ -239,18 +263,38 @@
             }
           }
         },
+        "epicStu3WithOauth2AndLaunchCodeAuth": {
+          "type": "Boolean",
+          "fullName": "Use Login and password for EPIC Launch Code API",
+          "show": " _.get(this, \"row.dataSource\")==\"epicStu3WithOauth2AndLaunchCode\""
+        },
+        "epicStu3WithOauth2AndLaunchCodeAuthLogin": {
+          "fullName": "EPIC Launch Code API Login",
+          "show": " _.get(this, \"row.dataSource\")==\"epicStu3WithOauth2AndLaunchCode\" && _.get(this, \"row.epicStu3WithOauth2AndLaunchCodeAuth\")"
+        },
+        "epicStu3WithOauth2AndLaunchCodeAuthPassword": {
+          "fullName": "EPIC Launch Code API Password",
+          "show": " _.get(this, \"row.dataSource\")==\"epicStu3WithOauth2AndLaunchCode\" && _.get(this, \"row.epicStu3WithOauth2AndLaunchCodeAuth\")"
+        },
+        "epicClientId": {
+          "fullName": "EPIC Client ID",
+          "show": " _.get(this, \"row.dataSource\")==\"epicStu3WithOauth2AndLaunchCode\" || _.get(this, \"row.dataSource\")==\"epicStu3WithOauth2\""
+        },
+        "epicLaunchCode": {
+          "fullName": "EPIC Launch Code (for tests only)",
+          "description": "In production this parameter must be specified in the load tag",
+          "show": " _.get(this, \"row.dataSource\")==\"epicStu3WithOauth2\""
+        },
         "stu3Url": {
           "type": "String",
           "fullName": "STU3 Fhir url",
           "description": "STU3 Fhir url",
-          "required": true,
           "show": "row['dataSource']=='stu3'"
         },
         "dstu2Url": {
           "type": "String",
           "fullName": "DSTU2 Fhir url",
           "description": "DSTU2 Fhir url",
-          "required": true,
           "show": "row['dataSource']=='dstu2'"
         },
         "fhirDataImport": {
@@ -295,7 +339,7 @@
       "scopes": {
         "allScope": {
           "permissions": "accessAsUser",
-          "where": "{$eq: [1,1]}"
+          "where": "true"
         }
       },
       "fields": {
@@ -316,15 +360,13 @@
           "description": "User Password"
         },
         "contactPhone": {
-          "type": "String",
+          "type": "Phone",
           "fullName": "Contact Phone",
-          "subtype": "Phone",
           "description": "Contact Phone"
         },
         "email": {
-          "type": "String",
+          "type": "Email",
           "fullName": "Email",
-          "subtype": "Email",
           "description": "Email"
         }
       }
@@ -378,7 +420,7 @@
         }
       },
       "auth": {
-        "requireAuthentication": true,
+        "requireAuthentication": false,
         "enableAuthentication": true,
         "enableRegistration": false,
         "enablePermissions": true,
@@ -392,9 +434,9 @@
         "large": "/public/logos/hc-logo.png"
       },
       "favicon": {
-        "180X180": {},
-        "32X32": {},
-        "16X16": {},
+        "180x180": {},
+        "32x32": {},
+        "16x16": {},
         "manifest": {},
         "maskIcon": {}
       },
@@ -471,7 +513,69 @@
       "home": {
         "fullName": "Home",
         "link": "/home",
-        "template": "<p> <center><img src=\"https://widget-manager-backend.conceptant.com/public/logos/hc-logo-full.png\" width=\"140\" height=\"139\" alt=\"Healthy Citizen\"/><strong><b><h1>HEALTHY CITIZEN WIDGET INFORMATION CENTER&nbsp;</h1></center></strong></b></p>\n<p><center><h2>HOW TO EXPLORE THE WIDGETS AND APIS?</h2></center></p>\n<blockquote>\n  <blockquote>\n    <p>If your organization wants to explore the Healthy Citizen offerings, in more detail, there are currently two methods available. </p>\n    <blockquote>\n      <p><h3>1) Explore currently available Healthy Citizen Widgets </h3></p>\n      <blockquote>\n        <p> This is done by Implementing a sample site with various widgets preconfigured in your infrastructure to better understand how to integrate the HC widgets into your solutions. There are two parts to this exploration platform. The first is an instance of the widget manager solution where an administrator configures the widgets they wish to implement. The second is a portal that allows for users to register and view the configured widgets using data from either preferences or directly pulling data from FHIR servers (STU2 or STU3). Follow the steps below to implement this exploration platform in your infrastructure. </p>\n        <blockquote>\n          <p><u><h4>Widget Manager Platform</h4> </u></p>\n          <ol>\n            <li>Obtain the Widget Manager Platform Docker containers on DockerHub here - <a href=\"https://hub.docker.com/r/conceptant/hc-widget-manager/\" target=\"new\">https://hub.docker.com/r/conceptant/hc-widget-manager/</a></li>\n            <li>Follow the instructions on how to “Install the Docker Container” on one of your servers. </li>\n            <li>Configure the existing widget data sources using the instructions in the section below called “How to Install a Widget”. </li>\n          </ol>\n          <p><u><h4>Example External Partner Portal</h4> </u></p>\n          <ol>\n            <li>Obtain the example external partner portal Docker containers on DockerHub here - <a href=\"https://hub.docker.com/r/conceptant/hc-widget-demo/\" target=\"new\">https://hub.docker.com/r/conceptant/hc-widget-demo/</a> \n              </p>\n            </li>\n            <li>Follow the instructions on how to “Install the Docker Container” on one of your servers. \n              </p>\n            </li>\n            <li>Create one or more users in the external partner portal with existing FHIR patient records, including the FHIR server credentials. \n              </p>\n            </li>\n            <li>View the widgets being invoked/configured from the Widget Manager and pulling data from your FHIR resources, interacting with FDA product data and presenting the personalized results in the widgets. \n              </p>\n            </li>\n          </ol>\n        </blockquote>\n      </blockquote>\n      <p><h3>2) Explore currently available Healthy Citizen APIs</h3></p>\n      <ol>\n        <ol>\n          <li>Go to the Healthy Citizen API documentation located here - <a href=\"http://widget-manager-backend.healthycitizen.org/api-docs\" target=\"new\">http://widget-manager-backend.healthycitizen.org/api-docs</a></li>\n          <li>Follow the instructions at the top of the page to implement an authorization token.</li>\n          <li>Explore the existing REST API documentation, execute sample calls, and returned results. </li>\n          <li>If you prefer to use GraphQL interface instead of REST API, you can try it here: <a href=\"http://widget-manager-backend.healthycitizen.org/graphiql\" target=\"new\">http://widget-manager-backend.healthycitizen.org/graphiql</a>.</li>\n        </ol>\n      </ol>\n    </blockquote>\n  </blockquote>\n</blockquote>\n<p><center><strong><b><h1>HOW TO INSTALL A WIDGET?</h1></b></strong></center>&nbsp;</p>\n<blockquote>\n  <blockquote>\n    <p> Each widget is given it's own \"Unique Identifier\". To obtain the widget code for your specific installation, please hover over the widget you want to install and click \"link\" button. You will be asked for your account credentials. \n      To create a widget instance for your organization to use please follow the steps listed below: </p>\n    <ol>\n      <li>Click on the <a href=\"/#/widgets?action=create\" target=\"new\">CREATE NEW</a></li>\n      <li>Enter a name for your new widget (e.g., ABC Recall Widget) </li>\n      <li>Select the \"Widget Type\" from the drop down\n        Adjust the widget presentation parameters as necessary </li>\n      <li>Select the \"Data Source\" where the widget will receive the FDA regulated product information (e.g., user preferences, FHIR STU2, or FHIR STU3) and FHIR server URL. </li>\n      <li>Note: Healthy Citizen Widget are designed to support pulling Electronic Health Records (EHR) data for presenting a list of suggested FDA products, using either FHIR DSTU2 or FHIR STU3. See your EHR System Administrator if unsure which version of FHIR your EHR supports. </li>\n    </ol>\n  </blockquote>\n</blockquote>\n"
+        "template": [
+          "<p> <center><img src=\"https://widget-manager-backend.conceptant.com/public/logos/hc-logo-full.png\" width=\"140\" height=\"139\" alt=\"Healthy Citizen\"/><strong><b><h1>HEALTHY CITIZEN WIDGET INFORMATION CENTER&nbsp;</h1></center></strong></b></p>",
+          "<p><center><h2>HOW TO EXPLORE THE WIDGETS AND APIS?</h2></center></p>",
+          "<blockquote>",
+          "  <blockquote>",
+          "    <p>If your organization wants to explore the Healthy Citizen offerings, in more detail, there are currently two methods available. </p>",
+          "    <blockquote>",
+          "      <p><h3>1) Explore currently available Healthy Citizen Widgets </h3></p>",
+          "      <blockquote>",
+          "        <p> This is done by Implementing a sample site with various widgets preconfigured in your infrastructure to better understand how to integrate the HC widgets into your solutions. There are two parts to this exploration platform. The first is an instance of the widget manager solution where an administrator configures the widgets they wish to implement. The second is a portal that allows for users to register and view the configured widgets using data from either preferences or directly pulling data from FHIR servers (STU2 or STU3). Follow the steps below to implement this exploration platform in your infrastructure. </p>",
+          "        <blockquote>",
+          "          <p><u><h4>Widget Manager Platform</h4> </u></p>",
+          "          <ol>",
+          "            <li>Obtain the Widget Manager Platform Docker containers on DockerHub here - <a href=\"https://hub.docker.com/r/conceptant/hc-widget-manager/\" target=\"new\">https://hub.docker.com/r/conceptant/hc-widget-manager/</a></li>",
+          "            <li>Follow the instructions on how to “Install the Docker Container” on one of your servers. </li>",
+          "            <li>Configure the existing widget data sources using the instructions in the section below called “How to Install a Widget”. </li>",
+          "          </ol>",
+          "          <p><u><h4>Example External Partner Portal</h4> </u></p>",
+          "          <ol>",
+          "            <li>Obtain the example external partner portal Docker containers on DockerHub here - <a href=\"https://hub.docker.com/r/conceptant/hc-widget-demo/\" target=\"new\">https://hub.docker.com/r/conceptant/hc-widget-demo/</a> ",
+          "              </p>",
+          "            </li>",
+          "            <li>Follow the instructions on how to “Install the Docker Container” on one of your servers. ",
+          "              </p>",
+          "            </li>",
+          "            <li>Create one or more users in the external partner portal with existing FHIR patient records, including the FHIR server credentials. ",
+          "              </p>",
+          "            </li>",
+          "            <li>View the widgets being invoked/configured from the Widget Manager and pulling data from your FHIR resources, interacting with FDA product data and presenting the personalized results in the widgets. ",
+          "              </p>",
+          "            </li>",
+          "          </ol>",
+          "        </blockquote>",
+          "      </blockquote>",
+          "      <p><h3>2) Explore currently available Healthy Citizen APIs</h3></p>",
+          "      <ol>",
+          "        <ol>",
+          "          <li>Go to the Healthy Citizen API documentation located here - <a href=\"http://widget-manager-backend.healthycitizen.org/api-docs\" target=\"new\">http://widget-manager-backend.healthycitizen.org/api-docs</a></li>",
+          "          <li>Follow the instructions at the top of the page to implement an authorization token.</li>",
+          "          <li>Explore the existing REST API documentation, execute sample calls, and returned results. </li>",
+          "          <li>If you prefer to use GraphQL interface instead of REST API, you can try it here: <a href=\"http://widget-manager-backend.healthycitizen.org/graphiql\" target=\"new\">http://widget-manager-backend.healthycitizen.org/graphiql</a>.</li>",
+          "        </ol>",
+          "      </ol>",
+          "    </blockquote>",
+          "  </blockquote>",
+          "</blockquote>",
+          "<p><center><strong><b><h1>HOW TO INSTALL A WIDGET?</h1></b></strong></center>&nbsp;</p>",
+          "<blockquote>",
+          "  <blockquote>",
+          "    <p> Each widget is given it's own \"Unique Identifier\". To obtain the widget code for your specific installation, please hover over the widget you want to install and click \"link\" button. You will be asked for your account credentials. ",
+          "      To create a widget instance for your organization to use please follow the steps listed below: </p>",
+          "    <ol>",
+          "      <li>Click on the <a href=\"/#/widgets?action=create\" target=\"new\">CREATE NEW</a></li>",
+          "      <li>Enter a name for your new widget (e.g., ABC Recall Widget) </li>",
+          "      <li>Select the \"Widget Type\" from the drop down",
+          "        Adjust the widget presentation parameters as necessary </li>",
+          "      <li>Select the \"Data Source\" where the widget will receive the FDA regulated product information (e.g., user preferences, FHIR STU2, or FHIR STU3) and FHIR server URL. </li>",
+          "      <li>Note: Healthy Citizen Widget are designed to support pulling Electronic Health Records (EHR) data for presenting a list of suggested FDA products, using either FHIR DSTU2 or FHIR STU3. See your EHR System Administrator if unsure which version of FHIR your EHR supports. </li>",
+          "    </ol>",
+          "  </blockquote>",
+          "</blockquote>",
+          ""
+        ]
       }
     }
   }
