@@ -1,0 +1,74 @@
+<!-- CONTROLS:START -->
+<div
+  class="adp-file-uploader-dropzone"
+  ng-if="uploader">
+  <div
+    adp-file-uploader-dropzone
+    data="data"
+    uploader="uploader"
+    class="adp-uploader-btns adp-uploader-row">
+
+    <button
+      ng-click="uploader.callAddFileWindows()"
+      class="btn btn-primary"
+      type="button">
+      <span ng-show="options.enableDragAndDrop">
+        Drop file or click to upload
+      </span>
+
+      <span ng-show="!options.enableDragAndDrop">
+        Click to upload
+      </span>
+    </button>
+
+    <button
+      ng-if="options.enableMicrophone"
+      ng-click="callAudioModal()"
+      type="button"
+      class="btn btn-primary">
+      Record audio
+    </button>
+
+    <button
+      ng-if="options.enableWebcam"
+      ng-click="callVideoModal()"
+      type="button"
+      class="btn btn-primary">
+      Record video
+    </button>
+
+    <div
+      ng-if="options.enablePhotoCapture"
+      ng-click="callPhotoModal()"
+      type="button"
+      class="btn btn-primary">
+      Take a photo
+    </div>
+  </div>
+
+  <div class="adp-uploader-row">
+    <adp-uploader-errors
+      uploader="uploader">
+    </adp-uploader-errors>
+  </div>
+
+  <div class="adp-uploader-row">
+    <adp-file-uploader-list
+      data="data"
+      uploader="uploader">
+    </adp-file-uploader-list>
+  </div>
+
+  <div
+    ng-if="uploader.isUploading"
+    class="adp-uploader-row">
+    Upload progress:
+    <div class="progress" style="">
+      <div
+        class="progress-bar"
+        role="progressbar"
+        ng-style="{ 'width': uploader.progress + '%' }">
+      </div>
+    </div>
+  </div>
+</div>

@@ -1,0 +1,29 @@
+<div adp-fullscreen>
+  <div class="smart-form client-form">
+    <header class="smart-form-header">
+      <h2 class="semi-bold">
+        Record details
+      </h2>
+
+      <adp-fullscreen-button></adp-fullscreen-button>
+    </header>
+  </div>
+
+  <div class="modal-body">
+    <adp-record-details
+      schema="vm.schema"
+      data="vm.data"
+    ></adp-record-details>
+  </div>
+
+  <div class="smart-form client-form">
+    <footer>
+      <button
+        class="btn btn-primary"
+        type="button"
+        ng-click="vm.close()">
+        Close
+      </button>
+    </footer>
+  </div>
+</div>

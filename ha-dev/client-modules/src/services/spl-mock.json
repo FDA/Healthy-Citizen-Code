@@ -1,0 +1,254 @@
+{
+  "_id" : "5cde9b566582990a1dcf9c23",
+  "sections" : [
+    {
+      "title" : "SPL UNCLASSIFIED",
+      "code" : "42229-5",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "aaa4aa70-b1f1-43c5-82a8-91c5df10c1fa",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>6 mg betamethasone per mL<br>For Intra-Articular (I.A.) Use in Horses</paragraph> <paragraph> <content styleCode=\"bold\">CAUTION: Federal law restricts this drug to use by or on the order of a licensed veterinarian.</content> </paragraph> ",
+      "html" : "<p>6 mg betamethasone per mLFor Intra-Articular (I.A.) Use in Horses</p><p> <span class=\"Bold\">CAUTION: Federal law restricts this drug to use by or on the order of a licensed veterinarian.</span> </p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "34089-3",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "60c3cb18-0e14-4a26-b4d1-4111de18cef3",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>BETAVET<content styleCode=\"bold\"> <sup>&#xAE; </sup> </content>is a sterile aqueous suspension of betamethasone acetate in betamethasone sodium phosphate injection. The combined betamethasone content of the suspension is 6 mg/mL where each mL contains 3.15 mg betamethasone (as betamethasone sodium phosphate); 2.85 mg betamethasone (as betamethasone acetate); 7.1 mg dibasic sodium phosphate; 3.4 mg monobasic sodium phosphate; 0.1 mg edetate disodium; and 0.2 mg benzalkonium chloride, as a preservative in water for injection. The pH is adjusted to between 6.8 and 7.2.</paragraph> <paragraph>The formula for betamethasone sodium phosphate is C<sub>22</sub>H<sub>28</sub>FNa<sub>2</sub>O<sub>8</sub>P and it has a molecular weight of 516.41. Chemically, it is 9-Fluoro-11&#x3B2;,17,21-trihydroxy-16&#x3B2;-methylpregna-1,4-diene-3,20-dione 21-(disodium phosphate).</paragraph> <paragraph>The formula for betamethasone acetate is C<sub>24</sub>H<sub>31</sub>FO<sub>6</sub> and it has a molecular weight of 434.50. Chemically, it is 9-Fluoro-11&#x3B2;,17,21-trihydroxy-16&#x3B2;-methylpregna-1,4-diene-3,20-dione 21-acetate.</paragraph> <paragraph>The chemical structures for betamethasone sodium phosphate and betamethasone acetate are as follows:</paragraph> <renderMultiMedia referencedObject=\"MM1\"> <caption>betamethasone sodium phosphate</caption> </renderMultiMedia> <renderMultiMedia referencedObject=\"MM2\"> <caption>betamethasone acetate</caption> </renderMultiMedia> <paragraph>Betamethasone sodium phosphate is a white to practically white, odorless powder, and is hygroscopic. It is freely soluble in water and in methanol, but is practically insoluble in acetone and in chloroform.</paragraph> <paragraph>Betamethasone acetate is a white to creamy white, odorless powder that sinters and resolidifies at about 165&#xBA;C, and remelts at about 200&#xBA;C-220&#xBA;C with decomposition. It is practically insoluble in water, but freely soluble in acetone, and is soluble in alcohol and in chloroform.</paragraph> ",
+      "html" : "<p>BETAVET<span class=\"Bold\"> &#xAE;  </span>is a sterile aqueous suspension of betamethasone acetate in betamethasone sodium phosphate injection. The combined betamethasone content of the suspension is 6 mg/mL where each mL contains 3.15 mg betamethasone (as betamethasone sodium phosphate); 2.85 mg betamethasone (as betamethasone acetate); 7.1 mg dibasic sodium phosphate; 3.4 mg monobasic sodium phosphate; 0.1 mg edetate disodium; and 0.2 mg benzalkonium chloride, as a preservative in water for injection. The pH is adjusted to between 6.8 and 7.2.</p><p>The formula for betamethasone sodium phosphate is CHFNaOP and it has a molecular weight of 516.41. Chemically, it is 9-Fluoro-11β,17,21-trihydroxy-16β-methylpregna-1,4-diene-3,20-dione 21-(disodium phosphate).</p><p>The formula for betamethasone acetate is CHFO and it has a molecular weight of 434.50. Chemically, it is 9-Fluoro-11β,17,21-trihydroxy-16β-methylpregna-1,4-diene-3,20-dione 21-acetate.</p><p>The chemical structures for betamethasone sodium phosphate and betamethasone acetate are as follows:</p><p>Betamethasone sodium phosphate is a white to practically white, odorless powder, and is hygroscopic. It is freely soluble in water and in methanol, but is practically insoluble in acetone and in chloroform.</p><p>Betamethasone acetate is a white to creamy white, odorless powder that sinters and resolidifies at about 165ºC, and remelts at about 200ºC-220ºC with decomposition. It is practically insoluble in water, but freely soluble in acetone, and is soluble in alcohol and in chloroform.</p>",
+      "images" : [
+        {
+          "id" : "MM1",
+          "mediaType" : "image/jpeg",
+          "reference" : "betavet---betamethasone-sodium-phosphate-and-betam-1.jpg",
+          "file" : {
+            "name" : "betavet---betamethasone-sodium-phosphate-and-betam-1.jpg",
+            "size" : 6037,
+            "type" : "image/jpeg",
+            "id" : "5cde930d2fa4487de3ae0fdf",
+            "cropped" : false
+          },
+          "text" : "betamethasone sodium phosphate"
+        },
+        {
+          "id" : "MM2",
+          "mediaType" : "image/jpeg",
+          "reference" : "betavet---betamethasone-sodium-phosphate-and-betam-2.jpg",
+          "file" : {
+            "name" : "betavet---betamethasone-sodium-phosphate-and-betam-2.jpg",
+            "size" : 6968,
+            "type" : "image/jpeg",
+            "id" : "5cde930d2fa4487de3ae0fe0",
+            "cropped" : false
+          },
+          "text" : "betamethasone acetate"
+        }
+      ]
+    },
+    {
+      "title" : " ",
+      "code" : "34067-9",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "46ab9e0e-f8d0-4c29-b157-d0886074d4c3",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>BETAVET is indicated for the control of pain and inflammation associated with osteoarthritis in horses.</paragraph> ",
+      "html" : "<p>BETAVET is indicated for the control of pain and inflammation associated with osteoarthritis in horses.</p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "34068-7",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "82ea6df2-99eb-4216-b965-90c910bb8129",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph> <content styleCode=\"bold\">Shake well immediately before use</content>.</paragraph> <paragraph>Using strict aseptic technique, administer 1.5 mL BETAVET (9 mg total betamethasone) per joint by intra-articular injection. BETAVET may be administered concurrently in up to 2 joints per horse.</paragraph> <paragraph>Use immediately after opening, then discard any remaining contents.</paragraph> ",
+      "html" : "<p> <span class=\"Bold\">Shake well immediately before use</span>.</p><p>Using strict aseptic technique, administer 1.5 mL BETAVET (9 mg total betamethasone) per joint by intra-articular injection. BETAVET may be administered concurrently in up to 2 joints per horse.</p><p>Use immediately after opening, then discard any remaining contents.</p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "34070-3",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "1f62a3e8-be3b-4568-8768-47e4fabc7da3",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>BETAVET is contraindicated in horses with hypersensitivity to betamethasone.</paragraph> <paragraph>Intra-articular injection of corticosteroids for local effect is contraindicated in the presence of septic arthritis.</paragraph> ",
+      "html" : "<p>BETAVET is contraindicated in horses with hypersensitivity to betamethasone.</p><p>Intra-articular injection of corticosteroids for local effect is contraindicated in the presence of septic arthritis.</p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "34071-1",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "86a41b64-11f2-4b97-a86b-9a7a4696bdc2",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph> <content styleCode=\"bold\">Do not use in horses intended for human consumption. </content> </paragraph> <paragraph>Clinical and experimental data have demonstrated that corticosteroids administered orally or parenterally to animals may induce the first stage of parturition when administered during the last trimester of pregnancy and may precipitate premature parturition followed by dystocia, fetal death, retained placenta, and metritis.</paragraph> <paragraph>Additionally, corticosteroids administered to dogs, rabbits and rodents during pregnancy have resulted in cleft palate in offspring. Corticosteroids administered to dogs during pregnancy have also resulted in other congenital anomalies including deformed forelegs, phocomelia and anasarca. Therefore, before use of corticosteroids in pregnant animals, the possible benefits to the pregnant animal should be weighed against potential hazards to its developing embryo or fetus.</paragraph> <paragraph> <content styleCode=\"bold\">Human Warnings: </content>Not for use in humans. For use in animals only. Keep this and all medications out of the reach of children. Consult a physician in the case of accidental human exposure.</paragraph> ",
+      "html" : "<p> <span class=\"Bold\">Do not use in horses intended for human consumption. </span> </p><p>Clinical and experimental data have demonstrated that corticosteroids administered orally or parenterally to animals may induce the first stage of parturition when administered during the last trimester of pregnancy and may precipitate premature parturition followed by dystocia, fetal death, retained placenta, and metritis.</p><p>Additionally, corticosteroids administered to dogs, rabbits and rodents during pregnancy have resulted in cleft palate in offspring. Corticosteroids administered to dogs during pregnancy have also resulted in other congenital anomalies including deformed forelegs, phocomelia and anasarca. Therefore, before use of corticosteroids in pregnant animals, the possible benefits to the pregnant animal should be weighed against potential hazards to its developing embryo or fetus.</p><p> <span class=\"Bold\">Human Warnings: </span>Not for use in humans. For use in animals only. Keep this and all medications out of the reach of children. Consult a physician in the case of accidental human exposure.</p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "42232-9",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "28fa1faf-e232-42bc-9bb2-230aa9627146",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>Corticosteroids, including BETAVET, administered intraarticularly are systemically absorbed. Do not use in horses with acute infections.</paragraph> <paragraph>Acute moderate to severe exacerbation of pain, further loss of joint motion, fever, or malaise within several days following intra-articular injection may indicate a septic process. Because of the anti-inflammatory action of corticosteroids, signs of infection in the treated joint may be masked. Appropriate examination of joint fluid is necessary to exclude a septic process. If a bacterial infection is present, appropriate antibacterial therapy should be instituted immediately. Additional doses of corticosteroids should not be administered until joint sepsis has been definitively ruled out.</paragraph> <paragraph>Due to the potential for exacerbation of clinical signs of laminitis, glucocorticoids should be used with caution in horses with a history of laminitis, or horses otherwise at a higher risk for laminitis. </paragraph> <paragraph>Use with caution in horses with chronic nephritis, equine pituitary pars intermedia dysfunction (PPID), and congestive heart failure.</paragraph> <paragraph>Concurrent use of other anti-inflammatory drugs, such as NSAIDs or other corticosteroids, should be approached with caution. Due to the potential for systemic exposure, concomitant use of NSAIDs and corticosteroids may increase the risk of gastrointestinal, renal, and other toxicity. Consider appropriate wash out times prior to administering additional NSAIDs or corticosteroids.</paragraph> ",
+      "html" : "<p>Corticosteroids, including BETAVET, administered intraarticularly are systemically absorbed. Do not use in horses with acute infections.</p><p>Acute moderate to severe exacerbation of pain, further loss of joint motion, fever, or malaise within several days following intra-articular injection may indicate a septic process. Because of the anti-inflammatory action of corticosteroids, signs of infection in the treated joint may be masked. Appropriate examination of joint fluid is necessary to exclude a septic process. If a bacterial infection is present, appropriate antibacterial therapy should be instituted immediately. Additional doses of corticosteroids should not be administered until joint sepsis has been definitively ruled out.</p><p>Due to the potential for exacerbation of clinical signs of laminitis, glucocorticoids should be used with caution in horses with a history of laminitis, or horses otherwise at a higher risk for laminitis. </p><p>Use with caution in horses with chronic nephritis, equine pituitary pars intermedia dysfunction (PPID), and congestive heart failure.</p><p>Concurrent use of other anti-inflammatory drugs, such as NSAIDs or other corticosteroids, should be approached with caution. Due to the potential for systemic exposure, concomitant use of NSAIDs and corticosteroids may increase the risk of gastrointestinal, renal, and other toxicity. Consider appropriate wash out times prior to administering additional NSAIDs or corticosteroids.</p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "34084-4",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "641b6c48-6441-49a8-8421-2f3d8cf5cceb",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>Adverse reactions reported during a field study of 239 horses of various breeds which had been administered either BETAVET (n=119) or a saline control (n=120) are summarized in Table 1. One BETAVET treated horse was removed from the study for onset of acute non-weight bearing lameness on Day 4. Treatment for presumed joint sepsis was instituted immediately, but the horse was eventually euthanized several weeks later due to a thromboembolic event associated with prolonged intravenous catheter placement. One BETAVET treated horse developed bilateral forelimb lameness on Day 8, with snow packed in the shoes and poor hoof conformation noted by the investigator. The horse was diagnosed with laminitis. Radiographs showed no abnormalities, and the horse was sound shortly after shoeing changes were implemented.</paragraph> <paragraph> <content styleCode=\"bold\">Table 1. Adverse Reactions</content> </paragraph> <table> <col> <col> <col> <tbody> <tr> <td> <content styleCode=\"bold\">Adverse Reaction</content> </td> <td> <paragraph> <content styleCode=\"bold\">Number (%) of </content> <content styleCode=\"bold\">BETAVET<br>treated<br>horses<br> </content> </paragraph> </td> <td> <paragraph> <content styleCode=\"bold\">Number (%)<br>of saline treated<br>horses</content> </paragraph> </td> </tr> <tr> <td>Acute joint effusion<br>and/or local injection site swelling (within 2 days of injection)<br> </td> <td align=\"center\">18 (15%)<br> </td> <td align=\"center\">16 (13%)<br> </td> </tr> <tr> <td>Increased lameness<br>(within the first 5 days)<br> </td> <td align=\"center\">8 (6.7%)<br> </td> <td align=\"center\">10 (8.3%)<br> </td> </tr> <tr> <td>Loose stool<br> </td> <td align=\"center\">7 (5.9%)</td> <td align=\"center\">10 (8.3%)</td> </tr> <tr> <td>Increased heat in joint </td> <td align=\"center\">3 (2.5%)</td> <td align=\"center\">6 (5%)<br> </td> </tr> <tr> <td>Depression</td> <td align=\"center\">7 (5.9%)</td> <td align=\"center\">2 (1.6%)<br> </td> </tr> <tr> <td>Agitation/anxiety<br> </td> <td align=\"center\">5 (4.2%)<br> </td> <td align=\"center\">3 (2.5%)<br> </td> </tr> <tr> <td>Delayed swelling of treated joint (5 or more<br>days after injection)<br> </td> <td align=\"center\">3 (2.5%)<br> </td> <td align=\"center\">4 (3.3%)<br> </td> </tr> <tr> <td>Inappetance<br> </td> <td align=\"center\">4 (3.4%)<br> </td> <td align=\"center\">3 (2.5%)<br> </td> </tr> <tr> <td>Dry stool<br> </td> <td align=\"center\">2 (1.7%)<br> </td> <td align=\"center\">0 (0%)<br> </td> </tr> <tr> <td>Excessive sweating<br> </td> <td align=\"center\">1 (0.8%)<br> </td> <td align=\"center\">0 (0%)<br> </td> </tr> <tr> <td>Acute non-weight<br>bearing lameness<br> </td> <td align=\"center\">1 (0.8%)</td> <td align=\"center\">0 (0%)</td> </tr> <tr> <td>Laminitis<br> </td> <td align=\"center\">1 (0.8%)<br> </td> <td align=\"center\">0 (0%)<br> </td> </tr> </tbody> </table> <br> ",
+      "html" : "<p>Adverse reactions reported during a field study of 239 horses of various breeds which had been administered either BETAVET (n=119) or a saline control (n=120) are summarized in Table 1. One BETAVET treated horse was removed from the study for onset of acute non-weight bearing lameness on Day 4. Treatment for presumed joint sepsis was instituted immediately, but the horse was eventually euthanized several weeks later due to a thromboembolic event associated with prolonged intravenous catheter placement. One BETAVET treated horse developed bilateral forelimb lameness on Day 8, with snow packed in the shoes and poor hoof conformation noted by the investigator. The horse was diagnosed with laminitis. Radiographs showed no abnormalities, and the horse was sound shortly after shoeing changes were implemented.</p><p> <span class=\"Bold\">Table 1. Adverse Reactions</span> </p> <col> <col> <col> <tbody> <tr> <td> <content styleCode=\"bold\">Adverse Reaction</content> </td> <td> <paragraph> <content styleCode=\"bold\">Number (%) of </content> <content styleCode=\"bold\">BETAVET<br>treated<br>horses<br> </content> </paragraph> </td> <td> <paragraph> <content styleCode=\"bold\">Number (%)<br>of saline treated<br>horses</content> </paragraph> </td> </tr> <tr> <td>Acute joint effusion<br>and/or local injection site swelling (within 2 days of injection)<br> </td> <td align=\"center\">18 (15%)<br> </td> <td align=\"center\">16 (13%)<br> </td> </tr> <tr> <td>Increased lameness<br>(within the first 5 days)<br> </td> <td align=\"center\">8 (6.7%)<br> </td> <td align=\"center\">10 (8.3%)<br> </td> </tr> <tr> <td>Loose stool<br> </td> <td align=\"center\">7 (5.9%)</td> <td align=\"center\">10 (8.3%)</td> </tr> <tr> <td>Increased heat in joint </td> <td align=\"center\">3 (2.5%)</td> <td align=\"center\">6 (5%)<br> </td> </tr> <tr> <td>Depression</td> <td align=\"center\">7 (5.9%)</td> <td align=\"center\">2 (1.6%)<br> </td> </tr> <tr> <td>Agitation/anxiety<br> </td> <td align=\"center\">5 (4.2%)<br> </td> <td align=\"center\">3 (2.5%)<br> </td> </tr> <tr> <td>Delayed swelling of treated joint (5 or more<br>days after injection)<br> </td> <td align=\"center\">3 (2.5%)<br> </td> <td align=\"center\">4 (3.3%)<br> </td> </tr> <tr> <td>Inappetance<br> </td> <td align=\"center\">4 (3.4%)<br> </td> <td align=\"center\">3 (2.5%)<br> </td> </tr> <tr> <td>Dry stool<br> </td> <td align=\"center\">2 (1.7%)<br> </td> <td align=\"center\">0 (0%)<br> </td> </tr> <tr> <td>Excessive sweating<br> </td> <td align=\"center\">1 (0.8%)<br> </td> <td align=\"center\">0 (0%)<br> </td> </tr> <tr> <td>Acute non-weight<br>bearing lameness<br> </td> <td align=\"center\">1 (0.8%)</td> <td align=\"center\">0 (0%)</td> </tr> <tr> <td>Laminitis<br> </td> <td align=\"center\">1 (0.8%)<br> </td> <td align=\"center\">0 (0%)<br> </td> </tr> </tbody> ",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "34090-1",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "1682e509-69b3-49a2-b205-1b4a56f62a4b",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>Betamethasone is a potent glucocorticoid steroid with anti-inflammatory and immunosuppressive properties. Depending upon their physico-chemical properties, drugs administered intra-articularly may enter the general circulation because the synovial joint cavity is in direct equilibrium with the surrounding blood supply. After the intra-articular administration of 9 mg BETAVET in horses, there were quantifiable concentrations of betamethasone (above 1.0 ng/mL) in the plasma. Maximum plasma concentrations (C<sub>max</sub>) and time to C<sub>max</sub> (T<sub>max</sub>) values ranged from 2.70 to 3.88 ng/mL and 4.5 to 8 hours, respectively. The effective plasma terminal elimination half-life ranged from 4 to 8 hours. The non-compartmental area-underthe curve to the limit of quantification (AUC<sub>LOQ</sub>) ranged from 29.24 to 42.96 hr*ng/mL. In contrast, most of the betamethasone disodium phosphate concentrations and all of the betamethasone acetate concentrations were below the limit of quantification in plasma.</paragraph> ",
+      "html" : "<p>Betamethasone is a potent glucocorticoid steroid with anti-inflammatory and immunosuppressive properties. Depending upon their physico-chemical properties, drugs administered intra-articularly may enter the general circulation because the synovial joint cavity is in direct equilibrium with the surrounding blood supply. After the intra-articular administration of 9 mg BETAVET in horses, there were quantifiable concentrations of betamethasone (above 1.0 ng/mL) in the plasma. Maximum plasma concentrations (C) and time to C (T) values ranged from 2.70 to 3.88 ng/mL and 4.5 to 8 hours, respectively. The effective plasma terminal elimination half-life ranged from 4 to 8 hours. The non-compartmental area-underthe curve to the limit of quantification (AUC) ranged from 29.24 to 42.96 hr*ng/mL. In contrast, most of the betamethasone disodium phosphate concentrations and all of the betamethasone acetate concentrations were below the limit of quantification in plasma.</p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "34092-7",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "e420bd16-8428-48d9-bdc3-f8980ca08202",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>A negative control, randomized, masked field study provided data to evaluate the effectiveness of BETAVET administered at 1.5 mL (9 mg betamethasone) once intra-articularly for the control of pain and inflammation associated with osteoarthritis in horses. A total of 119 horses received BETAVET and 120 horses received saline. 229 horses were included in the final effectiveness analysis. Clinical success was defined as improvement in one lameness grade according to the AAEP lameness scoring system on Day 5 following treatment. Table 2 summarizes the clinical success and failure in each treatment group on Day 5. The success rate for horses in the BETAVET group was statistically significantly different (p=0.0061) than that in the saline group, with success rates of 75.73% and 52.52%, respectively (back-transformed from the logistic regression).</paragraph> <paragraph> <content styleCode=\"bold\">Table 2. Clinical Effectiveness Results</content> </paragraph> <table border=\"0\" cellspacing=\"0\" cellpadding=\"0\"> <col> <col> <col> <tbody> <tr> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"></td> <td> <paragraph> <content styleCode=\"bold\">BETAVET</content> <content styleCode=\"bold\">(n=114)</content> </paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> <content styleCode=\"bold\">Saline (n=115)</content> </paragraph> </td> </tr> <tr> <td styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> <content styleCode=\"bold\">Number of Successes</content> </paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> 87</paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> 61</paragraph> </td> </tr> <tr> <td styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> <content styleCode=\"bold\">Number of Failures</content> </paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> 27</paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> 54</paragraph> </td> </tr> </tbody> </table> <paragraph> <content styleCode=\"bold\"> <br> </content> </paragraph> ",
+      "html" : "<p>A negative control, randomized, masked field study provided data to evaluate the effectiveness of BETAVET administered at 1.5 mL (9 mg betamethasone) once intra-articularly for the control of pain and inflammation associated with osteoarthritis in horses. A total of 119 horses received BETAVET and 120 horses received saline. 229 horses were included in the final effectiveness analysis. Clinical success was defined as improvement in one lameness grade according to the AAEP lameness scoring system on Day 5 following treatment. Table 2 summarizes the clinical success and failure in each treatment group on Day 5. The success rate for horses in the BETAVET group was statistically significantly different (p=0.0061) than that in the saline group, with success rates of 75.73% and 52.52%, respectively (back-transformed from the logistic regression).</p><p> <span class=\"Bold\">Table 2. Clinical Effectiveness Results</span> </p> <col> <col> <col> <tbody> <tr> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"></td> <td> <paragraph> <content styleCode=\"bold\">BETAVET</content> <content styleCode=\"bold\">(n=114)</content> </paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> <content styleCode=\"bold\">Saline (n=115)</content> </paragraph> </td> </tr> <tr> <td styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> <content styleCode=\"bold\">Number of Successes</content> </paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> 87</paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> 61</paragraph> </td> </tr> <tr> <td styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> <content styleCode=\"bold\">Number of Failures</content> </paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> 27</paragraph> </td> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph> 54</paragraph> </td> </tr> </tbody> <p> <span class=\"Bold\">  </span> </p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "34092-7",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "cb8e959e-cb8e-4531-b7bc-9bc5b7c22f0e",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>A 3-week target animal safety (TAS) study was conducted to evaluate the safety of BETAVET in mature, healthy horses. The study was designed with 4 treatment groups of 8 horses in each group. Treatment groups included a control (isotonic saline at a volume equivalent to the 4x group); 1X (0.0225 mg betamethasone per pound bodyweight; BETAVET); 2X (0.045 mg betamethasone per pound bodyweight; BETAVET) and 4X (0.09 mg betamethasone per pound bodyweight; BETAVET). Treatments were administered by intra-articular injection into the left middle carpal joint once every 5-days for 3 treatments.</paragraph> <paragraph>Injection site reactions were the most common observations in all treatment groups. Injection site reactions were observed within 1 hour of dosing and included swelling at the injection site, lameness/stiffness of the left front limb, and flexing the left front knee at rest (see table 3).</paragraph> <paragraph> <content styleCode=\"bold\">Table 3. Incidence of Injection Site Reactions</content> </paragraph> <table width=\"272px\" border=\"0\" cellspacing=\"0\" cellpadding=\"0\"> <col width=\"23.15pt\"> <col width=\"44.65pt\"> <col width=\"41.75pt\"> <col width=\"29.5pt\"> <col width=\"23.75pt\"> <col width=\"21.15pt\"> <tbody> <tr> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph>Group </paragraph> </td> <td align=\"center\"> <paragraph>Total Swelling Observations</paragraph> </td> <td align=\"center\"> <paragraph>Excessive/ obvious swelling</paragraph> </td> <td align=\"center\"> <paragraph>Pain at injection site</paragraph> </td> <td align=\"center\"> <paragraph>Knee flexed at rest</paragraph> </td> <td align=\"center\"> <paragraph>Lame or stiff</paragraph> </td> </tr> <tr> <td> <paragraph>0x</paragraph> </td> <td> <paragraph>14</paragraph> </td> <td> <paragraph>1</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> </tr> <tr> <td> <paragraph>1x</paragraph> </td> <td> <paragraph>6</paragraph> </td> <td> <paragraph>1</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> </tr> <tr> <td> <paragraph>2x</paragraph> </td> <td> <paragraph>11</paragraph> </td> <td> <paragraph>2</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> </tr> <tr> <td> <paragraph>4x</paragraph> </td> <td> <paragraph>18</paragraph> </td> <td> <paragraph>10</paragraph> </td> <td> <paragraph>3</paragraph> </td> <td> <paragraph>3</paragraph> </td> <td> <paragraph>2</paragraph> </td> </tr> </tbody> </table> <paragraph>The injection site reactions ranged from slight swelling (in many horses on multiple days in all treatment groups) to excessive fluid with swelling, pain, and lameness (4x group only). Injection site reactions were observed most commonly on treatment days, and generally decreased in number and severity over subsequent days. The incidence of injection site reactions increased after the second and third injection (number of abnormalities noted on day 10 &gt; day 5 &gt; day 0). In the BETAVET treated groups the number and severity of the injection site reactions were dose dependent. The 4X BETAVET group had the highest overall incidence of and severity of injection site reactions, which included heat, swelling, pain, bleeding, and holding the limb up at rest. The control group and 4X group (which received similar injection volumes) had a similar incidence of injection site reactions; however, the severity of reactions was greater in the 4X group.</paragraph> <paragraph>Absolute neutrophils were statistically significantly higher in the BETAVET treated groups as compared to the control group. Trends toward a decrease in lymphocytes and eosinophils, and an increase in monocytes were identified in the BETAVET treated groups after the initial dose of BETAVET. Individual animal values for white blood cells generally remained within the reference range. BETAVET treated horses also had a trend toward increased blood glucose after the initial dose. Some individual animals showed mild increases in blood glucose above the reference range.</paragraph> <br> ",
+      "html" : "<p>A 3-week target animal safety (TAS) study was conducted to evaluate the safety of BETAVET in mature, healthy horses. The study was designed with 4 treatment groups of 8 horses in each group. Treatment groups included a control (isotonic saline at a volume equivalent to the 4x group); 1X (0.0225 mg betamethasone per pound bodyweight; BETAVET); 2X (0.045 mg betamethasone per pound bodyweight; BETAVET) and 4X (0.09 mg betamethasone per pound bodyweight; BETAVET). Treatments were administered by intra-articular injection into the left middle carpal joint once every 5-days for 3 treatments.</p><p>Injection site reactions were the most common observations in all treatment groups. Injection site reactions were observed within 1 hour of dosing and included swelling at the injection site, lameness/stiffness of the left front limb, and flexing the left front knee at rest (see table 3).</p><p> <span class=\"Bold\">Table 3. Incidence of Injection Site Reactions</span> </p> <col width=\"23.15pt\"> <col width=\"44.65pt\"> <col width=\"41.75pt\"> <col width=\"29.5pt\"> <col width=\"23.75pt\"> <col width=\"21.15pt\"> <tbody> <tr> <td align=\"center\" styleCode=\"     Botrule          Toprule         Lrule          Rrule     \"> <paragraph>Group </paragraph> </td> <td align=\"center\"> <paragraph>Total Swelling Observations</paragraph> </td> <td align=\"center\"> <paragraph>Excessive/ obvious swelling</paragraph> </td> <td align=\"center\"> <paragraph>Pain at injection site</paragraph> </td> <td align=\"center\"> <paragraph>Knee flexed at rest</paragraph> </td> <td align=\"center\"> <paragraph>Lame or stiff</paragraph> </td> </tr> <tr> <td> <paragraph>0x</paragraph> </td> <td> <paragraph>14</paragraph> </td> <td> <paragraph>1</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> </tr> <tr> <td> <paragraph>1x</paragraph> </td> <td> <paragraph>6</paragraph> </td> <td> <paragraph>1</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> </tr> <tr> <td> <paragraph>2x</paragraph> </td> <td> <paragraph>11</paragraph> </td> <td> <paragraph>2</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> <td> <paragraph>0</paragraph> </td> </tr> <tr> <td> <paragraph>4x</paragraph> </td> <td> <paragraph>18</paragraph> </td> <td> <paragraph>10</paragraph> </td> <td> <paragraph>3</paragraph> </td> <td> <paragraph>3</paragraph> </td> <td> <paragraph>2</paragraph> </td> </tr> </tbody> <p>The injection site reactions ranged from slight swelling (in many horses on multiple days in all treatment groups) to excessive fluid with swelling, pain, and lameness (4x group only). Injection site reactions were observed most commonly on treatment days, and generally decreased in number and severity over subsequent days. The incidence of injection site reactions increased after the second and third injection (number of abnormalities noted on day 10 > day 5 > day 0). In the BETAVET treated groups the number and severity of the injection site reactions were dose dependent. The 4X BETAVET group had the highest overall incidence of and severity of injection site reactions, which included heat, swelling, pain, bleeding, and holding the limb up at rest. The control group and 4X group (which received similar injection volumes) had a similar incidence of injection site reactions; however, the severity of reactions was greater in the 4X group.</p><p>Absolute neutrophils were statistically significantly higher in the BETAVET treated groups as compared to the control group. Trends toward a decrease in lymphocytes and eosinophils, and an increase in monocytes were identified in the BETAVET treated groups after the initial dose of BETAVET. Individual animal values for white blood cells generally remained within the reference range. BETAVET treated horses also had a trend toward increased blood glucose after the initial dose. Some individual animals showed mild increases in blood glucose above the reference range.</p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "44425-7",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "7251288a-8cd7-441b-9081-ce283202b1a9",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>Store at 20&#xB0; to 25&#xB0;C (68&#xB0; to 77&#xB0;F) (See USP Controlled Room Temperature). <content styleCode=\"bold\">Protect from light. </content>Use carton to protect contents from light until used.</paragraph> ",
+      "html" : "<p>Store at 20° to 25°C (68° to 77°F) (See USP Controlled Room Temperature). <span class=\"Bold\">Protect from light. </span>Use carton to protect contents from light until used.</p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "34069-5",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "b548f55c-bb83-4f78-a674-e45f790316fa",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>BETAVET, containing 30 mg betamethasone/5 mL (6 mg betamethasone/mL) in 5 mL vials.<br> <br>NDC 10797-720-01 5 mL VIALS Packaged in boxes of 1</paragraph> <paragraph> <content styleCode=\"bold\">SHAKE WELL BEFORE USING<br> <br> </content>NADA 141-418, Approved by FDA</paragraph> <paragraph> <content styleCode=\"bold\">AMERICAN REGENT, INC.<br>ANIMAL HEALTH</content> <br>Shirley, NY 11967<br> <br>(631) 924-4000<br>(800) 458-0163<br> <br>Rev. 01/2019</paragraph> <paragraph>RQ1053-01</paragraph> ",
+      "html" : "<p>BETAVET, containing 30 mg betamethasone/5 mL (6 mg betamethasone/mL) in 5 mL vials. NDC 10797-720-01 5 mL VIALS Packaged in boxes of 1</p><p> <span class=\"Bold\">SHAKE WELL BEFORE USING  </span>NADA 141-418, Approved by FDA</p><p> <span class=\"Bold\">AMERICAN REGENT, INC.ANIMAL HEALTH</span> Shirley, NY 11967 (631) 924-4000(800) 458-0163 Rev. 01/2019</p><p>RQ1053-01</p>",
+      "images" : [ ]
+    },
+    {
+      "title" : " ",
+      "code" : "51945-4",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "a863011e-af76-49c0-870d-505910cc0a0a",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>NDC 10797-720-01</paragraph> <paragraph> <content styleCode=\"bold\">BetaVet</content> <content styleCode=\"bold\"> <sup>&#xAE;</sup> </content> <br>betamethasone sodium phosphate and betamethasone acetate</paragraph> <paragraph> <content styleCode=\"bold\">INJECTABLE SUSPENSION</content> </paragraph> <paragraph>For Intra-Articular Use in Horses. Not for IV Use.</paragraph> <paragraph> <content styleCode=\"bold\">6 mg betamethasone/mL </content> </paragraph> <paragraph> <content styleCode=\"bold\">Shake well before using.<br> </content> <content styleCode=\"bold\">Protect from light.</content> </paragraph> <paragraph>Store at 20&#xBA;C to 25&#xBA;C (68&#xBA; to 77&#xBA;F) (See USP Controlled Room Temperature). <br>See package insert for full directions.</paragraph> <paragraph> <content styleCode=\"bold\">5 mL vial</content> </paragraph> <paragraph> <content styleCode=\"bold\">AMERICAN REGENT, INC.<br>ANIMAL HEALTH</content> <br> </paragraph> <paragraph>(800) 458-0163<br> <br>RN1079-02 <br> <br>Rev. 01/2019<br> <br> <renderMultiMedia referencedObject=\"MM3\"></renderMultiMedia> </paragraph> ",
+      "html" : "<p>NDC 10797-720-01</p><p> <span class=\"Bold\">BetaVet</span> <span class=\"Bold\"> &#xAE; </span> betamethasone sodium phosphate and betamethasone acetate</p><p> <span class=\"Bold\">INJECTABLE SUSPENSION</span> </p><p>For Intra-Articular Use in Horses. Not for IV Use.</p><p> <span class=\"Bold\">6 mg betamethasone/mL </span> </p><p> <span class=\"Bold\">Shake well before using. </span> <span class=\"Bold\">Protect from light.</span> </p><p>Store at 20ºC to 25ºC (68º to 77ºF) (See USP Controlled Room Temperature). See package insert for full directions.</p><p> <span class=\"Bold\">5 mL vial</span> </p><p> <span class=\"Bold\">AMERICAN REGENT, INC.ANIMAL HEALTH</span>  </p><p>(800) 458-0163 RN1079-02  Rev. 01/2019  <div class=\"Figure\" name=\"betavet---betamethasone-sodium-phosphate-and-betam-3.jpg\">\n   <img src=\"https://ha-dev.conceptant.com/download/5cde94484369657f181c3515\" alt=\"Container Label\">\n  </div> </p>",
+      "images" : [
+        {
+          "id" : "MM3",
+          "mediaType" : "image/jpeg",
+          "reference" : "betavet---betamethasone-sodium-phosphate-and-betam-3.jpg",
+          "file" : {
+            "name" : "betavet---betamethasone-sodium-phosphate-and-betam-3.jpg",
+            "size" : 111845,
+            "type" : "image/jpeg",
+            "id" : "5cde94484369657f181c3515",
+            "cropped" : false
+          },
+          "text" : "Container Label"
+        }
+      ]
+    },
+    {
+      "title" : "PRINCIPAL DISPLAY PANEL - CARTON LABELING",
+      "code" : "51945-4",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "bd24c6aa-2524-4bf1-98df-5489abeac679",
+      "effectiveTime" : "20190408",
+      "text" : " <paragraph>NDC 10797-720-01</paragraph> <paragraph> <content styleCode=\"bold\">BetaVet</content> <content styleCode=\"bold\"> <sup>&#xAE;</sup> </content> <br>betamethasone sodium phosphate and betamethasone acetate</paragraph> <paragraph> <content styleCode=\"bold\">INJECTABLE SUSPENSION</content> </paragraph> <paragraph>For Intra-Articular Use in Horses. Not for IV Use.</paragraph> <paragraph> <content styleCode=\"bold\">6 mg betamethasone/mL </content> </paragraph> <paragraph> <content styleCode=\"bold\">CAUTION: </content>Federal law restricts this drug to use by or on the order of a licensed veterinarian.<br> <br>NADA 141-418<br>Approved by the FDA<br> <br> <renderMultiMedia referencedObject=\"MM4\"></renderMultiMedia> </paragraph> ",
+      "html" : "<p>NDC 10797-720-01</p><p> <span class=\"Bold\">BetaVet</span> <span class=\"Bold\"> &#xAE; </span> betamethasone sodium phosphate and betamethasone acetate</p><p> <span class=\"Bold\">INJECTABLE SUSPENSION</span> </p><p>For Intra-Articular Use in Horses. Not for IV Use.</p><p> <span class=\"Bold\">6 mg betamethasone/mL </span> </p><p> <span class=\"Bold\">CAUTION: </span>Federal law restricts this drug to use by or on the order of a licensed veterinarian. NADA 141-418Approved by the FDA  <div class=\"Figure\" name=\"betavet---betamethasone-sodium-phosphate-and-betam-4.jpg\">\n   <img src=\"https://ha-dev.conceptant.com/download/5cde94484369657f181c3516\" alt=\"Carton Labeling\">\n  </div> </p>",
+      "images" : [
+        {
+          "id" : "MM4",
+          "mediaType" : "image/jpeg",
+          "reference" : "betavet---betamethasone-sodium-phosphate-and-betam-4.jpg",
+          "file" : {
+            "name" : "betavet---betamethasone-sodium-phosphate-and-betam-4.jpg",
+            "size" : 130980,
+            "type" : "image/jpeg",
+            "id" : "5cde94484369657f181c3516",
+            "cropped" : false
+          },
+          "text" : "Carton Labeling"
+        }
+      ]
+    },
+    {
+      "title" : "Serialization Label",
+      "code" : "51945-4",
+      "codeSystem" : "2.16.840.1.113883.6.1",
+      "id" : "dd781167-9af8-499f-b248-0183e8486caa",
+      "effectiveTime" : "20190408",
+      "text" : " <renderMultiMedia referencedObject=\"MM5\"></renderMultiMedia> ",
+      "html" : "",
+      "images" : [
+        {
+          "id" : "MM5",
+          "mediaType" : "image/jpeg",
+          "reference" : "betavet---betamethasone-sodium-phosphate-and-betam-5.jpg",
+          "file" : {
+            "name" : "betavet---betamethasone-sodium-phosphate-and-betam-5.jpg",
+            "size" : 34109,
+            "type" : "image/jpeg",
+            "id" : "5cde930d2fa4487de3ae0fe1",
+            "cropped" : false
+          },
+          "text" : "Serialization Label"
+        }
+      ]
+    }
+  ],
+  "splId" : "24878c11-9720-4a2d-b2f3-fa03df074e35",
+  "splSetId" : "3eb6b1d3-4485-4b25-aaab-92de9b2fb322",
+  "version" : 6,
+  "effectiveTime" : "2019-04-08T00:00:00Z",
+  "name" : "BetaVet",
+  "productNdc11" : "10797720",
+  "packageNdc11" : [
+    "10797072001"
+  ],
+  "productType" : "Drug",
+  "genericName" : "Betamethasone Sodium Phosphate and Betamethasone Acetate",
+  "ingredients" : [
+    "BETAMETHASONE ACETATE",
+    "BETAMETHASONE SODIUM PHOSPHATE",
+    "SODIUM PHOSPHATE, DIBASIC, ANHYDROUS",
+    "SODIUM PHOSPHATE, MONOBASIC, MONOHYDRATE",
+    "EDETATE DISODIUM",
+    "BENZALKONIUM CHLORIDE",
+    "WATER"
+  ]
+}

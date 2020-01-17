@@ -1,15 +1,15 @@
 const _ = require('lodash');
 const JSONStream = require('JSONStream');
-const es = require('event-stream');
 const Promise = require('bluebird');
 const fs = require('fs-extra');
+const { setUpdateAtIfRecordChanged } = require('../../util/mongo');
 
 const PumpRawResourceOpenFda = require('../pump_raw_resources/open_fda_pump_raw_resources');
 
 class PumpDeviceRecallsWithEnforcements extends PumpRawResourceOpenFda {
   constructor(settings) {
     settings.resourcePath = 'device.recall';
-    settings.getDocId = new Function('doc, _', `return doc.res_event_number`);
+    settings.getDocId = new Function('doc, _', `return doc.resEventNumber`);
     settings.transformer = 'pumpDeviceRecallWithEnforcements';
     super(settings);
   }
@@ -38,15 +38,12 @@ class PumpDeviceRecallsWithEnforcements extends PumpRawResourceOpenFda {
           return this._extractJsonFilesFromZip(zipPath, zipDestinationDir, jsonDestinationDir).then(unzippedFiles =>
             Promise.mapSeries(unzippedFiles, unzippedFile => {
               console.log(`Linking enforcements to recalls, file ${unzippedFile}`);
-              return this._linkEnforcement(
-                unzippedFile,
-                this.connections[mongoUrl],
-                destCollectionName,
-                getDocId
-              ).then(() => {
-                fs.unlinkSync(unzippedFile);
-                console.log(`Deleted ${unzippedFile}`);
-              });
+              return this._linkEnforcement(unzippedFile, this.connections[mongoUrl], destCollectionName, getDocId).then(
+                () => {
+                  fs.unlinkSync(unzippedFile);
+                  console.log(`Deleted ${unzippedFile}`);
+                }
+              );
             })
           );
         });
@@ -54,19 +51,20 @@ class PumpDeviceRecallsWithEnforcements extends PumpRawResourceOpenFda {
   }
 
   _createIndexes(dbCon, destCollectionName) {
-    return dbCon.collection(destCollectionName).createIndex({ res_event_number: 1 });
+    return dbCon.collection(destCollectionName).createIndex({ resEventNumber: 1 });
   }
 
   _linkEnforcement(jsonPath, dbCon, collection, getDocId) {
     let promises = [];
     return new Promise(resolve => {
-      const stream = fs.createReadStream(jsonPath)
-        .pipe(JSONStream.parse('results.*'));
+      const stream = fs.createReadStream(jsonPath).pipe(JSONStream.parse('results.*'));
       stream
         .on('data', async result => {
           const docId = getDocId(result, _);
           if (!docId) {
-            return console.warn(`Cannot find id by 'getDocId', following doc will be skipped: ${JSON.stringify(result)}`);
+            return console.warn(
+              `Cannot find id by 'getDocId', following doc will be skipped: ${JSON.stringify(result)}`
+            );
           }
           const doc = {
             ...result, // for now just copy raw json into doc (there might be transformations)
@@ -91,17 +89,15 @@ class PumpDeviceRecallsWithEnforcements extends PumpRawResourceOpenFda {
   _updateRecallWithEnforcement(dbCon, collectionName, enforcement) {
     const eventId = enforcement.event_id;
     const collection = dbCon.collection(collectionName);
-    return collection.findOne({ res_event_number: eventId }).then(recall => {
+    return collection.findOne({ resEventNumber: eventId }).then(recall => {
       if (!recall) {
-        return console.log(
-          `Unable to link enforcement.event_id '${eventId}' to any of recall.res_event_number`
-        );
+        return console.log(`Unable to link enforcement.event_id '${eventId}' to any of recall.resEventNumber`);
       }
       const fieldsToAdd = {
         rawDataEnforcement: enforcement,
         ...enforcement,
       };
-      return collection.updateOne({ _id: recall._id }, { $set: fieldsToAdd });
+      return setUpdateAtIfRecordChanged(collection, 'updateOne', { _id: recall._id }, { $set: fieldsToAdd });
     });
   }
 }

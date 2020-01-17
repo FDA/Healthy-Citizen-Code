@@ -3,89 +3,140 @@ const Promise = require('bluebird');
 
 Redis.Promise = Promise;
 const log = require('log4js').getLogger('lib/cache');
-const { CacheHit } = require('../errors');
 
-module.exports = () => {
+module.exports = options => {
   const m = {};
   let cache = null;
 
-  m.init = redisUrl =>
-    m.getCacheStorage(redisUrl).then(cacheStorage => {
-      cache = cacheStorage;
-    });
-
-  m.getCacheStorage = redisUrl => {
-    if (!redisUrl) {
-      return Promise.resolve(null);
-    }
-    const redis = new Redis(redisUrl, { lazyConnect: true });
-    redis.on('error', error => {
-      console.log('Redis connection error', error);
-    });
-    return redis
-      .connect()
-      .then(() => {
-        log.info(`Successfully connected to redis by URL: ${redisUrl}`);
-        return redis;
-      })
-      .catch(() => {
-        // without disconnecting redis will keep trying to connect
-        redis.disconnect();
-        log.info(
-          `Unable to connect to redis by URL: ${redisUrl}. Server will continue working without cache.`
-        );
-        return null;
-      });
+  m.init = async () => {
+    const { redisUrl, keyPrefix } = options;
+    m.keyPrefix = getKeyPrefix(keyPrefix);
+    cache = await m.getCacheStorage(redisUrl);
   };
 
-  m.setCache = (key, value) => {
-    if (!cache) {
+  function getKeyPrefix(prefix) {
+    if (!prefix) {
+      return '';
+    }
+    return prefix.endsWith(':') ? prefix : `${prefix}:`;
+  }
+
+  m.getKeyWithPrefix = key => `${m.keyPrefix}${key}`;
+
+  m.getCacheStorage = async redisUrl => {
+    if (!redisUrl) {
+      return null;
+    }
+
+    const redis = new Redis(redisUrl, {
+      lazyConnect: true,
+      maxRetriesPerRequest: 1,
+      retryStrategy: times => {
+        const delays = [25, 50, 100, 200, 400];
+        return delays[times - 1] || 5000;
+      },
+    });
+    redis.on('error', e => {
+      if (e.code !== 'ECONNREFUSED') {
+        log.error(`Redis error`, e.stack);
+      }
+    });
+    redis.on('ready', () => {
+      log.info(`Redis is ready to receive commands`);
+    });
+    redis.on('reconnecting', ms => {
+      log.warn(`Redis reconnecting in ${ms}ms since last try`);
+    });
+
+    try {
+      await redis.connect();
+      log.info(`Successfully connected to redis by URL: ${redisUrl}`);
+      return redis;
+    } catch (e) {
+      // without disconnecting redis will keep trying to connect
+      redis.disconnect();
+      log.warn(`Unable to connect to redis by URL: ${redisUrl}. Server will continue working without cache.`, e.stack);
+      return null;
+    }
+  };
+
+  m.isCacheReady = () =>
+    // RedisMock has field 'status', but has field cache.connected
+    cache && (cache.status === 'ready' || cache.connected);
+
+  m.setCache = async (key, value) => {
+    if (!m.isCacheReady()) {
       return;
     }
 
-    return cache.set(key, JSON.stringify(value)).catch(err => {
-      log.error(`Unable to set value into cache by key: '${key}'. Value: ${value}`, err);
-    });
+    const keyWithPrefix = m.getKeyWithPrefix(key);
+    try {
+      await cache.set(keyWithPrefix, JSON.stringify(value));
+    } catch (e) {
+      log.error(`Unable to set value into cache by key: '${keyWithPrefix}'. Value: ${value}`, e.stack);
+      throw e;
+    }
   };
 
-  m.getCache = key => {
-    if (!cache || !key) {
-      return Promise.resolve(null);
+  m.getCache = async key => {
+    if (!m.isCacheReady() || !key) {
+      return null;
     }
-    return cache
-      .get(key)
-      .then(value => {
-        try {
-          return JSON.parse(value);
-        } catch (e) {
-          log.info(`Cannot parse value from cache by key: '${key}'. Value: ${value}`);
-          return null;
-        }
-      })
-      .catch(err => {
-        log.error(`Unable to get value from cache by key: '${key}'.`, err);
-        return cache.get(key);
-      });
+
+    const keyWithPrefix = m.getKeyWithPrefix(key);
+    try {
+      const value = await cache.get(keyWithPrefix);
+      try {
+        return JSON.parse(value);
+      } catch (e) {
+        log.info(`Cannot parse value from cache by key: '${keyWithPrefix}'. Value: ${value}`);
+        return null;
+      }
+    } catch (e) {
+      log.error(`Unable to get value from cache by key: '${keyWithPrefix}'.`, e.stack);
+      return null;
+    }
   };
 
-  m.clearCacheByKeyPattern = keyPattern => {
-    if (!cache || !keyPattern) {
-      return Promise.resolve(null);
+  m.getKeys = async keyPattern => {
+    if (!m.isCacheReady() || !keyPattern) {
+      return null;
     }
-    const stream = cache.scanStream({ match: keyPattern });
-    const unlinkPromises = [];
+    const allKeys = [];
+    const stream = cache.scanStream({ match: m.getKeyWithPrefix(keyPattern) });
 
     return new Promise(resolve => {
       stream.on('data', keys => {
-        // `keys` is an array of strings representing key names
-        if (keys.length) {
-          unlinkPromises.push(cache.unlink(keys));
-        }
+        allKeys.push(...keys);
       });
       stream.on('end', () => {
-        resolve(Promise.all(unlinkPromises));
+        resolve(allKeys);
       });
     });
+  };
+
+  m.clearCacheByKeyPattern = async keyPattern => {
+    if (!m.isCacheReady() || !keyPattern) {
+      return null;
+    }
+    try {
+      const stream = cache.scanStream({ match: m.getKeyWithPrefix(keyPattern) });
+      const unlinkPromises = [];
+
+      return new Promise(resolve => {
+        stream.on('data', keys => {
+          // `keys` is an array of strings representing key names
+          if (keys.length) {
+            unlinkPromises.push(cache.unlink(keys));
+          }
+        });
+        stream.on('end', () => {
+          resolve(Promise.all(unlinkPromises));
+        });
+      });
+    } catch (e) {
+      log.error(`Unable to clear cache by keyPattern: '${keyPattern}'.`, e.stack);
+    }
   };
 
   m.clearCacheForModel = modelName => m.clearCacheByKeyPattern(`${modelName}:*`);
@@ -94,21 +145,22 @@ module.exports = () => {
     ROLES_TO_PERMISSIONS: 'rolesToPermissions',
   };
 
-  m.getUsingCache = (getPromise, cacheKey) =>
-    m
-      .getCache(cacheKey)
-      .then(cacheData => {
-        if (cacheData) {
-          throw new CacheHit(`Cache hit for key ${cacheKey}`, cacheData);
-        }
-        return getPromise();
-      })
-      .then(data => Promise.all([data, m.setCache(cacheKey, data)]))
-      .then(([data]) => data)
-      .catch(CacheHit, obj => {
-        const cacheData = obj.data;
-        return cacheData;
-      });
+  m.getUsingCache = async (getPromise, key) => {
+    const cacheData = await m.getCache(key);
+    if (cacheData) {
+      log.debug(`Retrieved value from cache by key: ${key}`);
+      return cacheData;
+    }
+
+    const data = await getPromise();
+    try {
+      await m.setCache(key, data);
+      log.debug(`Set value in cache by key: ${key}`);
+    } catch (e) {
+      //
+    }
+    return data;
+  };
 
   return m;
 };

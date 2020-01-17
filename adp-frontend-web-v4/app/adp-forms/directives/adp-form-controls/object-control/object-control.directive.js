@@ -8,8 +8,7 @@
   function objectControl(
     AdpValidationService,
     AdpFieldsService,
-    AdpFormService,
-    AdpPath
+    AdpFormService
   ) {
     return {
       restrict: 'E',
@@ -31,11 +30,12 @@
 
         // FORM PARAMS
         var formParams = {
-          path: AdpPath.next(scope.validationParams.formParams.path, scope.field.keyName),
+          path: scope.validationParams.formParams.path,
           row: scope.validationParams.formParams.row,
           modelSchema: scope.validationParams.formParams.modelSchema,
           action: scope.validationParams.formParams.action,
-          visibilityMap: scope.validationParams.formParams.visibilityMap
+          visibilityMap: scope.validationParams.formParams.visibilityMap,
+          requiredMap: scope.validationParams.formParams.requiredMap,
         };
 
         // DEPRECATED: will be replaced with formParams
@@ -69,7 +69,7 @@
           scope.isVisible = !scope.isVisible;
         };
 
-        // var requiredFn = AdpValidationService.isRequired(scope.validationParams);
+        // var requiredFn = AdpValidationService.isRequired(scope.validationParams.formParams);
 
         if (isEmpty()) {
           setData({})

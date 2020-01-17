@@ -56,7 +56,8 @@
             row: scope.formData,
             modelSchema: scope.schema,
             action: scope.adpFormParams && scope.adpFormParams.actionType,
-            visibilityMap: visibilityMap
+            visibilityMap: visibilityMap,
+            requiredMap: {},
           };
 
           _.each(scope.fields.groups, function (group, name) {
@@ -80,10 +81,17 @@
 
           $timeout(function () {
             bindFormEvents();
+
+            AdpFormService.evaluateRequiredStatus(scope.validationParams.formParams, scope.form);
+
             // initial run to setup fields visibility
-            // keep order
-            AdpFormService.compareFieldsWithShow(scope.formData, scope.schema, visibilityMap, scope.adpFormParams.actionType);
-            AdpFormService.compareGroupsWithShow(scope.formData, scope.fields.groups, scope.adpFormParams.actionType, scope.schema, visibilityMap);
+            AdpFormService.evaluateShow({
+              formData: scope.formData,
+              schema: scope.schema,
+              groups: scope.fields.groups,
+              visibilityMap: visibilityMap,
+              actionType: scope.adpFormParams.actionType
+            });
           });
         }
         init();
@@ -177,13 +185,17 @@
             return;
           }
 
-          // refactor: form make one cycle for all deep form checks
           AdpFormService.forceValidation(scope.form);
-          AdpFormService.forceCheckObjectRequired(scope.formData, scope.schema, scope.form);
 
-          // keep order
-          AdpFormService.compareFieldsWithShow(scope.formData, scope.schema, visibilityMap, scope.adpFormParams.actionType);
-          AdpFormService.compareGroupsWithShow(scope.formData, scope.fields.groups, scope.adpFormParams.actionType, scope.schema, visibilityMap);
+          AdpFormService.evaluateShow({
+            formData: scope.formData,
+            schema: scope.schema,
+            groups: scope.fields.groups,
+            visibilityMap: visibilityMap,
+            actionType: scope.adpFormParams.actionType
+          });
+
+          AdpFormService.evaluateRequiredStatus(scope.validationParams.formParams, scope.form);
 
           if (scope.form.$submitted) {
             scope.errorCount = AdpFormService.countErrors(scope.form);

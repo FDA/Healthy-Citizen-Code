@@ -57,22 +57,13 @@ module.exports = appLib => {
       } else if (type === 'synthesize') {
         const synthesizerCode = _.get(handler, 'code');
         if (synthesizerCode) {
-          const synthesizerFunc = new Function(
-            'data, row, modelSchema, $action',
-            `return ${synthesizerCode}`
-          );
+          const synthesizerFunc = new Function('data, row, modelSchema, $action', `return ${synthesizerCode}`);
           // TODO: transformers should not depend on ValidatorUtils, as option move out 'getValue' from ValidatorsUtils
           // const val = appLib.appModelHelpers.ValidatorUtils.getValue(data, appModelPart, lodashPath);
           const val = data;
-          const actions = appLib.accessUtil.getActions(userContext) || [];
+          const { action } = userContext;
           try {
-            const synthesizedValue = synthesizerFunc.call(
-              data,
-              val,
-              data,
-              appModelPart,
-              actions[0]
-            );
+            const synthesizedValue = synthesizerFunc.call(data, val, data, appModelPart, action);
             _.set(data, lodashPath, synthesizedValue);
             return cb();
           } catch (e) {
@@ -311,48 +302,46 @@ module.exports = appLib => {
    * @param data the data to traverse. This method may need traverse only part of the document data specified by changesPath
    * @param changesPath - the part of the doc where the changes occurred represented as an array. Example: [58ed793cd78de0745f84e2dd,encounters,3550cf00d207fe624eaaa918,vitalSigns,e44c93b0e80f393af37367eb]. This path is a mix of appModel path and data path. Note that transformation will be done for the whole data, but validation will be performed only for the changed part.
    */
-  m.preSaveTransformData = (modelName, userContext, data, changesPath) => {
+  m.preSaveTransformData = async (modelName, userContext, data, changesPath) => {
     // log.trace(`preSaveTransformData model ${modelName} changesPath: ${changesPath} data: ${JSON.stringify(data)}`);
     const errors = [];
 
-    return processAttribute('validate', changesPath)
-      .catch(err => errors.push(err))
-      .then(() => processAttribute('transform', []))
-      .then(() => processAttribute('synthesize', []))
-      .then(() => {
-        if (errors.length > 0) {
-          throw new ValidationError(errors.join('\n'));
-        }
-        const appModel = appLib.appModel.models[modelName];
-        m.removeVirtualFields(appModel, data);
-      });
+    try {
+      await processAttribute('validate', changesPath);
+    } catch (e) {
+      errors.push(e);
+    }
+    if (errors.length > 0) {
+      throw new ValidationError(errors.join('\n'));
+    }
+
+    await processAttribute('transform', []);
+    await processAttribute('synthesize', []);
+
+    const appModel = appLib.appModel.models[modelName];
+    m.removeVirtualFields(appModel, data);
 
     function processAttribute(attribute, pChangesPath) {
-      return m.processAppModelPromisified(
-        [attribute],
-        modelName,
-        pChangesPath,
-        (type, handler, val, path) => {
-          const name = Array.isArray(handler) ? handler[0] : handler;
-          if (name && name !== 'null') {
-            // NOTE: first element is always the model name, the last one is "transform
-            // NOTE: It's up to traverseDocAndCallProcessor method to narrow down the validation to specific element of the subschema array
-            // Model traversing can't filter this part.
-            return m.traverseDocAndCallProcessorPromisified(
-              type,
-              modelName,
-              userContext,
-              name,
-              m.appLib.appModel.models[path[0]],
-              data,
-              '',
-              path.slice(1, path.length - 1),
-              pChangesPath
-            );
-          }
+      return m.processAppModelPromisified([attribute], modelName, pChangesPath, (type, handler, val, path) => {
+        const name = Array.isArray(handler) ? handler[0] : handler;
+        if (!name) {
           return Promise.resolve();
         }
-      );
+        // NOTE: first element is always the model name, the last one is "transform
+        // NOTE: It's up to traverseDocAndCallProcessor method to narrow down the validation to specific element of the subschema array
+        // Model traversing can't filter this part.
+        return m.traverseDocAndCallProcessorPromisified(
+          type,
+          modelName,
+          userContext,
+          name,
+          m.appLib.appModel.models[path[0]],
+          data,
+          '',
+          path.slice(1, path.length - 1),
+          pChangesPath
+        );
+      });
     }
   };
 
@@ -366,50 +355,45 @@ module.exports = appLib => {
   m.postInitTransformData = (modelName, userContext, data) =>
     // log.trace(`postInitTransformData model ${modelName} data: ${JSON.stringify(data)}`);
     // TODO: add 'synthesize' to attributes? Should it be handled as transform (output and input handlers)?
-    m.processAppModelPromisified(
-      ['transform', 'synthesize'],
-      modelName,
-      [],
-      (type, handler, val, path) => {
-        // for example in "transform": [["heightImperialToMetric", "heightMetricToImperial"]]
-        // heightImperialToMetric - input handler, called before saving into db
-        // heightMetricToImperial - output handler, called before sending response to client
-        const isOutputHandler = Array.isArray(handler) && handler.length > 1;
-        if (type === 'transform' && isOutputHandler) {
-          const name = handler[1];
-          if (name && name !== 'null') {
-            return m.traverseDocAndCallProcessorPromisified(
-              type,
-              modelName,
-              userContext,
-              name,
-              m.appLib.appModel.models[path[0]],
-              data,
-              '',
-              path.slice(1, path.length - 1),
-              []
-            ); // first element is always the model name, the last one is "transform
-          }
-        }
-        const pathToVirtualAttr = path.slice(0, -1);
-        pathToVirtualAttr.push('virtual');
-        const isVirtual = _.get(m.appLib.appModel.models, pathToVirtualAttr);
-        if (type === 'synthesize' && isVirtual) {
+    m.processAppModelPromisified(['transform', 'synthesize'], modelName, [], (type, handler, val, path) => {
+      // for example in "transform": [["heightImperialToMetric", "heightMetricToImperial"]]
+      // heightImperialToMetric - input handler, called before saving into db
+      // heightMetricToImperial - output handler, called before sending response to client
+      const isOutputHandler = Array.isArray(handler) && handler.length > 1;
+      if (type === 'transform' && isOutputHandler) {
+        const name = handler[1];
+        if (name) {
           return m.traverseDocAndCallProcessorPromisified(
             type,
             modelName,
             userContext,
-            handler,
+            name,
             m.appLib.appModel.models[path[0]],
             data,
             '',
             path.slice(1, path.length - 1),
             []
-          );
+          ); // first element is always the model name, the last one is "transform
         }
-        return Promise.resolve();
       }
-    );
+      const pathToVirtualAttr = path.slice(0, -1);
+      pathToVirtualAttr.push('virtual');
+      const isVirtual = _.get(m.appLib.appModel.models, pathToVirtualAttr);
+      if (type === 'synthesize' && isVirtual) {
+        return m.traverseDocAndCallProcessorPromisified(
+          type,
+          modelName,
+          userContext,
+          handler,
+          m.appLib.appModel.models[path[0]],
+          data,
+          '',
+          path.slice(1, path.length - 1),
+          []
+        );
+      }
+      return Promise.resolve();
+    });
 
   return m;
 };

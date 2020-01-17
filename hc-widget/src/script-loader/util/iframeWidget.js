@@ -1,6 +1,5 @@
 import iframeDOM from './iframeDOM';
-import setStyles from './style-loader';
-import CONFIG from '../../../config';
+import CONFIG from '../../config';
 
 const IFRAME_OPTIONS = {
   style: { width: '100%' }
@@ -16,7 +15,7 @@ const appendScript = (iframe, options) => {
     script.dataset[key] = options[key];
   });
 
-  script.src = `${CONFIG.widgetUrl}/hc-widget.js`;
+  script.src = `${CONFIG.WIDGET_URL}/hc-widget.js`;
   document.body.appendChild(script);
 };
 
@@ -24,7 +23,6 @@ export default function iframeWidget(node, widgetConfig) {
   const iframe = iframeDOM(IFRAME_OPTIONS);
 
   iframe.addEventListener('load', () => {
-    setStyles(iframe, widgetConfig);
     appendScript(iframe, widgetConfig);
   });
 

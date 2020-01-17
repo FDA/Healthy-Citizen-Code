@@ -1,8 +1,6 @@
 {
   "name": "ng-tags-input",
-  "authors": [
-    "ksimanov <ksimanov@gmail.com>"
-  ],
+  "author": "Conceptant, Inc",
   "description": "",
   "dependencies": {
     "jquery-ui": "~1.11.4"

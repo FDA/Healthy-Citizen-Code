@@ -1,13 +1,17 @@
 import iframeWidget from './util/iframeWidget';
+import { ConfigurationError } from '../lib/exceptions';
 
-// export widget for usage outside
 window['hcWidget'] = iframeWidget;
 
 (function initWidgetFromDOM() {
-  const widgets = document.querySelectorAll('[hc-widget]');
+  const widgetElements = document.querySelectorAll('[hc-widget]');
 
-  for (let i = 0; i < widgets.length; i++) {
-    let node = widgets[i];
+  if (!widgetElements.length) {
+    console.warn(ConfigurationError.WIDGET_NOT_FOUND);
+  }
+
+  for (let i = 0; i < widgetElements.length; i++) {
+    let node = widgetElements[i];
     iframeWidget(node, node.dataset);
   }
 })();

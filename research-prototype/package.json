@@ -4,8 +4,7 @@
   "description": "Conceptant Platform Test App Model",
   "main": "index.js",
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-    "dev": "node node_modules/.bin/webpack-dev-server --config webpack.config.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
     "type": "git",
@@ -15,31 +14,10 @@
   "license": "UNLICENSED",
   "dependencies": {
     "async": "^2.6.1",
-    "axios": "^0.17.1",
-    "babel-core": "^6.26.3",
-    "babel-loader": "^7.1.5",
-    "babel-polyfill": "^6.26.0",
-    "babel-preset-es2017": "^6.24.1",
+    "axios": "^0.19.1",
     "bluebird": "^3.5.1",
-    "css-loader": "^0.28.11",
     "fs": "0.0.1-security",
-    "handlebars": "^4.0.11",
-    "handlebars-loader": "^1.7.0",
-    "lodash": "^4.17.10",
-    "lodash.get": "^4.4.2",
-    "log4js": "^2.10.0",
-    "moment": "^2.22.2",
-    "mongodb": "^2.2.35",
-    "mongoose": "^4.13.14",
-    "request-promise": "^4.2.2",
-    "sanitize-html-x": "^1.7.3",
-    "to-string-loader": "^1.1.5",
-    "uninstall": "0.0.0",
-    "webpack": "^3.12.0",
-    "whatwg-fetch": "^2.0.4"
-  },
-  "devDependencies": {
-    "webpack-dev-server": "^2.11.2",
-    "write-file-webpack-plugin": "^4.3.2"
+    "log4js": "^6.1.0",
+    "mongodb": "^3.4.1"
   }
 }

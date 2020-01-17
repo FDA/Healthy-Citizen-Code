@@ -1,5 +1,4 @@
 const request = require('supertest');
-const merge = require('merge');
 require('should');
 const assert = require('assert');
 const _ = require('lodash');
@@ -11,27 +10,81 @@ const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
-} = reqlib('test/backend/test-util');
+} = reqlib('test/test-util');
 
 describe('V5 Backend Schema Routes', () => {
-  before(function() {
+  before(async function() {
     this.expected = {
       type: 'Schema',
+      schemaName: 'model1s',
       fullName: 'model1s',
       limitReturnedRecords: 1,
       defaultSortBy: {
         _id: -1,
       },
+      parameters: {
+        enableInCellEditing: false,
+        allowColumnReordering: true,
+        allowColumnResizing: true,
+        filterRow: {
+          visible: true,
+        },
+        columnChooser: {
+          enabled: true,
+          allowSearch: true,
+          mode: 'select',
+        },
+        columnFixing: {
+          enabled: true,
+        },
+        stateStoring: {
+          enabled: true,
+          type: 'localStorage',
+          storageKey: 'storage',
+        },
+        sorting: {
+          mode: 'multiple',
+        },
+        pager: {
+          showPageSizeSelector: true,
+          allowedPageSizes: [10, 15, 20],
+        },
+        paging: {
+          pageSize: 10,
+        },
+        groupPanel: {
+          visible: true,
+        },
+        export: {
+          enabled: true,
+        },
+        selection: {
+          mode: 'single',
+          selectAllMode: 'page',
+        },
+        columnResizingMode: 'widget',
+        columnHidingEnabled: true,
+        hoverStateEnabled: true,
+      },
       fields: {
         string: {
+          parameters: {
+            enableInCellEditing: true,
+            grouping: {
+              allowGrouping: true,
+              allowExpandGroup: true,
+            },
+          },
+          fieldName: 'string',
           type: 'String',
+          filter: 'string',
           fullName: 'String',
           visibilityPriority: 100,
           responsivePriority: 100,
           showInViewDetails: true,
           showInDatatable: true,
           showInForm: true,
-          showInGraphQL: true,
+          showInGraphql: true,
           fieldInfo: {
             read: true,
             write: true,
@@ -42,7 +95,9 @@ describe('V5 Backend Schema Routes', () => {
           autocomplete: 'enable',
         },
         encounters: {
+          fieldName: 'encounters',
           type: 'Array',
+          filter: 'none',
           fullName: 'Encounters Full Name',
           description: 'Encounters Description',
           visibilityPriority: 100,
@@ -51,14 +106,16 @@ describe('V5 Backend Schema Routes', () => {
           showInViewDetails: true,
           showInDatatable: true,
           showInForm: true,
-          showInGraphQL: true,
+          showInGraphql: true,
           fieldInfo: {
             read: true,
             write: true,
           },
           fields: {
             diagnoses: {
+              fieldName: 'diagnoses',
               type: 'Array',
+              filter: 'none',
               fullName: 'Diagnoses Full Name',
               description: 'Diagnoses Description',
               fieldInfo: {
@@ -68,10 +125,19 @@ describe('V5 Backend Schema Routes', () => {
               showInViewDetails: true,
               showInDatatable: true,
               showInForm: true,
-              showInGraphQL: true,
+              showInGraphql: true,
               fields: {
                 data: {
+                  parameters: {
+                    enableInCellEditing: true,
+                    grouping: {
+                      allowGrouping: true,
+                      allowExpandGroup: true,
+                    },
+                  },
                   type: 'String',
+                  fieldName: 'data',
+                  filter: 'string',
                   fullName: 'Data Full Name',
                   description: 'Data Description',
                   width: 150,
@@ -82,7 +148,7 @@ describe('V5 Backend Schema Routes', () => {
                   showInViewDetails: true,
                   showInDatatable: true,
                   showInForm: true,
-                  showInGraphQL: true,
+                  showInGraphql: true,
                   fieldInfo: {
                     read: true,
                     write: true,
@@ -96,6 +162,8 @@ describe('V5 Backend Schema Routes', () => {
             },
             vitalSigns: {
               type: 'Array',
+              fieldName: 'vitalSigns',
+              filter: 'none',
               fullName: 'Vital Signs Full Name',
               description: 'Vital Signs Description',
               fieldInfo: {
@@ -105,10 +173,19 @@ describe('V5 Backend Schema Routes', () => {
               showInViewDetails: true,
               showInDatatable: true,
               showInForm: true,
-              showInGraphQL: true,
+              showInGraphql: true,
               fields: {
                 data: {
+                  parameters: {
+                    enableInCellEditing: true,
+                    grouping: {
+                      allowGrouping: true,
+                      allowExpandGroup: true,
+                    },
+                  },
                   type: 'String',
+                  fieldName: 'data',
+                  filter: 'string',
                   fullName: 'Data Full Name',
                   description: 'Data Description',
                   width: 150,
@@ -123,11 +200,20 @@ describe('V5 Backend Schema Routes', () => {
                   showInViewDetails: true,
                   showInDatatable: true,
                   showInForm: true,
-                  showInGraphQL: true,
+                  showInGraphql: true,
                   autocomplete: 'enable',
                 },
                 array: {
+                  parameters: {
+                    enableInCellEditing: true,
+                    grouping: {
+                      allowGrouping: true,
+                      allowExpandGroup: true,
+                    },
+                  },
                   type: 'String[]',
+                  fieldName: 'array',
+                  filter: 'stringMultiple',
                   fullName: 'Array',
                   description: 'Array',
                   visibilityPriority: 100,
@@ -140,7 +226,7 @@ describe('V5 Backend Schema Routes', () => {
                   showInViewDetails: true,
                   showInDatatable: true,
                   showInForm: true,
-                  showInGraphQL: true,
+                  showInGraphql: true,
                   autocomplete: 'enable',
                 },
               },
@@ -151,12 +237,14 @@ describe('V5 Backend Schema Routes', () => {
           },
         },
         creator: {
+          fieldName: 'creator',
           type: 'ObjectID',
+          filter: 'objectId',
           fullName: 'creator',
           showInViewDetails: false,
           showInDatatable: false,
           showInForm: false,
-          showInGraphQL: false,
+          showInGraphql: false,
           synthesize: ['creator'],
           description: 'Record Creator',
           width: 120,
@@ -169,12 +257,14 @@ describe('V5 Backend Schema Routes', () => {
           index: true,
         },
         createdAt: {
+          fieldName: 'createdAt',
           type: 'Date',
+          filter: 'date',
           fullName: 'createdAt',
           showInViewDetails: false,
           showInDatatable: false,
           showInForm: false,
-          showInGraphQL: false,
+          showInGraphql: false,
           synthesize: ['createdAt'],
           description: 'Record Created At',
           width: 85,
@@ -187,12 +277,14 @@ describe('V5 Backend Schema Routes', () => {
           index: true,
         },
         updatedAt: {
+          fieldName: 'updatedAt',
           type: 'Date',
+          filter: 'date',
           fullName: 'updatedAt',
           showInViewDetails: false,
           showInDatatable: false,
           showInForm: false,
-          showInGraphQL: false,
+          showInGraphql: false,
           synthesize: ['updatedAt'],
           description: 'Record Updated At',
           width: 85,
@@ -205,12 +297,15 @@ describe('V5 Backend Schema Routes', () => {
           index: true,
         },
         deletedAt: {
+          fieldName: 'deletedAt',
+          default: '1970-01-01T00:00:00.000Z',
           type: 'Date',
+          filter: 'date',
           fullName: 'deletedAt',
           showInViewDetails: false,
           showInDatatable: false,
           showInForm: false,
-          showInGraphQL: false,
+          showInGraphql: false,
           description: 'Record Deleted At',
           width: 85,
           visibilityPriority: 100,
@@ -221,27 +316,10 @@ describe('V5 Backend Schema Routes', () => {
           },
           index: true,
         },
-        _temporary: {
-          type: 'Boolean',
-          fullName: '_temporary',
-          showInViewDetails: false,
-          showInDatatable: false,
-          showInForm: false,
-          showInGraphQL: false,
-          description: 'Temporary',
-          width: 20,
-          visibilityPriority: 100,
-          responsivePriority: 100,
-          fieldInfo: {
-            read: true,
-            write: true,
-          },
-          index: true,
-        },
       },
       actions: {
-        width: 100,
-        responsivePriority: 50,
+        width: 160,
+        responsivePriority: -1,
         fields: {
           update: {
             description: 'Update record',
@@ -299,6 +377,17 @@ describe('V5 Backend Schema Routes', () => {
             showInTable: false,
           },
           create: {
+            description: 'Create record',
+            backgroundColor: '#2196F3',
+            borderColor: '#0c7cd5',
+            textColor: 'white',
+            showInTable: false,
+            action: {
+              type: 'action',
+              link: 'create',
+            },
+          },
+          upsert: {
             showInTable: false,
           },
         },
@@ -310,7 +399,7 @@ describe('V5 Backend Schema Routes', () => {
         showInViewDetails: false,
         showInDatatable: false,
         showInForm: false,
-        showInGraphQL: false,
+        showInGraphql: false,
         // "comment": "Do not set this to anything for real records, they may get wiped out as autogenerated otherwise",
         generated: true,
         fullName: 'Generator Batch Number',
@@ -324,83 +413,69 @@ describe('V5 Backend Schema Routes', () => {
 
     prepareEnv();
     this.appLib = reqlib('/lib/app')();
-    return getMongoConnection().then(db => {
-      this.db = db;
-    });
+    this.db = await getMongoConnection();
   });
 
-  after(function() {
-    return this.db.dropDatabase().then(() => this.db.close());
+  after(async function() {
+    await this.db.dropDatabase();
+    await this.db.close();
   });
 
   afterEach(function() {
     return this.appLib.shutdown();
   });
 
-  beforeEach(function() {
-    return Promise.all([
-      this.db.collection('users').remove({}),
-      this.db.collection('mongoMigrateChangeLog').remove({}),
-    ]).then(() => Promise.all([this.db.collection('users').insert(admin)]));
+  beforeEach(async function() {
+    await Promise.all([
+      this.db.collection('users').deleteMany({}),
+      this.db.collection('mongoMigrateChangeLog').deleteMany({}),
+    ]);
+    await Promise.all([this.db.collection('users').insertOne(admin)]);
   });
 
-  it('responds with correct schema for the model when enablePermissions=false', function() {
+  it('responds with correct schema for the model when enablePermissions=false', async function() {
     setAppAuthOptions(this.appLib, {
       requireAuthentication: true,
       enablePermissions: false,
     });
-    return this.appLib
-      .setup()
-      .then(() => {
-        const additionalData = { fields: this.batchNumberField };
-        this.expectedData = merge.recursive(true, this.expected, additionalData);
-      })
-      .then(() => loginWithUser(this.appLib, admin))
-      .then(token =>
-        request(this.appLib.app)
-          .get('/schema/model1s')
-          .set('Accept', 'application/json')
-          .set('Authorization', `JWT ${token}`)
-          .expect('Content-Type', /json/)
-      )
-      .then(res => {
-        res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
-        res.body.success.should.equal(true, res.body.message);
-        // TODO: use diffObjects everywhere instead of outputting two lengthy objects
-        assert(
-          _.isEqual(res.body.data, this.expectedData),
-          `Diff: ${JSON.stringify(diffObjects(this.expectedData, res.body.data), null, 2)}`
-        );
-      });
+    await this.appLib.setup();
+    const additionalData = { fields: this.batchNumberField };
+    this.expectedData = _.merge({}, this.expected, additionalData);
+    const token = await loginWithUser(this.appLib, admin);
+    const res = await request(this.appLib.app)
+      .get('/schema/model1s')
+      .set('Accept', 'application/json')
+      .set('Authorization', `JWT ${token}`)
+      .expect('Content-Type', /json/);
+    res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
+    res.body.success.should.equal(true, res.body.message);
+    // TODO: use diffObjects everywhere instead of outputting two lengthy objects
+    assert(
+      _.isEqual(res.body.data, this.expectedData),
+      `Diff: ${JSON.stringify(diffObjects(this.expectedData, res.body.data), null, 2)}`
+    );
   });
 
-  it('responds with correct schema for the model when enablePermissions=true', function() {
+  it('responds with correct schema for the model when enablePermissions=true', async function() {
     setAppAuthOptions(this.appLib, {
       requireAuthentication: true,
       enablePermissions: true,
     });
-    return this.appLib
-      .setup()
-      .then(() => {
-        const additionalData = { fields: this.batchNumberField };
-        this.expectedData = merge.recursive(true, this.expected, additionalData);
-      })
-      .then(() => loginWithUser(this.appLib, admin))
-      .then(token =>
-        request(this.appLib.app)
-          .get('/schema/model1s')
-          .set('Accept', 'application/json')
-          .set('Authorization', `JWT ${token}`)
-          .expect('Content-Type', /json/)
-      )
-      .then(res => {
-        res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
-        res.body.success.should.equal(true, res.body.message);
-        // TODO: use diffObjects everywhere instead of outputting two lengthy objects
-        assert(
-          _.isEqual(res.body.data, this.expectedData),
-          `Diff: ${JSON.stringify(diffObjects(this.expectedData, res.body.data), null, 2)}`
-        );
-      });
+    await this.appLib.setup();
+    const additionalData = { fields: this.batchNumberField };
+    this.expectedData = _.merge({}, this.expected, additionalData);
+    const token = await loginWithUser(this.appLib, admin);
+    const res = await request(this.appLib.app)
+      .get('/schema/model1s')
+      .set('Accept', 'application/json')
+      .set('Authorization', `JWT ${token}`)
+      .expect('Content-Type', /json/);
+    res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
+    res.body.success.should.equal(true, res.body.message);
+    // TODO: use diffObjects everywhere instead of outputting two lengthy objects
+    assert(
+      _.isEqual(res.body.data, this.expectedData),
+      `Diff: ${JSON.stringify(diffObjects(this.expectedData, res.body.data), null, 2)}`
+    );
   });
 });

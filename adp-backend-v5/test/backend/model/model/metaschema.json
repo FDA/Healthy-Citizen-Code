@@ -172,10 +172,6 @@
       "fullName": "List",
       "comment": "Lists all possible values of this attribute"
     },
-    "listUrl": {
-      "fullName": "List URL",
-      "description": "URL of REST EP returning the values"
-    },
     "comment": {
       "fullName": "Comment",
       "description": "Free-form text containing comments about this field, will not be visible to the users or sent to front-end"
@@ -204,7 +200,7 @@
       "fullName": "Show In Form",
       "description": "If set to true (default) then this field will be displayed in the form."
     },
-    "showInGraphQL": {
+    "showInGraphql": {
       "default": true,
       "type": "Boolean",
       "fullName": "Show In GraphQL",
@@ -417,6 +413,18 @@
     "lookupLabelRender": {
       "fullName": "Label Renderer function for lookups",
       "description": "Function, that allows to apply formatting for lookup labels"
+    },
+    "schemaName": {
+      "fullName": "Schema name inside schema object",
+      "description": "Used for convenience"
+    },
+    "fieldName": {
+      "fullName": "Field name inside field object",
+      "description": "Used for convenience"
+    },
+    "filter": {
+      "fullName": "Filter name, i.e. one of keys used in 'metaschema.filters' object",
+      "description": "Includes renderer (visual part) and where (mongodb query part)"
     }
   }
 }

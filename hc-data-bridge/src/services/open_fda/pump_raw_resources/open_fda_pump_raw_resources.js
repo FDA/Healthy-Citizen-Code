@@ -7,9 +7,12 @@ const Promise = require('bluebird');
 const fetch = require('node-fetch');
 const sh = require('shelljs');
 const objectHash = require('object-hash');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const es = require('event-stream')
+const { mongoConnect, insertOrReplaceDocByCondition } = require('../../util/mongo');
+const readline = require('readline');
 
 const transformers = require('./transformers');
+const transformersContexts = require('./transformer_contexts');
 const { isValidMongoDbUrl } = require('../../../lib/helper');
 
 // wget settings
@@ -20,8 +23,8 @@ class PumpRawResourceOpenFda {
   constructor(settings) {
     this.settings = {
       downloadJsonUrl: 'https://api.fda.gov/download.json',
-      defaultZipDir: path.resolve(__dirname, './resources', 'zip'),
-      defaultJsonDir: path.resolve(__dirname, './resources', 'json'),
+      defaultZipDir: path.join(__dirname, './resources', 'zip'),
+      defaultJsonDir: path.join(__dirname, './resources', 'json'),
     };
 
     const { errors, pumpSettings } = this._validateSettings(settings);
@@ -46,35 +49,52 @@ class PumpRawResourceOpenFda {
     }
 
     _.forEach(pumpSettings, (obj, index) => {
-      if (!isValidMongoDbUrl(obj.mongoUrl)) {
-        res.errors.push(`${obj.mongoUrl} at index ${index} is not a valid mongo db url`);
+      const { mongoUrl, destCollectionName, resourcePath, zipDestinationDir, transformer, transformerContext } = obj;
+      if (!isValidMongoDbUrl(mongoUrl)) {
+        res.errors.push(`${mongoUrl} at index ${index} is not a valid mongo db url`);
       }
-      if (!_.isString(obj.destCollectionName)) {
-        res.errors.push(
-          `${obj.destCollectionName} at index ${index} is not a valid destination collection name`
-        );
+      if (!_.isString(destCollectionName)) {
+        res.errors.push(`${destCollectionName} at index ${index} is not a valid destination collection name`);
       }
-      if (!_.isString(obj.resourcePath)) {
-        res.errors.push(`${obj.resourcePath} at index ${index} is not a valid resource path`);
+      if (!_.isString(resourcePath)) {
+        res.errors.push(`${resourcePath} at index ${index} is not a valid resource path`);
       }
-      if (!_.isString(obj.zipDestinationDir)) {
+      if (!_.isString(zipDestinationDir)) {
         obj.zipDestinationDir = this.settings.defaultZipDir;
         obj.jsonDestinationDir = this.settings.defaultJsonDir;
       } else {
-        obj.jsonDestinationDir = path.resolve(obj.zipDestinationDir, '../json');
+        obj.jsonDestinationDir = path.resolve(zipDestinationDir, '../json');
       }
 
-      if (!obj.transformer) {
+      if (!transformer) {
         obj.transformer = transformers.def;
-      } else if (_.isString(obj.transformer)) {
-        const func = transformers[obj.transformer];
+      } else if (_.isString(transformer)) {
+        const func = transformers[transformer];
         if (func) {
           obj.transformer = func;
         } else {
-          res.errors.push(`${obj.transformer} must be defined in 'transformers' module.`);
+          res.errors.push(`'${transformer}' must be defined in 'transformers' module.`);
         }
-      } else if (!_.isFunction(obj.transformer)) {
-        res.errors.push(`${obj.transformer} should be a function.`);
+      } else if (!_.isFunction(transformer)) {
+        res.errors.push(`'${transformer}' should be a function.`);
+      }
+
+      if (_.isString(transformerContext)) {
+        // transformerContext can be 'func' or 'func(param1, param2...)'
+        const indexOfFirstBracket = transformerContext.indexOf('(');
+        const funcNameEnd = indexOfFirstBracket === -1 ? transformerContext.length : indexOfFirstBracket;
+        const funcName = transformerContext.substring(0, funcNameEnd);
+        if (!transformersContexts[funcName]) {
+          res.errors.push(
+            `Function '${funcName}' in transformerContext '${transformerContext}' must be defined in 'transformer_contexts' module.`
+          );
+        } else {
+          const indexOfLastBracket = transformerContext.lastIndexOf(')');
+          const funcParams = transformerContext.substring(indexOfFirstBracket + 1, indexOfLastBracket);
+          obj.transformerContext = new Function(`return this.f(${funcParams})`).bind({
+            f: transformersContexts[funcName],
+          });
+        }
       }
 
       if (!_.isFunction(obj.fileFilter)) {
@@ -104,45 +124,42 @@ class PumpRawResourceOpenFda {
     });
   }
 
-  pump() {
+  async pump() {
     console.log(`Downloading openfda all available files list...`);
-    return this._getDownloadFilesInfo()
-      .then(downloadFilesInfo => {
-        this.downloadFilesInfo = downloadFilesInfo;
+    this.downloadFilesInfo = await this._getDownloadFilesInfo();
 
-        console.log(`Start downloading files`);
+    console.log(`Start downloading files`);
+    console.log(this.SPLITTER);
+
+    const downloadedResMetas = await Promise.map(this.settings.pumpParams, async paramsObj => {
+      const resourceMeta = _.get(this.downloadFilesInfo, paramsObj.resourcePath, {});
+      if (!resourceMeta.partitions) {
+        console.log(`There is no resource for path ${paramsObj.resourcePath}`);
+        return { ...paramsObj, zipPaths: null };
+      }
+
+      const { fileFilter, zipDestinationDir } = paramsObj;
+      const fileInfos = this._getFileInfos(resourceMeta.partitions, fileFilter, zipDestinationDir);
+      const zipPaths = await this._downloadUsingWget(fileInfos);
+      if (!paramsObj.transformerContext) {
+        paramsObj.transformerContext = {};
+      } else {
+        paramsObj.transformerContext = await paramsObj.transformerContext();
+      }
+      return {
+        ...paramsObj,
+        zipPaths,
+      };
+    });
+    const resMetas = downloadedResMetas.filter(resMeta => resMeta.zipPaths);
+    return Promise.mapSeries(resMetas, resMeta => {
+      console.log(this.SPLITTER);
+      console.log(`Start processing for resource '${resMeta.resourcePath}'`);
+      return this._saveArchivesToMongo(resMeta).then(() => {
+        console.log(`Finished processing for resource '${resMeta.resourcePath}'`);
         console.log(this.SPLITTER);
-
-        return Promise.map(this.settings.pumpParams, paramsObj => {
-          const resourceMeta = _.get(this.downloadFilesInfo, paramsObj.resourcePath, {});
-          if (!resourceMeta.partitions) {
-            console.log(`There is no resource for path ${paramsObj.resourcePath}`);
-            return { ...paramsObj, zipPaths: null };
-          }
-
-          const { fileFilter, zipDestinationDir } = paramsObj;
-          const fileInfos = this._getFileInfos(
-            resourceMeta.partitions,
-            fileFilter,
-            zipDestinationDir
-          );
-          return this._downloadUsingWget(fileInfos).then(zipPaths => ({
-            ...paramsObj,
-            zipPaths,
-          }));
-        });
-      })
-      .then(downloadedResMetas => {
-        const resMetas = downloadedResMetas.filter(resMeta => resMeta.zipPaths !== null);
-        return Promise.mapSeries(resMetas, resMeta => {
-          console.log(this.SPLITTER);
-          console.log(`Start processing for resource '${resMeta.resourcePath}'`);
-          return this._saveArchivesToMongo(resMeta).then(() => {
-            console.log(`Finished processing for resource '${resMeta.resourcePath}'`);
-            console.log(this.SPLITTER);
-          });
-        });
       });
+    });
   }
 
   /**
@@ -150,15 +167,17 @@ class PumpRawResourceOpenFda {
    Example: subdir 'drug/event/all_other' for url 'https://download.open.fda.gov/drug/event/all_other/drug-event-0001-of-0004.json.zip'
    */
   _getFileInfos(partitions, fileFilter, zipDestinationDir) {
-    const fileInfos = partitions.filter(p => fileFilter(p.file, _)).map(p => {
-      const domainRegExp = /(?:https?:\/\/)?.+?\//;
-      const match = domainRegExp.exec(p.file);
-      const indexAfterFirstSlash = match.index + match[0].length;
-      const indexBeforeLastSlash = p.file.lastIndexOf('/');
-      const subDir = p.file.substring(indexAfterFirstSlash, indexBeforeLastSlash);
-      const destDir = path.resolve(zipDestinationDir, subDir);
-      return { destDir, url: p.file };
-    });
+    const fileInfos = partitions
+      .filter(p => fileFilter(p.file, _))
+      .map(p => {
+        const domainRegExp = /(?:https?:\/\/)?.+?\//;
+        const match = domainRegExp.exec(p.file);
+        const indexAfterFirstSlash = match.index + match[0].length;
+        const indexBeforeLastSlash = p.file.lastIndexOf('/');
+        const subDir = p.file.substring(indexAfterFirstSlash, indexBeforeLastSlash);
+        const destDir = path.resolve(zipDestinationDir, subDir);
+        return { destDir, url: p.file };
+      });
     return fileInfos;
   }
 
@@ -180,6 +199,7 @@ class PumpRawResourceOpenFda {
       zipPaths,
       getDocId,
       transformer,
+      transformerContext,
       zipDestinationDir,
       jsonDestinationDir,
     } = resMeta;
@@ -189,7 +209,7 @@ class PumpRawResourceOpenFda {
         return resolve();
       }
 
-      mongoConnect(mongoUrl, require('../../util/mongo_connection_settings'))
+      mongoConnect(mongoUrl)
         .then(dbConnection => {
           this.connections[mongoUrl] = dbConnection;
           resolve();
@@ -204,21 +224,21 @@ class PumpRawResourceOpenFda {
 
         return Promise.mapSeries(zipPaths, zipPath => {
           console.log(`Unzipping file ${zipPath}`);
-          return this._extractJsonFilesFromZip(zipPath, zipDestinationDir, jsonDestinationDir).then(
-            unzippedFiles =>
-              Promise.mapSeries(unzippedFiles, unzippedFile => {
-                console.log(`Saving to mongo file ${unzippedFile}`);
-                return this._parseJsonAndWriteToMongo({
-                  jsonPath: unzippedFile,
-                  dbCon,
-                  collection: destCollectionName,
-                  getDocId,
-                  transformer,
-                }).then(() => {
-                  fs.unlinkSync(unzippedFile);
-                  console.log(`Deleted ${unzippedFile}`);
-                });
-              })
+          return this._extractJsonFilesFromZip(zipPath, zipDestinationDir, jsonDestinationDir).then(unzippedFiles =>
+            Promise.mapSeries(unzippedFiles, unzippedFile => {
+              console.log(`Saving to mongo file ${unzippedFile}`);
+              return this._parseJsonAndWriteToMongo({
+                jsonPath: unzippedFile,
+                dbCon,
+                collection: destCollectionName,
+                getDocId,
+                transformer,
+                transformerContext,
+              }).then(() => {
+                fs.unlinkSync(unzippedFile);
+                console.log(`\nDeleted ${unzippedFile}`);
+              });
+            })
           );
         });
       });
@@ -227,10 +247,7 @@ class PumpRawResourceOpenFda {
   _extractJsonFilesFromZip(zipPath, zipDestinationDir, jsonDestinationDir) {
     return new Promise(resolve => {
       // find nestedPath like 'device/enforcement'
-      const nestedZipPath = zipPath.substring(
-        zipDestinationDir.length + 1,
-        zipPath.lastIndexOf('/')
-      );
+      const nestedZipPath = zipPath.substring(zipDestinationDir.length + 1, zipPath.lastIndexOf('/'));
       const jsonNestedDir = path.resolve(jsonDestinationDir, nestedZipPath);
       fs.ensureDirSync(jsonNestedDir);
 
@@ -246,47 +263,126 @@ class PumpRawResourceOpenFda {
         .on('close', () => {
           resolve(unzippedFiles);
         })
-        .on('error', e =>
-          console.log(`Error while extracting json files from zip ${zipPath}. ${e.stack}`)
-        );
+        .on('error', e => console.log(`Error while extracting json files from zip ${zipPath}. ${e.stack}`));
     });
   }
 
-  _parseJsonAndWriteToMongo({ jsonPath, dbCon, collection, getDocId, transformer }) {
-    let promises = [];
+  _parseJsonAndWriteToMongo({ jsonPath, dbCon, collection, getDocId, transformer, transformerContext }) {
+    let docs = [];
+    let docsCounter = 0;
+    const batchSize = 50;
+    const concurrency = 10;
+
     return new Promise(resolve => {
-      const stream = fs.createReadStream(jsonPath).pipe(JSONStream.parse('results.*'));
-      stream
-        .on('data', async result => {
-          const docId = getDocId(result, _);
-          if (!docId) {
-            return console.warn(
-              `Cannot find id by 'getDocId', following doc will be skipped: ${JSON.stringify(
-                result
-              )}`
-            );
-          }
-          const doc = transformer(result, _);
-          doc.id = docId;
+      const stream = fs.createReadStream(jsonPath)
+        .pipe(JSONStream.parse('results.*'))
+        .pipe(es.mapSync(async result => {
+            try {
+              const docId = getDocId(result, _);
+              if (!docId) {
+                return console.warn(
+                  `Cannot find id by 'getDocId', following doc will be skipped: ${JSON.stringify(result)}`
+                );
+              }
+              const doc = transformer(result, transformerContext, _);
+              doc.id = docId;
+              docs.push(doc);
 
-          promises.push(this._upsertOpenFdaDoc(dbCon, collection, doc));
+              if (docs.length >= batchSize) {
+                stream.pause();
+                await Promise.map(
+                  docs,
+                  d => {
+                    try {
+                      return insertOrReplaceDocByCondition(d, dbCon.collection(collection), { id: d.id });
+                    } catch (e) {
+                      console.log(`Error while handling doc ${JSON.stringify(d)}. Retrying...`);
+                      return insertOrReplaceDocByCondition(d, dbCon.collection(collection), { id: d.id });
+                    }
+                  },
+                  { concurrency }
+                );
 
-          if (promises.length >= 200) {
-            stream.pause();
-            await Promise.all(promises);
-            promises = [];
-            stream.resume();
-          }
-        })
-        .on('error', e => console.log(`Error while parsing json file ${jsonPath}. ${e.stack}`))
+                docsCounter += docs.length;
+                readline.clearLine(process.stdout, 0); // move cursor to beginning of line
+                readline.cursorTo(process.stdout, 0);
+                process.stdout.write(`Docs handled: ${docsCounter}`);
+
+                docs = [];
+                stream.resume();
+              }
+            } catch (e) {
+              console.log(`Error while parsing doc:\n${JSON.stringify(result)}\n ${e.stack}`);
+              console.log(`Resuming stream`);
+              stream.resume();
+            }
+      }))
         .on('end', () => {
-          resolve(Promise.all(promises));
+          resolve(
+            Promise.map(docs, d => insertOrReplaceDocByCondition(d, dbCon.collection(collection), { id: d.id }), {
+              concurrency,
+            })
+          );
         });
+
+      // stream
+      //   .on('data', async result => {
+      //     try {
+      //       const docId = getDocId(result, _);
+      //       if (!docId) {
+      //         return console.warn(
+      //           `Cannot find id by 'getDocId', following doc will be skipped: ${JSON.stringify(result)}`
+      //         );
+      //       }
+      //       const doc = transformer(result, transformerContext, _);
+      //       doc.id = docId;
+      //       docs.push(doc);
+      //
+      //       if (docs.length >= batchSize) {
+      //         stream.pause();
+      //         await Promise.map(
+      //           docs,
+      //           d => {
+      //             try {
+      //               return insertOrReplaceDocByCondition(d, dbCon.collection(collection), { id: d.id });
+      //             } catch (e) {
+      //               console.log(`Error while handling doc ${JSON.stringify(d)}. Retrying...`);
+      //               return insertOrReplaceDocByCondition(d, dbCon.collection(collection), { id: d.id });
+      //             }
+      //           },
+      //           { concurrency }
+      //         );
+      //
+      //         docsCounter += batchSize;
+      //         readline.clearLine(process.stdout, 0); // move cursor to beginning of line
+      //         readline.cursorTo(process.stdout, 0);
+      //         process.stdout.write(`Docs handled: ${docsCounter}`);
+      //
+      //         docs = [];
+      //         stream.resume();
+      //       }
+      //     } catch (e) {
+      //       console.log(`Error while parsing doc:\n${JSON.stringify(result)}\n ${e.stack}`);
+      //       if (stream.isPaused) {
+      //         console.log(`Resuming stopped stream`);
+      //         stream.resume();
+      //       }
+      //     }
+      //   })
+      //   .on('error', e => console.log(`Stream error while parsing json file ${jsonPath}. ${e.stack}`))
+      //   .on('close', () => console.log('Stream closed'))
+      //   .on('end', () => {
+      //     resolve(
+      //       Promise.map(docs, d => insertOrReplaceDocByCondition(d, dbCon.collection(collection), { id: d.id }), {
+      //         concurrency,
+      //       })
+      //     );
+      //   });
     });
   }
 
   _upsertOpenFdaDoc(dbCon, collection, doc) {
-    return dbCon.collection(collection).findOneAndReplace({ id: doc.id }, doc, { upsert: true });
+    return insertOrReplaceDocByCondition(doc, dbCon.collection(collection), { id: doc.id });
   }
 }
 

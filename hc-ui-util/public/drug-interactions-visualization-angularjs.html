@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en" ng-app="testApp">
+<head>
+  <meta charset="UTF-8">
+  <meta
+    name="viewport"
+    content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
+  <meta http-equiv="X-UA-Compatible" content="ie=edge">
+  <title>Document</title>
+
+  <script src="../node_modules/angular/angular.js"></script>
+  <script src="../node_modules/d3/dist/d3.js"></script>
+  <script src="//localhost:9000/hc-ui-util.js"></script>
+
+  <script>
+      angular.module('testApp', [hcUiUtil.angularUIModule(angular)])
+      .controller('PageController', function ($scope) {
+        const $ctrl = this;
+
+        const apiClient = new hcUiUtil.ApiClient({
+          HC_UTIL_URL: 'https://hc-util-backend.conceptant.com',
+        });
+        $ctrl.data = null;
+
+        const medications = [{
+          brandName: "levocetirizine dihydrochloride",
+          ndc: "63187-663-60",
+          rxcui: ["855172"],
+        }, {
+          brandName: "Regular Strength Aspirin EC",
+          ndc: "55700-338-30",
+          rxcui: ["198467"],
+        }];
+
+        apiClient.getRxClassesAndInteractionData(medications)
+          .then(data => {
+            $ctrl.data = data;
+            $ctrl.loaded = true;
+            $scope.$apply();
+          });
+      });
+  </script>
+</head>
+<body>
+
+<div>
+  <div ng-controller="PageController as $ctrl">
+    <drug-interactions-visualization
+      ng-if="$ctrl.loaded"
+      data="$ctrl.data"
+    ></drug-interactions-visualization>
+  </div>
+</div>
+
+</body>
+</html>

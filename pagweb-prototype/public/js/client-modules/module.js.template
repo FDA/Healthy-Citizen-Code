@@ -61,7 +61,8 @@
           url: '@?',
           hcResearchUrl: '@?',
           fhirDataUrl: '@?',
-          widgetId: '@?'
+          widgetId: '@?',
+          rxcuis: '@?'
         },
         link: function (scope, element) {
           var params = {
@@ -70,7 +71,8 @@
             hcResearchUrl: scope.hcResearchUrl,
             fhirDataUrl: scope.fhirDataUrl,
             widgetId: scope.widgetId,
-            udid: scope.udid
+            udid: scope.udid,
+            rxcuis: scope.rxcuis,
           };
 
           if (scope.patientData) {

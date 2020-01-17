@@ -4,9 +4,19 @@
       "type": "Schema",
       "fullName": "User preferences",
       "scopes": {
-        "ownRecordScope": {
-          "permissions": "accessAsUser",
-          "where": "{$eq: ['$creator', this.req.user._id]}"
+        "guestScope": {
+          "permissions": "accessAsGuest",
+          "where": "true"
+        }
+      },
+      "actions": {
+        "fields": {
+          "view": {
+            "permissions": "accessAsGuest"
+          },
+          "upsert": {
+            "permissions": "accessAsGuest"
+          }
         }
       },
       "fields": {
@@ -19,12 +29,12 @@
         "gender": {
           "type": "String",
           "list": {
-            name: "genders",
-            scopes: {
-              userScope: {
-                permissions: "accessAsGuest",
-                return: "return $list",
-                where: "return true"
+            "name": "genders",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsGuest",
+                "return": "return $list",
+                "where": "return true"
               }
             }
           },
@@ -34,12 +44,12 @@
         "age": {
           "type": "String",
           "list": {
-            name: "ages",
-            scopes: {
-              userScope: {
-                permissions: "accessAsGuest",
-                return: "return $list",
-                where: "return true"
+            "name": "ages",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsGuest",
+                "return": "return $list",
+                "where": "return true"
               }
             }
           },
@@ -49,32 +59,32 @@
         "geographicRegion": {
           "type": "String",
           "list": {
-            name: "geographicRegions",
-            scopes: {
-              userScope: {
-                permissions: "accessAsGuest",
-                return: "return $list",
-                where: "return true"
+            "name": "geographicRegions",
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsGuest",
+                "return": "return $list",
+                "where": "return true"
               }
             }
           }
         },
         "medications": {
-          "type": "Object[]",
+          "type": "Array",
           "fullName": "Medications",
           "description": "Medications interested in",
           "fields": {
             "_id": {
-              "type": "String",
+              "type": "String"
             },
             "ndc11": {
-              "type": "String",
+              "type": "String"
             },
             "brandName": {
-              "type": "String",
+              "type": "String"
             },
             "rxcui": {
-              "type": "String",
+              "type": "String"
             }
           }
         }

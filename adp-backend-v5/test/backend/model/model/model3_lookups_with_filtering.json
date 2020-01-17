@@ -1,0 +1,26 @@
+{
+  "models": {
+    "model3LookupWithFiltering": {
+      "type": "Schema",
+      "fields": {
+        "filteringField": {
+          "type": "String"
+        },
+        "lookup": {
+          "type": "LookupObjectID",
+          "lookup": {
+            "table": {
+              "model4s": {
+                "foreignKey": "_id",
+                "label": "name",
+//                "prepare": "functionPreparingDataToBeUsedInWhere",
+                "where": "{ 'name': this.form.filteringField }"
+              }
+            },
+            "id": "model3LookupWithFiltering"
+          }
+        }
+      }
+    }
+  }
+}

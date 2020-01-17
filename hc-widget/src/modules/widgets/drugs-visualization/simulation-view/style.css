@@ -1,0 +1,60 @@
+:local(.root) {
+  font-family: Verdana, Sans-Serif;
+  font-size: 16px;
+  line-height: 20px;
+  font-style: italic;
+}
+
+:local(.root) .node-group,
+:local(.root) .link-group,
+:local(.root) .label-group {
+  pointer-events: all;
+  cursor: pointer;
+}
+
+:local(.root) .hovered .node,
+:local(.root) .hovered .label-rect {
+  fill: #f00 !important;
+  cursor: pointer;
+}
+
+:local(.root) .hovered.link {
+  stroke: #f00 !important;
+}
+
+:local(.root) .node-text {
+  fill: black;
+  font-family: Verdana, sans-serif;
+  font-size: 12px;
+}
+
+:local(.root) .obj-ingredient-text,
+:local(.root) .obj-disease-text,
+:local(.root) .obj-pharma-class-text,
+:local(.root) .obj-physiologic-effect-text {
+  fill: black;
+  font-family: Verdana, sans-serif;
+  font-size: 14px;
+}
+
+
+:local(.root) .obj-drugs-text {
+  fill: black;
+  font-family: Verdana, sans-serif;
+  font-weight: bold;
+  font-size: 24px!important;
+}
+
+:local(.root) .link.inactive,
+:local(.root) .node.inactive,
+:local(.root) .node.inactive + text,
+:local(.root) .label-group.inactive,
+:local(.root) .node.inactive rect,
+:local(.root) .node.inactive text {
+  opacity: .2!important;
+}
+
+:local(.root) .node.inactive.selected rect,
+:local(.root) .node.inactive.selected text {
+  opacity: .6!important;
+}

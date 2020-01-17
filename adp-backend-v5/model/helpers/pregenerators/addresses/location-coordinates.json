@@ -1,0 +1,292 @@
+[
+  {
+    "latitude": 40.73061,
+    "longitude": -73.935242,
+    "name": "New York City"
+  },
+  {
+    "latitude": 37.773972,
+    "longitude": -122.431297,
+    "name": "San Francisco"
+  },
+  {
+    "latitude": 41.881832,
+    "longitude": -87.623177,
+    "name": "Chicago"
+  },
+  {
+    "latitude": 36.778259,
+    "longitude": -119.417931,
+    "name": "California"
+  },
+  {
+    "latitude": 25.761681,
+    "longitude": -80.191788,
+    "name": "Miami"
+  },
+  {
+    "latitude": 31.230391,
+    "longitude": 121.473701,
+    "name": "Shanghai"
+  },
+  {
+    "latitude": 22.543097,
+    "longitude": 114.057861,
+    "name": "Shenzhen"
+  },
+  {
+    "latitude": 29.868336,
+    "longitude": 121.543991,
+    "name": "Ningbo"
+  },
+  {
+    "latitude": 36.067108,
+    "longitude": 120.382607,
+    "name": "Qingdao"
+  },
+  {
+    "latitude": 23.12911,
+    "longitude": 113.264381,
+    "name": "Guangzhou"
+  },
+  {
+    "latitude": 39.343357,
+    "longitude": 117.361649,
+    "name": "Tianjin"
+  },
+  {
+    "latitude": 38.914001,
+    "longitude": 121.614685,
+    "name": "Dalian"
+  },
+  {
+    "latitude": 24.479834,
+    "longitude": 118.089424,
+    "name": "Xiamen"
+  },
+  {
+    "latitude": 49.28273,
+    "longitude": -123.120735,
+    "name": "Vancouver"
+  },
+  {
+    "latitude": 45.50169,
+    "longitude": -73.567253,
+    "name": "Montreal"
+  },
+  {
+    "latitude": 54.315037,
+    "longitude": -130.320816,
+    "name": "Prince Rupert"
+  },
+  {
+    "latitude": 44.65107,
+    "longitude": -63.582687,
+    "name": "Halifax"
+  },
+  {
+    "latitude": 47.171749,
+    "longitude": -68.76152,
+    "name": "Saint John"
+  },
+  {
+    "latitude": 19.05328,
+    "longitude": -104.316132,
+    "name": "Manzanillo"
+  },
+  {
+    "latitude": 17.96241,
+    "longitude": -102.19715,
+    "name": "Lazaro Cárdenas"
+  },
+  {
+    "latitude": 19.200331,
+    "longitude": -96.138931,
+    "name": "Veracruz"
+  },
+  {
+    "latitude": 23.457211,
+    "longitude": -99.627319,
+    "name": "Altamira"
+  },
+  {
+    "latitude": 31.865858,
+    "longitude": -116.607681,
+    "name": "Ensenada"
+  },
+  {
+    "latitude": 35.15694,
+    "longitude": 136.913055,
+    "name": "Nagoya"
+  },
+  {
+    "latitude": 32.750286,
+    "longitude": 129.87767,
+    "name": "Nagasaki"
+  },
+  {
+    "latitude": 35.689487,
+    "longitude": 139.691711,
+    "name": "Tokyo"
+  },
+  {
+    "latitude": 34.693737,
+    "longitude": 135.502167,
+    "name": "Osaka"
+  },
+  {
+    "latitude": 26.38928,
+    "longitude": 127.72771,
+    "name": "Cobe"
+  },
+  {
+    "latitude": 50.033333,
+    "longitude": 8.570556,
+    "name": "Frankfurt Airport"
+  },
+  {
+    "latitude": 48.353889,
+    "longitude": 11.786111,
+    "name": "Munich Airport"
+  },
+  {
+    "latitude": 51.289444,
+    "longitude": 6.766667,
+    "name": "Duesseldorf Airport"
+  },
+  {
+    "latitude": 37.463333,
+    "longitude": 126.440002,
+    "name": "Seoul Incheon Airport"
+  },
+  {
+    "latitude": 33.511389,
+    "longitude": 126.493056,
+    "name": "Jeju Airport"
+  },
+  {
+    "latitude": 37.558056,
+    "longitude": 126.790556,
+    "name": "Gimpo Airport"
+  },
+  {
+    "latitude": 51.4775,
+    "longitude": -0.461389,
+    "name": "Heathrow Airport"
+  },
+  {
+    "latitude": 51.148056,
+    "longitude": -0.190278,
+    "name": "Gatwick Airport"
+  },
+  {
+    "latitude": 53.353889,
+    "longitude": -2.275,
+    "name": "Manchester Airport"
+  },
+  {
+    "latitude": 49.009722,
+    "longitude": 2.547778,
+    "name": "Charles de Gaulle Airport"
+  },
+  {
+    "latitude": 48.723333,
+    "longitude": 2.379444,
+    "name": "Orly Airport"
+  },
+  {
+    "latitude": 43.665278,
+    "longitude": 7.215,
+    "name": "Nice Côte d'Azur Airport"
+  },
+  {
+    "latitude": 28.568611,
+    "longitude": 77.112222,
+    "name": "Indira Gandhi Airport"
+  },
+  {
+    "latitude": 19.088611,
+    "longitude": 72.868056,
+    "name": "Chhatrapati Shivaji Maharaj Airport"
+  },
+  {
+    "latitude": 13.206944,
+    "longitude": 77.704167,
+    "name": "Kempegowda Airport"
+  },
+  {
+    "latitude": 41.800278,
+    "longitude": 12.238889,
+    "name": "Leonardo da Vinci–Fiumicino Airport"
+  },
+  {
+    "latitude": 45.63,
+    "longitude": 8.723056,
+    "name": "Milan Malpensa Airport"
+  },
+  {
+    "latitude": 45.668889,
+    "longitude": 9.700278,
+    "name": "Orio al Serio Airport"
+  },
+  {
+    "latitude": 25.076389,
+    "longitude": 121.223889,
+    "name": "Taoyuan Airport"
+  },
+  {
+    "latitude": 22.576944,
+    "longitude": 120.35,
+    "name": "Kaohsiung Airport"
+  },
+  {
+    "latitude": 25.069444,
+    "longitude": 121.551667,
+    "name": "Songshan Airport"
+  },
+  {
+    "latitude": -23.435556,
+    "longitude": -46.473056,
+    "name": "São Paulo–Guarulhos Airport"
+  },
+  {
+    "latitude": -23.626111,
+    "longitude": -46.656389,
+    "name": "São Paulo–Congonhas Airport"
+  },
+  {
+    "latitude": -15.869167,
+    "longitude": -47.920833,
+    "name": "Brasília Airport"
+  },
+  {
+    "latitude": 52.308056,
+    "longitude": 4.764167,
+    "name": "Amsterdam Airport Schiphol"
+  },
+  {
+    "latitude": 51.45,
+    "longitude": 5.374444,
+    "name": "Eindhoven Airport"
+  },
+  {
+    "latitude": 51.956944,
+    "longitude": 4.440278,
+    "name": "Rotterdam The Hague Airport"
+  },
+  {
+    "latitude": 53.421389,
+    "longitude": -6.27,
+    "name": "Dublin Airport"
+  },
+  {
+    "latitude": 51.841389,
+    "longitude": -8.491111,
+    "name": "Cork Airport"
+  },
+  {
+    "latitude": 52.701944,
+    "longitude": -8.924722,
+    "name": "Shannon Airport"
+  }
+]

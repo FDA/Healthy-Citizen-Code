@@ -3,12 +3,6 @@
  * @returns {{}}
  */
 module.exports = function (globalMongoose) {
-    const fs = require('fs');
-    const _ = require("lodash");
-    const async = require('async');
-
-    const mongoose = globalMongoose;
-
     let m = {};
 
     m.init = (appLib) => {

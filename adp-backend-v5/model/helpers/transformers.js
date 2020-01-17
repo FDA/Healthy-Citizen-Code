@@ -6,13 +6,31 @@
  * next - callback to be called in the end of transformation
  */
 
+const {
+  heightImperialToMetric,
+  heightMetricToImperial,
+  weightImperialWithOzToMetric,
+  weightMetricToImperialWithOz,
+  weightImperialToMetric,
+  weightMetricToImperial,
+} = require('./transformers_util');
+
 module.exports = mongoose => {
   const _ = require('lodash');
   const async = require('async');
   const log = require('log4js').getLogger('helpers/transformers');
   const { ObjectID } = require('mongodb');
+  const { hashPassword, bcryptHashRegex } = require('../../lib/util/password');
+  const { getTime } = require('../../lib/util/date');
 
   const m = {
+    /** Special transformer doing nothing, allows to specify 'null' in transformer array ['null', 'postTransformer'].
+     * Value null is not appropriate since .xls transformer has null values cast to 'null'.
+     */
+    null(path, appModelPart, userContext, next) {
+      // do nothing
+      next();
+    },
     trim(path, appModelPart, userContext, next) {
       const val = _.get(this, path);
       if (val && typeof val.trim === 'function') {
@@ -21,53 +39,51 @@ module.exports = mongoose => {
       next();
     },
     heightImperialToMetric(path, appModelPart, userContext, next) {
-      const val = _.get(this, path);
-      if (val && Array.isArray(val) && val.length > 1) {
-        const newVal = Math.round(val[0] * 30.48 + val[1] * 2.54);
-        _.set(this, path, Number.isNaN(newVal) ? 0 : newVal);
+      const imperialHeight = _.get(this, path);
+      const metricHeight = heightImperialToMetric(imperialHeight);
+      if (metricHeight !== undefined) {
+        _.set(this, path, metricHeight);
       }
       next();
     },
     heightMetricToImperial(path, appModelPart, userContext, next) {
-      const val = _.get(this, path);
-      if (val) {
-        const totalInches = Math.round(val / 2.54);
-        const inches = totalInches % 12;
-        const feet = (totalInches - inches) / 12;
-        _.set(this, path, [feet, inches]);
+      const metricHeight = _.get(this, path);
+      const imperialHeight = heightMetricToImperial(metricHeight);
+      if (imperialHeight !== undefined) {
+        _.set(this, path, imperialHeight);
       }
       next();
     },
     // TODO: write tests for imperialWeightWithOz
     weightImperialWithOzToMetric(path, appModelPart, userContext, next) {
-      const val = _.get(this, path);
-      if (val && Array.isArray(val) && val.length > 1) {
-        const newVal = Math.round(val[0] * 453.59237 + val[1] * 28.349523125);
-        _.set(this, path, Number.isNaN(newVal) ? 0 : newVal);
+      const imperialWeight = _.get(this, path);
+      const metricWeight = weightImperialWithOzToMetric(imperialWeight);
+      if (metricWeight !== undefined) {
+        _.set(this, path, metricWeight);
       }
       next();
     },
     weightMetricToImperialWithOz(path, appModelPart, userContext, next) {
-      const val = _.get(this, path);
-      if (val) {
-        const totalOzs = Math.round(val / 28.349523125);
-        const ozs = totalOzs % 16;
-        const lbs = (totalOzs - ozs) / 16;
-        _.set(this, path, [lbs, ozs]);
+      const metricWeight = _.get(this, path);
+      const imperialWeight = weightMetricToImperialWithOz(metricWeight);
+      if (imperialWeight !== undefined) {
+        _.set(this, path, imperialWeight);
       }
       next();
     },
     weightImperialToMetric(path, appModelPart, userContext, next) {
-      const val = _.get(this, path);
-      if (val) {
-        _.set(this, path, (val * 1000) / 2.2046226218); // note: now storing in grams
+      const imperialWeight = _.get(this, path);
+      const metricWeight = weightImperialToMetric(imperialWeight);
+      if (metricWeight !== undefined) {
+        _.set(this, path, metricWeight);
       }
       next();
     },
     weightMetricToImperial(path, appModelPart, userContext, next) {
-      const val = _.get(this, path);
-      if (val) {
-        _.set(this, path, Math.round((val * 2.20462) / 1000)); // note: now storing in grams
+      const metricWeight = _.get(this, path);
+      const imperialWeight = weightMetricToImperial(metricWeight);
+      if (imperialWeight !== undefined) {
+        _.set(this, path, imperialWeight);
       }
       next();
     },
@@ -87,25 +103,17 @@ module.exports = mongoose => {
         const addLabel = (idStr, cb) => {
           if (idStr.length === 24) {
             const id = new ObjectID(idStr);
-            model.findOne(
-              { [appModelPart.lookup.foreignKey]: id },
-              { [appModelPart.lookup.label]: 1 },
-              (err, data) => {
-                let val;
-                if (err || !data) {
-                  log.error(
-                    `Unable to find lookup record for lookup ${JSON.stringify(
-                      appModelPart.lookup,
-                      null,
-                      4
-                    )} ID: ${id}`
-                  );
-                } else {
-                  val = data[appModelPart.lookup.label];
-                }
-                cb(err, val);
+            model.findOne({ [appModelPart.lookup.foreignKey]: id }, { [appModelPart.lookup.label]: 1 }, (err, data) => {
+              let val;
+              if (err || !data) {
+                log.error(
+                  `Unable to find lookup record for lookup ${JSON.stringify(appModelPart.lookup, null, 4)} ID: ${id}`
+                );
+              } else {
+                val = data[appModelPart.lookup.label];
               }
-            );
+              cb(err, val);
+            });
           } else {
             log.error(`Unable to find label for malformed lookup ObjectID "${idStr}"`);
             cb();
@@ -156,51 +164,29 @@ module.exports = mongoose => {
         next();
       }
     },
-    rewritePasswordAndAddSalt(path, appModelPart, userContext, next) {
-      // TODO: rewrite this temporary fix
-      // fix for updating user via admin panel (no password sent in body)
-      if (userContext.method.toLowerCase() === 'put') {
-        const { url } = userContext;
-        const [schemaName, id] = url.slice(1).split('/');
-        const userIdToUpdate = new ObjectID(id);
-        return mongoose.connection.db
-          .collection(schemaName)
-          .findOne({ _id: userIdToUpdate })
-          .then(doc => {
-            this.password = doc.password;
-            this.salt = doc.salt;
-            next();
-          })
-          .catch(err => {
-            log.error(err);
-            next(`Error rewritePasswordAndAddSalt`);
-          });
+    async hashPassword(path, appModelPart, userContext, next) {
+      const password = _.get(this, path);
+      const isBcryptHash = bcryptHashRegex.test(password);
+      if (!password || isBcryptHash) {
+        return next();
       }
 
-      if (this.passwordSet) {
-        const plainPassword = _.get(this, path);
-        // for setters inside setPassword func
-        this.set = function(field, val) {
-          this[field] = val;
-        };
-        const setPassword = mongoose.model('users').prototype.setPassword.bind(this);
-        setPassword(plainPassword, () => {
-          delete this.set;
-          delete this.passwordSet;
-          next();
-        });
-        return;
-      }
-
-      return next();
+      const hash = await hashPassword(password);
+      _.set(this, path, hash);
+      next();
     },
     cleanupPassword(path, appModelPart, userContext, next) {
-      if (userContext.method.toLowerCase() === 'get') {
-        delete this[path];
-        delete this.salt;
+      if (['view', 'viewDetails'].includes(userContext.action)) {
+        _.unset(this, path);
       }
       next();
     },
+    time(path, appModelPart, userContext, next) {
+      const value = _.get(this, path);
+      _.set(this, path, getTime(value));
+      next();
+    },
   };
+
   return m;
 };

@@ -28,7 +28,7 @@
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",
-          "where": "{$eq: ['$creator', this.req.user._id]}"
+          "where": "{ creator: { $eq: this.req.user._id } }"
         }
       },
       "fields": {
@@ -60,7 +60,7 @@
                 "scopes": {
                   "ownRecordScope": {
                     "permissions": "accessAsUser",
-                    "where": "{$eq: ['$creator', this.req.user._id]}"
+                    "where": "{ creator: { $eq: this.req.user._id } }"
                   }
                 }
               }
@@ -85,7 +85,7 @@
           "scopes": {
             "ownRecordScope": {
               "permissions": "accessAsUser",
-              "where": "{$eq: ['$creator', this.req.user._id]}"
+              "where": "{ creator: { $eq: this.req.user._id } }"
             }
           },
           "description": "Type of arm"

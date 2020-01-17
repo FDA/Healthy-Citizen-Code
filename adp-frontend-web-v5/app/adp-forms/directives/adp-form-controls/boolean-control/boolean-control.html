@@ -1,0 +1,18 @@
+<label class="checkbox"
+       id="checkbox-label-{{field.fieldName}}"
+       for="{{$id + field.fieldName}}">
+
+  <input
+    type="checkbox"
+    name="{{field.fieldName}}"
+    id="{{$id + field.fieldName}}"
+    adp-validate="validationParams"
+    ng-required="isRequired()"
+    ng-model="adpFormData[field.fieldName]"
+    ng-false-value="null"
+    class="form-control"
+  >
+  <i></i>
+
+  {{field.fullName}} <adp-required-mark validation-params="validationParams"></adp-required-mark>
+</label>

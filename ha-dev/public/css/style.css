@@ -1,0 +1,434 @@
+header#header {
+    display: none;
+}
+
+aside#left-panel {
+    display:none;
+}
+
+div#ribbon {
+    display: none;
+}
+
+body {
+    min-height: auto;
+}
+
+div#main, div#content {
+    padding: 0;
+    margin: 0;
+}
+
+.menu-on-top div#main {
+    margin-top: 0!important;
+}
+
+.menu-on-top .page-footer {
+    display: none;
+}
+
+body.smart-style-6 #content {
+    margin-top: 0!important;
+}
+
+.notification-tag {
+    border: 1px solid gray;
+    border-radius: 12px;
+    padding: 0 5px 1px 5px;
+    background-color: lightyellow;
+    margin: 0 1px;
+}
+
+body.smart-style-6 .table > tbody > tr > td {
+    padding: 5px 5px 0 5px;
+}
+
+.page-app-drug  .actions-columns,
+.page-app-notifications .actions-columns {
+    display: none !important;
+}
+
+body.page-app-notifications button.btn.btn-default {
+    display: none;
+}
+
+body.page-app-notifications .table > tbody > tr > td {
+    cursor: pointer;
+}
+
+.well {
+    padding: 5px;
+    margin: 0;
+}
+
+.dataTable.collapsed tbody tr:not(.child) td:first-of-type:before {
+    top: 13px !important;
+}
+/*
+body.page-app-notifications .notification-flagged {
+    width: 15px;
+    display: inline-block;
+}
+
+body.page-app-notifications .notification-subject-text {
+    display: inline-block;
+}
+*/
+
+/* TEMP: spl viewer */
+.drug-label-sections {padding: 0 25px;}
+
+.Italics { font-style: italic; }
+.Bold { font-weight: bold; }
+
+.Section {
+    overflow-y: auto;
+    margin-bottom: 25px;
+}
+
+.Section table {
+    margin: 10px auto 20px;
+    max-width: 600px;
+}
+
+.Section table th,
+.Section table td {
+    border: 1px solid black;
+}
+
+.Section caption {
+    padding-bottom: 5px;
+    line-height: 18px;
+    font-weight: bold;
+    color: black;
+    text-align: center;
+}
+
+.Section table tr:nth-of-type(odd),
+.Section table tr:nth-of-type(odd) {
+    background-color: #eef9ff;
+}
+
+.Section table tbody th.Botrule,
+.Section table tbody tr:not(.Last) td.Botrule {
+    border-bottom-style: solid;
+    border-bottom-width: 3px;
+}
+
+.drug-label-sections tfoot, .drug-label-sections tfoot tr, .drug-label-sections tfoot tr td {
+    background-color: white;
+    border: 0;
+}
+
+.drug-label-sections ul li dl.Footnote {
+    width: 100%;
+    overflow: hidden
+}
+
+.drug-label-sections ul li dl.Footnote dt {
+    float: left;
+    width: 2%
+}
+
+.drug-label-sections ul li dl.Footnote dd {
+    float: left;
+    width: 98%
+}
+
+.drug-label-sections ul li dl:not(.Footnote) dt {
+    float: left
+}
+
+.drug-label-sections ul li dl:not(.Footnote) dt.list-dt {
+    color: #faa026
+}
+
+.drug-label-sections .Section p+dl {
+    margin-top: .8em
+}
+
+.drug-label-sections .Section dl+p {
+    margin-top: 1em
+}
+
+.drug-label-sections ol.Arabic {
+    margin: 15px 0 15px 25px;
+    LINE-HEIGHT: 24px;
+}
+
+.drug-label-sections ul>li>div ol.Arabic>li {
+    list-style-type: decimal
+}
+
+
+.Section {padding-left: 25px;}
+
+.Section table th,table th {
+    border: 1px solid #000;
+    background: #2b789f;
+    color: #fff;
+    text-transform: none;
+    text-align: center
+}
+
+.Section table th span,table th span {
+    text-transform: none
+}
+
+.Section table th,.Section table td,table td,table th {
+    padding: 6px;
+    margin: 0;
+    min-width: 75px
+}
+
+.Section table th,.Section table td {
+    width: 50%
+}
+
+table tbody th.Botrule,table tbody tr:not(.Last) td.Botrule {
+    border-bottom-style: solid;
+    border-bottom-width: 3px
+}
+
+table.full_table td {
+    width: 50%
+}
+
+table.half_table td {
+    width: 50%
+}
+
+table tr.highlight td {
+    background: #ffcd6f;
+    font-weight: normal
+}
+
+table tr.subhighlight td {
+    background: #eef9ff
+}
+
+table th.small,table td.small {
+    width: 50px
+}
+
+.drug-label-sections ul li table th a {
+    color: #fff
+}
+
+.Section table td .tag,.Section li .tag {
+    color: #fa7b00;
+    text-transform: uppercase;
+    font-weight: normal;
+    display: inline;
+    margin-left: 10px
+}
+
+.Section table ul {
+    padding-left: 5px
+}
+
+.Section table ul ol {
+    list-style-type: lower-roman;
+    padding-left: 20px
+}
+
+.Section table ul ol li {
+    background: 0;
+    padding-left: 10px
+}
+
+table.alttable,table.alttable table {
+    border: 1px solid #000
+}
+
+table.alttable td {
+    font-family: Arial,sans-serif;
+    font-size: 14px
+}
+
+.DataElementsTables table {
+    border: 1px solid #000
+}
+
+.DataElementsTables table * {
+    border: 0
+}
+
+.DataElementsTables table.internaltable * {
+    border: 0
+}
+
+.DataElementsTables table.internaltable {
+    width: 100%;
+    line-height: 1em;
+    border: 1px solid
+}
+
+.DataElementsTables table.internaltable td,.spl table.internaltable th {
+    width: auto;
+    min-width: 100px
+}
+
+.DataElementsTables table.internaltable tr {
+    background: 0
+}
+
+.DataElementsTables table.internaltable .contentTableTitle {
+    background: #2b789f;
+    color: #fff;
+    padding: 8px 16px
+}
+
+.DataElementsTables table.internaltable .contentTableTitle strong {
+    font-size: 20px;
+    display: block;
+    line-height: 1em
+}
+
+.DataElementsTables table.internaltable .contentTableTitle .contentTableReg {
+    background: 0;
+    font-size: 16px;
+    font-family: 'pt_sansbold',Arial,sans-serif
+}
+
+.DataElementsTables table.internaltable table {
+    border: 0
+}
+
+.DataElementsTables table.internaltable table .formHeadingTitle,.DataElementsTables table.internaltable table .formHeadingReg,.DataElementsTables table.formTableMorePetite td.formHeadingReg {
+    background: #2b789f;
+    color: #fff;
+    padding: 8px 8px;
+    border: 1px solid #000;
+    font-size: 14px;
+    text-transform: uppercase
+}
+
+.DataElementsTables table.internaltable table tr+tr {
+    border-left: 1px solid #000;
+    border-bottom: 1px solid #000
+}
+
+.DataElementsTables table.internaltable table .formLabel {
+    background: #ffcd6f;
+    color: #000;
+    border: 0;
+    border-top: 1px solid #000;
+    border-right: 1px solid;
+    font-size: 14px;
+    font-weight: normal
+}
+
+.DataElementsTables table.internaltable table .formHeadingReg .formHeadingTitle {
+    border: 0;
+    padding: 0;
+    font-size: 16px
+}
+
+.DataElementsTables table.internaltable table .formItem {
+    color: #000;
+    font-family: 'pt_sans',Arial,sans-serif;
+    border: 0;
+    border-top: 1px solid #000;
+    border-right: 1px solid;
+    font-size: 14px
+}
+
+.DataElementsTables table.internaltable table tr.formTableRowAlt td.formItem {
+    background: #fff
+}
+
+.DataElementsTables table.internaltable table tr.formTableRow td.formItem {
+    background: #eef9ff
+}
+
+.DataElementsTables table.internaltable table th.formTitle {
+    background: #ffcd6f;
+    color: #000;
+    border: 0;
+    border-top: 1px solid #000;
+    border-right: 1px solid;
+    font-size: 14px;
+    text-transform: none;
+    font-weight: normal
+}
+
+.DataElementsTables table.internaltable table th.row {
+    background: #ffcd6f;
+    color: #000;
+    border: 0;
+    border-top: 1px solid #000;
+    border-right: 1px solid
+}
+
+.DataElementsTables table.internaltable table tr>th.formItem {
+    background: #ffcd6f;
+    color: #000;
+    border: 0;
+    border-top: 1px solid #000;
+    border-right: 1px solid
+}
+
+.DataElementsTables table.formTableMorePetite th.formTitle,.DataElementsTables table.formTableMorePetite .formTableRow td.formItem,table.formTableMorePetite .formTableRowAlt td.formItem,.DataElementsTables table.formTablePetite th.formTitle,.DataElementsTables table.formTablePetite .formTableRow td.formItem,table.formTablePetite .formTableRowAlt td.formItem {
+    border-top: 1px solid black;
+    border-right: 1px solid black;
+    word-break: normal
+}
+
+.DataElementsTables {
+    max-width: 600px;
+}
+
+
+.DataElementsTables td p {
+    text-indent: 0;
+    margin-top: 0;
+    margin-bottom: 0;
+    font-family: pt_sansregular,Arial,sans-serif
+}
+
+table.pmi tr {
+    background: #fff
+}
+
+table.pmi tr th {
+    text-align: left
+}
+
+table.pmi tr th strong {
+    font-size: 20px;
+    font-weight: normal;
+    display: block
+}
+
+table.pmi tr th strong+em {
+    font-size: 16px;
+    font-weight: normal;
+    font-style: normal;
+    text-transform: none
+}
+
+table.pmi tr td {
+    color: #000;
+    font-size: 14px
+}
+
+table.pmi tr.highlight td {
+    background: #ffcd6f;
+    color: #000;
+    font-size: 14px;
+    text-transform: uppercase;
+    font-weight: normal
+}
+
+table.pmi tr.warnings td {
+    background: #eef9ff
+}
+
+.Figure img,
+.Figure + p {
+    max-width: 600px;
+    height: auto;
+    margin: 20px auto;
+    display: block;
+}

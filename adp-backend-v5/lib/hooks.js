@@ -1,27 +1,31 @@
-const log = require('log4js').getLogger('lib/hooks');
+// const log = require('log4js').getLogger('lib/hooks');
 const _ = require('lodash');
 const Promise = require('bluebird');
 
 module.exports = appLib => {
   const m = {};
 
-  m.getPreHookPromise = (modelName, req, action) =>
-    m.getHookPromiseForStage('pre', modelName, req, action);
+  m.preHook = (schemaModel, userContext) => m.getHookPromiseForStage('pre', schemaModel, userContext);
 
-  m.getPostHookPromise = (modelName, req, action) =>
-    m.getHookPromiseForStage('post', modelName, req, action);
+  m.postHook = (schemaModel, userContext) => m.getHookPromiseForStage('post', schemaModel, userContext);
 
-  m.getHookPromiseForStage = (stage, modelName, req, action) => {
-    const hookNames = _.get(appLib.appModel.models, `${modelName}.hooks.${stage}`);
+  m.getHookPromiseForStage = async (stage, schemaModel, userContext) => {
+    const hookNames = _.get(schemaModel, `hooks.${stage}`);
     const hookFns = _.castArray(hookNames)
       .map(hookName => _.get(appLib.appModelHelpers.Hooks, hookName))
       .filter(hookFn => _.isFunction(hookFn));
 
-    return Promise.mapSeries(hookFns, hookFn => hookFn({ modelName, req, action })).catch(err => {
-      log.error(`Error occurred on ${stage} hook stage of ${modelName}: ${err}`);
-      throw err;
-    });
+    try {
+      await Promise.mapSeries(hookFns, hookFn => hookFn({ schemaModel, userContext }));
+    } catch (e) {
+      throw new Error(`Error occurred on ${stage} hook stage of ${schemaModel.schemaName}`);
+    }
   };
+
+  // m.wrapInHooks = (schemaModel, userContext, promiseToWrap) => {
+  //   return m.preHook(schemaModel, userContext)
+  //     .then(() => promiseToWrap)
+  // };
 
   return m;
 };

@@ -6,10 +6,9 @@ const useref = require('gulp-useref');
 const lazypipe = require('lazypipe');
 const ngAnnotate = require('gulp-ng-annotate');
 const uglify = require('gulp-uglify');
-const uglifySaveLicense = require('uglify-save-license');
-const cssnano = require('gulp-cssnano');
-const rev = require('gulp-rev');
-const revReplace = require('gulp-rev-replace');
+const postcss = require('gulp-postcss');
+const cssnano = require('cssnano');
+
 const htmlmin = require('gulp-htmlmin');
 const strip = require('gulp-strip-comments');
 
@@ -27,7 +26,7 @@ function build() {
   const cssFilter = filter([path.join(conf.paths.tmp, '**/*.css')], {restore: true});
 
   const uglifyStream = uglify({
-    preserveComments: uglifySaveLicense,
+    mangle: false,
     output: { max_line_len: Infinity },
   })
   .on('error', conf.errorHandler('Uglify'));
@@ -41,7 +40,7 @@ function build() {
     .pipe(jsFilter.restore)
 
     .pipe(cssFilter)
-    .pipe(cssnano())
+    .pipe(postcss([cssnano()]))
     .pipe(cssFilter.restore)
 
     .pipe(sourcemaps.write('maps'))

@@ -1,0 +1,36 @@
+<a href="/#/profiles">Return back to profiles</a>
+<uib-tabset
+        class="multiple-widgets-container">
+    <uib-tab index="0">
+        <uib-tab-heading>
+            <i class="fa fa-lg fa-fw fa-connectdevelop"></i> Drug Interactions
+        </uib-tab-heading>
+
+        <div ng-if="vm.data">
+            <drug-interactions-visualization
+                    data="vm.data"
+            ></drug-interactions-visualization>
+        </div>
+
+        <div ng-if="vm.profileErrorMessage">
+            <div class="well">
+                <adp-section-title>
+                    {{vm.profileErrorMessage}}
+                </adp-section-title>
+            </div>
+        </div>
+
+    </uib-tab>
+    <uib-tab index="1">
+        <uib-tab-heading>
+            <i class="fa fa-lg fa-fw fa-exclamation-triangle"></i> Adverse Events
+        </uib-tab-heading>
+        Coming soon
+    </uib-tab>
+    <uib-tab index="2">
+        <uib-tab-heading>
+            <i class="fa fa-lg fa-fw fa-exclamation-triangle"></i> Recalls
+        </uib-tab-heading>
+        Coming soon
+    </uib-tab>
+</uib-tabset>

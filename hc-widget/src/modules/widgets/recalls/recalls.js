@@ -1,9 +1,10 @@
-import hcWidgetAPI from '../../api';
-import $ from '../../../lib/dom';
+import $ from '../../../lib/utils/dom';
 import Table from '../../../modules/table/table';
 import recallsTemplate from './recalls.hbs';
 import openFdaHelpers from '../../../modules/open-fda-helpers';
-import {widgetError} from '../../../lib/utils';
+import { showErrorToUser } from '../../../lib/utils/utils';
+import { fetchRecalls } from './api';
+import { ResponseError } from '../../../lib/exceptions'
 
 function createRecall(data, formatFn, type) {
   return {
@@ -17,13 +18,13 @@ function formatRecalls(recalls) {
   recalls.forEach(recallList => {
     recallList.list = recallList.list.map(recall => {
       return {
-        'Start Date': createRecall(recall.recall_initiation_date, openFdaHelpers.openFdaDate, 'Date'),
+        'Start Date': createRecall(recall.recallInitiationDate, openFdaHelpers.dateToMmDdYyyy, 'Date'),
         'Status': createRecall(recall.status),
         'Classification': createRecall(recall.classification),
-        'Firm': createRecall(recall.recalling_firm),
-        'Coverage Area': createRecall(recall.distribution_pattern),
-        'Reason for Recall': createRecall(recall.reason_for_recall),
-        'Product Information': createRecall(recall.code_info)
+        'Firm': createRecall(recall.recallingFirm),
+        'Coverage Area': createRecall(recall.distributionPattern),
+        'Reason for Recall': createRecall(recall.reasonForRecall),
+        'Product Information': createRecall(recall.codeInfo)
       }
     });
   });
@@ -37,30 +38,29 @@ export default class Recalls {
     this.options = options;
 
     this.fetchData()
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        widgetError(err.message);
+        showErrorToUser(ResponseError.RECALLS_EMPTY);
       });
   }
 
   fetchData() {
-    return hcWidgetAPI.getRecalls(this.options)
+    return fetchRecalls(this.options)
       .then(data => {
         if (data.length) {
           this.buildWidgetBody();
           this.buildTable(data);
         } else {
-          throw new Error('Unable to get recalls.');
+          throw new ResponseError(ResponseError.RECALLS_EMPTY);
         }
       });
   }
 
-  heads(data) {
-    for (let i = 0; i < data.length; i++) {
-      if (data[i].list.length) {
-        return Object.keys(data[i].list[0])
-      }
-    }
+  heads() {
+    return [
+      'Start Date', 'Status', 'Classification', 'Firm',
+      'Coverage Area', 'Reason for Recall', 'Product Information',
+    ]
   }
 
   buildWidgetBody() {
@@ -70,7 +70,7 @@ export default class Recalls {
 
   buildTable(recalls) {
     const data = formatRecalls(recalls);
-    const heads = this.heads(data);
+    const heads = this.heads();
 
     const table = new Table({
       heads, data,

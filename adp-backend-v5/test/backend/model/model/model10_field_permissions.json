@@ -110,7 +110,7 @@
       "scopes": {
         "scope": {
           "permissions": "accessAsAnyone",
-          "where": "{$eq: [1, 1]}"
+          "where": "true"
         }
       },
       "actions": {

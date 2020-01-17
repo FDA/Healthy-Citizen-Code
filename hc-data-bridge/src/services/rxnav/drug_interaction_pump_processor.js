@@ -3,10 +3,10 @@ const datapumps = require('datapumps');
 datapumps.Buffer.defaultBufferSize(10000);
 const Group = datapumps.Group;
 const { MongodbMixin, MergeMixin } = datapumps.mixin;
-const MongoClient = require('mongodb').MongoClient;
 const _ = require('lodash');
 const { findDrugInteractions } = require('./rxnav_api');
-const { getNormalizedNDC } = require('./ndc_rxcui_helper');
+const { getNormalizedNDCByPackageNDC } = require('../util/ndc');
+const { mongoConnect } = require('../util/mongo');
 
 class DrugInteractionPumpProcessor extends Group {
   constructor (inputSettings) {
@@ -31,15 +31,8 @@ class DrugInteractionPumpProcessor extends Group {
   }
 
   checkConnection (url, errorUrls) {
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(url, (err, db) => {
-        if (err) {
-          errorUrls.push(url);
-          resolve();
-          return;
-        }
-        resolve(db);
-      });
+    return mongoConnect(url).catch(e => {
+      errorUrls.push(url);
     });
   }
 
@@ -72,7 +65,7 @@ class DrugInteractionPumpProcessor extends Group {
               const ndcs = products.filter((product) => {
                 const ndc = product['Item Code'];
                 // we don't have 'SAB' only 'ATV'
-                const normalizedNDC = getNormalizedNDC({ ATV: ndc });
+                const normalizedNDC = getNormalizedNDCByPackageNDC(ndc);
                 return !!normalizedNDC;
               });
               return this.pump('productsMedications').buffer().writeAsync(ndcs);
@@ -107,7 +100,7 @@ class DrugInteractionPumpProcessor extends Group {
               const ndcs = products.filter((product) => {
                 const ndc = product['Item Code'];
                 // we don't have 'SAB' only 'ATV'
-                const normalizedNDC = getNormalizedNDC({ ATV: ndc });
+                const normalizedNDC = getNormalizedNDCByPackageNDC(ndc);
                 return !!normalizedNDC;
               });
               return this.pump('productsBiologics').buffer().writeAsync(ndcs);

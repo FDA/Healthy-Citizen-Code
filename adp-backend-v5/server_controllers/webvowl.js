@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
+const log = require('log4js').getLogger('server_controllers/webvowl');
 
 module.exports = () => {
   const m = {};
@@ -31,8 +32,7 @@ module.exports = () => {
 
   function addDocClass(doc, schema, schemaName, config) {
     const labelRenderer =
-      m.appLib.appModelHelpers.LabelRenderers[schema.labelRenderer] ||
-      getDefaultLabelRenderer(schema);
+      m.appLib.appModelHelpers.LabelRenderers[schema.labelRenderer] || getDefaultLabelRenderer(schema);
 
     const classId = getClassIdForDoc(doc._id, schemaName);
     const classType = 'owl:Class';
@@ -134,7 +134,7 @@ module.exports = () => {
     }
     if (fieldType.startsWith('Location')) {
       return _.castArray(val)
-        .map(v => v.toString())
+        .map(v => (_.isPlainObject(v) ? JSON.stringify(v) : v.toString()))
         .join(', ');
     }
     if (fieldType.startsWith('Mixed') || fieldType.startsWith('Object')) {
@@ -150,23 +150,20 @@ module.exports = () => {
 
   const defaultIgnoredCollections = ['files', 'permissions', 'roles', 'users'];
 
-  function getWebVOWLConfig(ignoredCollections = defaultIgnoredCollections) {
+  async function getWebVOWLConfig(ignoredCollections = defaultIgnoredCollections) {
     const config = getInitialConfig();
-    const schemaNames = _.keys(m.appLib.appModel.models).filter(
-      name => !ignoredCollections.includes(name)
-    );
+    const schemaNames = _.keys(m.appLib.appModel.models).filter(name => !ignoredCollections.includes(name));
 
-    return Promise.map(schemaNames, schemaName =>
-      m.appLib.db
+    await Promise.map(schemaNames, async schemaName => {
+      const schema = m.appLib.appModel.models[schemaName];
+      const docs = await m.appLib.db
         .model(schemaName)
         .find()
         .lean()
-        .exec()
-        .then(docs => {
-          const schema = m.appLib.appModel.models[schemaName];
-          return Promise.map(docs, doc => transformDocToWebVOWL(doc, schema, schemaName, config));
-        })
-    ).then(() => config);
+        .exec();
+      return Promise.map(docs, doc => transformDocToWebVOWL(doc, schema, schemaName, config));
+    });
+    return config;
   }
 
   m.init = appLib => {
@@ -174,18 +171,19 @@ module.exports = () => {
     appLib.addRoute('get', `/getWebVOWLConfig`, [m.getWebVOWLConfig]);
   };
 
-  m.getWebVOWLConfig = (req, res, next) => {
-    getWebVOWLConfig()
-      .then(config => {
-        res.json({
-          success: true,
-          data: config,
-        });
-        next();
-      })
-      .catch(e => {
-        res.json({ success: false, message: `Unable to get WebVOWLConfig: ${e}` });
+  m.getWebVOWLConfig = async (req, res, next) => {
+    try {
+      const config = await getWebVOWLConfig();
+      res.json({
+        success: true,
+        data: config,
       });
+      next();
+    } catch (e) {
+      const message = `Unable to get WebVOWLConfig`;
+      log.error(message, e.stack);
+      res.status(500).json({ success: false, message });
+    }
   };
 
   return m;

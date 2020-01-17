@@ -1,0 +1,16 @@
+<div
+  ng-if="vm.formattedData"
+  ng-repeat="item in vm.formattedData track by $index"
+>
+
+  <dl class="row">
+    <dt class="col-md-4">{{item.name}}</dt>
+
+    <dd class="col-md-8">
+      <adp-record-details-cell
+        template="item.template"
+      ></adp-record-details-cell>
+    </dd>
+  </dl>
+
+</div>

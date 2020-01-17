@@ -10,7 +10,8 @@
     AdpValidationService,
     AdpFormIteratorUtils,
     AdpFormDataUtils,
-    AdpFormHelpers
+    AdpFormHelpers,
+    AdpPath
   ) {
     function getType(formParams) {
       var types = getTypeMap();
@@ -85,16 +86,30 @@
         .bind(params, data, row, modelSchema, action);
     }
 
-    // TODO: refactor arguments with formParams
-    function compareFieldsWithShow(formData, schema, visibilityMap, $action) {
+    // params shape {
+    //   formData
+    //   schema
+    //   groups
+    //   visibilityMap
+    //   actionType
+    // }
+    function evaluateShow(params) {
+      _evaluateShowForFields(params);
+      _clearGroups(params);
+    }
+
+    function _evaluateShowForFields(params) {
+      var formData = params.formData;
+      var schema = params.schema;
+
       AdpFormIteratorUtils.traverseFormDataPostOrder(
         formData, schema, '',
         function (formDataRef, currentField, path) {
           if (_.isUndefined(currentField.show)) {
             return;
           }
-
-          var conditionParams = AdpFormHelpers.getHelperParams(path, formData, $action, schema);
+          var visibilityMap = params.visibilityMap;
+          var conditionParams = AdpFormHelpers.getHelperParams(path, formData, params.actionType, schema);
           var displayConditionFn = _createShowFnByPath(conditionParams);
 
           try {
@@ -114,29 +129,53 @@
         });
     }
 
-    // TODO: refactor arguments with formParams
-    function compareGroupsWithShow(formData, groupsSchema, $action, schema, visibilityMap) {
-      _.each(groupsSchema, function (group) {
-        if (_.isUndefined(group.show)) {
+    function _clearGroups(params) {
+      var groups = params.groups;
+      var formData = params.formData;
+      var visibilityMap = params.visibilityMap;
+
+      _.each(groups, function (group) {
+        if (_.isEmpty(formData) || _.isUndefined(group.show)) {
           return;
         }
 
-        // form is not rendered
-        if (_.isEmpty(formData)) {
-          return;
-        }
+        var isGroupVisible = visibilityMap[group.keyName];
 
         _.each(group.fields, function (field) {
-          var path = field.keyName;
-          var groupName = group.keyName;
-          // first level always so path === key
-          visibilityMap[path] = visibilityMap[groupName];
+          if (field.show) {
+            return;
+          }
 
-          if (!visibilityMap[groupName]) {
-            _.set(formData, path, null);
+          var path = field.keyName;
+
+          if (field.type === 'Array') {
+            _setArrayVisibilityInGroup(isGroupVisible, visibilityMap, formData, path);
+          } else {
+            _setPrimitiveVisibility(isGroupVisible, visibilityMap, formData, path);
           }
         });
       });
+    }
+
+    function _setArrayVisibilityInGroup(isVisible, visibilityMap, formData, path) {
+      var arrayData = formData[path];
+
+      _.forEach(arrayData, function (item, index) {
+        var arrayPath = path + '[' + index + ']';
+        if (!isVisible) {
+          _.set(formData, arrayPath, {});
+        }
+
+        visibilityMap[arrayPath] = isVisible;
+      });
+    }
+
+    function _setPrimitiveVisibility(isVisible, visibilityMap, formData, path) {
+      if (!isVisible) {
+        _.set(formData, path, null);
+      }
+
+      visibilityMap[path] = isVisible;
     }
 
     function groupHasErrors(fieldGroup, form) {
@@ -203,86 +242,117 @@
       return root;
     }
 
-    function _hasRequiredFieldsInObject(schema) {
-      var requriedItem = _.find(schema.fields, function (field) {
-        if (field.type === 'Object' || field.type === 'Array') {
-          return false;
-        }
-        // refactor: required make conditional
-        return field.required;
-      });
+    function evaluateRequiredStatus(formParams, form) {
+      var formData = formParams.row;
+      var schema = formParams.modelSchema;
 
-      return !!requriedItem;
-    }
-
-    function _setValidityForObject(form, schema) {
-      _.each(schema.fields, function (field) {
-        if (field.type === 'Object' || field.type === 'Array') {
-          return;
-        }
-
-        var formField = form[field.keyName];
-
-        // check if form field is rendered
-        if (_.isUndefined(formField)) {
-          return;
-        }
-
-        formField.$setValidity('required', true);
-      })
-    }
-
-    function forceCheckObjectRequired(formData, schema, form) {
-      // option clearEmptyOnly to keep item in positions to match real data with copy
+      // using option clearEmptyOnly to keep items in positions
       // example
       // real data: { array: [{...}, {object: {...}}, {...}] }
       // cleaned copy: { array: [null, null, {}] }
       // to check if item in path 'array[2]' is empty, we need to keep empty items in its positions
-      var cleanedFormData = AdpFormDataUtils.cleanFormData(formData, schema, {
-        clearEmptyOnly: false
-      });
+      var cleanedFormData = AdpFormDataUtils.cleanFormData(
+        formData,
+        schema,
+        { clearEmptyOnly: false }
+      );
 
       AdpFormIteratorUtils.traverseFormDataPostOrder(
         formData, schema, '',
-        function (_formDataRef, currentField, path) {
-          if (currentField.type !== 'Object' && currentField.type !== 'Array') {
+        function (_formDataRef, field, path) {
+          if (field.type === 'Schema') {
             return;
           }
+          // shallow copy only, does not mutate any object inside please
+          var currentFormParams = _.clone(formParams);
+          currentFormParams.path = path;
 
-          if (currentField.required) {
-            return;
-          }
+          _evalRequiredStatus(currentFormParams);
 
-          var currentValue = _.get(cleanedFormData, path, null);
-
-          // path.split('.') - angular form contains key-val objects, no arrays.
-          // array[0] - is a key in form, not array with index 0
-          var currentForm = _.get(form, path.split('.'), null);
-
-          // check if form is rendered
-          if (_.isNull(currentForm)) {
-            return;
-          }
-
-          if (_.isNull(currentValue) && _hasRequiredFieldsInObject(currentField)) {
-            _setValidityForObject(currentForm, currentField);
+          if (field.type === 'Array' || field.type === 'Object') {
+            var objectData = _.get(cleanedFormData, path, null);
+            _evalRequiredStatusForObjectChildren(currentFormParams, objectData, form);
           }
         });
     }
+    
+    function _evalRequiredStatusForObjectChildren(formParams, objectData, form) {
+      var isObjectRequired = formParams.requiredMap[formParams.path];
+      if (isObjectRequired) {
+        return;
+      }
+
+      if (_.isNull(objectData) && _hasRequiredFieldsInObject(formParams, objectData)) {
+        _skipRequiredValidationForChildFields(formParams, form);
+      }
+    }
+    
+    function _hasRequiredFieldsInObject(formParams) {
+      var schemaPath = AdpPath.schemaPath(formParams.path);
+      var field = _.get(formParams.modelSchema.fields, schemaPath, null);
+      var result = _findRequiredFieldInObject(field, formParams);
+
+      return !!result;
+    }
+
+    function _findRequiredFieldInObject(objectSchema, formParams) {
+      var result = _.find(objectSchema.fields, function (field, name) {
+        var isComplexType = field.type === 'Object' || field.type === 'Array';
+        if (isComplexType && field.showInForm) {
+          return false;
+        }
+
+        var nextPath = AdpPath.next(formParams.path, name);
+        return formParams.requiredMap[nextPath];
+      });
+
+      return result;
+    }
+
+    function _skipRequiredValidationForChildFields(formParams, form) {
+      var schemaPath = AdpPath.schemaPath(formParams.path);
+      var field = _.get(formParams.modelSchema.fields, schemaPath, null);
+
+      _.each(field.fields, function (field, name) {
+        var isComplexType = field.type === 'Object' || field.type === 'Array';
+        if (isComplexType && field.showInForm) {
+          return;
+        }
+
+
+        var childPath = AdpPath.next(formParams.path, name);
+        var formField = _.get(form, childPath.split('.'), null);
+        var notInDOM = formField === null;
+
+        if (notInDOM) {
+          return;
+        }
+        formField.$setValidity('required', true);
+      });
+    }
+
+    function _evalRequiredStatus(formParams) {
+      try {
+        var requiredFn = AdpValidationService.getRequiredFn(formParams);
+        formParams.requiredMap[formParams.path] = requiredFn();
+      } catch (e) {
+        formParams.requiredMap[formParams.path] = false;
+        console.log('Error while evaluating required condition for: ', formParams, e);
+      }
+    }
 
     return {
-      forceCheckObjectRequired: forceCheckObjectRequired,
       getType: getType,
       getTypeMap: getTypeMap,
       getFormFields: getFormFields,
-      compareFieldsWithShow: compareFieldsWithShow,
-      compareGroupsWithShow: compareGroupsWithShow,
+      evaluateShow: evaluateShow,
       groupHasErrors: groupHasErrors,
       groupCompleted: groupCompleted,
       setGroupDirty: setGroupDirty,
       forceValidation: forceValidation,
       countErrors: countErrors,
       getRootForm: getRootForm,
+      evaluateRequiredStatus: evaluateRequiredStatus
     }
   }
 })();

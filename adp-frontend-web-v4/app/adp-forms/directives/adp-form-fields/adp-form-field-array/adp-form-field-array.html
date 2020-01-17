@@ -1,5 +1,8 @@
-<section class="input-container">
+<section
+  field-container="{{adpField.keyName}}"
+  class="input-container">
   <label
+    ng-show="hasVisibleItems()"
     class="label">
     {{adpField.fullName}}
     <adp-required-mark

@@ -18,7 +18,6 @@ const sampleModel1 = {
     },
     comment: {},
     fields: {},
-    subtype: {},
     visible: {
       default: true,
       type: 'Boolean',
@@ -36,8 +35,7 @@ const sampleModel1 = {
       default: true,
       type: 'Boolean',
       fullName: 'Show In Form of viewDetails action',
-      description:
-        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+      description: 'If set to true (default) then this field will be displayed in the viewDetails action form.',
     },
     showInForm: {
       default: true,
@@ -45,7 +43,7 @@ const sampleModel1 = {
       fullName: 'Show In Form',
       description: 'If set to true (default) then this field will be displayed in the form.',
     },
-    showInGraphQL: {
+    showInGraphql: {
       default: true,
       type: 'Boolean',
       fullName: 'Show In GraphQL',
@@ -53,6 +51,8 @@ const sampleModel1 = {
         'If set to true (default) then this field will be added to GraphQL type thus it can be present in Query.',
     },
     permissions: {},
+    schemaName: {},
+    fieldName: {},
   },
   typeDefaults: {
     fields: {
@@ -61,12 +61,7 @@ const sampleModel1 = {
       },
       T2: {
         A2: 'V2',
-        subtype: 'ST1',
       },
-    },
-  },
-  subtypeDefaults: {
-    fields: {
       ST1: {
         SA1: 'SV1',
       },
@@ -114,8 +109,7 @@ const sampleModel2WithLookups = {
       default: true,
       type: 'Boolean',
       fullName: 'Show In Form of viewDetails action',
-      description:
-        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+      description: 'If set to true (default) then this field will be displayed in the viewDetails action form.',
     },
     showInForm: {
       default: true,
@@ -123,17 +117,18 @@ const sampleModel2WithLookups = {
       fullName: 'Show In Form',
       description: 'If set to true (default) then this field will be displayed in the form.',
     },
-    showInGraphQL: {
+    showInGraphql: {
       default: true,
       type: 'Boolean',
       fullName: 'Show In GraphQL',
       description:
         'If set to true (default) then this field will be added to GraphQL type thus it can be present in Query.',
     },
-    subtype: {},
     lookup: {},
     transform: {},
     permissions: {},
+    schemaName: {},
+    fieldName: {},
   },
   models: {
     M1: {
@@ -156,7 +151,7 @@ const sampleModel2WithLookups = {
             table: 'M1',
             foreignKey: 'F1',
             label: 'F1',
-            id: 'F1',
+            id: 'M2_F1',
           },
         },
       },
@@ -171,7 +166,7 @@ const sampleModel2WithLookups = {
             table: 'M0', // doesn't exist
             foreignKey: 'F1',
             label: 'F1',
-            id: 'F1',
+            id: 'M3_F1',
           },
         },
       },
@@ -186,7 +181,7 @@ const sampleModel2WithLookups = {
             table: 'M1',
             foreignKey: 'F1a', // doesn't exist
             label: 'F1a', // doesn't exist
-            id: 'F1a', // doesn't exist
+            id: 'M4_F1a', // doesn't exist
           },
         },
       },
@@ -205,7 +200,6 @@ const sampleModel3DefaultSortBy = {
     },
     comment: {},
     fields: {},
-    subtype: {},
     visible: {
       default: true,
       type: 'Boolean',
@@ -223,8 +217,7 @@ const sampleModel3DefaultSortBy = {
       default: true,
       type: 'Boolean',
       fullName: 'Show In Form of viewDetails action',
-      description:
-        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+      description: 'If set to true (default) then this field will be displayed in the viewDetails action form.',
     },
     showInForm: {
       default: true,
@@ -232,7 +225,7 @@ const sampleModel3DefaultSortBy = {
       fullName: 'Show In Form',
       description: 'If set to true (default) then this field will be displayed in the form.',
     },
-    showInGraphQL: {
+    showInGraphql: {
       default: true,
       type: 'Boolean',
       fullName: 'Show In GraphQL',
@@ -241,6 +234,8 @@ const sampleModel3DefaultSortBy = {
     },
     defaultSortBy: {},
     permissions: {},
+    schemaName: {},
+    fieldName: {},
   },
   models: {
     M1: {
@@ -314,8 +309,7 @@ const sampleModel4ValidatorsAndTransformers = {
       default: true,
       type: 'Boolean',
       fullName: 'Show In Form of viewDetails action',
-      description:
-        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+      description: 'If set to true (default) then this field will be displayed in the viewDetails action form.',
     },
     showInForm: {
       default: true,
@@ -323,17 +317,18 @@ const sampleModel4ValidatorsAndTransformers = {
       fullName: 'Show In Form',
       description: 'If set to true (default) then this field will be displayed in the form.',
     },
-    showInGraphQL: {
+    showInGraphql: {
       default: true,
       type: 'Boolean',
       fullName: 'Show In GraphQL',
       description:
         'If set to true (default) then this field will be added to GraphQL type thus it can be present in Query.',
     },
-    subtype: {},
     validate: {},
     transform: {},
     permissions: {},
+    schemaName: {},
+    fieldName: {},
   },
   models: {
     M1: {
@@ -372,11 +367,7 @@ const sampleModel4ValidatorsAndTransformers = {
               },
             },
           ],
-          transform: [
-            'transformer0',
-            'transformer1',
-            ['transformer2', 'transformer3', 'transformer4'],
-          ],
+          transform: ['transformer0', 'transformer1', ['transformer2', 'transformer3', 'transformer4']],
         },
       },
     },
@@ -387,6 +378,7 @@ const sampleRequiredValidation = {
     type: {
       default: 'T2',
     },
+    filters: {},
     comment: {},
     fields: {},
     visible: {
@@ -406,8 +398,7 @@ const sampleRequiredValidation = {
       default: true,
       type: 'Boolean',
       fullName: 'Show In Form of viewDetails action',
-      description:
-        'If set to true (default) then this field will be displayed in the viewDetails action form.',
+      description: 'If set to true (default) then this field will be displayed in the viewDetails action form.',
     },
     showInForm: {
       default: true,
@@ -415,14 +406,15 @@ const sampleRequiredValidation = {
       fullName: 'Show In Form',
       description: 'If set to true (default) then this field will be displayed in the form.',
     },
-    showInGraphQL: {
+    showInGraphql: {
       default: true,
       type: 'Boolean',
       fullName: 'Show In GraphQL',
       description:
         'If set to true (default) then this field will be added to GraphQL type thus it can be present in Query.',
     },
-    subtype: {},
+    schemaName: {},
+    fieldName: {},
     validate: {},
     transform: {},
     permissions: {},
@@ -598,6 +590,7 @@ const sampleRequiredValidation = {
 const reqlib = require('app-root-path').require;
 
 const accessCfg = reqlib('/lib/access/access-config');
+const filterUtil = reqlib('/lib/filter/util');
 // TODO: add check on transformation array of permissions to objects
 describe('V5 Core Utility', () => {
   describe('validateAndCleanupAppModel', () => {
@@ -606,55 +599,54 @@ describe('V5 Core Utility', () => {
         appModel: _.cloneDeep(sampleModel1),
         getAuthSettings: () => ({}),
         accessCfg,
+        filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
       const { errors, warnings } = mutil.validateAndCleanupAppModel();
       errors.length.should.equal(0, errors.join('\n')); // sampleModel1 has no errors
-      appLib.appModel.models.M1.should.not.have.property('comment'); // comments removed
-      appLib.appModel.models.M1.type.should.equal('T2'); // default type assigned
+      const { M1 } = appLib.appModel.models;
+      M1.should.not.have.property('comment'); // comments removed
+      M1.type.should.equal('T2'); // default type assigned
 
       // merge type defaults for assumed type
-      appLib.appModel.models.M1.should.have.property('A2');
-      appLib.appModel.models.M1.A2.should.equal('V2');
+      M1.should.have.property('A2');
+      M1.A2.should.equal('V2');
       // merge type defaults for explicit type
-      appLib.appModel.models.M1.fields.F1.should.have.property('A1');
-      appLib.appModel.models.M1.fields.F1.A1.should.equal('V1');
-      // merge subtype defaults for assumed type and subtype
-      appLib.appModel.models.M1.should.have.property('subtype');
-      appLib.appModel.models.M1.subtype.should.equal('ST1');
-      appLib.appModel.models.M1.should.have.property('SA1');
-      appLib.appModel.models.M1.SA1.should.equal('SV1');
+      M1.fields.F1.should.have.property('A1');
+      M1.fields.F1.A1.should.equal('V1');
       // type defaults should not override existing values
-      appLib.appModel.models.M1.should.have.property('A1');
-      appLib.appModel.models.M1.A1.should.equal('V3');
+      M1.should.have.property('A1');
+      M1.A1.should.equal('V3');
 
       warnings.length.should.equal(0, errors.join('\n'));
     });
+
     it('validates lookups', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel2WithLookups),
         getAuthSettings: () => ({}),
         accessCfg,
+        filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
       const { errors } = mutil.validateAndCleanupAppModel();
       errors.length.should.equal(3, errors.join('\n'));
       errors[0].should.equal('Lookup in M3.fields.F1 refers to nonexisting collection "M0"');
       errors[1].should.equal('Lookup in M4.fields.F1 refers to nonexisting foreignKey "F1a"');
-      errors[2].should.equal('Lookup in M4.fields.F1 refers to nonexisting label "F1a"');
+      errors[2].should.equal('Lookup label "this.F1a" in M4.fields.F1 uses nonexisting fields: "F1a"');
     });
+
     it('validates defaultSortBy', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel3DefaultSortBy),
         getAuthSettings: () => ({}),
         accessCfg,
+        filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
       const { errors } = mutil.validateAndCleanupAppModel();
       errors.length.should.equal(3, errors.join('\n'));
-      errors[0].should.equal(
-        'defaultSortBy in M2 has incorrect format, the sorting order must be either 1 or -1'
-      );
+      errors[0].should.equal('defaultSortBy in M2 has incorrect format, the sorting order must be either 1 or -1');
       errors[1].should.equal('defaultSortBy in M3 refers to nonexisting field "F2"');
       errors[2].should.equal('defaultSortBy in M4 has incorrect format, must be an object');
     });
@@ -663,10 +655,12 @@ describe('V5 Core Utility', () => {
         appModel: _.cloneDeep(sampleModel4ValidatorsAndTransformers),
         getAuthSettings: () => ({}),
         accessCfg,
+        allActionsNames: [...accessCfg.DEFAULT_ACTIONS],
         appModelHelpers: {
           Validators: { validator1: 'test' },
           Transformers: { transformer1: 'test', transformer2: 'test' },
         },
+        filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
       const { errors } = mutil.validateAndCleanupAppModel();
@@ -683,6 +677,8 @@ describe('V5 Core Utility', () => {
         appModel: _.cloneDeep(sampleRequiredValidation),
         getAuthSettings: () => ({}),
         accessCfg,
+        allActionsNames: [...accessCfg.DEFAULT_ACTIONS],
+        filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
       const { warnings } = mutil.validateAndCleanupAppModel();

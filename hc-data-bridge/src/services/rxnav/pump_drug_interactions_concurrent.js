@@ -1,10 +1,10 @@
-const { MongoClient } = require('mongodb');
 const _ = require('lodash');
-const { findDrugInteractions } = require('./rxnav_api');
 const Promise = require('bluebird');
 const args = require('optimist').argv;
-const { isValidMongoDbUrl } = require('../../lib/helper');
 const pRetry = require('p-retry');
+const { findDrugInteractions } = require('./rxnav_api');
+const { isValidMongoDbUrl } = require('../../lib/helper');
+const { mongoConnect } = require('../util/mongo');
 
 const retryOptions = {
   onFailedAttempt: (error) => {
@@ -13,14 +13,7 @@ const retryOptions = {
   retries: 5,
 };
 
-const checkConnection = (url) => new Promise((resolve, reject) => {
-  MongoClient.connect(url, (err, db) => {
-    if (err) {
-      return reject(err);
-    }
-    resolve(db);
-  });
-});
+const getConnection = (url) => mongoConnect(url)
 
 const transformDrugInteraction = (drugInteraction) => {
   // no drug interaction data
@@ -36,12 +29,12 @@ const transformDrugInteraction = (drugInteraction) => {
   _.forEach(result.interactionTypeGroup, (interactionTypeGroup) => {
     delete interactionTypeGroup.sourceDisclaimer;
 
-    _.forEach(interactionTypeGroup.interactionType, (interactionType) => {
+    /*_.forEach(interactionTypeGroup.interactionType, (interactionType) => {
       _.forEach(interactionType.interactionPair, (interactionPair) => {
         // TODO: resolve how to store second drug info
         // delete interactionPair.interactionConcept;
       });
-    });
+    });*/
   });
   return result;
 };
@@ -78,11 +71,11 @@ if (!rxcuiCollectionName || !drugInteractionCollectionName || !isValidMongoDbUrl
 }
 
 let dbCon;
-checkConnection(mongoUrl)
+getConnection(mongoUrl)
   .then((dbConnection) => {
     dbCon = dbConnection;
     return Promise.all([
-      dbCon.collection(rxcuiCollectionName).find({}, { rxcui: 1 }),
+      dbCon.collection(rxcuiCollectionName).find({}, { projection: { rxcui: 1 }}),
       dbCon.collection(drugInteractionCollectionName).createIndex({ rxcui: 1 }),
     ]);
   })

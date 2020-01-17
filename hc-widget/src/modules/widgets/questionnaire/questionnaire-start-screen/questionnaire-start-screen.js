@@ -1,5 +1,5 @@
-import $ from '../../../../lib/dom';
-import hcWidgetAPI from '../../../api';
+import $ from '../../../../lib/utils/dom';
+import { startQuestionnaire } from '../api';
 import template from './questionnaire-start-screen.hbs';
 
 export default class QuestionnaireStartScreen {
@@ -17,8 +17,8 @@ export default class QuestionnaireStartScreen {
   fetchData() {
     this.$btn.get(0).disabled = true;
 
-    hcWidgetAPI.startQuestionnaire(this.options, this.data._id)
-      .then(_resp => {
+    startQuestionnaire(this.options, this.data._id)
+      .then(() => {
         this.onStartCb(this.data);
       })
   }

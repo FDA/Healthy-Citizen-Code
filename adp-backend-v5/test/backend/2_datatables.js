@@ -10,7 +10,7 @@ const { ObjectID } = require('mongodb');
 
 const reqlib = require('app-root-path').require;
 
-const { getMongoConnection, setAppAuthOptions, prepareEnv } = reqlib('test/backend/test-util');
+const { getMongoConnection, setAppAuthOptions, prepareEnv, conditionForActualRecord } = reqlib('test/test-util');
 
 describe('V5 Backend Datatables Support', () => {
   const sampleDataModel5 = [
@@ -161,14 +161,15 @@ describe('V5 Backend Datatables Support', () => {
         },
       ],
     },
-  ];
+  ].map(d => ({ ...d, ...conditionForActualRecord }));
+
   const columnsDatatablesSpec = _.map(
     ['_id', 'n', 's', 'd', 'q'],
     (name, idx) =>
       `columns[${idx}][data]=${name}&columns[${idx}][name]=${name}&columns[${idx}][searchable]=true&columns[${idx}][orderable]=true&columns[${idx}][search]=&columns[${idx}][search][regex]=false`
   ).join('&');
 
-  before(function() {
+  before(async function() {
     prepareEnv();
     this.appLib = reqlib('/lib/app')();
     setAppAuthOptions(this.appLib, {
@@ -176,22 +177,18 @@ describe('V5 Backend Datatables Support', () => {
       enablePermissions: false,
     });
 
-    return Promise.all([getMongoConnection(), this.appLib.setup()]).then(([db]) => {
-      this.db = db;
-    });
+    const [db] = await Promise.all([getMongoConnection(), this.appLib.setup()]);
+    this.db = db;
   });
 
-  after(function() {
-    return this.db
-      .dropDatabase()
-      .then(() => Promise.all([this.db.close(), this.appLib.shutdown()]));
+  after(async function() {
+    await this.db.dropDatabase();
+    await Promise.all([this.db.close(), this.appLib.shutdown()]);
   });
 
-  beforeEach(function() {
-    return this.db
-      .collection('model5s')
-      .remove({})
-      .then(() => this.db.collection('model5s').insert(sampleDataModel5));
+  beforeEach(async function() {
+    await this.db.collection('model5s').deleteMany({});
+    await this.db.collection('model5s').insertMany(sampleDataModel5);
   });
 
   describe('1st level', () => {
@@ -289,15 +286,9 @@ describe('V5 Backend Datatables Support', () => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
           res.body.data.length.should.equal(3);
-          new Date(res.body.data[0].d)
-            .getTime()
-            .should.equal(new Date('2019-01-01 00:00:00').getTime());
-          new Date(res.body.data[1].d)
-            .getTime()
-            .should.equal(new Date('2018-01-01 00:00:00').getTime());
-          new Date(res.body.data[2].d)
-            .getTime()
-            .should.equal(new Date('2017-05-01 00:00:00').getTime());
+          new Date(res.body.data[0].d).getTime().should.equal(new Date('2019-01-01 00:00:00').getTime());
+          new Date(res.body.data[1].d).getTime().should.equal(new Date('2018-01-01 00:00:00').getTime());
+          new Date(res.body.data[2].d).getTime().should.equal(new Date('2017-05-01 00:00:00').getTime());
           done();
         });
     });

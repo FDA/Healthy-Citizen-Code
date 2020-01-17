@@ -1,0 +1,66 @@
+{
+  "data": {
+    "userPreferences": {
+      "count": 1,
+      "items": [
+        {
+          "_id": "5c774573605e8746930b2d6c",
+          "udid": "aa27c71e-30c8-4ceb-8c1c-5641e066c0aa",
+          "gender": "F",
+          "age": "65-74",
+          "geographicRegion": "NE",
+          "medications": [
+            {
+              "_id": "5b8403106ad319a95ce552ed",
+              "ndc11": "68071199005",
+              "brandName": "simvastatin",
+              "rxcui": "312961"
+            },
+            {
+              "_id": "5b8403366ad319a95ce6fd1f",
+              "ndc11": "54738055925",
+              "brandName": "Aspirin",
+              "rxcui": "308416"
+            },
+            {
+              "_id": "5b84033c6ad319a95ce7afeb",
+              "ndc11": "68071133005",
+              "brandName": "Nitroglycerin",
+              "rxcui": "198039"
+            },
+            {
+              "_id": "5b8403136ad319a95ce5a667",
+              "ndc11": "66267012660",
+              "brandName": "Ketoprofen",
+              "rxcui": "197856"
+            },
+            {
+              "_id": "5b8403186ad319a95ce672d9",
+              "ndc11": "50436994602",
+              "brandName": "Warfarin Sodium",
+              "rxcui": "855302"
+            },
+            {
+              "_id": "5b8403196ad319a95ce69328",
+              "ndc11": "16729027735",
+              "brandName": "Methotrexate",
+              "rxcui": "1655956"
+            },
+            {
+              "_id": "5b8403106ad319a95ce551d6",
+              "ndc11": "61786099702",
+              "brandName": "Lisinopril with Hydrochlorothiazide",
+              "rxcui": "197885"
+            }
+          ]
+        }
+      ],
+      "pageInfo": {
+        "pageCount": 1,
+        "itemCount": 1,
+        "hasNextPage": false,
+        "hasPreviousPage": false
+      }
+    }
+  }
+}

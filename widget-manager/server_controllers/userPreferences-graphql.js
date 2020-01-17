@@ -1,16 +1,38 @@
-module.exports = function () {
-  let m = {};
+module.exports = function() {
+  const m = {};
 
-  m.init = (appLib) => {
+  m.init = appLib => {
     m.appLib = appLib;
 
-    const { schemaComposer, addQuery, addMutation, addDefaultTypesAndResolversForModel} = m.appLib.graphQl;
+    const {
+      graphqlCompose: { schemaComposer },
+      removeDefaultQueries,
+      removeDefaultMutations,
+      addMutation,
+      addQuery,
+      resolvers: {
+        addFindManyByFilterType,
+        addUpsertOne,
+      },
+    } = m.appLib.graphQl;
     const modelName = 'userPreferences';
-    addDefaultTypesAndResolversForModel(modelName);
-    const tc = schemaComposer.getTC(modelName);
-    // custom query
-    addQuery(modelName, tc.getResolver('pagination'));
-    addMutation(`${modelName}UpsertOne`, tc.getResolver('upsertOne'));
+    removeDefaultQueries(modelName);
+    removeDefaultMutations(modelName);
+
+    const udidFilter = schemaComposer.createInputTC({
+      name: 'udidFilter',
+      fields: {
+        udid: 'String!',
+      },
+    }).getTypeNonNull();
+
+    // custom upsert
+    const { resolver: upsertOneResolver } = addUpsertOne(modelName, udidFilter);
+    addMutation(`${modelName}UpsertOne`, upsertOneResolver);
+
+    // custom findMany
+    const { resolver: findManyByFilterTypeResolver } = addFindManyByFilterType(modelName, udidFilter);
+    addQuery(modelName, findManyByFilterTypeResolver);
   };
 
   return m;

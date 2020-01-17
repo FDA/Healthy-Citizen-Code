@@ -1,14 +1,19 @@
+import $ from '../../../lib/utils/dom';
+import {
+  preferencesQuery,
+  preferencesMutate
+} from '../../../lib/api/user-preferences/user-preferences';
+import { importMedicationsFromDstu2 } from './api';
 import tpl from './preferences.hbs';
 import tableTpl from './partials/medications-table.hbs';
 
-import $ from '../../../lib/dom';
-
-import API from '../../api';
-import {prefrencesQuery, prefrencesMutate} from '../../queries';
-import {HttpError} from "../../errors";
-
 import ndcLookup from '../ndc-lookup/ndc-lookup';
-import {updateIframeHeight, widgetError} from '../../../lib/utils';
+import {
+  updateIframeHeight,
+  showErrorToUser,
+} from '../../../lib/utils/utils';
+import { ResponseError } from '../../../lib/exceptions'
+
 import unionBy from 'lodash.unionby';
 
 export default class Preferences {
@@ -18,28 +23,30 @@ export default class Preferences {
 
     this.medications = [];
 
-    prefrencesQuery({udid: this.options.udid})
+    preferencesQuery(this.options.udid)
       .then(data => {
         this.render();
         this.populate(data);
         this.bindEvents();
         updateIframeHeight();
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(err);
-        widgetError('Unable to get data.');
+        showErrorToUser(ResponseError.EMPTY);
       });
   }
 
   render() {
     this.form = $(tpl({ showImport: this.options.fhirDataImport })).get(0);
 
-    const widgetOpts = Object.assign({}, this.options, {
+    const lookupOptions = {
       selection: true,
-      onSelection: selected => this.addMedication(selected)
-    });
+      onSelection: selected => this.addMedication(selected),
+      ...this.options,
+    };
+
     const lookupNode = this.form.querySelector('.js-widget-lookup');
-    new ndcLookup(lookupNode, widgetOpts);
+    new ndcLookup(lookupNode, lookupOptions);
 
     this.table = this.form.querySelector('.js-table-lookup');
     this.btn = this.form.querySelector('[type="submit"]');
@@ -51,12 +58,11 @@ export default class Preferences {
     this.$el.append(this.form);
   }
 
-  addMedication(selected) {
+  addMedication({ _id, packageNdc11, name }) {
     const medication = {
-      _id: selected._id,
-      ndc11: selected.ndc11,
-      brandName: selected.brandName,
-      rxcui: selected.rxnsatData.rxcui,
+      ndc11: packageNdc11,
+      brandName: name,
+      _id,
     };
 
     this.populate({medications: [medication]})
@@ -110,7 +116,7 @@ export default class Preferences {
     let data = this.serialize();
     const params = Object.assign({}, {udid: this.options.udid}, data);
 
-    prefrencesMutate(params)
+    preferencesMutate(params)
       .then(() => this.showSuccess())
       .catch(err => this.handleError(err))
       .finally(() => this.disable(false))
@@ -125,7 +131,7 @@ export default class Preferences {
         return;
       }
 
-      if (field.type === 'radio' && !field.checked) {
+      if (field.data === 'radio' && !field.checked) {
         return;
       }
       data[field.name] = field.value;
@@ -146,7 +152,7 @@ export default class Preferences {
       this.disable(true);
       this.importDataRequest(dstu2Url, fhirId);
     } else {
-      this.showServerError('FHIR server URL and FHIR ID are required to import data.');
+      this.showServerError('Correct FHIR server URL and FHIR ID are required to import data.');
     }
   }
 
@@ -158,24 +164,16 @@ export default class Preferences {
   }
 
   importDataRequest(dstu2Url, fhirId) {
-    API.getMedicationCodings({
-        dstu2Url, fhirId,
-        dataSource: 'dstu2'
-      })
-      .then(data => {
-        const medications = data.map(item => {
-          return {
-            ndc11: item.code,
-            brandName: item.display,
-            rxcui: [item.rxcui],
-          }
-        });
+    importMedicationsFromDstu2(dstu2Url, fhirId)
+      .then((medications) => {
         this.populate({medications});
 
-        let formData = this.serialize();
-        const params = Object.assign({}, {udid: this.options.udid}, formData);
+        const params = {
+          udid: this.options.udid,
+          ...this.serialize(),
+        };
 
-        return prefrencesMutate(params);
+        return preferencesMutate(params);
       })
       .then(() => this.showSuccess())
       .catch(err => this.handleError(err))
@@ -192,12 +190,7 @@ export default class Preferences {
 
   handleError(err) {
     console.log(err);
-
-    if (err instanceof HttpError) {
-      this.showServerError(err.message);
-    } else {
-      this.showServerError('Unable to get data from fhir server. Please check FHIR Server URL and FHIR id correctness.');
-    }
+    this.showServerError('Unable to save preferences. Please try again later.');
   }
 
   hideMessages() {

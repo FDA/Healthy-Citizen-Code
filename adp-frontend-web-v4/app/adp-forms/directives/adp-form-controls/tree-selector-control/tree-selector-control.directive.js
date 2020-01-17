@@ -42,7 +42,7 @@
           setOptions();
 
           if (scope.index === 0) {
-            scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
+            scope.isRequired = AdpValidationService.isRequired(scope.validationParams.formParams);
           }
 
           // render child data lookups
@@ -88,7 +88,13 @@
               return { q: term, page: page };
             },
             results: function (response) {
-              return {results: response.data, more: response.more};
+              return {
+                results: response.data.map(function (item) {
+                  item.id = item._id;
+                  return item;
+                }),
+                more: response.more
+              };
             },
             cache: false
           }

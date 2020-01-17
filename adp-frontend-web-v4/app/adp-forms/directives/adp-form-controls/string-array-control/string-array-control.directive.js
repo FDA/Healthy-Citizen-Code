@@ -21,7 +21,7 @@
           setData([]);
         }
 
-        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams.formParams);
         function setData(value) {
           return scope.adpFormData[scope.field.keyName] = value;
         }

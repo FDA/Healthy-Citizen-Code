@@ -28,7 +28,7 @@
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",
-          "where": "{$eq: [true, true]}"
+          "where": "true"
         }
       },
       "fields": {
@@ -234,7 +234,7 @@
                     "scopes": {
                       "ownRecordScope": {
                         "permissions": "accessAsUser",
-                        "where": "{$eq: ['$creator', this.req.user._id]}"
+                        "where": "{ creator: { $eq: this.req.user._id } }"
                       }
                     }
                   }

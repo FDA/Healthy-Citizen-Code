@@ -1,0 +1,16 @@
+{
+  "interface": {
+    "app": {
+      "auth": {
+        "requireAuthentication": false,
+        "enableAuthentication": true,
+        "enableRegistration": true,
+        "enablePermissions": false,
+        "enableUserPasswordReset": false,
+        "enableMfa": false,
+        "requireMfa": false
+      },
+      "offlineModeSupport": true
+    }
+  }
+}

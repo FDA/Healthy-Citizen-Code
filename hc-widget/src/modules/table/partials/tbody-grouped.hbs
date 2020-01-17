@@ -9,13 +9,13 @@
           class="accordion-control group">
         </button>
         {{this.display}} <br>
-        {{@root.config.groupTitle}} {{this.total}}
+        {{@root.config.groupTitle}} {{this.itemCount}}
       </div>
     </td>
   </tr>
   </tbody>
 
-  <tbody class="group-body" data-index="{{@index}}">
+  <tbody class="group-body is-hidden" data-index="{{@index}}">
     {{> group-rows }}
   </tbody>
 

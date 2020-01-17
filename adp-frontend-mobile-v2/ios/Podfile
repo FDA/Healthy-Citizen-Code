@@ -1,0 +1,11 @@
+source 'https://github.com/CocoaPods/Specs.git'
+
+target 'ADP' do
+
+  pod 'GooglePlaces'
+  pod 'GoogleMaps'
+  pod 'GooglePlacePicker'
+
+  pod 'RNKeychain', :path => '../node_modules/react-native-keychain'
+
+end

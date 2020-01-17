@@ -1,6 +1,9 @@
 const Promise = require('bluebird');
 const _ = require('lodash');
-const { PERMISSIONS, ROLES } = require('../../lib/access/access-config')();
+const { PERMISSIONS, ROLES } = require('../../lib/access/access-config');
+
+// TODO: move getConditionForActualRecord from '../../lib/database-abstraction' and use it here;
+const conditionForActualRecord = { deletedAt: new Date(0) };
 
 const systemRoles = [
   {
@@ -19,12 +22,13 @@ const systemRoles = [
     system: true,
   },
 ];
+_.each(systemRoles, r => {
+  _.merge(r, conditionForActualRecord);
+});
 
 function upsertSystemRoles(db) {
   return Promise.map(systemRoles, systemRole =>
-    db
-      .collection('roles')
-      .updateOne({ name: systemRole.name }, { $set: systemRole }, { upsert: true })
+    db.collection('roles').updateOne({ name: systemRole.name }, { $set: systemRole }, { upsert: true })
   );
 }
 
@@ -39,24 +43,22 @@ function rewriteUserRoles(db, user, roleNameToLookup) {
   return db.collection('users').updateOne({ _id: user._id }, { $set: { roles: roleLookups } });
 }
 
-function getRoleNameToLookup(db) {
-  return db
+async function getRoleNameToLookup(db) {
+  const roles = await db
     .collection('roles')
     .find()
-    .toArray()
-    .then(roles => {
-      const roleNameToLookup = {};
-      _.each(roles, role => {
-        const roleName = role.name;
-        roleNameToLookup[roleName] = {
-          table: 'roles',
-          label: roleName,
-          _id: role._id,
-        };
-      });
+    .toArray();
+  const roleNameToLookup = {};
+  _.each(roles, role => {
+    const roleName = role.name;
+    roleNameToLookup[roleName] = {
+      table: 'roles',
+      label: roleName,
+      _id: role._id,
+    };
+  });
 
-      return roleNameToLookup;
-    });
+  return roleNameToLookup;
 }
 
 function getUsersWithStringRoles(db) {
@@ -66,12 +68,13 @@ function getUsersWithStringRoles(db) {
     .toArray();
 }
 
-exports.up = function(db) {
-  return upsertSystemRoles(db)
-    .then(() => Promise.all([getRoleNameToLookup(db), getUsersWithStringRoles(db)]))
-    .then(([roleNameToLookup, usersWithStringRoles]) =>
-      Promise.map(usersWithStringRoles, user => rewriteUserRoles(db, user, roleNameToLookup))
-    );
+exports.up = async function(db) {
+  await upsertSystemRoles(db);
+  const [roleNameToLookup, usersWithStringRoles] = await Promise.all([
+    getRoleNameToLookup(db),
+    getUsersWithStringRoles(db),
+  ]);
+  return Promise.map(usersWithStringRoles, user => rewriteUserRoles(db, user, roleNameToLookup));
 };
 
 exports.down = function(db) {

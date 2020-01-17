@@ -1,0 +1,43 @@
+<form name="form"
+      class="smart-form client-form grid-view-manager">
+    <header class="smart-form-header">
+        <h2 class="semi-bold">Grid state manager</h2>
+    </header>
+
+    <fieldset>
+        <div class="col col-12">
+            <p class="semi-bold" ng-if="vm.savedList && vm.savedList.length">Restore from previously saved:</p>
+            <div class="gvm-items-list">
+                <div ng-repeat="item in vm.savedList" class="gvm-list-item" data-item-id="{{item._id}}">
+                    <div class='gvm-text' ng-click="vm.restore($event)">{{ item.name }}</div>
+                    <div class='gvm-delete' ng-click="vm.delete($event)">
+                        <i class="dx-icon dx-icon-trash"></i>
+                    </div>
+                </div>
+            </div>
+            <i ng-if="!vm.savedList || !vm.savedList.length">No saved states for this grid.</i>
+        </div>
+    </fieldset>
+
+    <footer>
+        <button
+                class="btn btn-default align-left"
+                type="button"
+                ng-click="vm.reset()">
+            Reset grid to default state
+        </button>
+        <button
+                class="btn btn-default"
+                type="button"
+                ng-click="vm.close()">
+            Close
+        </button>
+        <button
+                class="btn btn-primary"
+                type="button"
+                ng-if="vm.storeSchema"
+                ng-click="vm.save()">
+            Save current state
+        </button>
+    </footer>
+</form>

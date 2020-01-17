@@ -1,84 +1,78 @@
 const args = require('optimist').argv;
 const _ = require('lodash');
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect, setUpdateAtIfRecordChanged } = require('../../../util/mongo');
 
-const { mongoUrl, aeCollectionName, deviceCollectionName } = args;
+const { mongoUrl, aesCollectionName, deviceCollectionName } = args;
 
-if (!mongoUrl || !aeCollectionName || !deviceCollectionName) {
-  console.log('Please specify params: mongoUrl, aeCollectionName, deviceCollectionName');
+if (!mongoUrl || !aesCollectionName || !deviceCollectionName) {
+  console.log('Please specify params: mongoUrl, aesCollectionName, deviceCollectionName');
   process.exit(1);
 }
 
 async function linkAeToDevice(deviceDoc, dbCon) {
   const {
     // applicant,
-    // zip_code,
-    device_name,
+    // zipCode,
+    deviceName,
   } = deviceDoc;
 
   // const applicantRegex = new RegExp(_.escapeRegExp(applicant), 'i');
-  // const zipCodeRegex = new RegExp(_.escapeRegExp(zip_code), 'i');
-  const deviceNameRegex = new RegExp(_.escapeRegExp(device_name), 'i');
+  // const zipCodeRegex = new RegExp(_.escapeRegExp(zipCode), 'i');
+  const deviceNameRegex = new RegExp(_.escapeRegExp(deviceName), 'i');
 
-  const matchedAeRecords = await dbCon
-    .collection(aeCollectionName)
+  const matchedAeDocs = await dbCon
+    .collection(aesCollectionName)
     .find(
       {
         // $and: [
-        //   { 'device.manufacturer_d_name': applicantRegex },
-        //   { 'device.manufacturer_d_zip_code': zipCodeRegex },
+        //   { 'device.manufacturerDName': applicantRegex },
+        //   { 'device.manufacturerDZipCode': zipCodeRegex },
         //   {
         $or: [
-          { 'device.openfda.device_name': deviceNameRegex },
-          { 'device.brand_name': deviceNameRegex },
-          { 'device.generic_name': deviceNameRegex },
+          { 'device.openfda.deviceName': deviceNameRegex },
+          { 'device.brandName': deviceNameRegex },
+          { 'device.genericName': deviceNameRegex },
         ],
         //   },
         // ],
       },
-      { _id: 1, report_number: 1 }
+      { projection: { _id: 1, reportNumber: 1 } }
     )
     .toArray();
 
-  if (matchedAeRecords.length) {
-    const lookups = matchedAeRecords.map(ae => ({
-      table: aeCollectionName,
-      label: ae.report_number,
+  if (matchedAeDocs.length) {
+    const lookups = matchedAeDocs.map(ae => ({
+      table: aesCollectionName,
+      label: ae.reportNumber,
       _id: ae._id,
     }));
-    await dbCon
+    await setUpdateAtIfRecordChanged(dbCon
       .collection(deviceCollectionName)
-      .findOneAndUpdate({ _id: deviceDoc._id }, { $set: { adverseEvents: lookups } });
+      , 'updateOne', { _id: deviceDoc._id }, { $set: { adverseEvents: lookups } });
 
-    console.log(
-      `Linked adverse events to device(k_number: ${deviceDoc.k_number}), lookups: ${JSON.stringify(
-        lookups
-      )}`
-    );
+    console.log(`Linked adverse events to device(kNumber: ${deviceDoc.kNumber}), lookups: ${JSON.stringify(lookups)}`);
   } else {
-    // console.log(`Cannot find for applicant: ${deviceDoc.applicant}, zip_code: ${deviceDoc.zip_code}, device_name: ${deviceDoc.device_name}`);
+    // console.log(`Cannot find for applicant: ${deviceDoc.applicant}, zipCode: ${deviceDoc.zipCode}, deviceName: ${deviceDoc.deviceName}`);
   }
 }
 
 async function createIndexes(indexFieldNames, collection, dbCon) {
-  return Promise.map(indexFieldNames, fieldName =>
-    dbCon.collection(collection).createIndex({ [fieldName]: 1 })
-  );
+  return Promise.map(indexFieldNames, fieldName => dbCon.collection(collection).createIndex({ [fieldName]: 1 }));
 }
 
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../../../util/mongo_connection_settings'));
+    const dbCon = await mongoConnect(mongoUrl);
     const aeIndexFieldNames = [
-      'device.manufacturer_d_name',
-      'device.manufacturer_d_zip_code',
-      'device.openfda.device_name',
-      'device.brand_name',
-      'device.generic_name',
+      'device.manufacturerDName',
+      'device.manufacturerDZipCode',
+      'device.openfda.deviceName',
+      'device.brandName',
+      'device.genericName',
     ];
-    console.log(`Creating '${aeCollectionName}' DB Indexes: ${aeIndexFieldNames.join(', ')}`);
-    await createIndexes(aeIndexFieldNames, aeCollectionName, dbCon);
+    console.log(`Creating '${aesCollectionName}' DB Indexes: ${aeIndexFieldNames.join(', ')}`);
+    await createIndexes(aeIndexFieldNames, aesCollectionName, dbCon);
     console.log(`DB Indexes created`);
 
     const deviceCursor = await dbCon
@@ -89,8 +83,8 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
     console.log('Searching for Adverse Events matching Devices.');
     let devices = [];
     while (await deviceCursor.hasNext()) {
-      const deviceRecord = await deviceCursor.next();
-      devices.push(deviceRecord);
+      const deviceDoc = await deviceCursor.next();
+      devices.push(deviceDoc);
       if (devices.length >= 500) {
         await Promise.map(devices, d => linkAeToDevice(d, dbCon));
         devices = [];

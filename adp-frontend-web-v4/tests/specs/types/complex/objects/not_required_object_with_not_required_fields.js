@@ -40,10 +40,7 @@ describe('complex objects', () => {
 
     test(
       'empty form',
-      async () => {
-        this.submitFormBtnSelector = 'button[type=submit]';
-        await this.page.click(this.submitFormBtnSelector);
-      },
+      async function noop() {},
       TEST_TIMEOUT
     );
 

@@ -2,7 +2,6 @@ const crypto = require('crypto');
 const fs = require('fs-extra');
 const path = require('path');
 const _ = require('lodash');
-const log = require('log4js').getLogger('lib/file-controller-util');
 const jimp = require('jimp');
 const mongoose = require('mongoose');
 const mime = require('mime');
@@ -10,7 +9,6 @@ const Promise = require('bluebird');
 const imageMediaTypes = require('../model/model/0_mediaTypes.json').mediaTypes.images;
 
 const imagesTypesMap = _.uniq(imageMediaTypes.map(ext => mime.getType(ext)));
-const jimpReadPromisified = Promise.promisify(jimp.read);
 
 module.exports = () => {
   const m = {};
@@ -21,29 +19,41 @@ module.exports = () => {
    * @returns {undefined}
    */
   function castFiles(files) {
-    return _.map(files, f => ({
-      path: f.tempFilePath,
-      type: f.mimetype,
+    return _.castArray(files).map(f => ({
+      tempFilePath: f.tempFilePath, // tempFilePath is moved
+      path: f.path, // path is copied, original file is not touched
+      type: f.mimetype || f.type,
       name: f.name,
       size: f.size,
     }));
   }
 
-  m.handleUpload = (files, owner, cropParams) => {
-    const castedFiles = castFiles(files);
-    // using mapSeries to avoid "ParallelSaveError": Can't save() the same doc multiple times in parallel
-    return Promise.mapSeries(castedFiles, file =>
-      m.handleSingleFileUpload(file, owner, cropParams)
-    );
+  m.getFilesFromPaths = files => {
+    return _.castArray(files).map(f => {
+      const filePath = path.resolve(f);
+      const fileName = path.basename(filePath);
+      return {
+        path: filePath,
+        name: fileName,
+        type: mime.getType(filePath),
+        size: fs.statSync(filePath).size,
+      };
+    });
   };
 
-  m.handleSingleFileUpload = (file, owner, cropParams) =>
-    m
-      .getFileHash(file.path)
-      .then(hash => m.createFile(file, hash, owner))
-      .then(savedFile => m.processImage(savedFile, cropParams))
-      .then(savedFile => savedFile.save())
-      .then(m.fileToObject);
+  m.handleUpload = (files, owner, cropParams, uploadDir = '../uploads') => {
+    const castedFiles = castFiles(files);
+    // using mapSeries to avoid "ParallelSaveError": Can't save() the same doc multiple times in parallel
+    return Promise.mapSeries(castedFiles, file => m.handleSingleFileUpload(file, owner, cropParams, uploadDir));
+  };
+
+  m.handleSingleFileUpload = async (file, owner, cropParams, uploadDir) => {
+    const hash = await m.getFileHash(file.tempFilePath || file.path);
+    const savedFile = await m.createFile(file, hash, owner, uploadDir);
+    const fileWithProcessedImage = await m.processImage(savedFile, cropParams);
+    const fileModel = await fileWithProcessedImage.save();
+    return m.fileToObject(fileModel);
+  };
 
   /* eslint-disable promise/avoid-new */
   m.getFileHash = (filePath, algorithm = 'sha1') =>
@@ -65,7 +75,27 @@ module.exports = () => {
     });
   /* eslint-enable promise/avoid-new */
 
-  m.createFile = (reqFile, hash, owner, uploadDestDir = '../uploads') => {
+  /**
+   * Removes file from disk and 'files' collection .
+   * @param fileId
+   * @returns {*}
+   */
+  m.removeFile = async fileId => {
+    const File = mongoose.model('files');
+    const file = await File.findById(fileId);
+    if (!file) {
+      return;
+    }
+    const { filePath, cropped } = file;
+    const fullFilePath = path.resolve(filePath);
+    const pathsToRemove = [fullFilePath];
+    isImage(file) && pathsToRemove.push(`${fullFilePath}_thumbnail`);
+    cropped && pathsToRemove.push(`${fullFilePath}_cropped`);
+
+    return Promise.all([File.findByIdAndRemove(fileId), Promise.map(pathsToRemove, p => fs.unlink(p))]);
+  };
+
+  m.createFile = async (reqFile, hash, owner, uploadDir) => {
     const File = mongoose.model('files');
 
     const ownerLogin = _.get(owner, 'login');
@@ -89,31 +119,29 @@ module.exports = () => {
       false
     );
 
-    return Promise.resolve(newFile.save())
-      .bind({})
-      .then(savedFile => {
-        const uploadFolder = Math.random()
-          .toString(36)
-          .substr(2, 4);
-        this.destinationPath = path.resolve(uploadDestDir, uploadFolder, savedFile._id.toString());
-        this.relativePath = path.relative(process.cwd(), this.destinationPath);
-        this.savedFile = savedFile;
-
-        return fs.move(reqFile.path, this.destinationPath);
-      })
-      .then(() => {
-        // !!! not obvious
-        this.savedFile.set('filePath', this.relativePath);
-        return this.savedFile;
-      });
+    const savedFile = await newFile.save();
+    const uploadFolder = Math.random()
+      .toString(36)
+      .substr(2, 4);
+    const destinationPath = path.resolve(uploadDir, uploadFolder, savedFile._id.toString());
+    const relativePath = path.relative(process.cwd(), destinationPath);
+    if (reqFile.path) {
+      await fs.copy(reqFile.path, destinationPath);
+    } else if (reqFile.tempFilePath) {
+      await fs.move(reqFile.tempFilePath, destinationPath);
+    }
+    // !!! not obvious
+    savedFile.set('filePath', relativePath);
+    return savedFile;
   };
 
-  m.processImage = (savedFile, cropParams) => {
+  m.processImage = async (savedFile, cropParams) => {
     if (!isImage(savedFile)) {
-      return Promise.resolve(savedFile);
+      return savedFile;
     }
 
-    return Promise.all([m.thumb(savedFile), m.crop(cropParams, savedFile)]).then(() => savedFile);
+    await Promise.all([m.thumb(savedFile), m.crop(cropParams, savedFile)]);
+    return savedFile;
   };
 
   m.fileToObject = savedFile => {
@@ -133,52 +161,28 @@ module.exports = () => {
     return imagesTypesMap.includes(file.mimeType);
   }
 
-  m.thumb = savedFile =>
-    jimpReadPromisified(savedFile.filePath)
-      .then(imageBuffer => {
-        const cover = imageBuffer.cover(48, 48);
-        const getBufferPromisified = Promise.promisify(cover.getBuffer, { context: cover });
-        return getBufferPromisified(savedFile.mimeType);
-      })
-      .then(coverBuffer => {
-        const thumbnailPath = path.resolve(`${savedFile.filePath}_thumbnail`);
-        return fs.writeFile(thumbnailPath, coverBuffer);
-      })
-      .catch(err => {
-        log.error(err);
-        throw 'Unable to process data';
-      });
+  m.thumb = async savedFile => {
+    const imageBuffer = await jimp.read(savedFile.filePath);
+    const cover = imageBuffer.cover(48, 48);
+    const coverBuffer = await cover.getBufferAsync(savedFile.mimeType);
+    const thumbnailPath = path.resolve(`${savedFile.filePath}_thumbnail`);
+    await fs.writeFile(thumbnailPath, coverBuffer);
+  };
 
-  m.crop = (cropParams, savedFile) => {
+  m.crop = async (cropParams, savedFile) => {
     if (_.isEmpty(cropParams)) {
-      return Promise.resolve();
+      return;
     }
-    jimpReadPromisified(savedFile.filePath)
-      .then(imageBuffer => {
-        const {
-          cropImageLeft: left,
-          cropImageTop: top,
-          cropImageWidth: width,
-          cropImageHeight: height,
-        } = cropParams;
-        const croppedBuffer = imageBuffer.crop(left, top, width, height);
-        const getCroppedBufferPromisified = Promise.promisify(croppedBuffer.getBuffer, {
-          context: croppedBuffer,
-        });
-        return getCroppedBufferPromisified(savedFile.mimeType);
-      })
-      .then(croppedBuffer => {
-        // !!! not obvious
-        savedFile.set('cropped', true);
-        savedFile.set('croppingParameters', cropParams);
+    const imageBuffer = await jimp.read(savedFile.filePath);
+    const { cropImageLeft: left, cropImageTop: top, cropImageWidth: width, cropImageHeight: height } = cropParams;
+    const crop = imageBuffer.crop(left, top, width, height);
+    const croppedBuffer = await crop.getBufferAsync(savedFile.mimeType);
+    // !!! not obvious
+    savedFile.set('cropped', true);
+    savedFile.set('croppingParameters', cropParams);
 
-        const croppedFilePath = path.resolve(`${savedFile.filePath}_cropped`);
-        return fs.writeFile(croppedFilePath, croppedBuffer);
-      })
-      .catch(err => {
-        log.error(err);
-        throw 'Unable to process data';
-      });
+    const croppedFilePath = path.resolve(`${savedFile.filePath}_cropped`);
+    await fs.writeFile(croppedFilePath, croppedBuffer);
   };
 
   m.getCropParams = req => {
@@ -215,21 +219,17 @@ module.exports = () => {
     return true;
   }
 
-  m.updateCrop = cropParams => {
+  m.updateCrop = async cropParams => {
     const File = mongoose.model('files');
 
-    return Promise.resolve(File.findById(cropParams.id))
-      .bind({})
-      .then(fileRecord => {
-        if (!fileRecord) {
-          throw new Error(`Unable to find file with id: ${cropParams.id}`);
-        }
+    const fileRecord = File.findById(cropParams.id);
+    if (!fileRecord) {
+      throw new Error(`Unable to find file with id: ${cropParams.id}`);
+    }
 
-        this.fileRecord = fileRecord;
-        return m.crop(cropParams, fileRecord);
-      })
-      .then(() => this.fileRecord.save())
-      .then(fileRecord => [m.fileToObject(fileRecord)]);
+    await m.crop(cropParams, fileRecord);
+    const savedFile = await fileRecord.save();
+    return [m.fileToObject(savedFile)];
   };
 
   return m;

@@ -9,6 +9,30 @@
   "parserOptions": {
     "ecmaVersion": 2018
   },
+  "overrides": [
+    {
+      "files": [
+        "model/helpers/renderers.js",
+        "model/helpers/custom_actions.js",
+        "model/helpers/form_renderers.js",
+        "model/helpers/label_renderers.js",
+        "model/helpers/header_renderers.js",
+        "model/helpers/lookup_label_renderers.js",
+        "model/helpers/dx_summary.js",
+        "model/helpers/dx_data_sources.js",
+        "model/helpers/dx_calculate_filter_expression.js"
+      ], // i.e. all frontend helpers, see helper-util.frontendHelpersKeys
+      "env": {
+        "browser": true
+      },
+      "globals": {
+        "_": true,
+        "adpRenderLib": true
+      },
+      "rules": {
+      }
+    }
+  ],
   "rules": {
     // "semi": ["error", "never"],
     // "strict": 0,

@@ -1,9 +1,10 @@
 const gulp = require('gulp');
 const path = require('path');
 const HubRegistry = require('gulp-hub');
-
 const conf = require('./gulp/config');
-const APP_CONFIG = require('./api_config').CONSTANTS;
+
+require('dotenv').config();
+
 
 // Load some files into the registry
 const hub = new HubRegistry([path.join(conf.paths.tasks, '*.js')]);

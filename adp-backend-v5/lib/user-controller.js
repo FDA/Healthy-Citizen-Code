@@ -10,11 +10,18 @@ const { ObjectID } = require('mongodb');
 const _ = require('lodash');
 const ms = require('ms');
 const Promise = require('bluebird');
+const {
+  getResetToken,
+  getResetTokenExpiresIn,
+  getSuccessfulPasswordResetMail,
+  getForgotPasswordMail,
+  sendMail,
+} = require('./user-auth-service');
 
 const User = mongoose.model('users');
-const { InvalidTokenError, ExpiredTokenError, ValidationError, AccessError } = require('./errors');
+const { LinkedRecordError, InvalidTokenError, ExpiredTokenError, ValidationError } = require('./errors');
 
-const TOKEN_EXPIRES_IN = process.env.TOKEN_EXPIRES_IN || '1day';
+const TOKEN_EXPIRES_IN = process.env.TOKEN_EXPIRES_IN || '1d';
 
 module.exports = appLib => {
   const { transformers } = appLib;
@@ -133,10 +140,75 @@ module.exports = appLib => {
      */
 
     appLib.addRoute('post', '/account/password', [m.appLib.isAuthenticated, m.postUpdatePassword]);
-    // appLib.addRoute('get', '/forgot', [m.getForgot]);
-    // appLib.addRoute('post', '/forgot', [m.postForgot]);
-    // appLib.addRoute('get', '/reset/:  token', [m.getReset]);
-    // appLib.addRoute('post', '/reset/:token', [m.postReset]);
+    appLib.addRoute('post', '/forgot', [m.postForgot]);
+    /**
+     * @swagger
+     * /forgot:
+     *   post:
+     *     summary: Creates a random token and sends user an email with a reset link.
+     *     description: Sent email contains a link in format 'RESET_PASSWORD_URL?token=${token}'. Reuse this token for /reset.
+     *     tags:
+     *       - Auth
+     *     parameters:
+     *       -  in: 'body'
+     *          name: body
+     *          required: true
+     *          schema:
+     *           type: object
+     *           required:
+     *             - email
+     *           properties:
+     *             email:
+     *               type: string
+     *     responses:
+     *       200:
+     *         description: Indicates whether an email with token successfully sent or error occurred.
+     *         schema:
+     *           type: object
+     *           properties:
+     *             success:
+     *               type: boolean
+     *             message:
+     *               type: string
+     *               description: message to user
+     */
+
+    appLib.addRoute('post', '/reset', [m.postReset]);
+    /**
+     * @swagger
+     * /reset:
+     *   post:
+     *     summary: Resets password to that, which specified in body and sends an email. Requires reset token.
+     *     tags:
+     *       - Auth
+     *     parameters:
+     *       -  in: 'body'
+     *          name: body
+     *          required: true
+     *          schema:
+     *           type: object
+     *           required:
+     *             - token
+     *             - password
+     *           properties:
+     *             token:
+     *               type: string
+     *             password:
+     *               type: string
+     *               format: password
+     *     responses:
+     *       200:
+     *         description: Indicates token and password correctness, email sent or not.
+     *         schema:
+     *           type: object
+     *           properties:
+     *             success:
+     *               type: boolean
+     *             message:
+     *               type: string
+     *               description: message to user
+     */
+
     // appLib.addRoute('post', '/account/delete', [m.appLib.isAuthenticated, m.postDeleteAccount]);
   };
 
@@ -145,13 +217,6 @@ module.exports = appLib => {
     if (appLib.getAuthSettings().enableAuthentication !== false) {
       m.addAuthRoutes();
     }
-
-    // delete /piis and /phis routes
-    // _.each(m.appLib.app.router.mounts, (route, key) => {
-    //   if (route.spec.method === 'GET' && ((route.spec.path === '/phis' || (route.spec.path === '/piis')))) {
-    //     m.appLib.app.rm(key);
-    //   }
-    // });
   };
 
   /**
@@ -159,37 +224,31 @@ module.exports = appLib => {
    * Sign in using email and password.
    */
   m.postLogin = (req, res, next) => {
-    passport.authenticate('local', (err, user, info) => {
-      if (err) {
-        return next(`ERR: ${err} INFO:${info}`);
-      }
-      if (!user) {
+    passport.authenticate('local', (err, user) => {
+      if (err || !user) {
+        err && log.error(err);
         req.loginData = { success: false, message: 'Invalid credentials.' };
         return next();
       }
-      req.logIn(user, loginErr => {
+      req.logIn(user, async loginErr => {
         if (loginErr) {
           return next(loginErr);
         }
 
-        const token = jwt.sign(
-          {
-            id: user._id,
-            email: user.email,
-          },
-          process.env.JWT_SECRET,
-          { expiresIn: TOKEN_EXPIRES_IN } // set expiresIn value to make it expired
-        );
+        try {
+          const token = jwt.sign(
+            {
+              id: user._id,
+              email: user.email,
+            },
+            process.env.JWT_SECRET,
+            { expiresIn: TOKEN_EXPIRES_IN } // set expiresIn value to make it expired
+          );
 
-        User.findById(user._id, (userErr, existingUser) => {
-          if (userErr) {
-            log.error(`Error finding user: ${userErr}`);
-            req.loginData = { success: false, message: 'Error finding user' };
-            return next();
-          }
+          const existingUser = await User.findById(user._id);
           if (!existingUser) {
-            log.error(`Unable to find user: ${user}`);
-            req.loginData = { success: false, message: `Unable to find user` };
+            log.error(`User not found: ${user}`);
+            req.loginData = { success: false, message: `User not found` };
             return next();
           }
 
@@ -207,7 +266,11 @@ module.exports = appLib => {
           const expiresIn = new Date(Date.now() + ms(TOKEN_EXPIRES_IN));
           req.loginData = { success: true, data: { token, expiresIn, user: userData } };
           next();
-        });
+        } catch (e) {
+          log.error(`Unable to find user: ${e}`);
+          req.loginData = { success: false, message: 'Unable to find user' };
+          return next();
+        }
       });
     })(req, res, next);
   };
@@ -225,152 +288,146 @@ module.exports = appLib => {
     res.json({ success: true, message: 'User has been logged out' });
   };
 
-  const userRegisterPromisified = Promise.promisify(User.register, { context: User });
-
-  function handleLinkedRecordField(key, fieldSpec, userContext, linkedRecordsStorage) {
+  async function handleLinkedRecordField(key, fieldSpec, userContext, linkedRecordsStorage) {
     const tableLookups = Object.values(fieldSpec.lookup.table);
     if (tableLookups.length !== 1) {
-      throw `Required table lookups must contain only 1 lookup. ` +
-        `Specified lookup contains more: ${fieldSpec.lookup}`;
+      throw LinkedRecordError(
+        `Required table lookups must contain only 1 lookup. Specified lookup contains more: ${fieldSpec.lookup}`
+      );
     }
     const tableLookup = tableLookups[0];
     const tableName = tableLookup.table;
     const LinkedModel = mongoose.model(tableName);
     if (!LinkedModel) {
-      throw `Linked table ${tableName} not found`;
+      throw LinkedRecordError(`Linked table ${tableName} not found`);
     }
 
-    const linkedRecord = new LinkedModel({});
-    return transformers
-      .preSaveTransformData(tableName, userContext, linkedRecord, [])
-      .then(() => linkedRecord.save())
-      .then(data => {
-        linkedRecordsStorage[key] = data._id;
-      })
-      .catch(() => {
-        throw `Error occurred while creating linked record for ${tableName}`;
-      });
+    try {
+      const linkedRecord = new LinkedModel({});
+      await transformers.preSaveTransformData(tableName, userContext, linkedRecord, []);
+      const data = await linkedRecord.save();
+      linkedRecordsStorage[key] = data._id;
+    } catch (e) {
+      throw LinkedRecordError(`Error occurred while creating linked record for ${tableName}`);
+    }
   }
-  // TODO: Customize this, not all users will have PHI date (and possibly not even PII)
-  m.postSignup = (req, res, next) => {
-    const linkedRecords = {};
 
+  m.postSignup = async (req, res, next) => {
+    const {
+      getUserContext,
+      getRolesAndPermissionsForUser,
+      setReqRoles,
+      setReqPermissions,
+      getReqPermissions,
+    } = appLib.accessUtil;
+
+    const linkedRecords = {};
     // need to pregenerate user doc object id to be able to set it in dependent fields like 'creator'
     const userDocObjectId = new ObjectID();
-    const userContext = appLib.accessUtil.getUserContext(req);
+    const userContext = getUserContext(req);
     _.set(userContext, 'user._id', userDocObjectId);
 
-    appLib
-      .authenticationCheck(req, res, next)
-      .then(({ user, permissions }) => {
-        req.user = user;
-        appLib.accessUtil.setUserPermissions(req, permissions);
-      })
-      .catch(InvalidTokenError, ExpiredTokenError, () =>
+    try {
+      await appLib.authenticationCheck(req, res, next);
+    } catch (e) {
+      if (e instanceof InvalidTokenError || e instanceof ExpiredTokenError) {
         // get guest permissions anyway
-        appLib.accessUtil.getPermissionsForUser(null, req.device.type).then(permissions => {
-          appLib.accessUtil.setUserPermissions(req, permissions);
-        })
-      )
-      .then(() => {
-        const userPermissions = appLib.accessUtil.getUserPermissions(req);
-        if (!userPermissions.has(m.appLib.accessCfg.PERMISSIONS.createUserAccounts)) {
-          throw new AccessError(`Not authorized to signup`);
-        }
+        const { roles, permissions } = await getRolesAndPermissionsForUser(null, req.device.type);
+        setReqRoles(req, roles);
+        setReqPermissions(req, permissions);
+      }
+    }
 
-        return transformers.preSaveTransformData('users', userContext, req.body, []);
-      })
-      .then(() =>
-        // check if user already exists
-        User.findOne({ login: req.body.login })
-      )
-      .then(existingUser => {
-        if (existingUser) {
-          throw `User ${req.body.login} already exists`;
-        }
-        // TODO: run this recursively so if any n-level collections are also required then create them as well
-        // TODO: write tests for this
-        // TODO: turn on auto-generator for values
-        // create all dependant collections (1 level only)
-        const linkedRecordsFields = Object.entries(appLib.appModel.models.users.fields).filter(
-          ([, fieldSpec]) => fieldSpec.lookup && fieldSpec.required
-        );
-        return Promise.map(linkedRecordsFields, ([key, fieldSpec]) =>
-          handleLinkedRecordField(key, fieldSpec, userContext, linkedRecords)
-        );
-      })
-      .then(() => {
-        // create user record
-        const userData = _.merge(linkedRecords, {
-          ...req.body,
-          _id: userDocObjectId,
-        });
-        // remove recaptcha and other non-model fields
-        const strictUser = new User(userData, true);
-        return userRegisterPromisified(strictUser, strictUser.password);
-      })
-      .then(createdUser => {
-        res.json({
-          success: true,
-          message: 'Account had been successfully created',
-          // id: createdUser._id, // TODO: drop it, it's in the data
-          data: _.merge(linkedRecords, {
-            id: createdUser._id,
-            login: req.body.login,
-          }),
-        });
-      })
-      .catch(AccessError, err => {
-        res.status(403).json({ success: false, message: err.message });
-      })
-      .catch(ValidationError, err => {
-        res.status(400).json({ success: false, message: err.message });
-      })
-      .catch(err => {
-        log.error(err);
-        if (err instanceof Error) {
-          return res.status(400).json({ success: false, message: 'Unable to create user' });
-        }
-        res.status(400).json({ success: false, message: err });
+    const userPermissions = getReqPermissions(req);
+    if (!userPermissions.has(m.appLib.accessCfg.PERMISSIONS.createUserAccounts)) {
+      return res.status(403).json({ success: false, message: `Not authorized to signup` });
+    }
+
+    try {
+      await transformers.preSaveTransformData('users', userContext, req.body, []);
+    } catch (e) {
+      return res.status(422).json({ success: false, message: e.message });
+    }
+
+    // check if user already exists
+    const { login } = req.body;
+    const existingUser = await User.findOne({ login });
+    if (existingUser) {
+      return res.status(409).json({ success: false, message: `User ${login} already exists` });
+    }
+
+    try {
+      // TODO: run this recursively so if any n-level collections are also required then create them as well
+      // TODO: write tests for this
+      // TODO: turn on auto-generator for values
+      // create all dependant collections (1 level only)
+      const linkedRecordsFields = Object.entries(appLib.appModel.models.users.fields).filter(
+        ([, fieldSpec]) => fieldSpec.lookup && fieldSpec.required
+      );
+      await Promise.map(linkedRecordsFields, ([key, fieldSpec]) =>
+        handleLinkedRecordField(key, fieldSpec, userContext, linkedRecords)
+      );
+    } catch (e) {
+      if (e instanceof LinkedRecordError) {
+        res.status(409).json({ success: false, message: e.message });
+      }
+      log.error(e);
+      res.status(500).json({ success: false, message: e });
+    }
+
+    try {
+      // create user record
+      const userData = _.merge(linkedRecords, {
+        ...req.body,
+        _id: userDocObjectId,
+        password: req.body.password,
       });
+      // remove recaptcha and other non-model fields
+      const strictUser = new User(userData, true);
+      const createdUser = await strictUser.save();
+
+      res.json({
+        success: true,
+        message: 'Account had been successfully created',
+        // id: createdUser._id, // TODO: drop it, it's in the data
+        data: _.merge(linkedRecords, { id: createdUser._id, login }),
+      });
+    } catch (e) {
+      log.error(e);
+      res.status(400).json({ success: false, message: e });
+    }
   };
 
   /**
-   * POST /account/password
    * Update current password.
-   * TODO: test this method
    */
-  m.postUpdatePassword = (req, res) => {
-    // TODO: move into appModel validation
-    // password regexp: http://stackoverflow.com/questions/23699919/regular-expression-for-password-complexity
-    let userFound;
+  m.postUpdatePassword = async (req, res) => {
     // validate user input
-    const userContext = appLib.accessUtil.getUserContext(req);
-    return transformers
-      .preSaveTransformData('users', userContext, req.body, ['password'])
-      .then(() => User.findById(_.get(req, 'user.id')))
-      .then(user => {
-        if (!user) {
-          throw new Error(`User was not found.`);
-        }
-        userFound = user;
-      })
-      .then(() => {
-        // update password
-        userFound.password = req.body.password;
-        return userFound.save();
-      })
-      .then(updatedUser => {
-        res.json({
-          success: true,
-          message: 'User password was successfully updated',
-          id: updatedUser._id,
-        });
-      })
-      .catch(err => {
-        log.error(err);
-        res.status(400).json({ success: false, message: `Unable to update user password` });
+    try {
+      const userContext = appLib.accessUtil.getUserContext(req);
+      await transformers.preSaveTransformData('users', userContext, req.body, ['password']);
+    } catch (e) {
+      return res.status(422).json({ success: false, message: e.message });
+    }
+
+    try {
+      const userId = _.get(req, 'user.id');
+      const user = await User.findById(userId);
+      if (!user) {
+        res.json({ success: false, message: `Unable to find account with by user id ${userId}.` });
+      }
+      // update password
+      user.password = req.body.password;
+      const updatedUser = user.save();
+      res.json({
+        success: true,
+        message: 'User password was successfully updated',
+        id: updatedUser._id,
       });
+    } catch (e) {
+      log.error(e);
+      res.status(500).json({ success: false, message: `Unable to update user password` });
+    }
   };
 
   /**
@@ -389,169 +446,69 @@ module.exports = appLib => {
    */
 
   /**
-   * GET /reset/:token
-   * Reset Password page.
-   */
-  /* TODO: later
-   m.getReset = (req, res, next) => {
-   if (req.isAuthenticated()) {
-   return res.redirect('/');
-   }
-   User
-   .findOne({passwordResetToken: req.query.token})
-   .where('passwordResetExpires').gt(Date.now())
-   .exec((err, user) => {
-   if (err) {
-   return next(err);
-   }
-   if (!user) {
-   req.flash('errors', {msg: 'Password reset token is invalid or has expired.'});
-   return res.redirect('/forgot');
-   }
-   res.render('account/reset', {
-   title: 'Password Reset'
-   });
-   });
-   };
-   */
-
-  /**
-   * POST /reset/:token
    * Process the reset password request.
    */
-  /* TODO: later
-   m.postReset = (req, res, next) => {
-   req.assert('password', 'Password must be at least 4 characters long.').len(4);
-   req.assert('confirm', 'Passwords must match.').equals(req.body.password);
+  m.postReset = async (req, res) => {
+    try {
+      const { token, password } = req.body;
+      if (!token) {
+        return res.json({ success: false, message: 'Password reset token must be specified.' });
+      }
 
-   const errors = req.validationErrors();
+      const user = await User.findOne({ resetPasswordToken: token, resetPasswordExpires: { $gt: Date.now() } }).lean();
+      if (!user) {
+        return res.json({ success: false, message: 'Password reset token is invalid or has expired.' });
+      }
 
-   if (errors) {
-   req.flash('errors', errors);
-   return res.redirect('back');
-   }
+      user.password = password;
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      const userContext = appLib.accessUtil.getUserContext(req);
+      await transformers.preSaveTransformData('users', userContext, user, []);
+      await User.replaceOne({ _id: user._id }, user);
 
-   async.waterfall([
-   function (done) {
-   User
-   .findOne({passwordResetToken: req.query.token})
-   .where('passwordResetExpires').gt(Date.now())
-   .exec((err, user) => {
-   if (err) {
-   return next(err);
-   }
-   if (!user) {
-   req.flash('errors', {msg: 'Password reset token is invalid or has expired.'});
-   return res.redirect('back');
-   }
-   user.password = req.body.password;
-   user.passwordResetToken = undefined;
-   user.passwordResetExpires = undefined;
-   user.save((err) => {
-   if (err) {
-   return next(err);
-   }
-   req.logIn(user, (err) => {
-   done(err, user);
-   });
-   });
-   });
-   },
-   function (user, done) {
-   const transporter = nodemailer.createTransport({
-   service: 'SendGrid',
-   auth: {
-   user: process.env.SENDGRID_USER,
-   pass: process.env.SENDGRID_PASSWORD
-   }
-   });
-   const mailOptions = {
-   to: user.email,
-   from: 'hackathon@starter.com',
-   subject: 'Your Hackathon Starter password has been changed',
-   text: `Hello,\n\nThis is a confirmation that the password for your account ${user.email} has just been changed.\n`
-   };
-   transporter.sendMail(mailOptions, (err) => {
-   req.flash('success', {msg: 'Success! Your password has been changed.'});
-   done(err);
-   });
-   }
-   ], (err) => {
-   if (err) {
-   return next(err);
-   }
-   res.redirect('/');
-   });
-   };
-   */
+      const { email } = user;
+      const successfulPasswordResetMail = getSuccessfulPasswordResetMail(email);
+      await sendMail(successfulPasswordResetMail);
+      res.json({ success: true, message: `The password for your account ${email} has just been changed.` });
+    } catch (e) {
+      if (e instanceof ValidationError) {
+        return res.json({ success: false, message: e.message });
+      }
+      log.error(`Something went wrong while resetting password`, e.stack);
+      res.json({ success: false, message: `Something went wrong, try again later or contact support.` });
+    }
+  };
 
   /**
-   * POST /forgot
-   * Create a random token, then the send user an email with a reset link.
+   * Create a random token, then send user an email with a reset link.
    */
-  /* TODO: later
-   m.postForgot = (req, res, next) => {
-   req.assert('email', 'Please enter a valid email address.').isEmail();
-   req.sanitize('email').normalizeEmail({remove_dots: false});
+  m.postForgot = async (req, res) => {
+    try {
+      const { email } = req.body;
+      if (!email) {
+        return res.json({ success: false, message: `Parameter 'email' must be set in request body.` });
+      }
 
-   const errors = req.validationErrors();
+      const user = await User.findOne({ email }).lean();
+      if (!user) {
+        return res.json({ success: false, message: `Account with email address ${email} does not exist.` });
+      }
 
-   if (errors) {
-   req.flash('errors', errors);
-   return res.redirect('/forgot');
-   }
+      user.resetPasswordToken = getResetToken();
+      user.resetPasswordExpires = new Date(Date.now() + getResetTokenExpiresIn());
+      await User.replaceOne({ _id: user._id }, user);
 
-   async.waterfall([
-   function (done) {
-   crypto.randomBytes(16, (err, buf) => {
-   const token = buf.toString('hex');
-   done(err, token);
-   });
-   },
-   function (token, done) {
-   User.findOne({email: req.body.email}, (err, user) => {
-   if (!user) {
-   req.flash('errors', {msg: 'Account with that email address does not exist.'});
-   return res.redirect('/forgot');
-   }
-   user.passwordResetToken = token;
-   user.passwordResetExpires = Date.now() + 3600000; // 1 hour
-   user.save((err) => {
-   done(err, token, user);
-   });
-   });
-   },
-   function (token, user, done) {
-   const transporter = nodemailer.createTransport({
-   service: 'SendGrid',
-   auth: {
-   user: process.env.SENDGRID_USER,
-   pass: process.env.SENDGRID_PASSWORD
-   }
-   });
-   const mailOptions = {
-   to: user.email,
-   from: 'hackathon@starter.com',
-   subject: 'Reset your password on Hackathon Starter',
-   text: `You are receiving this email because you (or someone else) have requested the reset of the password for your account.\n\n
-   Please click on the following link, or paste this into your browser to complete the process:\n\n
-   http://${req.headers.host}/reset/${token}\n\n
-   If you did not request this, please ignore this email and your password will remain unchanged.\n`
-   };
-   transporter.sendMail(mailOptions, (err) => {
-   req.flash('info', {msg: `An e-mail has been sent to ${user.email} with further instructions.`});
-   done(err);
-   });
-   }
-   ], (err) => {
-   if (err) {
-   return next(err);
-   }
-   res.redirect('/forgot');
-   });
-   };
-   */
+      const forgotPasswordMail = getForgotPasswordMail(email, user.resetPasswordToken, user.login);
+      await sendMail(forgotPasswordMail);
+      res.json({ success: true, message: `An e-mail has been sent to ${email} with further instructions.` });
+    } catch (e) {
+      log.error(`Something went wrong while handling forgot password`, e.stack);
+      res.json({ success: false, message: `Something went wrong, try again later or contact support.` });
+    }
+  };
 
   m.init(appLib);
+
   return m;
 };

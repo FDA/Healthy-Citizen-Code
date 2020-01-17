@@ -32,27 +32,8 @@
       "singleRecord": true,
       "limitReturnedRecords": 1,
       "controller": "user",
-      "schemaTransform": "user",
-      "description": "This collection solely serves the purpose of user authentication. Besides password recovery email there should be no PII in this collection.",
+      "description": "This collection solely serves the purpose of user authentication.",
       "fields": {
-        "phiId": {
-          "type": "String",
-          "unique": true,
-          "visible": false,
-          "comment": "Use email in the MVP",
-          "fullName": "Citizen PII ID",
-          "generated": true,
-          "description": "The system generated unique identifier to store and retrieve the patient's PII information."
-        },
-        "piiId": {
-          "type": "String",
-          "unique": true,
-          "visible": false,
-          "comment": "Use email in the MVP",
-          "fullName": "Citizen PII ID",
-          "generated": true,
-          "description": "The system generated unique identifier to store and retrieve the patient's PII information."
-        },
         "login": {
           "type": "String",
           "unique": true,
@@ -88,7 +69,7 @@
         "accountProvider": {
           "type": "Array",
           "fullName": "linkedAccounts",
-          "description": "Social network account providing authentication for this user. Additional social networks can be recorded in PII data",
+          "description": "Social network account providing authentication for this user.",
           "fields": {
             "name": {
               "type": "String",
@@ -132,126 +113,6 @@
           "generated": true,
           "fullName": "Reset Password Expires",
           "description": "The date the password token will expire."
-        }
-      }
-    },
-    "piis": {
-      "type": "Schema",
-      "fullName": "Personally Identifiable Information",
-      "singleRecord": true,
-      "limitReturnedRecords": 1,
-      "fields": {
-        "firstName": {
-          "type": "String",
-          "fullName": "First Name",
-          "default": "",
-          "required": true,
-          "colspan": 2
-        },
-        "lastName": {
-          "type": "String",
-          "fullName": "Last NAme",
-          "default": "",
-          "required": true,
-          "colspan": 2
-        },
-        "displayName": {
-          "type": "String",
-          "generated": true,
-          "fullName": "Display Name",
-          "description": "The name the citizen wants displayed when using the HealthyCitizen application."
-        },
-        "email": {
-          "type": "String",
-          "default": "",
-          "required": true,
-          "subtype": "Email",
-          "fullName": "Email",
-          "description": "The citizen's email address. Could be different from the password recovery email."
-        },
-        "linkedAccounts": {
-          "type": "Array",
-          "fullName": "linkedAccounts",
-          "description": "List of social networks accounts linked to this profile",
-          "fields": {
-            "name": {
-              "type": "String",
-              "generated": true,
-              "fullName": "Provider",
-              "description": "Account provider (such as facebook, twitter etc)"
-            },
-            "data": {
-              "type": "Mixed",
-              "visible": false,
-              "fullName": "Provider Data",
-              "description": "Account provider-specific data"
-            }
-          }
-        },
-        "updated": {
-          "type": "Date",
-          "visible": false,
-          "generated": true,
-          "fullName": "Updated",
-          "description": "The system generated date when the citizen user account was updated."
-        },
-        "created": {
-          "type": "Date",
-          "visible": false,
-          "defaultF": "dateNow",
-          "generated": true,
-          "fullName": "Created",
-          "description": "The system generated date when the citizen user account was created."
-        },
-        "resetPasswordToken": {
-          "type": "String",
-          "visible": false,
-          "generated": true,
-          "fullName": "Reset Password Token",
-          "description": "The system assigned token that is sent to the citizen when they request a password reset."
-        },
-        "resetPasswordExpires": {
-          "type": "Date",
-          "visible": false,
-          "generated": true,
-          "fullName": "Reset Password Expires",
-          "description": "The date the password token will expire."
-        },
-        "settings": {
-          "type": "Object",
-          "fullName": "Settings",
-          "fields": {
-            "twoFactorAuth": {
-              "type": "Boolean",
-              "fullName": "Two Factor Aiuthentication"
-            },
-            "phoneVerified": {
-              "type": "Boolean",
-              "fullName": "Phone Verified"
-            },
-            "twoFactorAuthSecretBase32": {
-              "type": "String",
-              "fullName": "Two Factor Aiuthentication Secret",
-              "generated": true
-            }
-          }
-        }
-      }
-    },
-    "phis": {
-      "type": "Schema",
-      "fullName": "Clinical Health Information",
-      "limitReturnedRecords": 1,
-      "singleRecord": true,
-      "fields": {
-        "notes": {
-          "type": "String",
-          "subtype": "Text",
-          "list": "citizenConditions",
-          "fullName": "Conditions",
-          "visible": false,
-          "comment": "delete this field if possible",
-          "description": "Random free-form notes about self"
         }
       }
     }

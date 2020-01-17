@@ -8,7 +8,7 @@ const path = require('path');
 const FhirToAdpPumper = require('./fhir_to_adp_pumper');
 
 function readDataFromXls (xlsPath) {
-  const xlsData = xlsx.parse(xlsPath);
+  const xlsData = xlsx.parse(xlsPath, {raw: false});
   const sheetData = xlsData[0].data;
   const headers = new Map();
   const rows = [];

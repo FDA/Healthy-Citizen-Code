@@ -13,7 +13,7 @@
             "table": "lookup_test_model1",
             "foreignKey": "_id",
             "label": "name",
-            "id": "model4SingleLookup"
+            "id": "model4sSingleLookupName"
           }
         },
         "model4sSingleLookupAnotherName": {
@@ -23,7 +23,7 @@
             "table": "lookup_test_model1",
             "foreignKey": "_id",
             "label": "anotherName",
-            "id": "model4SingleLookup"
+            "id": "model4sSingleLookupAnotherName"
           }
         },
         "model4s2SingleLookup": {
@@ -33,7 +33,7 @@
             "table": "lookup_test_model2",
             "foreignKey": "_id",
             "label": "name",
-            "id": "model4SingleLookup"
+            "id": "model4s2SingleLookup"
           }
         },
         "model4MultipleLookup": {

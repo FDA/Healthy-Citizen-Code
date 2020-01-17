@@ -1,25 +1,26 @@
 import _map from 'lodash.map';
-import _Highcharts from '../../../lib/highcharts';
+import Highcharts from '../../../lib/utils/highcharts-wrapper';
 
-import $ from '../../../lib/dom';
+import $ from '../../../lib/utils/dom';
 import tpl from './graph-view-widget.hbs';
 
 import getChartOptions from './charoptions';
-import {adverseEventsQuery, prefrencesQuery} from '../../queries';
-import {widgetError} from "../../../lib/utils";
+import { fetchAdverseEventsForMedications } from '../../../lib/api/adverse-events/adverse-events-for-medications';
+import { showErrorToUser } from "../../../lib/utils/utils";
+import { ResponseError } from '../../../lib/exceptions';
 
 const prepareData = data => {
   let results = {};
 
-  // count reaction occurencies for eacg medication
+  // count reaction occurencies for each medication
   data.forEach(events => {
     const resultForMedication = {};
     results[events.display] = resultForMedication;
 
-    events.list.forEach(event => {
-      event.patient.reaction.forEach(reaction => {
-        resultForMedication[reaction.reactionmeddrapt] = resultForMedication[reaction.reactionmeddrapt] || 0;
-        resultForMedication[reaction.reactionmeddrapt]++;
+    events.list.forEach((event) => {
+      event.reactions.forEach((reaction) => {
+        resultForMedication[reaction.reactionMedDraPT] = resultForMedication[reaction.reactionMedDraPT] || 0;
+        resultForMedication[reaction.reactionMedDraPT]++;
       });
     });
   }, {});
@@ -37,7 +38,7 @@ const prepareData = data => {
   return results;
 };
 
-export default class NdcLookup {
+export default class GraphViewWidget {
   constructor(node, options) {
     this.$el = $(node);
     this.options = options;
@@ -46,21 +47,14 @@ export default class NdcLookup {
     this.$el.append(this.$loader);
 
     this.fetchData()
-      .catch(err => {
+      .catch((err) => {
         console.error(err);
-        widgetError(err.message);
+        showErrorToUser(ResponseError.ADVERSE_EVENTS_EMPTY);
       });
   }
 
   fetchData() {
-    return prefrencesQuery({udid: this.options.udid})
-      .then(data => {
-        if ('medications' in data) {
-          return adverseEventsQuery(data);
-        } else {
-          throw new Error('Unable to get adverse events. Medication list is empty.');
-        }
-      })
+    return fetchAdverseEventsForMedications(this.options)
       .then(data => this.init(data));
   }
 
@@ -73,7 +67,7 @@ export default class NdcLookup {
       this.bindEvents();
       this.initialRender();
     } else {
-      throw new Error('Unable to get adverse events.');
+      throw new ResponseError(ResponseError.ADVERSE_EVENTS_EMPTY);
     }
   }
 
@@ -95,7 +89,7 @@ export default class NdcLookup {
     const firstMenuLink = this.widgetBody.querySelector('.js-link');
     firstMenuLink.classList.add('is-active');
 
-    this.chartInstance = new _Highcharts.Chart(chartEl, options);
+    this.chartInstance = new Highcharts.Chart(chartEl, options);
   }
 
   onClick(e) {

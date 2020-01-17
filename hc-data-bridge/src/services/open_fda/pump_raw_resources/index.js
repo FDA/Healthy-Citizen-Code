@@ -8,6 +8,7 @@ try {
   settings.zipDestinationDir = args.zipDestinationDir;
   settings.resourcePath = args.resourcePath;
   settings.transformer = args.transformer;
+  settings.transformerContext = args.transformerContext;
   settings.fileFilter = args.fileFilter ? new Function('file, _', args.fileFilter) : null;
   settings.getDocId = args.getDocId ? new Function('doc, _', args.getDocId) : null;
 } catch (e) {

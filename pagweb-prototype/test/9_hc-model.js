@@ -14,12 +14,10 @@ describe('V3 HC Schema Routes', () => {
     return this.appLib.shutdown();
   });
 
-  it('Generates HC core models', function (done) {
+  it('Generates core models', function (done) {
     assert(this.appLib.db.readyState === 1);
     const models = this.appLib.db.modelNames();
     assert(models.includes('users'));
-    assert(models.includes('phis'));
-    assert(models.includes('piis'));
     assert(models.includes('connections'));
     assert(_.keys(_.get(this.appLib.appModel, 'metaschema').length > 0));
     assert(_.keys(_.get(this.appLib.appModel, 'interface').length > 0));

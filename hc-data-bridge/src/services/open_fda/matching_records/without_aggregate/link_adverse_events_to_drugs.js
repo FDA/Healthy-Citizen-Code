@@ -1,12 +1,12 @@
 const _ = require('lodash');
 const args = require('optimist').argv;
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect, setUpdateAtIfRecordChanged } = require('../../../util/mongo');
 
-const { mongoUrl, aeCollectionName, drugCollectionName } = args;
+const { mongoUrl, aesCollectionName, drugCollectionName } = args;
 
-if (!mongoUrl || !aeCollectionName || !drugCollectionName) {
-  console.log('Please specify params: mongoUrl, aeCollectionName, drugCollectionName');
+if (!mongoUrl || !aesCollectionName || !drugCollectionName) {
+  console.log('Please specify params: mongoUrl, aesCollectionName, drugCollectionName');
   process.exit(1);
 }
 
@@ -14,94 +14,80 @@ const VALID_DRUG_CHARACTERIZATIONS = ['1', '3'];
 
 async function linkAeToDrug(aeDoc, dbCon) {
   const aggregated = _(aeDoc.patient.drug)
-    .filter(
-      d => VALID_DRUG_CHARACTERIZATIONS.includes(d.drugcharacterization) && !_.isEmpty(d.openfda)
-    )
+    .filter(d => VALID_DRUG_CHARACTERIZATIONS.includes(d.drugcharacterization) && !_.isEmpty(d.openfda))
     .reduce(
       (res, d) => {
-        const { spl_id, spl_set_id, package_ndc, product_ndc } = d.openfda;
-        _.each(spl_id, splId => res.spl_id.add(splId));
-        _.each(spl_set_id, splSetId => res.spl_set_id.add(splSetId));
-        _.each(package_ndc, packageNdc => res.package_ndc.add(packageNdc));
-        _.each(product_ndc, productNdc => res.product_ndc.add(productNdc));
+        const { splId, splSetId, packageNdc, productNdc } = d.openfda;
+        _.each(splId, id => res.splId.add(id));
+        _.each(splSetId, id => res.splSetId.add(id));
+        _.each(packageNdc, ndc => res.packageNdc.add(ndc));
+        _.each(productNdc, ndc => res.productNdc.add(ndc));
         return res;
       },
       {
-        spl_id: new Set(),
-        spl_set_id: new Set(),
-        package_ndc: new Set(),
-        product_ndc: new Set(),
+        splId: new Set(),
+        splSetId: new Set(),
+        packageNdc: new Set(),
+        productNdc: new Set(),
       }
     );
 
-  const aggregatedSplId = Array.from(aggregated.spl_id);
-  const aggregatedSplSetId = Array.from(aggregated.spl_set_id);
-  const aggregatedPackageNdc = Array.from(aggregated.package_ndc);
-  const aggregatedProductNdc = Array.from(aggregated.product_ndc);
+  const aggregatedSplId = Array.from(aggregated.splId);
+  const aggregatedSplSetId = Array.from(aggregated.splSetId);
+  const aggregatedPackageNdc = Array.from(aggregated.packageNdc);
+  const aggregatedProductNdc = Array.from(aggregated.productNdc);
 
   const orCondition = [];
-  aggregatedSplId.length && orCondition.push({ 'openfda.spl_id': { $in: aggregatedSplId } });
-  aggregatedSplSetId.length &&
-    orCondition.push({ 'openfda.spl_set_id': { $in: aggregatedSplSetId } });
-  aggregatedPackageNdc.length &&
-    orCondition.push({ 'openfda.package_ndc': { $in: aggregatedPackageNdc } });
-  aggregatedProductNdc.length &&
-    orCondition.push({ 'openfda.product_ndc': { $in: aggregatedProductNdc } });
+  aggregatedSplId.length && orCondition.push({ 'openfda.splId': { $in: aggregatedSplId } });
+  aggregatedSplSetId.length && orCondition.push({ 'openfda.splSetId': { $in: aggregatedSplSetId } });
+  aggregatedPackageNdc.length && orCondition.push({ 'openfda.packageNdc': { $in: aggregatedPackageNdc } });
+  aggregatedProductNdc.length && orCondition.push({ 'openfda.productNdc': { $in: aggregatedProductNdc } });
 
   if (!orCondition.length) {
-    return console.log(
-      `Empty fields: openfda.spl_id, openfda.spl_set_id, openfda.package_ndc, openfda.product_ndc`
-    );
+    return console.log(`Empty fields: openfda.splId, openfda.splSetId, openfda.packageNdc, openfda.productNdc`);
   }
 
-  const matchedDrugRecords = await dbCon
+  const matchedDrugDocs = await dbCon
     .collection(drugCollectionName)
-    .find({ $or: orCondition }, { _id: 1 })
+    .find({ $or: orCondition }, { projection: { _id: 1 } })
     .toArray();
 
   const aeLookup = {
-    table: aeCollectionName,
+    table: aesCollectionName,
     label: aeDoc.safetyreportid,
     _id: aeDoc._id,
   };
 
-  if (matchedDrugRecords.length) {
-    await Promise.map(matchedDrugRecords, drug =>
-      dbCon
+  if (matchedDrugDocs.length) {
+    await Promise.map(matchedDrugDocs, drug =>
+      setUpdateAtIfRecordChanged(dbCon
         .collection(drugCollectionName)
-        .findOneAndUpdate({ _id: drug._id }, { $addToSet: { adverseEvents: aeLookup } })
+        , 'updateOne', { _id: drug._id }, { $addToSet: { adverseEvents: aeLookup } })
     );
 
-    const drugIds = matchedDrugRecords.map(d => d._id.toString()).join(', ');
+    const drugIds = matchedDrugDocs.map(d => d._id.toString()).join(', ');
     console.log(`Linked aeLookup: ${JSON.stringify(aeLookup)} to drugs (mongo ids: ${drugIds})`);
   }
 }
 
 async function createIndexes(indexFieldNames, collection, dbCon) {
-  return Promise.map(indexFieldNames, fieldName =>
-    dbCon.collection(collection).createIndex({ [fieldName]: 1 })
-  );
+  return Promise.map(indexFieldNames, fieldName => dbCon.collection(collection).createIndex({ [fieldName]: 1 }));
 }
 
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../../../util/mongo_connection_settings'));
+    const dbCon = await mongoConnect(mongoUrl);
     const aeIndexFieldNames = ['patient.drug.drugcharacterization'];
-    console.log(`Creating '${aeCollectionName}' DB Indexes: ${aeIndexFieldNames.join(', ')}`);
-    await createIndexes(aeIndexFieldNames, aeCollectionName, dbCon);
+    console.log(`Creating '${aesCollectionName}' DB Indexes: ${aeIndexFieldNames.join(', ')}`);
+    await createIndexes(aeIndexFieldNames, aesCollectionName, dbCon);
 
-    const drugIndexFieldNames = [
-      'openfda.spl_id',
-      'openfda.spl_set_id',
-      'openfda.package_ndc',
-      'openfda.product_ndc',
-    ];
+    const drugIndexFieldNames = ['openfda.splId', 'openfda.splSetId', 'openfda.packageNdc', 'openfda.productNdc'];
     console.log(`Creating '${drugCollectionName}' DB Indexes: ${drugIndexFieldNames.join(', ')}`);
     await createIndexes(drugIndexFieldNames, drugCollectionName, dbCon);
     console.log(`DB Indexes created`);
 
     const aeCursor = await dbCon
-      .collection(aeCollectionName)
+      .collection(aesCollectionName)
       .find(
         {
           'patient.drug': {
@@ -111,15 +97,15 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
             },
           },
         },
-        { 'patient.drug': 1, safetyreportid: 1 }
+        { projection: { 'patient.drug': 1, safetyreportid: 1 } }
       )
       .addCursorFlag('noCursorTimeout', true);
 
     console.log('Searching for Adverse Events matching Drugs.');
     let adverseEvents = [];
     while (await aeCursor.hasNext()) {
-      const aeRecord = await aeCursor.next();
-      adverseEvents.push(aeRecord);
+      const aeDoc = await aeCursor.next();
+      adverseEvents.push(aeDoc);
       if (adverseEvents.length >= 500) {
         await Promise.map(adverseEvents, d => linkAeToDrug(d, dbCon));
         adverseEvents = [];

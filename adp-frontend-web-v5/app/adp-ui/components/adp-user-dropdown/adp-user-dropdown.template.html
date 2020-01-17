@@ -1,0 +1,51 @@
+<div class="pull-right"
+  ng-if="vm.showLogin">
+  <div class="btn-header transparent">
+        <span>
+          <a ui-sref="auth.login" title="Login" style="width: auto!important; cursor:pointer !important;">
+            Login
+          </a>
+        </span>
+  </div>
+</div>
+
+<div
+  ng-if="!vm.isGuest"
+  class="header-dropdown-list ng-cloak">
+  <div
+    class="dropdown"
+    dropdown>
+
+    <a class="dropdown-toggle"
+      data-toggle="dropdown"
+      href>
+      <img
+        src="assets/img/profile.jpg"
+        alt="me"
+        class="header-avatar online"
+      >
+    </a>
+
+    <ul class="dropdown-menu dropdown-menu-right">
+      <li role="menuitem">
+        <a href>
+          Hello {{vm.user.login}}
+        </a>
+      </li>
+
+      <li class="divider"></li>
+
+      <li role="menuitem">
+        <a
+          href
+          ng-click="vm.logout()"
+          title="Sign Out"
+          data-action="userLogout"
+          class="header-logout-btn"
+          data-logout-msg="You can improve your security further after logging out by closing this opened browser">
+          <i class="fa fa-sign-out"></i> <strong><u>L</u>ogout</strong>
+        </a>
+      </li>
+    </ul>
+  </div>
+</div>

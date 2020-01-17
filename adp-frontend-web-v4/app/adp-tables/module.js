@@ -1,10 +1,7 @@
 ;(function () {
   'use strict';
 
-  angular.module('app.adpTables', [
-    'datatables',
-    'datatables.bootstrap'
-  ])
+  angular.module('app.adpTables', [])
   .config(onConfig)
   .config(registerDateFormats);
 

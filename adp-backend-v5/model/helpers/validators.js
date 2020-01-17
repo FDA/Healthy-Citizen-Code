@@ -1,7 +1,6 @@
 /**
  * Validators for various fields in the app model
  * See metaschema for details
- * WARNING: avoid using ES6 in this file as it will be used both on back and frontend.
  *
  * Each validators accepts variable number or arguments:
  * @param this is binded to the actual data to validate
@@ -33,251 +32,202 @@
  *  NOTE: you have to have lodash for this to work. Lodash is available for both web browser and ReactNative
  */
 
-module.exports = function(appLib) {
-  var _ = require('lodash');
-  var request = require('request'); // https://www.npmjs.com/package/request
-  var vutil = appLib.appModelHelpers.ValidatorUtils;
+module.exports = appLib => {
+  const _ = require('lodash');
+  const vutil = appLib.appModelHelpers.ValidatorUtils;
 
-  var m = {
-    minLength: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      var val = vutil.getValue(this, appModelPart, lodashPath);
-      var length = vutil.getArgumentValue(
+  /**
+   * Retrieves data necessary for context used in 'required' validator.
+   * Examples:
+   * - for path 'a1.1.a2.2.a3.3.s3' parentPath='a1.1.a2.2.a3', index=3, indexes=[1,2,3]
+   * - for path 'a1.1.a2.2.a3.3.a4' parentPath='a1.1.a2.2.a3', index=3., indexes=[1,2,3]
+   * More info: https://confluence.conceptant.com/display/DEV/Unified+Approach+to+Helper+Methods
+   * @param modelName
+   * @param lodashPath
+   * @returns {{indexes: Array, index: number, parentPath: *}}
+   */
+  function getRequiredData(modelName, lodashPath) {
+    const arrIndexes = [];
+    let lastArrPath;
+    const curPath = [];
+    let curAppModelPart = appLib.appModel.models[modelName];
+    const lodashPathArr = lodashPath.split('.');
+
+    let index;
+    for (let i = 0; i < lodashPathArr.length; i++) {
+      const field = lodashPathArr[i];
+      curPath.push(field);
+      curAppModelPart = curAppModelPart.fields[field];
+      if (curAppModelPart.type === 'Array') {
+        if (i !== lodashPathArr.length - 1) {
+          // if last elem is array then lastArrPath for it is penultimate array in the whole sequence
+          lastArrPath = curPath.slice(0);
+        }
+
+        i++;
+        index = lodashPathArr[i];
+        if (index) {
+          curPath.push(index);
+          arrIndexes.push(index);
+        }
+      }
+    }
+    index = lastArrPath ? +lodashPathArr[lastArrPath.length] : null;
+    return { indexes: arrIndexes, index, parentPath: lastArrPath };
+  }
+
+  const m = {
+    minLength(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const castToType = 'Number';
+      const length = vutil.getArgumentValue(
         handlerSpec.arguments,
         'length',
         this,
         lodashPath,
-        appModelPart
+        appModelPart,
+        castToType
       );
-      // console.log(`>>> minLength val: ${val}, length: ${length}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (val && length && val.length < length) {
-        cb(
-          vutil.replaceErrorTemplatePlaceholders(
-            modelName,
-            handlerSpec,
-            val,
-            this,
-            lodashPath,
-            appModelPart
-          )
-        );
-      } else {
-        cb();
+
+      if (val && length) {
+        const argType = typeof length;
+        const valType = typeof val.length;
+        const isValidTypes = argType === 'number' && valType === argType;
+        if (!isValidTypes) {
+          return cb(
+            `Type mismatch for length of val=${JSON.stringify(val)} and length of validator=${JSON.stringify(
+              val
+            )}. Both must be of number type.`
+          );
+        }
+
+        if (val.length < length) {
+          return cb(
+            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart)
+          );
+        }
       }
+      cb();
     },
-    maxLength: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      var val = vutil.getValue(this, appModelPart, lodashPath);
-      var length = vutil.getArgumentValue(
+    maxLength(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const castToType = 'Number';
+      const length = vutil.getArgumentValue(
         handlerSpec.arguments,
         'length',
         this,
         lodashPath,
-        appModelPart
+        appModelPart,
+        castToType
       );
-      // console.log(`>>> maxLength val: ${val}, length: ${length}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (val && length && val.length > length) {
-        cb(
-          vutil.replaceErrorTemplatePlaceholders(
-            modelName,
-            handlerSpec,
-            val,
-            this,
-            lodashPath,
-            appModelPart
-          )
-        );
-      } else {
-        cb();
+
+      if (val && length) {
+        const argType = typeof length;
+        const valType = typeof val.length;
+        const isValidTypes = argType === 'number' && valType === argType;
+        if (!isValidTypes) {
+          return cb(
+            `Type mismatch for length of val=${JSON.stringify(val)} and length of validator=${JSON.stringify(
+              val
+            )}. Both must be of number type.`
+          );
+        }
+
+        if (val.length > length) {
+          return cb(
+            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart)
+          );
+        }
       }
+      cb();
     },
-    notEqual: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      var val = vutil.getValue(this, appModelPart, lodashPath);
-      var value = vutil.getArgumentValue(
-        handlerSpec.arguments,
-        'value',
-        this,
-        lodashPath,
-        appModelPart
-      );
-      // console.log(`>>> notEqual val: ${val}, value: ${value}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (val && value && val == value) {
-        cb(
-          vutil.replaceErrorTemplatePlaceholders(
-            modelName,
-            handlerSpec,
-            val,
-            this,
-            lodashPath,
-            appModelPart
-          )
-        );
-      } else {
-        cb();
+    notEqual(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const argVal = vutil.getArgumentValue(handlerSpec.arguments, 'value', this, lodashPath, appModelPart);
+
+      if (val && argVal && val === argVal) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
       }
+      cb();
     },
-    equal: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      var val = vutil.getValue(this, appModelPart, lodashPath);
-      var value = vutil.getArgumentValue(
-        handlerSpec.arguments,
-        'value',
-        this,
-        lodashPath,
-        appModelPart
-      );
-      // console.log(`>>> equal val: ${val}, value: ${value}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (val && value && val == value) {
-        cb();
-      } else {
-        cb(
-          vutil.replaceErrorTemplatePlaceholders(
-            modelName,
-            handlerSpec,
-            val,
-            this,
-            lodashPath,
-            appModelPart
-          )
-        );
+    equal(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const argVal = vutil.getArgumentValue(handlerSpec.arguments, 'value', this, lodashPath, appModelPart);
+      if (val && argVal && val === argVal) {
+        return cb();
       }
+      cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
     },
-    regex: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      var val = vutil.getValue(this, appModelPart, lodashPath, true);
-      // console.log(`>>> regex val1: ${val}, tval: ${typeof val}, lodashPath: ${lodashPath}, data: ${JSON.stringify(this)}`);
-      var regex = vutil.getArgumentValue(
-        handlerSpec.arguments,
-        'regex',
-        this,
-        lodashPath,
-        appModelPart
-      );
-      var regexOptions = vutil.getArgumentValue(
+    regex(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = vutil.getValue(this, appModelPart, lodashPath, true);
+      const regex = vutil.getArgumentValue(handlerSpec.arguments, 'regex', this, lodashPath, appModelPart);
+      const regexOptions = vutil.getArgumentValue(
         handlerSpec.arguments,
         'regexOptions',
         this,
         lodashPath,
         appModelPart
       );
-      // console.log(`>>> regex val: ${val}, tval: ${typeof val}, regex: ${regex}, regexOptions: ${regexOptions}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (
-        val &&
-        regex !== undefined &&
-        regexOptions !== undefined &&
-        !new RegExp(regex, regexOptions).test(val)
-      ) {
-        cb(
-          vutil.replaceErrorTemplatePlaceholders(
-            modelName,
-            handlerSpec,
-            val,
-            this,
-            lodashPath,
-            appModelPart
-          )
-        );
-      } else {
-        cb();
+      if (val && regex !== undefined && regexOptions !== undefined && !new RegExp(regex, regexOptions).test(val)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
       }
+      cb();
     },
-    notInFuture: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+    notInFuture(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
       // TODO: replace with max(date) and $now/@now?
-      var val = vutil.getValue(this, appModelPart, lodashPath);
-      var limit = vutil.getDatePartValue(new Date());
-      // console.log(`>>> notInFuture val: ${val}, limit: ${limit}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (val && val > limit) {
-        cb(
-          vutil.replaceErrorTemplatePlaceholders(
-            modelName,
-            handlerSpec,
-            val,
-            this,
-            lodashPath,
-            appModelPart
-          )
-        );
-      } else {
-        cb();
+      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const limit = vutil.getDatePartValue(new Date());
+      if (val instanceof Date && !Number.isNaN(val.valueOf()) && val > limit) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
       }
+      cb();
     },
-    notInPast: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+    notInPast(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
       // TODO: replace with max(date) and $now/@now?
-      var val = vutil.getValue(this, appModelPart, lodashPath);
-      var limit = vutil.getDatePartValue(new Date());
-      // console.log(`>>> notInFuture val: ${val}, limit: ${limit}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (val && val < limit) {
-        cb(
-          vutil.replaceErrorTemplatePlaceholders(
-            modelName,
-            handlerSpec,
-            val,
-            this,
-            lodashPath,
-            appModelPart
-          )
-        );
-      } else {
-        cb();
+      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const limit = vutil.getDatePartValue(new Date());
+      if (val instanceof Date && !Number.isNaN(val.valueOf()) && val < limit) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
       }
+      cb();
     },
-    min: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      var val = vutil.getValue(this, appModelPart, lodashPath);
-      var limit = vutil.getArgumentValue(
-        handlerSpec.arguments,
-        'limit',
-        this,
-        lodashPath,
-        appModelPart
-      );
-      // console.log(`>>> min val: ${val}, tval: ${typeof val}, limit: ${limit}, tlimit: ${typeof limit}, test: ${val >= limit}, lodashPath: ${lodashPath}, appModelPart: ${JSON.stringify(appModelPart)}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (val && limit && val < limit) {
-        cb(
-          vutil.replaceErrorTemplatePlaceholders(
-            modelName,
-            handlerSpec,
-            val,
-            this,
-            lodashPath,
-            appModelPart
-          )
-        );
-      } else {
-        cb();
+    min(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const limit = vutil.getArgumentValue(handlerSpec.arguments, 'limit', this, lodashPath, appModelPart);
+      if (val && limit) {
+        const isValidTypes = typeof limit === typeof val;
+        if (!isValidTypes) {
+          return cb(`Type mismatch for val=${JSON.stringify(val)} and validator=${JSON.stringify(limit)}`);
+        }
+
+        if (val < limit) {
+          return cb(
+            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart)
+          );
+        }
       }
+      cb();
     },
-    max: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      var val = vutil.getValue(this, appModelPart, lodashPath);
-      var limit = vutil.getArgumentValue(
-        handlerSpec.arguments,
-        'limit',
-        this,
-        lodashPath,
-        appModelPart
-      );
-      // console.log(`>>> max val: ${val}, limit: ${limit}, test: ${val >= limit}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
-      if (val && limit && val > limit) {
-        cb(
-          vutil.replaceErrorTemplatePlaceholders(
-            modelName,
-            handlerSpec,
-            val,
-            this,
-            lodashPath,
-            appModelPart
-          )
-        );
-      } else {
-        cb();
+    max(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const limit = vutil.getArgumentValue(handlerSpec.arguments, 'limit', this, lodashPath, appModelPart);
+      if (val && limit) {
+        const isValidTypes = typeof limit === typeof val;
+        if (!isValidTypes) {
+          return cb(`Type mismatch for val=${JSON.stringify(val)} and validator=${JSON.stringify(limit)}`);
+        }
+
+        if (val > limit) {
+          return cb(
+            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart)
+          );
+        }
       }
+      cb();
     },
-    imperialHeightRange: function(
-      modelName,
-      lodashPath,
-      appModelPart,
-      userContext,
-      handlerSpec,
-      cb
-    ) {
-      var val = _.get(this, lodashPath);
-      var limit = _.get(handlerSpec, 'arguments');
-      // console.log(`>>> heightRange val: ${val}, limit: ${limit}, test: ${val >= limit}, lodashPath: ${lodashPath}, handlerSpec: ${JSON.stringify(handlerSpec)}`);
+    imperialHeightRange(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = _.get(this, lodashPath);
+      const limit = _.get(handlerSpec, 'arguments');
       if (
         Array.isArray(val) &&
         Array.isArray(limit.from) &&
@@ -287,56 +237,25 @@ module.exports = function(appLib) {
         limit.to.length === 2
       ) {
         // TODO: also check if these are integers?
-        var valInIn = val[0] * 12 + val[1];
-        var fromInIn = limit.from[0] * 12 + limit.from[1];
-        var toInIn = limit.to[0] * 12 + limit.to[1];
+        const valInIn = val[0] * 12 + val[1];
+        const fromInIn = limit.from[0] * 12 + limit.from[1];
+        const toInIn = limit.to[0] * 12 + limit.to[1];
         if (valInIn >= fromInIn && valInIn <= toInIn) {
           cb();
         } else {
-          cb(
-            vutil.replaceErrorTemplatePlaceholders(
-              modelName,
-              handlerSpec,
-              val,
-              this,
-              lodashPath,
-              appModelPart
-            )
-          );
+          cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
         }
       } else {
         cb();
       }
     },
-    dynamicListValue: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      var url = appLib.appModelHelpers.Lists[appModelPart.list];
-      var val = _.get(this, lodashPath);
-      if (url.startsWith('/')) {
-        url = process.env.APP_URL + url;
-      }
-      console.log('URL:', url);
-      request.get(url, function(err, res, body) {
-        if (err) {
-          console.log('ERR:', err);
-          console.log('RES:', res);
-          cb('Error validating dynamic list selection: ' + err);
-        } else {
-          var list = JSON.parse(body).data;
-          var allowedValues = _.keys(list);
-          if (
-            (_.isArray(val) && _.difference(val, allowedValues).length === 0) ||
-            _.includes(allowedValues, val)
-          ) {
-            cb();
-          } else {
-            cb('Incorrect dynamic list value, must be one of ' + _.keys(list).join(', '));
-          }
-        }
-      });
-    },
     /**
      * Validates 'required' field presented as string (dynamic value depends on current item value).
      * For example: 'row[type] == "inline"'
+     * Generated required function supports following signatures(old and new for backward compatibility):
+     * - no context and 'data, row, modelSchema, $action' as params.
+     * - context with properties 'data, row, modelSchema, action, arrIndexes, parentData, index, path'
+     * and 'moment, _, ObjectID, and, or' as params
      * @param modelName
      * @param lodashPath
      * @param appModelPart
@@ -344,53 +263,60 @@ module.exports = function(appLib) {
      * @param handlerSpec
      * @param cb
      */
-    required: function(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+    required(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
       if (!_.isString(appModelPart.required)) {
         cb();
       }
 
       try {
-        var requiredFunc = new Function(
-          'data, row, modelSchema, $action',
-          'return ' + appModelPart.required
-        );
-        var val = vutil.getValue(this, appModelPart, lodashPath);
-        var actions = appLib.accessUtil.getActions(userContext) || [];
-        var isRequired = requiredFunc(val, this, appModelPart, actions[0]);
+        const val = vutil.getValue(this, appModelPart, lodashPath);
+        const { action } = userContext;
 
-        var type = appModelPart.type;
-        var isArrayType = type.endsWith('[]') || type === 'Array';
-        var isObjectType = type === 'Mixed' || type === 'Object';
-        var isString = type === 'String';
-        var isBoolean = type === 'Boolean';
-        var isEmptyVal =
+        let isRequired;
+        if (appModelPart.required.includes('this.')) {
+          const requiredData = getRequiredData(modelName, lodashPath);
+          const context = {
+            data: val,
+            row: this,
+            modelSchema: appModelPart,
+            action,
+            indexes: requiredData.indexes,
+            parentData: _.get(this, requiredData.parentPath),
+            index: requiredData.index,
+            path: lodashPath,
+          };
+          const inlineCode = appLib.butil.getDefaultArgsAndValuesForInlineCode();
+          isRequired = new Function(inlineCode.args, `return ${appModelPart.required}`).apply(
+            context,
+            inlineCode.values
+          );
+        } else {
+          const requiredFunc = new Function('data, row, modelSchema, $action', `return ${appModelPart.required}`);
+          isRequired = requiredFunc(val, this, appModelPart, action);
+        }
+
+        const { type } = appModelPart;
+        const isArrayType = type.endsWith('[]') || type === 'Array';
+        const isObjectType = type === 'Mixed' || type === 'Object';
+        const isString = type === 'String';
+        const isBoolean = type === 'Boolean';
+        const isEmptyVal =
           _.isNil(val) ||
-          (isArrayType || (isObjectType && _.isEmpty(val))) ||
+          ((isArrayType || isObjectType) && _.isEmpty(val)) ||
           (isString && val === '') ||
           (isBoolean && val === false); // this is not supposed to be
         if (isRequired && isEmptyVal) {
-          cb(
-            vutil.replaceErrorTemplatePlaceholders(
-              modelName,
-              handlerSpec,
-              val,
-              this,
-              lodashPath,
-              appModelPart
-            )
-          );
+          cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
         } else {
           cb();
         }
       } catch (e) {
         return cb(
-          'Error occurred during validating required field ' +
-            appModelPart.fullName +
-            ' for condition ' +
-            appModelPart.required
+          `Error occurred during validating required field ${appModelPart.fullName} for condition ${appModelPart.required}`
         );
       }
     },
   };
+
   return m;
 };

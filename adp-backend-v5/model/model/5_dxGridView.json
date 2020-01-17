@@ -1,0 +1,44 @@
+{
+  "models": {
+    "dxGridViews": {
+      "type": "Schema",
+      "fullName": "Data Grid views",
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{ creator: this.req.user._id }"
+        }
+      },
+      "actions": {
+        "fields": {
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "fields": {
+        "model": {
+          "type": "String",
+          "fullName": "Collection name",
+          "required": true
+        },
+        "name": {
+          "type": "String",
+          "fullName": "Record name",
+          "required": true
+        },
+        "state": {
+          "type": "Mixed",
+          "fullName": "Data grid stored state",
+          "required": true
+        }
+      }
+    }
+  }
+}

@@ -47,7 +47,7 @@
         "scopeWithPreparation": {
           "permissions": "accessAsUser",
           "prepare": "loadVerifiedCreatorIds",
-          "where": "{$in: [this.req.user._id, this.scopeVars.creatorIds]}"
+          "where": "this.scopeVars.creatorIds.findIndex(id => id.toString() === this.req.user._id.toString()) != -1"
         }
       },
       "actions": {

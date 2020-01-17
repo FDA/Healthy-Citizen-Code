@@ -1,0 +1,18 @@
+<adp-form-field-container
+  ng-if="!captchaDisabled"
+  adp-field="adpField">
+
+  <recaptcha-control
+    field="adpField"
+    adp-form-data="adpFormData"
+    ui-props="adpFieldUiProps"
+    validation-params="validationParams"
+  >
+  </recaptcha-control>
+
+
+  <adp-messages
+    adp-field="adpField">
+  </adp-messages>
+
+</adp-form-field-container>

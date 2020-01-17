@@ -17,10 +17,10 @@ module.exports = function (/*globalMongoose*/) {
     const medicationMaster = appLib.db.model('medicationMaster');
 
     return Promise.all([
-      medicationMaster.collection.ensureIndex({ndc11: 1}),
-      medicationMaster.collection.ensureIndex({srcNdc: 1}),
-      medicationMaster.collection.ensureIndex({brandName: 1}),
-      medicationMaster.collection.ensureIndex({genericNames: 1}),
+      medicationMaster.collection.createIndex({ndc11: 1}),
+      medicationMaster.collection.createIndex({srcNdc: 1}),
+      medicationMaster.collection.createIndex({brandName: 1}),
+      medicationMaster.collection.createIndex({genericNames: 1}),
     ]);
   };
 

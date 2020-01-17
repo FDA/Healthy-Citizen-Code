@@ -34,17 +34,13 @@
     }
 
     function _isVisibleInDt(field) {
-      return 'showInDatatable' in field ?
-        field.showInDatatable :
-        field.visible;
+      return field.showInDatatable;
     }
 
     function _isVisibleInDetails(field) {
       if (field.type === 'Group') return true;
 
-      return 'showInViewDetails' in field ?
-        field.showInViewDetails :
-        field.visible;
+      return field.showInViewDetails;
     }
 
     function getHeads(schema) {

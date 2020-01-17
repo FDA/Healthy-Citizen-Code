@@ -4,10 +4,9 @@
  */
 
 const args = require('optimist').argv;
-const path = require('path');
 const _ = require('lodash');
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect, setUpdateAtIfRecordChanged } = require('../util/mongo');
 
 const { mongoUrl } = args;
 if (!mongoUrl) {
@@ -31,7 +30,7 @@ async function linkMedlineToIcd(icdDoc, dbCon, parentLookup) {
           { 'also-called': { $in: termsToFind } },
         ],
       },
-      { _id: 1, title: 1, language: 1 }
+      { projection: { _id: 1, title: 1, language: 1 } }
     )
     .toArray();
 
@@ -45,30 +44,24 @@ async function linkMedlineToIcd(icdDoc, dbCon, parentLookup) {
       label: firstEnglishTopic.title,
       _id: firstEnglishTopic._id,
       data: {
-        language: firstEnglishTopic.language
-      }
+        language: firstEnglishTopic.language,
+      },
     };
-    await dbCon
+    await setUpdateAtIfRecordChanged(dbCon
       .collection(icdCollectionName)
-      .findOneAndUpdate({ _id: icdDoc._id }, { $set: { medlinePlusTopics: lookup } });
+      , 'updateOne', { _id: icdDoc._id }, { $set: { medlinePlusTopics: lookup } });
 
     console.log(
-      `For ICD with name '${icdDoc.name}' linked 'medlinePlusTopics' own lookup: ${JSON.stringify(
-        lookup,
-        null,
-        2
-      )}`
+      `For ICD with name '${icdDoc.name}' linked 'medlinePlusTopics' own lookup: ${JSON.stringify(lookup, null, 2)}`
     );
   } else if (!_.isEmpty(parentLookup)) {
     lookup = parentLookup;
-    await dbCon
+    await setUpdateAtIfRecordChanged(dbCon
       .collection(icdCollectionName)
-      .findOneAndUpdate({ _id: icdDoc._id }, { $set: { medlinePlusTopics: lookup } });
+      , 'updateOne', { _id: icdDoc._id }, { $set: { medlinePlusTopics: lookup } });
 
     console.log(
-      `For ICD with name '${
-        icdDoc.name
-      }' linked 'medlinePlusTopics' parent lookup: ${JSON.stringify(lookup, null, 2)}`
+      `For ICD with name '${icdDoc.name}' linked 'medlinePlusTopics' parent lookup: ${JSON.stringify(lookup, null, 2)}`
     );
   }
 
@@ -77,9 +70,7 @@ async function linkMedlineToIcd(icdDoc, dbCon, parentLookup) {
       .collection(icdCollectionName)
       .find({ 'parent._id': { $eq: icdDoc._id } })
       .toArray();
-    await Promise.map(childrenRecords, childRecord =>
-      linkMedlineToIcd(childRecord, dbCon, lookup)
-    );
+    await Promise.map(childrenRecords, childRecord => linkMedlineToIcd(childRecord, dbCon, lookup));
   }
 
   return matchedDocs;
@@ -87,10 +78,8 @@ async function linkMedlineToIcd(icdDoc, dbCon, parentLookup) {
 
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../util/mongo_connection_settings'));
-    const icdRootRecords = await dbCon
-      .collection(icdCollectionName)
-      .find({ parent: { $eq: null } });
+    const dbCon = await mongoConnect(mongoUrl);
+    const icdRootRecords = await dbCon.collection(icdCollectionName).find({ parent: { $eq: null } });
 
     console.log('Searching for MedlinePlus health topics matching ICD code or name.');
     while (await icdRootRecords.hasNext()) {

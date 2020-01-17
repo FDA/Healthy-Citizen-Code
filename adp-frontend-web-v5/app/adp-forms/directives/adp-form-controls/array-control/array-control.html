@@ -1,0 +1,88 @@
+<div class="array-form-frame clearfix">
+  <ng-form
+    ng-if="display($index) && dataItem !== null"
+    class="array-ng-form-frame clearfix"
+    ng-repeat="dataItem in getData() track by $index"
+    name="{{field.fieldName}}[{{$index}}]">
+
+    <div
+      class="subform-frame clearfix"
+      ng-class="{
+        'subform-frame--is-collapsed': !visibilityStatus[$index],
+        'subform-frame--invalid': rootForm.$submitted && form[field.fieldName + '[' + $index + ']'].$invalid
+       }"
+    >
+      <h3
+        class="subform-frame__title"
+        ng-class="{
+          'subform-frame__title--invalid': rootForm.$submitted && form[field.fieldName + '[' + $index + ']'].$invalid,
+          'subform-frame__title--opened': visibilityStatus[$index]
+         }"
+      >
+        <div>
+          <button
+            type="button"
+            class="subform-frame__collapse subform-frame__btn btn fa"
+            ng-click="toggle($event, $index)"
+            ng-class="{
+            'fa-minus-square-o': visibilityStatus[$index],
+            'fa-plus-square-o': !visibilityStatus[$index]
+          }"
+          >
+          </button>
+
+          <span ng-bind-html="getHeader($index)"></span>
+
+          <button
+            type="button"
+            class="subform-frame__remove subform-frame__btn btn fa fa-trash"
+            ng-disabled="isRemoveDisabled()"
+            ng-click="remove($event, $index)"
+          >
+          </button>
+        </div>
+
+        <div>
+          <div ng-if="rootForm.$submitted">
+            <span ng-show="errorCount[$index] == 1">
+              {{errorCount[$index]}} error found.
+            </span>
+
+            <span ng-show="errorCount[$index] >= 2">
+              {{errorCount[$index]}} errors found.
+            </span>
+          </div>
+        </div>
+      </h3>
+
+      <div
+        class="subform-frame__content clearfix"
+        ng-hide="!visibilityStatus[$index]"
+      >
+        <array-controls-factory
+          ng-repeat="subField in getFields()"
+          field="subField"
+          form-data="$parent.dataItem"
+          index="$parent.$index"
+          validation-params="nextValidationParams"
+        >
+        </array-controls-factory>
+      </div>
+
+    </div>
+
+  </ng-form>
+
+</div>
+
+<div
+  ng-show="hasVisibleItems()"
+  class="array-form-btns clearfix">
+  <button
+    type="button"
+    class="btn btn-default js-array-add-item-btn"
+    ng-click="addArrayItem()"
+  >
+    Add new "{{field.fullName}}"
+  </button>
+</div>

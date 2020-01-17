@@ -1,0 +1,25 @@
+<adp-form-field-container
+  adp-data="data"
+  adp-field="adpField">
+
+  <div class="inline-group">
+    <boolean-control
+      field="adpField"
+      adp-form-data="adpFormData"
+      ui-props="adpFieldUiProps"
+      validation-params="validationParams"
+    >
+    </boolean-control>
+
+    <label class="checkbox checkbox-tooltip">
+      <adp-tooltip
+        adp-field="adpField">
+      </adp-tooltip>
+    </label>
+  </div>
+
+  <adp-messages
+    adp-field="adpField">
+  </adp-messages>
+
+</adp-form-field-container>

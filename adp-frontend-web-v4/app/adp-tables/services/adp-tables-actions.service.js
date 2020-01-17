@@ -14,7 +14,7 @@
         if (!rowData._actions[actionName]) return;
 
         // check action.showInTable is false
-        const showInTable = action.showInTable;
+        var showInTable = action.showInTable;
         if (showInTable === false || showInTable === 'false') return;
 
         filteredActions[actionName] = action;

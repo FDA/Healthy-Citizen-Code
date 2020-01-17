@@ -1,11 +1,9 @@
 const _ = require('lodash');
+const axios = require('axios');
 const log = require('log4js').getLogger('lib/access-util');
 const Promise = require('bluebird');
-const {
-  getDefaultArgsAndValuesForInlineCode,
-  getModelNameByReq,
-  MONGO,
-} = require('../backend-util');
+const { default: sift } = require('sift');
+const { getDefaultArgsAndValuesForInlineCode, MONGO } = require('../util/util');
 
 module.exports = appLib => {
   const m = {};
@@ -19,16 +17,16 @@ module.exports = appLib => {
     car: [appPermissions.accessFromCar],
   };
 
-  function getEvaluatedScopeCondition(scopeCondition, prepareContext) {
+  function getEvaluatedScopeCondition(scopeCondition, inlineContext) {
     try {
       const { args, values } = getDefaultArgsAndValuesForInlineCode();
       const func = new Function(args, `return ${scopeCondition}`);
-      return func.apply(prepareContext, values);
+      return func.apply(inlineContext, values);
     } catch (e) {
       appLib.log.error(
         `Error occurred while evaluating scopeCondition (${scopeCondition}), will be resolved as FALSE. ${e}`
       );
-      return MONGO.EXPR.FALSE;
+      return false;
     }
   }
 
@@ -49,8 +47,7 @@ module.exports = appLib => {
 
   m.isPermissionGranted = (actionPermissions, permissions) => {
     const hasStringPermission = _.isString(actionPermissions) && permissions.has(actionPermissions);
-    const hasArrayPermission =
-      _.isArray(actionPermissions) && isArrayConditionPassed(actionPermissions, permissions);
+    const hasArrayPermission = _.isArray(actionPermissions) && isArrayConditionPassed(actionPermissions, permissions);
     return hasStringPermission || hasArrayPermission;
   };
 
@@ -66,140 +63,165 @@ module.exports = appLib => {
    */
   m.getUserContext = req => req;
 
-  m.getWhereConditionPromise = (where, preparationName, prepareContext) => {
+  m.addActionsToDocs = (docs, actionFuncs) => {
+    if (_.isEmpty(actionFuncs)) {
+      return docs;
+    }
+
+    _.each(docs, doc => {
+      doc._actions = {};
+      _.each(actionFuncs, (actionFunc, actionName) => {
+        doc._actions[actionName] = actionFunc(doc);
+      });
+    });
+    return docs;
+  };
+
+  m.getWhereConditionPromise = async (where, preparationName, inlineContext) => {
     const preparationPromiseFunc = appLib.appModelHelpers.Preparations[preparationName];
     if (!preparationPromiseFunc) {
-      return Promise.resolve(getEvaluatedScopeCondition(where, prepareContext));
+      return getEvaluatedScopeCondition(where, inlineContext);
     }
-    return preparationPromiseFunc().then(scopeVars => {
-      const newPrepareContext = _.clone(prepareContext);
-      newPrepareContext.scopeVars = scopeVars || {};
-      return getEvaluatedScopeCondition(where, newPrepareContext);
-    });
+    const scopeVars = await preparationPromiseFunc();
+    const newInlineContext = _.clone(inlineContext);
+    newInlineContext.scopeVars = scopeVars || {};
+    return getEvaluatedScopeCondition(where, newInlineContext);
   };
 
   /**
-   * Gets scope condition from actionsObj for one specified action.
+   * Gets scope conditions from actionsObj for one specified action with explanation.
    * @param actionsObj could be any object with correct format of 'actions' and 'scopes' fields and its entries.
    * Schema or lookup can be passed here.
    * @param userPermissions
    * @param action to retrieve conditions for
-   * @param prepareContext needed for preparation specified in 'prepare' field
+   * @param inlineContext needed for preparation specified in 'prepare' field
    * @param isCheckActionPermissions needed to handle actions for model and skip it for other things
-   * @returns {Promise<any>}
    */
-  m.getObjScopeConditionsForAction = (
-    actionsObj,
-    userPermissions,
-    action,
-    prepareContext,
-    isCheckActionPermissions
-  ) => {
-    // TODO: remove sending TRUE for custom actions when migrate to all custom actions
-    if (!appLib.accessCfg.DEFAULT_ACTIONS.includes(action)) {
-      return Promise.resolve(MONGO.EXPR.TRUE);
-    }
+  m.getObjScopeMetaForAction = async (actionsObj, userPermissions, action, inlineContext, isCheckActionPermissions) => {
+    const meta = { action };
+
     if (isCheckActionPermissions) {
       const actionPermissions = _.get(actionsObj, `actions.fields[${action}].permissions`);
-      const isActionPermissionGranted = m.isPermissionGranted(actionPermissions, userPermissions);
-      if (!isActionPermissionGranted) {
-        return Promise.resolve(MONGO.EXPR.FALSE);
+      meta.isActionPermissionGranted = m.isPermissionGranted(actionPermissions, userPermissions);
+      if (!meta.isActionPermissionGranted) {
+        meta.overallConditions = false;
+        return meta;
       }
     }
 
-    const scopeConditionsPromises = [];
-    _.each(actionsObj.scopes, modelScope => {
+    meta.scopeConditions = {};
+    await Promise.map(Object.entries(actionsObj.scopes), async ([scopeName, modelScope]) => {
       const scopePermission = _.get(modelScope, `permissions.${action}`);
       const isScopePermissionGranted = m.isPermissionGranted(scopePermission, userPermissions);
       const { where, prepare } = modelScope;
       if (isScopePermissionGranted && where) {
-        const whereConditionPromise = m.getWhereConditionPromise(where, prepare, prepareContext);
-        scopeConditionsPromises.push(whereConditionPromise);
+        meta.scopeConditions[scopeName] = await m.getWhereConditionPromise(where, prepare, inlineContext);
+      } else {
+        meta.scopeConditions[scopeName] = false;
       }
     });
-    if (!scopeConditionsPromises.length) {
-      return Promise.resolve(MONGO.EXPR.FALSE);
-    }
-    return Promise.all(scopeConditionsPromises).then(scopeConditions => {
-      const filteredConditions = scopeConditions.filter(sc => !_.isEmpty(sc));
-      if (filteredConditions.length) {
-        return MONGO.or(...filteredConditions);
-      }
-      return MONGO.or(MONGO.EXPR.FALSE);
-    });
+    meta.overallConditions = MONGO.or(...Object.values(meta.scopeConditions));
+
+    return meta;
   };
 
   /**
-   * Multiple handler for getObjScopeConditionsForAction. Aggregates all scope conditions for actions.
+   * Multiple handler for getObjScopeMetaForAction. Aggregates all scope conditions for actions.
    * @param actionsObj
    * @param userPermissions
    * @param actions
-   * @param prepareContext
+   * @param inlineContext
    * @param isCheckActionPermissions
    */
-  m.getObjScopeConditionsForActions = (
+  m.getObjScopeMetaForActions = async (
     actionsObj,
     userPermissions,
     actions,
-    prepareContext,
+    inlineContext,
     isCheckActionPermissions
-  ) =>
-    Promise.map(actions, action =>
-      m
-        .getObjScopeConditionsForAction(
-          actionsObj,
-          userPermissions,
-          action,
-          prepareContext,
-          isCheckActionPermissions
-        )
-        .then(scopeConditions => MONGO.expr(scopeConditions))
-    ).then(
-      allActionsConditions =>
-        allActionsConditions.length
-          ? MONGO.or(...allActionsConditions)
-          : MONGO.expr(MONGO.EXPR.FALSE)
+  ) => {
+    const allActionsMeta = await Promise.map(_.castArray(actions), action =>
+      m.getObjScopeMetaForAction(actionsObj, userPermissions, action, inlineContext, isCheckActionPermissions)
     );
+    return {
+      meta: allActionsMeta,
+      overallConditions: MONGO.or(...allActionsMeta.map(meta => meta.overallConditions)),
+    };
+  };
 
-  m.setUserPermissions = (req, permissions) => {
+  m.getScopeConditionsMeta = async (appModel, userPermissions, inlineContext, actions) => {
+    const { enablePermissions } = appLib.getAuthSettings();
+    if (actions && enablePermissions) {
+      return m.getObjScopeMetaForActions(appModel, userPermissions, actions, inlineContext, true);
+    }
+    return {
+      meta: { enablePermissions },
+      overallConditions: true,
+    };
+  };
+
+  m.setReqUser = (req, user) => {
+    req.user = user;
+  };
+
+  m.getReqUser = req => {
+    return req.user;
+  };
+
+  m.setReqRoles = (req, roles) => {
+    req.roles = roles;
+  };
+
+  m.getReqRoles = req => {
+    return req.roles;
+  };
+
+  m.setReqPermissions = (req, permissions) => {
     req.permissions = permissions;
   };
 
-  m.getRolesToPermissions = () =>
-    appLib.db
-      .collection('roles')
-      .find(appLib.dba.getConditionForActualRecord())
-      .toArray()
-      .then(roles => {
-        const rolesToPermissions = {};
-        roles.forEach(role => {
-          rolesToPermissions[role.name] = role.permissions;
-        });
-        // override permission for superAdmin
-        const allAppPermissionsSet = m.getAllAppPermissionsSet();
-        const superAdmin = appLib.accessCfg.ROLES.SuperAdmin;
-        rolesToPermissions[superAdmin] = Array.from(allAppPermissionsSet);
-        return rolesToPermissions;
-      })
-      .catch(err => {
-        log.error(`Error occurred while retrieving roles to permissions: ${err}`);
-        throw err;
-      });
-
-  m.getUserPermissions = req => {
+  m.getReqPermissions = req => {
     if (!appLib.getAuthSettings().enablePermissions) {
       return m.getAllAppPermissionsSet();
     }
     return req.permissions || new Set();
   };
 
+  m.setReqAuth = ({ req, user, roles, permissions }) => {
+    m.setReqUser(req, user);
+    m.setReqRoles(req, roles);
+    m.setReqPermissions(req, permissions);
+  };
+
+  m.getRolesToPermissions = async () => {
+    try {
+      const roles = await appLib.db
+        .collection('roles')
+        .find(appLib.dba.getConditionForActualRecord())
+        .toArray();
+
+      const rolesToPermissions = {};
+      roles.forEach(role => {
+        rolesToPermissions[role.name] = role.permissions;
+      });
+      // override permission for superAdmin
+      const allAppPermissionsSet = m.getAllAppPermissionsSet();
+      const superAdmin = appLib.accessCfg.ROLES.SuperAdmin;
+      rolesToPermissions[superAdmin] = Array.from(allAppPermissionsSet);
+      return rolesToPermissions;
+    } catch (e) {
+      log.error(`Error occurred while retrieving roles to permissions: ${e}`);
+      throw e;
+    }
+  };
+
   /**
-   * Get user permissions by user roles and auth settings.
+   * Get user roles and permissions by user roles and auth settings.
    * TODO: add option for object permission, not only array of strings
    * @param user
    * @param deviceType - necessary for adding permission based on deviceType
    */
-  m.getPermissionsForUser = (user, deviceType) => {
+  m.getRolesAndPermissionsForUser = async (user, deviceType) => {
     const userPermissions = getImplicitPermissionsFromAuthSettings();
 
     const deviceTypePermissions = deviceTypeToPermissions[deviceType] || [];
@@ -219,19 +241,18 @@ module.exports = appLib => {
       allUserRoles.add(roleLookup.label);
     }
 
-    return appLib.cache
-      .getUsingCache(() => m.getRolesToPermissions(), appLib.cache.keys.ROLES_TO_PERMISSIONS)
-      .then(rolesToPermissions => {
-        // add permissions for each role
-        for (const role of allUserRoles) {
-          const rolePermissions = rolesToPermissions[role] || [];
-          for (const rolePermission of rolePermissions) {
-            userPermissions.add(rolePermission);
-          }
-        }
-
-        return userPermissions;
-      });
+    const rolesToPermissions = await appLib.cache.getUsingCache(
+      () => m.getRolesToPermissions(),
+      appLib.cache.keys.ROLES_TO_PERMISSIONS
+    );
+    // add permissions for each user role
+    for (const role of allUserRoles) {
+      const rolePermissions = rolesToPermissions[role] || [];
+      for (const rolePermission of rolePermissions) {
+        userPermissions.add(rolePermission);
+      }
+    }
+    return { roles: allUserRoles, permissions: userPermissions };
 
     /**
      * According to 'App-wide Parameters and Changes to Overall App Behavior' https://confluence.conceptant.com/pages/viewpage.action?pageId=1016055
@@ -263,99 +284,79 @@ module.exports = appLib => {
   };
 
   m.getAvailActionsFromActions = (actions, permissions) => {
-    const actionActions = new Set();
+    const availableActions = new Set();
     _.each(actions.fields, (actionSettings, actionName) => {
       const actionPermissions = actionSettings.permissions;
       if (m.isPermissionGranted(actionPermissions, permissions)) {
-        actionActions.add(actionName);
+        availableActions.add(actionName);
       }
     });
-    return actionActions;
+    return availableActions;
   };
 
   m.getAllAppPermissionsSet = () => {
     // SuperAdmin has all default permissions + declaredPermissions by user
     const defaultPermissions = Object.values(appPermissions);
-    const allAppPermissionsSet = new Set([
-      ...defaultPermissions,
-      ...appLib.declaredPermissionNames,
-    ]);
-    return allAppPermissionsSet;
+    return new Set([...defaultPermissions, ...appLib.declaredPermissionNames]);
   };
 
-  // util methods tied with req
-  m.getActions = req => {
-    if (req.action === 'datatables') {
-      return ['view', 'create', 'update', 'delete'];
-    }
-    const { method } = req;
-    if (method === 'GET') {
-      return ['view'];
-    }
-    if (method === 'POST') {
-      return ['create']; // same request action as clone
-    }
-    if (method === 'PUT') {
-      return ['update'];
-    }
-    if (method === 'DELETE') {
-      return ['delete'];
-    }
-    return [];
-  };
-
-  m.getAppModelByReq = req => {
-    const modelName = getModelNameByReq(req);
-    return _.get(appLib.appModel, `models.${modelName}`);
-  };
-
-  m.getScopeConditionsForModel = (req, actionsToAdd) => {
-    const model = m.getAppModelByReq(req);
-    const userPermissions = m.getUserPermissions(req);
-    const actions = actionsToAdd === true ? m.getActions(req) : _.castArray(actionsToAdd);
-
-    const inlineContext = m.getInlineContext(req);
-
-    return m.getObjScopeConditionsForActions(model, userPermissions, actions, inlineContext, true);
-  };
-
-  m.getViewConditionsByPermissionsForLookup = (
-    userPermissions,
-    prepareContext,
-    lookup,
-    mongoConditions
-  ) => {
+  m.getViewConditionsByPermissionsForLookup = async (userPermissions, inlineContext, lookup, mongoConditions) => {
     if (appLib.getAuthSettings().enablePermissions) {
       const actions = ['view'];
       const appModel = appLib.appModel.models[lookup.table];
 
-      return Promise.all([
-        m.getObjScopeConditionsForActions(lookup, userPermissions, actions, prepareContext, false),
-        m.getObjScopeConditionsForActions(appModel, userPermissions, actions, prepareContext, true),
-      ]).then(([lookupConditions, modelConditions]) =>
-        MONGO.and(mongoConditions, lookupConditions, modelConditions)
-      );
+      const [lookupConditionsMeta, modelConditionsMeta] = await Promise.all([
+        m.getObjScopeMetaForActions(lookup, userPermissions, actions, inlineContext, false),
+        m.getObjScopeMetaForActions(appModel, userPermissions, actions, inlineContext, true),
+      ]);
+      const lookupConditions = lookupConditionsMeta.overallConditions;
+      const modelConditions = modelConditionsMeta.overallConditions;
+      return MONGO.and(mongoConditions, lookupConditions, modelConditions);
     }
-    return Promise.resolve(mongoConditions);
+    return mongoConditions;
   };
 
-  m.getModelActionProjections = (req, actionsToAdd) => {
-    const actionProjections = {};
-    const model = m.getAppModelByReq(req);
-    const userPermissions = m.getUserPermissions(req);
-    const modelActions = _.keys(_.get(model, 'actions.fields', {}));
-    const inlineContext = m.getInlineContext(req);
+  m.getActionFuncsMeta = async (appModel, userPermissions, inlineContext, actions) => {
+    const shownModelActionsNames = _.reduce(
+      appModel.actions.fields,
+      (res, actionSpec, actionName) => {
+        if (actionSpec.showInTable !== false) {
+          res.push(actionName);
+        }
+        return res;
+      },
+      []
+    );
 
-    return Promise.map(modelActions, action => {
-      if (actionsToAdd === true || _.castArray(actionsToAdd).includes(action)) {
-        return m
-          .getObjScopeConditionsForAction(model, userPermissions, action, inlineContext, true)
-          .then(scopeConditionForAction => {
-            _.set(actionProjections, `_actions.${action}`, scopeConditionForAction);
-          });
+    let chosenActions;
+    if (actions === false) {
+      chosenActions = [];
+    } else if (actions === true) {
+      chosenActions = shownModelActionsNames;
+    } else {
+      chosenActions = shownModelActionsNames.filter(action => actions.includes(action));
+    }
+
+    const allChosenActionsMeta = await Promise.map(chosenActions, modelAction =>
+      m.getObjScopeMetaForAction(appModel, userPermissions, modelAction, inlineContext, true)
+    );
+
+    const actionFuncs = {};
+    _.each(allChosenActionsMeta, meta => {
+      const { overallConditions: condition, action } = meta;
+      if (condition === true || condition === false) {
+        // simple condition
+        actionFuncs[action] = () => condition;
+      } else {
+        // object condition being evaluated with sift
+        actionFuncs[action] = sift(condition);
       }
-      return false;
-    }).then(() => actionProjections);
+    });
+
+    return {
+      meta: allChosenActionsMeta,
+      actionFuncs,
+    };
   };
 
   /**
@@ -381,9 +382,7 @@ module.exports = appLib => {
       const isPermissionGranted = m.isPermissionGranted(fieldPermissions, userPermissions);
 
       if (_.isArray(data)) {
-        _.each(data, doc =>
-          filterDoc(doc, isPermissionGranted, fieldPath, field, isObjectField, isArrayField)
-        );
+        _.each(data, doc => filterDoc(doc, isPermissionGranted, fieldPath, field, isObjectField, isArrayField));
       } else {
         filterDoc(data, isPermissionGranted, fieldPath, field, isObjectField, isArrayField);
       }
@@ -414,20 +413,12 @@ module.exports = appLib => {
   };
 
   /**
-   * Clear field considering peculiarity of Location type
+   * Clear field
    * @param data
    * @param path
-   * @param modelPart
    */
-  m.clearField = (data, path, modelPart) => {
+  m.clearField = (data, path) => {
     _.unset(data, path);
-    // workaround for location field (its stored in 2 fields)
-    if (modelPart.type === 'Location') {
-      const locationFieldName = path[path.length - 1];
-      const labelPath = path.slice(0, -1);
-      labelPath.push(`${locationFieldName}_label`);
-      _.unset(data, labelPath);
-    }
   };
 
   /**
@@ -448,15 +439,7 @@ module.exports = appLib => {
    * @param userPermissions
    * @returns {*}
    */
-  m.mergeDocs = ({
-    appModel,
-    path = [],
-    result = {},
-    dbDoc,
-    userData,
-    action,
-    userPermissions,
-  }) => {
+  m.mergeDocs = ({ appModel, path = [], result = {}, dbDoc, userData, action, userPermissions }) => {
     // copy _id from dbDoc only for root level
     if (path.length === 0) {
       result._id = dbDoc._id;
@@ -471,25 +454,17 @@ module.exports = appLib => {
 
       const fieldPermissions = _.get(field, `permissions.${action}`);
       const isPermissionGranted = m.isPermissionGranted(fieldPermissions, userPermissions);
-      const isArrayField = field.type === 'Array';
-      const isObjectField = field.type === 'Object';
-      const isLocationField = field.type === 'Location';
 
-      const locationLabelPath = path.concat(`${fieldKey}_label`);
       const userValue = _.get(userData, fieldPath);
       const dbValue = _.get(dbDoc, fieldPath);
 
       if (!isPermissionGranted) {
-        if (isLocationField) {
-          setVal(result, locationLabelPath, _.get(dbDoc, locationLabelPath));
-        }
         return setVal(result, fieldPath, dbValue);
       }
 
+      const isArrayField = field.type === 'Array';
+      const isObjectField = field.type === 'Object';
       if (!isArrayField && !isObjectField) {
-        if (isLocationField) {
-          setVal(result, locationLabelPath, _.get(userData, locationLabelPath));
-        }
         return setVal(result, fieldPath, userValue);
       }
 
@@ -509,15 +484,12 @@ module.exports = appLib => {
         // if user value for array is not set it should be written as empty
         const userArrValue = userValue || [];
 
-        // map bu object id no matter whether its String or ObjectID instance
+        // map by object id no matter whether its String or ObjectID instance
         const mappedDbArray = _.map(userArrValue, userObj => {
           if (!userObj._id) {
             return {};
           }
-          const matchedDbDoc = _.find(
-            dbValue,
-            doc => doc._id && userObj._id.toString() === doc._id.toString()
-          );
+          const matchedDbDoc = _.find(dbValue, doc => doc._id && userObj._id.toString() === doc._id.toString());
           return matchedDbDoc || {};
         });
         // rewrite mapped array to merge db and user objects 1 to 1
@@ -583,28 +555,45 @@ module.exports = appLib => {
     return filteringInfo;
   };
 
+  async function getListValues(list) {
+    if (list.isDynamicList) {
+      const { name: endpoint } = list;
+      const response = await axios.get(endpoint);
+      return response.data.data || {};
+    }
+
+    const { name: listName, values: builtInList } = list;
+    const referencedList = appLib.appModelHelpers.Lists[listName];
+    return referencedList || builtInList;
+  }
   /**
    *
-   * @param userPermissions
+   * @param userPermissions - Set of permissions
    * @param inlineContext - used as argument in generated 'where' and 'return' functions
    * @param listsFieldsToGet
    */
-  m.getListsForUser = (userPermissions, inlineContext, listsFieldsToGet = appLib.ListsFields) => {
+  m.getListsForUser = async (userPermissions, inlineContext, listsFieldsToGet) => {
     const allListsForUser = {};
     const isPermissionsEnabled = appLib.getAuthSettings().enablePermissions;
 
-    listsFieldsToGet.forEach(listField => {
-      const { type: elemType, required: elemRequired } = _.get(appLib.appModel.models, listField);
-      const listPath = `${listField}.list`;
-      const { name: listName, values: builtInList, scopes: listScopes } = _.get(
-        appLib.appModel.models,
-        listPath
-      );
-      const referencedList = appLib.appModelHelpers.Lists[listName];
-      const listValues = referencedList || builtInList;
+    await Promise.map(listsFieldsToGet, async listField => {
+      const { type: elemType, required: elemRequired, list } = _.get(appLib.appModel.models, listField);
+
+      const listScopes = list.scopes;
+      let listValues;
+      try {
+        listValues = await getListValues(list);
+      } catch (e) {
+        log.error(`Unable to get list values for '${listField}', list name: '${list.name}'`);
+        listValues = {};
+      }
 
       if (!isPermissionsEnabled) {
-        allListsForUser[listField] = listValues;
+        allListsForUser[listField] = {
+          type: elemType,
+          required: elemRequired === true || elemRequired === 'true',
+          values: listValues,
+        };
         return;
       }
 
@@ -627,10 +616,10 @@ module.exports = appLib => {
               }
             } catch (e) {
               appLib.log.error(
-                `Error occurred while calculating where condition for listPath='${listPath}'. ` +
+                `Error occurred while calculating where condition for listPath='${listField}'. ` +
                   `Element: val='${val}', key='${key}'. ` +
                   `This element will not be included in result list for scope '${listScopeName}'.\n`,
-                e
+                e.stack
               );
             }
           });
@@ -643,7 +632,7 @@ module.exports = appLib => {
         } catch (e) {
           returnedListForScope = {};
           appLib.log.error(
-            `Error occurred during list generation for scope ${listScope} for path ${listPath}. ` +
+            `Error occurred during list generation for scope ${listScope} for path ${listField}. ` +
               `Applied empty object for this list.\n`,
             e
           );
@@ -651,10 +640,7 @@ module.exports = appLib => {
 
         listsForScopes.push(returnedListForScope);
       });
-      const mergedListForScopes = listsForScopes.reduce(
-        (result, current) => _.merge(result, current),
-        {}
-      );
+      const mergedListForScopes = listsForScopes.reduce((result, current) => _.merge(result, current), {});
 
       allListsForUser[listField] = {
         type: elemType,
@@ -724,7 +710,7 @@ module.exports = appLib => {
     return pages;
   };
 
-  m.validateListsValues = (modelName, data, userPermissions, inlineContext) => {
+  m.validateListsValues = async (modelName, data, userPermissions, inlineContext) => {
     const listsErrors = [];
     // if (!appLib.getAuthSettings().enablePermissions) {
     //   return listsErrors;
@@ -743,15 +729,27 @@ module.exports = appLib => {
       {}
     );
 
-    const schemaListsFields = appLib.ListsFields.filter(path =>
-      path.startsWith(fieldsPathInAppModel)
-    );
-    const schemaAllowedLists = m.getListsForUser(userPermissions, inlineContext, schemaListsFields);
-    _.each(schemaAllowedLists, (list, fieldPath) => {
+    const schemaListsFields = appLib.ListsFields.filter(path => path.startsWith(fieldsPathInAppModel));
+    const allowedLists = await m.getListsForUser(userPermissions, inlineContext, schemaListsFields);
+
+    await Promise.map(Object.entries(allowedLists), ([fieldPath, list]) => validate(list, fieldPath));
+    return listsErrors;
+
+    async function validate(list, fieldPath) {
       const userVal = userData[fieldPath];
 
-      if (_.isEmpty(userVal) && list.required) {
-        listsErrors.push(`Required value must be set for '${fieldPath}'.`);
+      let listValues;
+      try {
+        listValues = await getListValues(list);
+      } catch (e) {
+        listsErrors.push(`Unable to get dynamic list values for ${fieldPath}'`);
+        return;
+      }
+
+      if (_.isEmpty(userVal)) {
+        if (list.required) {
+          listsErrors.push(`Required value must be set for '${fieldPath}'.`);
+        }
         return;
       }
 
@@ -761,16 +759,15 @@ module.exports = appLib => {
           listsErrors.push(`Value '${userVal}' should be an array for '${fieldPath}'.`);
         } else {
           userVal.forEach(val => {
-            if (!list.values[val]) {
-              listsErrors.push(`Value '${val}' is not allowed for '${fieldPath}'.`);
+            if (!listValues[val]) {
+              listsErrors.push(`Value '${val}' is not allowed for list field '${fieldPath}'.`);
             }
           });
         }
-      } else if (userVal && !list.values[userVal]) {
-        listsErrors.push(`Value '${userVal}' is not allowed for '${fieldPath}'.`);
+      } else if (userVal && !listValues[userVal]) {
+        listsErrors.push(`Value '${userVal}' is not allowed for list field '${fieldPath}'.`);
       }
-    });
-    return listsErrors;
+    }
   };
 
   m.removePermissionsFromObjFields = obj => {
@@ -807,7 +804,7 @@ module.exports = appLib => {
     });
   };
 
-  function getBaseAppModel() {
+  m.getBaseAppModel = () => {
     const baseAppModel = _.cloneDeep(appLib.appModel);
     const app = _.get(baseAppModel, 'interface.app');
     if (app) {
@@ -817,8 +814,24 @@ module.exports = appLib => {
     delete baseAppModel.rolesToPermissions;
     delete baseAppModel.usedPermissions;
 
+    removeBaseAppModelParts(baseAppModel.models, []);
+
     return baseAppModel;
-  }
+
+    function removeBaseAppModelParts(parts, path) {
+      _.each(parts, (val, key) => {
+        removeBaseAppModelPart(val, _.concat(path, key));
+      });
+    }
+
+    function removeBaseAppModelPart(part, path) {
+      delete part.generatorSpecification;
+
+      if (part.fields) {
+        removeBaseAppModelParts(part.fields, _.concat(path, 'fields'));
+      }
+    }
+  };
 
   m.handleModelByPermissions = (model, userPermissions) => {
     // actions for read and write
@@ -828,17 +841,12 @@ module.exports = appLib => {
 
     const actionsFromScopes = m.getAvailActionsFromScopes(model.scopes, userPermissions);
     const actionsFromActions = m.getAvailActionsFromActions(model.actions, userPermissions);
-    const intersectedActions = new Set(
-      [...actionsFromActions].filter(a => actionsFromScopes.has(a))
-    );
+    const intersectedActions = new Set([...actionsFromActions].filter(a => actionsFromScopes.has(a)));
 
     // delete scopes and permission details
     delete model.scopes;
     _.each(model.actions.fields, (actionSettings, actionName) => {
-      if (
-        appLib.accessCfg.DEFAULT_ACTIONS.includes(actionName) &&
-        !intersectedActions.has(actionName)
-      ) {
+      if (appLib.allActionsNames.includes(actionName) && !intersectedActions.has(actionName)) {
         delete model.actions.fields[actionName];
       } else {
         delete model.actions.fields[actionName].permissions;
@@ -846,19 +854,29 @@ module.exports = appLib => {
     });
   };
 
-  m.getAuthorizedAppModel = req => {
-    const authorizedModel = getBaseAppModel();
-    const userPermissions = m.getUserPermissions(req);
+  /**
+   * Replace every list/dynamicList field contains 'scopes' and 'values' with plain list values
+   * @param userPermissions
+   * @param inlineContext
+   * @param authorizedModel
+   * @returns {Promise<void>}
+   */
+  m.injectListValues = async (userPermissions, inlineContext, models) => {
+    const lists = await m.getListsForUser(userPermissions, inlineContext, appLib.ListsFields);
+    _.each(lists, (list, listFieldPath) => {
+      _.set(models, `${listFieldPath}.list`, list.values);
+    });
+  };
+
+  m.getAuthorizedAppModel = async req => {
+    const authorizedModel = _.cloneDeep(appLib.baseAppModel);
+    const userPermissions = m.getReqPermissions(req);
     _.each(authorizedModel.models, model => {
       m.handleModelByPermissions(model, userPermissions);
     });
 
     const inlineContext = m.getInlineContext(req);
-    const lists = m.getListsForUser(userPermissions, inlineContext);
-    // replace every list field contains 'scopes' and 'values' with plain list values
-    _.each(lists, (list, listFieldPath) => {
-      _.set(authorizedModel.models, `${listFieldPath}.list`, list.values);
-    });
+    await m.injectListValues(userPermissions, inlineContext, authorizedModel.models);
     authorizedModel.interface.mainMenu = m.getMenuForUser(userPermissions, authorizedModel);
     authorizedModel.interface.pages = m.getPagesForUser(userPermissions, authorizedModel);
     _.set(authorizedModel, 'interface.app.deviceType', req.device.type);
@@ -866,27 +884,9 @@ module.exports = appLib => {
     return authorizedModel;
   };
 
-  m.getActionProjections = (req, actionsToAdd) => {
-    const actionProjections = {};
-    const model = m.getAppModelByReq(req);
-    const userPermissions = m.getUserPermissions(req);
-    const modelActions = _.keys(_.get(model, 'actions.fields', {}));
-    const inlineContext = m.getInlineContext(req);
-
-    return Promise.map(modelActions, action => {
-      if (actionsToAdd === true || _.castArray(actionsToAdd).includes(action)) {
-        return m
-          .getObjScopeConditionsForAction(model, userPermissions, action, inlineContext, true)
-          .then(scopeConditionForAction => {
-            _.set(actionProjections, `_actions.${action}`, scopeConditionForAction);
-          });
-      }
-    }).then(() => actionProjections);
-  };
-
   m.getUnauthorizedAppModel = req => {
-    const userPermissions = m.getUserPermissions(req);
-    const unauthorizedModel = getBaseAppModel();
+    const userPermissions = m.getReqPermissions(req);
+    const unauthorizedModel = _.cloneDeep(appLib.baseAppModel);
     // actions for read and write
     const actions = ['view', 'update'];
     const { models } = unauthorizedModel;
@@ -909,7 +909,17 @@ module.exports = appLib => {
       permissions: {
         view: appPermissions.accessAsSuperAdmin,
       },
-      where: JSON.stringify(MONGO.EXPR.TRUE),
+      where: true,
+    },
+  });
+
+  m.getAnyoneListScopeForViewAction = () => ({
+    anyoneScope: {
+      permissions: {
+        view: appPermissions.accessAsAnyone,
+      },
+      where: 'return true',
+      return: 'return $list',
     },
   });
 
@@ -931,6 +941,27 @@ module.exports = appLib => {
       return 'write';
     }
     return null;
+  };
+
+  m.setAvailablePermissions = () => {
+    appLib.declaredPermissions = _.get(appLib, 'appModel.interface.app.permissions', {});
+    // save declaredPermissionNames for future granting permissions to SuperAdmin
+    appLib.declaredPermissionNames = _.keys(appLib.declaredPermissions);
+    const defaultPermissionsNames = _.keys(appPermissions);
+
+    // Inject availablePermissions to Lists to use it in roles schema
+    // Available permissions are declared permissions except system permissions
+    const availablePermissions = _.reduce(
+      appLib.declaredPermissionNames,
+      (result, permName) => {
+        if (!defaultPermissionsNames.includes(permName)) {
+          result[permName] = permName;
+        }
+        return result;
+      },
+      {}
+    );
+    _.set(appLib, 'appModelHelpers.Lists.availablePermissions', availablePermissions);
   };
 
   return m;

@@ -1,0 +1,39 @@
+<table class="adp-uploader-list table table-striped">
+  <tbody>
+  <tr ng-repeat="item in uploader.queue">
+    <td class="adp-uploader-list-thumb">
+      <adp-thumb
+        file-item="item._file">
+      </adp-thumb>
+    </td>
+
+    <td class="adp-uploader-list-info">
+      <strong>{{ item.file.name }}</strong><br>
+
+      <span ng-show="uploader.isHTML5">
+        {{ item.file.size/1024/1024|number:2 }} MB
+      </span>
+    </td>
+
+    <td class="adp-uploader-list-actions">
+      <button
+        type="button"
+        class="btn btn-primary"
+        ng-if="$parent.isCropEnabled(item)"
+        ng-click="$parent.crop(item)"
+        ng-disabled="item.isUploading">
+        <span class="fa fa-crop"></span> Crop
+      </button>
+
+      <button
+        type="button"
+        class="btn btn-danger"
+        ng-disabled="item.isUploading"
+        ng-click="$parent.remove(item)">
+        <span class="fa fa-trash"></span> Remove
+      </button>
+    </td>
+  </tr>
+
+  </tbody>
+</table>

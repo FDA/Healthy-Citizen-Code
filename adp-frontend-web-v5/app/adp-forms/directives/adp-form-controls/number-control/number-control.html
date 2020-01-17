@@ -1,0 +1,11 @@
+<input
+  type="number"
+  name="{{field.fieldName}}"
+  id="{{field.fieldName}}"
+  adp-validate="validationParams"
+  ng-required="isRequired()"
+  escape-letters="true"
+  ng-model="adpFormData[field.fieldName]"
+  class="form-control"
+  adp-autocomplete="field"
+>

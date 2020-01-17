@@ -27,14 +27,13 @@
 
   <adp-section-container
     ng-if="vm.pageData.length">
-
     <adp-table
       schema="vm.schema"
       data="vm.pageData"
       url="vm.resourceUrl"
       actions="vm.schema.actions"
-      action-cbs="vm.actionCbs">
-    </adp-table>
+      action-cbs="vm.actionCbs"
+    ></adp-table>
 
   </adp-section-container>
 

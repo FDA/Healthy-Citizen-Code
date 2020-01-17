@@ -1,16 +1,30 @@
-const config = require('../test_config');
-const {apiUrl} = require('../../api_config').CONSTANTS;
+const config = require('../test_config')();
+const appConfig = require('../app_config')();
 
 const TEST_TIMEOUT = 20000;
 const SELECTOR_TIMEOUT = 2000;
 
 function getLaunchOptions() {
-  return config.showBrowser
-    ? {
-        headless: false,
-        slowMo: 0,
-      }
-    : {};
+  if (config.showBrowser) {
+    return {
+      headless: false,
+      args: [
+        '--no-sandbox',
+        '--disable-gpu',
+        '--window-size=1920x1080'
+      ]
+    };
+  } else {
+    return {
+      slowMo: 0,
+      args: [
+        '--no-sandbox',
+        '--headless',
+        '--disable-gpu',
+        '--window-size=1920x1080'
+      ]
+    }
+  }
 }
 
 function getUrlFor(section) {
@@ -73,6 +87,18 @@ async function clickCreateNewButton(page) {
   await page.waitFor(createBtnSelector, { timeout: SELECTOR_TIMEOUT });
   await page.click(createBtnSelector);
   await page.waitFor('form', { timeout: SELECTOR_TIMEOUT });
+}
+
+async function clickViewDetailsButton(recordId, page) {
+  const btnSelector = `[adp-${recordId}][data-action="viewDetails"]`;
+  await page.waitFor(btnSelector, { timeout: SELECTOR_TIMEOUT });
+
+  await page.evaluate(
+    selector => document.querySelector(selector).click(),
+    btnSelector
+  );
+
+  await page.waitFor('.table-list', { timeout: SELECTOR_TIMEOUT });
 }
 
 async function clickEditButton(recordId, page) {
@@ -145,10 +171,21 @@ async function addArrayItem(arr, page) {
 
 async function selectOptionByValue(value, selector, page) {
   await page.click(selector);
+  await clickOptionByText(value, page);
+}
 
+async function selectLookupValue(value, selector, page) {
+  await page.click(selector);
+  await page.type('.select2-drop input', value);
+  await page.waitFor(SELECTOR_TIMEOUT);
+
+  await clickOptionByText(value, page);
+}
+
+async function clickOptionByText(value, page) {
   const texts = await page.$$eval(
     '.select2-drop .select2-result-label',
-      el => el.map(a => a.innerText)
+    el => el.map(a => a.innerText)
   );
 
   let indexToClick = texts.indexOf(value) + 1;
@@ -183,10 +220,59 @@ async function removeMultiSelectValue(selector, value, page) {
   await page.click(`${selector} .select2-search-choice:nth-child(${indexToClick}) .select2-search-choice-close`);
 }
 
-async function getRecordIdFromCreateResponse(path, page) {
-  const response = await page.waitForResponse(`${apiUrl}/${path}`);
-  const { id } = await response.json();
-  return id;
+async function getResponseForCreatedRecord(path, page) {
+  const response = await page.waitForResponse(`${appConfig.apiUrl}/${path}`);
+  return await response.json();
+}
+
+async function toggleGroup(groupSelector, type, page) {
+  const types = {
+    'accordion': '.ui-accordion-header-icon',
+    'grouping': '.jarviswidget-toggle-btn'
+  };
+
+  let collapseSelector = types[type];
+  let toggleBtnSelector = `${groupSelector} ${collapseSelector}`;
+  await page.click(toggleBtnSelector);
+  await page.waitFor(210);
+}
+
+async function isGroupCollapsed(groupSelector, page) {
+  let groupBodySelector = `${groupSelector} .adp-form-group-body`;
+
+  // evaluate if hidden
+  return await page.evaluate(
+    s => document.querySelector(s).offsetParent === null,
+    groupBodySelector
+  );
+}
+
+
+async function dragGroupDown(groupSelector, page) {
+  const dragHandleSelector = `${groupSelector} .ui-sortable-handle`;
+  const dragHandle = await page.$(dragHandleSelector);
+  const boundingBox = await dragHandle.boundingBox();
+
+  let x = boundingBox.x + boundingBox.width / 2;
+  let y = boundingBox.y + boundingBox.height / 2;
+
+  // magic to prevent to fast movements
+  await page.mouse.move(x, y);
+  await page.mouse.down();
+  await page.waitFor(100);
+  await page.mouse.move(x + 0, y + 120);
+  await page.waitFor(100);
+  await page.mouse.move(x + 0, y + 240);
+  await page.waitFor(100);
+  await page.mouse.move(x + 0, y + 360);
+  await page.mouse.up();
+  // wait for debounce animation for group
+  await page.waitFor(600);
+}
+
+async function getFormErrorCountMessage(page) {
+  const selector = '.form-error-count';
+  return page.$eval(selector, el => el.innerText);
 }
 
 module.exports = {
@@ -212,21 +298,31 @@ module.exports = {
     addArrayItem,
     getRemoveArrayElemSelector,
   },
+  group: {
+    toggleGroup,
+    isGroupCollapsed,
+    dragGroupDown
+  },
   form: {
     clickCreateNewButton,
     clickEditButton,
     selectOptionByValue,
+    selectLookupValue,
     singleSelectValue,
     clearSelectValue,
     multiSelectValue,
-    removeMultiSelectValue
+    removeMultiSelectValue,
+    getFormErrorCountMessage
   },
   submit: {
     clickSubmit,
     getSubmitMsg,
   },
+  table: {
+    clickViewDetailsButton,
+  },
   interceptor: {
     addAbortImages,
-    getRecordIdFromCreateResponse
-  },
+    getResponseForCreatedRecord,
+  }
 };

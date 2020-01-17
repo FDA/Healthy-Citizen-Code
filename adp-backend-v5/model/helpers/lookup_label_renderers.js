@@ -13,7 +13,7 @@
  * args.lookup._id
  */
 
-module.exports = function() {
+module.exports = () => {
   const m = {};
   return m;
 };

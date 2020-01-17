@@ -9,7 +9,10 @@ const getConfig = () => {
       databaseName: process.env.MONGODB_URI.slice(slashIndex + 1),
 
       options: {
-        useNewUrlParser: true, // removes a deprecation warning when connecting
+        // several deprecations in the MongoDB Node.js driver
+        // https://mongoosejs.com/docs/deprecations.html
+        useNewUrlParser: true,
+        useUnifiedTopology: true,
         //   connectTimeoutMS: 3600000, // increase connection timeout to 1 hour
         //   socketTimeoutMS: 3600000, // increase socket timeout to 1 hour
       },

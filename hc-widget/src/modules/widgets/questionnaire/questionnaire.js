@@ -1,27 +1,42 @@
+import {
+  showErrorToUser,
+  updateIframeHeight
+} from '../../../lib/utils/utils';
+
 import QuestionnaireStartScreen from './questionnaire-start-screen/questionnaire-start-screen';
-import HcWidgetForm from '../../form/form';
-import hcWidgetAPI from '../../api';
-import {widgetError} from '../../../lib/utils';
+import HcWidgetForm from './form/form';
+import {
+  fetchQuestionnaireByFhirId,
+  fetchFhirValues,
+
+} from './api';
 
 const STATUS = {
   IN_PROGRESS: 'In Progress'
 };
 
+const widgetDefaults = {
+  'thankYouText': 'Thank you for participating in this survey.',
+  'welcomeText': 'Hello! Click the button below to start the questionnaire.'
+};
+
 export default class Questionnaire {
   constructor(node, options) {
-    this.options = options;
-    this.options.events = {
-      onSubmit: () => this.onSubmit()
+    this.options = {
+      ...options,
+      ...widgetDefaults,
+      events: {
+        onSubmit: () => this.onSubmit()
+      }
     };
 
-    this.$el = node;
+    this.el = node;
 
     return this.fetchData()
       .then(this.init.bind(this))
-      .catch(err => {
-        // TODO: fix showMessage
+      .catch((err) => {
         console.error(err);
-        widgetError('No questionnaire found');
+        showErrorToUser('No questionnaire found');
       });
   }
 
@@ -34,22 +49,16 @@ export default class Questionnaire {
   }
 
   fetchData() {
-    return hcWidgetAPI.getQuestionnaireByFhirId(this.options.fhirId)
-      .then(this.getFieldValues.bind(this));
+    return fetchQuestionnaireByFhirId(this.options.fhirId)
+      .then(res => this.getFieldValues(res));
   }
 
-  getFieldValues(data) {
-    const requestOpts = {
-      questions: data.questions,
-      fhirDataUrl: this.options.stu3Url,
-      fhirId: this.options.fhirId,
-    };
-
-    return hcWidgetAPI.getFhirValues(requestOpts)
+  getFieldValues(res) {
+    return fetchFhirValues(res.questions, this.options)
       .then(questions => {
         return {
-          _id: data._id,
-          status: data.status,
+          _id: res._id,
+          status: res.status,
           questions: questions
         }
       });
@@ -57,7 +66,7 @@ export default class Questionnaire {
 
   createStartScreen(data) {
     this.startScreen = new QuestionnaireStartScreen(data, this.options, this.onStart.bind(this));
-    this.$el.append(this.startScreen.el);
+    this.el.appendChild(this.startScreen.el);
   }
 
   onStart(data) {
@@ -67,7 +76,8 @@ export default class Questionnaire {
 
   createForm(data) {
     this.form = new HcWidgetForm(data, this.options);
-    this.$el.append(this.form.el);
+    this.el.appendChild(this.form.el);
+    updateIframeHeight();
   }
 
   onSubmit() {
@@ -75,27 +85,27 @@ export default class Questionnaire {
       .then(data => {
         let cnt = 5;
         const timeoutFn = () => {
-          this.$el.showMessage(
+          showErrorToUser(
             `Thank you for your participation. Next questionnaire will be displayed in ${cnt} seconds...`
           );
-          cnt--;
 
           if (cnt > 0) {
             setTimeout(timeoutFn, 1000);
           }
 
           if (cnt === 0) {
-            this.$el.clear();
+            this.el.firstChild.remove();
             this.form.destroy();
             this.init(data);
           }
+          cnt--;
         };
 
         setTimeout(timeoutFn, 1000);
       })
       .catch(err => {
         console.error(err);
-        this.$el.showMessage(this.options['thankYouText']);
+        showErrorToUser(this.options.thankYouText);
       });
   }
 }

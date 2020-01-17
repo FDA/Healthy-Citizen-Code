@@ -1,12 +1,12 @@
 const _ = require('lodash');
 const args = require('optimist').argv;
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect, setUpdateAtIfRecordChanged } = require('../../../util/mongo');
 
-const { mongoUrl, aeCollectionName, deviceCollectionName } = args;
+const { mongoUrl, aesCollectionName, deviceCollectionName } = args;
 
-if (!mongoUrl || !aeCollectionName || !deviceCollectionName) {
-  console.log('Please specify params: mongoUrl, aeCollectionName, deviceCollectionName');
+if (!mongoUrl || !aesCollectionName || !deviceCollectionName) {
+  console.log('Please specify params: mongoUrl, aesCollectionName, deviceCollectionName');
   process.exit(1);
 }
 
@@ -15,14 +15,14 @@ async function linkAeToDevice(doc, dbCon) {
   //   return console.log(`No recalls for device with k_number: ${doc.k_number}`);
   // }
   const aeLookups = doc.aggregateResult.map(recall => ({
-    table: aeCollectionName,
-    label: recall.report_number,
+    table: aesCollectionName,
+    label: recall.reportNumber,
     _id: recall._id,
   }));
 
-  await dbCon
+  await setUpdateAtIfRecordChanged(dbCon
     .collection(deviceCollectionName)
-    .update({ _id: doc._id }, { $set: { adverseEvents: aeLookups } });
+    , 'updateOne', { _id: doc._id }, { $set: { adverseEvents: aeLookups } });
 
   console.log(`Linked adverse events: ${JSON.stringify(aeLookups)} to device _id: ${doc._id.toString()}`);
 }
@@ -35,45 +35,45 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
 
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../../../util/mongo_connection_settings'));
-    const deviceFieldNames = ['applicant', 'zip_code', 'device_name'];
+    const dbCon = await mongoConnect(mongoUrl);
+    const deviceFieldNames = ['applicant', 'zipCode', 'deviceName'];
     console.log(`Creating Device DB Indexes: ${deviceFieldNames.join(', ')}`);
     await createIndexes(deviceFieldNames, deviceCollectionName, dbCon);
 
     const aeIndexFieldNames = [
-      'device.manufacturer_d_name',
-      'device.manufacturer_d_zip_code',
-      'openfda.device_name',
-      'device.brand_name',
-      'device.generic_name',
+      'device.manufacturerDName',
+      'device.manufacturerDZipCode',
+      'device.openfda.deviceName',
+      'device.brandName',
+      'device.genericName',
     ];
     console.log(`Creating Device DB Indexes: ${aeIndexFieldNames.join(', ')}`);
-    await createIndexes(aeIndexFieldNames, aeCollectionName, dbCon);
+    await createIndexes(aeIndexFieldNames, aesCollectionName, dbCon);
     console.log(`DB Indexes created`);
 
     const pipeline = [
       {
         $lookup: {
-          from: aeCollectionName,
+          from: aesCollectionName,
           let: {
             applicant: '$applicant',
-            zip_code: '$zip_code',
-            device_name: '$device_name',
+            zipCode: '$zipCode',
+            deviceName: '$deviceName',
           },
           pipeline: [
             {
               $match: {
                 $expr: {
                   and: [
-                    { $eq: ['$$applicant', '$device.manufacturer_d_name'] },
-                    { $eq: ['$$zip_code', '$device.manufacturer_d_zip_code'] },
+                    { $eq: ['$$applicant', '$device.manufacturerDName'] },
+                    { $eq: ['$$zipCode', '$device.manufacturerDZipCode'] },
                     {
                       $in: [
-                        '$$device_name',
+                        'deviceName',
                         [
-                          '$device.openfda.device_name',
-                          '$device.brand_name',
-                          '$device.generic_name',
+                          '$device.openfda.deviceName',
+                          '$device.brandName',
+                          '$device.genericName',
                         ],
                       ],
                     },
@@ -95,10 +95,10 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
       {
         $project: {
           _id: 1,
-          k_number: 1,
+          kNumber: 1,
           aggregateResult: {
             _id: 1,
-            report_number: 1,
+            reportNumber: 1,
           },
         },
       },
@@ -108,8 +108,8 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
 
     console.log('Searching for Adverse Events matching Devices.');
     while (await deviceWithAeCursor.hasNext()) {
-      const deviceWithAeRecord = await deviceWithAeCursor.next();
-      await linkAeToDevice(deviceWithAeRecord, dbCon);
+      const deviceWithAeDoc = await deviceWithAeCursor.next();
+      await linkAeToDevice(deviceWithAeDoc, dbCon);
     }
     console.log('\nDone linking Adverse Events to Devices');
     process.exit(0);

@@ -1,8 +1,6 @@
-module.exports = function() {
-  const m = {};
-
+module.exports = {
   // default system permissions that do not depend on app model permissions
-  m.PERMISSIONS = {
+  PERMISSIONS: {
     accessAsAnyone: 'accessAsAnyone',
     accessAsGuest: 'accessAsGuest',
     accessAsUser: 'accessAsUser',
@@ -14,9 +12,8 @@ module.exports = function() {
     accessFromPhone: 'accessFromPhone',
     accessFromBot: 'accessFromBot',
     accessFromCar: 'accessFromCar',
-  };
-
-  m.DEFAULT_AUTH_SETTINGS = {
+  },
+  DEFAULT_AUTH_SETTINGS: {
     requireAuthentication: true,
     enableAuthentication: true,
     enableRegistration: true,
@@ -25,16 +22,12 @@ module.exports = function() {
     requireMfa: false,
     enableMfa: false,
     mfaType: false,
-  };
-
+  },
   // default system roles that do not depend on app model roles
-  m.ROLES = {
+  ROLES: {
     SuperAdmin: 'SuperAdmin',
     User: 'User',
     Guest: 'Guest',
-  };
-
-  m.DEFAULT_ACTIONS = ['create', 'clone', 'update', 'view', 'viewDetails', 'delete'];
-
-  return m;
+  },
+  DEFAULT_ACTIONS: ['create', 'clone', 'update', 'view', 'viewDetails', 'delete', 'upsert'],
 };

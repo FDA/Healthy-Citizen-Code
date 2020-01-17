@@ -30,12 +30,17 @@
           modelSchema: scope.validationParams.formParams.modelSchema,
           action: scope.validationParams.formParams.action,
           visibilityMap: scope.validationParams.formParams.visibilityMap,
+          requiredMap: scope.validationParams.formParams.requiredMap,
         };
 
         // default value
         formParams.visibilityMap[formParams.path] = true;
         scope.display = function() {
           return formParams.visibilityMap[formParams.path];
+        };
+
+        scope.showLabel = function(field) {
+          return field.type !== 'Boolean';
         };
 
         // DEPRECATED: will be replaced with formParams
@@ -60,10 +65,14 @@
         }
 
         var template = [
-            '<adp-form-field-container ng-if="display()" ng-class="[className]" adp-field="field">',
-              '<label>{{field.fullName}}</label>',
+            '<adp-form-field-container ' +
+              'ng-if="display()"',
+              'ng-class="[className]"',
+              'ng-field-name="{{field.keyName}}"',
+              'adp-field="field">',
+              '<label ng-if="showLabel(field)">{{field.fullName}}</label>',
 
-              '<adp-required-mark validation-params="nextValidationParams"></adp-required-mark>',
+              '<adp-required-mark ng-if="showLabel(field)" validation-params="nextValidationParams"></adp-required-mark>',
 
               '<' + scope.uiProps.directiveType + '-control',
                 'adp-form-data="formData"',

@@ -4,8 +4,8 @@
       "type": "Schema",
       "fullName": "Studies",
       "labelRenderer": "study",
-      actions: {
-        fields: {
+      "actions": {
+        "fields": {
           "update": {
             "permissions": "accessAsUser"
           },
@@ -29,7 +29,7 @@
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",
-          "where": "{$eq: ['$creator', this.req.user._id]}"
+          "where": "{ creator: { $eq: this.req.user._id } }"
         }
       },
       "fields": {
@@ -56,11 +56,11 @@
           "fullName": "Recruitment Status",
           "list": {
             "name": "recruitmentStatuses",
-            scopes: {
-              userScope: {
-                permissions: "accessAsUser",
-                return: "return $list",
-                where: "return true"
+            "scopes": {
+              "userScope": {
+                "permissions": "accessAsUser",
+                "return": "return $list",
+                "where": "return true"
               }
             }
           },

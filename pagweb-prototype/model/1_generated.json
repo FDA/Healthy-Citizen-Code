@@ -1,0 +1,526 @@
+{
+  "models": {
+    "connections": {
+      "type": "Schema",
+      "fullName": "FHIR Connections",
+      "description": "This contains list of all possible hospitals HC supports data exchange with. Hospitals assiciated with a specific account are stored in the PHI data",
+      "singleRecord": false,
+      "limitReturnedRecords": 1000000,
+      "defaultSortBy": {
+        "fhirServerName": -1
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "ownRecords": {
+          "permissions": "accessAsUser",
+          "where": "{creator: {$eq: this.req.user._id}}"
+        },
+        "adminScope": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "true"
+        }
+      },
+      "fields": {
+        "fhirServerName": {
+          "type": "String",
+          "fullName": "FHIR Data Source name",
+          "description": "The name of the FHIR data source",
+          "required": true
+        },
+        "serverUrl": {
+          "type": "Url",
+          "fullName": "FHIR Server URL",
+          "description": "Full URL of FHIR endpoint",
+          "required": true
+        },
+        "fhirId": {
+          "type": "String",
+          "fullName": "FHIR ID",
+          "description": "User's ID on the FHIR server"
+        }
+      }
+    },
+    "users": {
+      "type": "Schema",
+      "fullName": "My Profile",
+      "singleRecord": true,
+      "limitReturnedRecords": 1,
+      "defaultSortBy": {
+        "login": 1
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "clone": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "ownRecords": {
+          "permissions": "accessAsUser",
+          "where": "{creator: {$eq: this.req.user._id}}"
+        },
+        "adminScope": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "true"
+        }
+      },
+      "fields": {
+        "firstName": {
+          "type": "String",
+          "fullName": "First Name",
+          "description": "Enter your First/Given name.",
+          "default": "",
+          "colspan": 2
+        },
+        "lastName": {
+          "type": "String",
+          "fullName": "Last Name",
+          "description": "Enter your Family/Surname name.",
+          "default": "",
+          "colspan": 2
+        },
+        "displayName": {
+          "type": "String",
+          "fullName": "Display Name",
+          "description": "The name to display.",
+          "generated": true
+        },
+        "fhirId": {
+          "type": "String",
+          "fullName": "Deidentified ID",
+          "description": "User's Deidentified ID",
+          "default": ""
+        },
+        "fhirServerUrl": {
+          "type": "Url",
+          "fullName": "Hospital Health Record Server URL",
+          "description": "Full URL of for the hospital EHR"
+        },
+        "shareData": {
+          "type": "Boolean",
+          "fullName": "Consent to allow Healthy Citizen to access your de-identified health data",
+          "description": "Checking this box will allow Healthy Citizen tools to read from your health records."
+        },
+        "studyData": {
+          "type": "Boolean",
+          "fullName": "Consent to share de-identified health data with Healthy Citizen for research purposes",
+          "description": "Checking this box will allow Healthy Citizen to share your de-identified health data with FDA researchers."
+        },
+        "studyParticipate": {
+          "type": "Boolean",
+          "fullName": "Consent to allow FDA researchers to invite you to participate in studies",
+          "description": "Checking this box will allow FDA researchers to invite you to participate in studies that you qualify for."
+        }
+      }
+    }
+  },
+  "interface": {
+    "mainMenu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "default": "/users",
+      "comment": "This defines the main menu that will go into the sidebar",
+      "permissions": [
+        "doUserActivities"
+      ],
+      "fields": {
+        "home": false,
+        "myProfile": {
+          "type": "MenuGroup",
+          "fullName": "My Profile",
+          "link": "/users",
+          "icon": {
+            "type": "font-awesome",
+            "link": "user"
+          },
+          "description": "Your Personal Profile",
+          "comment": "The page in the 'link' attribute won't be generated automatically, so it needs to be custom-coded"
+        },
+        "connections": {
+          "type": "MenuItem",
+          "fullName": "My FHIR Connections",
+          "link": "/connections",
+          "icon": {
+            "type": "font-awesome",
+            "link": "fire"
+          },
+          "description": "FHIR Connections"
+        },
+        "SMART-on-FHIR-Questionnaire": {
+          "type": "MenuItem",
+          "fullName": "Questionnaire",
+          "link": "/questionnaire",
+          "icon": {
+            "type": "font-awesome",
+            "link": "question-circle-o"
+          },
+          "description": "SMART-on-FHIR Questionnaire Widget"
+        },
+        "SMART-on-FHIR-Adverse-events": {
+          "type": "MenuItem",
+          "fullName": "Adverse Events",
+          "link": "/adverseEvents",
+          "icon": {
+            "type": "font-awesome",
+            "link": "exclamation-triangle"
+          },
+          "description": "SMART-on-FHIR Adverse Events Widget"
+        },
+        "SMART-on-FHIR-UCSF-Recalls": {
+          "type": "MenuItem",
+          "fullName": "UCSF Recalls Widgets",
+          "link": "/ucsfRecalls",
+          "icon": {
+            "type": "font-awesome",
+            "link": "undo"
+          },
+          "description": "SMART-on-FHIR UCSF Recalls Widget"
+        },
+        "SMART-on-FHIR-Recalls": {
+          "type": "MenuItem",
+          "fullName": "Recalls",
+          "link": "/recalls",
+          "icon": {
+            "type": "font-awesome",
+            "link": "undo"
+          },
+          "description": "SMART-on-FHIR Recalls Widget"
+        },
+        "SMART-on-FHIR-Drugs-Visualization": {
+          "type": "MenuItem",
+          "fullName": "Drugs Visualization",
+          "link": "/drugsVisualization",
+          "icon": {
+            "type": "font-awesome",
+            "link": "connectdevelop"
+          },
+          "description": "SMART-on-FHIR Drugs Visualization Widget"
+        },
+        "SMART-on-FHIR-Drug-interactions": {
+          "type": "MenuItem",
+          "fullName": "Drug Interactions",
+          "link": "/drugInteractions",
+          "icon": {
+            "type": "font-awesome",
+            "link": "exchange"
+          },
+          "description": "SMART-on-FHIR Questionnaire Widget"
+        },
+        "ndcLookup": {
+          "type": "MenuItem",
+          "fullName": "NDC Lookup",
+          "link": "/ndcLookup",
+          "icon": {
+            "type": "font-awesome",
+            "link": "search"
+          },
+          "description": "NDC Lookup Widget"
+        },
+        "graphViewWidget": {
+          "type": "MenuItem",
+          "fullName": "Graph View Widget Example",
+          "link": "/graphViewWidget",
+          "icon": {
+            "type": "font-awesome",
+            "link": "pie-chart"
+          },
+          "description": "Multiple Widgets Example"
+        },
+        "multipleWidgets": {
+          "type": "MenuItem",
+          "fullName": "Multiple Widgets Example",
+          "link": "/multipleWidgets",
+          "icon": {
+            "type": "font-awesome",
+            "link": "asterisk"
+          },
+          "description": "Multiple Widgets Example"
+        },
+        "preferences": {
+          "type": "MenuItem",
+          "fullName": "Preferences Widget Example",
+          "link": "/preferences",
+          "icon": {
+            "type": "font-awesome",
+            "link": "sliders"
+          },
+          "description": "Preferences Widget Example"
+        },
+        "haWidget": {
+          "type": "MenuItem",
+          "fullName": "Health Advocate Widget",
+          "link": "/healthAdvocate",
+          "icon": {
+            "type": "font-awesome",
+            "link": "user-md"
+          },
+          "description": "Preferences Widget Example"
+        }
+      }
+    },
+    "pages": {
+      "questionnaire": {
+        "link": "/questionnaire",
+        "fullName": "Questionnaire",
+        "description": "Questionnaire widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR questionnaire",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "questionnaire_widget_template.ejs"
+        }
+      },
+      "drugInteractions": {
+        "link": "/drugInteractions",
+        "fullName": "drugInteractions",
+        "description": "drugInteractions widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR questionnaire",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "drug_interactions_widget_template.ejs"
+        }
+      },
+      "adverseEvents": {
+        "link": "/adverseEvents",
+        "fullName": "drugInteractions",
+        "description": "Adverse Events widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR Adverse Events",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "adverse_events_widget_template.ejs"
+        }
+      },
+      "adverseEventsAlt": {
+        "link": "/adverseEventsAlt",
+        "fullName": "adverseEventsAlt",
+        "description": "Adverse Events widget using Smart-on-FHIR, alternative version",
+        "comment": "This implements a custom page with SMART-on-FHIR Adverse Events, alternative version",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "adverse_events_alt_widget_template.ejs"
+        }
+      },
+      "recalls": {
+        "link": "/recalls",
+        "fullName": "drugInteractions",
+        "description": "Recalls widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR recalls",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "recalls_widget_template.ejs"
+        }
+      },
+      "ucsfRecalls": {
+        "link": "/ucsfRecalls",
+        "fullName": "drugInteractions",
+        "description": "UCSF Recalls widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR recalls",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "ucsf_recalls_demo_widget_template.ejs"
+        }
+      },
+      "drugsVisualization": {
+        "link": "/drugsVisualization",
+        "fullName": "drugsVisualization",
+        "description": "Drugs Visualization widget using Smart-on-FHIR",
+        "comment": "This implements a custom page with SMART-on-FHIR Drugs Visualization",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "drugs_visualization_widget_template.ejs"
+        }
+      },
+      "ndcLookup": {
+        "link": "/ndcLookup",
+        "fullName": "ndcLookup",
+        "description": "ndcLookup widget",
+        "comment": "This implements a custom page with ndcLookup",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "ndc_lookup_template.ejs"
+        }
+      },
+      "multipleWidgets": {
+        "link": "/multipleWidgets",
+        "fullName": "multipleWidgets",
+        "description": "Multiple Widgets Example",
+        "comment": "Multiple Widgets Example",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "multiple-widget_template.ejs"
+        }
+      },
+      "graphViewWidget": {
+        "link": "/graphViewWidget",
+        "fullName": "graphViewWidget",
+        "description": "Graph View Widget Example",
+        "comment": "Graph View Widget Example",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "graph_view_widget_template.ejs"
+        }
+      },
+      "preferences": {
+        "link": "/preferences",
+        "fullName": "User preferences",
+        "description": "User preferences Example",
+        "comment": "User preferences Example",
+        "controller": "QuestionnaireWidgetPageController",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "preferences.ejs"
+        }
+      },
+      "healthAdvocate": {
+        "link": "/healthAdvocate",
+        "fullName": "Health Advocate",
+        "description": "Health Advocate In Widget Mode",
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "ha.ejs"
+        }
+      }
+    },
+    "app": {
+      "type": "ApplicationInterface",
+      "fullName": "App",
+      "title": "PAG Simulated Portal",
+      "slogan": "Enhancing Public Health Through Citizen-Centric Communications",
+      "theme": "default",
+      "description": "Patient Advocacy Group Simulation website",
+      "keywords": "Patient Advocacy Group Simulation website",
+      "auth": {
+        "requireAuthentication": true,
+        "enableAuthentication": true,
+        "enableRegistration": true,
+        "enablePermissions": true,
+        "enableUserPasswordReset": false,
+        "enableMfa": false,
+        "requireMfa": false
+      },
+      "logo": {
+        "large": "/public/logos/logo.png",
+        "small": "/public/logos/logo.png"
+      },
+      "favicon": {
+        "180x180": "/public/favicons/apple-touch-icon.png",
+        "32x32": "/public/favicons/favicon-32x32.png",
+        "16x16": "/public/favicons/favicon-16x16.png",
+        "manifest": "/public/favicons/manifest.json",
+        "maskIcon": "/public/favicons/safari-pinned-tab.svg"
+      }
+    },
+    "loginPage": {
+      "intro": {
+        "template": {
+          "type": "file",
+          "fullName": "Template",
+          "link": "login_intro_template.ejs"
+        }
+      },
+      "parameters": {
+        "signInText": "Sign In",
+        "signUpText": "Create Account",
+        "captcha": "google"
+      }
+    },
+    "header": {
+      "visible": true,
+      "components": {
+        "logo": true,
+        "alerts": false,
+        "projectSelector": false,
+        "languageSelector": false,
+        "fullScreenToggle": false,
+        "search": false,
+        "logoutButton": true,
+        "menuToggle": false,
+        "breadcrumbs": false
+      }
+    },
+    "footer": {
+      "visible": true,
+      "components": {
+        "copyright": true,
+        "copyrightText": "Patient Advocacy Group Simulation Website",
+        "lastAccountActivity": false,
+        "status": false
+      }
+    },
+    "": {
+      "skin": "smart-style-6",
+      "showDemoControls": false
+    },
+    "layout": {
+      "fixedWidth": false,
+      "rtlSupport": false,
+      "menuPosition": "side",
+      "colorblind": false,
+      "background": "img/pattern/paper.png",
+      "fixed": {
+        "header": false,
+        "navigation": true,
+        "ribbon": false,
+        "footer": false
+      }
+    }
+  }
+}

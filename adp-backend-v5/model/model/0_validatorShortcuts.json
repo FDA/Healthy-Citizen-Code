@@ -34,7 +34,9 @@
       },
       "errorMessages": {
         "default": "Value $val is too small, should be greater than or equal @limit",
-        "date": "Date $val should be after @limit (#limit)"
+        "datetime": "DateTime $val should be after @limit (#limit)",
+        "date": "Date $val should be after @limit (#limit)",
+        "time": "Time $val should be after @limit (#limit)"
       }
     },
     "max": {
@@ -47,7 +49,9 @@
       },
       "errorMessages": {
         "default": "Value $val is too large, should be less than or equal @limit",
-        "date": "Date $val should be before @limit (#limit)"
+        "datetime": "DateTime $val should be before @limit (#limit)",
+        "date": "Date $val should be before @limit (#limit)",
+        "time": "Time $val should be before @limit (#limit)"
       }
     },
     "notInFuture": {

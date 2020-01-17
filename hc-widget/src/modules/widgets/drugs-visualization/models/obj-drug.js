@@ -1,13 +1,12 @@
 export default function objDrug(medCoding) {
   // Q: how to name, how to lookup
-  let id = medCoding.rxcui[0];
   const GROUP_NAME = 'objDrug';
+
   return {
-    id: id,
+    id: medCoding.rxcui,
     group: GROUP_NAME,
-    label: medCoding.display,
-    ndc: medCoding.code,
-    rxcui: medCoding.rxcui[0],
+    label: medCoding.brandName,
+    rxcui: medCoding.rxcui,
     dependedOnBy: [],
     depends: []
   }

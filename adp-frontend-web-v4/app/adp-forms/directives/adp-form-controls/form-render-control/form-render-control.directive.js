@@ -5,7 +5,7 @@
     .module('app.adpForms')
     .directive('formRenderControl', formRenderControl);
 
-  function formRenderControl(AdpValidationService) {
+  function formRenderControl(AdpValidationService, $sce) {
     return {
       restrict: 'E',
       scope: {
@@ -18,7 +18,7 @@
       require: '^^form',
       link: function (scope) {
         scope.adpFormData[scope.field.keyName] = scope.adpFormData[scope.field.keyName] || '';
-        scope.isRequired = AdpValidationService.isRequired(scope.validationParams);
+        scope.isRequired = AdpValidationService.isRequired(scope.validationParams.formParams);
 
         (function init() {
           renderField();
@@ -33,7 +33,10 @@
           var renderName = field.formRender.formRenderer;
 
           var renderFn = appModelHelpers.FormRenderers[renderName];
-          scope.fieldView = renderFn(getFieldData(), scope.adpFormData, field);
+
+          scope.fieldView = $sce.trustAsHtml(
+            renderFn(getFieldData(), scope.adpFormData, field)
+          );
         }
 
         function getFieldData() {

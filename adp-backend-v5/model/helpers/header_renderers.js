@@ -9,7 +9,7 @@
  * args.pathToDat
  */
 
-module.exports = function() {
+module.exports = () => {
   const m = {};
   return m;
 };

@@ -7,8 +7,7 @@
  * a string representing this object.
  */
 
-module.exports = function() {
-  var m = {};
-
+module.exports = () => {
+  const m = {};
   return m;
 };

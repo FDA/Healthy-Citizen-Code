@@ -6,7 +6,7 @@ const moment = require('moment');
 
 const { Group } = datapumps;
 const { MongodbMixin } = datapumps.mixin;
-const { MongoClient } = require('mongodb');
+const { mongoConnect } = require('../util/mongo');
 const ObjectId = require('mongodb').ObjectID;
 const helper = require('./../../lib/helper');
 const SettingsProvider = require('./../settings_provider');
@@ -53,17 +53,13 @@ class GetFhirDataFromHcPumpProcessor extends Group {
   }
 
   checkConnection (url) {
-    const pumpProcessor = this;
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(url, (err, db) => {
-        if (err) {
-          reject(url);
-          return;
-        }
-        pumpProcessor.dbCon = db;
-        resolve();
-      });
-    });
+    return mongoConnect(url)
+      .then(dbConnection => {
+        this.dbCon = dbConnection;
+      })
+      .catch(e => {
+        throw new Error(url);
+      })
   }
 
   addPumps () {

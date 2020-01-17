@@ -1,0 +1,27 @@
+<adp-form-field-container
+  adp-is-error="isError"
+  adp-field="adpField">
+
+  <label
+    class="label">
+    {{adpField.fullName}}
+
+    <adp-required-mark validation-params="validationParams"></adp-required-mark>
+
+    <adp-tooltip
+      adp-field="adpField">
+    </adp-tooltip>
+  </label>
+
+  <date-control
+    field="adpField"
+    adp-form-data="adpFormData"
+    ui-props="adpFieldUiProps"
+    validation-params="validationParams"
+  >
+  </date-control>
+
+  <adp-messages
+    adp-field="adpField">
+  </adp-messages>
+</adp-form-field-container>

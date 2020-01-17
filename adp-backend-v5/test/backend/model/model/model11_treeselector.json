@@ -11,11 +11,14 @@
             "treeCollection": {
               "foreignKey": "_id",
               "label": "name",
+              "data": {
+                "info": "this.name + '-' + this.hasChildren"
+              },
               "parent": {
                 "parent._id": "_id"
               },
               "roots": {
-                "$not": { "$ifNull": ["$parent", false] }
+                "parent._id": { "$exists": false }
               },
               "leaves": "!this.hasChildren",
               "requireLeafSelection": true,
@@ -24,15 +27,12 @@
                   "permissions": {
                     "view": "accessAsGuest"
                   },
-                  "where": "{$eq: [true, true]}"
+                  "where": "true"
                 }
-              },
-              "sortBy": {
-                "code": 1
               }
             }
           }
-        },
+        }
       }
     },
     "model11treeselector_propagation": {
@@ -47,11 +47,14 @@
             "treeCollection": {
               "foreignKey": "_id",
               "label": "name",
+              "data": {
+                "info": "this.name + '-' + this.hasChildren"
+              },
               "parent": {
                 "parent._id": "_id"
               },
               "roots": {
-                "$not": { "$ifNull": ["$parent", false] }
+                "parent._id": { "$exists": false }
               },
               "leaves": "!this.hasChildren",
               "requireLeafSelection": false,
@@ -60,11 +63,8 @@
                   "permissions": {
                     "view": "accessAsGuest"
                   },
-                  "where": "{$eq: [true, true]}"
+                  "where": "true"
                 }
-              },
-              "sortBy": {
-                "code": 1
               }
             }
           }
@@ -76,11 +76,14 @@
             "treeCollection": {
               "foreignKey": "_id",
               "label": "name",
+              "data": {
+                "info": "this.name + '-' + this.hasChildren"
+              },
               "parent": {
                 "parent._id": "_id"
               },
               "roots": {
-                "$not": { "$ifNull": ["$parent", false] }
+                "parent._id": { "$exists": false }
               },
               "leaves": "!this.hasChildren",
               "requireLeafSelection": true,
@@ -89,11 +92,8 @@
                   "permissions": {
                     "view": "accessAsGuest"
                   },
-                  "where": "{$eq: [true, true]}"
+                  "where": "true"
                 }
-              },
-              "sortBy": {
-                "code": 1
               }
             }
           }
@@ -104,24 +104,24 @@
             "treeCollection": {
               "foreignKey": "_id",
               "label": "name",
+              "data": {
+                "info": "this.name + '-' + this.hasChildren"
+              },
               "parent": {
                 "parent._id": "_id"
               },
               "roots": {
-                "$not": { "$ifNull": ["$parent", false] }
+                "parent._id": { "$exists": false }
               },
               "leaves": "!this.hasChildren",
               "requireLeafSelection": false,
               "scopes": {
-                "superAdminScope": {
+                "guestScope": {
                   "permissions": {
                     "view": "accessAsGuest"
                   },
-                  "where": "{$eq: [true, true]}"
+                  "where": "true"
                 }
-              },
-              "sortBy": {
-                "code": 1
               }
             }
           }
@@ -132,29 +132,28 @@
             "treeCollection": {
               "foreignKey": "_id",
               "label": "name",
+              "data": {
+                "info": "this.name + '-' + this.hasChildren"
+              },
               "parent": {
                 "parent._id": "_id"
               },
               "roots": {
-                "$not": { "$ifNull": ["$parent", false] }
+                "parent._id": { "$exists": false }
               },
               "leaves": "!this.hasChildren",
               "requireLeafSelection": true,
               "scopes": {
-                "superAdminScope": {
+                "guestScope": {
                   "permissions": {
                     "view": "accessAsGuest"
                   },
-                  "where": "{$eq: [true, true]}"
+                  "where": "true"
                 }
-              },
-              "sortBy": {
-                "code": 1
               }
             }
           }
         }
-
       }
     },
     "treeCollection": {
@@ -167,6 +166,26 @@
         },
         "hasChildren": {
           "type": "Boolean"
+        },
+        "parent": {
+          "type": "LookupObjectID",
+          "fullName": "parent",
+          "lookup": {
+            "table": {
+              "treeCollection": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsGuest"
+                    },
+                    "where": "true"
+                  }
+                }
+              }
+            }
+          }
         }
       }
     }

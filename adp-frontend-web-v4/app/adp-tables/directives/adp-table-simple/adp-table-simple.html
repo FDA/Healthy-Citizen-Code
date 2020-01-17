@@ -4,7 +4,8 @@
   <tr>
     <th
       ng-repeat="head in heads track by $index"
-      ng-class="head.type">
+      ng-class="[head.type, 'name-' + head.name]"
+    >
       {{head.fullName}}
     </th>
   </tr>

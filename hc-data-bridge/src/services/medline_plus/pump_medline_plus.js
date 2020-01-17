@@ -5,16 +5,24 @@
 const args = require('optimist').argv;
 const _ = require('lodash');
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
 const unzipper = require('unzipper');
 const request = require('request');
-const { parse: parseXml } = require('fast-xml-parser');
+const moment = require('moment');
+const { parseString: parseXmlString } = require('../util/parse_xml_string');
+const { mongoConnect } = require('../util/mongo');
+const { conditionForActualRecord } = require('../util/mongo');
 
-// const lastAvailableDay = new Date().toISOString().split('T')[0];
-const lastAvailableDay = '2019-02-16';
-const downloadUrl =
-  args.mplusTopicsCompressed ||
-  `https://medlineplus.gov/xml/mplus_topics_compressed_${lastAvailableDay}.zip`;
+const downloadUrl = args.mplusTopicsCompressedUrl;
+
+function urlsForLastDays(days) {
+  const urls = [];
+  let curUtc = moment.utc();
+  for (let i = 0; i < days; i++) {
+    urls.push(`https://medlineplus.gov/xml/mplus_topics_compressed_${curUtc.format('YYYY-MM-DD')}.zip`);
+    curUtc = curUtc.subtract(1, 'day');
+  }
+  return urls;
+}
 
 const { mongoUrl } = args;
 if (!mongoUrl) {
@@ -42,13 +50,11 @@ async function upsertMedlineDoc(doc, dbCon) {
     }
   });
 
-  const {
-    lastErrorObject: { updatedExisting },
-  } = await dbCon
+  const response = await dbCon
     .collection(medlinePlusCollectionName)
-    .findOneAndUpdate({ id: doc.id }, doc, { upsert: true });
+    .findOneAndReplace({ id: doc.id }, { ...conditionForActualRecord, ...doc }, { upsert: true });
 
-  if (updatedExisting) {
+  if (response.lastErrorObject.updatedExisting) {
     console.log(`Updated entry with title: '${doc.title}'`);
   } else {
     console.log(`Inserted entry with title: '${doc.title}'`);
@@ -61,18 +67,48 @@ function createIndexes(indexFieldNames, dbCon) {
   );
 }
 
+async function getDirectory() {
+  let directory;
+  try {
+    if (downloadUrl) {
+      console.log(`Downloading url ${downloadUrl}`);
+      directory = await unzipper.Open.url(request, downloadUrl);
+    } else {
+      const days = 30;
+      console.log(`Trying to find url by last ${days} days...`);
+      const urls = urlsForLastDays(days);
+      for (let i = 0; i < urls.length; i++) {
+        const url = urls[i];
+        console.log(`Trying to download url ${url}`);
+        directory = await unzipper.Open.url(request, url).catch(() =>
+          console.warn(`Unable to download file by ${url}.`)
+        );
+        if (directory) {
+          console.log(`Successful download by ${url}`);
+          break;
+        }
+      }
+    }
+  } catch (e) {
+    console.error(`Error occurred while downloading file.`, e.stack);
+  }
+  return directory;
+}
+
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../util/mongo_connection_settings'));
+    const dbCon = await mongoConnect(mongoUrl);
     const indexFieldNames = ['title', 'mesh-heading', 'also-called'];
     await createIndexes(indexFieldNames, dbCon);
     console.log(`DB Indexes created: ${indexFieldNames.join(', ')}`);
 
-    console.log(`Downloading url ${downloadUrl}`);
-    const directory = await unzipper.Open.url(request, downloadUrl);
+    const directory = await getDirectory();
+    if (!directory) {
+      process.exit(1);
+    }
     const file = directory.files[0];
-    const xmlData = (await file.buffer()).toString();
-    const obj = parseXml(xmlData, { ignoreAttributes: false });
+    const xmlString = (await file.buffer()).toString();
+    const obj = parseXmlString(xmlString);
     console.log(`Xml downloaded and parsed`);
 
     console.log(`Upserting health...\n`);

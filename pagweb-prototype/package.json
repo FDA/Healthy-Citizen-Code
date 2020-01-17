@@ -5,7 +5,7 @@
   "main": "index.js",
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
-    "build": "./node_modules/.bin/gulp"
+    "build": "gulp"
   },
   "repository": {
     "type": "git",
@@ -14,14 +14,10 @@
   "author": "Andrey Mikhalchuk, Joshua Phipps",
   "license": "UNLICENSED",
   "dependencies": {
-    "async": "^2.4.1",
-    "fs": "0.0.1-security",
-    "lodash": "^4.17.4",
-    "log4js": "^2.10.0",
-    "moment": "^2.18.1",
-    "mongoose": "^4.10.8"
+    "lodash": "^4.17.15"
   },
   "devDependencies": {
+    "dotenv": "^7.0.0",
     "gulp": "^4.0",
     "gulp-rename": "^1.2.2",
     "gulp-replace": "^0.6.1"

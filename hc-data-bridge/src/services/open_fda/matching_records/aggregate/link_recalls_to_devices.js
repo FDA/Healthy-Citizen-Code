@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const args = require('optimist').argv;
 const Promise = require('bluebird');
-const mongoConnect = Promise.promisify(require('mongodb').MongoClient.connect);
+const { mongoConnect, setUpdateAtIfRecordChanged} = require('../../../util/mongo');
 
 const { mongoUrl, recallCollectionName, deviceCollectionName } = args;
 
@@ -12,17 +12,17 @@ if (!mongoUrl || !recallCollectionName || !deviceCollectionName) {
 
 async function linkRecallToDevice(doc, dbCon) {
   // if (_.isEmpty(doc.aggregateResult)) {
-  //   return console.log(`No recalls for device with k_number: ${doc.k_number}`);
+  //   return console.log(`No recalls for device with kNumber: ${doc.kNumber}`);
   // }
   const recallLookups = doc.aggregateResult.map(recall => ({
     table: recallCollectionName,
-    label: recall.res_event_number,
+    label: recall.resEventNumber,
     _id: recall._id,
   }));
 
-  await dbCon
+  await setUpdateAtIfRecordChanged(dbCon
     .collection(deviceCollectionName)
-    .update({ _id: doc._id }, { $set: { recallLookups } });
+    , 'updateOne', { _id: doc._id }, { $set: { recallLookups } });
 
   console.log(`Linked recalls: ${JSON.stringify(recallLookups)} to device _id: ${doc._id.toString()}`);
 }
@@ -35,15 +35,15 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
 
 (async () => {
   try {
-    const dbCon = await mongoConnect(mongoUrl, require('../../../util/mongo_connection_settings'));
+    const dbCon = await mongoConnect(mongoUrl);
     const recallIndexFieldNames = [
-      'k_numbers',
+      'kNumbers',
     ];
     console.log(`Creating Recall DB Indexes: ${recallIndexFieldNames.join(', ')}`);
     await createIndexes(recallIndexFieldNames, recallCollectionName, dbCon);
 
     const deviceIndexFieldNames = [
-      'k_number',
+      'kNumber',
     ];
     console.log(`Creating Device DB Indexes: ${deviceIndexFieldNames.join(', ')}`);
     await createIndexes(deviceIndexFieldNames, deviceCollectionName, dbCon);
@@ -54,7 +54,7 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
         $lookup: {
           from: recallCollectionName,
           let: {
-            k_number: '$k_number',
+            kNumber: '$kNumber',
           },
           pipeline: [
             {
@@ -62,7 +62,7 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
                 $expr: {
                   $or: [
                     {
-                      $in: ['$$k_number', '$k_numbers'],
+                      $in: ['$$kNumber', '$kNumbers'],
                     },
                   ],
                 },
@@ -82,10 +82,10 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
       {
         $project: {
           _id: 1,
-          k_number: 1,
+          kNumber: 1,
           aggregateResult: {
             _id: 1,
-            res_event_number: 1,
+            resEventNumber: 1,
           },
         },
       },
@@ -95,8 +95,8 @@ async function createIndexes(indexFieldNames, collection, dbCon) {
 
     console.log('Searching for Recalls matching Devices.');
     while (await deviceWithRecallCursor.hasNext()) {
-      const deviceWithRecallRecord = await deviceWithRecallCursor.next();
-      await linkRecallToDevice(deviceWithRecallRecord, dbCon);
+      const deviceWithRecallDoc = await deviceWithRecallCursor.next();
+      await linkRecallToDevice(deviceWithRecallDoc, dbCon);
     }
     console.log('\nDone linking Recalls to Devices');
     process.exit(0);

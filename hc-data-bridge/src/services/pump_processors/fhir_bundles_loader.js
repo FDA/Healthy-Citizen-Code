@@ -1,7 +1,7 @@
 const glob = require('glob');
 const fs = require('fs');
 const _ = require('lodash');
-const { MongoClient } = require('mongodb');
+const { mongoConnect } = require('../util/mongo');
 
 class FhirBundlesLoader {
   constructor (inputSettings) {
@@ -23,19 +23,15 @@ class FhirBundlesLoader {
   }
 
   checkConnection (url, errorUrls) {
-    const fhirBundlesLoader = this;
-    return new Promise((resolve, reject) => {
-      MongoClient.connect(url, (err, db) => {
-        if (err) {
-          errorUrls.push(url);
-          resolve();
-          return;
-        }
-        console.log(`Get connection url: ${fhirBundlesLoader.mongoUrl} `);
-        fhirBundlesLoader.dbCon = db;
-        resolve(db);
-      });
-    });
+    return mongoConnect(url)
+      .then(dbConnection => {
+        this.dbCon = dbConnection;
+        console.log(`Get connection url: ${this.mongoUrl} `);
+        return dbConnection;
+      })
+      .catch(e => {
+        errorUrls.push(url);
+      })
   }
 
   processSettings () {
