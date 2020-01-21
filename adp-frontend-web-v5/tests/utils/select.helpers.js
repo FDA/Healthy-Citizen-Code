@@ -10,6 +10,7 @@ module.exports = {
 
   selectDxListValue,
   getDxSingleListValue,
+  selectDxListValueWithParent,
   getDxMultipleListValue,
   clearDxListValue,
   removeDxMultiSelectValue,
@@ -99,6 +100,13 @@ async function getImperialUnitMultipleValue(fieldName, page) {
 
 async function selectDxListValue(value, fieldName, page) {
   const listSelector = `#list_id_${fieldName}`;
+  await page.click(listSelector);
+
+  await clickDxOptionByText(value, listSelector, page);
+}
+
+async function selectDxListValueWithParent(value, fieldName, parentSelector, page) {
+  const listSelector = `${parentSelector} #list_id_${fieldName}`;
   await page.click(listSelector);
 
   await clickDxOptionByText(value, listSelector, page);

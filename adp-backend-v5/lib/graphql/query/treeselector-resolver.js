@@ -122,7 +122,7 @@ function addTreeselectorsQueries(models, appTreeselectors, logger) {
         inputTypeForForm = getOrCreateTypeByModel(models[sourceTable], sourceTable, COMPOSER_TYPES.INPUT);
       }
 
-      logger.debug(`Adding treeselector Query for ${treeselectorTypeName}`);
+      logger.trace(`Adding treeselector Query for ${treeselectorTypeName}`);
       addTreeselectorPaginationResolver(treeselectorObjectType, inputTypeForForm, tableSpec, treeselectorTableName);
 
       schemaComposer.Query.addFields({

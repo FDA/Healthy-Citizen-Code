@@ -42,11 +42,12 @@ module.exports = appLib => {
       throw new LinkedRecordError(message, deleteInfo);
     }
     const handleLinkedRecordsOnDeletePromises = Promise.map(deleteInfo, info => info.handleDeletePromise());
-    await Promise.all([
+    const [deletedItem] = await Promise.all([
       appLib.dba.removeItem(model, mongoParams.conditions, session),
       handleLinkedRecordsOnDeletePromises,
     ]);
     await appLib.hooks.postHook(appModel, userContext);
+    return deletedItem;
   };
 
   m.putItem = async (context, newItem, session) => {

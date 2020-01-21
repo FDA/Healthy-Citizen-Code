@@ -61,7 +61,6 @@ async function generateAddressesIfNotExists({
   await Promise.map(
     coordinates,
     async locationCoordinates => {
-      // eslint-disable-next-line no-await-in-loop
       const generatedAddresses = await realAddressGenerator({
         number: numberPerLocation,
         centerPoints: [locationCoordinates],

@@ -19,30 +19,21 @@
     };
 
     return {
-      formatDatesBeforeComparision: formatDatesBeforeComparision,
       getMinutesOfDay: getMinutesOfDay,
       minString: minString,
       maxString: maxString,
       isValidDate: isValidDate,
       getDateFormat: getDateFormat,
+      dateToMoment: dateToMoment,
       formatDate: formatDate,
       isRequired: isRequired,
       getRequiredFn: getRequiredFn,
     }
 
-    function formatDatesBeforeComparision(date, comparisionDate, fieldType) {
+    function dateToMoment(stringDate, fieldType) {
       var format = getDateFormat(fieldType);
 
-      var result = {
-        value: moment(date, format),
-        comparisionDate: moment(comparisionDate, format),
-      }
-
-      var hasInvalid = !!_.find(result, function (d) {
-        return !d.isValid();
-      });
-
-      return hasInvalid ? null : result;
+      return moment(stringDate, format);
     }
 
     function getMinutesOfDay(m) {

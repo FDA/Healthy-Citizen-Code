@@ -99,7 +99,9 @@ module.exports = appLib => {
     const createdDoc = await Model.findOne({ ...mongoConditions, _id: savedItemId }, {}, { session });
 
     if (!createdDoc) {
-      throw new AccessError(`Not enough permissions to create the item. Conditions: ${JSON.stringify(mongoConditions)}`);
+      throw new AccessError(
+        `Not enough permissions to create the item. Conditions: ${JSON.stringify(mongoConditions)}`
+      );
     }
     return createdDoc.toObject();
   }
@@ -129,8 +131,13 @@ module.exports = appLib => {
 
   m.removeItem = async (Model, conditions, session) => {
     const newConditions = MONGO.and(conditions, m.getConditionForActualRecord());
-    await Model.findOneAndUpdate(newConditions, { $set: { deletedAt: new Date() } }, { session });
+    const updatedDoc = await Model.findOneAndUpdate(
+      newConditions,
+      { $set: { deletedAt: new Date() } },
+      { session, new: true }
+    );
     await appLib.cache.clearCacheForModel(Model.modelName);
+    return updatedDoc;
   };
 
   m.aggregateItems = async ({ model, mongoParams = {} }) => {

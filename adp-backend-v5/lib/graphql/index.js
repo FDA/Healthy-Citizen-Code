@@ -1,4 +1,6 @@
 const _ = require('lodash');
+const log = require('log4js').getLogger('lib/graphql');
+
 const {
   addFindByMongoQueryResolver,
   paginationFindByMongoQueryResolverName,
@@ -31,7 +33,6 @@ const {
 } = require('./query/treeselector-resolver');
 const { addDevExtremeGroupResolver, devExtremeGroupResolverName } = require('./query/dev-extreme-group-resolver');
 const { getOrCreateTypeByModel } = require('./type/model');
-
 const {
   addCreateOneResolver,
   addUpdateOneResolver,
@@ -43,10 +44,12 @@ const {
   upsertOneResolverName,
 } = require('./mutation');
 
-module.exports = appLib => {
+module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') => {
   const m = {};
   m.graphqlCompose = require('graphql-compose');
   const { schemaComposer } = m.graphqlCompose;
+
+  m.connect = require(`./connect`)(appLib, graphQlRoute, altairRoute);
 
   m.getDb = modelName => appLib.db.model(modelName);
 
@@ -69,29 +72,29 @@ module.exports = appLib => {
   };
 
   m.resolvers = {
-    addFindManyByMongoQuery(modelName) {
-      return addFindByMongoQueryResolver(m.getModel(modelName), modelName);
+    addFindManyByMongoQuery({ model, modelName }) {
+      return addFindByMongoQueryResolver(model || m.getModel(modelName), modelName);
     },
-    addFindManyByFilterType(modelName, filterType) {
-      return addFindByFilterTypeResolver(m.getModel(modelName), modelName, filterType);
+    addFindManyByFilterType({ model, modelName, filterType }) {
+      return addFindByFilterTypeResolver(model || m.getModel(modelName), modelName, filterType);
     },
-    addCreateOne(modelName) {
-      return addCreateOneResolver(m.getModel(modelName), modelName);
+    addCreateOne({ model, modelName }) {
+      return addCreateOneResolver(model || m.getModel(modelName), modelName);
     },
-    addUpdateOne(modelName) {
-      return addUpdateOneResolver(m.getModel(modelName), modelName);
+    addUpdateOne({ model, modelName }) {
+      return addUpdateOneResolver(model || m.getModel(modelName), modelName);
     },
-    addDeleteOne(modelName) {
-      return addDeleteOneResolver(m.getModel(modelName), modelName);
+    addDeleteOne({ model, modelName }) {
+      return addDeleteOneResolver(model || m.getModel(modelName), modelName);
     },
-    addFindByDevExtremeFilter(modelName) {
-      return addFindByDevExtremeFilterResolver(m.getModel(modelName), modelName);
+    addFindByDevExtremeFilter({ model, modelName }) {
+      return addFindByDevExtremeFilterResolver(model || m.getModel(modelName), modelName);
     },
-    addDevExtremeGroupResolver(modelName) {
-      return addDevExtremeGroupResolver(m.getModel(modelName), modelName);
+    addDevExtremeGroup({ model, modelName }) {
+      return addDevExtremeGroupResolver(model || m.getModel(modelName), modelName);
     },
-    addUpsertOne(modelName, filterType) {
-      return addUpsertOneResolver(m.getModel(modelName), modelName, filterType);
+    addUpsertOne({ model, modelName, filterType }) {
+      return addUpsertOneResolver(model || m.getModel(modelName), modelName, filterType);
     },
   };
   m.resolversNames = {
@@ -141,48 +144,113 @@ module.exports = appLib => {
     createPostfix: `Create`,
   };
 
-  m.addDefaultMutations = modelNames => {
+  function getModelInfo(arg) {
+    if (_.isString(arg)) {
+      // simple model name
+      return { [arg]: m.getModel(arg) };
+    }
+    if (_.isArray(arg)) {
+      // array of model names
+      return _.reduce(
+        arg,
+        (result, modelName) => {
+          result[modelName] = m.getModel(modelName);
+          return result;
+        },
+        {}
+      );
+    }
+    if (_.isPlainObject(arg)) {
+      // ready { [modelName]: model } object
+      return arg;
+    }
+    throw new Error(`Invalid format for model argument.`);
+  }
+
+  m.addDefaultMutations = modelArg => {
     const { updatePostfix, deletePostfix, createPostfix } = m.mutationPostfix;
+    const { addCreateOne, addUpdateOne, addDeleteOne } = m.resolvers;
 
-    _.each(_.castArray(modelNames), modelName => {
-      const { addCreateOne, addUpdateOne, addDeleteOne } = m.resolvers;
-      const { resolver: createOneResolver } = addCreateOne(modelName);
-      const { resolver: updateOneResolver } = addUpdateOne(modelName);
-      const { resolver: deleteOneResolver } = addDeleteOne(modelName);
+    const modelInfo = getModelInfo(modelArg);
+    _.each(modelInfo, (model, modelName) => {
+      const updateMutationName = `${modelName}${updatePostfix}`;
+      const createMutationName = `${modelName}${createPostfix}`;
+      const deleteMutationName = `${modelName}${deletePostfix}`;
 
-      schemaComposer.Mutation.addFields({
-        [`${modelName}${updatePostfix}`]: updateOneResolver,
-        [`${modelName}${deletePostfix}`]: deleteOneResolver,
-        [`${modelName}${createPostfix}`]: createOneResolver,
-        // [`${modelName}UpsertOne`]: type.getResolver('upsertOne'),
-      });
+      log.trace(`Adding create mutation '${createMutationName}'`);
+      schemaComposer.Mutation.addFields({ [createMutationName]: addCreateOne({ model, modelName }).resolver });
+
+      log.trace(`Adding update mutation '${updateMutationName}'`);
+      schemaComposer.Mutation.addFields({ [updateMutationName]: addUpdateOne({ model, modelName }).resolver });
+
+      log.trace(`Adding delete mutation '${deleteMutationName}'`);
+      schemaComposer.Mutation.addFields({ [deleteMutationName]: addDeleteOne({ model, modelName }).resolver });
+
+      // [`${modelName}UpsertOne`]: type.getResolver('upsertOne'),
     });
   };
 
   m.removeDefaultMutations = modelNames => {
     const { updatePostfix, deletePostfix, createPostfix } = m.mutationPostfix;
     _.each(_.castArray(modelNames), modelName => {
-      schemaComposer.Mutation.removeField([
+      const mutationNames = [
         `${modelName}${updatePostfix}`,
         `${modelName}${deletePostfix}`,
         `${modelName}${createPostfix}`,
-      ]);
+      ];
+      log.trace(`Removing mutations for '${modelName}': ${mutationNames.map(n => `'${n}'`).join(', ')}`);
+      schemaComposer.Mutation.removeField(mutationNames);
     });
   };
 
-  m.addDefaultQueries = modelNames => {
+  m.addDefaultQueries = modelArg => {
     const { dxGroupPostfix, dxQueryPostfix, modelPostfix } = m.queryPostfix;
+    const { addFindManyByMongoQuery, addFindByDevExtremeFilter, addDevExtremeGroup } = m.resolvers;
 
-    _.each(_.castArray(modelNames), modelName => {
-      const { resolver: mongoQueryResolver } = m.resolvers.addFindManyByMongoQuery(modelName);
-      schemaComposer.Query.addFields({ [`${modelName}${modelPostfix}`]: mongoQueryResolver });
+    const modelInfo = getModelInfo(modelArg);
+    _.each(modelInfo, (model, modelName) => {
+      const modelQueryName = `${modelName}${modelPostfix}`;
+      log.trace(`Adding model Query '${modelQueryName}'`);
+      schemaComposer.Query.addFields({ [modelQueryName]: addFindManyByMongoQuery({ model, modelName }).resolver });
 
-      const { resolver: dxQueryResolver } = m.resolvers.addFindByDevExtremeFilter(modelName);
-      schemaComposer.Query.addFields({ [`${modelName}${dxQueryPostfix}`]: dxQueryResolver });
+      const devExtremeQueryName = `${modelName}${dxQueryPostfix}`;
+      log.trace(`Adding DevExtreme Query '${devExtremeQueryName}'`);
+      schemaComposer.Query.addFields({
+        [devExtremeQueryName]: addFindByDevExtremeFilter({ model, modelName }).resolver,
+      });
 
-      const { resolver: dxGroupResolver } = m.resolvers.addDevExtremeGroupResolver(modelName);
-      schemaComposer.Query.addFields({ [`${modelName}${dxGroupPostfix}`]: dxGroupResolver });
+      const devExtremeGroupQueryName = `${modelName}${dxGroupPostfix}`;
+      log.trace(`Adding DevExtreme Group Query '${devExtremeGroupQueryName}'`);
+      schemaComposer.Query.addFields({ [devExtremeGroupQueryName]: addDevExtremeGroup({ model, modelName }).resolver });
     });
+  };
+
+  m.removeDefaultQueries = modelNames => {
+    const { dxGroupPostfix, dxQueryPostfix, modelPostfix } = m.queryPostfix;
+    _.each(_.castArray(modelNames), modelName => {
+      const queryNames = [
+        `${modelName}${modelPostfix}`,
+        `${modelName}${dxQueryPostfix}`,
+        `${modelName}${dxGroupPostfix}`,
+      ];
+      log.trace(`Removing queries for '${modelName}': ${queryNames.map(n => `'${n}'`).join(', ')}`);
+      schemaComposer.Query.removeField(queryNames);
+    });
+  };
+
+  m.addDatasets = async ({ datasetsModelName, datasetsResolvers, addQueriesAndMutationsForDatasetsInDb }) => {
+    m.addDefaultQueries(datasetsModelName);
+
+    const { cloneOne, createOne, deleteOne } = datasetsResolvers;
+    const { createPostfix, deletePostfix } = m.mutationPostfix;
+    schemaComposer.Mutation.addFields({
+      [`datasets${createPostfix}`]: createOne,
+      [`datasetsClone`]: cloneOne,
+      [`datasets${deletePostfix}`]: deleteOne,
+      // [`datasets${updatePostfix}`]: updateOne,
+    });
+
+    await addQueriesAndMutationsForDatasetsInDb();
   };
 
   /**
@@ -247,18 +315,29 @@ module.exports = appLib => {
     }
   };
 
-  m.removeDefaultQueries = modelNames => {
-    _.each(_.castArray(modelNames), modelName => {
-      schemaComposer.Query.removeField(modelName);
-    });
-  };
-
-  m.addAll = () => {
+  m.addAll = async () => {
     const { models } = appLib.appModel;
-    const { appLookups, log, appTreeSelectors } = appLib;
-    const modelNames = _.keys(models);
+    const { appLookups, appTreeSelectors } = appLib;
+
+    const allModelNames = _.keys(models);
+    // do not generate for datasets since it's custom
+    const modelNames = allModelNames.filter(modelName => modelName !== 'datasets');
     m.addDefaultQueries(modelNames);
     m.addDefaultMutations(modelNames);
+
+    const datasetsModelName = 'datasets';
+    const { datasetsResolvers, addQueriesAndMutationsForDatasetsInDb } = require('./datasets-collections')({
+      appLib,
+      datasetsModel: appLib.appModel.models[datasetsModelName],
+      datasetsModelName,
+      addDefaultQueries: m.addDefaultQueries,
+      addDefaultMutations: m.addDefaultMutations,
+      removeDefaultQueries: m.removeDefaultQueries,
+      removeDefaultMutations: m.removeDefaultMutations,
+    });
+
+    await m.addDatasets({ datasetsModelName, datasetsResolvers, addQueriesAndMutationsForDatasetsInDb });
+
     addLookupsQueries(models, appLookups, log);
     addTreeselectorsQueries(models, appTreeSelectors, log);
   };

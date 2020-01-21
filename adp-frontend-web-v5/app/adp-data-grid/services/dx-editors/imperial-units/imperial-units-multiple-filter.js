@@ -3,29 +3,30 @@
 
   angular
     .module('app.adpDataGrid')
-    .factory('imperialUnitMultipleFilter', imperialUnitMultipleFilter);
+    .factory('ImperialUnitMultipleEditor', ImperialUnitMultipleEditor);
 
   /** @ngInject */
-  function imperialUnitMultipleFilter(ImperialUnitsFilterHelpers) {
+  function ImperialUnitMultipleEditor(ImperialUnitsEditorsHelpers) {
     return function () {
       return {
-        filterValue: [0, 0],
         element: $('<div>'),
 
         create: function (init) {
           this.options = init;
-          this.units = ImperialUnitsFilterHelpers.getUnits(this.options.args.modelSchema);
+          this.units = ImperialUnitsEditorsHelpers.getUnits(this.options.args.modelSchema);
 
           this.init();
         },
 
         init: function() {
-          var initialValue = this.options.args.data || [];
+          var initialValue = this.options.args.data || [0, 0]
+          this.value = initialValue;
 
-          this.filterElements = this.units.map(function (unit, index) {
+
+          this.elements = this.units.map(function (unit, index) {
             return this.createSelectBox(unit, index, initialValue[index]);
           }, this);
-          this.element.append(this.filterElements);
+          this.element.append(this.elements);
 
           this.addRangeText(this.options.placeholder);
         },
@@ -35,14 +36,14 @@
             return;
           }
 
-          var el = ImperialUnitsFilterHelpers.createRangePlaceholderElement(placeholder);
+          var el = ImperialUnitsEditorsHelpers.createRangePlaceholderElement(placeholder);
           this.element.prepend(el);
         },
 
         createSelectBox: function (unit, position, value) {
           var self = this;
 
-          return ImperialUnitsFilterHelpers.createFilterComponent({
+          return ImperialUnitsEditorsHelpers.createFilterComponent({
             unit: unit,
             element: $('<div>'),
             onValueChanged: function (e) {
@@ -54,20 +55,21 @@
         },
 
         setValue: function (value, position) {
-          if (_.isNull(value)) {
-            this.filterValue = value;
-          } else {
-            this.filterValue = this.filterValue || [0, 0];
-            this.filterValue[position] = value;
+          if (_.isNull(value) && _.isNil(position)) {
+            this.value = null;
           }
+
+          this.value = this.value || [0, 0];
+          this.value[position] = _.isNil(value) ? 0 : value;
+          this.value = _.isEmpty(_.compact(this.value)) ? null : this.value;
         },
 
         getValue: function() {
-          return _.isNull(this.filterValue) ? null : this.filterValue.slice();
+          return _.isNull(this.value) ? null : this.value.slice();
         },
 
         reset: function () {
-          this.filterElements.forEach(function (el) {
+          this.elements.forEach(function (el) {
             var filterInstance = el.dxSelectBox('instance');
             filterInstance.reset();
           });

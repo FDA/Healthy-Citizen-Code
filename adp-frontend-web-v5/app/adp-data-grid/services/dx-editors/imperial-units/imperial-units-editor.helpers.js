@@ -3,10 +3,10 @@
 
   angular
     .module('app.adpDataGrid')
-    .factory('ImperialUnitsFilterHelpers', ImperialUnitsFilterHelpers);
+    .factory('ImperialUnitsEditorsHelpers', ImperialUnitsEditorsHelpers);
 
   /** @ngInject */
-  function ImperialUnitsFilterHelpers(
+  function ImperialUnitsEditorsHelpers(
     AdpFieldsService
   ) {
     function createFilterComponent(options) {
@@ -15,10 +15,10 @@
         value: options.value,
         valueExpr: 'value',
         displayExpr: 'label',
-        elementAttr: { 'class': 'data-grid-tagbox-filter' },
         dataSource: getDataSource(options.unit),
         onValueChanged: options.onValueChanged,
         placeholder: 'Select ' + options.unit.shortName,
+        showClearButton: true,
       };
 
       return options.element[editorName](editorOptions);

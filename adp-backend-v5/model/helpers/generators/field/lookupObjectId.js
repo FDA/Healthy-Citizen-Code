@@ -26,7 +26,6 @@ module.exports = ({ random }) => {
         const tableIndex = random.integer(0, lookupTables.length - 1);
         const lookupTable = lookupTables[tableIndex];
         const lookupTableSpec = lookup.table[lookupTable];
-        // eslint-disable-next-line no-await-in-loop
         const result = await getLookup(lookupTableSpec);
         if (result) {
           return result;

@@ -6,12 +6,12 @@ const log = require('log4js').getLogger('lib/cache');
 
 module.exports = options => {
   const m = {};
-  let cache = null;
+  m.cacheStorage = null;
 
   m.init = async () => {
-    const { redisUrl, keyPrefix } = options;
+    const { keyPrefix, redisUrl } = options;
     m.keyPrefix = getKeyPrefix(keyPrefix);
-    cache = await m.getCacheStorage(redisUrl);
+    m.cacheStorage = await m.getCacheStorage(redisUrl);
   };
 
   function getKeyPrefix(prefix) {
@@ -23,12 +23,12 @@ module.exports = options => {
 
   m.getKeyWithPrefix = key => `${m.keyPrefix}${key}`;
 
-  m.getCacheStorage = async redisUrl => {
-    if (!redisUrl) {
+  m.getCacheStorage = async url => {
+    if (!url) {
       return null;
     }
 
-    const redis = new Redis(redisUrl, {
+    const redis = new Redis(url, {
       lazyConnect: true,
       maxRetriesPerRequest: 1,
       retryStrategy: times => {
@@ -50,19 +50,20 @@ module.exports = options => {
 
     try {
       await redis.connect();
-      log.info(`Successfully connected to redis by URL: ${redisUrl}`);
+      log.info(`Successfully connected to redis by URL: ${url}`);
       return redis;
     } catch (e) {
       // without disconnecting redis will keep trying to connect
       redis.disconnect();
-      log.warn(`Unable to connect to redis by URL: ${redisUrl}. Server will continue working without cache.`, e.stack);
+      log.warn(`Unable to connect to redis by URL: ${url}. Server will continue working without cache.`, e.stack);
       return null;
     }
   };
 
-  m.isCacheReady = () =>
+  m.isCacheReady = () => {
     // RedisMock has field 'status', but has field cache.connected
-    cache && (cache.status === 'ready' || cache.connected);
+    return m.cacheStorage && (m.cacheStorage.status === 'ready' || m.cacheStorage.connected);
+  };
 
   m.setCache = async (key, value) => {
     if (!m.isCacheReady()) {
@@ -71,7 +72,7 @@ module.exports = options => {
 
     const keyWithPrefix = m.getKeyWithPrefix(key);
     try {
-      await cache.set(keyWithPrefix, JSON.stringify(value));
+      await m.cacheStorage.set(keyWithPrefix, JSON.stringify(value));
     } catch (e) {
       log.error(`Unable to set value into cache by key: '${keyWithPrefix}'. Value: ${value}`, e.stack);
       throw e;
@@ -85,7 +86,7 @@ module.exports = options => {
 
     const keyWithPrefix = m.getKeyWithPrefix(key);
     try {
-      const value = await cache.get(keyWithPrefix);
+      const value = await m.cacheStorage.get(keyWithPrefix);
       try {
         return JSON.parse(value);
       } catch (e) {
@@ -103,7 +104,7 @@ module.exports = options => {
       return null;
     }
     const allKeys = [];
-    const stream = cache.scanStream({ match: m.getKeyWithPrefix(keyPattern) });
+    const stream = m.cacheStorage.scanStream({ match: m.getKeyWithPrefix(keyPattern) });
 
     return new Promise(resolve => {
       stream.on('data', keys => {
@@ -120,14 +121,14 @@ module.exports = options => {
       return null;
     }
     try {
-      const stream = cache.scanStream({ match: m.getKeyWithPrefix(keyPattern) });
+      const stream = m.cacheStorage.scanStream({ match: m.getKeyWithPrefix(keyPattern) });
       const unlinkPromises = [];
 
       return new Promise(resolve => {
         stream.on('data', keys => {
           // `keys` is an array of strings representing key names
           if (keys.length) {
-            unlinkPromises.push(cache.unlink(keys));
+            unlinkPromises.push(m.cacheStorage.unlink(keys));
           }
         });
         stream.on('end', () => {

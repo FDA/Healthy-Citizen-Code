@@ -70,6 +70,7 @@
     "no-unused-vars": ["error", { "argsIgnorePattern": "next" }],
     // name function only in case its a recursive function
     "func-names": ["error", "never"],
+    "no-await-in-loop": "off",
 
     // Promise config
     // blubird catch can receive 2 params

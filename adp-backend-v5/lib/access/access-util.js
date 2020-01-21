@@ -806,6 +806,10 @@ module.exports = appLib => {
 
   m.getBaseAppModel = () => {
     const baseAppModel = _.cloneDeep(appLib.appModel);
+    for (const modelName of appLib.datasetsModelsNames.entries()) {
+      delete baseAppModel.appModel.models[modelName];
+    }
+
     const app = _.get(baseAppModel, 'interface.app');
     if (app) {
       delete app.permissions;

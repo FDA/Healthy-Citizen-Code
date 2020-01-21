@@ -3,14 +3,14 @@
 
   angular
     .module('app.adpDataGrid')
-    .factory('NumberFilter', NumberFilter);
+    .factory('NumberEditor', NumberEditor);
 
   /** @ngInject */
-  function NumberFilter(
-    DxFilterMixin
+  function NumberEditor(
+    DxEditorMixin
   ) {
     return function () {
-      return DxFilterMixin({
+      return DxEditorMixin({
         editorName: 'dxNumberBox',
 
         create: function (init) {

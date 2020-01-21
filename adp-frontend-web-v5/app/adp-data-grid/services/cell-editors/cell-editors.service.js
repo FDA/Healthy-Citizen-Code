@@ -3,15 +3,15 @@
 
   angular
     .module('app.adpDataGrid')
-    .factory('EditorsService', EditorsService);
+    .factory('CellEditorsService', CellEditorsService);
 
   /** @ngInject */
-  function EditorsService(
+  function CellEditorsService(
     GridOptionsHelpers,
     GridEditorsFactory,
     AdpSchemaService,
     AdpUnifiedArgs,
-    EditorsValidationService,
+    CellEditorsValidationService,
     ACTIONS
   ) {
     return function (options, schema) {
@@ -39,16 +39,6 @@
 
         enableEditor(event, schema);
       });
-
-      options.onRowValidating = function (e) {
-        e.brokenRules.forEach(function (rule) {
-          var field = schema.fields[rule.column.dataField];
-          var validatorRule = rule.schemaValidatorRule;
-
-          rule.validator._validationRules[rule.index].message =
-            EditorsValidationService.getMessage(e.value, field, validatorRule);
-        });
-      }
 
       return options;
     };
@@ -80,7 +70,7 @@
         }
 
         column.allowEditing = isFieldEditable(field);
-        column.allowEditing && (column.validationRules = EditorsValidationService.getValidators(field));
+        column.allowEditing && (column.validationRules = CellEditorsValidationService.getValidators(field));
       });
     }
 
@@ -107,18 +97,13 @@
     function enableEditor(event, schema) {
       var options = {
         args: unifiedApproachArgs(event, schema),
-        value: event.value,
         onValueChanged: function (editorEvent) {
-          // todo: handle empty values and send null
           event.setValue(editorEvent.value);
         }
       };
 
-      var field = schema.fields[event.dataField];
-      var editorFn = GridEditorsFactory(field);
-      var editor = editorFn(options);
-
-      event.editorElement.replaceWith(editor);
+      var editorElement = GridEditorsFactory(options);
+      event.editorElement.replaceWith(editorElement);
     }
 
     function unifiedApproachArgs(event, schema) {

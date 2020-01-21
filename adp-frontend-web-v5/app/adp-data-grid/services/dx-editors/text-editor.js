@@ -3,24 +3,24 @@
 
   angular
     .module('app.adpDataGrid')
-    .factory('StringFilter', StringFilter);
+    .factory('TextEditor', TextEditor);
 
   /** @ngInject */
-  function StringFilter(DxFilterMixin) {
+  function TextEditor(DxEditorMixin) {
     function getOptions(init) {
       var INPUT_TIMEOUT = 300;
+
       return {
         mode: 'text',
         onValueChanged: _.debounce(init.onValueChanged, INPUT_TIMEOUT),
-        tabIndex: 0,
         value: init.args.data,
-        valueChangeEvent: 'change keyup input',
+        valueChangeEvent: 'change input',
       };
     }
 
     return function () {
-      return DxFilterMixin({
-        editorName: 'dxTextBox',
+      return DxEditorMixin({
+        editorName: 'dxTextArea',
 
         create: function (init) {
           var options = getOptions(init);

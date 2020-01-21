@@ -375,18 +375,18 @@ module.exports = () => {
     m.addRoute('get', '/dashboards/:id', [m.isAuthenticated, m.controllers.main.getDashboardJson]);
   };
 
-  m.loadControllers = appModelPath => {
+  m.loadControllers = async appModelPath => {
     m.log.trace('Loading custom controllers:');
     try {
       const files = _.concat(
         glob.sync(`${appRoot}/server_controllers/**/*.js`),
         glob.sync(`${appModelPath}/server_controllers/**/*.js`)
       );
-      _.forEach(files, file => {
+      for (const file of files) {
         m.log.trace(` ∟ ${file}`);
         const lib = require(file)(mongoose);
-        lib.init(m);
-      });
+        await lib.init(m);
+      }
     } catch (e) {
       m.log.error(`Unable to load custom controllers`, e.stack);
       process.exit(2);
@@ -510,7 +510,7 @@ module.exports = () => {
     });
   };
 
-  m.addRoutes = () => {
+  m.addRoutes = async () => {
     const mainController = m.controllers.main;
     const { fileController } = m;
 
@@ -832,13 +832,13 @@ module.exports = () => {
     m.addAppModelRoutes();
     m.addDashboardEndpoints(); // TODO: remove this after mobile update
 
-    const { addAll, graphQlRoute } = m.graphQl;
-    addAll();
+    const { addAll, connect } = m.graphQl;
+    await addAll();
 
-    m.loadControllers(process.env.APP_MODEL_DIR);
+    await m.loadControllers(process.env.APP_MODEL_DIR);
 
     m.log.trace('Connecting GraphQL');
-    m.connectGraphQl(graphQlRoute);
+    connect.connectGraphqlWithAltair();
 
     m.log.trace('Connecting Swagger');
     connectSwagger(m);
@@ -897,10 +897,12 @@ module.exports = () => {
   };
 
   async function cacheRolesToPermissions() {
-    // set ROLES_TO_PERMISSIONS on startup to rewrite old cache
-    const rolesToPermissions = await m.accessUtil.getRolesToPermissions();
-    await m.cache.setCache(m.cache.keys.ROLES_TO_PERMISSIONS, rolesToPermissions);
-    m.log.info('Loaded rolesToPermissions: ', JSON.stringify(rolesToPermissions, null, 2));
+    if (m.cache) {
+      // set ROLES_TO_PERMISSIONS on startup to rewrite old cache
+      const rolesToPermissions = await m.accessUtil.getRolesToPermissions();
+      await m.cache.setCache(m.cache.keys.ROLES_TO_PERMISSIONS, rolesToPermissions);
+      m.log.info('Loaded rolesToPermissions: ', JSON.stringify(rolesToPermissions, null, 2));
+    }
   }
 
   function setInitProperties() {
@@ -914,10 +916,7 @@ module.exports = () => {
     m.dba = require('./database-abstraction')(m);
     m.mutil = require('./model')(m);
 
-    m.graphQl = require('./graphql')(m);
-    m.graphQl.graphQlRoute = '/graphql';
-    m.graphQl.graphiQlRoute = m.graphQl.graphQlRoute; // same endpoint (express-graphql cannot set to other)
-    m.connectGraphQl = require('./graphql/connect')(m);
+    m.graphQl = require('./graphql')(m, '/graphql', '/altair');
 
     m.googleMapsClient = require('./google-maps');
 
@@ -962,11 +961,16 @@ module.exports = () => {
 
     await m.cache.init();
     await m.cache.clearCacheByKeyPattern('*'); // clear all keys on startup
+    m.queue = require('./queue')({ redisUrl: process.env.BULL_REDIS_URL });
     await m.migrateMongo();
 
+    // use to exclude it from /app-model
+    m.datasetsModelsNames = new Set();
     m.appModel = m.mutil.getCombinedModel(options.appModelSources);
+
     const helperDirPaths = [`model/helpers`, `${process.env.APP_MODEL_DIR}/helpers`];
-    m.helperUtil = await require('./helper-util')(m, helperDirPaths);
+    const buildAppModelCodeOnStart = (process.env.BUILD_APP_MODEL_CODE_ON_START || 'true') === 'true';
+    m.helperUtil = await require('./helper-util')(m, helperDirPaths, buildAppModelCodeOnStart);
     m.allActionsNames = [...m.accessCfg.DEFAULT_ACTIONS, ..._.keys(m.appModelHelpers.CustomActions)];
     m.accessUtil.setAvailablePermissions();
 
@@ -1000,7 +1004,7 @@ module.exports = () => {
     m.baseAppModel = m.accessUtil.getBaseAppModel();
 
     setControllerProperties();
-    m.addRoutes();
+    await m.addRoutes();
     m.addErrorHandlers();
     // TODO: move route name to config?
     websocketServer.connect(m.app);

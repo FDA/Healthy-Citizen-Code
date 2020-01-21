@@ -1559,6 +1559,33 @@ module.exports = appLib => {
     }
   };
 
+  m.getMongooseModel = (model, collectionName) => {
+    const mongooseSchemaDefinition = {};
+    m.getMongooseSchemaDefinition(null, model, mongooseSchemaDefinition);
+    const schema = new mongoose.Schema(mongooseSchemaDefinition, {
+      collection: collectionName,
+      strict: false,
+      versionKey: false,
+      minimize: true,
+    });
+
+    // create index for actual record condition for production
+    if (process.env.CREATE_INDEXES === 'true') {
+      schema.index({ deletedAt: 1 }, { background: true });
+    }
+
+    if (model.schemaTransform) {
+      if (typeof model.schemaTransform === 'string') {
+        model.schemaTransform = [model.schemaTransform];
+      }
+      model.schemaTransform.forEach(transformer => {
+        schemaTransformers[transformer](schema);
+      });
+    }
+
+    return schema;
+  };
+
   /**
    * Generates mongoose models based on models JSON and puts them in m.mongooseModels hash
    * Note that some methods require m.mongoos_models to be populated before they work correctly
@@ -1566,34 +1593,18 @@ module.exports = appLib => {
    * @param models JSON defining the model
    * @param cb callback(err)
    */
-  m.generateMongooseModels = (db, models) =>
+  m.generateMongooseModels = (db, models, isOverride) =>
     Promise.map(Object.entries(models), ([name, model]) => {
-      const mongooseSchemaDefinition = {};
-      m.getMongooseSchemaDefinition(null, model, mongooseSchemaDefinition);
       try {
-        const schema = new mongoose.Schema(mongooseSchemaDefinition, {
-          collection: name,
-          strict: false,
-          versionKey: false,
-          minimize: true,
-        });
-
-        // create index for actual record condition for production
-        if (process.env.CREATE_INDEXES === 'true') {
-          schema.index({ deletedAt: 1 }, { background: true });
-        }
-
-        if (model.schemaTransform) {
-          if (typeof model.schemaTransform === 'string') {
-            model.schemaTransform = [model.schemaTransform];
-          }
-          model.schemaTransform.forEach(transformer => {
-            schemaTransformers[transformer](schema);
-          });
-        }
+        const collectionName = name;
+        const mongooseModelName = name;
+        const schema = m.getMongooseModel(model, collectionName);
         log.trace(`Generating model ${name}`);
         // log.trace( `Generating model ${name}:\n${JSON.stringify(mongooseSchemaDefinition,null,4)}` );
-        return db.model(name, schema);
+        if (isOverride) {
+          delete db.models[mongooseModelName];
+        }
+        return db.model(mongooseModelName, schema);
       } catch (e) {
         log.error('MDL001', `Unable to generate mongoose model ${name}`);
         throw e;

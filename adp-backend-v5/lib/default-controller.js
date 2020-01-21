@@ -424,21 +424,31 @@ module.exports = appLib => {
    * Returns string representing all code for the application
    */
   m.getAppModelCode = async (req, res) => {
-    const code = getAppModelCode();
-    sendJavascript(res, code);
+    try {
+      const code = await getAppModelCode();
+      sendJavascript(res, code);
+    } catch (e) {
+      log.error(e.stack);
+      res.send(`Unable to get app model code.`);
+    }
   };
 
   /**
    * Returns string representing all code for the application
    */
   m.getMinifiedAppModelCode = async (req, res, next) => {
-    const code = getAppModelCode();
-    const miniJs = uglify.minify(code);
-    if (miniJs.error) {
-      const errMessage = `There is a problem with helpers code: ${miniJs.error}`;
-      m.error(req, res, next, new Error(errMessage), errMessage);
-    } else {
-      sendJavascript(res, miniJs.code, next);
+    try {
+      const code = await getAppModelCode();
+      const miniJs = uglify.minify(code);
+      if (miniJs.error) {
+        const errMessage = `There is a problem with helpers code: ${miniJs.error}`;
+        m.error(req, res, next, new Error(errMessage), errMessage);
+      } else {
+        sendJavascript(res, miniJs.code, next);
+      }
+    } catch (e) {
+      log.error(e.stack);
+      res.send(`Unable to get minified app model code.`);
     }
   };
 

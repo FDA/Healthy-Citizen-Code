@@ -7,11 +7,11 @@
 
   /** @ngInject */
   function LookupTableSelector(
-    DxFilterMixin,
+    DxEditorMixin,
     LookupDxConfig
   ) {
     return function (options) {
-      var component = DxFilterMixin({
+      var component = DxEditorMixin({
         editorName: 'dxSelectBox',
         element: $('<div>'),
 

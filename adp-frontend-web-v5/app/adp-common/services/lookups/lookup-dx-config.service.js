@@ -15,46 +15,29 @@
       single: singleLookupConfig,
       multiple: multipleLookupConfig,
       tableSelector: tableSelectorConfig,
-      filter: filterLookupConfig,
+      gridEditorSingle: gridEditorSingle,
+      gridEditorMultiple: gridEditorMultiple,
     };
-
-    function defaults(options) {
-      return {
-        elementAttr: {
-          'class': 'adp-select-box adp-lookup-selector'
-        },
-        value: options.args.data,
-        showClearButton: true,
-        searchEnabled: true,
-        dataSource: LookupDataSource(options.args, options.selectedTableName),
-        valueExpr: 'this',
-        onValueChanged: options.onValueChanged,
-        buttons: LookupBtns(options.selectedTableName),
-        itemTemplate: function (lookupData) {
-          return AdpLookupHelpers.lookupItemTemplate(lookupData, options.args);
-        },
-      }
-    }
 
     function singleLookupConfig(options) {
       var defaultsConfig = defaults(options);
+
       var lookupSingleConfig = {
+        buttons: LookupBtns(options.selectedTableName),
         onOpened: function (event) {
           // WORKAROUND to set focus on select when dropdown is shown
           event.element.find('.adp-text-box input').focus();
         },
+        itemTemplate: function (lookupData) {
+          return AdpLookupHelpers.lookupItemTemplate(lookupData, options.args);
+        },
         fieldTemplate: function (data, container) {
-          var label = _.isNil(data) ? '' : AdpLookupHelpers.formatLabel(data, options.args);
-          var tpl = $('<div class="adp-text-box-label">')
-            .append(label);
-
-          var textBox = $('<div class="adp-text-box">')
-            .dxTextBox({
-              placeholder: this.option('placeholder'),
-              value: _.isNil(data) ? '' : data.label,
-            });
-
-          container.append(tpl, textBox);
+          fieldTemplate({
+            data: data,
+            args: options.args,
+            container: container,
+            component: this,
+          });
         },
       };
 
@@ -65,6 +48,10 @@
       var defaultsConfig = defaults(options);
 
       var lookupMultipleConfig = {
+        buttons: LookupBtns(options.selectedTableName),
+        itemTemplate: function (lookupData) {
+          return AdpLookupHelpers.lookupItemTemplate(lookupData, options.args);
+        },
         tagTemplate: function (lookupData, tagElement) {
           return tagTemplate({
             lookupData: lookupData,
@@ -78,40 +65,12 @@
       return _.assign(defaultsConfig, lookupMultipleConfig);
     }
 
-    function tableSelectorConfig(options) {
-      var items = getNamesForTables(options.args.modelSchema.lookup);
-
-      return {
-        elementAttr: {
-          'class': hasSingleTable(items) ? ' hidden' : '',
-        },
-        value: defaultValue(items),
-        dataSource: items,
-        onValueChanged: options.onTableChanged,
-      };
-
-      function getNamesForTables(lookup) {
-        return _.map(lookup.table, function (table) {
-          return table.table;
-        });
-      }
-
-      function defaultValue(items) {
-        return items[0];
-      }
-
-      function hasSingleTable(items) {
-        return items.length === 1;
-      }
-    }
-
-    function filterLookupConfig(options) {
+    function gridEditorSingle(options) {
       var defaultsConfig = defaults(options);
 
       var filterConfig = {
-        value: options.args.data,
         elementAttr: {
-          'class': 'adp-select-box adp-lookup-selector adp-filter-lookup-selector'
+          'class': 'adp-select-box adp-lookup-selector'
         },
         itemTemplate: function (lookupData) {
           return AdpLookupHelpers.lookupFilterItemTemplate(lookupData, options.args);
@@ -124,10 +83,57 @@
             component: this,
           });
         },
-        buttons: [],
       };
 
       return _.assign(defaultsConfig, filterConfig);
+    }
+
+    function gridEditorMultiple(options) {
+      var defaultsConfig = defaults(options);
+
+      var filterConfig = {
+        elementAttr: {
+          'class': 'adp-select-box adp-lookup-selector adp-filter-lookup-selector'
+        },
+        itemTemplate: function (lookupData) {
+          return AdpLookupHelpers.lookupFilterItemTemplate(lookupData, options.args);
+        },
+        onOpened: function (event) {
+          // WORKAROUND to set focus on select when dropdown is shown
+          event.element.find('.adp-text-box input').focus();
+        },
+        fieldTemplate: function (data, container) {
+          fieldTemplate({
+            data: data,
+            args: options.args,
+            container: container,
+            component: this,
+          });
+        },
+      };
+
+      return _.assign(defaultsConfig, filterConfig);
+    }
+
+    function tableSelectorConfig(options) {
+      var items = getNamesForTables(options.args.modelSchema.lookup);
+      var hasSingleTable = items.length === 1;
+
+      return {
+        elementAttr: {
+          'table-selector': true,
+          'class': hasSingleTable ? ' hidden' : '',
+        },
+        value: items[0],
+        dataSource: items,
+        onValueChanged: options.onTableChanged,
+      };
+
+      function getNamesForTables(lookup) {
+        return _.map(lookup.table, function (table) {
+          return table.table;
+        });
+      }
     }
 
     function tagTemplate(templateConf) {
@@ -150,6 +156,42 @@
       $('<div class="dx-tag-content">')
         .append(content, removeBtn)
         .appendTo(templateConf.tagElement);
+    }
+
+    function fieldTemplate(templateConf) {
+      var data = templateConf.data;
+      var args = templateConf.args;
+      var container = templateConf.container;
+      var placeholder = templateConf.component.option('placeholder');
+
+      var label = _.isNil(data) ?
+        '<div class="adp-text-box-label-empty">' + placeholder + '</div>' :
+        AdpLookupHelpers.formatLabel(data, args);
+
+      var tpl = $('<div class="adp-text-box-label">')
+        .append(label);
+
+      var textBox = $('<div class="adp-text-box">')
+        .dxTextBox({
+          placeholder: placeholder,
+          value: _.isNil(data) ? '' : data.label,
+        });
+
+      container.append(tpl, textBox);
+    }
+
+    function defaults(options) {
+      return {
+        elementAttr: {
+          'class': 'adp-select-box adp-lookup-selector'
+        },
+        value: options.args.data,
+        showClearButton: true,
+        searchEnabled: true,
+        dataSource: LookupDataSource(options.args, options.selectedTableName),
+        valueExpr: 'this',
+        onValueChanged: options.onValueChanged,
+      }
     }
   }
 })();

@@ -55,10 +55,10 @@
 
         function disableDates(dates, cmp) {
           var todaySinceMidnight = new Date();
-          todaySinceMidnight.setUTCHours(0,0,0,0);
+          todaySinceMidnight.setHours(0,0,0,0);
 
           dates.filter(function (date) {
-            return cmp(date.utcDateValue, todaySinceMidnight.getTime());
+            return cmp(date.localDateValue(), todaySinceMidnight.getTime());
           }).forEach(function (date) {
             date.selectable = false;
           });

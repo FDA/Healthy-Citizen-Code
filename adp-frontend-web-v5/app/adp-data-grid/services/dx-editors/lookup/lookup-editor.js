@@ -3,14 +3,19 @@
 
   angular
     .module('app.adpDataGrid')
-    .factory('LookupFilter', LookupFilter);
+    .factory('LookupEditor', LookupEditor);
 
   /** @ngInject */
-  function LookupFilter(
+  function LookupEditor(
     LookupSelector,
     LookupTableSelector
   ) {
-    return function () {
+    return {
+      single: createEditor.bind(null, false),
+      multiple: createEditor.bind(null, true),
+    }
+
+    function createEditor(multiple) {
       return {
         element: $('<div class="adp-lookup-filter-container">'),
         lookupOptions: null,
@@ -21,17 +26,18 @@
 
         create: function (init) {
           this.lookupOptions = init;
+          this.multiple = multiple;
           this.init();
         },
 
         init: function () {
-          this.setClassToContainer(this.lookupOptions.args.modelSchema);
+          this.setClassToContainer(this.lookupOptions.args.modelSchema.fieldName);
           this.createTableSelector();
           this.createLookupSelector();
         },
 
-        setClassToContainer: function(modelSchema) {
-          this.element.addClass('lookup-name-' + modelSchema.fieldName);
+        setClassToContainer: function(fieldName) {
+          this.element.addClass('lookup-name-' + fieldName);
         },
 
         createTableSelector: function () {
@@ -40,31 +46,23 @@
             args: this.lookupOptions.args,
             onTableChanged: function (e) {
               self.lookupEditor.updateDataSource(e.value);
-            }
+            },
           });
 
           this.appendToRoot(this.tableSelector);
         },
 
         createLookupSelector: function () {
-          var self = this;
-
           var opts = {
             args: this.lookupOptions.args,
-            onValueChanged: function (e) {
-              var filterValue = e.value.map(function (lookup) {
-                return {
-                  _id: lookup._id,
-                  table: lookup.table,
-                  label: lookup.label,
-                };
-              });
-
-              self.lookupOptions.onValueChanged({ value: filterValue });
-            },
+            onValueChanged: this.lookupOptions.onValueChanged,
             selectedTableName: this.tableSelector.getValue(),
           };
-          this.lookupEditor = LookupSelector(opts);
+
+          this.lookupEditor = this.multiple ?
+            LookupSelector.multiple(opts) :
+            LookupSelector.single(opts);
+
           this.appendToRoot(this.lookupEditor);
         },
 
