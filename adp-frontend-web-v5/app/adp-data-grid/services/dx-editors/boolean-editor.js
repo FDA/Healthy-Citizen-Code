@@ -3,30 +3,37 @@
 
   angular
     .module('app.adpDataGrid')
-    .factory('BooleanFilter', BooleanFilter);
+    .factory('BooleanEditor', BooleanEditor);
 
   /** @ngInject */
-  function BooleanFilter(
-    DxFilterMixin,
-    BOOLEAN_FILTER_VALUES
+  function BooleanEditor(
+    DxEditorMixin
   ) {
     function getOptions(init) {
       return {
+        elementAttr: {
+          class: 'adp-select-box',
+          id: 'list_id_' + init.args.modelSchema.fieldName,
+        },
         value: init.args.data,
         displayExpr: 'label',
         valueExpr: 'value',
         placeholder: '(All)',
-        items: [
-          { label: 'Yes', value: BOOLEAN_FILTER_VALUES.TRUE },
-          { label: 'No', value: BOOLEAN_FILTER_VALUES.FALSE },
-        ],
+        items: getDataSource(),
         onValueChanged: init.onValueChanged,
-        valueChangeEvent: 'change blur',
+        valueChangeEvent: 'change',
       };
     }
 
+    function getDataSource() {
+      return [
+        { label: 'Yes', value: true },
+        { label: 'No', value: null },
+      ];
+    }
+
     return function () {
-      return DxFilterMixin({
+      return DxEditorMixin({
         editorName: 'dxSelectBox',
 
         create: function (init) {

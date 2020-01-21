@@ -3,15 +3,15 @@
 
   angular
     .module('app.adpDataGrid')
-    .factory('imperialUnitSingleFilter', imperialUnitSingleFilter);
+    .factory('ImperialUnitSingleEditor', ImperialUnitSingleEditor);
 
   /** @ngInject */
-  function imperialUnitSingleFilter(
-    ImperialUnitsFilterHelpers,
-    DxFilterMixin
+  function ImperialUnitSingleEditor(
+    ImperialUnitsEditorsHelpers,
+    DxEditorMixin
   ) {
     return function () {
-      return DxFilterMixin({
+      return DxEditorMixin({
         editorName: 'dxSelectBox',
         element: $('<div>'),
 
@@ -21,9 +21,9 @@
         },
 
         createEditor: function(init) {
-          var units = ImperialUnitsFilterHelpers.getUnits(init.args.modelSchema);
+          var units = ImperialUnitsEditorsHelpers.getUnits(init.args.modelSchema);
 
-          ImperialUnitsFilterHelpers.createFilterComponent({
+          ImperialUnitsEditorsHelpers.createFilterComponent({
             unit: units[0],
             element: this.element,
             onValueChanged: init.onValueChanged,
@@ -36,7 +36,7 @@
             return;
           }
 
-          var el = ImperialUnitsFilterHelpers.createRangePlaceholderElement(placeholder);
+          var el = ImperialUnitsEditorsHelpers.createRangePlaceholderElement(placeholder);
           this.element.prepend(el);
         }
       });

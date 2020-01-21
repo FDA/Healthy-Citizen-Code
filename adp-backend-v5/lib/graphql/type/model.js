@@ -100,19 +100,11 @@ function getTypeName(modelName, composerType) {
   throw new Error(`Invalid composerType: ${composerType}`);
 }
 
-/**
- * @param model
- * @param modelName
- * @param composerType
- * @returns {NamedTypeComposer<any>}
- */
-function getOrCreateTypeByModel(model, modelName, composerType) {
-  const typeName = getTypeName(modelName, composerType);
-  if (schemaComposer.has(typeName)) {
-    return schemaComposer.get(typeName);
-  }
-
-  const config = { name: typeName, fields: {} };
+function createTypeByModel(model, modelName, composerType, typeName) {
+  const config = {
+    name: typeName || getTypeName(modelName, composerType),
+    fields: {},
+  };
   _.forEach(model.fields, (field, fieldName) => {
     const fieldConfig = resolveGraphQLType(field, modelName, [fieldName], composerType);
     if (fieldConfig) {
@@ -126,7 +118,22 @@ function getOrCreateTypeByModel(model, modelName, composerType) {
     config.fields._id = MongoIdScalarTC;
   }
 
+  // it overrides type with name=config.name if exists
   return isInputType(composerType) ? schemaComposer.createInputTC(config) : schemaComposer.createObjectTC(config);
+}
+
+/**
+ * @param model
+ * @param modelName
+ * @param composerType
+ * @returns {NamedTypeComposer<any>}
+ */
+function getOrCreateTypeByModel(model, modelName, composerType) {
+  const typeName = getTypeName(modelName, composerType);
+  if (schemaComposer.has(typeName)) {
+    return schemaComposer.get(typeName);
+  }
+  return createTypeByModel(model, modelName, composerType, typeName);
 }
 
 function generateOutputAndInputTypesByModel(model, modelName) {
@@ -142,6 +149,7 @@ function getInputModelType(modelName) {
 
 module.exports = {
   generateOutputAndInputTypesByModel,
+  createTypeByModel,
   getOrCreateTypeByModel,
   getInputModelType,
 };

@@ -46,7 +46,7 @@ function addCreateOneResolver(model, modelName) {
  * in node_modules/mongoose/lib/cast.js:32.
  * The reason why args.filter does not have 'hasOwnProperty' function is that it's created inside 'graphql' module
  * with Object.create(null). See more: https://stackoverflow.com/questions/47773538/typeerror-obj-hasownproperty-is-not-a-function-when-calling-graphql-mutation
- * When using '{ ...args.filter }' result object is generated with Object.prototype and therefore have 'hasOwnProperty' function
+ * When using '{ ...args.filter }' result object is generated with Object.prototype and therefore has 'hasOwnProperty' function
  * @param args
  * @returns {{conditions: {}}}
  */
@@ -149,4 +149,6 @@ module.exports = {
   deleteOneResolverName,
   updateOneResolverName,
   upsertOneResolverName,
+  deleteOutputType,
+  getMongoParams,
 };

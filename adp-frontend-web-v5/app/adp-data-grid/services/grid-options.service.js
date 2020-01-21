@@ -15,7 +15,7 @@
     AdpNotificationService,
     AdpModalService,
     GridFilters,
-    EditorsService,
+    CellEditorsService,
     GridExportService
   ) {
     function create(schema) {
@@ -53,7 +53,7 @@
       GridDataSource.create(options, schema);
       GridColumns.create(options, schema);
       GridFilters.create(options, schema);
-      EditorsService(options, schema);
+      CellEditorsService(options, schema);
       GridSorting.setSortingOptions(options, schema);
       GridActions(options, schema);
       GridFilters.setFiltersFromUrl(options, schema);

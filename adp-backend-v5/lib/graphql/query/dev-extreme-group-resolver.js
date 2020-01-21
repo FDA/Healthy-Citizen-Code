@@ -38,6 +38,16 @@ const dxSummaryInput = schemaComposer
   })
   .getTypePlural();
 
+const dxSortInput = schemaComposer
+  .createInputTC({
+    name: 'dxSortInput',
+    fields: {
+      selector: { type: 'String!' },
+      desc: { type: 'Boolean!' },
+    },
+  })
+  .getTypePlural();
+
 function addDevExtremeGroupResolver(model, modelName) {
   const config = {
     name: `${modelName}Group`,
@@ -70,10 +80,7 @@ function addDevExtremeGroupResolver(model, modelName) {
         type: 'Int',
         defaultValue: 0,
       },
-      sort: {
-        type: 'JSON',
-        defaultValue: [{ selector: '_id', desc: true }],
-      },
+      sort: dxSortInput,
     },
     type,
     resolve: async ({ args, context }) => {

@@ -1035,6 +1035,10 @@
             "icon": {
               "type": "font-awesome",
               "link": "info-circle"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/tbd/:_id"
             }
           },
           "view": {
@@ -1370,6 +1374,10 @@
             "icon": {
               "type": "font-awesome",
               "link": "info-circle"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/tbd/:_id"
             }
           },
           "view": {
@@ -1705,6 +1713,10 @@
             "icon": {
               "type": "font-awesome",
               "link": "info-circle"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/tbd/:_id"
             }
           },
           "view": {
@@ -2039,6 +2051,10 @@
             "icon": {
               "type": "font-awesome",
               "link": "info-circle"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/tbd/:_id"
             }
           },
           "view": {
@@ -2156,6 +2172,10 @@
             "icon": {
               "type": "font-awesome",
               "link": "info-circle"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/tbd/:_id"
             }
           },
           "view": {
@@ -2490,6 +2510,10 @@
             "icon": {
               "type": "font-awesome",
               "link": "info-circle"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/tbd/:_id"
             }
           },
           "view": {
@@ -2547,6 +2571,10 @@
             "icon": {
               "type": "font-awesome",
               "link": "info-circle"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/tbd/:_id"
             }
           },
           "view": {
@@ -2609,6 +2637,10 @@
             "icon": {
               "type": "font-awesome",
               "link": "info-circle"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/tbd/:_id"
             }
           },
           "view": {

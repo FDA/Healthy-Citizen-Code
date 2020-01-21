@@ -2,7 +2,7 @@ const { schemaComposer } = require('graphql-compose');
 const log = require('log4js').getLogger('graphql/dev-extreme-filter-resolver');
 const { composeWithPagination } = require('../pagination');
 const DevExtremeContext = require('../../request-context/graphql/DevExtremeContext');
-const { getOrCreateTypeByModel } = require('../type/model');
+const { createTypeByModel, getOrCreateTypeByModel } = require('../type/model');
 const { COMPOSER_TYPES } = require('../type/common');
 const { ValidationError } = require('../../errors');
 
@@ -10,21 +10,21 @@ const paginationFindByDevExtremeFilterResolverName = 'paginationDx';
 const findByDevExtremeFilterResolverName = 'findManyDx';
 const countByDevExtremeFilterResolverName = 'countDx';
 
-const dxQueryInput = schemaComposer
-  .createInputTC({
-    name: 'dxQueryInput',
-    fields: {
-      dxQuery: { type: 'String!' },
-    },
-  })
-  .getTypeNonNull();
+const dxQueryInput = schemaComposer.createInputTC({
+  name: 'dxQueryInput',
+  fields: {
+    dxQuery: { type: 'String!' },
+  },
+});
+
+const dxQueryInputRequired = dxQueryInput.getTypeNonNull();
 
 function addFindManyByDevExtremeFilterResolver(type) {
   type.addResolver({
     kind: 'query',
     name: findByDevExtremeFilterResolverName,
     args: {
-      filter: dxQueryInput,
+      filter: dxQueryInputRequired,
       perPage: {
         type: 'Int',
       },
@@ -50,8 +50,10 @@ function addFindManyByDevExtremeFilterResolver(type) {
         return items;
       } catch (e) {
         if (e instanceof ValidationError) {
+          log.info(e.stack);
           throw e;
         }
+        log.error(e.stack);
         throw new Error(`Unable to find requested elements`);
       }
     },
@@ -65,7 +67,7 @@ function addCountByDevExtremeFilterResolver(type) {
     kind: 'query',
     name: countByDevExtremeFilterResolverName,
     args: {
-      filter: dxQueryInput,
+      filter: dxQueryInputRequired,
     },
     type: 'Int!',
     resolve: async ({ context, paginationContext }) => {
@@ -83,8 +85,10 @@ function addCountByDevExtremeFilterResolver(type) {
   return { type, resolver: type.getResolver(countByDevExtremeFilterResolverName) };
 }
 
-function addFindByDevExtremeFilterResolver(model, modelName) {
-  const typeWithActions = getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT_WITH_ACTIONS);
+function addFindByDevExtremeFilterResolver(model, modelName, isOverride) {
+  const typeWithActions = isOverride
+    ? createTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT_WITH_ACTIONS)
+    : getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT_WITH_ACTIONS);
   addFindManyByDevExtremeFilterResolver(typeWithActions);
   addCountByDevExtremeFilterResolver(typeWithActions);
 
@@ -105,4 +109,5 @@ module.exports = {
   paginationFindByDevExtremeFilterResolverName,
   findByDevExtremeFilterResolverName,
   countByDevExtremeFilterResolverName,
+  dxQueryInput,
 };

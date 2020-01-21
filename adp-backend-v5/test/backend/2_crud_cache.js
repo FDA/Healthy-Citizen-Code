@@ -15,6 +15,15 @@ const {
   prepareEnv,
 } = reqlib('test/test-util');
 
+function getAppLibWithAuthDisabled() {
+  const appLib = reqlib('/lib/app')();
+  setAppAuthOptions(appLib, {
+    requireAuthentication: false,
+    enablePermissions: false,
+  });
+  return appLib;
+}
+
 describe('V5 Backend Cache', () => {
   before(async function() {
     prepareEnv();
@@ -28,12 +37,6 @@ describe('V5 Backend Cache', () => {
 
   describe('Cache enabled/disabled', () => {
     beforeEach(async function() {
-      this.appLib = reqlib('/lib/app')();
-      setAppAuthOptions(this.appLib, {
-        requireAuthentication: false,
-        enablePermissions: false,
-      });
-
       await this.db.collection('model1s').deleteMany({});
       await Promise.all([
         this.db.collection('model1s').insertOne(sampleData0),
@@ -46,6 +49,8 @@ describe('V5 Backend Cache', () => {
     });
 
     it('when cache is enabled returns value from cache on 2nd GET request', async function() {
+      this.appLib = getAppLibWithAuthDisabled();
+
       const redisMockClient = new RedisMock();
       // unlink is not implemented in ioredis-mock, but does logically the same as del
       redisMockClient.unlink = redisMockClient.del;
@@ -108,6 +113,8 @@ describe('V5 Backend Cache', () => {
 
     it('when cache is disabled returns value from db on 2nd GET request', async function() {
       delete process.env.REDIS_URL;
+      this.appLib = getAppLibWithAuthDisabled();
+
       await this.appLib.setup();
       const { dba, cache } = this.appLib;
       this.getItemsUsingCacheSpy = sinon.spy(dba, 'getItemsUsingCache');
@@ -157,11 +164,7 @@ describe('V5 Backend Cache', () => {
    */
   describe('Cache complex scenario', () => {
     beforeEach(function() {
-      this.appLib = reqlib('/lib/app')();
-      setAppAuthOptions(this.appLib, {
-        requireAuthentication: false,
-        enablePermissions: false,
-      });
+      this.appLib = getAppLibWithAuthDisabled();
 
       const redisMockClient = new RedisMock();
       // unlink is not implemented in ioredis-mock, but does logically the same as del

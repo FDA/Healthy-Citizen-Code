@@ -3,10 +3,10 @@
 
   angular
     .module('app.adpDataGrid')
-    .factory('DxFilterMixin', DxFilterMixin);
+    .factory('DxEditorMixin', DxEditorMixin);
 
   /** @ngInject */
-  function DxFilterMixin() {
+  function DxEditorMixin() {
     return function (options) {
       var mixinObject = {
         reset: function() {

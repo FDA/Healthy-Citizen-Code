@@ -11,13 +11,13 @@ const {
     clickSubmit,
   }
 } = require('../../utils');
+const { waitForGridLoaded } = require('../../utils/grid.helpers');
 
 const PAGE_TO_TEST = 'customActions';
 
-const waitForGridLoaded = async page => await page.waitForSelector('.dx-loadpanel', { hidden: true });
-
 const ensureAtLeastOneRecordExistToDisplayActions = async (page) => {
-  if (page.$('.dx-data-row')) {
+  const hasData = await page.$('.dx-data-row td');
+  if (hasData) {
     return;
   }
 

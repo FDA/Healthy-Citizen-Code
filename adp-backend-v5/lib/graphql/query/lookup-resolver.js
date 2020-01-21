@@ -122,7 +122,7 @@ function addLookupsQueries(models, appLookups, logger) {
         inputTypeForForm = getOrCreateTypeByModel(models[sourceTable], sourceTable, COMPOSER_TYPES.INPUT);
       }
 
-      logger.debug(`Adding lookup Query for ${lookupTypeName}`);
+      logger.trace(`Adding lookup Query for ${lookupTypeName}`);
       addLookupPaginationResolver({ lookupObjectType, inputTypeForForm, tableSpec, lookupTableName, lookupId });
       schemaComposer.Query.addFields({
         [lookupTypeName]: lookupObjectType.getResolver(paginationLookupResolverName),

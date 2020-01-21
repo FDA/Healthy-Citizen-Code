@@ -8,11 +8,11 @@
   /** @ngInject */
   function DateFilter(
     AdpSchemaService,
-    DxFilterMixin,
+    DxEditorMixin,
     AdpValidationUtils
   ) {
     return function () {
-      return DxFilterMixin({
+      return DxEditorMixin({
         editorName: 'dxDateBox',
 
         create: function (init) {

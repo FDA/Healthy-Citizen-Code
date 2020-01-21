@@ -147,7 +147,6 @@ async function generateObjectField(functions, unifiedContext) {
     };
 
     try {
-      // eslint-disable-next-line no-await-in-loop
       const fieldData = await generateDataByField(functions, nestedContext);
       if (fieldData !== undefined) {
         _.set(unifiedContext.row, nestedPath, fieldData);

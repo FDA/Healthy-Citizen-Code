@@ -6,7 +6,7 @@ const path = require('path');
 const appRoot = require('app-root-path').path;
 const log = require('log4js').getLogger('lib/helper-util');
 
-module.exports = async (appLib, helperDirPaths) => {
+module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
   const m = {};
 
   /** File which content is
@@ -51,16 +51,22 @@ module.exports = async (appLib, helperDirPaths) => {
   ];
 
   m.frontendHelperKeyToFileName = _.pick(m.helperKeyToFileName, m.frontendHelpersKeys);
+
   loadAppModelHelpers();
 
-  try {
-    // Compute appModelCode only once
-    m.appModelCode = await getAppModelCodeStr();
-  } catch (e) {
-    throw new Error(`Unable to build app model code. ${e.stack}`);
+  if (buildAppModelCodeOnStart) {
+    try {
+      // Compute appModelCode only once
+      m.appModelCode = await getAppModelCodeStr();
+    } catch (e) {
+      throw new Error(`Unable to build app model code. ${e.stack}`);
+    }
   }
 
-  m.getAppModelCode = () => {
+  m.getAppModelCode = async () => {
+    if (!m.appModelCode) {
+      m.appModelCode = await getAppModelCodeStr();
+    }
     return m.appModelCode;
   };
 

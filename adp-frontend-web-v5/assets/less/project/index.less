@@ -825,12 +825,6 @@ nav ul span.menu-item-parent {
 
 tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
 
-// datagrid filter row
-.dx-datagrid-filter-row .dx-editor-cell .data-grid-tagbox-filter .dx-texteditor-input-container {
-  padding-left: 32px;
-  background-color: #eee;
-}
-
 .dx-header-row td,
 .dx-datagrid-filter-row {
   font-weight: bold;
@@ -842,6 +836,12 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
   border-radius: 0;
   background-color: #eeeeee;
 }
+
+.dx-editor-cell {
+  .modal-open & .dx-invalid-message { display: none; }
+  .modal-open & .dx-datagrid-revert-tooltip { display: none; }
+}
+
 .dx-datagrid .dx-editor-with-menu, .dx-datagrid-container .dx-editor-with-menu {
   height: auto;
 }
@@ -935,6 +935,7 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
 
 .adp-lookup-selector .adp-text-box { display: none !important; }
 .adp-lookup-selector .adp-text-box-label { display: inherit !important; }
+.adp-lookup-selector .adp-text-box-label-empty { color: rgb(160, 160, 160); }
 .adp-lookup-selector.dx-dropdowneditor-active .adp-text-box { display: inherit !important; }
 .adp-lookup-selector.dx-dropdowneditor-active .adp-text-box-label { display: none !important; }
 
@@ -958,18 +959,24 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
   margin-left: -9px;
 }
 
+// datagrid filter row
+.dx-datagrid-filter-row .dx-editor-cell .adp-select-box .dx-texteditor-input-container {
+  padding-left: 16px;
+  background-color: #eee;
+}
+
 .adp-select-box .dx-tag {
-  margin: 5px 5px 0 0;
+  margin: 10px 5px 0 0;
 }
 
 .adp-select-box .dx-tag-content {
   margin: 0 !important;
-  padding: 5px 32px 5px 8px !important;
+  padding: 5px 25px 5px 8px !important;
 }
 
 .adp-select-box  .dx-tag-remove-button {
-  right: 9px;
-  top: -7px;
+  right: 0;
+  top: 0;
 }
 
 .dx-tagbox:not(.dx-texteditor-empty):not(.dx-editor-filled):not(.dx-editor-outlined).dx-state-hover:after, .dx-tagbox:not(.dx-texteditor-empty):not(.dx-editor-filled):not(.dx-editor-outlined):after {
@@ -994,6 +1001,8 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
 .adp-lookup-filter-container {
   .dx-datagrid-filter-row & .adp-filter-lookup-selector { padding-left: 0 !important; }
   .adp-filter-lookup-selector { padding-left: 28px !important; }
+
+  .dx-data-row .dx-editor-cell & .adp-filter-lookup-selector { padding-left: 0 !important; }
 
   .dx-tag-remove-button {
     top: 0;
@@ -1045,6 +1054,12 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
 
 .adp-lookup-control-container.single-column  {
   .adp-lookup-table-selector, .adp-lookup-selector { margin: 0; }
+}
+
+.dx-datagrid .dx-datagrid-content .dx-datagrid-table .dx-data-row > td.dx-editor-cell {
+  padding: 0;
+  padding-left: 10px;
+  background-color: #eee;
 }
 
 /* Moved from adp-test-v5 */

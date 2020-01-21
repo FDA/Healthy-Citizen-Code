@@ -31,7 +31,7 @@ function trimPrefix(path, prefix) {
 }
 
 function removeRoutes(app, path, method = '') {
-  const foundRoute = findRoutes(app, path);
+  const foundRoute = findRoutes(app, path, method);
   const lowerMethod = method.toLowerCase();
   const removedRoutes = [];
 

@@ -28,12 +28,42 @@
           if (_.isEmpty(validator)) {
             return;
           }
-          injectValidators(validationParams, scope.form);
+
+          injectValidators(validationParams, scope.form, validationParams.formData);
         }
 
-        function injectValidators(validationParams, form) {
-          var model = _.get(form, validationParams.field.fieldName);
-          return angular.extend(model.$validators, AdpValidationRules(validationParams, form));
+        function injectValidators(validationParams, form, formData) {
+          var validatorsToInject = {};
+          var schemaField = validationParams.field;
+
+          (schemaField.validate || []).forEach(function (validatorRule) {
+            var validatorName = validatorRule.validator;
+            if (!AdpValidationRules[validatorName]) {
+              return;
+            }
+
+            validatorsToInject[validatorName] = function (viewValue) {
+              if (_.isNil(viewValue) || viewValue === '') {
+                return true;
+              }
+
+              var angularFormData = shallowTransformAngularFormToFormData(form, formData);
+              return AdpValidationRules[validatorName](viewValue, schemaField, validatorRule, angularFormData);
+            }
+          });
+
+          var formModel = _.get(form, validationParams.field.fieldName);
+          return angular.extend(formModel.$validators, validatorsToInject);
+        }
+
+        function shallowTransformAngularFormToFormData(angularForm, formData) {
+          var result = {};
+          return _.each(formData, function (value, key) {
+            if (_.isNil(angularForm[key])) {
+              return;
+            }
+            result[key] = angularForm[key].$viewValue;
+          });
         }
       }
     }

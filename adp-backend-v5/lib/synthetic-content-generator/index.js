@@ -109,7 +109,6 @@ async function run() {
   const collectionOrder = getCollectionOrder(collections, appLib.lookupFieldsMeta, excludeCollections);
   const env = getEnv(corePath, schemaPath);
   for (const collectionName of collectionOrder) {
-    // eslint-disable-next-line no-await-in-loop
     await generateDocs({ appLib, env, functions, collectionName, count });
   }
 }
@@ -334,7 +333,6 @@ function injectListValues(appLib) {
 }
 
 async function generateDocs({ appLib, env, functions, collectionName, count }) {
-  /* eslint-disable no-await-in-loop */
   const { models } = appLib.appModel;
   const {
     transformers,
@@ -364,5 +362,4 @@ async function generateDocs({ appLib, env, functions, collectionName, count }) {
     const insertedDoc = response.ops[0];
     console.log(`> Inserted record in '${modelName}':`, JSON.stringify(insertedDoc, null, 2));
   }
-  /* eslint-enable no-await-in-loop */
 }

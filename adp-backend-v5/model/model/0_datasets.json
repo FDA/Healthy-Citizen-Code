@@ -1,0 +1,56 @@
+{
+  "models": {
+    "datasets": {
+      "type": "Schema",
+      "description": "This collection serves for creating new datasets collections.",
+      "fields": {
+        "name": {
+          "type": "String",
+          "description": "The name of the dataset"
+        },
+        "description": {
+          "type": "String",
+          "description": "Detailed description of the dataset"
+        },
+        "scheme": {
+          "type": "Mixed",
+          "description": "App-schema-compatible JSON specification of the exported collection.",
+        },
+        "collectionName": {
+          "type": "String",
+          "description": "The name of the dataset collection",
+          "required": true,
+          "unique": true
+        }
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator': { $eq: this.req.user._id } }"
+        }
+      }
+    }
+  }
+}

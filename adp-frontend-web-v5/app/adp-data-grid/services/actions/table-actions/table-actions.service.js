@@ -44,7 +44,7 @@
         var actionPermissionsForRecord = cellInfo.data._actions;
 
         var permittedActions = _.pickBy(tableActions, function (actionItem, name) {
-          return actionPermissionsForRecord[name];
+          return _.get(actionPermissionsForRecord, name, false);
         });
 
         var template = GridActionsTemplate(permittedActions, cellInfo);
