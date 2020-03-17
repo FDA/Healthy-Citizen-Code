@@ -29,7 +29,7 @@
         "visible": true,
         "components": {
           "copyright": true,
-          "copyrightText": "Conceptant &copy; 2016-2019",
+          "copyrightText": "Conceptant &copy; 2016-2020",
           "lastAccountActivity": false,
           "status": false
         }
@@ -58,10 +58,14 @@
         "accessFromTablet": { "description": "accessFromTablet" },
         "accessFromPhone": { "description": "accessFromPhone" },
         "accessFromBot": { "description": "accessFromBot" },
-        "accessFromCar": { "description": "accessFromCar" }
+        "accessFromCar": { "description": "accessFromCar" },
+        "viewAllBackgroundJobs": { "description": "Allows to view all jobs listing and details for each job in any queue" },
+        "viewOwnBackgroundJobs": { "description": "Allows to view own jobs listing and details for each own job in any queue" },
+        "deleteAllBackgroundJobs": { "description": "Allows to delete all jobs in any queue" },
+        "deleteOwnBackgroundJobs": { "description": "Allows to delete own jobs in any queue" },
+        "manageBackgroundJobs": { "description": "Allows to start/stop/pause/restart queues the jobs listing and details for each job" }
       },
       "preStart": {}
-      //      "permissions": [ "accessAsGuest", "accessAsUser"]
     },
     "layout": {
       "fixed": {

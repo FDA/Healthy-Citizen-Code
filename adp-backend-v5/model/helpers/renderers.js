@@ -1,6 +1,5 @@
 /**
  * Renderers are used to render data for both datatables and server-generated export
- * WARNING: avoid using ES6 in this file as it will be used both on back and frontend.
  *
  * Each renderer receives this fixed set of parameters:
  * data - the cell data
@@ -9,7 +8,8 @@
  * meta - metainformation in datatables format: https://datatables.net/reference/option/columns.render
  */
 
-module.exports = () => {
+// eslint-disable-next-line no-unused-vars
+module.exports = appLib => {
   const m = {
     asIs(data) {
       return data;

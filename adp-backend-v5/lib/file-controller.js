@@ -35,7 +35,6 @@ module.exports = appLib => {
     }
 
     // image crop update
-    // todo: move to separated endpoint
     if (_.isEmpty(req.files) && !_.isEmpty(cropParams)) {
       try {
         const data = await updateCrop(req);
@@ -75,7 +74,7 @@ module.exports = appLib => {
       const data = await File.findById(new ObjectId(id));
       if (!data) {
         const errMessage = 'File not found in the database';
-        return mainController.error(req, res, next, new Error(errMessage), errMessage); // TODO: should I return 404?
+        return mainController.error(req, res, next, new Error(errMessage), errMessage);
       }
 
       const initFilePath = path.resolve(data.filePath);
@@ -85,7 +84,7 @@ module.exports = appLib => {
         return sendFile(requestedFilePath, data, req, res, next);
       }
       const errMessage = 'File not found on the server';
-      mainController.error(req, res, next, new Error(errMessage), errMessage); // TODO: should I return 404?
+      mainController.error(req, res, next, new Error(errMessage), errMessage);
     } catch (e) {
       mainController.error(req, res, next, e, 'Error occurred while retrieving the file');
     }
@@ -152,7 +151,7 @@ module.exports = appLib => {
       }
 
       if (!data) {
-        mainController.error(req, res, next, new Error('File not found in the database')); // TODO: should I return 404?
+        mainController.error(req, res, next, new Error('File not found in the database'));
         return;
       }
 

@@ -35,6 +35,20 @@ describe('V5 Backend Validators', () => {
         _id: new ObjectID('387179f6ef4807703afd0df7'),
       },
     ],
+    assocArray: {
+      key1: {
+        sn: 9,
+        sn2: 11,
+        ss: 'def ',
+        sd: new Date('2016-01-01'),
+      },
+      key2: {
+        sn: 9,
+        sn2: 11,
+        ss: ' def',
+        sd: new Date('2016-01-01'),
+      },
+    },
   };
 
   before(async function() {
@@ -54,8 +68,8 @@ describe('V5 Backend Validators', () => {
     await db.close();
   });
 
-  beforeEach(function(done) {
-    this.M6.remove({}, done);
+  beforeEach(function() {
+    return this.M6.deleteMany({});
   });
 
   // This is a quick sanity check. Most tests are done in CRUD section below
@@ -167,14 +181,12 @@ describe('V5 Backend Validators', () => {
   });
 
   describe('when running subtype validators', () => {
-    // email
-    it('does not create record with incorrect email', function() {
+    it('does not create record with incorrect email', async function() {
       const data = _.cloneDeep(sampleData0);
       data.email = 'www';
-      return this.dba.createItem(this.M6, userContext, data).catch(err => {
-        assert(err != null);
-        err.message.should.equal('Error: Email: Please enter correct email');
-      });
+      await this.dba
+        .createItem(this.M6, userContext, data)
+        .should.be.rejectedWith(`Error: Email: Please enter correct email`);
     });
     it('creates record with correct email', async function() {
       const data = _.cloneDeep(sampleData0);
@@ -183,15 +195,12 @@ describe('V5 Backend Validators', () => {
       assert(record);
       record.email.should.equal(data.email);
     });
-    // phone
     it('does not create record with incorrect phone', async function() {
       const data = _.cloneDeep(sampleData0);
       data.phone = 'www';
-      try {
-        await this.dba.createItem(this.M6, userContext, data);
-      } catch (e) {
-        e.message.should.equal('Error: Phone: Please provide correct US phone number');
-      }
+      await this.dba
+        .createItem(this.M6, userContext, data)
+        .should.be.rejectedWith(`Error: Phone: Please provide correct US phone number`);
     });
     it('creates record with correct phone', async function() {
       const data = _.cloneDeep(sampleData0);
@@ -199,22 +208,33 @@ describe('V5 Backend Validators', () => {
       const record = await this.dba.createItem(this.M6, userContext, data);
       record.phone.should.equal(data.phone);
     });
-    // url
     it('does not create record with incorrect url', async function() {
       const data = _.cloneDeep(sampleData0);
       data.url = 'www';
-      try {
-        await this.dba.createItem(this.M6, userContext, data);
-      } catch (e) {
-        assert(e != null);
-        e.message.should.equal('Error: Url: Please enter correct URL');
-      }
+
+      await this.dba
+        .createItem(this.M6, userContext, data)
+        .should.be.rejectedWith(`Error: Url: Please enter correct URL`);
     });
     it('creates record with correct url', async function() {
       const data = _.cloneDeep(sampleData0);
       data.url = 'http://www.www.com';
       const record = await this.dba.createItem(this.M6, userContext, data);
       record.url.should.equal(data.url);
+    });
+    it('does not create record with incorrect string inside array', async function() {
+      const data = _.cloneDeep(sampleData0);
+      data.as[0].ss = '123';
+      await this.dba
+        .createItem(this.M6, userContext, data)
+        .should.be.rejectedWith(`Error: Array String: This value doesn't seem right`);
+    });
+    it('does not create record with incorrect string inside associative array', async function() {
+      const data = _.cloneDeep(sampleData0);
+      data.assocArray.key1.ss = '123';
+      await this.dba
+        .createItem(this.M6, userContext, data)
+        .should.be.rejectedWith(`Error: Associative Array String: This value doesn't seem right`);
     });
   });
 });

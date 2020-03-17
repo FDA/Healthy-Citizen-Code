@@ -121,6 +121,16 @@
           "value": "number"
         }
       },
+      "decimal128": {
+        "renderer": {
+          "type": "function",
+          "value": "decimal128"
+        },
+        "where": {
+          "type": "function",
+          "value": "decimal128"
+        }
+      },
       "boolean": {
         "renderer": {
           "type": "function",

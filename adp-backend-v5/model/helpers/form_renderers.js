@@ -1,5 +1,5 @@
 /**
- * FormRenderers are used to render data in forms only and only used on the frontend, so avoid using ES6 here
+ * FormRenderers are used to render data in forms only and only used on the frontend
  *
  * Each renderer receives this fixed set of parameters:
  * data - the cell data

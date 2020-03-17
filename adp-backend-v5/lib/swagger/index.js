@@ -2,6 +2,7 @@ const _ = require('lodash');
 const appRoot = require('app-root-path').path;
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
+const { getSchemaNestedPaths } = require('../util/env');
 
 const MOUNT_POINT = 'api-docs';
 
@@ -17,7 +18,7 @@ const connectSwagger = appLib => {
       `${appRoot}/server_controllers/**/*.js`,
       `${appRoot}/lib/app.js`,
       `${appRoot}/lib/*-controller.js`,
-      `${process.env.APP_MODEL_DIR}/server_controllers/**/*.js`,
+      ...getSchemaNestedPaths('server_controllers/**/*.js'),
     ],
   });
 
@@ -32,9 +33,7 @@ function getSwaggerConfig(appLib) {
 
   const { graphiQlRoute, graphQlRoute } = appLib.graphQl;
   let graphqlConfig = {};
-  const isGraphiqlConnected = !_.isEmpty(
-    appLib.expressUtil.findRoutes(appLib.app, graphiQlRoute, 'post')
-  );
+  const isGraphiqlConnected = !_.isEmpty(appLib.expressUtil.findRoutes(appLib.app, graphiQlRoute, 'post'));
   if (isGraphiqlConnected) {
     graphqlConfig = getGraphqlConfig(graphiQlRoute, graphQlRoute);
     baseConfig.tags[1] = {
@@ -50,17 +49,11 @@ function getSwaggerConfig(appLib) {
 
   const lookupConfig = getLookupConfig(models);
 
-  return _.mergeWith(
-    baseConfig,
-    crudRoutesConfig,
-    graphqlConfig,
-    lookupConfig,
-    (objValue, srcValue) => {
-      if (Array.isArray(srcValue) && Array.isArray(objValue)) {
-        return objValue.concat(srcValue);
-      }
+  return _.mergeWith(baseConfig, crudRoutesConfig, graphqlConfig, lookupConfig, (objValue, srcValue) => {
+    if (Array.isArray(srcValue) && Array.isArray(objValue)) {
+      return objValue.concat(srcValue);
     }
-  );
+  });
 }
 
 /**

@@ -28,7 +28,7 @@
       }
 
       return customPageParams;
-    }
+    },
   };
 
   var stateDefault = {
@@ -56,6 +56,7 @@
       createStates: createStates,
       createDashboards: createDashboards,
       createCustomPages: createCustomPages,
+      createBuiltInStates: createBuiltInStates,
       _replaceUrlParams: _replaceUrlParams,
       findDashboard: findDashboard,
       getCurrentUser: getCurrentUser,
@@ -503,6 +504,25 @@
       var subSchemaKey = _.findKey(schema.fields, {type: 'Subschema'});
 
       return !!subSchemaKey;
+    }
+
+    function createBuiltInStates() {
+      var datasetsId = {
+        name: 'app.datasetsId',
+        url: '/datasets/{_id:[0-9A-Fa-f]{24}}',
+        views: {
+          content: {
+            templateUrl: 'app/adp-generator/views/datasets.html',
+            controller: 'DatasetController as vm'
+          }
+        },
+        data: {
+          title: 'Datasets',
+          redirectStrategy: 'user'
+        }
+      }
+
+      $stateRegistry.register(datasetsId);
     }
 
     return service;

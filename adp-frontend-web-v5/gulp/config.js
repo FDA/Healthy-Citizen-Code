@@ -43,8 +43,7 @@ exports.paths = {
   tmp: '.tmp',
   serverCss: 'model-style.less',
   serverScripts: 'app-model-code.js',
-  serverModules: 'client.module.js',
-  defaultServerModules: 'default-module.js',
+  clientModulesFolder: 'client-modules',
   index: 'index.html',
   tasks: 'gulp/tasks'
 };
@@ -52,9 +51,8 @@ exports.paths = {
 exports.endpoints = {
   model: 'app-model',
   scripts: 'app-model-code.js',
-  serverModules: 'public/js/client-modules/module.js',
+  clientModules: 'public/js/client-modules',
   serverCss: 'public/css/style.css',
-  defaultServerModules: 'public/js/client-modules/default-module.js',
 };
 
 /**

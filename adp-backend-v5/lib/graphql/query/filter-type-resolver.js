@@ -3,6 +3,7 @@ const { composeWithPagination } = require('../pagination');
 const FilterContext = require('../../request-context/graphql/FilterContext');
 const { getOrCreateTypeByModel } = require('../type/model');
 const { COMPOSER_TYPES } = require('../type/common');
+const { handleGraphQlError } = require('../util');
 
 const paginationFindByFilterTypeResolverName = 'paginationByFilterType';
 const findByFilterTypeResolverName = 'findMany';
@@ -28,18 +29,18 @@ function addFindManyByFilterTypeResolver(type, filterType) {
     },
     type: [type],
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
         const {
           controllerUtil,
           butil: { getRequestMeta },
-        } = context.appLib;
+        } = appLib;
 
         const { items, meta } = await controllerUtil.getItems(paginationContext, true);
         log.debug(`Meta: ${getRequestMeta(paginationContext, meta)}`);
         return items;
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to get requested elements`);
+        handleGraphQlError(e, `Unable to get requested elements`, log, appLib);
       }
     },
   });
@@ -56,13 +57,13 @@ function addCountByFilterTypeResolver(type, filterType) {
     },
     type: 'Int!',
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
-        const { controllerUtil } = context.appLib;
+        const { controllerUtil } = appLib;
         paginationContext.action = 'view';
         return controllerUtil.getElementsCount({ context: paginationContext });
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to count requested elements`);
+        handleGraphQlError(e, `Unable to count requested elements`, log, appLib);
       }
     },
   });

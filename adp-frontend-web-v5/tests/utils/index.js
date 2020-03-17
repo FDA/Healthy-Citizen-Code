@@ -145,7 +145,7 @@ async function clickSubmit(page, parentSelector = '') {
 }
 
 async function getSubmitMsg(page) {
-  const successfulSubmitMsgSelector = `#divSmallBoxes .textoFull span`;
+  const successfulSubmitMsgSelector = `.toast-success .toast-message`;
   await page.waitFor(successfulSubmitMsgSelector, { timeout: SELECTOR_TIMEOUT });
 
   return getTextForSelector(successfulSubmitMsgSelector, page);

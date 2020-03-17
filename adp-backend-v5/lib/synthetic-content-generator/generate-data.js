@@ -9,6 +9,7 @@ async function generateDataByModel({ functions, model, env }) {
     modelSchema: model,
     path: [],
     config: env,
+    generators: functions,
   };
   await generateObjectField(functions, unifiedContext);
 
@@ -109,7 +110,7 @@ function getGeneratorName(fieldSpec) {
 
 async function generateMultipleFieldData(generatorFunc, unifiedContext) {
   // since file should avoid race condition with uploading 2 same files (dups are compared by hash and not being reuploaded)
-  // and lookup/treeselector are dependant from existing records
+  // and lookup/treeselector are dependent from existing records
   // it should be uploaded sequentially
   const uploadedSequentially = ['scgFile', 'scgAudio', 'scgVideo', 'scgImage', 'scgLookupObjectID', 'scgTreeSelector'];
   const promiseFunc = uploadedSequentially.includes(generatorFunc.name) ? Promise.mapSeries : Promise.map;

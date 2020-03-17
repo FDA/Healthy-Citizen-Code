@@ -24,24 +24,32 @@
     }
 
     function addIdAndPermissionFields(schema) {
-      schema.fields['_id'] = { type: 'id', showInGraphql: true };
+      if (schema.schemaName !== 'backgroundJobs') {
+        schema.fields['_id'] = { type: 'id', showInGraphql: true };
+      }
+
       schema.fields['_actions'] = { type: '_actions', showInGraphql: true };
     }
 
     function fieldsForQuery(field, name) {
       var name = name || 'items';
 
+      if (field.type !== 'Schema' && !field.showInGraphql) {
+        return null;
+      }
       if (hasChildren(field)) {
         return iteratee(field, name);
-      } else if (isLookup(field)) {
-        return GraphqlLookupField.get(field, name);
-      } else if (isTreeSelector(field)) {
-        return GraphqlTreeSelectorField.get(field, name);
-      } else if (isLocation(field)) {
-        return GraphqlLocationField.get(field, name);
-      } else {
-        return getFieldForQuery(field, name);
       }
+      if (isLookup(field)) {
+        return GraphqlLookupField.get(field, name);
+      }
+      if (isTreeSelector(field)) {
+        return GraphqlTreeSelectorField.get(field, name);
+      }
+      if (isLocation(field)) {
+        return GraphqlLocationField.get(field, name);
+      }
+      return getFieldForQuery(field, name);
     }
 
     function iteratee(field, name) {

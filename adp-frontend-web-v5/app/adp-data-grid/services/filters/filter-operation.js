@@ -23,6 +23,10 @@
       Text: commonOperations.string,
       Url: commonOperations.string,
       Number: commonOperations.numeric,
+      Double: commonOperations.numeric,
+      Int32: commonOperations.numeric,
+      Int64: commonOperations.numeric,
+      Decimal128: commonOperations.numeric,
 
       Date: commonOperations.numeric,
       DateTime: commonOperations.numeric,

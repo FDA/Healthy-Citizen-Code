@@ -32,9 +32,9 @@ export function createWidget(options) {
 function getWidgetSchema(type) {
   const widgetLocalSchemas = {
     'questionnaire': require('./questionnaire/questionnaire-widget-options'),
-    'ucsfRecalls': require('./ucsf-recalls/ucsf-widget-options'),
+    'ucsfRecalls': require('./ucsf-recalls/ucsf-recalls-widget-options'),
     'preferences': require('./preferences/preferences-widget-options'),
-    'drugInteraction': require('./drug-interactions/drug-interaction-widget-options'),
+    'drugInteraction': require('./drug-interactions/drug-interactions-widget-options'),
     'recalls': require('./recalls/recalls-widget-options'),
     'adverseEvents': require('./adverse-events/adverse-events-widget-options'),
     'graphViewWidget': require('./graph-view-widget/graph-view-widget-widget-options'),

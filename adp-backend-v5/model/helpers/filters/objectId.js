@@ -5,7 +5,7 @@ const { ValidationError } = require('../../../lib/errors');
 function objectId() {
   const { fieldPath, operation, value } = this.data;
   if (!ObjectID.isValid(value)) {
-    throw new ValidationError(`Value ${value} must be a valid ObjectId string for filter by path '${fieldPath}.`);
+    throw new ValidationError(`Value ${value} must be a valid ObjectId string for filter by path '${fieldPath}'.`);
   }
   const objectIdValue = ObjectID(value);
   return createFilter(

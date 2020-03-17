@@ -396,13 +396,6 @@ module.exports = function(globalMongoose) {
       const dbAnswers = answersToQ.answers || {};
       const clientAnswers = _.get(req, "body.data.answers", {});
       const newAnswers = _.assign({}, dbAnswers, clientAnswers);
-      if (_.isEqual(newAnswers, dbAnswers)) {
-        return res.json({
-          success: false,
-          message: "It's not allowed to record the same answers."
-        });
-      }
-      answersToQ.set("answers", newAnswers);
 
       const questionnaire = await mongoose
         .model("questionnaires")
@@ -411,6 +404,20 @@ module.exports = function(globalMongoose) {
         .exec();
       const questionsObj = questionnaire.questionnaireDefinition.questionnaire;
       const nextQuestion = getNextQuestion(questionsObj, newAnswers);
+
+      const successfulResponse = {
+        success: true,
+        message: nextQuestion
+          ? "Your answers have been recorded"
+          : "All questions have been answered",
+        nextQuestion
+      };
+
+      if (_.isEqual(newAnswers, dbAnswers)) {
+        return res.json(successfulResponse);
+      }
+
+      answersToQ.set("answers", newAnswers);
       answersToQ.set("nextQuestion", nextQuestion);
 
       const status = nextQuestion
@@ -431,13 +438,7 @@ module.exports = function(globalMongoose) {
       participant.markModified(`answersToQuestionnaires.${answersToQIndex}`);
       await participant.save();
 
-      res.json({
-        success: true,
-        message: nextQuestion
-          ? "Your answers have been recorded"
-          : "All questions have been answered",
-        nextQuestion
-      });
+      res.json(successfulResponse);
     } catch (e) {
       log.error(e.stack);
       res.json({ success: false, message: "Unable to record the answers" });

@@ -74,7 +74,7 @@ function preparePaginationResolver(tc, opts) {
       let countPromise;
       let findManyPromise;
       const { projection = {}, args } = params;
-      let paginationContext;
+      let paginationContext = {};
       try {
         if (opts.getPaginationContext) {
           paginationContext = await opts.getPaginationContext(params);
@@ -84,15 +84,15 @@ function preparePaginationResolver(tc, opts) {
           throw e;
         }
         log.error(e.stack);
-        throw new Error(`Unable to build pagination context`);
+        throw new Error(`Internal error: unable to build pagination context`);
       }
 
       const page = parseInt(args.page, 10) || 1;
       if (page <= 0) {
         throw new Error('Argument `page` should be positive number.');
       }
-      const actualPerPage = paginationContext.mongoParams.perPage;
-      if (actualPerPage <= 0) {
+      const actualPerPage = _.get(paginationContext, 'mongoParams.perPage', args.perPage);
+      if (+actualPerPage <= 0) {
         throw new Error('Argument `perPage` should be positive number.');
       }
 
@@ -128,7 +128,7 @@ function preparePaginationResolver(tc, opts) {
         findManyPromise = findManyResolve(findManyParams);
       }
 
-      const clientPerPage = args.perPage || paginationContext.mongoParams.perPage;
+      const clientPerPage = args.perPage || _.get(paginationContext, 'mongoParams.perPage');
       const [items, count] = await Promise.all([findManyPromise, countPromise]);
       return getPaginationInfo({ items, page, clientPerPage, actualPerPage, count });
     },

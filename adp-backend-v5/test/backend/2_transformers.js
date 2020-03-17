@@ -1,6 +1,3 @@
-/* Validate phone and email defaults */
-// TODO: test delete
-
 const should = require('should');
 const assert = require('assert');
 const _ = require('lodash');
@@ -34,6 +31,22 @@ describe('V5 Backend Transformers', () => {
         _id: new ObjectID('387179f6ef4807703afd0df7'),
       },
     ],
+    assocArray: {
+      key1: {
+        sn: 7,
+        sn2: 9,
+        ss: ' abc ',
+        sd: new Date('2016-01-01'),
+        _id: new ObjectID('287179f6ef4807703afd0df7'),
+      },
+      key2: {
+        sn: 7,
+        sn2: 9,
+        ss: ' abc ',
+        sd: new Date('2016-01-01'),
+        _id: new ObjectID('387179f6ef4807703afd0df7'),
+      },
+    },
   };
   const sampleData1 = {
     n: 10,
@@ -54,6 +67,20 @@ describe('V5 Backend Transformers', () => {
         sd: new Date('2016-01-01'),
       },
     ],
+    assocArray: {
+      key1: {
+        sn: 9,
+        sn2: 11,
+        ss: 'def ',
+        sd: new Date('2016-01-01'),
+      },
+      key2: {
+        sn: 9,
+        sn2: 11,
+        ss: ' def',
+        sd: new Date('2016-01-01'),
+      },
+    },
   };
 
   before(async function() {
@@ -63,6 +90,7 @@ describe('V5 Backend Transformers', () => {
     await this.appLib.setup();
     this.dba = reqlib('/lib/database-abstraction')(this.appLib);
     this.M6 = mongoose.model('model6s');
+    await this.appLib.db.createCollection('model6s');
   });
 
   after(async function() {
@@ -73,7 +101,7 @@ describe('V5 Backend Transformers', () => {
   });
 
   beforeEach(function() {
-    return this.M6.remove({});
+    return this.M6.deleteMany({});
   });
 
   // This is a quick sanity check. Most tests are done in CRUD section below
@@ -84,13 +112,19 @@ describe('V5 Backend Transformers', () => {
         const userContext = { _id: 1 };
         await this.dba.createItem(this.M6, userContext, data);
         const foundData = await this.dba.getPreparedItems({ model: this.M6, userContext });
-        foundData[0].n.should.equal(8);
-        foundData[0].s.should.equal('abcQW');
-        foundData[0].as[0].sn.should.equal(8);
-        foundData[0].as[0].ss.should.equal('abcQW');
-        foundData[0].as[1].sn.should.equal(8);
-        foundData[0].as[1].ss.should.equal('abcQW');
-        new Date(foundData[0].d).getTime().should.equal(new Date('2017-01-01').getTime());
+        const item = foundData[0];
+        should(item.n).be.equal(8);
+        should(item.s).be.equal('abcQW');
+        should(item.d.getTime()).be.equal(new Date('2017-01-01').getTime());
+
+        const obj = {
+          sn: 8,
+          sn2: 10,
+          ss: 'abcQW',
+          sd: new Date('2016-01-01T00:00:00.000Z'),
+        };
+        should(item.as).be.containDeepOrdered([obj, obj]);
+        should(item.assocArray).be.containDeepOrdered({ key1: obj, key2: obj });
       });
     });
   });
@@ -115,14 +149,19 @@ describe('V5 Backend Transformers', () => {
         res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
         res.body.success.should.equal(true, res.body.message);
         const { data } = res.body;
-        assert(data._id.toString() === savedId);
-        data.n.should.equal(8);
-        data.s.should.equal('abcQW');
-        new Date(data.d).getTime().should.equal(new Date('2017-01-01').getTime());
-        data.as[0].sn.should.equal(8);
-        data.as[0].ss.should.equal('abcQW');
-        data.as[1].sn.should.equal(8);
-        data.as[1].ss.should.equal('abcQW');
+        should(data._id.toString()).be.equal(savedId);
+        should(data.n).be.equal(8);
+        should(data.s).be.equal('abcQW');
+        should(new Date(data.d).getTime()).be.equal(new Date('2017-01-01').getTime());
+
+        const obj = {
+          sn: 8,
+          sn2: 10,
+          ss: 'abcQW',
+          sd: '2016-01-01T00:00:00.000Z',
+        };
+        should(data.as).be.containDeepOrdered([obj, obj]);
+        should(data.assocArray).be.containDeepOrdered({ key1: obj, key2: obj });
 
         // should not invoke synthesize.code function, as numberWithInlineSynthesizer field is not virtual
         data.numberWithInlineSynthesizer.should.equal(0);

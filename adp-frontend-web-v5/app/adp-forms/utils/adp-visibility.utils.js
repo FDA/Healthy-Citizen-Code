@@ -13,9 +13,8 @@
 
       var visibilityMap = validationParams.formParams.visibilityMap;
       var path = validationParams.formParams.path;
-
       var found = _.find(visibilityMap, function (visibility, key) {
-        var re = new RegExp('^' + path + '\\[\\d+\\]$');
+        var re = new RegExp('^' + _.escapeRegExp(path) + '\\[\\d+\\]$');
         var isArrayItem = re.test(key);
 
         return isArrayItem ? visibility : false;

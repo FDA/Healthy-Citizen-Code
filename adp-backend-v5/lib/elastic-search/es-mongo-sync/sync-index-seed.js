@@ -6,7 +6,7 @@ const tomlify = require('tomlify');
 const commandLineArgs = require('command-line-args');
 const { checkIsMonstacheCorrect } = require('./util');
 const { getEsConfig } = require('../index');
-require('dotenv').load({ path: '.env' });
+const { prepareEnv, getSchemaNestedPaths } = require('../../util/env');
 
 const optionDefinitions = [
   { name: 'log', alias: 'l', type: Boolean },
@@ -54,7 +54,32 @@ function runSeedIndexConfig(configPath, enableLog) {
   });
 }
 
-async function startIndexSeedSync() {
+async function getAllCollecitonNames(appRoot) {
+  const appLib = {};
+
+  appLib.errors = require('../../errors');
+  appLib.butil = require('../../util/util');
+
+  appLib.transformers = require('../../transformers')(appLib);
+
+  const coreHelpers = path.join(appRoot, '/model/helpers');
+  const modelHelpers = getSchemaNestedPaths('helpers');
+  const helperDirPaths = [coreHelpers, ...modelHelpers];
+  const buildAppModelCodeOnStart = false;
+  appLib.helperUtil = await require('../../helper-util')(appLib, helperDirPaths, buildAppModelCodeOnStart);
+
+  const { combineModels } = require('../../util/model');
+  appLib.appModel = await combineModels({
+    modelSources: [`${appRoot}/model/model`, ...getSchemaNestedPaths('model')],
+    log: console.log.bind(console),
+    appModelProcessors: appLib.appModelHelpers.appModelProcessors,
+    macrosDirPaths: [...getSchemaNestedPaths('macroses'), `${appRoot}/model/macroses`],
+  });
+
+  return _.keys(appLib.appModel.models);
+}
+
+async function startIndexSeedSync(appRoot) {
   const mongoUrl = process.env.MONGODB_URI;
   const lastSlashIndex = mongoUrl.lastIndexOf('/');
   // For some reason (probably mongo Golang driver) monstache can't connect to replica set by url 'mongodb://localhost:27017/ha-dev'
@@ -64,10 +89,16 @@ async function startIndexSeedSync() {
   const dbName = mongoUrl.slice(lastSlashIndex + 1);
 
   const esConfig = getEsConfig();
+  if (!esConfig) {
+    throw new Error(`Unable to get Elastic Search config. Make sure environment param 'ES_NODES' is specified.`);
+  }
   const esUrls = esConfig.nodes;
 
-  const { models } = require('../../model')().getCombinedModel();
-  const allCollections = _.keys(models);
+  const allCollections = await getAllCollecitonNames(appRoot);
+  if (_.isEmpty(allCollections)) {
+    throw new Error(`Unable to get collection names for syncing. Make sure your environment params are correct.`);
+  }
+
   const options = commandLineArgs(optionDefinitions);
   let { collections } = options;
   if (_.isEmpty(collections)) {
@@ -89,5 +120,14 @@ async function startIndexSeedSync() {
 }
 
 (async () => {
-  await startIndexSeedSync();
+  const appRoot = path.resolve(__dirname, `../../../`);
+  require('dotenv').load({ path: `${appRoot}/.env` });
+  prepareEnv(appRoot);
+
+  try {
+    await startIndexSeedSync(appRoot);
+  } catch (e) {
+    console.error(e.stack);
+    process.exit(1);
+  }
 })();

@@ -7,7 +7,6 @@
 
   function AdpFormIteratorUtils(AdpPath) {
     function traverseFormDataPostOrder(formData, schema, path, callback) {
-      // refactor: form - move path creation to separate abstraction level. Factory is preferred
       var _path = path || '';
 
       _.each(schema.fields, function (currentField, key) {
@@ -15,7 +14,6 @@
 
         if (_typeOfObject(currentField)) {
           traverseFormDataPostOrder(formData, currentField, _nextPath, callback);
-
         } else if (_typeOfArray(currentField)) {
           var arrayFormData = _.get(formData, _nextPath, []);
 
@@ -23,7 +21,6 @@
             var nextArrayItemPath = _nextPath + '[' + i + ']';
             traverseFormDataPostOrder(formData, currentField, nextArrayItemPath, callback);
           });
-
         } else {
           // refactor: use method from schema service
           _isFieldVisible(currentField) && callback(formData, currentField, _nextPath, _path);
@@ -42,7 +39,7 @@
     }
 
     function _typeOfArray(f) {
-      return f.type === 'Array';
+      return ['Array', 'AssociativeArray'].includes(f.type);
     }
 
     return {

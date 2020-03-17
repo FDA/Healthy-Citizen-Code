@@ -29,8 +29,7 @@
         "_": true,
         "adpRenderLib": true
       },
-      "rules": {
-      }
+      "rules": {}
     }
   ],
   "rules": {
@@ -43,7 +42,13 @@
     "no-underscore-dangle": 0,
     "no-plusplus": 0,
     "no-dynamic-require": 0,
-    "comma-dangle": ["error", "always-multiline"],
+    "comma-dangle": ["error", {
+      "arrays": "always-multiline",
+      "exports": "always-multiline",
+      "functions": "never",
+      "imports": "always-multiline",
+      "objects": "always-multiline"
+    }],
     "object-curly-newline": ["error", { "consistent": true }],
     "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 2 }],
     // allow use functions before its declaration
@@ -71,6 +76,14 @@
     // name function only in case its a recursive function
     "func-names": ["error", "never"],
     "no-await-in-loop": "off",
+    "no-continue": "off",
+    // allow to import devDependencies for webpack plugins and and other devDependencies
+    "import/no-extraneous-dependencies": [
+      "error",
+      {
+        "devDependencies": true
+      }
+    ],
 
     // Promise config
     // blubird catch can receive 2 params

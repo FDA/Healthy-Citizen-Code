@@ -646,16 +646,52 @@ nav ul span.menu-item-parent {
   padding: 0 !important;
 }
 
+.array-ng-form-frame {
+  position: relative;
+  z-index: 1;
+
+  &.draggable-mirror {
+    z-index: 9999;
+    box-sizing: border-box;
+  }
+  & > .subform-frame > .subform-frame__title:hover { cursor: grab; }
+}
+
 .subform-frame {
   border: 1px solid;
   position: relative;
-  margin: 15px 0;
+  margin: 15px 0 0;
 
   &--is-collapsed { padding-top: 0; }
   &--invalid { border-color: #b94a48; }
+
+  .draggable-mirror & {
+    border: 2px solid #0042ff;
+    padding-bottom: 1px;
+    background-color: #fff;
+  }
 }
 
-.subform-frame__content { padding-top: 20px; }
+.subform-frame__draggable-overlay {
+  display: none;
+
+  .draggable--over & {
+    display: block;
+    position: absolute;
+    left: -1px;
+    top: -1px;
+    bottom: -1px;
+    right: -1px;
+    background-color: rgba(0, 0, 0, 0.2);
+    border: 1px solid black;
+    z-index: 1;
+  }
+}
+
+.subform-frame__content {
+  padding-top: 20px;
+  background-color: #fff;
+}
 
 .subform-frame__btn {
   box-shadow: none;
@@ -683,14 +719,16 @@ nav ul span.menu-item-parent {
 .subform-frame__title {
   padding-left: 10px;
   line-height: 36px;
-  background-color: #fff;
   vertical-align: top;
   font-size: 16px;
   border-color: #ccc;
-  background: rgba(248, 248, 248, 0.9);
+  background-color: #F8F8F8;
 
-  &--invalid { color: #b94a48; border-color: #b94a48 }
+  &--invalid { color: #b94a48; border-color: #b94a48; }
   &--opened { border-bottom: 1px solid; }
+
+  .draggable-mirror & { margin: 0; }
+  .draggable-mirror &--opened { border-bottom: 2px solid #0042ff; }
 }
 
 .subform-frame__content { padding-top: 20px; }
@@ -977,6 +1015,15 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
 .adp-select-box  .dx-tag-remove-button {
   right: 0;
   top: 0;
+
+  &:before {
+    top: 50%;
+    left: 50%;
+    // 8px is half of button width
+    margin-left: -8px !important;
+    margin-top: -8px !important;
+  }
+
 }
 
 .dx-tagbox:not(.dx-texteditor-empty):not(.dx-editor-filled):not(.dx-editor-outlined).dx-state-hover:after, .dx-tagbox:not(.dx-texteditor-empty):not(.dx-editor-filled):not(.dx-editor-outlined):after {
@@ -1088,12 +1135,6 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
 
   #ribbon .breadcrumb {
     padding: 5px 34px 5px 0 !important;
-  }
-
-  .page-footer {
-    padding-top: 5px;
-    padding-bottom: 5px;
-    height: auto;
   }
 }
 
@@ -1213,6 +1254,14 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
   }
 }
 
+.grid-view-menu {
+  .menu-separator {
+    display: block;
+    height: 1px;
+    border-top: 1px solid gray;
+  }
+}
+
 .grid-view-manager {
   .gvm-list-item {
     display: flex;
@@ -1240,3 +1289,106 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
   }
 }
 
+.adp-disabled-form {
+  > form {
+    opacity: 0.5;
+    pointer-events: none !important;
+  }
+
+  .adp-position-center {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    margin: -25px 0 0 -25px;
+
+  }
+}
+
+.import-report-modal.modal-body {
+max-height: 70vh;
+overflow: scroll;
+}
+
+.import-report-modal .modal-title {
+  padding-left: 40px;
+  position: relative;
+
+  &:before {
+    content:"";
+    position: absolute;
+    width: 150px;
+    height: 150px;
+    top: 0;
+    left: 0;
+    background: transparent url('@{base-url}/err-icons.png');
+    background-size: cover;
+    transform: scale(.2);
+    transform-origin: 0 0;
+  }
+
+  &.success-icon:before {
+    background-position: 0 0;
+  }
+
+  &.error-icon:before {
+    background-position: -300px 0;
+  }
+}
+
+.dx-toolbar {
+  .dx-toolbar-items-container {
+    display: flex;
+    justify-content: space-between;
+
+    > div {
+      flex: 1 1 auto;
+    }
+  }
+
+  .dx-toolbar-after, .dx-toolbar-before, .dx-toolbar-center {
+    position: relative;
+    flex: 1 1 auto;
+  }
+
+  .dx-toolbar-before {
+    z-index:1;
+  }
+}
+
+.adp-grid-toolbar-item {
+  height:36px;
+
+  &.dx-toolbar-hidden-button.adp-grid-toolbar-dropdown-menu:hover {
+    background-color: rgba(0,0,0,.04);
+  }
+
+
+  &.dx-state-hover {
+    background-color: rgba(0,0,0,.04);
+  }
+
+  .dx-menu-item-has-icon .dx-icon {
+    color: rgba(0, 0, 0, .87);
+  }
+
+  .dx-menu-horizontal > .dx-menu-items-container  .dx-item {
+    border-radius: 50%;
+    width: 28px;
+    height: 28px;
+
+    .dx-menu-item-content {
+      padding: 4px 2px;
+    }
+  }
+
+  .adp-toolbar-menu {
+
+  }
+
+  .dx-toolbar-item-auto-hide {
+    .dx-menu-horizontal > .dx-menu-items-container  .dx-item {
+      background-color: transparent;
+      margin: 2px 0 0 -1px;
+    }
+  }
+}

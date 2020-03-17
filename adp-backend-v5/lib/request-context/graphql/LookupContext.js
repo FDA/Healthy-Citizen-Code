@@ -34,8 +34,15 @@ module.exports = class LookupContext extends GraphQlContext {
     const lookupFields = this._getSearchableFields(table);
 
     const searchConditions = [];
-    const term = _.get(filter, 'q');
-    updateSearchConditions(searchConditions, lookupFields, term);
+
+    if (filter.dxQuery) {
+      const dxQueryConditions = this.appLib.filterParser.parse(filter.dxQuery, this.appModel);
+      searchConditions.push(dxQueryConditions);
+    } else if (filter.q) {
+      const term = _.get(filter, 'q');
+      updateSearchConditions(searchConditions, lookupFields, term);
+    }
+
     const overallSearchCondition = searchConditions.length > 0 ? MONGO.or(...searchConditions) : {};
     const conditions = MONGO.and(overallSearchCondition, this.filteringCondition);
 

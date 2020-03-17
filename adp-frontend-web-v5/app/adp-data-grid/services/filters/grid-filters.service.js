@@ -18,7 +18,7 @@
     function create(options, schema) {
       options.filterRow = {visible: true};
 
-      GridOptionsHelpers.addEditors(options, function (event) {
+      GridOptionsHelpers.onEditorPreparing(options, function (event) {
         var isFilterRow = event.parentType === 'filterRow';
         if (!isFilterRow) {
           return;
@@ -34,14 +34,14 @@
         setFilterComponent(event, schema);
       });
 
-      options.onOptionChanged = function (e) {
+      GridOptionsHelpers.onOptionChanged(options, function (e) {
         var filterValueChanged = e.fullName.includes('filterValue') && e.name !== 'filterValue';
         var filterValueChangedToEmpty = filterValueChanged && filterValueEmpty(e.value);
 
         if (filterValueChangedToEmpty) {
           GridFilterHelpers.resetFilterByColumn(e);
         } else {
-          if (e.fullName === "searchPanel.text" && e.value.toLowerCase() === e.previousValue.toLowerCase()) {
+          if (isOptionChangedOnlyCase(e)) {
             e.component.getDataSource().reload();
           }
         }
@@ -50,9 +50,17 @@
         if (filterValueChanged || filterOperationChanged) {
           filterUrlMapper(e.component, schema);
         }
-      };
+      });
 
       return options;
+    }
+
+    function isOptionChangedOnlyCase( e ) {
+      return e.value &&
+        e.previousValue &&
+        e.value.toLowerCase &&
+        (e.fullName ==="searchPanel.text" || e.fullName .match(/columns\[\d+\]\.filterValue/)) &&
+        e.value.toLowerCase() === e.previousValue.toLowerCase();
     }
 
     function setFilterComponent(event, schema) {

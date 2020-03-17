@@ -62,7 +62,13 @@
       try {
         AdpStateGeneratorProvider.createStates(APP_MODEL, INTERFACE);
       } catch (e) {
-        console.log('Custom page creation failed due to error: ', e)
+        console.log('Schema pages creation failed due to error: ', e)
+      }
+
+      try {
+        AdpStateGeneratorProvider.createBuiltInStates(APP_MODEL, INTERFACE);
+      } catch (e) {
+        console.log('Built in page creation failed due to error: ', e)
       }
     }
 

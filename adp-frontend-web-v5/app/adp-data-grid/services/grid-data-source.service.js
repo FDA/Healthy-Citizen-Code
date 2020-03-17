@@ -13,12 +13,25 @@
     AdpNotificationService,
     $q,
     ErrorHelpers,
-    ServerError
+    ServerError,
+    GridOptionsHelpers
   ) {
+    return function (options, schema) {
+      options.dataSource = { store: createStore(schema) };
+
+      if (schema.parameters.loadInvisibleFields === false) {
+        registerColumnsVisibilityListener(options);
+      }
+
+      return options;
+    }
+
     function createStore(schema) {
       return new DevExpress.data.CustomStore({
         load: function (loadOptions) {
-          return GraphqlCollectionQuery(schema, loadOptions)
+          var requestSchema = provideRequestSchema(schema);
+
+          return GraphqlCollectionQuery(requestSchema, loadOptions)
             .then(!!loadOptions.group ? getGroupedData : getData)
             .catch(function () {
               AdpNotificationService.notifyError(ServerError.UNABLE_TO_GET_DATA);
@@ -49,6 +62,34 @@
       });
     }
 
+    function registerColumnsVisibilityListener(options) {
+      GridOptionsHelpers.onOptionChanged(options, function (e) {
+        console.log(e)
+        var columnsVisibilityChanged = /^columns\[\d+\].visible$/.test(e.fullName);
+        var changedToVisible = e.value === true;
+
+        if (columnsVisibilityChanged && changedToVisible) {
+          e.component.refresh();
+        }
+      });
+    }
+
+    function provideRequestSchema(schema) {
+      if (schema.parameters.loadInvisibleFields) {
+        return schema;
+      }
+
+      var visibleColumns = GridOptionsHelpers.getVisibleColumnNames();
+      var resultSchema = _.cloneDeep(schema);
+
+      resultSchema.fields = {};
+      visibleColumns.forEach(function (name) {
+        resultSchema.fields[name] = schema.fields[name];
+      });
+
+      return resultSchema;
+    }
+
     function getData(data) {
       return {
         data: _.get(data, 'items', []),
@@ -71,18 +112,7 @@
         _.unset(data, path);
       });
 
-      return AdpFormDataUtils.cleanFormData(data, schema);
-    }
-
-    return {
-      create: function (options, schema) {
-        options.dataSource = {store: createStore(schema)};
-        options.onFileSaving = function (e) {
-          e.fileName = schema.fullName || 'DataGrid';
-        };
-
-        return options;
-      }
+      return AdpFormDataUtils.transformDataBeforeSending(data, schema);
     }
   }
 })();

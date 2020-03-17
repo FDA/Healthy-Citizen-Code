@@ -60,13 +60,11 @@ function getCleanedConditions(operator, ...conditions) {
       return false;
     }
     if (falseCondition && operator === 'or') {
-      // eslint-disable-next-line no-continue
       continue;
     }
 
     const trueCondition = isTrueCondition(c);
     if (trueCondition && operator === 'and') {
-      // eslint-disable-next-line no-continue
       continue;
     }
     if (trueCondition && operator === 'or') {
@@ -166,22 +164,28 @@ function hashObject(obj) {
  * @returns {*}
  */
 function getMongoDuplicateErrorMessage(err, models) {
-  if (!(err.name === 'MongoError' && err.code === 11000)) {
+  const isDuplicateError = ['BulkWriteError', 'MongoError'].includes(err.name) && err.code === 11000;
+  if (!isDuplicateError) {
     return null;
   }
   // find out errorValue from error message because its not possible to get it from indexName if error occurred in array
-  const [, collectionName, indexName, errorValue] = err.message.match(
-    /E11000 duplicate key error collection: (?:.+)\.(.+) index: (.+) dup key: { : (.+) }/
+  const match = err.message.match(
+    /E11000 duplicate key error collection: (?:.+)\.(.+) index: (.+) dup key: { (.+): (.+) }/
   );
-  const errorFieldPath = (indexName || '').replace(/_\d+$/, '');
-  const schema = models[collectionName];
-  const errorField = _.get(schema.fields, errorFieldPath.replace(/\./g, '.fields.'));
-  const errorFieldName = _.get(errorField, 'fullName', errorFieldPath);
-  const itemName = schema.fullName;
-  if (errorValue === 'null') {
-    return `Unable to create item. A ${itemName} with empty ${errorFieldName} already exists`;
+
+  if (!match) {
+    return `Unable to process due to duplicate error.`;
   }
-  return `Unable to create item. A ${itemName} with the ${errorFieldName} ${errorValue} already exists`;
+
+  const [, collectionName, , indexField, errorValue] = match;
+  const schema = models[collectionName];
+  const schemaField = _.get(schema.fields, indexField.replace(/\./g, '.fields.'));
+  const schemaFieldFullName = _.get(schemaField, 'fullName', indexField);
+  const schemaFullName = schema.fullName;
+  if (errorValue === 'null') {
+    return `Unable to process. A '${schemaFullName}' with empty '${schemaFieldFullName}' already exists`;
+  }
+  return `Unable to process. A '${schemaFullName}' with the '${schemaFieldFullName}' '${errorValue}' already exists`;
 }
 
 const defaultArgsAndValuesForInlineCode = {
@@ -312,6 +316,24 @@ function isMongoReplicaSet(mongooseCon) {
   return !isStandalone;
 }
 
+function expandObjectAsKeyValueList(obj) {
+  let string = '';
+  _.each(obj, (val, key) => {
+    string += `${key}: ${val}\n`;
+  });
+  return string;
+}
+
+function expandObjectAsNumberedList(obj) {
+  let string = '';
+  let itemNumber = 1;
+  _.each(obj, (val, key) => {
+    string += `${itemNumber}) ${key}: ${val}\n`;
+    itemNumber++;
+  });
+  return string;
+}
+
 module.exports = {
   getUrlParts,
   generateId,
@@ -335,4 +357,6 @@ module.exports = {
   getBeforeAndAfterLastArrayPath,
   updateSearchConditions,
   isMongoReplicaSet,
+  expandObjectAsKeyValueList,
+  expandObjectAsNumberedList,
 };

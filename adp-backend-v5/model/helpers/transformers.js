@@ -15,11 +15,9 @@ const {
   weightMetricToImperial,
 } = require('./transformers_util');
 
-module.exports = mongoose => {
+// eslint-disable-next-line no-unused-vars
+module.exports = appLib => {
   const _ = require('lodash');
-  const async = require('async');
-  const log = require('log4js').getLogger('helpers/transformers');
-  const { ObjectID } = require('mongodb');
   const { hashPassword, bcryptHashRegex } = require('../../lib/util/password');
   const { getTime } = require('../../lib/util/date');
 
@@ -29,6 +27,13 @@ module.exports = mongoose => {
      */
     null(path, appModelPart, userContext, next) {
       // do nothing
+      next();
+    },
+    toString(path, appModelPart, userContext, next) {
+      const value = _.get(this, path);
+      if (value) {
+        _.set(this, path, value.toString());
+      }
       next();
     },
     trim(path, appModelPart, userContext, next) {
@@ -54,7 +59,6 @@ module.exports = mongoose => {
       }
       next();
     },
-    // TODO: write tests for imperialWeightWithOz
     weightImperialWithOzToMetric(path, appModelPart, userContext, next) {
       const imperialWeight = _.get(this, path);
       const metricWeight = weightImperialWithOzToMetric(imperialWeight);
@@ -86,83 +90,6 @@ module.exports = mongoose => {
         _.set(this, path, imperialWeight);
       }
       next();
-    },
-    addLookupDetails(path, appModelPart, userContext, next) {
-      // TODO: bulletproof this method in case if lookup table record disappears, add validations to the schema
-      log.trace(`addLookupDetails: ${path} ${JSON.stringify(appModelPart)}`);
-      let model;
-      try {
-        model = mongoose.connection.model(appModelPart.lookup.table);
-      } catch (e) {
-        // do nothing
-      }
-      // TODO: See ADP-217. This is not the most elegant solution, but it should be rewritten when we better know what we need
-      // from referring subschemas in lookups. This may also require refactoring the transformers (like getting rid of "this")
-      if (model) {
-        const ids = _.get(this, path);
-        const addLabel = (idStr, cb) => {
-          if (idStr.length === 24) {
-            const id = new ObjectID(idStr);
-            model.findOne({ [appModelPart.lookup.foreignKey]: id }, { [appModelPart.lookup.label]: 1 }, (err, data) => {
-              let val;
-              if (err || !data) {
-                log.error(
-                  `Unable to find lookup record for lookup ${JSON.stringify(appModelPart.lookup, null, 4)} ID: ${id}`
-                );
-              } else {
-                val = data[appModelPart.lookup.label];
-              }
-              cb(err, val);
-            });
-          } else {
-            log.error(`Unable to find label for malformed lookup ObjectID "${idStr}"`);
-            cb();
-          }
-        };
-
-        let newLabel = [];
-
-        const doNext = function() {
-          _.set(this, `${path}_label`, _.isArray(newLabel) ? _.uniq(newLabel) : newLabel);
-          next();
-        };
-
-        if (_.isString(ids)) {
-          async.series(
-            [
-              cb => {
-                addLabel(ids, (err, val) => {
-                  // addLabel ruins context
-                  if (!err && val) {
-                    newLabel = val;
-                  }
-                  cb();
-                });
-              },
-            ],
-            doNext.bind(this)
-          );
-        } else if (_.isArray(ids)) {
-          async.eachSeries(
-            ids,
-            (id, cb) => {
-              addLabel(id, (err, val) => {
-                if (!err && val) {
-                  newLabel.push(val);
-                }
-                cb();
-              });
-            },
-            doNext.bind(this)
-          ); // async loses context, this is why
-        } else {
-          log.error(`addLookupDetails expects either string or array, but got ${ids}`);
-          next();
-        }
-      } else {
-        // TODO: Using label as sent from the client is a security risk. Fix it later
-        next();
-      }
     },
     async hashPassword(path, appModelPart, userContext, next) {
       const password = _.get(this, path);

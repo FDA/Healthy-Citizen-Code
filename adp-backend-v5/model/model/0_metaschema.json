@@ -4,21 +4,31 @@
       "required": true,
       "default": "String",
       "list": [
+        "Schema",
         "String",
-        "Number",
+        "Html",
         "Date",
+        "Number",
+        "Double",
+        "Int32",
+        "Int64",
+        "Decimal128",
         "Boolean",
         "Mixed", // mongoose type Mixed, i.e. any object with any structure
-        "Array",
-        "Object", // something with defined structure
-        "Schema",
+        "Object", // something with defined structure,
+        "AssociativeArray",
         "ObjectID",
         "LookupObjectID",
+        "Array",
         "TreeSelector",
 
         "String[]",
         "Date[]",
         "Number[]",
+        "Double[]",
+        "Int32[]",
+        "Int64[]",
+        "Decimal128[]",
         "Boolean[]",
         "Mixed[]",
         "Object[]",
@@ -98,12 +108,6 @@
       "description": "Defines what portion of a layout it should occupy",
       "comment": "TODO: discuss with the team and decide if UI attributes should be grouped. For instance 'ui':{width:100,height:200,style:'best', colspan:2}. Or get rid of this"
     },
-    "visibilityPriority": {
-      "default": 100,
-      "fullName": "Visibility Priority",
-      "description": "Defines the priority of this field being displayed in datatables",
-      "comment": "TODO: discuss with the team and decide if UI attributes should be grouped. For instance 'ui':{width:100,visibilityPriority:200,style:'best', colspan:2}. Or get rid of this"
-    },
     "responsivePriority": {
       "default": 100,
       "fullName": "Responsive Priority",
@@ -172,11 +176,6 @@
     "default": {
       "fullName": "Default Value",
       "description": "Specifies the default value for this field if no value is provided"
-    },
-    "defaultF": {
-      "fullName": "Default Function",
-      "description": "Specifies the function that will return the default value for this field if no value is provided",
-      "comment": "TODO: get rid of it, replace with 'transform' attribute"
     },
     "list": {
       "fullName": "List",
@@ -438,6 +437,26 @@
     "generatorSpecification": {
       "fullName": "Generator Specification",
       "description": "Used in Synthetic Content Generator"
+    },
+    "order": {
+      "type": "Number",
+      "fullName": "Order",
+      "description": "Sets value for formOrder, datagridOrder, detailedViewOrder fields if according field is not specified."
+    },
+    "formOrder":  {
+      "type": "Number",
+      "fullName": "Form Order",
+      "description": "Determines field order in form."
+    },
+    "datagridOrder": {
+      "type": "Number",
+      "fullName": "Datagrid Order",
+      "description": "Determines field order in datagrid."
+    },
+    "detailedViewOrder": {
+      "type": "Number",
+      "fullName": "Detailed View Order",
+      "description": "Determines field order in detailed view."
     }
   }
 }

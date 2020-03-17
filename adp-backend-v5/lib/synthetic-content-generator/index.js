@@ -10,11 +10,12 @@ const mongoose = require('mongoose');
 
 const { generateDataByModel } = require('./generate-data');
 const { combineModels } = require('../util/model');
+const { getAbsolutePath } = require('../util/env');
 const { getCollectionOrder } = require('./build-collection-order-to-generate');
 
 const optionDefinitions = [
   { name: 'corePath', type: String },
-  { name: 'schemaPath', type: String, multiple: true },
+  { name: 'schemaPath', type: String },
   { name: 'batchName', type: String },
   { name: 'uploadDir', type: String },
   { name: 'count', type: Number },
@@ -26,7 +27,7 @@ const optionDefinitions = [
 const defaultBatchName = new Date().toISOString();
 const defaultUploadDir = '../uploads';
 const defaultCount = 10;
-const defaultExcludeCollections = '["users","roles","files"]';
+const defaultExcludeCollections = '["users","roles","files", "dxGridViews", "datasets"]';
 
 (async () => {
   try {
@@ -58,8 +59,7 @@ async function run() {
   const { corePath, schemaPath, mongoUrl, count, batchName, uploadDir, excludeCollections, includeCollections } = args;
   const appLib = await prepareAppLib(corePath, schemaPath);
 
-  const { models } = appLib.appModel;
-  const allCollections = Object.keys(models);
+  const allCollections = Object.keys(appLib.appModel.models);
   const collectionsToCheck = excludeCollections || includeCollections;
   const invalidCollections = [];
   _.each(collectionsToCheck, col => {
@@ -93,7 +93,7 @@ async function run() {
   }
 
   await connectMongoose(appLib, mongoUrl);
-  await mutil.generateMongooseModels(appLib.db, models);
+  await mutil.generateMongooseModels(appLib.db, appLib.appModel.models);
   await injectListValues(appLib);
 
   const paramsForGeneratorFiles = await getParamsForGeneratorFiles({
@@ -203,16 +203,15 @@ function validateArgs(args) {
     errors.push(`Argument 'corePath' must be an existing directory (relative or absolute).`);
   }
 
-  if (!_.isArray(schemaPath)) {
-    errors.push(`Argument 'schemaPath' must be an array if specified.`);
-  }
-  const schemaPathAbsolute = [];
-  _.each(schemaPath, p => {
-    const absolutePath = path.resolve(process.cwd(), p);
-    if (!fs.pathExistsSync(absolutePath)) {
+  const appRoot = path.resolve(__dirname, '../../');
+  const schemaAbsolutePaths = schemaPath
+    .split(',')
+    .map(p => getAbsolutePath(appRoot, p))
+    .filter(p => p);
+
+  _.each(schemaAbsolutePaths, p => {
+    if (!fs.pathExistsSync(p)) {
       errors.push(`Argument 'schemaPath' contains '${p}', which must be an existing directory (relative or absolute).`);
-    } else {
-      schemaPathAbsolute.push(absolutePath);
     }
   });
 
@@ -259,7 +258,7 @@ function validateArgs(args) {
     errors,
     args: {
       corePath: corePathAbsolute,
-      schemaPath: schemaPathAbsolute,
+      schemaPath: schemaAbsolutePaths,
       mongoUrl,
       count,
       batchName,
@@ -277,14 +276,21 @@ async function prepareAppLib(corePath, schemaPath) {
   appLib.errors = require('../errors');
   appLib.butil = require('../util/util');
 
-  const modelPaths = [`${corePath}/model/model`, ...schemaPath.map(p => `${p}/model`)];
-  appLib.appModel = combineModels(modelPaths, console.log.bind(console));
-  mergePregenerators(appLib.appModel);
-
   appLib.transformers = require('../transformers')(appLib);
   const helperDirPaths = [`${corePath}/model/helpers`, ...schemaPath.map(p => `${p}/helpers`)];
-  appLib.helperUtil = await require('../helper-util')(appLib, helperDirPaths);
+  const buildAppModelCodeOnStart = false;
+  appLib.helperUtil = await require('../helper-util')(appLib, helperDirPaths, buildAppModelCodeOnStart);
+
+  appLib.appModel = await combineModels({
+    modelSources: [`${corePath}/model/model`, ...schemaPath.map(p => `${p}/model`)],
+    log: console.log.bind(console),
+    appModelProcessors: appLib.appModelHelpers.appModelProcessors,
+    macrosDirPaths: [...schemaPath.map(p => `${p}/macroses`), `${corePath}/model/macroses`],
+  });
+  mergePregenerators(appLib.appModel);
+
   appLib.accessCfg = require('../access/access-config');
+  appLib.allActionsNames = [...appLib.accessCfg.DEFAULT_ACTIONS, ..._.keys(appLib.appModelHelpers.CustomActions)];
 
   appLib.accessUtil = require('../access/access-util')(appLib);
   appLib.filterUtil = require('../filter/util');
@@ -354,7 +360,6 @@ async function generateDocs({ appLib, env, functions, collectionName, count }) {
       } else {
         console.error(`${msg}\n${e.stack}\nRecord:${stringifyObj(record)}`);
       }
-      // eslint-disable-next-line no-continue
       continue;
     }
 

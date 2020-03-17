@@ -16,7 +16,7 @@ module.exports = function(globalMongoose) {
 
   const getNotStartedQuestionnaires = userId => {
     const pipeline = [
-      { $match: { creator: userId } },
+      { $match: { 'creator._id': userId } },
       {
         $project: {
           _id: 1,
@@ -138,7 +138,7 @@ module.exports = function(globalMongoose) {
       {
         $unwind: "$questionnaire"
       },
-      { $match: { "questionnaire.creator": userId } },
+      { $match: { "questionnaire.creator._id": userId } },
       {
         $group: {
           _id: "$questionnaire._id",
@@ -231,7 +231,7 @@ module.exports = function(globalMongoose) {
       {
         $unwind: "$questionnaire"
       },
-      { $match: { "questionnaire.creator": userId } },
+      { $match: { "questionnaire.creator._id": userId } },
       {
         $group: {
           _id: "$answersToQuestionnaires.questionnaireId",
@@ -300,7 +300,7 @@ module.exports = function(globalMongoose) {
       {
         $unwind: "$questionnaire"
       },
-      { $match: { "questionnaire.creator": userId } },
+      { $match: { "questionnaire.creator._id": userId } },
       {
         $group: {
           _id: {
@@ -343,7 +343,7 @@ module.exports = function(globalMongoose) {
 
   const getQuestionnairesCount = userId => {
     // TODO: scope to the current user only
-    return mongoose.model("questionnaires").countDocuments({ creator: userId });
+    return mongoose.model("questionnaires").countDocuments({ 'creator._id': userId });
   };
 
   const getAnswersCount = userId => {
@@ -368,7 +368,7 @@ module.exports = function(globalMongoose) {
             as: "questionnaires"
           }
         },
-        { $match: { "questionnaires.creator": userId } },
+        { $match: { "questionnaires.creator._id": userId } },
         { $project: { "answersToQuestionnaires.answers": 1, _id: 0 } }
       ])
       .then(allAnswersToQuestionnaires => {

@@ -59,7 +59,7 @@ appConfig.skins = [
 
 
 appConfig.sound_path = "./assets/sound/";
-appConfig.sound_on = true; 
+appConfig.sound_on = true;
 
 
 /*
@@ -69,7 +69,7 @@ appConfig.sound_on = true;
 */
 
 
-appConfig.debugState = false;	
+appConfig.debugState = false;
 appConfig.debugStyle = 'font-weight: bold; color: #00f;';
 appConfig.debugStyle_green = 'font-weight: bold; font-style:italic; color: #46C246;';
 appConfig.debugStyle_red = 'font-weight: bold; color: #ed1c24;';
@@ -82,9 +82,9 @@ appConfig.voice_command = true;
 appConfig.voice_command_auto = false;
 
 /*
- *  Sets the language to the default 'en-US'. (supports over 50 languages 
+ *  Sets the language to the default 'en-US'. (supports over 50 languages
  *  by google)
- * 
+ *
  *  Afrikaans         ['af-ZA']
  *  Bahasa Indonesia  ['id-ID']
  *  Bahasa Melayu     ['ms-MY']
@@ -151,16 +151,16 @@ appConfig.voice_command_auto = false;
 appConfig.voice_command_lang = 'en-US';
 /*
  *  Use localstorage to remember on/off (best used with HTML Version)
- */ 
+ */
 appConfig.voice_localStorage = false;
 /*
  * Voice Commands
  * Defines all voice command variables and functions
- */ 
+ */
 if (appConfig.voice_command) {
-        
+
      	appConfig.commands = {
-                
+
         'show dashboard' : function() { window.location.hash = "dashboard" },
         'show inbox' : function() {  window.location.hash = "inbox/" },
         'show graphs' : function() {  window.location.hash = "graphs/flot" },
@@ -194,56 +194,39 @@ if (appConfig.voice_command) {
         'show widgets' : function() { window.location.hash = "widgets" },
         'show gallery' : function() { window.location.hash = "gallery" },
         'show maps' : function() { window.location.hash = "gmap-xml" },
-        'go back' :  function() { history.back(1); }, 
+        'go back' :  function() { history.back(1); },
         'scroll up' : function () { $('html, body').animate({ scrollTop: 0 }, 100); },
         'scroll down' : function () { $('html, body').animate({ scrollTop: $(document).height() }, 100);},
-        'hide navigation' : function() { 
+        'hide navigation' : function() {
             if ($( ":root" ).hasClass("container") && !$( ":root" ).hasClass("menu-on-top")){
                 $('span.minifyme').trigger("click");
             } else {
-                $('#hide-menu > span > a').trigger("click"); 
+                $('#hide-menu > span > a').trigger("click");
             }
         },
-        'show navigation' : function() { 
+        'show navigation' : function() {
             if ($( ":root" ).hasClass("container") && !$( ":root" ).hasClass("menu-on-top")){
                 $('span.minifyme').trigger("click");
             } else {
-                $('#hide-menu > span > a').trigger("click"); 
+                $('#hide-menu > span > a').trigger("click");
             }
         },
         'mute' : function() {
             appConfig.sound_on = false;
-            $.smallBox({
-                title : "MUTE",
-                content : "All sounds have been muted!",
-                color : "#a90329",
-                timeout: 4000,
-                icon : "fa fa-volume-off"
-            });
+            toastr.success("All sounds have been muted!", "MUTE");
         },
         'sound on' : function() {
             appConfig.sound_on = true;
             $.speechApp.playConfirmation();
-            $.smallBox({
-                title : "UNMUTE",
-                content : "All sounds have been turned on!",
-                color : "#40ac2b",
-                sound_file: 'voice_alert',
-                timeout: 5000,
-                icon : "fa fa-volume-up"
-            });
+            toastr.success("All sounds have been turned on!","UNMUTE");
         },
         'stop' : function() {
             smartSpeechRecognition.abort();
             $( ":root" ).removeClass("voice-command-active");
-            $.smallBox({
-                title : "VOICE COMMAND OFF",
-                content : "Your voice commands has been successfully turned off. Click on the <i class='fa fa-microphone fa-lg fa-fw'></i> icon to turn it back on.",
-                color : "#40ac2b",
-                sound_file: 'voice_off',
-                timeout: 8000,
-                icon : "fa fa-microphone-slash"
-            });
+            toastr.success(
+              "Your voice commands has been successfully turned off. Click on the <i class='fa fa-microphone fa-lg fa-fw'></i> icon to turn it back on.",
+              "VOICE COMMAND OFF"
+            );
             if ($('#speech-btn .popover').is(':visible')) {
                 $('#speech-btn .popover').fadeOut(250);
             }
@@ -255,10 +238,10 @@ if (appConfig.voice_command) {
                 $('#speech-btn .popover').fadeOut(250);
             }
 
-        },      
+        },
         'got it' : function() {
             $('#voiceModal').modal('hide');
-        },  
+        },
         'logout' : function() {
             $.speechApp.stop();
             window.location = $('#logout > span > a').attr("href");

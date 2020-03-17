@@ -8,21 +8,24 @@
   /** @ngInject */
   function GridOptionsHelpers() {
     function addToolbarHandler(options, cb) {
-      var prevFn = options.onToolbarPreparing;
-
-      options.onToolbarPreparing = function (e) {
-        cb(e);
-
-        if (prevFn) {
-          prevFn(e);
-        }
-      };
+      var args = ['onToolbarPreparing', options, cb];
+      registerDxEvent.apply(null, args);
     }
 
-    function addEditors(options, cb) {
-      var prevFn = options.onEditorPreparing;
+    function onEditorPreparing(options, cb) {
+      var args = ['onEditorPreparing', options, cb];
+      registerDxEvent.apply(null, args);
+    }
 
-      options.onEditorPreparing = function (e) {
+    function onOptionChanged(options, cb) {
+      var args = ['onOptionChanged', options, cb];
+      registerDxEvent.apply(null, args);
+    }
+
+    function registerDxEvent(name, options, cb) {
+      var prevFn = options[name];
+
+      options[name] = function (e) {
         cb(e);
 
         if (prevFn) {
@@ -41,6 +44,21 @@
       return gridInstance.dxDataGrid('instance');
     }
 
+    function getVisibleColumnNames() {
+      var instance = gridInstance()
+      var result = []
+
+      for (var i = 0; i < instance.columnCount(); i++) {
+        var columnName = instance.columnOption(i, 'dataField')
+
+        if (instance.columnOption(i, 'visible') && columnName) {
+          result.push(instance.columnOption(i, 'dataField'))
+        }
+      }
+
+      return result;
+    }
+
     function generateGridLsKey(storageKey, schemaName) {
       return storageKey + '_dxgrid_' + schemaName;
     }
@@ -49,7 +67,9 @@
       addToolbarHandler: addToolbarHandler,
       refreshGrid: refreshGrid,
       generateGridLsKey: generateGridLsKey,
-      addEditors: addEditors,
+      onEditorPreparing: onEditorPreparing,
+      onOptionChanged: onOptionChanged,
+      getVisibleColumnNames: getVisibleColumnNames,
     };
   }
 })();

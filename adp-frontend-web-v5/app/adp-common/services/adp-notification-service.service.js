@@ -1,8 +1,9 @@
-;(function() {
+;(function () {
+  var MESSAGE_LENGTH_TRUNCATE = 120;
 
   angular
-    .module('app.adpCommon')
-    .factory('AdpNotificationService', AdpAdpNotificationService);
+    .module("app.adpCommon")
+    .factory("AdpNotificationService", AdpAdpNotificationService);
 
   /** @ngInject */
   function AdpAdpNotificationService() {
@@ -14,23 +15,53 @@
 
     return service;
 
-    function notifyError(message) {
-      $.bigBox({
-        title: message,
-        color: "#C46A69",
-        icon: "fa fa-warning shake animated",
-        number: ++service.errorCounter,
-        timeout: 6000
-      });
+    function notifyError(message, title, options) {
+      ++service.errorCounter; // it's never used, in fact...
+
+      var $toast = toastr.error(modifyLongMessage(message), title, Object.assign({
+        containerId: "toast-container-error",
+        positionClass: "toast-container-universal",
+        timeOut: 0,
+        extendedTimeOut: 0,
+        closeButton: true,
+        tapToDismiss: false,
+        newestOnTop: false,
+      }, options || {}));
+
+      if ($toast.find(".toast-more-link").length) {
+        $toast.delegate(".toast-more-link", "click", function () {
+          $toast.addClass("toast-expanded");
+        });
+        $toast.delegate(".toast-full-message", "click", function () {
+          $toast.removeClass("toast-expanded");
+        });
+      }
     }
 
-    function notifySuccess(message, isBig) {
-      $[ !!isBig ? 'bigBox' : 'smallBox']({
-        title: message,
-        color: "#5F895F",
-        iconSmall: "fa fa-check bounce animated",
-        timeout: 4000
-      });
+    function notifySuccess(message, title, options) {
+      toastr.success(message, title, Object.assign({
+        containerId: "toast-container-success",
+        positionClass: "toast-container-universal",
+        closeButton: true,
+        newestOnTop: false,
+      }, options || {}));
+    }
+
+    function modifyLongMessage(msg) {
+      var newMsg = msg;
+      if (msg.length > MESSAGE_LENGTH_TRUNCATE) {
+        newMsg =
+          "<div class='toast-shorter-message'>" +
+          msg.substr(0, MESSAGE_LENGTH_TRUNCATE) +
+          "&#8230;" +
+          "<div class='toast-more-link'>More&#8230;</div>" +
+          "</div>" +
+          "<div class='toast-full-message'>" +
+          msg +
+          "</div>"
+      }
+
+      return newMsg;
     }
   }
 })();

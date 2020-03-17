@@ -17,7 +17,7 @@
     ng-transclude="body">
   </fieldset>
 
-  <div ng-switch="type">
+  <div ng-switch="groupingType">
     <div ng-switch-when="accordion">
       <adp-form-group-accordion
         fields="fields"
@@ -81,3 +81,4 @@
 
   <footer ng-transclude="footer"></footer>
 </form>
+<adp-page-loader class="adp-position-center" loading="loading"></adp-page-loader>

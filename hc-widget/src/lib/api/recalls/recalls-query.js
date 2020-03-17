@@ -1,38 +1,79 @@
 import { createGraphqlClient } from '../graphql/grapql-client';
-import {
-  handleResponse,
-  handleError
-} from '../graphql/graphql.helpers';
+import { ResponseError } from '../../exceptions'
+import { createRecallQuery } from './query';
+
+/**
+ * @typedef Medication
+ * @property rxcui: String[]
+ * @property brandName: String
+ */
+
+/** @typedef RecallsListing
+ * @property display: String - medication name
+ * @property list: Recall[]
+ * @property itemCount: Number
+ */
 
 /**
  * Fetch recalls by rxcui codes list.
+ * Implements algorithm that accepts as input userPreferences object, which contains medication list
+ * with brandName and rxcui list. Recalls are fetched for each Medication returning RecallsListing.
  *
- * @param {String} rxcui
+ * @param {Object} userPreferences
+ * @params {Medication[]} userPreferences.medications
  * @param {'openfda'|'conceptant'} algorithm
+ * @param {Function} mongoQueryFn
  *
- * @returns Promise{<rxcui<String>, Recalls[]>}
+ * @returns Promise{<RecallsListing[]>}
  */
-export function recallsQuery(rxcui, algorithm) {
-  return query(rxcui, algorithm, mongoQuery(rxcui));
+export function recallsQuery(userPreferences, algorithm = 'openfda', mongoQueryFn) {
+  const promises = userPreferences.medications.map(m => makeRecallRequest(m, algorithm, mongoQueryFn(m.rxcui)));
+
+  return Promise.all(promises)
+    .then((recallListings) => {
+      const recalls = recallListings.filter(v => v !== null);
+      if (!recalls.length) {
+        throw new ResponseError(ResponseError.RECALLS_EMPTY);
+      }
+      return recalls;
+    });
 }
 
 /**
  *
- * @param {String[]} rxcuis
+ * @param {Medication} medication
  * @param {String} algorithm
+ * @param {Object} mongoQuery
+ * @returns Promise{<RecallsListing[]>}
  */
-export function recallsQueryForUSCF(rxcuis, algorithm) {
-  return query(rxcuis, algorithm, mongoQueryForUCSF(rxcuis));
-}
+function makeRecallRequest(medication, algorithm, mongoQuery) {
+  const collectionName = getCollectionName(algorithm);
+  const query = createRecallQuery(collectionName);
+  const variables = { mongoQuery: JSON.stringify(mongoQuery) };
 
-
-function query(rxcui, algorithm, mongoQuery) {
   const client = createGraphqlClient();
-  const query = getQuery(rxcui, algorithm, mongoQuery);
+  return client.request(query, variables)
+    .then((res) => {
+      const { items, pageInfo } = res[collectionName];
 
-  return client.request(query)
-    .then((data) => handleResponse(data, getCollectionName(algorithm)))
-    .catch(handleError);
+      if (!items.length) {
+        throw new ResponseError(ResponseError.RESPONSE_EMPTY);
+      }
+
+      return {
+        display: medication.brandName,
+        list: items,
+        itemCount: pageInfo.itemCount,
+      };
+    })
+    .catch(function handleError(err) {
+      if (err instanceof ResponseError) {
+        return null;
+      }
+
+      console.log(err);
+      throw err;
+    });
 }
 
 function getCollectionName(algorithm = 'openfda') {
@@ -41,52 +82,5 @@ function getCollectionName(algorithm = 'openfda') {
     conceptant: 'recallsRes',
   };
 
-
   return collections[algorithm];
-}
-
-function getQuery(rxcui, algorithm, mongoQuery) {
-  const collectionName = getCollectionName(algorithm);
-
-  return `query {
-    ${collectionName} (
-      filter: {
-        mongoQuery: "${mongoQuery}" 
-      }
-    ) {
-      pageInfo {
-        itemCount
-      }
-      items {
-        recallInitiationDate
-        status
-        classification
-        recallingFirm
-        distributionPattern
-        reasonForRecall
-        codeInfo
-        productDescription
-        rxCuis { rxCui }
-      }
-    }
-  }`;
-}
-
-function mongoQuery(rxcui) {
-  const q = {
-    'rxCuis.rxCui': rxcui,
-    status: 'Ongoing',
-  };
-
-  return JSON.stringify(q).replace(/"/g, '\\"');
-}
-
-function mongoQueryForUCSF(rxcuis) {
-  const q = {
-    'rxCuis.rxCui': { $in: rxcuis },
-    status: 'Ongoing',
-    centerRecommendedDepth: 'consumerEndUser'
-  };
-
-  return JSON.stringify(q).replace(/"/g, '\\"');
 }

@@ -16,16 +16,20 @@
     FilterOperation,
     FilterUrlParser,
     GRID_FORMAT,
-    HtmlCellRenderer
+    HtmlCellRenderer,
+    GridTableActions,
+    GridColumnsHelpers,
+    GridSorting
   ) {
-    function create(options, schema) {
+    return function (options, schema) {
       var gridFields = GridSchema.getFieldsForGrid(schema);
 
       options.columns = schemaToColumn(gridFields, schema);
+      GridTableActions(options, schema);
 
-      if (options.grouping) {
-        addGroupingOptions(options, schema);
-      }
+      GridColumnsHelpers.setWidthToColumns(options, schema);
+      GridSorting.setSortingOptions(options, schema);
+      addGroupingOptions(options, schema);
 
       return options;
     }
@@ -44,13 +48,23 @@
         visible: field.showInDatatable && _.get(field, 'parameters.visible', true),
         showInColumnChooser: field.showInDatatable,
         hidingPriority: field.responsivePriority,
-        minWidth: field.width,
         filterOperations: FilterOperation.get(field),
         allowFiltering: GridFilterHelpers.filteringAllowedForField(field),
         calculateFilterExpression: CustomFilterExpression(field),
         selectedFilterOperation:  FilterOperation.getSelected(field),
         cellTemplate: function (container, cellInfo) {
           container.append(getTemplateForField(field, schema, cellInfo.data));
+        },
+        groupCellTemplate : function(container, cellInfo) {
+          var rowData = {};
+          rowData[field.fieldName] = cellInfo.data.key;
+          var tpl = '<p>' + field.fullName + ': ' + getTemplateForField(field, schema, rowData) +' </p>';
+
+          if (cellInfo.data.isContinuationOnNextPage) {
+            tpl += '<p>(Continues on the next page)</p>';
+          }
+
+          container.append(tpl);
         }
       };
 
@@ -107,10 +121,6 @@
         action: ACTIONS.VIEW,
         schema: schema,
       });
-    }
-
-    return {
-      create: create,
     }
   }
 })();

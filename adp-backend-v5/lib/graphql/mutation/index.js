@@ -2,7 +2,7 @@ const log = require('log4js').getLogger('graphql/mutation');
 const { MongoIdITC, COMPOSER_TYPES } = require('../type/common');
 const { getOrCreateTypeByModel } = require('../type/model');
 const GraphQlContext = require('../../request-context/graphql/GraphQlContext');
-const { ValidationError, AccessError, LinkedRecordError } = require('../../errors');
+const { handleGraphQlError } = require('../util');
 
 const deleteOutputType = `type DeleteType {
       deletedCount: Int
@@ -64,18 +64,14 @@ function addDeleteOneResolver(model, modelName) {
     },
     type: deleteOutputType,
     resolve: async ({ args, context }) => {
+      const { req, appLib } = context;
       try {
-        const { req, appLib } = context;
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
         await appLib.dba.withTransaction(session => appLib.controllerUtil.deleteItem(graphQlContext, session));
         return { deletedCount: 1 };
       } catch (e) {
-        log.error(e.stack);
-        if (e instanceof ValidationError || e instanceof AccessError || e instanceof LinkedRecordError) {
-          throw e;
-        }
-        throw new Error(`Unable to delete record`);
+        handleGraphQlError(e, `Unable to delete record`, log, appLib);
       }
     },
   });
@@ -94,16 +90,15 @@ function addUpdateOneResolver(model, modelName) {
     },
     type,
     resolve: async ({ args, context }) => {
+      const { req, appLib } = context;
       try {
-        const { req, appLib } = context;
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
         return appLib.dba.withTransaction(session =>
           appLib.controllerUtil.putItem(graphQlContext, args.record, session)
         );
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to update record`);
+        handleGraphQlError(e, `Unable to update record`, log, appLib);
       }
     },
   });
@@ -123,16 +118,15 @@ function addUpsertOneResolver(model, modelName, filterType) {
     },
     type,
     resolve: async ({ args, context }) => {
+      const { req, appLib } = context;
       try {
-        const { req, appLib } = context;
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
         return appLib.dba.withTransaction(session =>
           appLib.controllerUtil.upsertItem(graphQlContext, args.record, session)
         );
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to upsert record`);
+        handleGraphQlError(e, `Unable to upsert record`, log, appLib);
       }
     },
   });

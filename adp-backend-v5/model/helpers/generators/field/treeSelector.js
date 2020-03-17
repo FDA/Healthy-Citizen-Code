@@ -3,7 +3,7 @@ const { buildTreeSelectorFromDoc } = require('../../../../lib/util/treeselectors
 
 module.exports = () => {
   async function getTreeSelector(tableSpec) {
-    // ignore where, parent, roots, requireLeafSelection for now
+    // ignore 'where', 'parent', 'roots', 'requireLeafSelection' for now
     // TODO: resolve params above, generate by specified nesting levels, generate leaf/not leaf.
     const treeSelectorTable = tableSpec.table;
     const docs = await mongoose

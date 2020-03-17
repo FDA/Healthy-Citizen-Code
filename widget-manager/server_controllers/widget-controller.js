@@ -25,23 +25,24 @@ const AUTHORIZE_URL = 'https://dev-unified-api.ucsf.edu/clinical/apex/oauth2/aut
 const TOKEN_URL = `https://dev-unified-api.ucsf.edu/clinical/apex/oauth2/token`;
 const EPIC_AUTH_FULL_URL = `${process.env.WIDGET_API_URL}/epic/auth`;
 
+const ENV_EPIC_CLIENT_ID_PREFIX = 'EPIC_CLIENT_ID_';
+const EPIC_CLIENT_ID_UCSF_FALLBACK = 'ed495ec6-3b4e-4ca0-9bb5-5d00ae1be4e1';
+
 const ISS_COOKIE_NAME = 'iss';
 const CLIENT_ID_COOKIE_NAME = 'clientId';
 const WIDGET_TYPE_COOKIE_NAME = 'widgetType';
+const WIDGET_TYPE_FALLBACK = 'ucsfRecalls';
 // const AUTHORIZE_URL_COOKIE_NAME = 'authorize_url';
 const TOKEN_URL_COOKIE_NAME = 'token_url';
 
-const ENV_EPIC_CLIENT_ID_PREFIX = 'EPIC_CLIENT_ID_';
-const EPIC_CLIENT_ID_UCSF_FALLBACK = 'ed495ec6-3b4e-4ca0-9bb5-5d00ae1be4e1';
 
 module.exports = function(globalMongoose) {
   const mongoose = globalMongoose;
   const m = {};
 
-
-  function getLogInfo () {
+  function getLogInfo() {
     if (process.env.DEVELOPMENT) {
-      return (msg) => log.info(msg);
+      return msg => log.info(msg);
     }
     return () => {};
   }
@@ -73,10 +74,12 @@ module.exports = function(globalMongoose) {
     appLib.addRoute('get', `/epic/auth`, [m.epicAuth]);
 
     // for backward compatibility with EPIC
-    appLib.addRoute('get', `/epic/start`, [(req, res, next) => {
-      _.set(req, 'params.widgetType', 'ucsfRecalls');
-      return m.epicStart.call(null, req, res, next);
-    }]);
+    appLib.addRoute('get', `/epic/start`, [
+      (req, res, next) => {
+        _.set(req, 'params.widgetType', WIDGET_TYPE_FALLBACK);
+        return m.epicStart.call(null, req, res, next);
+      },
+    ]);
   };
 
   m.getWidget = (req, res, next) => {
@@ -194,8 +197,8 @@ module.exports = function(globalMongoose) {
 
         return getFhirAuthParams(AUTHORIZE_URL, TOKEN_URL, widgetData);
       })
-      .then(({ patient_stu3, fhir_access_token }) => {
-        res.send(getPreparedWidgetHtml({ iss: ISS, patient_stu3, fhir_access_token, widgetType: 'ucsfRecalls' }));
+      .then(({ patient, fhir_access_token }) => {
+        res.send(getPreparedWidgetHtml({ iss: ISS, patient, fhir_access_token, widgetType: WIDGET_TYPE_FALLBACK }));
       })
       .catch(err => {
         log.error(err.stack);
@@ -220,7 +223,7 @@ module.exports = function(globalMongoose) {
 
         return getFhirAuthParams(AUTHORIZE_URL, TOKEN_URL, widgetData);
       })
-      .then(({ patient_stu3, fhir_access_token }) => getFhirData(ISS, patient_stu3, fhir_access_token))
+      .then(({ patient, fhir_access_token }) => getFhirData(ISS, patient, fhir_access_token))
       .then(fhirData => {
         const rxcuis = extractCodingsForEpicStu3(fhirData);
         res.send(getPreparedWidgetHtmlWithRxcuis(rxcuis));
@@ -231,25 +234,39 @@ module.exports = function(globalMongoose) {
       });
   };
 
+  function getCookieOrApplyFallback(req, cookieName, fallbackValue) {
+    if (req.cookies[cookieName]) {
+      return req.cookies[cookieName];
+    }
+    m.logInfo(`Cookie with name ${cookieName} is not set, applying fallback: ${cookieName}=${fallbackValue}`);
+    return fallbackValue;
+  }
 
   m.epicAuth = (req, res, next) => {
     m.logInfo(`epicAuth req params: ${JSON.stringify(req.query)}, cookies: ${JSON.stringify(req.cookies)}`);
     const { code } = req.query;
-    const iss = req.cookies[ISS_COOKIE_NAME];
-    const clientId = req.cookies[CLIENT_ID_COOKIE_NAME];
-    const widgetType = req.cookies[WIDGET_TYPE_COOKIE_NAME];
-    const tokenUrl = req.cookies[TOKEN_URL_COOKIE_NAME];
+    const iss = getCookieOrApplyFallback(req, ISS_COOKIE_NAME, ISS);
+    const clientId = getCookieOrApplyFallback(req, CLIENT_ID_COOKIE_NAME, EPIC_CLIENT_ID_UCSF_FALLBACK);
+    const widgetType = getCookieOrApplyFallback(req, WIDGET_TYPE_COOKIE_NAME, WIDGET_TYPE_FALLBACK);
+    const tokenUrl = getCookieOrApplyFallback(req, TOKEN_URL_COOKIE_NAME, TOKEN_URL);
 
     step3ObtainAuthorizationParams(tokenUrl, clientId, code, EPIC_AUTH_FULL_URL)
-      .then(({ fhir_access_token, patient_stu3 }) => {
-        m.logInfo(`fhir_access_token=${fhir_access_token}, patient_stu3=${patient_stu3}`);
-        res.send(getPreparedWidgetHtml({ iss, fhir_access_token, patient_stu3, widgetType }));
+      .then(({ fhir_access_token, patient }) => {
+        m.logInfo(`fhir_access_token=${fhir_access_token}, patient=${patient}`);
+        res.send(getPreparedWidgetHtml({ iss, fhir_access_token, patient, widgetType }));
       })
       .catch(err => {
         log.error(err.stack);
         res.send(getNotFoundWidgetHtml());
       });
   };
+
+  function setCookie(res, cookieName, cookieValue) {
+    res.cookie(cookieName, cookieValue, {
+      sameSite: true,
+      secure: true,
+    });
+  }
 
   m.epicStart = (req, res, next) => {
     m.logInfo(`epicStart, req: ${req.url}`);
@@ -273,12 +290,14 @@ module.exports = function(globalMongoose) {
 
     step1aObtainAuthAndTokenUrls(iss)
       .then(({ authorizeUrl, tokenUrl }) => {
-        res.cookie(ISS_COOKIE_NAME, iss);
-        res.cookie(WIDGET_TYPE_COOKIE_NAME, widgetType);
-        res.cookie(CLIENT_ID_COOKIE_NAME, clientId);
-        // res.cookie(AUTHORIZE_URL_COOKIE_NAME, authorizeUrl);
-        res.cookie(TOKEN_URL_COOKIE_NAME, tokenUrl);
-        m.logInfo(`Set cookies ${ISS_COOKIE_NAME}=${iss}, ${TOKEN_URL_COOKIE_NAME}=${tokenUrl}`);
+        setCookie(res, ISS_COOKIE_NAME, iss);
+        setCookie(res, WIDGET_TYPE_COOKIE_NAME, widgetType);
+        setCookie(res, CLIENT_ID_COOKIE_NAME, clientId);
+        // setCookie(res, AUTHORIZE_URL_COOKIE_NAME, authorizeUrl);
+        setCookie(res, TOKEN_URL_COOKIE_NAME, tokenUrl);
+        m.logInfo(
+          `Set cookies ${ISS_COOKIE_NAME}=${iss}, ${WIDGET_TYPE_COOKIE_NAME}=${widgetType}, ${CLIENT_ID_COOKIE_NAME}=${clientId} , ${TOKEN_URL_COOKIE_NAME}=${tokenUrl}`
+        );
 
         const authParams = querystring.stringify({
           response_type: 'code',

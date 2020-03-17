@@ -1,17 +1,27 @@
-<div class="array-form-frame clearfix">
+<div
+  class="array-form-frame clearfix"
+  array-sortable
+  arrays-path="nextValidationParams.formParams.path"
+  on-sorted="onSorted"
+  on-stop="onStop"
+>
   <ng-form
     ng-if="display($index) && dataItem !== null"
     class="array-ng-form-frame clearfix"
-    ng-repeat="dataItem in getData() track by $index"
-    name="{{field.fieldName}}[{{$index}}]">
+    ng-array-parent-path="{{getPath()}}"
+    ng-repeat="dataItem in adpFormData[field.fieldName] track by dataItem._id"
+    name="{{field.fieldName}}[{{$index}}]"
+  >
 
     <div
       class="subform-frame clearfix"
       ng-class="{
         'subform-frame--is-collapsed': !visibilityStatus[$index],
-        'subform-frame--invalid': rootForm.$submitted && form[field.fieldName + '[' + $index + ']'].$invalid
+        'subform-frame--invalid': rootForm.$submitted && form[field.fieldName + '[' + $index + ']'].$invalid,
+
        }"
     >
+      <div class="subform-frame__draggable-overlay"></div>
       <h3
         class="subform-frame__title"
         ng-class="{
@@ -59,6 +69,15 @@
         class="subform-frame__content clearfix"
         ng-hide="!visibilityStatus[$index]"
       >
+        <array-key-control
+          ng-if="$parent.field.type === 'AssociativeArray'"
+          field="$parent.field"
+          form-data="$parent.dataItem"
+          index="$parent.$index"
+          validation-params="validationParams"
+        >
+        </array-key-control>
+
         <array-controls-factory
           ng-repeat="subField in getFields()"
           field="subField"

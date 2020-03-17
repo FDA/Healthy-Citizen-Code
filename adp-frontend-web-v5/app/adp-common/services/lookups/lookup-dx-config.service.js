@@ -23,13 +23,17 @@
       var defaultsConfig = defaults(options);
 
       var lookupSingleConfig = {
-        buttons: LookupBtns(options.selectedTableName),
+        elementAttr: {
+          'class': 'adp-select-box adp-lookup-selector',
+          'lookup-selector': true,
+        },
+        buttons: LookupBtns.getFieldButtons(options.selectedTableName, options.args),
         onOpened: function (event) {
           // WORKAROUND to set focus on select when dropdown is shown
           event.element.find('.adp-text-box input').focus();
         },
         itemTemplate: function (lookupData) {
-          return AdpLookupHelpers.lookupItemTemplate(lookupData, options.args);
+          return createLabelForFormLookup(lookupData, options.args);
         },
         fieldTemplate: function (data, container) {
           fieldTemplate({
@@ -48,9 +52,13 @@
       var defaultsConfig = defaults(options);
 
       var lookupMultipleConfig = {
-        buttons: LookupBtns(options.selectedTableName),
+        elementAttr: {
+          'class': 'adp-select-box adp-lookup-selector',
+          'lookup-selector': true,
+        },
+        buttons: LookupBtns.getFieldButtons(options.selectedTableName, options.args),
         itemTemplate: function (lookupData) {
-          return AdpLookupHelpers.lookupItemTemplate(lookupData, options.args);
+          return createLabelForFormLookup(lookupData, options.args);
         },
         tagTemplate: function (lookupData, tagElement) {
           return tagTemplate({
@@ -73,7 +81,7 @@
           'class': 'adp-select-box adp-lookup-selector'
         },
         itemTemplate: function (lookupData) {
-          return AdpLookupHelpers.lookupFilterItemTemplate(lookupData, options.args);
+          return AdpLookupHelpers.lookupItemTemplate(lookupData, options.args);
         },
         tagTemplate: function (lookupData, tagElement) {
           return tagTemplate({
@@ -96,7 +104,7 @@
           'class': 'adp-select-box adp-lookup-selector adp-filter-lookup-selector'
         },
         itemTemplate: function (lookupData) {
-          return AdpLookupHelpers.lookupFilterItemTemplate(lookupData, options.args);
+          return AdpLookupHelpers.lookupItemTemplate(lookupData, options.args);
         },
         onOpened: function (event) {
           // WORKAROUND to set focus on select when dropdown is shown
@@ -178,6 +186,13 @@
         });
 
       container.append(tpl, textBox);
+    }
+
+    function createLabelForFormLookup(lookupData, args) {
+      var item = AdpLookupHelpers.lookupItemTemplate(lookupData, args);
+      item.append(LookupBtns.updateButton(lookupData, args));
+
+      return item;
     }
 
     function defaults(options) {

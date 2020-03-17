@@ -21,6 +21,6 @@ function selectEndpoint(options) {
   return endpoints[dataSource](options);
 }
 
-function epicStu3Endpoint({ patientStu3, fhirServerUrl }) {
-  return `${fhirServerUrl}/MedicationStatement?patient=${patientStu3}&_include=MedicationStatement:medication`;
+function epicStu3Endpoint({ epicPatientStu3, fhirServerUrl }) {
+  return `${fhirServerUrl}/MedicationStatement?patient=${epicPatientStu3}&_include=MedicationStatement:medication`;
 }

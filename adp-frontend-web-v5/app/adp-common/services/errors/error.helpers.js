@@ -10,11 +10,12 @@
     ServerError,
     ResponseError,
     UploadError,
+    ClientError,
     AdpNotificationService
   ) {
     return {
       handleError: function (error, defaultMessage) {
-        var shouldDisplayToUser = (error instanceof UploadError) || (error instanceof ResponseError);
+        var shouldDisplayToUser = (error instanceof UploadError) || (error instanceof ResponseError)|| (error instanceof ClientError);
 
         if (shouldDisplayToUser) {
           AdpNotificationService.notifyError(error.message);

@@ -20,7 +20,7 @@
       if (!_.isArray(value) || _.isEmpty(value)) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
-      return value.join(', ');
+      return value.map(_.escape).join(', ');
     }
 
     function number(args) {
@@ -44,7 +44,7 @@
 
     function string(args) {
       var value = args.data;
-      return (_.isNil(value) || value === '') ? GRID_FORMAT.EMPTY_VALUE : value;
+      return (_.isNil(value) || value === '') ? GRID_FORMAT.EMPTY_VALUE : _.escape(value);
     }
 
     return {

@@ -2,6 +2,24 @@ import {preferencesQuery} from '../user-preferences/user-preferences';
 import {ndcCodingsFromMedicationStatement} from '../medications-codings/ndc-codings-from-medication-statement';
 import {resolveRxCuiByNdc} from '../medications-codings/resolve-rxcui-by-ndc';
 
+/**
+ * @typedef Medication
+ * @property ndc11: String
+ * @property brandName: String
+ */
+
+/**
+ *
+ * @param options
+ *
+ * @return {Promise<{} | {
+ *  medications: Medication[]
+ *  gender: String
+ *  gender: String
+ *  age: String
+ *  geographicRegion: String
+ * }>}
+ */
 export function fetchMedicationsFromUserPreferencesOrMedicationStatement(options) {
   return fetchMedications(options)
     .then(({ medications, ...other }) => {
@@ -48,6 +66,5 @@ function fetchRxcuiWithTtyIn(medication) {
 
       medication.rxcui = rxcui;
       return medication;
-    })
+    });
 }
-

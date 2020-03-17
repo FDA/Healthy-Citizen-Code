@@ -49,7 +49,6 @@ describe('V5 Backend CRUD', () => {
   // Create item
   describe('Create Item', () => {
     describe('1st level', () => {
-      // TODO: fix test, broken due to new lookups
       it('posts and stores 1st level data', async function() {
         const res = await request(this.appLib.app)
           .post('/model1s')
@@ -80,9 +79,7 @@ describe('V5 Backend CRUD', () => {
           .send({ data: sampleData0.encounters[1].vitalSigns[1] })
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
-          // TODO: it seems like the return code is never checked - why?
           .expect(404);
-        // TODO: make these consistent with success=false
         const { message, success } = res.body;
         success.should.equal(false);
         message.should.equal('/model1s1/ does not exist');

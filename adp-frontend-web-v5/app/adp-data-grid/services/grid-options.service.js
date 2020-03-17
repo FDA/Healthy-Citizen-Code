@@ -9,13 +9,15 @@
   function GridOptions(
     GridColumns,
     GridDataSource,
-    GridSorting,
-    GridActions,
+    GridToolbarActions,
     GridOptionsHelpers,
     AdpNotificationService,
+    AdpGridViewService,
+    AdpColumnChooserService,
     AdpModalService,
     GridFilters,
     CellEditorsService,
+    GridImportService,
     GridExportService
   ) {
     function create(schema) {
@@ -28,7 +30,6 @@
       var search = {
         searchPanel: {
           visible: true,
-          width: 240,
           placeholder: 'Search...'
         },
       };
@@ -39,6 +40,19 @@
         errorRowEnabled: false,
         onDataErrorOccurred: function () {
           this.dataErrorMessage = 'Data Loading Error';
+        },
+        onContentReady: function (e) {
+          if (e.component.totalCount() > 0) {
+            return;
+          }
+
+          var filterEmpty = _.isNil(e.component.getCombinedFilter());
+          var noDataText = filterEmpty ?
+            'This collection is empty' :
+            'The filter you specified returned no data';
+
+          var noDataTextChanged = e.component.option('noDataText') !== noDataText;
+          noDataTextChanged && e.component.option('noDataText', noDataText);
         }
       };
 
@@ -50,38 +64,45 @@
         other
       );
 
-      GridDataSource.create(options, schema);
-      GridColumns.create(options, schema);
+      // Its very important to keep this cb register in very beginning to be sure its called AFTER ALL toolbar modifications
+      GridOptionsHelpers.addToolbarHandler(options, function(e){
+        GridToolbarActions.removeUnnecessary(e);
+        GridToolbarActions.sortByName(e);
+      });
+
+      GridToolbarActions.addPrintAndCreate(options, schema);
+
+      GridDataSource(options, schema);
+      GridColumns(options, schema);
       GridFilters.create(options, schema);
       CellEditorsService(options, schema);
-      GridSorting.setSortingOptions(options, schema);
-      GridActions(options, schema);
+
       GridFilters.setFiltersFromUrl(options, schema);
       GridExportService(options, schema);
+      GridImportService(options, schema);
 
       GridOptionsHelpers.addToolbarHandler(options, function (e) {
-        e.toolbarOptions.items.reverse();
-      });
-
-      GridOptionsHelpers.addToolbarHandler(options, function (e) {
-        e.toolbarOptions.items.unshift(
+        e.toolbarOptions.items.push(
           {
-            widget: 'dxButton',
-            options: {
-              icon: 'detailslayout',
-              hint: 'Grid view save/restore',
-              onClick: function () {
-                AdpModalService
-                  .createModal('adpGridViewManager', {
-                    gridComponent: e.component,
-                    schema: schema,
-                  })
-                  .result
-              }
-            },
-            location: 'after'
+            widget: 'dxMenu',
+            options: AdpGridViewService.createMenu(schema, e.component),
+            cssClass:'adp-grid-toolbar-dropdown-menu',
+            name:'gridViewButton'
           });
       });
+
+      if (_.get(options, 'columnChooser.enabled', false)) {
+        // Disabling default columnChooser is not an option as some functionality will be broken. Default button is filtered out from toolbar.
+        GridOptionsHelpers.addToolbarHandler(options, function (e) {
+          e.toolbarOptions.items.push(
+            {
+              widget: 'dxMenu',
+              options: AdpColumnChooserService.createMenu(schema, e.component),
+              cssClass:'adp-grid-toolbar-dropdown-menu',
+              name:'customColumnChooserButton'
+            });
+        });
+      }
 
       if (options.stateStoring &&
         options.stateStoring.enabled &&

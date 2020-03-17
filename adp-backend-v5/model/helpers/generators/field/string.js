@@ -42,6 +42,19 @@ module.exports = () => {
       const { length = 160 } = this.params;
       return getString(length);
     },
+
+    scgHtml() {
+      const { length = 160 } = this.params;
+      return [
+        `<!DOCTYPE html>`,
+        `<html>`,
+        `<head></head>`,
+        `<body>`,
+        `<div>${getString(length)}</div>`,
+        `</body>`,
+        `</html>`,
+      ].join('\n');
+    },
   };
 };
 

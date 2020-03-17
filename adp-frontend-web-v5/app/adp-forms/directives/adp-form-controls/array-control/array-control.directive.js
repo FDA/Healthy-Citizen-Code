@@ -9,7 +9,8 @@
     AdpValidationUtils,
     AdpFieldsService,
     AdpFormService,
-    visibilityUtils
+    visibilityUtils,
+    Guid
   ) {
     return {
       restrict: 'E',
@@ -44,7 +45,10 @@
 
           formParams: formParams
         };
-        setDefautDisplay();
+
+        setKeysToAssociativeArray();
+        setIdsToData();
+        setDefaultDisplay();
 
         scope.display = function(index) {
           var arrayItemPath = formParams.path + '[' + index + ']';
@@ -57,11 +61,38 @@
         }
 
         scope.getData = getData;
-        scope.setData = setData;
         scope.isEmpty = isEmpty;
         scope.addArrayItem = addArrayItem;
         scope.remove = remove;
         scope.isRemoveDisabled = isRemoveDisabled;
+        scope.getPath = getPath;
+
+        scope.guid = Guid.create;
+
+        scope.onStop = function(event) {
+          swapVisibilityStatus(event.newIndex, event.oldIndex);
+
+          function swapVisibilityStatus(newIndex, oldIndex) {
+            var lhs = scope.visibilityStatus[oldIndex];
+            var rhs = scope.visibilityStatus[newIndex];
+            if (lhs === rhs) {
+              return;
+            }
+
+            swap(scope.visibilityStatus, oldIndex, newIndex);
+          }
+        }
+
+        scope.onSorted = function updateOrder(event) {
+          reorder(event.newIndex, event.oldIndex);
+          scope.$apply();
+
+          function reorder(newIndex, oldIndex) {
+            var list = getData();
+            swap(list, newIndex, oldIndex);
+            setData(list);
+          }
+        };
 
         scope.hasVisibleItems = function () {
           return visibilityUtils.arrayHasVisibleChild(getData(), scope.validationParams);
@@ -87,7 +118,7 @@
         };
 
         if (scope.isEmpty()) {
-          scope.setData([]);
+          setData([]);
           addArrayItem();
         }
 
@@ -104,7 +135,7 @@
             }
           });
 
-        function setDefautDisplay() {
+        function setDefaultDisplay() {
           var data = getData();
 
           _.each(data, function (_v, i) {
@@ -122,13 +153,14 @@
 
         function isEmpty() {
           var data = getData();
-
-          return _.isUndefined(data) || _.isNull(data) || _.isEmpty(data);
+          return _.isNil(data) || _.isEmpty(data);
         }
 
         function addArrayItem() {
           var fieldData = getData();
-          fieldData.push({});
+          fieldData.push({
+            _id: Guid.create(),
+          });
 
           var lastIndex = _.findLastIndex(fieldData);
           setDisplay(lastIndex, true);
@@ -154,6 +186,35 @@
           var hasOneItem = getData().length === 1;
 
           return isFirstRequired && hasOneItem;
+        }
+
+        function getPath() {
+          return formParams.path;
+        }
+
+        function setKeysToAssociativeArray() {
+          if (scope.field.type === 'AssociativeArray') {
+            scope.adpFormData[scope.field.fieldName] = _.map(scope.adpFormData[scope.field.fieldName], function (item, key) {
+              var newItem = _.clone(item);
+              newItem.$key = key;
+              return newItem;
+            });
+          }
+        }
+
+        function setIdsToData() {
+          if (_.isArray(scope.adpFormData[scope.field.fieldName])) {
+            scope.adpFormData[scope.field.fieldName] = _.map(scope.adpFormData[scope.field.fieldName], function (item) {
+              item._id = Guid.create();
+              return item;
+            })
+          }
+        }
+
+        function swap(list, newIndex, oldIndex) {
+          var tmp = list[oldIndex];
+          list[oldIndex] = list[newIndex];
+          list[newIndex] = tmp;
         }
       }
     }

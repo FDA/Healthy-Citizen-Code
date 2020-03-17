@@ -151,6 +151,20 @@
         return moment(dates.value).isSameOrAfter(dates.comparisionDate);
       },
       imperialHeightRange: noopValidator,
+      int32: function (value) {
+        var INT32_MAX = 0x7fffffff;
+        var INT32_MIN = -0x80000000;
+
+        var num = Number(value);
+        var isOutsideOfRange = num < INT32_MIN || num > INT32_MAX;
+        return isOutsideOfRange ? false : true;
+      },
+      int64: function (value) {
+        var num = Number(value);
+        var isOutsideOfRange = num < Number.MIN_SAFE_INTEGER || num > Number.MAX_SAFE_INTEGER;
+        return isOutsideOfRange ? false : true;
+      },
+      decimal128: noopValidator,
     };
 
     /**

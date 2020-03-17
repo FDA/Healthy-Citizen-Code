@@ -58,7 +58,7 @@
     }
 
     function isArray(field) {
-      return field.type === 'Array';
+      return ['Array', 'AssociativeArray'].includes(field.type);
     }
   }
 })();

@@ -6,7 +6,7 @@
       "fields": {
         "name": {
           "type": "String",
-          "description": "The name of the dataset"
+          "description": "The name of the dataset",
         },
         "description": {
           "type": "String",
@@ -19,7 +19,6 @@
         "collectionName": {
           "type": "String",
           "description": "The name of the dataset collection",
-          "required": true,
           "unique": true
         }
       },
@@ -42,13 +41,27 @@
           },
           "create": {
             "permissions": "accessAsUser"
+          },
+          "manageDataset": {
+            "fullName": "Manage Dataset",
+            "backgroundColor": "#333300",
+            "borderColor": "#666600",
+            "textColor": "yellow",
+            "icon": {
+              "link": "link"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/datasets/:_id"
+            },
+            "permissions": "accessAsUser"
           }
         }
       },
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",
-          "where": "{ 'creator': { $eq: this.req.user._id } }"
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
         }
       }
     }

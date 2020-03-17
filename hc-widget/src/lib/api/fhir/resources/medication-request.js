@@ -11,7 +11,7 @@ function selectEndpoint(options) {
       return `${stu3Url}/MedicationRequest?_include=MedicationRequest:patient&subject:Patient=${fhirId}&_format=json`;
     },
     dstu2({ dstu2Url, fhirId }) {
-      return `${dstu2Url}/MedicationOrder?patient=${fhirId}`;
+      return `${dstu2Url}/MedicationOrder?patient=${fhirId}&_format=json`;
     },
     epicStu3: epicStu3Endpoint,
     epicStu3WithOauth2: epicStu3Endpoint,
@@ -21,6 +21,6 @@ function selectEndpoint(options) {
   return endpoints[dataSource](options);
 }
 
-function epicStu3Endpoint({ patientStu3, fhirServerUrl }) {
-  return `${fhirServerUrl}/MedicationRequest?patient=${patientStu3}&_include=MedicationRequest:medication`;
+function epicStu3Endpoint({ epicPatientStu3, fhirServerUrl }) {
+  return `${fhirServerUrl}/MedicationRequest?patient=${epicPatientStu3}&_include=MedicationRequest:medication`;
 }

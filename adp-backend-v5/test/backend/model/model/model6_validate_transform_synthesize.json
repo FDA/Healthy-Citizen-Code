@@ -109,6 +109,43 @@
             }
           }
         },
+        "assocArray": {
+          "type": "AssociativeArray",
+          "defaultSortBy": {
+            "sn": -1
+          },
+          "fullName": "Associative Array",
+          "limitReturnedRecords": 4,
+          "description": "Object",
+          "fields": {
+            "sn": {
+              "type": "Number",
+              "fullName": "Associative Array Number1",
+              "description": "Array Number1",
+              "transform": ["addOne"]
+            },
+            "sn2": {
+              "type": "Number",
+              "fullName": "Associative Array Number2",
+              "description": "Array Number2",
+              "transform": ["addOne"],
+              "validate": ["notEqual($sn)"]
+            },
+            "ss": {
+              "type": "String",
+              "fullName": "Associative Array String",
+              "transform": ["trim", ["appendQ", "appendW"]],
+              "description": "Object String",
+              "validate": ["regex(a|d|g,i)"]
+            },
+            "sd": {
+              "type": "Date",
+              "fullName": "Associative Array Date",
+              "description": "Array Date",
+              "validate": ["max(4000-01-01T07:00:00)", "notInFuture()"]
+            }
+          }
+        },
         "height": {
           "type": "Number",
           "subtype": "ImperialHeight",

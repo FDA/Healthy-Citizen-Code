@@ -95,7 +95,6 @@
         "created": {
           "type": "Date",
           "visible": false,
-          "defaultF": "dateNow",
           "generated": true,
           "fullName": "Created",
           "description": "The system generated date when the citizen user account was created."

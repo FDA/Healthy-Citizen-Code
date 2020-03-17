@@ -7,19 +7,28 @@
 
   /** @ngInject */
   function AdpHttpInterceptor(
-    $q,
     $injector,
     $rootScope
   ) {
+    var AdpNotificationService = $injector.get('AdpNotificationService');
+    var $q = $injector.get('$q');
+    var $log = $injector.get('$log');
+    var APP_CONFIG = $injector.get('APP_CONFIG');
+
     return {
       responseError: function errorHandler(error) {
-        var $q = $injector.get('$q');
-        var $log = $injector.get('$log');
-
+        var AdpSessionService = $injector.get('AdpSessionService');
         $log.debug('Response reject: ', error);
 
         if (isGraphql(error.config.url)) {
-          return $q.reject(error);
+          var beforeAction = error.status === 401 ?
+            AdpSessionService.handleUnauthorized :
+            $q.when;
+
+          return beforeAction()
+            .then(function () {
+              return $q.reject(error);
+            });
         }
 
         handleErrorsForRestApi(error);
@@ -39,7 +48,7 @@
     };
 
     function isApiRequest(requestUrl) {
-      var apiUrl = $injector.get('APP_CONFIG').apiUrl;
+      var apiUrl = APP_CONFIG.apiUrl;
       var isAuthUrl = _.find(['login', 'register', 'forgot'], function (subStr) {
         return _.includes(requestUrl, subStr);
       });
@@ -52,14 +61,11 @@
     }
 
     function isGraphql(requestUrl) {
-      var apiUrl = $injector.get('APP_CONFIG').apiUrl;
+      var apiUrl = APP_CONFIG.apiUrl;
       return apiUrl + '/graphql' === requestUrl;
     }
 
     function handleErrorsForRestApi(error) {
-      var AdpSessionService = $injector.get('AdpSessionService');
-      var AdpNotificationService = $injector.get('AdpNotificationService');
-
       var sessionExpired = isApiRequest(error.config.url) && error.status === 401;
       var hasApiError = error.status >= 400;
 
@@ -71,7 +77,7 @@
       } else if (hasApiError) {
         AdpNotificationService.notifyError(error.data.message);
       } else {
-        console.error('Unknown error.')
+        console.error('Unknown error.', error);
       }
 
     }

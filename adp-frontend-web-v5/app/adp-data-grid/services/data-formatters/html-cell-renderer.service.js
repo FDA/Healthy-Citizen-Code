@@ -55,6 +55,7 @@
 
       'Object': complexType,
       'Array': complexType,
+      'AssociativeArray': complexType,
 
       'Mixed': MixedTypeCellRenderer.treeView,
       'TreeSelector': TreeSelectorCellRenderer.treeView,

@@ -28,7 +28,6 @@ function createInteraction(data, formatFn, type) {
   }
 }
 
-
 function formatInteractions(data) {
   return data.map(item => {
     return {

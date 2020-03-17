@@ -22,7 +22,7 @@
     }
   },
   "dependencies": {
-    "SmartAdminNotification": "./smartadmin-plugin/notification",
+    "@shopify/draggable": "^1.0.0-beta.8",
     "SmartAdminWidgets": "./smartadmin-plugin/smartwidgets",
     "angular": "^1.7.9",
     "angular-file-upload": "^2.5.0",
@@ -33,8 +33,8 @@
     "angular-ui-router": "1.0.15",
     "angularjs-bootstrap-datetimepicker": "^1.1.4",
     "bootstrap": "3.3.7",
-    "devextreme": "^19.2.4",
-    "exceljs": "^3.4.0",
+    "devextreme": "^19.2.6",
+    "exceljs": "3.8.0",
     "fastclick": "~1.0.6",
     "font-awesome": "4.7.0",
     "highcharts": "^7.2.0",
@@ -49,6 +49,7 @@
     "recordrtc": ">=5.5.8",
     "select2": "^3.5.1",
     "showdown": "^1.9.1",
+    "toastr": "^2.1.4",
     "ui-cropper": "^1.0.9",
     "video.js": ">=6.2.7",
     "videojs-record": "^3.8.0",

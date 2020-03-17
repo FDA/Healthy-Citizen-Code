@@ -12,12 +12,11 @@ const hub = new HubRegistry([path.join(conf.paths.tasks, '*.js')]);
 // Load tasks
 gulp.registry(hub);
 
-gulp.task('inject:main', gulp.series('sw:replace', 'inject', 'html:replace'));
+gulp.task('inject:main', gulp.series('sw:replace', 'clientModules:replace', 'inject', 'html:replace'));
 gulp.task('load:resources', gulp.parallel(
   'create:config',
   'load:script',
   'load:modules',
-  'load:defaultModules',
   'load:css',
   'load:manifest'
   )

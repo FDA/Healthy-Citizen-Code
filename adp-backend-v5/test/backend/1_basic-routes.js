@@ -1,7 +1,6 @@
 // NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
 /**
  * Tests basic static routes in V5
- * TODO: test serving public files from multiple directories
  */
 const request = require('supertest');
 require('should');

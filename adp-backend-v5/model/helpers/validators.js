@@ -34,6 +34,8 @@
 
 module.exports = appLib => {
   const _ = require('lodash');
+  const decimalFromString = require('bson/lib/decimal128.js').fromString;
+
   const vutil = appLib.appModelHelpers.ValidatorUtils;
 
   /**
@@ -265,7 +267,7 @@ module.exports = appLib => {
      */
     required(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
       if (!_.isString(appModelPart.required)) {
-        cb();
+        return cb();
       }
 
       try {
@@ -315,6 +317,54 @@ module.exports = appLib => {
           `Error occurred during validating required field ${appModelPart.fullName} for condition ${appModelPart.required}`
         );
       }
+    },
+    int32(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = _.get(this, lodashPath);
+      if (val === undefined) {
+        return cb();
+      }
+
+      const INT32_MAX = 0x7fffffff;
+      const INT32_MIN = -0x80000000;
+
+      if (!Number.isInteger(val)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+      }
+      if (val < INT32_MIN || val > INT32_MAX) {
+        // outside of the range
+        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+      }
+
+      cb();
+    },
+    int64(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = _.get(this, lodashPath);
+      if (val === undefined) {
+        return cb();
+      }
+
+      if (!Number.isInteger(val)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+      }
+      if (val < Number.MIN_SAFE_INTEGER || val > Number.MAX_SAFE_INTEGER) {
+        // outside of the range
+        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+      }
+
+      cb();
+    },
+    decimal128(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+      const val = _.get(this, lodashPath);
+      if (val === undefined) {
+        return cb();
+      }
+      try {
+        // if can cast string to decimal without an error so it's a valid value
+        decimalFromString(val);
+      } catch (e) {
+        cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+      }
+      cb();
     },
   };
 

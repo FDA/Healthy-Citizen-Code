@@ -1,4 +1,3 @@
-// NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
 // TODO: add tests for multiple tables
 // TODO: add tests for default foreignKey
 

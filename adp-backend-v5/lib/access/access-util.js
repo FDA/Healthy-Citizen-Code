@@ -217,7 +217,6 @@ module.exports = appLib => {
 
   /**
    * Get user roles and permissions by user roles and auth settings.
-   * TODO: add option for object permission, not only array of strings
    * @param user
    * @param deviceType - necessary for adding permission based on deviceType
    */
@@ -817,23 +816,49 @@ module.exports = appLib => {
     }
     delete baseAppModel.rolesToPermissions;
     delete baseAppModel.usedPermissions;
+    delete baseAppModel.typeDefaults;
+    delete baseAppModel.subtypeDefaults;
+    delete baseAppModel.validatorShortcuts;
+    delete baseAppModel.macros;
 
-    removeBaseAppModelParts(baseAppModel.models, []);
+    m.removeBaseAppModelParts(baseAppModel.models);
 
     return baseAppModel;
+  };
 
-    function removeBaseAppModelParts(parts, path) {
-      _.each(parts, (val, key) => {
-        removeBaseAppModelPart(val, _.concat(path, key));
+  m.removeBaseAppModelParts = (parts, path = []) => {
+    _.each(parts, (val, key) => {
+      m.removeBaseAppModelPart(val, _.concat(path, key));
+    });
+  };
+
+  m.removeBaseAppModelPart = (part, path = []) => {
+    delete part.generatorSpecification;
+    delete part.synthesize;
+    delete part.transform;
+
+    if (['LookupObjectID', 'LookupObjectID[]'].includes(part.type)) {
+      return _.each(part.lookup.table, lookupSpec => {
+        delete lookupSpec.foreignKeyType;
+        delete lookupSpec.scopes;
+        delete lookupSpec.sortBy;
+        delete lookupSpec.sourceTable;
       });
     }
 
-    function removeBaseAppModelPart(part, path) {
-      delete part.generatorSpecification;
+    if (part.type === 'TreeSelector') {
+      return _.each(part.table, treeSelectorSpec => {
+        delete treeSelectorSpec.foreignKeyType;
+        delete treeSelectorSpec.scopes;
+        delete treeSelectorSpec.sortBy;
+        delete treeSelectorSpec.sourceTable;
+        delete treeSelectorSpec.leaves;
+        delete treeSelectorSpec.roots;
+      });
+    }
 
-      if (part.fields) {
-        removeBaseAppModelParts(part.fields, _.concat(path, 'fields'));
-      }
+    if (part.fields) {
+      m.removeBaseAppModelParts(part.fields, _.concat(path, 'fields'));
     }
   };
 
@@ -862,13 +887,27 @@ module.exports = appLib => {
    * Replace every list/dynamicList field contains 'scopes' and 'values' with plain list values
    * @param userPermissions
    * @param inlineContext
-   * @param authorizedModel
+   * @param models
    * @returns {Promise<void>}
    */
   m.injectListValues = async (userPermissions, inlineContext, models) => {
     const lists = await m.getListsForUser(userPermissions, inlineContext, appLib.ListsFields);
     _.each(lists, (list, listFieldPath) => {
       _.set(models, `${listFieldPath}.list`, list.values);
+    });
+  };
+
+  m.injectListValuesForModel = async (userPermissions, inlineContext, model) => {
+    const modelName = model.schemaName;
+    const listFields = appLib.ListsFields.filter(f => f.startsWith(modelName));
+    const lists = await m.getListsForUser(userPermissions, inlineContext, listFields);
+    _.each(lists, (list, fieldPathWithModel) => {
+      const fieldPath = fieldPathWithModel.replace(`${modelName}.`, '');
+      const field = _.get(model, fieldPath);
+      if (field) {
+        // checking field since for datasets schemes there may be reduced set of fields included
+        field.list = list.values;
+      }
     });
   };
 

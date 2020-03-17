@@ -1,7 +1,14 @@
+/**
+ * Filters Where to be called by the BACKEND ONLY
+ *
+ * Each function is called with unified context.
+ */
+
 module.exports = () => {
   const m = {};
 
   m.number = require('./filters/number');
+  m.decimal128 = require('./filters/decimal128');
   m.time = require('./filters/time');
   m.date = require('./filters/date');
   m.dateTime = require('./filters/dateTime');

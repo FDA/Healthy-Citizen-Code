@@ -28,7 +28,10 @@
 
     function login(credentials) {
       return $http.post(APP_CONFIG.apiUrl + '/login', credentials)
-        .then(setupAppForUser);
+        .then(setupAppForUser)
+        .catch(function(){
+          throw new ResponseError('Unable to connect to the server. Please try again later');
+        });
     }
 
     function setupAppForUser(userData) {

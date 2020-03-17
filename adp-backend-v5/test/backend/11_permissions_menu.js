@@ -1,9 +1,9 @@
-// TODO: requiresAuthentication is now replaced with permissions: ['authenticated'], update tests
 const request = require('supertest');
 const _ = require('lodash');
 require('should');
-
 const reqlib = require('app-root-path').require;
+
+const { getSchemaNestedPaths } = require('../../lib/util/env');
 
 const {
   auth: { user, loginWithUser },
@@ -236,7 +236,7 @@ describe('V5 Backend Menu Permissions', () => {
   it('should correctly strip down menu for user', async function() {
     const { appLib } = this;
     appLib.setOptions({
-      appModelSources: [`${process.env.APP_MODEL_DIR}/model`, menuPart, authPart],
+      appModelSources: [...getSchemaNestedPaths('model'), menuPart, authPart],
     });
 
     await this.appLib.setup();

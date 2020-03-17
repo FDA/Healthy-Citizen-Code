@@ -22,7 +22,8 @@
     }
 
     _ResponseError.prototype = Object.create(Error.prototype);
-    _ResponseError.RECORD_NOT_FOUND = 'Record not found'
+    _ResponseError.RECORD_NOT_FOUND = 'Record not found';
+    _ResponseError.SCHEMA_IS_EMPTY = 'Scheme is empty';
 
     return _ResponseError;
   }

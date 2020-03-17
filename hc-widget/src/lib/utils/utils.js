@@ -1,6 +1,3 @@
-import lodashReduce from "lodash.reduce";
-import lodashMap from "lodash.map";
-
 export function isArray(arg) {
   return typeofToString(arg) === '[object Array]';
 }

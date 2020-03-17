@@ -38,6 +38,30 @@ gulp.task('sw:replace', function () {
     });
 });
 
+gulp.task('clientModules:replace', async () => {
+  const opts = {
+    url: `${APP_CONFIG.apiUrl}/${conf.endpoints.clientModules}`,
+    method: 'GET',
+    json: true
+  }
+
+  const { data } = await requestPromise(opts);
+  const moduleNames = data
+    .filter(item => /.+\.module\.js$/.test(item.name))
+    .map(({ name }) => {
+      const fileName = name.split('/').pop();
+      const [moduleName] = fileName.match(/(^|\/)[^.]+/);
+      return 'app.' + _.camelCase(moduleName);
+    })
+    .filter(v => !!v);
+
+  return replaceMeta(
+    { data: { moduleList: JSON.stringify(moduleNames) } },
+    `${conf.paths.src}/app-client.module.js.template`,
+    'app-client.module.js'
+  );
+});
+
 function replaceMeta(body, src, newName) {
   let re = /<!-- (.+) -->/g;
 

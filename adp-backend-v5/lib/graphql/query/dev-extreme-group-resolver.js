@@ -2,18 +2,12 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const { schemaComposer } = require('graphql-compose');
 const log = require('log4js').getLogger('graphql/dev-extreme-group-resolver');
-const { getOrCreateEnum } = require('../type/common');
-const { ValidationError } = require('../../errors');
+const { getOrCreateEnum, dxQueryWithQuickFilterInput } = require('../type/common');
+const { handleGraphQlError } = require('../util');
+const { getQuickFilterConditions } = require('../../graphql/quick-filter/util');
 const GraphQlContext = require('../../request-context/graphql/GraphQlContext');
 
 const devExtremeGroupResolverName = 'groupDx';
-
-const dxQueryInputOptional = schemaComposer.createInputTC({
-  name: 'dxQueryInputOptional',
-  fields: {
-    dxQuery: { type: 'String!' },
-  },
-});
 
 const dxGroupInput = schemaComposer
   .createInputTC({
@@ -67,7 +61,7 @@ function addDevExtremeGroupResolver(model, modelName) {
     kind: 'query',
     name: devExtremeGroupResolverName,
     args: {
-      filter: dxQueryInputOptional,
+      filter: dxQueryWithQuickFilterInput,
       group: dxGroupInput,
       groupSummary: dxSummaryInput,
       totalSummary: dxSummaryInput,
@@ -84,8 +78,8 @@ function addDevExtremeGroupResolver(model, modelName) {
     },
     type,
     resolve: async ({ args, context }) => {
+      const { appLib, req } = context;
       try {
-        const { appLib, req } = context;
         const graphQlContext = new GraphQlContext(appLib, req, modelName, args);
         const { appModel, userPermissions, inlineContext, userContext, model: dbModel } = graphQlContext;
         args.take = graphQlContext._getLimit(args.take);
@@ -97,14 +91,21 @@ function addDevExtremeGroupResolver(model, modelName) {
           dba: { getConditionForActualRecord },
         } = appLib;
 
-        const dxConditions = args.filter ? parse(args.filter.dxQuery, appModel) : {};
+        const { filter: { dxQuery, quickFilterId } = {} } = args;
+        const dxConditions = parse(dxQuery, appModel);
         const action = 'view';
-        const [scopeConditionsMeta, actionFuncsMeta] = await Promise.all([
+        const [scopeConditionsMeta, quickFilterConditions, actionFuncsMeta] = await Promise.all([
           getScopeConditionsMeta(appModel, userPermissions, inlineContext, action),
+          getQuickFilterConditions(appLib, quickFilterId, userContext),
           getActionFuncsMeta(appModel, userPermissions, inlineContext, true),
         ]);
         const scopeConditions = scopeConditionsMeta.overallConditions;
-        const conditions = MONGO.and(getConditionForActualRecord(), dxConditions, scopeConditions);
+        const conditions = MONGO.and(
+          getConditionForActualRecord(),
+          dxConditions,
+          quickFilterConditions,
+          scopeConditions
+        );
         if (conditions === false) {
           // no data is retrieved with false condition
           return getCommonResponse({}, args);
@@ -117,13 +118,9 @@ function addDevExtremeGroupResolver(model, modelName) {
           return getData({ args, model: dbModel, conditions, appLib, actionFuncs, userContext });
         }
 
-        return getGroups({ args, model: dbModel, conditions, appLib, actionFuncs, userContext });
+        return getGroups({ args, model: dbModel, conditions, appLib, actionFuncs, userContext, appModel });
       } catch (e) {
-        log.error(e);
-        if (e instanceof ValidationError) {
-          throw e;
-        }
-        throw new Error(`Unable to find requested elements`);
+        handleGraphQlError(e, `Unable to find requested elements`, log, appLib);
       }
     },
   });
@@ -149,20 +146,20 @@ async function getData({ args, model, conditions, appLib, actionFuncs, userConte
   return response;
 }
 
-async function getGroups({ args, model, conditions, appLib, actionFuncs, userContext }) {
+async function getGroups({ args, model, conditions, appLib, actionFuncs, userContext, appModel }) {
   const pipeline = [{ $match: conditions }];
   const { requireGroupCount, requireTotalCount, totalSummary, groupSummary, group, skip, take } = args;
 
   const groupIndex = 0;
   const firstGroup = group[0];
-  const groupCount = getGroupCount(requireGroupCount, firstGroup);
+  const groupCount = getGroupCount(requireGroupCount, firstGroup, appModel);
 
   pipeline.push({
     $facet: {
       ...groupCount,
       total: getTotalPipeline(requireTotalCount, group, groupSummary, totalSummary),
       data: [
-        getGroupPipeline(group, groupIndex, groupSummary),
+        getGroupPipeline(group, groupIndex, groupSummary, appModel),
         getGroupSort(group, groupIndex),
         { $skip: skip },
         { $limit: take },
@@ -184,6 +181,7 @@ async function getGroups({ args, model, conditions, appLib, actionFuncs, userCon
     model,
     userContext,
     currentGroupFilter: conditions,
+    appModel,
   });
 
   return response;
@@ -201,10 +199,10 @@ function getTotalPipeline(requireTotalCount, group, groupSummary, totalSummary) 
   ];
 }
 
-function getGroupPipeline(group, groupIndex, groupSummary) {
+function getGroupPipeline(group, groupIndex, groupSummary, appModel) {
   return {
     $group: {
-      ...getGroupItemsWithCount(group, groupIndex),
+      ...getGroupItemsWithCount(group, groupIndex, appModel),
       ...getSummaryCondition(groupSummary, 'groupSummary'),
     },
   };
@@ -226,6 +224,7 @@ async function getGroupData({
   model,
   userContext,
   currentGroupFilter,
+  appModel,
 }) {
   const transformedGroup = { key: dbGroupData._id };
   if (!_.isEmpty(group) && groupSummary) {
@@ -254,7 +253,7 @@ async function getGroupData({
     const pipeline = [{ $match: filterForNextGroups }];
 
     const nextGroupIndex = groupIndex + 1;
-    pipeline.push(getGroupPipeline(group, nextGroupIndex, groupSummary));
+    pipeline.push(getGroupPipeline(group, nextGroupIndex, groupSummary, appModel));
     pipeline.push(getGroupSort(group, nextGroupIndex));
 
     const nestedDbGroupData = await appLib.dba.aggregatePipeline({ model, pipeline });
@@ -268,6 +267,7 @@ async function getGroupData({
       model,
       userContext,
       currentGroupFilter: filterForNextGroups,
+      appModel,
     });
   }
 
@@ -284,6 +284,7 @@ function transformGroups({
   model,
   userContext,
   currentGroupFilter,
+  appModel,
 }) {
   return Promise.map(allGroupsData, dbGroupData =>
     getGroupData({
@@ -296,6 +297,7 @@ function transformGroups({
       model,
       userContext,
       currentGroupFilter,
+      appModel,
     })
   );
 }
@@ -339,8 +341,10 @@ function getCommonResponse(dbData, args) {
   return response;
 }
 
-function getGroupCount(requireGroupCount, group) {
-  return requireGroupCount ? { groupCount: [{ $group: getGroupIdCondition(group) }, { $count: 'value' }] } : {};
+function getGroupCount(requireGroupCount, group, appModel) {
+  return requireGroupCount
+    ? { groupCount: [{ $group: getGroupIdCondition(group, appModel) }, { $count: 'value' }] }
+    : {};
 }
 
 /**
@@ -370,13 +374,20 @@ function getTotalCount(requireTotalCount, group, groupSummary) {
   return {};
 }
 
-function getGroupIdCondition(group) {
-  return { _id: `$${group.selector}` };
+function getGroupIdCondition(group, appModel) {
+  const { selector } = group;
+  const isLookupType = _.get(appModel, `fields.${selector}.type`, '').startsWith('LookupObjectID');
+  if (isLookupType) {
+    // actual condition is { _id, table }, but label is required for frontend "key" field to show by which value a group is created
+    return { _id: { _id: `$${selector}._id`, table: `$${selector}.table`, label: `$${selector}.label` } };
+  }
+
+  return { _id: `$${selector}` };
 }
 
-function getGroupItemsWithCount(group, groupIndex) {
+function getGroupItemsWithCount(group, groupIndex, appModel) {
   const isExpanded = isExpandedGroup(group, groupIndex);
-  const obj = getGroupIdCondition(group[groupIndex]);
+  const obj = getGroupIdCondition(group[groupIndex], appModel);
   if (isExpanded) {
     obj.items = { $push: '$$ROOT' };
   } else {
