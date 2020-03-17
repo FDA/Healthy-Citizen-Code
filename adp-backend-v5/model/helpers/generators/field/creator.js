@@ -8,7 +8,7 @@ module.exports = ({ ScgError }) => {
      */
     async scgCreator() {
       const { users = [] } = this.params;
-      const pipeline = [{ $sample: { size: 1 } }, { $project: { _id: 1 } }];
+      const pipeline = [{ $sample: { size: 1 } }, { $project: { _id: 1, login: 1 } }];
       if (_.isArray(users) && users.length) {
         pipeline.unshift({ $match: { login: { $in: users } } });
       }
@@ -20,7 +20,13 @@ module.exports = ({ ScgError }) => {
       if (!docs.length) {
         throw new ScgError(`No users found for function 'scgCreator' with param 'users'=${users}`);
       }
-      return docs[0]._id;
+      const user = docs[0];
+
+      return {
+        _id: user._id,
+        table: 'users',
+        label: user.login,
+      };
     },
   };
 };

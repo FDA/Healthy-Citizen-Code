@@ -4,6 +4,7 @@ const _ = require('lodash');
 const request = require('supertest');
 const { ObjectID, MongoClient } = require('mongodb');
 const reqlib = require('app-root-path').require;
+const { prepareEnv: prepareAppEnv, getSchemaNestedPaths } = require('../lib/util/env');
 
 const { generateObjectId, stringifyObjectId } = reqlib('/lib/util/util');
 
@@ -83,6 +84,8 @@ const checkForEqualityConsideringInjectedFields = (data, sample) => {
 
 const prepareEnv = (path = './test/backend/.env.test') => {
   require('dotenv').load({ path });
+  prepareAppEnv();
+
   // generate random database for every test
   const slashIndex = process.env.MONGODB_URI.lastIndexOf('/');
   process.env.MONGODB_URI = `${process.env.MONGODB_URI.substring(0, slashIndex + 1)}~${uuid.v4()}`;
@@ -286,7 +289,7 @@ const setAppAuthOptions = (appLib, authOptions) => {
     },
   };
   appLib.setOptions({
-    appModelSources: [`${process.env.APP_MODEL_DIR}/model`, overrideAppAuth],
+    appModelSources: [...getSchemaNestedPaths('model'), overrideAppAuth],
   });
 };
 

@@ -3,10 +3,10 @@ export default function objDrug(medCoding) {
   const GROUP_NAME = 'objDrug';
 
   return {
-    id: medCoding.rxcui,
+    id: medCoding.rxcui[0],
     group: GROUP_NAME,
     label: medCoding.brandName,
-    rxcui: medCoding.rxcui,
+    rxcui: medCoding.rxcui[0],
     dependedOnBy: [],
     depends: []
   }

@@ -16,24 +16,28 @@ gulpInject.transform.html.js = function (path) {
 const conf = require('../config');
 
 function scriptsStream() {
+  const clientModulesPath = path.join(conf.paths.tmp, conf.paths.clientModulesFolder);
   return gulp.src([
     //  file is strictly hardcoded, because of specific SmartAdmin app structure
     path.join(conf.paths.tmp, 'api_config.js'),
     path.join(conf.paths.tmp, 'sw-manager.js'),
-    path.join(conf.paths.tmp, conf.paths.serverModules),
-    path.join(conf.paths.tmp, conf.paths.defaultServerModules),
     path.join(conf.paths.tmp, conf.paths.serverScripts),
     path.join(conf.paths.src, 'app-core.config.js'),
     path.join(conf.paths.src, 'adp-render.lib.js'),
     path.join(conf.paths.src, 'app.ls.js'),
     path.join(conf.paths.src, 'app.db.js'),
+    path.join(conf.paths.src, 'polyfills.js'),
     path.join(conf.paths.src, 'main.js'),
     // moving module definition to the top
-    path.join(conf.paths.src, '/**/*.module.js'),
+    path.join(clientModulesPath, '/**/*.module.js'),
+    path.join(clientModulesPath, '/**/*.provider.js'),
+    path.join(clientModulesPath, '/**/*.js'),
     path.join(conf.paths.src, '/**/module.js'),
+    path.join(conf.paths.src, '/app.module.js'),
+    path.join(conf.paths.tmp, 'app-client.module.js'),
     path.join(conf.paths.src, '/**/*.provider.js'),
     path.join(conf.paths.tmp, 'templateCacheHtml.js'),
-    path.join(conf.paths.src, '/**/!(service-worker).js')
+    path.join(conf.paths.src, '/**/!(service-worker).js'),
   ], { read: false });
 }
 
@@ -220,6 +224,11 @@ function getMainBowerFiles() {
       },
       "jquery-migrate": {
         "main": "./dist/jquery-migrate.min.js",
+      },
+      "@shopify/draggable": {
+        "main": [
+          "./lib/es5/draggable.bundle.legacy.js",
+        ]
       }
     }
   });

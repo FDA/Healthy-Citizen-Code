@@ -7,8 +7,11 @@
 
   function adpForm(
     AdpNotificationService,
+    AdpFieldsService,
     AdpFormService,
     AdpFormDataUtils,
+    RequiredExpression,
+    ShowExpression,
     $timeout,
     UploadError,
     ErrorHelpers,
@@ -38,10 +41,12 @@
           scope.formData = _.cloneDeep(scope.adpData) || {};
           scope.adpFormParams = scope.adpFormParams || {};
 
-          scope.typeMap = AdpFormService.getTypeMap();
-          scope.type = AdpFormService.getType(scope.adpFormParams);
-          // refactor: rename to render schema
-          scope.fields = AdpFormService.getFormFields(scope.adpFields, scope.type);
+          scope.groupingType = AdpFormService.getGroupingType(scope.adpFormParams);
+
+          scope.fields = scope.groupingType ?
+            AdpFieldsService.getFormGroupFields(scope.adpFields, scope.groupingType) :
+            AdpFieldsService.getFormFields(scope.adpFields);
+
           scope.errorCount = 0;
 
           scope.loading = false;
@@ -50,6 +55,7 @@
 
           bindEvents();
 
+          // todo: refactor as abstraction with methods, like path(), child(), parent() and etc
           var formParams = {
             path: null,
             row: scope.formData,
@@ -82,10 +88,10 @@
             applyActionClass(formParams.action);
             bindFormEvents();
 
-            AdpFormService.evaluateRequiredStatus(scope.validationParams.formParams, scope.form);
+            RequiredExpression.eval(scope.validationParams.formParams, scope.form);
 
             // initial run to setup fields visibility
-            AdpFormService.evaluateShow({
+            ShowExpression.eval({
               formData: scope.formData,
               schema: scope.schema,
               groups: scope.fields.groups,
@@ -134,8 +140,7 @@
 
           handleUploaders(scope.formData)
             .then(function () {
-              var formData = AdpFormDataUtils.cleanFormData(scope.formData, scope.schema);
-
+              var formData = AdpFormDataUtils.transformDataBeforeSending(scope.formData, scope.schema);
               return scope.adpSubmit(formData);
             })
             .catch(function (error) {
@@ -181,7 +186,9 @@
 
         function updateDisabledState(values) {
           if (!element || !element.find('[type="submit"]').length) return;
-          var loading = values[1];
+          var loading = values[0];
+
+          element.toggleClass('adp-disabled-form', loading);
 
           element.find('[type="submit"]')
             .prop('disabled', loading);
@@ -194,7 +201,7 @@
 
           AdpFormService.forceValidation(scope.form);
 
-          AdpFormService.evaluateShow({
+          ShowExpression.eval({
             formData: scope.formData,
             schema: scope.schema,
             groups: scope.fields.groups,
@@ -202,7 +209,7 @@
             actionType: scope.adpFormParams.actionType
           });
 
-          AdpFormService.evaluateRequiredStatus(scope.validationParams.formParams, scope.form);
+          RequiredExpression.eval(scope.validationParams.formParams, scope.form);
 
           if (scope.form.$submitted) {
             scope.errorCount = AdpFormService.countErrors(scope.form);

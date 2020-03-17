@@ -2,8 +2,56 @@
   "typeDefaults": {
     "comment": "This file provides defaults for various attributes depending on the field type. One can always override these defaults by providing value directly in the field",
     "fields": {
+      "Array": {
+        "width": 200,
+        "parameters": {
+          "grouping": {
+            "allowGrouping": false
+          }
+        }
+      },
+      "AssociativeArray": {
+        "width": 200,
+        "parameters": {
+          "grouping": {
+            "allowGrouping": false
+          }
+        }
+      },
+      "Object": {
+        "width": 200,
+        "parameters": {
+          "grouping": {
+            "allowGrouping": false
+          }
+        }
+      },
+      "Mixed": {
+        "width": 200,
+        "parameters": {
+          "grouping": {
+            "allowGrouping": false
+          }
+        }
+      },
+      "BloodPressure": {
+        "parameters": {
+          "grouping": {
+            "allowGrouping": false
+          }
+        }
+      },
+      "Html": {
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": false,
+            "allowExpandGroup": false
+          },
+          "minWidth": 100
+        }
+      },
       "String": {
-        "width": 150,
         "searchable": true,
         "transform": ["trim"],
         "autocomplete": "enable",
@@ -12,7 +60,8 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "minWidth": 100
         }
       },
       "String[]": {
@@ -23,25 +72,38 @@
             "allowGrouping": true,
             "allowExpandGroup": true
           }
-        }
+        },
+        "width": 150
       },
       "LookupObjectID": {
-        "autocomplete": "enable"
+        "autocomplete": "enable",
+        "width": 150,
+        "parameters": {
+          "enableInCellEditing": true
+        }
       },
       "LookupObjectID[]": {
-        "autocomplete": "enable"
+        "autocomplete": "enable",
+        "width": 150,
+        "parameters": {
+          "enableInCellEditing": true
+        }
       },
       "TreeSelector": {
-        "autocomplete": "enable"
+        "autocomplete": "enable",
+        "width": 150
+      },
+      "DateTime": {
+        "width": 150
       },
       "Date": {
-        "width": 85
+        "width": 150
       },
       "Time": {
+        "width": 150,
         "transform": [["time", "null"]]
       },
       "Number": {
-        "width": 30,
         "autocomplete": "enable",
         "parameters": {
           "enableInCellEditing": true,
@@ -51,8 +113,76 @@
           }
         }
       },
+      "Double": {
+        "autocomplete": "enable",
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          }
+        }
+      },
+      "Int32": {
+        "autocomplete": "enable",
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          }
+        },
+        "validate": [
+          {
+            "validator": "int32",
+            "arguments": {},
+            "errorMessages": {
+              "default": "Please enter correct int32 value"
+            }
+          }
+        ]
+      },
+      "Int64": {
+        "autocomplete": "enable",
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          }
+        },
+        "validate": [
+          {
+            "validator": "int64",
+            "arguments": {},
+            "errorMessages": {
+              "default": "Please enter correct int64 value"
+            }
+          }
+        ]
+      },
+      "Decimal128": {
+        "autocomplete": "enable",
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          }
+        },
+        "validate": [
+          {
+            "validator": "decimal128",
+            "arguments": {},
+            "errorMessages": {
+              "default": "Please enter correct decimal value"
+            }
+          }
+        ],
+        "transform": [["null", "toString"]]
+      },
       "Boolean": {
-        "width": 20,
+        "width": 120,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -71,14 +201,30 @@
           }
         ],
         "fields": {
-          "creator": {
+          "_id": {
             "type": "ObjectID",
+            "fullName": "Id",
+            "parameters": {
+              "enableInCellEditing": false,
+              "visible": false,
+              "grouping": {
+                "allowGrouping": false,
+                "allowExpandGroup": false
+              }
+            }
+          },
+          "creator": {
+            "type": "LookupObjectID",
+            "lookup": {
+              "table": "users",
+              "foreignKey": "_id",
+              "label": "login"
+            },
             "fullName": "creator",
             "visible": false,
             "synthesize": "creator",
             "description": "Record Creator",
             "permissions": "accessAsSuperAdmin",
-            "index": true,
             "generatorSpecification": {
               "generator": "scgCreator"
             }
@@ -232,16 +378,20 @@
           "export": {
             "enabled": true
           },
+          "import": {
+            "enabled": true
+          },
           "selection": {
             "selectAllMode": "page",
             "mode": "single"
           },
           "enableInCellEditing": false,
-          "hoverStateEnabled": true
+          "hoverStateEnabled": true,
+          "loadInvisibleFields": true
         }
       },
       "Password": {
-        "width": 60,
+        "width": 150,
         "validate": [
           {
             "validator": "regex",
@@ -312,7 +462,7 @@
         }
       },
       "Phone": {
-        "width": 80,
+        "width": 150,
         "validate": [
           {
             "validator": "regex",
@@ -346,7 +496,7 @@
         }
       },
       "ImperialHeight": {
-        "width": 50,
+        "width": 150,
         "transform": [["heightImperialToMetric", "heightMetricToImperial"]],
         "validate": [
           {
@@ -362,12 +512,12 @@
         ]
       },
       "ImperialWeight": {
-        "width": 50,
+        "width": 150,
         "transform": ["trim", ["weightImperialToMetric", "weightMetricToImperial"]],
         "validate": ["min(1)", "max(1000)"]
       },
       "ImperialWeightWithOz": {
-        "width": 50,
+        "width": 150,
         "transform": ["trim", ["weightImperialWithOzToMetric", "weightMetricToImperialWithOz"]]
       }
     }
@@ -375,7 +525,7 @@
   "subtypeDefaults": {
     "fields": {
       "Password": {
-        "width": 60,
+        "width": 150,
         "validate": [
           {
             "validator": "regex",
@@ -446,7 +596,7 @@
         }
       },
       "Phone": {
-        "width": 80,
+        "width": 150,
         "validate": [
           {
             "validator": "regex",
@@ -461,7 +611,8 @@
         ],
         "autocomplete": "enable",
         "parameters": {
-          "enableInCellEditing": true,          "grouping": {
+          "enableInCellEditing": true,
+          "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
           }
@@ -471,14 +622,14 @@
         "width": 180,
         "autocomplete": "enable",
         "parameters": {
-          "enableInCellEditing": true,          "grouping": {
+          "enableInCellEditing": true,
+          "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
           }
         }
       },
       "ImperialHeight": {
-        "width": 50,
         "transform": [["heightImperialToMetric", "heightMetricToImperial"]],
         "validate": [
           {
@@ -501,7 +652,6 @@
         }
       },
       "ImperialWeight": {
-        "width": 50,
         "transform": ["trim", ["weightImperialToMetric", "weightMetricToImperial"]],
         "validate": ["min(1)", "max(1000)"],
         "parameters": {
@@ -513,7 +663,6 @@
         }
       },
       "ImperialWeightWithOz": {
-        "width": 50,
         "transform": ["trim", ["weightImperialWithOzToMetric", "weightMetricToImperialWithOz"]],
         "parameters": {
           "enableInCellEditing": true,

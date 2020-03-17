@@ -307,13 +307,7 @@ angular.module('SmartAdmin.Layout').directive('speechRecognition', function ($lo
 								if (ignoreCallsFor.indexOf(commandsList[j].originalPhrase) < 0) {
 									// play sound when match found
 									console.log(2);
-									$.smallBox({
-										title : (commandsList[j].originalPhrase),
-										content : "loading...",
-										color : "#333",
-										sound_file : 'voice_alert',
-										timeout : 2000
-									});
+									toastr.success("loading...", commandsList[j].originalPhrase);
 
 									if ($('#speech-btn .popover').is(':visible')) {
 										$('#speech-btn .popover').fadeOut(250);
@@ -327,13 +321,9 @@ angular.module('SmartAdmin.Layout').directive('speechRecognition', function ($lo
 
 					invokeCallbacks(callbacks.resultNoMatch);
 					//console.log("no match found for: " + commandText)
-					$.smallBox({
-						title : "Error: <strong>" + ' " ' + commandText + ' " ' + "</strong> no match found!",
-						content : "Please speak clearly into the microphone",
-						color : "#a90329",
-						timeout : 5000,
-						icon : "fa fa-microphone"
-					});
+					toastr.error(
+						"Please speak clearly into the microphone", "Error: <strong> \" " + commandText + " \" </strong> no match found!"
+					);
 					if ($('#speech-btn .popover').is(':visible')) {
 						$('#speech-btn .popover').fadeOut(250);
 					}

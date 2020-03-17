@@ -14,8 +14,6 @@ export function resolveRxCuiByNdc(ndc) {
       }
       return res.json();
     })
-    .then(json => {
-      return get(json, 'idGroup.rxnormId.0', null);
-    })
+    .then(json => get(json, 'idGroup.rxnormId', null))
     .catch(() => null);
 }

@@ -21,7 +21,7 @@ module.exports = appLib => {
   const m = {};
 
   /**
-   * Sends error message with 400 HTTP code and returns next() (to make sure that the restify after callbacks fire)
+   * Sends error message with 400 HTTP code
    * message is the error message to return to the client
    * @param req
    * @param res
@@ -213,15 +213,6 @@ module.exports = appLib => {
           message: `Error occurred while retrieving schema`,
         });
       });
-
-    // const schema = _.clone(_.get(appLib.appModel.models, path.join('.fields.')));
-    // delete schema.scopes;
-    // if (schema && schema.type === 'Schema') {
-    //   // TODO: check why code 200 is not returned by default, getting 426 without explicit specification
-    //   res.status(200).json({ success: true, data: schema });
-    // } else {
-    //   res.status(400).json({ success: false, message: `This schema doesn't exist` });
-    // }
   };
 
   /**

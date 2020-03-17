@@ -15,11 +15,13 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
   let graphqlType;
   if (type === ['Date', 'Time', 'DateTime']) {
     graphqlType = 'Date';
-  } else if (['String', 'Barcode', 'ObjectID', 'Password', 'Email', 'Phone', 'Url', 'Text'].includes(type)) {
+  } else if (
+    ['String', 'Barcode', 'ObjectID', 'Password', 'Email', 'Phone', 'Url', 'Text', 'Decimal128', 'Html'].includes(type)
+  ) {
     graphqlType = 'String';
   } else if (type === 'Boolean') {
     graphqlType = 'Boolean';
-  } else if (['Number', 'ImperialWeight', 'BloodPressure'].includes(type)) {
+  } else if (['Number', 'ImperialWeight', 'BloodPressure', 'Double', 'Int32', 'Int64'].includes(type)) {
     graphqlType = 'Float';
   } else if (['ImperialHeight', 'ImperialWeightWithOz'].includes(type)) {
     graphqlType = '[Float]';

@@ -6,11 +6,16 @@ export function fhirRequest(endpoint, options) {
   return new Request(endpoint, request);
 }
 
-function _getHeaders({ fhirAccessToken }) {
+function _getHeaders({ epicAccessToken, fhirAccessToken, dataSource }) {
   const headers = {};
+  const token = epicAccessToken || fhirAccessToken;
 
-  if (fhirAccessToken !== undefined) {
-    headers.Authorization = `Bearer ${fhirAccessToken}`;
+  if (['epicStu3WithOauth2', 'epicStu3'].includes(dataSource)) {
+    headers.Accept = 'application/json';
+  }
+
+  if (token) {
+    headers.Authorization = `Bearer ${token}`;
   }
 
   return headers;

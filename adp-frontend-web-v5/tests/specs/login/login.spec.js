@@ -51,7 +51,7 @@ describe('login', () => {
       const password = '12345';
       await this.page.type('#login', login);
       await this.page.type('#password', password);
-      const errorBoxSelector = '.bigBox span';
+      const errorBoxSelector = '.toast-error .toast-message';
       const formWithErrorSelector = 'form.ng-submitted';
 
       const [_action, errorNode, formWithError] = await Promise.all([

@@ -16,7 +16,7 @@ async function getRecalls({ start, size, auth, eventLmdFrom = '01/01/1990' }) {
   const eventLmdTo = `${now.getUTCMonth() + 1}/${now.getUTCDate()}/${now.getUTCFullYear() + 1}`;
   const formData = {
     displaycolumns:
-      'recalleventid,firmcitynam,firmcountrynam,firmline1adr,firmline2adr,firmpostalcd,phasetxt,recallinitiationdt,firmfeinum,firmsurvivingfei,firmlegalnam,firmsurvivingnam,voluntarytypetxt,distributionareasummarytxt,centercd,centerclassificationdt,productid,productdescriptiontxt,producttypeshort,productshortreasontxt,recallnum,productdistributedquantity,centerclassificationtypetxt,eventlmd,codeinformation,initialfirmnotificationtxt,terminationdt,determinationdt',
+      'recalleventid,firmcitynam,firmcountrynam,firmline1adr,firmline2adr,firmpostalcd,firmphonenum,firmstatecd,phasetxt,recallinitiationdt,firmfeinum,firmsurvivingfei,firmlegalnam,firmsurvivingnam,voluntarytypetxt,distributionareasummarytxt,centercd,centerclassificationdt,productid,productdescriptiontxt,producttypeshort,productshortreasontxt,recallnum,productdistributedquantity,centerclassificationtypetxt,eventlmd,codeinformation,initialfirmnotificationtxt,reportdt,terminationdt,determinationdt',
     filter: `[{'eventlmdfrom': '${eventLmdFrom}'}, {'eventlmdto':'${eventLmdTo}'}]`,
     start,
     rows: size,
@@ -63,10 +63,15 @@ async function getRecalls({ start, size, auth, eventLmdFrom = '01/01/1990' }) {
   // return res;
 }
 
+function getDateField(dateField) {
+  return dateField ? new Date(dateField) : undefined;
+}
+
 function transformIresDoc(doc) {
   return {
-    productType: doc.PRODUCTTYPESHORT,
     eventId: doc.RECALLEVENTID,
+    productId: doc.PRODUCTID,
+    productType: doc.PRODUCTTYPESHORT,
     postalCode: doc.FIRMPOSTALCD,
     stateProvince: doc.FIRMSTATECD,
     country: doc.FIRMCOUNTRYNAM,
@@ -77,10 +82,11 @@ function transformIresDoc(doc) {
     productDescription: doc.PRODUCTDESCRIPTIONTXT,
     productQuantity: doc.PRODUCTDISTRIBUTEDQUANTITY,
     reasonForRecall: doc.PRODUCTSHORTREASONTXT,
-    recallInitiationDate: doc.RECALLINITIATIONDT ? new Date(doc.RECALLINITIATIONDT) : undefined,
-    reportDate: doc.REPORTDT ? new Date(doc.REPORTDT) : undefined,
-    terminationDate: doc.TERMINATIONDT ? new Date(doc.TERMINATIONDT) : undefined,
-    centerClassificationDate: doc.CENTERCLASSIFICATIONDT ? new Date(doc.CENTERCLASSIFICATIONDT) : undefined,
+    recallInitiationDate: getDateField(doc.RECALLINITIATIONDT),
+    reportDate: getDateField(doc.REPORTDT),
+    terminationDate: getDateField(doc.TERMINATIONDT),
+    determinationDate: getDateField(doc.DETERMINATIONDT),
+    centerClassificationDate: getDateField(doc.CENTERCLASSIFICATIONDT),
     codeInfo: doc.CODEINFORMATION,
     status: doc.PHASETXT,
     voluntaryMandated: `Voluntary: ${doc.VOLUNTARYTYPETXT}`,
@@ -93,13 +99,18 @@ function transformIresDoc(doc) {
     eventLastModifiedDate: doc.EVENTLMD,
     resRecordId: doc.RID,
     firmPhoneNumber: doc.FIRMPHONENUM,
+    centerCode: doc.CENTERCD,
+    firmFeiNumber: doc.FIRMFEINUM,
+    firmSurvivingNumber: doc.FIRMSURVIVINGFEI,
+    firmSurvivingName: doc.FIRMSURVIVINGNAM,
   };
 }
 
 function upsertRecall(dbCon, doc) {
-  if(doc.recallNumber) {
-    return insertOrReplaceDocByCondition(doc, dbCon.collection(resCollectionName), { recallNumber: doc.recallNumber });
+  if (doc.productId && doc.eventId) {
+    return insertOrReplaceDocByCondition(doc, dbCon.collection(resCollectionName), { productId: doc.productId, eventId: doc.eventId });
   }
+  console.warn(`Both productId and eventId should be defined in doc`, JSON.stringify(doc, null, 2));
 }
 
 async function pumpIresRecalls(dbCon) {

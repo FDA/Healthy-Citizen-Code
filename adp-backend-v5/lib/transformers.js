@@ -5,7 +5,6 @@ const { ValidationError } = require('./errors');
  * @module transformers
  * Implements functionality required for "transform" attribute for the app model
  * NOTE: leaving log.trace calls commented out here because debugging those is very slow in WebStorm
- * TODO: this code will only be used on the server side, so I can rewrite it in a better way, so parameters no longer need to be passed via "this"
  */
 module.exports = appLib => {
   const log = require('log4js').getLogger('lib/transformers');
@@ -101,8 +100,27 @@ module.exports = appLib => {
       const head = path.slice(0, 1)[0];
       const changesHead = changesPath.length > 0 ? changesPath.slice(0, 1)[0] : false;
       if (head === 'fields') {
-        if (appModelPart.type === 'Array') {
-          // log.trace( `>>>> Preparing to iterate head: ${head} lodashPath: ${lodashPath} changesHead: ${changesHead} type: ${appModelPart.type} data: ${JSON.stringify(data)}` );
+        if (appModelPart.type === 'AssociativeArray') {
+          const assocArray = _.entries(lodashPath === '' ? data : _.get(data, lodashPath));
+          async.eachOfSeries(
+            assocArray,
+            ([key], idx, arrayCb) => {
+              m.traverseDocAndCallProcessor(
+                type,
+                modelName,
+                userContext,
+                handler,
+                appModelPart[head],
+                data,
+                `${lodashPath}.${key}`,
+                path.slice(1),
+                changesPath.slice(1),
+                arrayCb
+              );
+            },
+            cb
+          );
+        } else if (appModelPart.type === 'Array') {
           async.eachOfSeries(
             lodashPath === '' ? data : _.get(data, lodashPath),
             (el, idx, arrayCb) => {
@@ -288,15 +306,10 @@ module.exports = appLib => {
     });
   };
 
-  // TODO: make sure PUT is updating records via record.save, not collection.update
-  // TODO: validate parts of appModel that are not explicitly defined as validation, e.g. "required" and similar
-  // TODO: call post transformers on 'post' middleware
   /**
    * Runs Transformations on data before saving data to the database.
    * This method is called as mongoose 'document pre', it traverses the entire model definition and calls
    * transformation methods as specified in the app model
-   * WARNING: do not use lambda (=>) function for this function, always use "function() {}" syntax in order to establish "this"
-   * WARNING: this also calls synthesizers
    * @param modelName modelName
    * @param userContext context for retrieving info about user
    * @param data the data to traverse. This method may need traverse only part of the document data specified by changesPath
@@ -354,7 +367,6 @@ module.exports = appLib => {
    */
   m.postInitTransformData = (modelName, userContext, data) =>
     // log.trace(`postInitTransformData model ${modelName} data: ${JSON.stringify(data)}`);
-    // TODO: add 'synthesize' to attributes? Should it be handled as transform (output and input handlers)?
     m.processAppModelPromisified(['transform', 'synthesize'], modelName, [], (type, handler, val, path) => {
       // for example in "transform": [["heightImperialToMetric", "heightMetricToImperial"]]
       // heightImperialToMetric - input handler, called before saving into db

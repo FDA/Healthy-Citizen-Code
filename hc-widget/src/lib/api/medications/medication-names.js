@@ -1,48 +1,36 @@
 import { createGraphqlClient } from '../graphql/grapql-client';
-import { mapValues } from '../../utils/utils';
+import { ResponseError } from '../../exceptions'
 
 /**
  * Fetch medication names for each RxCui code
  * @param rxcuis String[]
- * @return {Promise<{} | never>}
+ * @return {Promise<{}>} rxcui to medication map
  */
 export function fetchMedicationNames(rxcuis) {
   const client = createGraphqlClient();
-  const query = getQuery(rxcuis);
 
-  return client.request(query)
-    .then(({ drugsRxnormConso }) => drugsRxnormConso.items)
-    .then(groupByRxcui);
+  return client.request(getQuery(), { rxcuis })
+    .then(({ getDrugsRxnormConsoSingleMedicationNames }) => {
+      return getDrugsRxnormConsoSingleMedicationNames.rxcuiToMedicationName;
+    })
+    .then((names) => {
+      const result = {};
+      for (const [rxcui, name] of Object.entries(names)) {
+        if (name) result[rxcui] = name;
+      }
+
+      if (Object.keys(result).length === 0) {
+        throw new ResponseError(ResponseError.MEDICATION_NAMES_EMPTY);
+      }
+
+      return result;
+    });
 }
 
-function getQuery(rxcuis) {
-  return `query {
-    drugsRxnormConso(
-      perPage: 100,
-      filter: { 
-        mongoQuery: "{'rxcui': {$in: [${rxcuis.map(i => `'${i}'`)}] } }" 
-      }
-    ) {
-      items {
-        rxcui
-        tty
-        str
-      }
+function getQuery() {
+  return `query q($rxcuis: [String]!) {
+    getDrugsRxnormConsoSingleMedicationNames(rxcuis: $rxcuis) {
+      rxcuiToMedicationName
     }
   }`;
-}
-
-function groupByRxcui(names) {
-  const namesGroupedBy = {};
-
-  names.forEach((nameObj) => {
-    const namesList = namesGroupedBy[nameObj.rxcui] || [];
-    namesGroupedBy[nameObj.rxcui] = namesList;
-
-    if (nameObj.str) {
-      namesList.push(nameObj.str);
-    }
-  });
-
-  return mapValues(namesGroupedBy, names => names[0].toUpperCase());
 }

@@ -6,7 +6,7 @@
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",
-          "where": "{ creator: this.req.user._id }"
+          "where": "{ 'creator._id': this.req.user._id }"
         }
       },
       "actions": {

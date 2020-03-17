@@ -1,5 +1,11 @@
 const _ = require('lodash');
-const { getTime } = require('../../lib/util/date');
+const {
+  getDatePartValue,
+  getTime,
+  getDatePartString,
+  getDateFromAmPmTime,
+  getAmPmTimeFromDate,
+} = require('../../lib/util/date');
 
 /**
  * Utility functions used in various validators
@@ -91,32 +97,8 @@ module.exports = appLib => {
       .replace(/\$\$/g, '$');
   };
 
-  m.getDateFromAmPmTime = time => {
-    const preparedTime = time.trim().toLowerCase();
-    const hoursMinutes = preparedTime
-      .substr(0, preparedTime.length - 2)
-      .split(':')
-      .map(Number);
-    let hours = hoursMinutes[0];
-    const minutes = hoursMinutes[1];
-    if (preparedTime.endsWith('pm') && hours !== 12) {
-      hours += 12;
-    }
-    const datePart = new Date(1970, 0, 1);
-    const timePart = 1000 * 60 * (hours * 60 + minutes);
-    return new Date(+datePart + +timePart);
-  };
-
-  m.getAmPmTimeFromDate = date => {
-    let hours = date.getHours();
-    let minutes = date.getMinutes();
-    const ampm = hours >= 12 ? 'pm' : 'am';
-    hours %= 12;
-    hours = hours || 12; // the hour '0' should be '12'
-    minutes = minutes < 10 ? `0${minutes}` : minutes;
-    const strTime = `${hours}:${minutes} ${ampm}`;
-    return strTime;
-  };
+  m.getDateFromAmPmTime = getDateFromAmPmTime;
+  m.getAmPmTimeFromDate = getAmPmTimeFromDate;
 
   /**
    * Used for casting helper(validator, transfromer, etc) arguments which are always strings into value of appropriate type
@@ -212,24 +194,10 @@ module.exports = appLib => {
     }
     return val;
   };
-  /**
-   * removes time part from datetime and returns only date part for clean date comparison
-   * TODO: improve this method to take timezone into consideration, currently works only when server and clients are in the same TZ
-   * @param date
-   */
-  m.getDatePartValue = date => {
-    const d = new Date(date);
-    d.setHours(0, 0, 0, 0);
-    return d;
-  };
-  /**
-   * Returns human-readable date in US format mm/dd/yyyy
-   * @param date
-   * @returns {string}
-   */
-  m.getDatePartString = date => {
-    const d = new Date(date);
-    return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
-  };
+
+  m.getDatePartValue = getDatePartValue;
+
+  m.getDatePartString = getDatePartString;
+
   return m;
 };

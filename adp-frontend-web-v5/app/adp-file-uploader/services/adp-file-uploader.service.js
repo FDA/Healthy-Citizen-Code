@@ -1,9 +1,9 @@
 ;(function () {
-  'use strict';
+  "use strict";
 
   angular
-    .module('app.adpUploader')
-    .factory('AdpFileUploaderService', AdpFileUploaderService);
+    .module("app.adpUploader")
+    .factory("AdpFileUploaderService", AdpFileUploaderService);
 
   /** @ngInject */
   function AdpFileUploaderService(
@@ -18,24 +18,30 @@
     APP_CONFIG,
     Guid,
     $q
-  ){
-    function create(field, uploadedFiles) {
-      var defaults = _getDefaults(field, adpFileUploaderOptions);
-      var options = _.defaultsDeep(field['arguments'], defaults);
-
+  ) {
+    function createUploader(uploadedFiles, options) {
       var uploader = new FileUploader({
-        url: APP_CONFIG.apiUrl + '/upload',
+        url: APP_CONFIG.apiUrl + "/upload",
         queueLimit: options.multiple ? (options.fileLimit || 5) : 1,
         headers: {
-          'Authorization': AdpSessionService.getAuthHeaders()
+          "Authorization": AdpSessionService.getAuthHeaders()
         }
       });
       options.fileLimit = uploader.queueLimit;
-      uploader.adpField = field;
 
       if (!_.isEmpty(uploadedFiles)) {
         _addUploadedFilesToQueue(uploader, uploadedFiles);
       }
+
+      return uploader;
+    }
+
+    function create(field, uploadedFiles) {
+      var defaults = _getDefaults(field, adpFileUploaderOptions);
+      var options = _.defaultsDeep(field["arguments"], defaults);
+      var uploader = createUploader(uploadedFiles, options);
+
+      uploader.adpField = field;
 
       _addMethods(uploader, options);
       _addCustomFilters(uploader, options);
@@ -44,14 +50,19 @@
       return uploader;
     }
 
+    function createStandalone(uploadedFiles, options) {
+      return createUploader(uploadedFiles, options || {});
+    }
+
     function _getDefaults(field, defaults) {
-      var fieldType = field.type.toLowerCase().replace('[]', '');
+      var fieldType = field.type.toLowerCase()
+        .replace("[]", "");
       return defaults[fieldType];
     }
 
     function _addUploadedFilesToQueue(uploader, files) {
       // WORKAROUND: server can't complex objects
-      files.forEach(function(fileObject) {
+      files.forEach(function (fileObject) {
         var dummyFile = _createDummyFile(fileObject, uploader);
         uploader.queue.push(dummyFile);
       });
@@ -117,7 +128,7 @@
           .then(enableCropPromise);
       };
 
-      uploader.onErrorItem = function(item, response, status) {
+      uploader.onErrorItem = function (item, response, status) {
         var sessionExpired = status === 401 && !lsService.isGuest();
 
         if (sessionExpired) {
@@ -140,17 +151,18 @@
       var uploader = this;
 
       if (isFileAmountLimit(uploader)) {
-        return AdpUploaderMessages.showErrorMessage('queueLimit', uploader);
+        return AdpUploaderMessages.showErrorMessage("queueLimit", uploader);
       }
 
-      var input = $('<input type="file">');
+      var input = $("<input type=\"file\">");
       input[0].multiple = options.multiple;
       input.click();
 
-      $(input).on('change.adpTempUpload', function (e) {
-        uploader.addFiles(e.target.files);
-        input.off('change.adpTempUpload');
-      });
+      $(input)
+        .on("change.adpTempUpload", function (e) {
+          uploader.addFiles(e.target.files);
+          input.off("change.adpTempUpload");
+        });
     }
 
     function isFileAmountLimit(uploader) {
@@ -159,6 +171,7 @@
 
     return {
       create: create,
+      createStandalone: createStandalone,
       isFileAmountLimit: isFileAmountLimit
     };
   }

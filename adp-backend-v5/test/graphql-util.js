@@ -22,9 +22,15 @@ const buildGraphQlDeleteOne = (modelName, docId) => ({
 const buildGraphQlQuery = (modelName, mongoQuery, selectFields = 'items { _id }') => ({
   query: `query { ${modelName} (filter: { mongoQuery: "${mongoQuery}" } ) { ${selectFields} } }`,
 });
+const buildGraphQlDxQuery = (modelName, dxQuery, quickFilterId, selectFields = 'items { _id }') => {
+  const filter = `filter: ${formatGraphqlFilter({ dxQuery, quickFilterId })}`;
+  return { query: `query { ${modelName}Dx (${filter}) { ${selectFields} } }` };
+};
+
 const buildGraphQlLookupQuery = ({
   lookupId,
   tableName,
+  dxQuery,
   q = '',
   form,
   selectFields = 'items { _id label table }',
@@ -32,7 +38,7 @@ const buildGraphQlLookupQuery = ({
   perPage,
   sort,
 }) => {
-  const filterObj = { q, form };
+  const filterObj = { q, form, dxQuery };
   const filter = `filter: ${formatGraphqlFilter(filterObj)}`;
   const queryName = getLookupTypeName(lookupId, tableName);
   return {
@@ -90,6 +96,7 @@ module.exports = {
   buildGraphQlUpdateOne,
   buildGraphQlDeleteOne,
   buildGraphQlQuery,
+  buildGraphQlDxQuery,
   buildGraphQlLookupQuery,
   buildGraphQlTreeselectorQuery,
   checkGraphQlSuccessfulResponse,

@@ -1,15 +1,11 @@
 import openFdaHelpers from '../../open-fda-helpers';
 import recallDesc from './recall-desc';
 
-export function formatRecalls(recallsGroupedByName) {
-  return Object.keys(recallsGroupedByName).map((name) => {
-    const recallsForName = recallsGroupedByName[name];
-    const first20Recalls = recallsForName.slice(0, 20);
-
+export function formatRecalls(recallLists) {
+  return recallLists.map(({ list, display, itemCount }) => {
     return {
-      display: name,
-      itemCount: recallsForName.length,
-      list: first20Recalls.map(_formatRecall),
+      display, itemCount,
+      list: list.map(_formatRecall),
     };
   });
 }

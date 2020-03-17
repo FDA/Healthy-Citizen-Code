@@ -26,17 +26,12 @@ const mongooseLog = require('log4js').getLogger('mongoose');
 
 const getMigrateConfig = require('../migrate/config.js');
 const { InvalidTokenError, ExpiredTokenError } = require('./errors');
-const websocketServer = require('./websocket-server')();
-const publicFilesController = require('./public-files-controller');
+const { serveDirs } = require('./public-files-controller');
 const { version: APP_VERSION, name: APP_NAME } = require('../package.json');
 const { comparePassword } = require('./util/password');
+const { prepareEnv, getSchemaNestedPaths } = require('./util/env');
 const connectSwagger = require('./swagger');
 
-// TODO: rewrite everything using ES6 Promises instead of async
-// TODO: do I need to export anything besides setup() and start()? Get rid of exporting the rest later if necessary
-/**
- * @param opts contains various parameters
- */
 module.exports = () => {
   const m = {};
   let options = {}; // options for whole module (empty by default)
@@ -49,6 +44,10 @@ module.exports = () => {
   m.cache = require('./cache')({
     redisUrl: process.env.REDIS_URL,
     keyPrefix: process.env.REDIS_KEY_PREFIX,
+  });
+  m.queue = require('./queue')({
+    redisUrl: process.env.BULL_REDIS_URL,
+    keyPrefix: process.env.BULL_KEY_PREFIX,
   });
 
   m.getAuthSettings = () => m.appModel.interface.app.auth;
@@ -150,7 +149,7 @@ module.exports = () => {
     });
     process.on('uncaughtException', procUncaughtExListener);
     app.use(bodyParser.urlencoded({ extended: true }));
-    app.use(bodyParser.json());
+    app.use(bodyParser.json({ limit: '100mb' }));
     app.use(compression());
     app.use(device.capture());
     app.use(cookieParser());
@@ -249,8 +248,6 @@ module.exports = () => {
       const mainController = m.controllers.main;
 
       const callbacks = [];
-      // TODO: update this code, now it's implemented with permissions
-      // isAuthenticated is added in addRoute
       callbacks.push(m.isAuthenticated);
       // add standard CRUD
       // let name = pluralize(name, 2);
@@ -375,18 +372,19 @@ module.exports = () => {
     m.addRoute('get', '/dashboards/:id', [m.isAuthenticated, m.controllers.main.getDashboardJson]);
   };
 
-  m.loadControllers = async appModelPath => {
+  m.loadControllers = () => {
     m.log.trace('Loading custom controllers:');
     try {
-      const files = _.concat(
-        glob.sync(`${appRoot}/server_controllers/**/*.js`),
-        glob.sync(`${appModelPath}/server_controllers/**/*.js`)
+      const appSchemaControllersFiles = _.flatten(
+        getSchemaNestedPaths('server_controllers/**/*.js').map(pattern => glob.sync(pattern))
       );
-      for (const file of files) {
+      const coreControllers = glob.sync(`${appRoot}/model/server_controllers/**/*.js`);
+      const files = [...coreControllers, ...appSchemaControllersFiles];
+      return Promise.mapSeries(files, file => {
         m.log.trace(` ∟ ${file}`);
         const lib = require(file)(mongoose);
-        await lib.init(m);
-      }
+        return lib.init(m);
+      });
     } catch (e) {
       m.log.error(`Unable to load custom controllers`, e.stack);
       process.exit(2);
@@ -424,7 +422,7 @@ module.exports = () => {
       new JwtStrategy(
         {
           jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme('JWT'),
-          secretOrKey: process.env.JWT_SECRET, // TODO: move into .env
+          secretOrKey: process.env.JWT_SECRET,
         },
         async (jwtPayload, done) => {
           try {
@@ -705,9 +703,17 @@ module.exports = () => {
      *         description: Server error occurred during authentication process
      */
 
-    m.addRoute('get', '/public/*', [
-      publicFilesController({ directories: [`${process.env.APP_MODEL_DIR}`, './model'] }),
+    m.addRoute('use', '/public', [
+      serveDirs([...getSchemaNestedPaths('/public'), './model/public'], {
+        fileMatcher: ({ accessType, relativePath }) => {
+          if (accessType === 'directory') {
+            return relativePath.startsWith('/js/client-modules');
+          }
+          return true;
+        },
+      }),
     ]);
+
     m.addRoute('post', '/upload', [fileController.upload]);
     /**
      * @swagger
@@ -835,7 +841,7 @@ module.exports = () => {
     const { addAll, connect } = m.graphQl;
     await addAll();
 
-    await m.loadControllers(process.env.APP_MODEL_DIR);
+    await m.loadControllers();
 
     m.log.trace('Connecting GraphQL');
     connect.connectGraphqlWithAltair();
@@ -863,27 +869,6 @@ module.exports = () => {
       }
     });
   };
-
-  /**
-   * Absolute paths are not error prone. Its being used in custom prototypes and tests
-   */
-  function setAbsoluteEnvPaths() {
-    setAbsoluteEnvPath('LOG4JS_CONFIG');
-    setAbsoluteEnvPath('APP_MODEL_DIR');
-
-    function setAbsoluteEnvPath(key) {
-      if (process.env[key]) {
-        process.env[key] = nodePath.resolve(appRoot, process.env[key]);
-      }
-    }
-  }
-
-  function prepareEnv() {
-    setAbsoluteEnvPaths();
-    process.env.CREATE_INDEXES = process.env.CREATE_INDEXES || 'true';
-    process.env.APP_PORT = process.env.APP_PORT || 8000;
-    process.env.ES_MAX_RETRIES = process.env.ES_MAX_RETRIES || 4;
-  }
 
   m.setOptions = opts => {
     options = opts;
@@ -951,7 +936,7 @@ module.exports = () => {
    * For the actual server also call app.start();
    */
   m.setup = async () => {
-    prepareEnv();
+    prepareEnv(appRoot);
     m.log = require('log4js').getLogger('lib/app');
     m.log.info('Using logger settings from', process.env.LOG4JS_CONFIG);
 
@@ -961,17 +946,24 @@ module.exports = () => {
 
     await m.cache.init();
     await m.cache.clearCacheByKeyPattern('*'); // clear all keys on startup
-    m.queue = require('./queue')({ redisUrl: process.env.BULL_REDIS_URL });
+    await m.queue.init();
     await m.migrateMongo();
 
     // use to exclude it from /app-model
     m.datasetsModelsNames = new Set();
-    m.appModel = m.mutil.getCombinedModel(options.appModelSources);
 
-    const helperDirPaths = [`model/helpers`, `${process.env.APP_MODEL_DIR}/helpers`];
+    const coreModelPath = nodePath.resolve(__dirname, '../model');
+    const helperDirPaths = [`${coreModelPath}/helpers`, ...getSchemaNestedPaths('helpers')];
     const buildAppModelCodeOnStart = (process.env.BUILD_APP_MODEL_CODE_ON_START || 'true') === 'true';
     m.helperUtil = await require('./helper-util')(m, helperDirPaths, buildAppModelCodeOnStart);
     m.allActionsNames = [...m.accessCfg.DEFAULT_ACTIONS, ..._.keys(m.appModelHelpers.CustomActions)];
+
+    m.appModel = await m.mutil.getCombinedModel({
+      appModelSources: options.appModelSources,
+      appModelProcessors: m.appModelHelpers.appModelProcessors,
+      macrosDirPaths: [...getSchemaNestedPaths('macroses'), `${coreModelPath}/macroses`],
+    });
+
     m.accessUtil.setAvailablePermissions();
 
     const { errors, warnings } = m.mutil.validateAndCleanupAppModel();
@@ -1006,8 +998,8 @@ module.exports = () => {
     setControllerProperties();
     await m.addRoutes();
     m.addErrorHandlers();
-    // TODO: move route name to config?
-    websocketServer.connect(m.app);
+
+    // require('./websocket-server')().connect(m.app);
 
     m.log.info(`${APP_NAME} Backend v${APP_VERSION} is running`);
     return m;

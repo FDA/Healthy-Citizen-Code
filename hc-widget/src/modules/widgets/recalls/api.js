@@ -1,22 +1,38 @@
-import { fetchMedicationsFromUserPreferencesOrMedicationStatement } from '../../../lib/api/medications/medications-from-preferences-or-medication-statement';
 import { recallsQuery } from '../../../lib/api/recalls/recalls-query';
+import { ResponseError } from '../../../lib/exceptions';
+import { fetchMedicationsFromUserPreferencesOrMedicationStatement } from '../../../lib/api/medications/medications-from-preferences-or-medication-statement'
+import { userPreferencesFromInlineDataSource } from '../../../lib/api/medications/inline-datasources'
+import { recallsQueryByRxcuis } from '../../../lib/api/recalls/recalls-query-by-rxcuis'
 
 export function fetchRecalls(options) {
-  return fetchMedicationsFromUserPreferencesOrMedicationStatement(options)
-    .then(({ medications }) => {
-      const { algorithm } = options;
+  if (options.dataSource === 'inline') {
+    return fetchRecallsByRxcui(options);
+  } else {
+    return fetchRecallsByMedication(options);
+  }
+}
 
-      const promises = medications.map(m => fetchRecallsForMedication(m, algorithm));
-      return Promise.all(promises);
+function fetchRecallsByRxcui(options) {
+  return userPreferencesFromInlineDataSource(options)
+    .then((userPreferences) => {
+      return recallsQueryByRxcuis(userPreferences, options.algorithm, mongoQuery);
     });
 }
 
-function fetchRecallsForMedication(medication, algorithm) {
-  return recallsQuery(medication.rxcui, algorithm)
-    .then((recalls) => {
-      return {
-        display: medication.display || medication.brandName,
-        ...recalls
-      };
+function fetchRecallsByMedication(options) {
+  return fetchMedicationsFromUserPreferencesOrMedicationStatement(options)
+    .then((userPreferences) => {
+      if (!userPreferences.medications.length) {
+        throw new ResponseError(ResponseError.RECALLS_EMPTY);
+      }
+
+      return recallsQuery(userPreferences, options.algorithm, mongoQuery);
     });
+}
+
+function mongoQuery(rxcuis) {
+  return {
+    'rxCuis.rxCui': { $in: rxcuis },
+    status: 'Ongoing',
+  };
 }

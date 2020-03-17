@@ -1,12 +1,12 @@
 import { fetchInteractionsByRxCuis } from '../../../lib/api/drug-interactions/drug-interactions';
 import { fetchMedicationsFromUserPreferencesOrMedicationStatement } from '../../../lib/api/medications/medications-from-preferences-or-medication-statement';
-import {get} from '../../../lib/utils/utils';
+import { get } from '../../../lib/utils/utils';
+import { userPreferencesFromInlineDataSource } from '../../../lib/api/medications/inline-datasources'
 
 export function fetchDrugInteractions(options) {
-  return fetchMedicationsFromUserPreferencesOrMedicationStatement(options)
+  return fetchMedications(options)
     .then(({ medications }) => {
-      const rxcuis = medications.map(m => m.rxcui);
-
+      const rxcuis = medications.map(m => m.rxcui).flat();
       return fetchInteractionsByRxCuis(rxcuis);
     })
     .then(makeDrugInteractionPair)
@@ -18,6 +18,14 @@ export function fetchDrugInteractions(options) {
         count: 0,
       };
     });
+}
+
+function fetchMedications(options) {
+  if (options.dataSource === 'inline') {
+    return userPreferencesFromInlineDataSource(options);
+  } else {
+    return fetchMedicationsFromUserPreferencesOrMedicationStatement(options);
+  }
 }
 
 function makeDrugInteractionPair(interactionsData) {

@@ -1,58 +1,27 @@
-<form name="form"
-      class="smart-form client-form">
-    <header class="smart-form-header">
+<adp-form
+        class="login-form auth-form"
+        enable-selector="false"
+        adp-submit="vm.submit"
+        adp-fields="vm.fields"
+        adp-data="vm.data"
+        schema="vm.schema"
+        disable-fullscreen="true"
+>
+    <form-header>
         <h2 class="semi-bold">Export from {{vm.options.collectionName}}</h2>
-    </header>
+    </form-header>
 
-    <fieldset>
-        <div class="col col-12">
-            <section class="input-container">
-                <div>
-                    <label>
-                        <input type="radio" name="export_selected"
-                               ng-disabled="vm.options.selectedRowsCount === 0"
-                               ng-model="vm.exportSelected" value=""/>
-                        Export all rows ({{vm.options.totalRowsCount}})
-                    </label>
-                </div>
-                <div>
-                    <label ng-if="vm.options.selectedRowsCount > 0">
-                        <input type="radio" name="export_selected"
-                               ng-model="vm.exportSelected"
-                               ng-checked="vm.options.selectedRowsCount" value="1"/>
-                        Export selected rows only ({{vm.options.selectedRowsCount}})
-                    </label>
-                </div>
-            </section>
-        </div>
-        <div class="col col-12">
-            <section>
-                <label>
-                    Export format:<br/>
-                    <select ng-model="vm.exportFormat">
-                        <option value="xlsx">Excel XLSX file</option>
-                        <option value="csv">CSV file</option>
-                        <option value="xml">XML file</option>
-                        <option value="json">JSON file</option>
-                    </select>
-                </label>
-            </section>
-        </div>
-    </fieldset>
-
-    <footer>
+    <form-footer>
         <button
-                class="btn btn-primary"
-                type="button"
-                ng-click="vm.export()">
+                type="submit"
+                class="btn btn-primary">
             Export
         </button>
-
         <button
                 class="btn btn-default"
                 type="button"
                 ng-click="vm.cancel()">
             Cancel
         </button>
-    </footer>
-</form>
+    </form-footer>
+</adp-form>

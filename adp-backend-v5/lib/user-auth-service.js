@@ -8,14 +8,30 @@ function getResetTokenExpiresIn() {
   return PASSWORD_RESET_TOKEN_EXPIRES_IN;
 }
 
+function getTransportOpts() {
+  const auth = {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASSWORD,
+  };
+
+  if (process.env.EMAIL_SERVICE) {
+    return {
+      service: process.env.EMAIL_SERVICE,
+      auth,
+    };
+  }
+
+  return {
+    host: process.env.EMAIL_HOST,
+    port: +process.env.EMAIL_PORT,
+    secure: process.env.EMAIL_SECURE === 'true',
+    pool: process.env.EMAIL_POOL === 'true',
+    auth,
+  };
+}
+
 async function sendMail(mail) {
-  const smtpTransport = mailer.createTransport({
-    service: 'Gmail',
-    auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASSWORD,
-    },
-  });
+  const smtpTransport = mailer.createTransport(getTransportOpts());
 
   try {
     await smtpTransport.sendMail(mail);
@@ -49,7 +65,7 @@ function getResetPasswordHtml(resetUrlWithToken) {
       <div style="font-size: 18px; margin-bottom: 15px; color: black">
         You are receiving this email because you (or someone else) have requested the reset of the password for your account.
         <br>
-        Please click on the following link, or paste this into your browser to complete the process: ${resetUrlWithToken}
+        Please click on the following <a href="${resetUrlWithToken}">reset password link</a> to complete the process
         <br>
         If you did not request this, please ignore this email and your password will remain unchanged.
       </div>

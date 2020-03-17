@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const { JSONPath } = require('jsonpath-plus');
 const Promise = require('bluebird');
-const { sortObjectByKeys, MONGO } = require('../util/util');
+const { sortObjectByKeys, MONGO, expandObjectAsKeyValueList } = require('../util/util');
 const { getLabelOrDataValue } = require('../util/lookups');
 const { ValidationError } = require('../errors');
 
@@ -193,8 +193,9 @@ module.exports = appLib => {
     const errors = await Promise.all(checkLookupPromises);
     const fieldToErrorMap = _.merge(...errors);
     if (!_.isEmpty(fieldToErrorMap)) {
-      const errorFields = _.keys(fieldToErrorMap).join(', ');
-      throw new ValidationError(`Found invalid lookups sent in fields: ${errorFields}`, fieldToErrorMap);
+      throw new ValidationError(
+        `Found invalid lookups sent in fields:\n${expandObjectAsKeyValueList(fieldToErrorMap)}`
+      );
     }
   };
 

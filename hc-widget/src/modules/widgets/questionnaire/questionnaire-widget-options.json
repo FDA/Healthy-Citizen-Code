@@ -30,7 +30,7 @@
         "fhirAccessToken": { "type":  "String" }
       },
       "epicStu3": {
-        "fhirAccessToken": {
+        "epicAccessToken": {
           "type": "String",
           "required": true
         },

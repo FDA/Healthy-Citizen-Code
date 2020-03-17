@@ -1,7 +1,3 @@
-// NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
-// TODO: add tests for multiple tables
-// TODO: add tests for default foreignKey
-
 const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
@@ -22,7 +18,7 @@ const {
   checkGraphQlErrorResponse,
 } = reqlib('test/graphql-util.js');
 
-describe('V5 Backend Lookups', () => {
+describe('V5 Backend Lookups Backpropogation', () => {
   const model4sSamples = [
     {
       _id: new ObjectID('587179f6ef4807703afd0df0'),

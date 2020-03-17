@@ -4,7 +4,7 @@ const log = require('log4js').getLogger('graphql/lookup-resolver');
 const { composeWithPagination } = require('../pagination');
 const LookupContext = require('../../request-context/graphql/LookupContext');
 const { getLookupTypeName } = require('../type/lookup');
-const { ValidationError, AccessError, LinkedRecordError } = require('../../errors');
+const { handleGraphQlError } = require('../util');
 const { getOrCreateTypeByModel } = require('../type/model');
 const { COMPOSER_TYPES } = require('../type/common');
 
@@ -16,6 +16,7 @@ const lookupFilterITC = schemaComposer.createInputTC({
   name: 'lookupFilter',
   fields: {
     q: { type: 'String' },
+    dxQuery: { type: 'String' },
   },
 });
 
@@ -29,6 +30,7 @@ function getLookupFilter(lookupId, inputTypeForForm) {
     fields: {
       q: { type: 'String' },
       form: { type: inputTypeForForm },
+      dxQuery: { type: 'String' },
     },
   });
 }
@@ -68,16 +70,13 @@ function addFindLookupResolver(type, lookupFilter) {
     },
     type: [type],
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
-        const { controllerUtil } = context.appLib;
+        const { controllerUtil } = appLib;
         const { lookups } = await controllerUtil.getSchemaLookups(paginationContext);
         return lookups;
       } catch (e) {
-        log.error(e.stack);
-        if (e instanceof ValidationError || e instanceof AccessError || e instanceof LinkedRecordError) {
-          throw e;
-        }
-        throw new Error(`Unable to find requested elements`);
+        handleGraphQlError(e, `Unable to find requested elements`, log, appLib);
       }
     },
   });
@@ -94,13 +93,13 @@ function addCountLookupResolver(type, lookupFilter) {
     },
     type: 'Int!',
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
-        const { controllerUtil } = context.appLib;
+        const { controllerUtil } = appLib;
         paginationContext.action = 'view';
         return controllerUtil.getElementsCount({ context: paginationContext });
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to count requested elements`);
+        handleGraphQlError(e, `Unable to count requested elements`, log, appLib);
       }
     },
   });
@@ -112,7 +111,14 @@ function addLookupsQueries(models, appLookups, logger) {
   _.each(appLookups, (lookupSpec, lookupId) => {
     _.each(lookupSpec.table, (tableSpec, lookupTableName) => {
       const lookupTypeName = getLookupTypeName(lookupId, lookupTableName);
-      const lookupObjectType = schemaComposer.getOTC(lookupTypeName);
+      let lookupObjectType;
+      try {
+        lookupObjectType = schemaComposer.getOTC(lookupTypeName);
+      } catch (e) {
+        // lookupTypeName may not be found because of showInGraphql = false
+        // TODO: change format of appLookups to pass variables starting with 'show'.
+        return;
+      }
 
       const isFilteringLookup = !!tableSpec.where;
       let inputTypeForForm;

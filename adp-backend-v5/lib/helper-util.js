@@ -25,6 +25,7 @@ module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
     FiltersRenderers: 'filters_renderers.js',
     Preparations: 'preparations.js',
     Hooks: 'hooks.js',
+    appModelProcessors: 'app_model_processors.js',
 
     Renderers: 'renderers.js',
     CustomActions: 'custom_actions.js',
@@ -81,6 +82,7 @@ module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
       .map(p => path.resolve(appRoot, `${p}/${fileName}`))
       .filter(fullPath => fs.existsSync(fullPath));
   }
+
   function loadAppModelHelpers() {
     appLib.appModelHelpers = {};
     appLib.appModelHelpers.ValidatorUtils = require('../model/helpers/validators-util')(appLib);

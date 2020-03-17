@@ -3,10 +3,11 @@
  * They are only executed on the server side and set value for a field that is not directly based on user input
  */
 const _ = require('lodash');
-const { ObjectID } = require('mongodb');
 const nanoid = require('nanoid/async');
+const { getDocValueForExpression } = require('../../lib/util/util');
 
-module.exports = () => {
+// eslint-disable-next-line no-unused-vars
+module.exports = appLib => {
   const m = {
     randomString(path, appModelPart, userContext, next) {
       const charset = _.get(
@@ -26,11 +27,15 @@ module.exports = () => {
       _.set(this, path, new Date());
       next();
     },
-
     creator(path, appModelPart, userContext, next) {
-      const userId = _.get(userContext, 'user._id');
-      if (!_.get(this, path) && userId) {
-        _.set(this, path, new ObjectID(userId));
+      const { user } = userContext;
+      const label = _.get(appModelPart, 'lookup.table.users.label');
+      if (!_.get(this, path) && user && label) {
+        _.set(this, path, {
+          _id: user._id,
+          table: 'users',
+          label: getDocValueForExpression(user, label),
+        });
       }
       next();
     },

@@ -29,7 +29,7 @@
 
       setupColumns(options.columns, schema);
 
-      GridOptionsHelpers.addEditors(options, function (event) {
+      GridOptionsHelpers.onEditorPreparing(options, function (event) {
         var isDataRow = event.parentType === 'dataRow';
         var isSelectionCell = event.type === 'selection';
 
@@ -91,6 +91,7 @@
       }
 
       var failed = _.some(checks, function (fn) { return fn() });
+
       return !failed;
     }
 

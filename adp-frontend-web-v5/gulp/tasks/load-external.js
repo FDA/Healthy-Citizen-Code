@@ -27,9 +27,28 @@ gulp.task('load:script', () => {
     .then(createScripts.bind(this, conf.paths.serverScripts));
 });
 
-gulp.task('load:modules', () => uploadFile(conf.endpoints.serverModules, conf.paths.serverModules));
-gulp.task('load:defaultModules', () => uploadFile(conf.endpoints.defaultServerModules,  conf.paths.defaultServerModules));
+gulp.task('load:modules', uploadClientModules);
 gulp.task('load:css', () => uploadFile(conf.endpoints.serverCss,  conf.paths.serverCss));
+
+async function uploadClientModules() {
+  const { data } = await requestModulesFiles();
+
+  const nameToSrcPath = name => `${conf.endpoints.clientModules}/${name}`;
+  const nameToDistPath = name => `${conf.paths.clientModulesFolder}/${name}`;
+  const promises = data.map(({ name }) => uploadFile(nameToSrcPath(name), nameToDistPath(name)));
+
+  return Promise.all(promises);
+}
+
+function requestModulesFiles() {
+  const opts = {
+    url: `${APP_CONFIG.apiUrl}/${conf.endpoints.clientModules}`,
+    method: 'GET',
+    json: true
+  }
+
+  return requestPromise(opts);
+}
 
 function uploadFile(serverPath, distPath) {
   if (!APP_CONFIG) throw new Error('Application config not found.');
@@ -52,7 +71,7 @@ function createScripts(fileName, body) {
   } else {
     file = body;
   }
-  
+
   return new Promise(function (resolve, reject) {
     bufferToVinyl.stream(new Buffer(file), fileName)
       .pipe(gulp.dest(conf.paths.tmp))

@@ -54,7 +54,6 @@
   }
 
   function initApp() {
-    // DevExpress.ui.themes.current('material.blue.light');
     window.adpAppStore = createAppStore();
 
     getModel()

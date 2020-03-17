@@ -9,30 +9,29 @@
   function GridSchema() {
     function getFieldsForGrid(schema) {
       return filterFields(schema.fields, [
-        mapNamesToFields,
+        _.toArray,
         getReadableFields,
         removeGroupFields,
         addIdAndPermissionsColumns,
+        function (fields) {
+          return sortFields(fields, 'gridOrder');
+        }
       ]);
     }
 
     function getFieldsForDetailedView(schema) {
       return filterFields(schema.fields, [
-        mapNamesToFields,
+        _.toArray,
         getReadableFields,
+        function (fields) {
+          return sortFields(fields, 'detailedViewOrder');
+        }
       ]);
     }
 
     function filterFields(fields, pipeFunctions) {
       var pipe = _.flow(pipeFunctions);
       return pipe(fields);
-    }
-
-    function mapNamesToFields(fields) {
-      return _.map(fields, function (field, key) {
-        field.fieldName = key;
-        return field;
-      });
     }
 
     function getReadableFields(fields) {
@@ -66,18 +65,93 @@
     // _id - for sorting and record identification
     // _actions - individual records permissions
     function addIdAndPermissionsColumns(fields) {
-      var idColumn = {
-        type: 'String',
-        fieldName: '_id',
-        showInDatatable: false,
-      };
       var permissionsColumns = {
         type: '_Action',
         fieldName: '_action',
+        allowSearch: false,
         showInDatatable: false,
       };
 
-      return fields.concat(idColumn, permissionsColumns);
+      return fields.concat(permissionsColumns);
+    }
+
+    function sortFields(fields) {
+      var groupedFields = groupFieldsForDetailedView(fields);
+      var orderProperty = 'detailedViewOrder';
+
+      _.forEach(groupedFields, function (f) {
+        if (_.isArray(f.fields)) {
+          f.fields = _.sortBy(f.fields, function (f) {
+            return f[orderProperty];
+          });
+        } else if (f.fields) {
+          f.fields = sortObjectFields(f.fields, orderProperty);
+        }
+
+        return f;
+      });
+
+      var sorted = _.sortBy(groupedFields, function (f) {
+        return f[orderProperty];
+      });
+
+      return flattenGroup(sorted);
+    }
+
+    function groupFieldsForDetailedView(fields) {
+      var groupedFields = [];
+      var lastGroupFields = null;
+
+      _.forEach(fields, function (field) {
+        var isGroup = field.type === 'Group';
+        if (isGroup) {
+          var newGroup = field;
+          newGroup.fields = [];
+          lastGroupFields = newGroup.fields;
+        }
+
+        if (lastGroupFields === null || isGroup) {
+          groupedFields.push(field);
+        } else {
+          lastGroupFields.push(field);
+        }
+      });
+
+      return groupedFields;
+    }
+
+    function flattenGroup(fields) {
+      var result = [];
+
+      _.forEach(fields, function (field) {
+        result.push(field);
+
+        if (field.type === 'Group') {
+          _.forEach(field.fields, function (f) {
+            result.push(f);
+          });
+        }
+      });
+
+      return result;
+    }
+
+    function sortObjectFields(objectFields, orderProperty) {
+      var sortedKeys = _.sortBy(_.keys(objectFields), function (key) {
+        return _.get(objectFields, [key, orderProperty]);
+      });
+
+      var sortedFields = {};
+      _.forEach(sortedKeys, function (key) {
+        var currentField = objectFields[key];
+        if (currentField.fields) {
+          currentField.fields = sortObjectFields(currentField.fields, orderProperty);
+        }
+
+        sortedFields[key] = objectFields[key];
+      });
+
+      return sortedFields;
     }
 
     function isGroup(field) {

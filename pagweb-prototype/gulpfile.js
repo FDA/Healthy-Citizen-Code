@@ -4,8 +4,8 @@ const rename = require('gulp-rename');
 require('dotenv').config();
 
 const GULP_CONFIG = {
-    sourcePath: './public/js/client-modules/module.js.template',
-    destPath: 'public/js/client-modules/module.js'
+  sourcePath: './public/js/client-modules/client-modules.module.js.template',
+  destPath: 'public/js/client-modules/client-modules.module.js'
 };
 
 gulp.task('inject', interpolateConfig);

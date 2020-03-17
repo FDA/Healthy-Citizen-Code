@@ -1,18 +1,52 @@
 import { createGraphqlClient } from '../graphql/grapql-client';
+import { ResponseError } from '../../exceptions';
 
-// { medications, age, gender, geogrpahicRegion, algorithm }
-export function adverseEventsQuery(params) {
+/**
+ * @typedef Medication
+ * @property rxcui: String[]
+ * @property brandName: String
+ */
+
+/** @typedef AdverseEventsListing
+ * @property display: String - medication name
+ * @property list: AdverseEvent[]
+ * @property itemCount: Number
+ */
+
+/**
+ * Fetch recalls by rxcui codes list.
+ * Implements algorithm that accepts as input userPreferences object, which contains medication list
+ * with brandName and rxcui list. Recalls are fetched for each Medication returning RecallsListing.
+ *
+ * @param {Object} userPreferences
+ * @params {Medication[]} userPreferences.medications
+ * @param {'openfda'|'conceptant'} algorithm
+ *
+ * @returns Promise{<AdverseEventsListing[]>}
+ */
+export function adverseEventsQuery(userPreferences, algorithm ='openfda') {
   const client = createGraphqlClient();
-  const collectionName = getCollectionName(params.algorithm);
-  const query = getBatchQuery(params, collectionName);
+  const query = getBatchQuery(userPreferences, algorithm);
 
   return client.request(query)
-    .then((data) => handleResponse(data, params.medications))
+    .then((data) => mapToAdverseEventsListing(data, userPreferences.medications))
+    .catch(err => {
+      if (err.response.data) {
+        return mapToAdverseEventsListing(err.response.data, userPreferences.medications);
+      } else {
+        throw new ResponseError(ResponseError.ADVERSE_EVENTS_EMPTY);
+      }
+    });
 }
 
-function getBatchQuery(params, collectionName) {
-  const parts = params.medications
-    .map(({ rxcui }) => getQueryForEvent(rxcui, params, collectionName))
+function getBatchQuery(userPreferences, algorithm) {
+  const mongoQueryBuilder = getMongoQueryBuilder(userPreferences);
+
+  const parts = userPreferences.medications
+    .map(({ rxcui }) => {
+      const mongoQuery = mongoQueryBuilder(rxcui[0]);
+      return getQueryForEvent(rxcui[0], algorithm, mongoQuery);
+    })
     .join('');
 
   return `query {
@@ -20,9 +54,11 @@ function getBatchQuery(params, collectionName) {
   }`
 }
 
-function getQueryForEvent(rxcui, params, collectionName) {
+function getQueryForEvent(rxcui, algorithm, mongoQuery) {
+  const collectionName = getCollectionName(algorithm);
+
   return `q${rxcui}:${collectionName} (
-      filter: { mongoQuery: "${mongoQuery(rxcui, params)}" },
+      filter: { mongoQuery: "${mongoQuery}" },
       perPage: 2000
     ) {
       pageInfo {
@@ -52,38 +88,42 @@ function getQueryForEvent(rxcui, params, collectionName) {
 }
 
 
-function getCollectionName(name = 'openfda') {
+function getCollectionName(algorithm) {
   const collections = {
     openfda: 'aesOpenfdaDrugs',
     conceptant: 'aesFaers',
   };
 
-
-  return collections[name];
+  return collections[algorithm];
 }
 
-function mongoQuery(rxcui, { age, gender }) {
+function getMongoQueryBuilder({ age, gender }) {
   let ageRange = getAge(age);
   let formattedGender = getGender(gender);
 
-  const q = {
-    $and: [
-      { patientOnSetAge: { $gt: ageRange.begin} },
-      { patientOnSetAge: { $lt: ageRange.end} },
-      { patientOnSetAgeUnit: '801' },
-      { patientSex: formattedGender },
-      { drugs:
-        {
-          $elemMatch: {
-            'openfda.rxCuis.rxCui': rxcui,
-            drugCharacterization: { $in:['1','3'] },
-          },
-        },
-      }
-    ]
-  };
+  return function (rxcui) {
+    const q = {
+      $and: [
+        { patientOnSetAge: { $gt: ageRange.begin } },
+        { patientOnSetAge: { $lt: ageRange.end } },
+        { patientOnSetAgeUnit: '801' },
+        { drugs:
+            {
+              $elemMatch: {
+                'openfda.rxCuis.rxCui': rxcui,
+                drugCharacterization: { $in:['1','3'] },
+              },
+            },
+        }
+      ]
+    }
 
-  return JSON.stringify(q).replace(/"/g, '\\"');
+    if (formattedGender) {
+      q.patientSex = formattedGender;
+    }
+
+    return JSON.stringify(q).replace(/"/g, '\\"');
+  };
 }
 
 function getAge(age) {
@@ -105,17 +145,22 @@ function getGender(gender) {
     'F': '2'
   };
 
-  return sexes[gender] || '0';
+  return sexes[gender];
 }
 
-function handleResponse(data, medications) {
-  return medications.map(({ rxcui, display, brandName }) => {
-    const itemKey = `q${rxcui}`;
+function mapToAdverseEventsListing(data, medications) {
+  return medications
+    .filter(({ rxcui }) => {
+      const itemKey = `q${rxcui}`;
+      return !!data[itemKey];
+    })
+    .map(({ rxcui, display, brandName }) => {
+      const itemKey = `q${rxcui}`;
 
-    return {
-      display: (display || brandName),
-      list: data[itemKey].items,
-      itemCount: data[itemKey].pageInfo.itemCount,
-    };
-  })
+      return {
+        display: (display || brandName),
+        list: data[itemKey].items,
+        itemCount: data[itemKey].pageInfo.itemCount,
+      };
+    });
 }

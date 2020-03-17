@@ -1,21 +1,23 @@
 const Mocha = require('mocha');
 const glob = require('glob');
+const _ = require('lodash');
 const path = require('path');
 const appRoot = require('app-root-path').path;
+const dotenv = require('dotenv');
+const { prepareEnv, getSchemaNestedPaths } = require('../../lib/util/env');
 
 // specific tests can import modules by absolute path
 process.env.APP_LIB_MODULE_PATH = path.resolve(appRoot, 'lib/app');
 process.env.APP_DOTENV_FILE_PATH = path.resolve(appRoot, '.env');
-require('dotenv').load({ path: process.env.APP_DOTENV_FILE_PATH });
-
-process.env.LOG4JS_CONFIG = path.resolve(appRoot, process.env.LOG4JS_CONFIG);
-process.env.APP_MODEL_DIR = path.resolve(appRoot, process.env.APP_MODEL_DIR);
+dotenv.load({ path: process.env.APP_DOTENV_FILE_PATH });
+prepareEnv(appRoot);
 
 const mocha = new Mocha({
   reporter: 'spec',
   timeout: 15000,
 });
-const files = glob.sync(`${process.env.APP_MODEL_DIR}/test/**/*.js`);
+
+const files = _.flatten(getSchemaNestedPaths('test/**/*.js').map(pattern => glob.sync(pattern)));
 files.forEach(file => mocha.addFile(file));
 
 // Run the tests.

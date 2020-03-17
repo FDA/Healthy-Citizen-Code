@@ -30,6 +30,8 @@
           minView: endView(scope.field)
         };
 
+        scope.placeholder = getPlaceholder(scope.field);
+
         scope.onDateChange = function() {
           // WORAROUND: datepicker is not setting related inputs dirty on change
           scope.form[scope.field.fieldName].$setDirty();
@@ -79,6 +81,16 @@
             'Date': 'day',
             'DateTime': 'minute',
             'Time': 'minute'
+          };
+
+          return modes[field.type] || modes['Date'];
+        }
+
+        function getPlaceholder(field) {
+          var modes = {
+            'Date': 'Enter date',
+            'DateTime': 'Enter date & time',
+            'Time': 'Enter time'
           };
 
           return modes[field.type] || modes['Date'];

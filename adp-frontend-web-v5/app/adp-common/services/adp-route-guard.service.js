@@ -58,6 +58,10 @@
         return false;
       }
 
+      if (state.name === 'auth.forgot' && !authSettings.enableUserPasswordReset) {
+        return false;
+      }
+
       return lsService.isGuest();
     };
 

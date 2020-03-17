@@ -3,6 +3,7 @@ const log = require('log4js').getLogger('graphql/mongo-query-resolver');
 const { composeWithPagination } = require('../pagination');
 const MongoQueryContext = require('../../request-context/graphql/MongoQueryContext');
 const { getOrCreateTypeByModel } = require('../type/model');
+const { handleGraphQlError } = require('../util');
 const { COMPOSER_TYPES } = require('../type/common');
 
 const paginationFindByMongoQueryResolverName = 'paginationByMongoQuery';
@@ -36,18 +37,18 @@ function addFindManyMongoQueryResolver(type) {
     },
     type: [type],
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
         const {
           controllerUtil,
           butil: { getRequestMeta },
-        } = context.appLib;
+        } = appLib;
 
         const { items, meta } = await controllerUtil.getItems(paginationContext, true);
         log.debug(`Meta: ${getRequestMeta(paginationContext, meta)}`);
         return items;
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to get requested elements`);
+        handleGraphQlError(e, `Unable to get requested elements`, log, appLib);
       }
     },
   });
@@ -64,13 +65,13 @@ function addCountMongoQueryResolver(type) {
     },
     type: 'Int!',
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
-        const { controllerUtil } = context.appLib;
+        const { controllerUtil } = appLib;
         paginationContext.action = 'view';
         return controllerUtil.getElementsCount({ context: paginationContext });
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to count requested elements`);
+        handleGraphQlError(e, `Unable to count requested elements`, log, appLib);
       }
     },
   });

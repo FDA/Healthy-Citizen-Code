@@ -17,6 +17,7 @@
     vm.authParams = INTERFACE.loginPage.parameters;
 
     vm.showSignUp = INTERFACE.app.auth.enableRegistration;
+    vm.showReset = INTERFACE.app.auth.enableUserPasswordReset;
 
     vm.submit = function (formData) {
       return AdpSessionService.login(formData);

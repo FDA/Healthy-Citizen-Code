@@ -1,8 +1,3 @@
-/**
- TODO: Test core essential functions:
- model#validateAndCleanupAppModel
- */
-// TODO: either get rid of asserts in tests or replace them with assert(test, MESSAGE)
 const _ = require('lodash');
 require('should');
 

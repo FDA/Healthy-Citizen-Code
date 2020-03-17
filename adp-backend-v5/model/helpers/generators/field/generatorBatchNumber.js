@@ -1,6 +1,6 @@
 module.exports = ({ batchName }) => {
   return {
-    scgGeneratorBatchNumber() {
+    scgGeneratorBatchName() {
       if (batchName) {
         // value passed to scg script
         return batchName;

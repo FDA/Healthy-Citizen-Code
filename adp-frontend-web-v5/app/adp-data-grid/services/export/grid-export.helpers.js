@@ -1,171 +1,160 @@
 ;(function () {
-  'use strict';
+  "use strict";
 
   angular
-    .module('app.adpDataGrid')
-    .factory('GridExportHelpers', GridExportHelpers);
+    .module("app.adpDataGrid")
+    .factory("GridExportHelpers", GridExportHelpers);
 
   /** @ngInject */
   function GridExportHelpers(
+    APP_CONFIG,
     AdpSchemaService,
     AdpUnifiedArgs,
+    AdpFileDownloader,
     HtmlCellRenderer,
-    $timeout
+    AdpNotificationService,
+    GridExportGenerators,
+    $timeout,
+    GraphqlCollectionMutator,
+    ErrorHelpers
   ) {
-    var PREF_TYPE_LS_KEY = 'gridPrefExportFormat';
-    var XML_INDENT = 2;
+    var PREF_TYPE_LS_KEY = "gridPrefExportFormat";
     var exportFormatConfig = {
       xlsx: {
-        mime: 'application/octet-stream',
+        native: "Excel XLSX file",
+        mime: "application/octet-stream",
         processor: function (wb) {
           return wb.xlsx.writeBuffer()
         },
         useCellRenderers: true
       },
       csv: {
-        mime: 'text/csv',
+        native: "CSV file",
+        mime: "text/csv",
         processor: function (wb) {
           return wb.csv.writeBuffer()
         },
         useCellRenderers: true
       },
       xml: {
-        mime: 'text/xml',
-        processor: xmlGenerator
+        native: "XML file",
+        mime: "text/xml",
+        processor: GridExportGenerators.xmlGenerator
       },
       json: {
-        mime: 'text/json',
-        processor: jsonGenerator
+        native: "JSON file",
+        mime: "text/json",
+        processor: GridExportGenerators.jsonGenerator
       },
+      db: {
+        native: "DB collection",
+        exporter: serverSideExport
+      }
     };
 
-    function jsonGenerator(wb) {
-      return Promise.resolve(JSON.stringify(workbookToJson(wb), null, 4));
+    function getExporter(gridComponent, schema) {
+      return function (options) {
+        var method = getExportMethod(options.format);
+        setPrefType(options.format);
+
+        options.grid = gridComponent;
+        options.schema = schema;
+
+        return method(options);
+      }
     }
 
-    function xmlGenerator(wb) {
-      var obj = {rows: workbookToJson(wb)};
+    function clientSideExport(options) {
+      var workbook = new ExcelJS.Workbook();
+      var worksheet = workbook.addWorksheet("Main");
+      var fileName = options.schema.fullName + "." + options.format;
 
-      return Promise.resolve(
-        '<?xml version="1.0" encoding="utf-8">' + objToXml(obj, 0) + '\n</xml>'
-      );
+      return DevExpress.excelExporter.exportDataGrid({
+        component: options.grid,
+        worksheet: worksheet,
+        selectedRowsOnly: options.rowsToExport === "selected",
+        customizeCell: getCellCustomizer(options.schema, options.format),
+      }).then(function () {
+        var processor = getProcessor(options.format);
+
+        if (processor) {
+          return processor(workbook);
+        }
+
+        throw new ClientError("No format processor found for " + options.format);
+      }).then(function (buffer) {
+        getSaver(options.format)({buffer: buffer, format: options.format, fileName: fileName})
+          .then(function () {
+            AdpNotificationService.notifySuccess("Exported successfully");
+          });
+      });
     }
 
-    function workbookToJson(workbook) {
-      var stack = [{__items: []}];
-      var cursor = stack[0];
+    function serverSideExport(options) {
+      var datasetsSchema = AdpSchemaService.getSchemaByName("datasets");
+      var params = {
+        parentCollectionName: options.schema.schemaName,
+        filter: gridFilterCondition(options.grid, options.rowsToExport === "selected"),
+        projections: gridVisibleColumns(options.grid)
+      };
+      var record = {
+        name: options.name,
+        description: options.description
+      };
 
-      workbook.eachSheet(function (sheet) {  // Required as sheets are listed with random offset internally.
-        sheet._rows.forEach(function (row) {
-          var cell = row._cells[0]._schemaCell;
-          var rowType = cell.rowType;
-
-          if (rowType !== 'header') {
-            if (rowType === 'group') {
-              while (stack.length > cell.column.groupIndex + 1) {
-                var top = stack.pop();
-                cursor = stack[stack.length - 1];
-                cursor.__items.push(top);
-              }
-              var group = {};
-              group[cell.column.dataField] = cell.value;
-              group.__items = [];
-              stack.push(group);
-              cursor = group;
-            } else {
-              cursor.__items.push(rowToObj(row));
-            }
-          }
+      return GraphqlCollectionMutator.cloneDataSet(datasetsSchema, record, params)
+        .then(function () {
+          AdpNotificationService.notifySuccess("Exported successfully");
+        }).catch(function (error) {
+          ErrorHelpers.handleError(error, "Unknown error, while trying to export dataset");
+          throw error;
         });
-
-        cursor = stack.pop();
-
-        while (stack.length > 0) {
-          var top = stack.pop();
-
-          top.__items.push(cursor);
-          cursor = top;
-        }
-      });
-
-      return cursor.__items;
     }
 
-    function rowToObj(row) {
-      var obj = {};
-
-      row.eachCell({includeEmpty: true}, function (cell) {
-        var schemaCell = cell._schemaCell;
-        var field = schemaCell.column.dataField;
-        var value = schemaCell.value;
-
-        if (field && value !== null) {
-          obj[field] = value;
-        }
-      });
-
-      return obj;
+    function gridVisibleColumns(grid) {
+      return _.compact(_.map(grid.getVisibleColumns(), function (row) {
+        return row.allowExporting && row.dataField
+      }));
     }
 
-    function objToXml(obj, ind) {
-      var xml = '';
+    function gridFilterCondition(grid, getSelected) {
+      var filter = [];
 
-      if (typeof obj == "string" || typeof obj == "number") {
-        return obj;
+      if (getSelected) {
+        var selectedRows = grid.getSelectedRowKeys();
+
+        if (selectedRows.length) {
+          _.each(selectedRows, function (row) {
+            filter.push(["_id", "=", row._id]);
+            filter.push("or");
+          });
+          filter.pop();
+        }
+      } else {
+        filter = grid.getCombinedFilter();
       }
 
-      _.each(obj, function (item, key) {
-        xml += "\n" + indent(ind) + "<" + key + ">";
-
-        if (item instanceof Array) {
-          // xml += "\n" + indent(ind);
-          item.forEach(function (elem) {
-            //   xml += "<item>" + objToXml(new Object(elem)) + "</item>";
-            xml += "\n" + indent(ind + XML_INDENT) + "<item>" + objToXml(elem, ind + XML_INDENT * 2) + "</item>";
-          });
-
-          if (item.length) {
-            xml += "\n" + indent(ind);
-          }
-        } else if (typeof item == "object") {
-          //   xml += objToXml(new Object(item));
-          xml += objToXml(item, ind + XML_INDENT) + "\n" + indent(ind);
-        } else {
-          xml += item;
-        }
-
-        xml += "</" + key + ">";//\n" + indent(ind);
-      });
-
-      return xml;//.replace(/<\/?[0-9]{1,}>/g, '');
+      return filter;
     }
 
-    function indent(num) {
-      return " ".repeat(num)
-    }
-
-    function saveData(buffer, fileFormat, fileName) {
-      var a = document.createElement("a");
-      var url = window.URL.createObjectURL(new Blob([buffer], {type: getMime(fileFormat)}), fileName);
-
-      document.body.appendChild(a);
-      a.style = "display: none";
-      a.href = url;
-      a.download = fileName;
-      a.click();
-      window.URL.revokeObjectURL(url);
-
-      $timeout(function () { //Just to make sure no special effects occurs
-        document.body.removeChild(a);
-      }, 5000);
+    function saveData(params) {
+      return AdpFileDownloader(_.extend({mimeType: getMime(params.format)}, params));
     }
 
     function getMime(type) {
       return exportFormatConfig[type].mime;
     }
 
+    function getExportMethod(type) {
+      return exportFormatConfig[type].exporter || clientSideExport;
+    }
+
     function getProcessor(type) {
       return exportFormatConfig[type].processor;
+    }
+
+    function getSaver(type) {
+      return exportFormatConfig[type].saver || saveData;
     }
 
     function getPrefType() {
@@ -182,7 +171,7 @@
 
         options.excelCell._schemaCell = gridCell;
 
-        if (exportFormatConfig[exportFormat].useCellRenderers && gridCell.rowType === 'data') {
+        if (exportFormatConfig[exportFormat].useCellRenderers && gridCell.rowType === "data") {
           var args = AdpUnifiedArgs.getHelperParams({
             path: gridCell.column.dataField,
             formData: gridCell.data,
@@ -198,12 +187,21 @@
       }
     }
 
+    function getExportFormats() {
+      var result = {};
+
+      for (var key in exportFormatConfig) {
+        result[key] = exportFormatConfig[key].native;
+      }
+
+      return result;
+    }
+
     return {
-      saveData: saveData,
-      getProcessor: getProcessor,
-      getCellCustomizer: getCellCustomizer,
+      getExportFormats: getExportFormats,
+      getExporter: getExporter,
       getPrefType: getPrefType,
-      setPrefType: setPrefType
+      gridVisibleColumns: gridVisibleColumns,
     }
   }
 })();

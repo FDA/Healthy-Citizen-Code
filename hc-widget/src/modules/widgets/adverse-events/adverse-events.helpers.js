@@ -1,7 +1,7 @@
 import openFdaHelpers from "../../open-fda-helpers";
 
 function createEvent(data, formatFn, type) {
-  let isObject = typeof data === 'object';
+  let isObject = data && data.value;
   let value = isObject ? data.value : data;
   let viewValue;
 

@@ -27,7 +27,57 @@ function getTime(value) {
   return getUTCDate({ hour, minute });
 }
 
+/**
+ * Returns human-readable date in US format mm/dd/yyyy
+ * @param date
+ * @returns {string}
+ */
+function getDatePartString(date) {
+  const d = new Date(date);
+  return `${d.getMonth() + 1}/${d.getDate()}/${d.getFullYear()}`;
+}
+
+/**
+ * removes time part from datetime and returns only date part for clean date comparison
+ * @param date
+ */
+function getDatePartValue(date) {
+  const d = new Date(date);
+  d.setHours(0, 0, 0, 0);
+  return d;
+}
+
+function getDateFromAmPmTime(time) {
+  const preparedTime = time.trim().toLowerCase();
+  const hoursMinutes = preparedTime
+    .substr(0, preparedTime.length - 2)
+    .split(':')
+    .map(Number);
+  let hours = hoursMinutes[0];
+  const minutes = hoursMinutes[1];
+  if (preparedTime.endsWith('pm') && hours !== 12) {
+    hours += 12;
+  }
+  const datePart = new Date(1970, 0, 1);
+  const timePart = 1000 * 60 * (hours * 60 + minutes);
+  return new Date(+datePart + +timePart);
+}
+
+function getAmPmTimeFromDate(date) {
+  let hours = date.getHours();
+  let minutes = date.getMinutes();
+  const ampm = hours >= 12 ? 'pm' : 'am';
+  hours %= 12;
+  hours = hours || 12; // the hour '0' should be '12'
+  minutes = minutes < 10 ? `0${minutes}` : minutes;
+  return `${hours}:${minutes} ${ampm}`;
+}
+
 module.exports = {
   getUTCDate,
   getTime,
+  getDatePartString,
+  getDatePartValue,
+  getDateFromAmPmTime,
+  getAmPmTimeFromDate,
 };

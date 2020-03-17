@@ -27,11 +27,11 @@ module.exports = function() {
     }).getTypeNonNull();
 
     // custom upsert
-    const { resolver: upsertOneResolver } = addUpsertOne(modelName, udidFilter);
+    const { resolver: upsertOneResolver } = addUpsertOne({ modelName, filterType: udidFilter});
     addMutation(`${modelName}UpsertOne`, upsertOneResolver);
 
     // custom findMany
-    const { resolver: findManyByFilterTypeResolver } = addFindManyByFilterType(modelName, udidFilter);
+    const { resolver: findManyByFilterTypeResolver } = addFindManyByFilterType({ modelName, filterType: udidFilter});
     addQuery(modelName, findManyByFilterTypeResolver);
   };
 

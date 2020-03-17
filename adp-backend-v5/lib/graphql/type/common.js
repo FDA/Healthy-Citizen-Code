@@ -97,6 +97,24 @@ function getOrCreateEnum(enumName, values) {
         ),
       });
 }
+
+const dxQueryWithQuickFilterInput = schemaComposer.createInputTC({
+  name: 'dxQueryWithQuickFilterInput',
+  fields: {
+    dxQuery: 'String',
+    quickFilterId: MongoIdScalarTC,
+  },
+});
+
+const dxQueryInput = schemaComposer.createInputTC({
+  name: 'dxQueryInput',
+  fields: {
+    dxQuery: { type: 'String!' },
+  },
+});
+
+const dxQueryInputRequired = dxQueryInput.getTypeNonNull();
+
 module.exports = {
   COMPOSER_TYPES,
   isInputType,
@@ -105,4 +123,7 @@ module.exports = {
   AnythingType,
   getLocationType,
   getOrCreateEnum,
+  dxQueryInput,
+  dxQueryInputRequired,
+  dxQueryWithQuickFilterInput,
 };

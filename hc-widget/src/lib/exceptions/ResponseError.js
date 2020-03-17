@@ -27,6 +27,10 @@ export class ResponseError extends BaseError {
   }
 
   static get ADVERSE_EVENTS_EMPTY() {
-    return 'Unable to get adverse events.  No data for specified medications.';
+    return 'Unable to get adverse events. No data for specified medications.';
+  }
+
+  static get MEDICATION_NAMES_EMPTY() {
+    return 'Unable to get Medication Names. No data for specified medications.';
   }
 }

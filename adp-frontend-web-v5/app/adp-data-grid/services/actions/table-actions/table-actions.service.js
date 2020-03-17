@@ -25,10 +25,11 @@
         caption: getColumnCaption(schema),
         name: 'actions',
         cssClass: 'actions-column',
-        width: schema.actions.width,
         cellTemplate: actionsTemplate(tableActions),
         allowExporting: false,
-        hidingPriority: schema.responsivePriority,
+        hidingPriority: schema.actions.responsivePriority,
+        visible: true,
+        showInColumnChooser: true,
       });
 
       options.onCellClick = handleActionInTable(schema);
@@ -54,7 +55,7 @@
 
     function handleActionInTable(schema) {
       return function (cellInfo) {
-        var actionBtn = cellInfo.event.target.closest('[data-action]');
+        var actionBtn = $(cellInfo.event.target).closest('[data-action]')[0];
         if (!actionBtn) {
           return;
         }
@@ -107,7 +108,7 @@
 
     function getActionElement(cellInfo) {
       var target = cellInfo.event.target;
-      return target.closest('[data-action]');
+      return $(target).closest('[data-action]')[0];
     }
   }
 })();

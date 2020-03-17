@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const Promise = require('bluebird');
 const log = require('log4js').getLogger('lib/graphql');
 
 const {
@@ -137,11 +138,29 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     dxGroupPostfix: `DxGroup`,
     modelPostfix: ``,
   };
+  m.getDxQueryName = modelName => {
+    return `${modelName}${m.queryPostfix.dxQueryPostfix}`;
+  };
+  m.getDxGroupQueryName = modelName => {
+    return `${modelName}${m.queryPostfix.dxGroupPostfix}`;
+  };
+  m.getModelQueryName = modelName => {
+    return `${modelName}${m.queryPostfix.modelPostfix}`;
+  };
 
   m.mutationPostfix = {
     updatePostfix: `UpdateOne`,
     deletePostfix: `DeleteOne`,
     createPostfix: `Create`,
+  };
+  m.getUpdateMutationName = modelName => {
+    return `${modelName}${m.mutationPostfix.updatePostfix}`;
+  };
+  m.getDeleteMutationName = modelName => {
+    return `${modelName}${m.mutationPostfix.deletePostfix}`;
+  };
+  m.getCreateMutationName = modelName => {
+    return `${modelName}${m.mutationPostfix.createPostfix}`;
   };
 
   function getModelInfo(arg) {
@@ -168,21 +187,19 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
   }
 
   m.addDefaultMutations = modelArg => {
-    const { updatePostfix, deletePostfix, createPostfix } = m.mutationPostfix;
     const { addCreateOne, addUpdateOne, addDeleteOne } = m.resolvers;
 
     const modelInfo = getModelInfo(modelArg);
     _.each(modelInfo, (model, modelName) => {
-      const updateMutationName = `${modelName}${updatePostfix}`;
-      const createMutationName = `${modelName}${createPostfix}`;
-      const deleteMutationName = `${modelName}${deletePostfix}`;
-
+      const createMutationName = m.getCreateMutationName(modelName);
       log.trace(`Adding create mutation '${createMutationName}'`);
       schemaComposer.Mutation.addFields({ [createMutationName]: addCreateOne({ model, modelName }).resolver });
 
+      const updateMutationName = m.getUpdateMutationName(modelName);
       log.trace(`Adding update mutation '${updateMutationName}'`);
       schemaComposer.Mutation.addFields({ [updateMutationName]: addUpdateOne({ model, modelName }).resolver });
 
+      const deleteMutationName = m.getDeleteMutationName(modelName);
       log.trace(`Adding delete mutation '${deleteMutationName}'`);
       schemaComposer.Mutation.addFields({ [deleteMutationName]: addDeleteOne({ model, modelName }).resolver });
 
@@ -191,12 +208,11 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
   };
 
   m.removeDefaultMutations = modelNames => {
-    const { updatePostfix, deletePostfix, createPostfix } = m.mutationPostfix;
     _.each(_.castArray(modelNames), modelName => {
       const mutationNames = [
-        `${modelName}${updatePostfix}`,
-        `${modelName}${deletePostfix}`,
-        `${modelName}${createPostfix}`,
+        m.getCreateMutationName(modelName),
+        m.getUpdateMutationName(modelName),
+        m.getDeleteMutationName(modelName),
       ];
       log.trace(`Removing mutations for '${modelName}': ${mutationNames.map(n => `'${n}'`).join(', ')}`);
       schemaComposer.Mutation.removeField(mutationNames);
@@ -204,50 +220,92 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
   };
 
   m.addDefaultQueries = modelArg => {
-    const { dxGroupPostfix, dxQueryPostfix, modelPostfix } = m.queryPostfix;
     const { addFindManyByMongoQuery, addFindByDevExtremeFilter, addDevExtremeGroup } = m.resolvers;
 
     const modelInfo = getModelInfo(modelArg);
     _.each(modelInfo, (model, modelName) => {
-      const modelQueryName = `${modelName}${modelPostfix}`;
+      const modelQueryName = m.getModelQueryName(modelName);
       log.trace(`Adding model Query '${modelQueryName}'`);
       schemaComposer.Query.addFields({ [modelQueryName]: addFindManyByMongoQuery({ model, modelName }).resolver });
 
-      const devExtremeQueryName = `${modelName}${dxQueryPostfix}`;
+      const devExtremeQueryName = m.getDxQueryName(modelName);
       log.trace(`Adding DevExtreme Query '${devExtremeQueryName}'`);
       schemaComposer.Query.addFields({
         [devExtremeQueryName]: addFindByDevExtremeFilter({ model, modelName }).resolver,
       });
 
-      const devExtremeGroupQueryName = `${modelName}${dxGroupPostfix}`;
+      const devExtremeGroupQueryName = m.getDxGroupQueryName(modelName);
       log.trace(`Adding DevExtreme Group Query '${devExtremeGroupQueryName}'`);
       schemaComposer.Query.addFields({ [devExtremeGroupQueryName]: addDevExtremeGroup({ model, modelName }).resolver });
     });
   };
 
   m.removeDefaultQueries = modelNames => {
-    const { dxGroupPostfix, dxQueryPostfix, modelPostfix } = m.queryPostfix;
     _.each(_.castArray(modelNames), modelName => {
       const queryNames = [
-        `${modelName}${modelPostfix}`,
-        `${modelName}${dxQueryPostfix}`,
-        `${modelName}${dxGroupPostfix}`,
+        m.getModelQueryName(modelName),
+        m.getDxQueryName(modelName),
+        m.getDxGroupQueryName(modelName),
       ];
       log.trace(`Removing queries for '${modelName}': ${queryNames.map(n => `'${n}'`).join(', ')}`);
       schemaComposer.Query.removeField(queryNames);
     });
   };
 
-  m.addDatasets = async ({ datasetsModelName, datasetsResolvers, addQueriesAndMutationsForDatasetsInDb }) => {
-    m.addDefaultQueries(datasetsModelName);
+  m.addDatasets = async ({
+    datasetsModelName,
+    datasetsResolvers,
+    transformDatasetsRecord,
+    addQueriesAndMutationsForDatasetsInDb,
+  }) => {
+    const { addFindManyByMongoQuery, addFindByDevExtremeFilter, addDevExtremeGroup } = m.resolvers;
 
-    const { cloneOne, createOne, deleteOne } = datasetsResolvers;
-    const { createPostfix, deletePostfix } = m.mutationPostfix;
+    const queryWrapper = next => async rp => {
+      const result = await next(rp);
+
+      const { req } = rp.context;
+      const { getReqPermissions, getInlineContext } = appLib.accessUtil;
+      const userPermissions = getReqPermissions(req);
+      const inlineContext = getInlineContext(req);
+      if (_.isArray(result.items)) {
+        await Promise.map(result.items, item => transformDatasetsRecord(item, userPermissions, inlineContext));
+      }
+
+      return result;
+    };
+
+    const modelInfo = getModelInfo(datasetsModelName);
+    _.each(modelInfo, (model, modelName) => {
+      const modelQueryName = m.getModelQueryName(modelName);
+      log.trace(`Adding model Query '${modelQueryName}'`);
+      schemaComposer.Query.addFields({
+        [modelQueryName]: addFindManyByMongoQuery({ model, modelName }).resolver.wrapResolve(queryWrapper),
+      });
+
+      const devExtremeQueryName = m.getDxQueryName(modelName);
+      log.trace(`Adding DevExtreme Query '${devExtremeQueryName}'`);
+      schemaComposer.Query.addFields({
+        [devExtremeQueryName]: addFindByDevExtremeFilter({ model, modelName }).resolver.wrapResolve(queryWrapper),
+      });
+
+      const devExtremeGroupQueryName = m.getDxGroupQueryName(modelName);
+      log.trace(`Adding DevExtreme Group Query '${devExtremeGroupQueryName}'`);
+      schemaComposer.Query.addFields({
+        [devExtremeGroupQueryName]: addDevExtremeGroup({ model, modelName }).resolver.wrapResolve(queryWrapper),
+      });
+    });
+
+    const { cloneOne, createOne, deleteOne, updateOne } = datasetsResolvers;
+    const modelName = 'datasets';
+    const createMutationName = m.getCreateMutationName(modelName);
+    const updateMutationName = m.getUpdateMutationName(modelName);
+    const deleteMutationName = m.getDeleteMutationName(modelName);
+
     schemaComposer.Mutation.addFields({
-      [`datasets${createPostfix}`]: createOne,
-      [`datasetsClone`]: cloneOne,
-      [`datasets${deletePostfix}`]: deleteOne,
-      // [`datasets${updatePostfix}`]: updateOne,
+      [createMutationName]: createOne,
+      [updateMutationName]: deleteOne,
+      [deleteMutationName]: updateOne,
+      [`${modelName}Clone`]: cloneOne,
     });
 
     await addQueriesAndMutationsForDatasetsInDb();
@@ -283,25 +341,25 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
       const mutationResolver = m.getMutationResolver(mutationName);
       m.addMutation(mutationName, mutationResolver.wrapResolve(wrapper));
     } catch (e) {
-      throw new Error(`Unable to wrap mutation ${e}`);
+      throw new Error(`Unable to wrap mutation '${mutationName}'. ${e.stack}`);
     }
   };
 
   m.getQueryResolver = queryName => {
-    const mutationField = schemaComposer.Query.get(queryName);
-    if (!mutationField) {
+    const queryField = schemaComposer.Query.get(queryName);
+    if (!queryField) {
       return null;
     }
 
     const { dxGroupPostfix, dxQueryPostfix, modelPostfix } = m.queryPostfix;
     if (queryName.endsWith(dxGroupPostfix)) {
-      return mutationField.getResolver(devExtremeGroupResolverName);
+      return queryField.getResolver(devExtremeGroupResolverName);
     }
     if (queryName.endsWith(dxQueryPostfix)) {
-      return mutationField.getResolver(paginationFindByDevExtremeFilterResolverName);
+      return queryField.getResolver(paginationFindByDevExtremeFilterResolverName);
     }
     if (queryName.endsWith(modelPostfix)) {
-      return mutationField.getResolver(paginationFindByMongoQueryResolverName);
+      return queryField.getResolver(paginationFindByMongoQueryResolverName);
     }
     return null;
   };
@@ -315,18 +373,68 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     }
   };
 
+  m.addBackgroundJobs = async backgroundJobsModelName => {
+    const backgroundJobsModel = appLib.appModel.models[backgroundJobsModelName];
+    const { backgroundJobsResolvers } = require('./background-jobs')({ backgroundJobsModel, backgroundJobsModelName });
+
+    const devExtremeQueryName = m.getDxQueryName(backgroundJobsModelName);
+    log.trace(`Adding DevExtreme Query '${devExtremeQueryName}'`);
+    schemaComposer.Query.addFields({
+      [devExtremeQueryName]: backgroundJobsResolvers.pagination,
+    });
+
+    const deleteMutationName = m.getDeleteMutationName(backgroundJobsModelName);
+    log.trace(`Adding Delete Mutation '${deleteMutationName}'`);
+    schemaComposer.Mutation.addFields({
+      [deleteMutationName]: backgroundJobsResolvers.deleteOne,
+    });
+  };
+
+  m.addImportData = () => {
+    const { resolver: importResolver } = require('./import-data')(appLib);
+    schemaComposer.Mutation.addFields({ universalImportData: importResolver });
+  };
+
+  m.addQuickFilters = () => {
+    const modelName = 'quickFilters';
+    const { testQuickFilterResolver } = require('./quick-filter')();
+    schemaComposer.Query.addFields({ testQuickFilter: testQuickFilterResolver });
+    const testQuickFilterWrapper = next => async rp => {
+      const newResolveParams = _.clone(rp);
+      newResolveParams.args = _.pick(newResolveParams.args.record, ['model', 'filter']);
+      newResolveParams.projection = { count: 1 };
+
+      // throws error on invalid 'model', 'filter'args
+      await testQuickFilterResolver.resolve(newResolveParams);
+
+      return next(rp);
+    };
+
+    const createMutationName = m.getCreateMutationName(modelName);
+    const updateMutationName = m.getUpdateMutationName(modelName);
+    m.wrapMutation(createMutationName, testQuickFilterWrapper);
+    m.wrapMutation(updateMutationName, testQuickFilterWrapper);
+  };
+
   m.addAll = async () => {
     const { models } = appLib.appModel;
     const { appLookups, appTreeSelectors } = appLib;
 
     const allModelNames = _.keys(models);
-    // do not generate for datasets since it's custom
-    const modelNames = allModelNames.filter(modelName => modelName !== 'datasets');
-    m.addDefaultQueries(modelNames);
-    m.addDefaultMutations(modelNames);
 
     const datasetsModelName = 'datasets';
-    const { datasetsResolvers, addQueriesAndMutationsForDatasetsInDb } = require('./datasets-collections')({
+    const backgroundJobsModelName = 'backgroundJobs';
+    const customModels = [datasetsModelName, backgroundJobsModelName];
+
+    const regularModelNames = allModelNames.filter(modelName => !customModels.includes(modelName));
+    m.addDefaultQueries(regularModelNames);
+    m.addDefaultMutations(regularModelNames);
+
+    const {
+      datasetsResolvers,
+      transformDatasetsRecord,
+      addQueriesAndMutationsForDatasetsInDb,
+    } = require('./datasets-collections')({
       appLib,
       datasetsModel: appLib.appModel.models[datasetsModelName],
       datasetsModelName,
@@ -336,7 +444,16 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
       removeDefaultMutations: m.removeDefaultMutations,
     });
 
-    await m.addDatasets({ datasetsModelName, datasetsResolvers, addQueriesAndMutationsForDatasetsInDb });
+    await m.addDatasets({
+      datasetsModelName,
+      datasetsResolvers,
+      transformDatasetsRecord,
+      addQueriesAndMutationsForDatasetsInDb,
+    });
+
+    await m.addBackgroundJobs(backgroundJobsModelName);
+    await m.addImportData();
+    await m.addQuickFilters();
 
     addLookupsQueries(models, appLookups, log);
     addTreeselectorsQueries(models, appTreeSelectors, log);

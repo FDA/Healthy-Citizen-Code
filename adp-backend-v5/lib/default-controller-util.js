@@ -29,7 +29,7 @@ module.exports = appLib => {
     const { items, meta } = await m.getElements({ context });
     const data = items[0];
     if (!data) {
-      log.error(`Unable to delete requested element. Meta: ${getRequestMeta(context, meta)}`);
+      log.info(`Unable to delete requested element. Meta: ${getRequestMeta(context, meta)}`);
       throw new AccessError(`Unable to delete requested element`);
     }
 
@@ -250,12 +250,12 @@ module.exports = appLib => {
   };
 
   m.getTreeSelectorParentLookup = (foreignKeyVal, treeSelectorSpec) => {
-    // label is not necessary
-    // TODO: transform string mongo id to ObjectID considering type of foreignKey instead of using isValid
     if (!foreignKeyVal) {
       return null;
     }
 
+    // label is not necessary
+    // TODO: transform string mongo id to ObjectID considering type of foreignKey instead of using isValid
     return {
       table: treeSelectorSpec.table,
       _id: ObjectID.isValid(foreignKeyVal) ? new ObjectID(foreignKeyVal) : foreignKeyVal,
@@ -271,8 +271,6 @@ module.exports = appLib => {
       tableSpec,
       conditions
     );
-    // TODO: support regexps in lookups (check out git history) ?
-    // TODO: call renderer for the label?
     const docs = await appLib.dba.getItemsUsingCache({
       model,
       userContext,
@@ -305,8 +303,6 @@ module.exports = appLib => {
       appLib.accessUtil.getViewConditionsByPermissionsForLookup(userPermissions, inlineContext, tableSpec, conditions),
       m.getTreeSelectorConditions(tableSpec, model, treeSelectorParentLookup),
     ]);
-    // TODO: support regexps in lookups (check out git history) ?
-    // TODO: call renderer for the label?
     const docs = await appLib.dba.getItemsUsingCache({
       model,
       userContext,

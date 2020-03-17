@@ -21,7 +21,13 @@
       'PasswordAuth': { directiveType: 'string' },
       'Password': { directiveType: 'password' },
       'Text': { directiveType: 'text' },
+
       'Number': { directiveType: 'number' },
+      'Double': { directiveType: 'number' },
+      'Int32': { directiveType: 'int-number' },
+      'Int64': { directiveType: 'int-number' },
+      'Decimal128': { directiveType: 'decimal' },
+
       'String[]': { directiveType: 'string-array' },
       'Recaptcha': { directiveType: 'recaptcha' },
 
@@ -55,6 +61,7 @@
       'FormRender': { directiveType: 'form-render' },
       'Object': { directiveType: 'object' },
       'Array': { directiveType: 'array' },
+      'AssociativeArray': { directiveType: 'array' },
       'Readonly': { directiveType: 'readonly' },
       'TreeSelector': { directiveType: 'tree-selector' },
     };
@@ -90,7 +97,7 @@
 
     // public
     function getFormFields(fields) {
-      var form = {notGrouped: []};
+      var form = { notGrouped: [] };
 
       form.notGrouped = _.chain(_.clone(fields))
         .map(prepareData)
@@ -105,6 +112,9 @@
             _isVisible(field);
         })
         .filter(_applyPermissions)
+        .sortBy(function (f) {
+          return f.formOrder;
+        })
         .value();
 
       return form;
@@ -124,9 +134,7 @@
       return true;
     }
 
-    function prepareData(field, key) {
-      field.fieldName = key;
-
+    function prepareData(field) {
       if (!_.isString(field.required)) {
         field.required = !!field.required;
       }
@@ -201,15 +209,13 @@
       //    ...
       //  }
       // }
-      var grouped =_.groupBy(fields, function (field) {
+      var grouped = _.groupBy(fields, function (field) {
         if (field.type === 'Group') {
           lastGroup = field.fieldName;
         }
 
         return lastGroup;
       });
-
-
 
       var groupedFields = {
         notGrouped: grouped.notGrouped,
@@ -241,6 +247,28 @@
           });
         }
       });
+
+      return sortGroups(groupedFields);
+    }
+
+    function sortGroups(groupedFields) {
+      var getSortedFields = function (fields) {
+        return _.sortBy(fields, function (f) {
+          return f.formOrder;
+        });
+      };
+
+      groupedFields.notGrouped = getSortedFields(groupedFields.notGrouped);
+      groupedFields.groups = getSortedFields(groupedFields.groups);
+
+      var newGroups = {};
+      _.each(groupedFields.groups, function (group) {
+        if (group.type === 'Group') {
+          group.fields = getSortedFields(group.fields);
+          newGroups[group.fieldName] = group;
+        }
+      });
+      groupedFields.groups = newGroups;
 
       return groupedFields;
     }

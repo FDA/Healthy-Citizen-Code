@@ -16,7 +16,6 @@ module.exports = {
       return [feet, inches];
     }
   },
-  // TODO: write tests for imperialWeightWithOz
   weightImperialWithOzToMetric(imperialWeight) {
     if (Array.isArray(imperialWeight) && imperialWeight.length === 2) {
       const [lbs, ozs] = imperialWeight;

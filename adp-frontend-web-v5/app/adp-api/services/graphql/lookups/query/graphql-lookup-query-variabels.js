@@ -28,15 +28,24 @@
     }
 
     function filterParam(params, args) {
-      var filter = { q: params.searchValue || '' };
+      var filter = {};
+      if (params.searchValue) {
+        filter.q = params.searchValue || '';
+      } else {
+        filter.dxQuery = JSON.stringify(params.dxQuery);
+      }
 
       if (params.selectedTable.where) {
-        filter.form = _.cloneDeep(args.row);
-        _.unset(filter.form, '_id');
-        _.unset(filter.form, '_actions');
+        setFormDataToFilter(filter, args.row);
       }
 
       return filter;
+    }
+
+    function setFormDataToFilter(filter, formData) {
+      filter.form = _.cloneDeep(formData);
+      _.unset(formData, '_id');
+      _.unset(formData, '_actions');
     }
   }
 })();

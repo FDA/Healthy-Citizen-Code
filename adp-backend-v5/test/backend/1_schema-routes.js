@@ -58,6 +58,9 @@ describe('V5 Backend Schema Routes', () => {
         export: {
           enabled: true,
         },
+        import: {
+          enabled: true,
+        },
         selection: {
           mode: 'single',
           selectAllMode: 'page',
@@ -65,6 +68,7 @@ describe('V5 Backend Schema Routes', () => {
         columnResizingMode: 'widget',
         columnHidingEnabled: true,
         hoverStateEnabled: true,
+        loadInvisibleFields: true,
       },
       fields: {
         string: {
@@ -74,12 +78,12 @@ describe('V5 Backend Schema Routes', () => {
               allowGrouping: true,
               allowExpandGroup: true,
             },
+            minWidth: 100,
           },
           fieldName: 'string',
-          type: 'String',
           filter: 'string',
+          type: 'String',
           fullName: 'String',
-          visibilityPriority: 100,
           responsivePriority: 100,
           showInViewDetails: true,
           showInDatatable: true,
@@ -89,20 +93,23 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
-          width: 150,
+          width: 100,
           searchable: true,
-          transform: ['trim'],
           autocomplete: 'enable',
         },
         encounters: {
           fieldName: 'encounters',
+          parameters: {
+            grouping: {
+              allowGrouping: false,
+            },
+          },
           type: 'Array',
           filter: 'none',
           fullName: 'Encounters Full Name',
           description: 'Encounters Description',
-          visibilityPriority: 100,
           responsivePriority: 100,
-          width: 100,
+          width: 200,
           showInViewDetails: true,
           showInDatatable: true,
           showInForm: true,
@@ -114,6 +121,11 @@ describe('V5 Backend Schema Routes', () => {
           fields: {
             diagnoses: {
               fieldName: 'diagnoses',
+              parameters: {
+                grouping: {
+                  allowGrouping: false,
+                },
+              },
               type: 'Array',
               filter: 'none',
               fullName: 'Diagnoses Full Name',
@@ -134,16 +146,15 @@ describe('V5 Backend Schema Routes', () => {
                       allowGrouping: true,
                       allowExpandGroup: true,
                     },
+                    minWidth: 100,
                   },
                   type: 'String',
-                  fieldName: 'data',
                   filter: 'string',
+                  fieldName: 'data',
                   fullName: 'Data Full Name',
                   description: 'Data Description',
-                  width: 150,
+                  width: 100,
                   searchable: true,
-                  transform: ['trim'],
-                  visibilityPriority: 100,
                   responsivePriority: 100,
                   showInViewDetails: true,
                   showInDatatable: true,
@@ -156,12 +167,16 @@ describe('V5 Backend Schema Routes', () => {
                   autocomplete: 'enable',
                 },
               },
-              visibilityPriority: 100,
               responsivePriority: 100,
-              width: 100,
+              width: 200,
             },
             vitalSigns: {
               type: 'Array',
+              parameters: {
+                grouping: {
+                  allowGrouping: false,
+                },
+              },
               fieldName: 'vitalSigns',
               filter: 'none',
               fullName: 'Vital Signs Full Name',
@@ -182,16 +197,15 @@ describe('V5 Backend Schema Routes', () => {
                       allowGrouping: true,
                       allowExpandGroup: true,
                     },
+                    minWidth: 100,
                   },
                   type: 'String',
-                  fieldName: 'data',
                   filter: 'string',
+                  fieldName: 'data',
                   fullName: 'Data Full Name',
                   description: 'Data Description',
-                  width: 150,
+                  width: 100,
                   searchable: true,
-                  transform: ['trim'],
-                  visibilityPriority: 100,
                   responsivePriority: 100,
                   fieldInfo: {
                     read: true,
@@ -212,13 +226,12 @@ describe('V5 Backend Schema Routes', () => {
                     },
                   },
                   type: 'String[]',
-                  fieldName: 'array',
                   filter: 'stringMultiple',
+                  fieldName: 'array',
                   fullName: 'Array',
                   description: 'Array',
-                  visibilityPriority: 100,
                   responsivePriority: 100,
-                  width: 100,
+                  width: 150,
                   fieldInfo: {
                     read: true,
                     write: true,
@@ -230,31 +243,41 @@ describe('V5 Backend Schema Routes', () => {
                   autocomplete: 'enable',
                 },
               },
-              visibilityPriority: 100,
               responsivePriority: 100,
-              width: 100,
+              width: 200,
             },
           },
         },
         creator: {
-          fieldName: 'creator',
-          type: 'ObjectID',
-          filter: 'objectId',
+          type: 'LookupObjectID',
+          lookup: {
+            id: 'Model1sCreator',
+            table: {
+              users: {
+                foreignKey: '_id',
+                label: 'this.login',
+                table: 'users',
+              },
+            },
+          },
           fullName: 'creator',
+          filter: 'lookupObjectId',
+          autocomplete: 'enable',
+          fieldName: 'creator',
           showInViewDetails: false,
           showInDatatable: false,
           showInForm: false,
           showInGraphql: false,
-          synthesize: ['creator'],
           description: 'Record Creator',
-          width: 120,
-          visibilityPriority: 100,
+          width: 150,
           responsivePriority: 100,
           fieldInfo: {
             read: true,
             write: true,
           },
-          index: true,
+          parameters: {
+            enableInCellEditing: true,
+          },
         },
         createdAt: {
           fieldName: 'createdAt',
@@ -265,10 +288,8 @@ describe('V5 Backend Schema Routes', () => {
           showInDatatable: false,
           showInForm: false,
           showInGraphql: false,
-          synthesize: ['createdAt'],
           description: 'Record Created At',
-          width: 85,
-          visibilityPriority: 100,
+          width: 150,
           responsivePriority: 100,
           fieldInfo: {
             read: true,
@@ -285,10 +306,8 @@ describe('V5 Backend Schema Routes', () => {
           showInDatatable: false,
           showInForm: false,
           showInGraphql: false,
-          synthesize: ['updatedAt'],
           description: 'Record Updated At',
-          width: 85,
-          visibilityPriority: 100,
+          width: 150,
           responsivePriority: 100,
           fieldInfo: {
             read: true,
@@ -307,14 +326,34 @@ describe('V5 Backend Schema Routes', () => {
           showInForm: false,
           showInGraphql: false,
           description: 'Record Deleted At',
-          width: 85,
-          visibilityPriority: 100,
+          width: 150,
           responsivePriority: 100,
           fieldInfo: {
             read: true,
             write: true,
           },
           index: true,
+        },
+        _id: {
+          type: 'ObjectID',
+          fullName: 'Id',
+          parameters: {
+            enableInCellEditing: false,
+            visible: false,
+            grouping: {
+              allowGrouping: false,
+              allowExpandGroup: false,
+            },
+          },
+          fieldName: '_id',
+          width: 120,
+          responsivePriority: 100,
+          showInDatatable: true,
+          showInViewDetails: true,
+          showInForm: true,
+          showInGraphql: true,
+          filter: 'objectId',
+          fieldInfo: { read: true, write: true },
         },
       },
       actions: {
@@ -394,7 +433,7 @@ describe('V5 Backend Schema Routes', () => {
       },
     };
     this.batchNumberField = {
-      generatorBatchNumber: {
+      generatorBatchName: {
         type: 'String',
         showInViewDetails: false,
         showInDatatable: false,
@@ -402,7 +441,7 @@ describe('V5 Backend Schema Routes', () => {
         showInGraphql: false,
         // "comment": "Do not set this to anything for real records, they may get wiped out as autogenerated otherwise",
         generated: true,
-        fullName: 'Generator Batch Number',
+        fullName: 'Generator Batch Name',
         description: 'Set to the ID of generator batch for synthetic records',
         fieldInfo: {
           read: true,
@@ -449,7 +488,6 @@ describe('V5 Backend Schema Routes', () => {
       .expect('Content-Type', /json/);
     res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
     res.body.success.should.equal(true, res.body.message);
-    // TODO: use diffObjects everywhere instead of outputting two lengthy objects
     assert(
       _.isEqual(res.body.data, this.expectedData),
       `Diff: ${JSON.stringify(diffObjects(this.expectedData, res.body.data), null, 2)}`
@@ -472,7 +510,6 @@ describe('V5 Backend Schema Routes', () => {
       .expect('Content-Type', /json/);
     res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
     res.body.success.should.equal(true, res.body.message);
-    // TODO: use diffObjects everywhere instead of outputting two lengthy objects
     assert(
       _.isEqual(res.body.data, this.expectedData),
       `Diff: ${JSON.stringify(diffObjects(this.expectedData, res.body.data), null, 2)}`

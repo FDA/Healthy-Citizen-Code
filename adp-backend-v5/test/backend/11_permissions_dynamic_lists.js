@@ -1,4 +1,3 @@
-// TODO: requiresAuthentication is now replaced with permissions: ['authenticated'], update tests
 const request = require('supertest');
 require('should');
 

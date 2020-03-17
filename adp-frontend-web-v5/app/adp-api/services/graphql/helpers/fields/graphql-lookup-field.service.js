@@ -24,11 +24,11 @@
     }
 
     function lookupHasMultipleTable(field) {
-      return Object.values(field.lookup.table).length > 1;
+      return _.values(field.lookup.table).length > 1;
     }
 
     function getLookupFieldsWithMultipleTables(field) {
-      var tables = Object.values(field.lookup.table);
+      var tables = _.values(field.lookup.table);
 
       return tables.map(function (table) {
         var enumName = lookupEnumName(field, table);
@@ -43,7 +43,7 @@
     }
 
     function getLookupFieldsWithSingTables(field) {
-      var table = Object.values(field.lookup.table)[0];
+      var table = _.values(field.lookup.table)[0];
       return lookupItems(table);
     }
 

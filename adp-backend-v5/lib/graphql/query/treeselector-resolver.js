@@ -6,7 +6,7 @@ const TreeSelectorContext = require('../../request-context/graphql/TreeSelectorC
 const { getTreeselectorTypeName } = require('../type/lookup');
 const { getOrCreateTypeByModel } = require('../type/model');
 const { MongoIdScalarTC, COMPOSER_TYPES } = require('../type/common');
-const { ValidationError, AccessError, LinkedRecordError } = require('../../errors');
+const { handleGraphQlError } = require('../util');
 
 const paginationTreeselectorResolverName = 'paginationTreeselectors';
 const treeselectorResolverName = 'findTreeselectors';
@@ -71,16 +71,13 @@ function addFindTreeselectorResolver(type, treeselectorFilter) {
     },
     type: [type],
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
-        const { controllerUtil } = context.appLib;
+        const { controllerUtil } = appLib;
         const { treeSelectors } = await controllerUtil.getTreeSelectorLookups(paginationContext);
         return treeSelectors;
       } catch (e) {
-        log.error(e.stack);
-        if (e instanceof ValidationError || e instanceof AccessError || e instanceof LinkedRecordError) {
-          throw e;
-        }
-        throw new Error(`Unable to find requested elements`);
+        handleGraphQlError(e, `Unable to find requested elements`, log, appLib);
       }
     },
   });
@@ -95,13 +92,13 @@ function addCountTreeselectorResolver(type, treeselectorFilter) {
     },
     type: 'Int!',
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
-        const { controllerUtil } = context.appLib;
+        const { controllerUtil } = appLib;
         paginationContext.action = 'view';
         return controllerUtil.getElementsCount({ context: paginationContext });
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to count requested elements`);
+        handleGraphQlError(e, `Unable to count requested elements`, log, appLib);
       }
     },
   });
@@ -112,7 +109,14 @@ function addTreeselectorsQueries(models, appTreeselectors, logger) {
     const treeSelectorTables = _.omit(treeselectorSpec, ['id']);
     _.each(treeSelectorTables, (tableSpec, treeselectorTableName) => {
       const treeselectorTypeName = getTreeselectorTypeName(treeSelectorId, treeselectorTableName);
-      const treeselectorObjectType = schemaComposer.getOTC(treeselectorTypeName);
+      let treeselectorObjectType;
+      try {
+        treeselectorObjectType = schemaComposer.getOTC(treeselectorTypeName);
+      } catch (e) {
+        // treeselectorObjectType may not be found because of showInGraphql = false
+        // TODO: change format of appTreeselectors to pass variables starting with 'show'.
+        return;
+      }
 
       const isFilteringLookup = !!tableSpec.where;
       let inputTypeForForm;

@@ -13,6 +13,7 @@
       vm.schema = vm.resolve.options.schema;
       vm.fields = vm.schema.fields;
       vm.formParams = vm.resolve.options.formParams;
+      vm.cloneParams = vm.resolve.options.cloneParams;
       vm.data = vm.resolve.options.data;
       vm.actionCb = vm.resolve.options.actionCb;
     };
@@ -22,7 +23,7 @@
     };
 
     vm.submit = function (formData) {
-      return vm.actionCb(vm.schema, formData)
+      return vm.actionCb(vm.schema, formData, vm.cloneParams)
         .then(function () {
           // must explicitly return
           return vm.close();

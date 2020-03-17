@@ -389,7 +389,6 @@ module.exports = appLib => {
       res.json({
         success: true,
         message: 'Account had been successfully created',
-        // id: createdUser._id, // TODO: drop it, it's in the data
         data: _.merge(linkedRecords, { id: createdUser._id, login }),
       });
     } catch (e) {

@@ -5,7 +5,10 @@
     .module('app.adpForms')
     .directive('adpValidate', adpValidate);
 
-  function adpValidate(AdpValidationRules) {
+  function adpValidate(
+    AdpValidationRules,
+    AdpFormValidationRules
+  ) {
     return {
       restrict: 'A',
       scope: false,
@@ -29,41 +32,45 @@
             return;
           }
 
-          injectValidators(validationParams, scope.form, validationParams.formData);
+          injectValidators(validationParams.field, scope.form, validationParams.formData);
         }
 
-        function injectValidators(validationParams, form, formData) {
+        function injectValidators(schemaField, form, formData) {
           var validatorsToInject = {};
-          var schemaField = validationParams.field;
 
           (schemaField.validate || []).forEach(function (validatorRule) {
             var validatorName = validatorRule.validator;
-            if (!AdpValidationRules[validatorName]) {
-              return;
-            }
 
-            validatorsToInject[validatorName] = function (viewValue) {
-              if (_.isNil(viewValue) || viewValue === '') {
-                return true;
-              }
+            if (AdpFormValidationRules[validatorName]) {
+              validatorsToInject[validatorName] = function (viewValue) {
+                return AdpFormValidationRules[validatorName](viewValue, schemaField, formData, form)
+              };
+            } else if (AdpValidationRules[validatorName]) {
+              validatorsToInject[validatorName] = function (viewValue) {
+                if (_.isNil(viewValue) || viewValue === '') {
+                  return true;
+                }
 
-              var angularFormData = shallowTransformAngularFormToFormData(form, formData);
-              return AdpValidationRules[validatorName](viewValue, schemaField, validatorRule, angularFormData);
+                var angularFormData = getAngularShallowFormDataCopy(form, formData);
+                return AdpValidationRules[validatorName](viewValue, schemaField, validatorRule, angularFormData);
+              };
             }
           });
 
-          var formModel = _.get(form, validationParams.field.fieldName);
+          var formModel = _.get(form, schemaField.fieldName);
           return angular.extend(formModel.$validators, validatorsToInject);
         }
 
-        function shallowTransformAngularFormToFormData(angularForm, formData) {
+        function getAngularShallowFormDataCopy(angularForm, formData) {
           var result = {};
-          return _.each(formData, function (value, key) {
+          _.each(formData, function (value, key) {
             if (_.isNil(angularForm[key])) {
               return;
             }
             result[key] = angularForm[key].$viewValue;
           });
+
+          return result;
         }
       }
     }

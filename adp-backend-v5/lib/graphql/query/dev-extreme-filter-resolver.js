@@ -1,30 +1,20 @@
-const { schemaComposer } = require('graphql-compose');
 const log = require('log4js').getLogger('graphql/dev-extreme-filter-resolver');
 const { composeWithPagination } = require('../pagination');
 const DevExtremeContext = require('../../request-context/graphql/DevExtremeContext');
 const { createTypeByModel, getOrCreateTypeByModel } = require('../type/model');
-const { COMPOSER_TYPES } = require('../type/common');
-const { ValidationError } = require('../../errors');
+const { COMPOSER_TYPES, dxQueryWithQuickFilterInput } = require('../type/common');
+const { handleGraphQlError } = require('../util');
 
 const paginationFindByDevExtremeFilterResolverName = 'paginationDx';
 const findByDevExtremeFilterResolverName = 'findManyDx';
 const countByDevExtremeFilterResolverName = 'countDx';
-
-const dxQueryInput = schemaComposer.createInputTC({
-  name: 'dxQueryInput',
-  fields: {
-    dxQuery: { type: 'String!' },
-  },
-});
-
-const dxQueryInputRequired = dxQueryInput.getTypeNonNull();
 
 function addFindManyByDevExtremeFilterResolver(type) {
   type.addResolver({
     kind: 'query',
     name: findByDevExtremeFilterResolverName,
     args: {
-      filter: dxQueryInputRequired,
+      filter: dxQueryWithQuickFilterInput,
       perPage: {
         type: 'Int',
       },
@@ -39,22 +29,18 @@ function addFindManyByDevExtremeFilterResolver(type) {
     },
     type: [type],
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
         const {
           controllerUtil,
           butil: { getRequestMeta },
-        } = context.appLib;
+        } = appLib;
 
         const { items, meta } = await controllerUtil.getItems(paginationContext, true);
         log.debug(`Meta: ${getRequestMeta(paginationContext, meta)}`);
         return items;
       } catch (e) {
-        if (e instanceof ValidationError) {
-          log.info(e.stack);
-          throw e;
-        }
-        log.error(e.stack);
-        throw new Error(`Unable to find requested elements`);
+        handleGraphQlError(e, `Unable to find requested elements`, log, appLib);
       }
     },
   });
@@ -67,17 +53,17 @@ function addCountByDevExtremeFilterResolver(type) {
     kind: 'query',
     name: countByDevExtremeFilterResolverName,
     args: {
-      filter: dxQueryInputRequired,
+      filter: dxQueryWithQuickFilterInput,
     },
     type: 'Int!',
     resolve: async ({ context, paginationContext }) => {
+      const { appLib } = context;
       try {
-        const { getElementsCount } = context.appLib.controllerUtil;
+        const { getElementsCount } = appLib.controllerUtil;
         paginationContext.action = 'view';
         return getElementsCount({ context: paginationContext });
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to count requested elements`);
+        handleGraphQlError(e, `Unable to count requested elements`, log, appLib);
       }
     },
   });
@@ -109,5 +95,4 @@ module.exports = {
   paginationFindByDevExtremeFilterResolverName,
   findByDevExtremeFilterResolverName,
   countByDevExtremeFilterResolverName,
-  dxQueryInput,
 };

@@ -34,7 +34,7 @@
       "scopes": {
         "ownRecords": {
           "permissions": "accessAsUser",
-          "where": "{creator: {$eq: this.req.user._id}}"
+          "where": "{ 'creator._id': {$eq: this.req.user._id}}"
         },
         "adminScope": {
           "permissions": "accessAsSuperAdmin",
@@ -94,7 +94,7 @@
       "scopes": {
         "ownRecords": {
           "permissions": "accessAsUser",
-          "where": "{creator: {$eq: this.req.user._id}}"
+          "where": "{ 'creator._id': {$eq: this.req.user._id}}"
         },
         "adminScope": {
           "permissions": "accessAsSuperAdmin",

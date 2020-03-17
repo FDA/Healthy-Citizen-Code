@@ -1,7 +1,3 @@
-// NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
-// TODO: add tests for multiple tables
-// TODO: add tests for default foreignKey
-
 const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
@@ -197,8 +193,8 @@ describe('V5 Backend Lookups', () => {
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(200);
-          const { success: success2, data } = res2.body;
-          should(success2).be.equal(true);
+          const { success, data } = res2.body;
+          should(success).be.equal(true);
           should(data.model4Id).be.deepEqual({
             table: 'model4s',
             label: 'name1-description1',
@@ -406,15 +402,26 @@ describe('V5 Backend Lookups', () => {
 
         const checkData = data => {
           data.length.should.equal(2);
-          const { label: label0, data: data0 } = data[0];
-          label0.should.equal('name5_abc');
-          data0.desc.should.equal('DESCRIPTION5');
-          data0.info.should.equal('name5_abc-description5');
-
-          const { label: label1, data: data1 } = data[1];
-          label1.should.equal('name4');
-          data1.desc.should.equal('DESCRIPTION4_ABC');
-          data1.info.should.equal('name4-description4_abc');
+          should(data).be.containDeep([
+            {
+              _id: '587179f6ef4807703afd0df4',
+              label: 'name5_abc',
+              table: 'model4s',
+              data: {
+                info: 'name5_abc-description5',
+                desc: 'DESCRIPTION5',
+              },
+            },
+            {
+              _id: '587179f6ef4807703afd0df3',
+              label: 'name4',
+              table: 'model4s',
+              data: {
+                info: 'name4-description4_abc',
+                desc: 'DESCRIPTION4_ABC',
+              },
+            },
+          ]);
         };
 
         const restSettings = {
@@ -446,15 +453,25 @@ describe('V5 Backend Lookups', () => {
         it(`GraphQL: returns correct results for search for lookup with data attribute`, getTestFunc(graphqlSettings));
       });
 
-      describe('for specific search', () => {
+      describe(`for specific search with 'q'`, () => {
         const lookupId = 'model4Id';
         const lookupTableName = `model4s`;
         const q = `abc`;
 
         const checkData = data => {
           data.length.should.equal(2);
-          data[0].label.should.equal('name5_abc-description5');
-          data[1].label.should.equal('name4-description4_abc');
+          should(data).be.containDeep([
+            {
+              _id: '587179f6ef4807703afd0df4',
+              label: 'name5_abc-description5',
+              table: 'model4s',
+            },
+            {
+              _id: '587179f6ef4807703afd0df3',
+              label: 'name4-description4_abc',
+              table: 'model4s',
+            },
+          ]);
         };
 
         const restSettings = {
@@ -484,6 +501,53 @@ describe('V5 Backend Lookups', () => {
         };
         it(`REST: returns correct results for search for specific search`, getTestFunc(restSettings));
         it(`GraphQL: returns correct results for search for specific search`, getTestFunc(graphqlSettings));
+      });
+
+      describe(`for specific search when both 'dxQuery' and 'q' specified 'q' is skipped`, () => {
+        const lookupId = 'model4Id';
+        const lookupTableName = `model4s`;
+
+        const name4DocId = sampleDataModel4[3]._id.toString();
+        const q = 'name1';
+        const dxQuery = `[ [ '_id', '=', '${name4DocId}' ], 'or', [ 'description', 'contains', 'def' ] ]`;
+
+        const checkData = data => {
+          data.length.should.equal(2);
+          should(data).be.containDeep([
+            {
+              _id: '587179f6ef4807703afd0df3',
+              label: 'name4-description4_abc',
+              table: 'model4s',
+            },
+            {
+              _id: '587179f6ef4807703afd0df2',
+              label: 'name3-description3_def',
+              table: 'model4s',
+            },
+          ]);
+        };
+
+        const graphqlSettings = {
+          makeRequest: r =>
+            r.post('/graphql').send(
+              buildGraphQlLookupQuery({
+                lookupId,
+                tableName: lookupTableName,
+                q,
+                dxQuery,
+                selectFields: 'items { _id label table }',
+              })
+            ),
+          checkResponse: res => {
+            res.statusCode.should.equal(200);
+            const data = res.body.data[getLookupTypeName(lookupId, lookupTableName)].items;
+            checkData(data);
+          },
+        };
+        it(
+          `GraphQL: returns correct results for search for specific search with 'dxQuery'`,
+          getTestFunc(graphqlSettings)
+        );
       });
 
       describe('with pagination, page 1', () => {

@@ -12,7 +12,8 @@
     AdpModalService,
     ACTIONS,
     ActionMessages,
-    GraphqlCollectionMutator
+    GraphqlCollectionMutator,
+    ErrorHelpers
   ) {
     return {
       create: createAction,
@@ -38,12 +39,24 @@
     }
 
     function cloneAction(schema, data) {
+      var modalOptions = cloneOptions(schema, data);
+
+      if (schema.schemaName === 'datasets') {
+        modalOptions.cloneParams = {
+          parentCollectionName: data.collectionName,
+          projections: Object.keys(data.scheme.fields),
+        };
+      }
+
+      return showFormModal(modalOptions);
+    }
+
+    function cloneOptions(schema, data) {
       var clonedData = _.cloneDeep(data);
       delete clonedData._id;
       delete clonedData._actions;
 
-      var modalOptions = getActionsOptions(ACTIONS.CLONE, schema, clonedData);
-      return showFormModal(modalOptions);
+      return getActionsOptions(ACTIONS.CLONE, schema, clonedData);
     }
 
     function deleteRecord(schema, data) {
@@ -82,6 +95,11 @@
         },
         schema.parameters
       );
+
+
+      if ($action === ACTIONS.CLONE && schema.schemaName === 'datasets') {
+        $action = 'cloneDataSet';
+      }
 
       return {
         actionCb: GraphqlCollectionMutator[$action],

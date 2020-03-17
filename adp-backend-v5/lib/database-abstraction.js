@@ -74,7 +74,7 @@ module.exports = appLib => {
     // Recommendation from one of authors: https://github.com/Automattic/mongoose/issues/2749#issuecomment-234737744
     Model.schema.options.retainKeyOrder = true;
     const record = new Model(data);
-    return record.save();
+    return record.save({ checkKeys: false });
   };
 
   /**
@@ -92,9 +92,17 @@ module.exports = appLib => {
   async function saveDocCheckingConditions(Model, data, mongoConditions, session) {
     const record = new Model(data);
     record.$session(session);
+    // set { checkFalse: false } to be able to save Mixed objects with keys containing dots (for example a list { "20.001": "20.001" })
+    // More info:
+    // https://github.com/Automattic/mongoose/issues/5667
+    // https://github.com/Automattic/mongoose/issues/7144
+    await record.save({ checkKeys: false });
 
-    const item = await record.save();
-    const savedItemId = item._id;
+    if (mongoConditions === true) {
+      return record.toObject();
+    }
+
+    const savedItemId = record._id;
 
     const createdDoc = await Model.findOne({ ...mongoConditions, _id: savedItemId }, {}, { session });
 
@@ -116,15 +124,7 @@ module.exports = appLib => {
     // Used for preserving key order in objects.
     // Recommendation from one of authors: https://github.com/Automattic/mongoose/issues/2749#issuecomment-234737744
     Model.schema.options.retainKeyOrder = true;
-    let createdDoc;
-    if (mongoConditions === true) {
-      const record = new Model(data);
-      record.$session(session);
-      await record.save();
-      createdDoc = record.toObject();
-    } else {
-      createdDoc = await saveDocCheckingConditions(Model, data, mongoConditions, session);
-    }
+    const createdDoc = await saveDocCheckingConditions(Model, data, mongoConditions, session);
     await appLib.cache.clearCacheForModel(Model.modelName);
     return createdDoc;
   };

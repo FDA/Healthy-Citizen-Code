@@ -8,11 +8,11 @@ function requestPromise(options) {
       if (APP_CONFIG.debug) {
         console.log('----------------- START LOG -----------------');
         console.log('Request params', JSON.stringify(options, 0, 2));
-        console.log('Request params', JSON.stringify(response, 0, 2));
+        console.log('Response params', JSON.stringify(response, 0, 2));
         console.log('----------------- END LOG  -----------------');
       }
 
-      if (error) {
+      if (error || response.statusCode > 200) {
         reject(`Request to ${options.url} rejected.`, error);
       }
       resolve(body);

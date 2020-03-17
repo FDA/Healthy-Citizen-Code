@@ -42,7 +42,6 @@ module.exports = class DatatablesContext extends BaseContext {
     if (order && (visibleColumns || columns)) {
       // supporting sorting in datatables format
       // it's not quite right way singe maps are not ordered, but this is the best we can do based on just order and visible_columns
-      // TODO: refactor schema so that fields are stored in an array, not assoc array
       let shownColumns;
       if (visibleColumns) {
         shownColumns = _(visibleColumns)
@@ -67,7 +66,6 @@ module.exports = class DatatablesContext extends BaseContext {
         return Promise.resolve({ err: 'Incorrect order format (should be an array)' });
       }
     } else {
-      // TODO: in the future support less weird formats for sorting
       const { defaultSortBy } = this.appLib.appModel.metaschema;
       sort = _.get(this.appModel, `defaultSortBy`, defaultSortBy.default);
     }
@@ -82,7 +80,8 @@ module.exports = class DatatablesContext extends BaseContext {
     conditions = MONGO.and(conditions, MONGO.or(...searchConditions));
 
     // Set all the fields projections to handle 'validate', 'transform' and 'synthesize' stages
-    for (const path of _.keys(this.model.schema.paths)) {
+    // Using model.schema.tree rather than this.model.schema.paths since 'AssociativeArray' type creates paths like 'assocArray.$*' of instance SingleNestedPath which breaks mongo query (along with 'assocArray' path).
+    for (const path of _.keys(this.model.schema.tree)) {
       projections[path] = 1;
     }
 

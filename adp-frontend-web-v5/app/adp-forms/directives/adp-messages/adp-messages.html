@@ -42,6 +42,38 @@
     <span ng-message="notInPast">
       {{messages['notInPast']}}
     </span>
+
+    <span ng-message="int32">
+      {{messages.int32}}
+    </span>
+
+    <span ng-message="int64">
+      {{messages.int64}}
+    </span>
+
+    <span ng-message="number">
+      <span ng-if="['Int32', 'Int64'].includes(field.type)">
+        "{{field.fullName}}" is not a valid integer number.
+      </span>
+
+      <span ng-if="!['Int32', 'Int64'].includes(field.type)">
+        "{{field.fullName}}" is not a valid number.
+      </span>
+    </span>
+
+    <span ng-message="pattern">
+      <span ng-if="field.type === 'Decimal128'">
+        "{{field.fullName}}" is not a decimal valid number.
+      </span>
+
+      <span ng-if="['Int32', 'Int64'].includes(field.type)">
+        "{{field.fullName}}" is not a valid integer number.
+      </span>
+    </span>
+
+     <span ng-message="associativeArrayKeyUnique">
+      {{messages.associativeArrayKeyUnique}}
+    </span>
   </span>
 
   <span

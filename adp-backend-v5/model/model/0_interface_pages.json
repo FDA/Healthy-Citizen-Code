@@ -30,7 +30,52 @@ Try to avoid using numbers or any non-alpha characters in the names
           "type": "file",
           "link": "page_aboutConceptant_template.ejs"
         },
-        "controller": "Default"
+        "controller": "DefaultController"
+      },
+      "dmnRulesEditor": {
+        "fullName": "DMN Rules Editor",
+        "link": "/dmnRulesEditor/:uid",
+        "template": {
+          "type": "file",
+          "link": "page_rule_editor.ejs"
+        },
+        "controller": "DmnEditorController"
+      },
+      "bpmnRulesEditor": {
+        "fullName": "BPMN Process Editor",
+        "link": "/bpmnDiagramEditor/:uid",
+        "template": {
+          "type": "file",
+          "link": "page_rule_editor.ejs"
+        },
+        "controller": "BpmnEditorController"
+      },
+      "dataGraph2d": {
+        "fullName": "Visualization Page",
+        "link": "/dataGraph2d",
+        "template": {
+          "type": "file",
+          "link": "page_vowl_template.ejs"
+        },
+        "controller": "OntologyController"
+      },
+      "dataGraph3d": {
+        "fullName": "Force Graph",
+        "link": "/dataGraph3d",
+        "template": {
+          "type": "file",
+          "link": "page_force_graph3d_template.ejs"
+        },
+        "controller": "ForceGraphController"
+      },
+      "dataGraphVr": {
+        "fullName": "VR Force Graph",
+        "link": "/dataGraphVr",
+        "template": {
+          "type": "file",
+          "link": "page_force_graph_vr_template.ejs"
+        },
+        "controller": "ForceGraphControllerVr"
       }
     }
   }

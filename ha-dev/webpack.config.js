@@ -20,7 +20,7 @@ const commonConfig = {
 
   output: {
     path: PATHS.dist,
-    filename: 'module.js',
+    filename: 'client-modules.module.js',
     libraryTarget: 'umd',
     globalObject: 'this',
     library: 'clientModule',

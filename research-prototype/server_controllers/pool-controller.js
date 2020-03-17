@@ -19,7 +19,11 @@ module.exports = function(globalMongoose) {
   m.addParticipantsToPool = async (req, res) => {
     const { name: poolName, participantsFilter } = req.body;
     const { dba, filterParser, appModel } = m.appLib;
-    const creator = req.user._id;
+    const creator = {
+      _id: req.user._id,
+      table: 'users',
+      label: req.user.login
+    };
 
     let pool;
     try {

@@ -30,7 +30,7 @@
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",
-          "where": "{ creator: { $eq: this.req.user._id } }"
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
         }
       },
       "fields": {
@@ -79,7 +79,7 @@
                 "scopes": {
                   "ownRecordScope": {
                     "permissions": "accessAsUser",
-                    "where": "{ creator: { $eq: this.req.user._id } }"
+                    "where": "{ 'creator._id': { $eq: this.req.user._id } }"
                   }
                 }
               }

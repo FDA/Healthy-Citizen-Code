@@ -23,6 +23,7 @@
       dynamicList: ListEditorFactory.multiple,
       string: StringEditor,
       number: NumberEditor,
+      decimal128: NumberEditor,
       date: DateFilter,
       time: DateFilter,
       dateTime: DateFilter,

@@ -7,7 +7,7 @@ const { Base64 } = require('js-base64');
 const REDIRECT_URL_1 = 'https://localhost';
 const REDIRECT_URL_2 = 'https://localhost';
 
-function getPreparedWidgetHtml({ iss, fhir_access_token, patient_stu3, widgetType }) {
+function getPreparedWidgetHtml({ iss, fhir_access_token, patient, widgetType }) {
   return `
       <!doctype html>
       <html lang="en">
@@ -26,7 +26,7 @@ function getPreparedWidgetHtml({ iss, fhir_access_token, patient_stu3, widgetTyp
       data-wm="false"
       data-type="${widgetType}"
       data-data-source="epicStu3WithOauth2"
-      data-epic-patient-stu3="${patient_stu3}"
+      data-epic-patient-stu3="${patient}"
       data-epic-access-token="${fhir_access_token}"
       data-fhir-server-url="${iss}"
       src="${process.env.HC_WIDGET_BASE_URL}/hc-widget.js"
@@ -74,8 +74,8 @@ function getPreparedWidgetHtmlWithRxcuis(rxcuis) {
        
     <script
       id="hc-widget-body"
-      data-data-source="rxcuis"
-      data-rxcuis="${rxcuis.join(',')}"
+      data-data-source="inline"
+      data-drugs="${rxcuis.join(',')}"
       data-wm="false"
       data-type="ucsfRecalls"
       src="${process.env.HC_WIDGET_BASE_URL}/hc-widget.js"
@@ -245,7 +245,7 @@ function step3ObtainAuthorizationParams(tokenUrl, clientId, authorizationCode, r
   console.log(`Request POST for ${tokenUrl} with params ${params}`);
   return axios.post(tokenUrl, params).then(res => ({
     fhir_access_token: res.data.access_token,
-    patient_stu3: res.data.patient,
+    patient: res.data.patient,
   }));
 }
 
