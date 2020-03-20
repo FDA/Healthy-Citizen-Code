@@ -1,0 +1,19 @@
+<div class="modal-header import-report-modal">
+    <h3 class="modal-title success-icon" ng-if="!vm.errors.length">Import successful</h3>
+    <h3 class="modal-title error-icon" ng-if="vm.errors.length">Errors occurred while importing</h3>
+</div>
+<div class="modal-body import-report-modal">
+    <div ng-if="!vm.errors.length">
+        <span ng-if="vm.rowsCount>1">{{vm.rowsCount}} documents are</span>
+        <span ng-if="vm.rowsCount==1">One document is</span>
+        inserted successfully
+    </div>
+    <div ng-if="vm.errors.length">
+        <div ng-repeat="error in vm.errors">
+            <div><span ng-if="error.item">{{error.item}}: </span><strong>{{error.message}}</strong></div>
+        </div>
+    </div>
+</div>
+<div class="modal-footer">
+    <button class="btn btn-primary" ng-click="vm.onClose()">Close</button>
+</div>

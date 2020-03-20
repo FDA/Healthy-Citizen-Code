@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualization Widget Test</title>
+</head>
+<body>
+<script>
+  (function(d, s, id){
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {return;}
+    js = d.createElement(s); js.id = id;
+    js.src = "http://localhost:9000/hc-widget-loader.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'hc-widget-script'));
+</script>
+
+<div
+  hc-widget
+  data-wm="false"
+  data-type="ucsfRecalls"
+  data-data-source="inline"
+  data-drugs="197311,200031,429503,577057,617768,979492,1010654,1720773"
+>
+</div>
+
+</body>
+</html>

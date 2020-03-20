@@ -55,6 +55,10 @@ module.exports = () => {
         `</html>`,
       ].join('\n');
     },
+
+    scgCode() {
+      return '';
+    },
   };
 };
 

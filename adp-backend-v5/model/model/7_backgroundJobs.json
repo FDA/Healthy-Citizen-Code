@@ -1,0 +1,101 @@
+{
+  "models": {
+    // this collection will be empty, all data is retrieved directly from redis
+    // scheme for this collections is necessary to correctly parse dxQuery filter
+    "backgroundJobs": {
+      "type": "Schema",
+      "fullName": "Background Jobs",
+      "actions": {
+        // Specified permissions are accessAsAnyone just to make it appear in app-model
+        // These actions are necessary for frontend to correctly show actions (custom actions included)
+        // Actual permissions are custom
+        "fields": {
+          "deleteBackgroundJob": {
+            "permissions": "accessAsAnyone",
+            "fullName": "Delete Background Job",
+            "backgroundColor": "#b73810",
+            "borderColor": "white",
+            "textColor": "white",
+            "icon": {
+              "link": "trash-o"
+            },
+            "action": {
+              "type": "action",
+              "link": "deleteBackgroundJob"
+            }
+          },
+          "view": {
+            "permissions": "accessAsAnyone"
+          }
+        }
+      },
+      "scopes": {
+        "own": {
+          // Specified permissions are accessAsAnyone just to make it appear in app-model
+          "permissions": "accessAsAnyone"
+        }
+      },
+      "fields": {
+        "_id": {
+          "visible": false
+        },
+        "id": {
+          "type": "String"
+        },
+        "queueName": {
+          "type": "String"
+        },
+        "progress": {
+          "type": "Number"
+        },
+        "state": {
+          "type": "String",
+          "list": {
+            "values": {
+              "waiting": "waiting",
+              "active": "active",
+              "completed": "completed",
+              "failed": "failed",
+              "delayed": "delayed",
+              "paused": "paused",
+              "stuck": "stuck"
+            }
+          }
+        },
+        "data": {
+          "type": "Mixed"
+        },
+        "timestamp": {
+          "type": "DateTime"
+        },
+        "finishedOn": {
+          "type": "DateTime"
+        },
+        "processedOn": {
+          "type": "DateTime"
+        },
+        "opts": {
+          "type": "Mixed"
+        },
+        "delay": {
+          "type": "Number"
+        },
+        "attemptsMade": {
+          "type": "Number"
+        },
+        "stacktrace": {
+          "type": "Mixed"
+        },
+        "returnvalue": {
+          "type": "Mixed"
+        },
+        "failedReason": {
+          "type": "Mixed"
+        },
+        "name": {
+          "type": "String"
+        }
+      }
+    }
+  }
+}

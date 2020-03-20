@@ -1,0 +1,154 @@
+<adp-content-container adp-fullscreen-listener>
+    <adp-section-container>
+        <adp-page-loader loading="vm.isLoading"></adp-page-loader>
+        <div id='fg3d-container'
+             adp-fullscreen
+             ng-class="{ 'is-fullscreen': $root.isFullscreen }">
+            <div id='fg3d-box' class="fg3d-type-3d"><h1 class='text-center'>{{ vm.error_message }}</h1></div>
+            <div ng-class="{'fg3d-config-box':1, open: vm.config.showOptions}">
+                <div class='fg3d-config-icon fa fa-bars'
+                     ng-click='vm.toggleConfig()'></div>
+                <div class="fg3d-config-form">
+                    <div>
+                        <button ng-click='vm.toggleFullscreen()'
+                                class='fg3d-fullscreen-button'>{{ !$root.isFullscreen ? 'Fullscreen mode': 'Quit
+                            fullscreen mode'}}
+                        </button>
+                        <div class="form-row">Nodes filter:
+                            <input ng-model="vm.config.nodeFilter"
+                                   ng-change='vm.doRefreshGraph()'
+                                   class="same-width"
+                            />
+                        </div>
+                        <div class="form-row">Links filter:
+                            <input ng-model="vm.config.linkFilter"
+                                   ng-change='vm.doRefreshGraph()'
+                                   class="same-width"
+                            />
+                        </div>
+                        <div class="form-row">Tags:
+                            <div class="fg3d-tags-container same-width"></div>
+                        </div>
+                        <label class="form-row">
+                            Show labels for highlighted nodes
+                            <input type='checkbox'
+                                   ng-model='vm.config.hlLabelNodes'
+                                   ng-checked="vm.config.highlight && vm.config.hlLabelNodes"
+                                   ng-change='vm.doRefreshGraph()'
+                            />
+                        </label>
+                        <label class="form-row">
+                            Show labels for highlighted links
+                            <input type='checkbox'
+                                   ng-model='vm.config.hlLabelLinks'
+                                   ng-checked="vm.config.highlight && vm.config.hlLabelLinks"
+                                   ng-change='vm.doRefreshGraph()'
+                            />
+                        </label>
+                        <div class="form-row">Highlight selected %:
+                            <input type="number"
+                                   ng-model="vm.config.hlColorIntensity"
+                                   ng-change='vm.doRefreshGraph()'
+                            />
+                        </div>
+                        <div class="form-row">Dim not selected %:
+                            <input type="number"
+                                   ng-model="vm.config.hlDimIntensity"
+                                   ng-change='vm.doRefreshGraph()'
+                            />
+                        </div>
+                        <label class="form-row">
+                            Label all nodes [E]
+                            <input type='checkbox'
+                                   ng-model='vm.config.labelNodes'
+                                   ng-change='vm.doRefreshGraph()'
+                            />
+                        </label>
+                        <label class="form-row">
+                            Label all links [R]
+                            <input type='checkbox'
+                                   ng-model='vm.config.labelLinks'
+                                   ng-change='vm.doRefreshGraph()'
+                            />
+                        </label>
+                        <label class="form-row">
+                            Fix dragged nodes [X]
+                            <input type='checkbox'
+                                   ng-model='vm.config.fixDragged'
+                                   ng-change='vm.resetFixDragged()'
+                            />
+                        </label>
+                        <label class="form-row">
+                            Camera orbiting [O]
+                            <input type='checkbox'
+                                   ng-model='vm.config.animCamera'
+                                   ng-change='vm.toggleCameraOrbit()'
+                            />
+                        </label>
+                        <div class="form-row">Link curvature %:
+                            <input type="number"
+                                   ng-model="vm.config.linkCurvature"
+                                   ng-change='vm.doRefreshGraph()'
+                            />
+                        </div>
+                        <div class="form-row">Link distance % [+/-]:
+                            <input type="number"
+                                   ng-model="vm.config.linkDistance"
+                                   ng-change='vm.doRefreshGraph();vm.reheatSimulation()'
+                            />
+                        </div>
+                        <div class="form-row">
+                            <button ng-click='vm.screenCapture()' ng-disabled="vm.exportingImage">
+                                {{ vm.exportingImage ? 'Exporting....' : 'Export as PNG' }}
+                            </button>
+                            <button ng-click='vm.exportAsHtml()' ng-disabled="vm.exportingHtml">
+                                {{ vm.exportingHtml ? 'Exporting....' : 'Export as HTML' }}
+                            </button>
+                        </div>
+                        <div class="form-row">
+                            <button ng-click='vm.saveConfig()'>Save config [S]</button>
+                            <button ng-click='vm.loadConfig()' ng-disabled='!vm.savedConfig'>Load config [L]</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <div ng-class="{'fg3d-legend-box':1, open: vm.config.showLegend}"
+                 ng-click='vm.toggleLegend()'>
+                <div class='fg3d-legend-icon'>Legend</div>
+                <div ng-repeat="type in vm.legend.nodes" class='fg3d-legend-item'>
+                    <div class='fg3d-leg-icon'>
+                        <div class='fg3d-leg-icon-node shape_{{ type.shp.toLowerCase() }}'
+                             style='background-color:{{ type.col }}'></div>
+                    </div>
+                    <div class='fg3d-leg-txt'>{{ type.text || '[no title]' }}</div>
+                </div>
+                <div ng-repeat="type in vm.legend.links" class='fg3d-legend-item'>
+                    <div class='fg3d-leg-icon'>
+                        <div class='fg3d-leg-icon-link'
+                             style='border-bottom-width:{{ type.w }}px; border-color:{{type.col}}'></div>
+                    </div>
+                    <div class='fg3d-leg-txt'>{{ type.text || '[no title]' }}</div>
+                </div>
+            </div>
+
+            <div ng-show='!!vm.selectedNodes.length' id='fg3d-infobox'>
+                <div ng-repeat="node in vm.selectedNodes" class='fg3d-entity-info'>
+                    <div class='fg3d-info-icon'>
+                        <div class='fg3d-leg-icon-node shape_{{ node.shp.toLowerCase() }}'
+                             style='background-color:{{ node.col }}'
+                             ng-if='node.__type === "node"'
+                        ></div>
+                        <div class='fg3d-leg-icon-link'
+                             style='border-bottom-width:{{ node.w }}px; border-color:{{node.col}}'
+                             ng-if='node.__type === "link"'
+                        ></div>
+                    </div>
+                    <p class='fg3d-info-name-p'><b>Name: </b>{{ node.n }}</p>
+                    <p ng-repeat="(key, value) in node.obj"><b>{{ key }}: </b>{{ value }}</p>
+                </div>
+            </div>
+        </div>
+    </adp-section-container>
+
+</adp-content-container>

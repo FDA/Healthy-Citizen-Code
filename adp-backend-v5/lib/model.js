@@ -63,6 +63,7 @@ module.exports = appLib => {
   m.mongooseTypesMapping = {
     String,
     Html: String,
+    Code: String,
     Date,
     Number,
     Double: Number,

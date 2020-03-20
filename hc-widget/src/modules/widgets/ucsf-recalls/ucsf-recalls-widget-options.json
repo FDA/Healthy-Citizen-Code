@@ -1,0 +1,112 @@
+{
+  "dataSource": {
+    "type": "String",
+    "required": true,
+    "requires": {
+      "userPreferences": {
+        "udid": {
+          "type": "String",
+          "required": true
+        }
+      },
+      "stu3": {
+        "stu3Url": {
+          "type":  "String",
+          "validate": { "pattern": "url" },
+          "required": true
+        },
+        "fhirId": {
+          "type":  "String",
+          "required": true
+        },
+        "fhirAccessToken": { "type":  "String" }
+      },
+      "dstu2": {
+        "dstu2Url": {
+          "type":  "String",
+          "validate": { "pattern": "url" },
+          "required": true
+        },
+        "fhirId": {
+          "type":  "String",
+          "required": true
+        },
+        "fhirAccessToken": { "type":  "String" }
+      },
+      "epicStu3WithOauth2": {
+        "epicPatientStu3": {
+          "type": "String",
+          "required": true
+        },
+        "epicAccessToken": {
+          "type": "String",
+          "required": true
+        },
+        "fhirServerUrl": {
+          "type": "String",
+          "required": true
+        }
+      },
+      "epicStu3": {
+        "epicAccessToken": {
+          "type": "String",
+          "required": true
+        },
+        "patientStu3": {
+          "type": "String",
+          "required": true
+        },
+        "fhirServerUrl": {
+          "type": "String",
+          "required": true
+        }
+      },
+      "inline": {
+        "drugs": {
+          "type": "String[]",
+          "required": true,
+          "validate": {
+            "regex": "^\\d+$"
+          }
+        },
+        "gender": {
+          "type": "String",
+          "list": ["male","female"]
+        },
+        "geographicRegion": {
+          "type": "String",
+          "list": [
+            "NE",
+            "SE",
+            "SW",
+            "MW",
+            "NW"
+          ]
+        },
+        "age": {
+          "type": "String",
+          "list": [
+            "0-11",
+            "12-17",
+            "18-24",
+            "25-34",
+            "35-44",
+            "45-54",
+            "55-64",
+            "65-74",
+            "75-"
+          ]
+        }
+      }
+    }
+  },
+  "algorithm": {
+    "type": "String[]",
+    "validate": {
+      "list": [
+        "openfda",
+        "conceptant"
+      ]
+    }
+  }
+}

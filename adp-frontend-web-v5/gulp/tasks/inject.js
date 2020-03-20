@@ -229,7 +229,13 @@ function getMainBowerFiles() {
         "main": [
           "./lib/es5/draggable.bundle.legacy.js",
         ]
-      }
+      },
+      "ckeditor": {
+        "ignore": true
+      },
+      "ckeditor4": {
+        "ignore": true
+      },
     }
   });
 }

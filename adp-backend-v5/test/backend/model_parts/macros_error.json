@@ -1,0 +1,12 @@
+{
+  "models": {
+    "macros_error": {
+      "type": "Schema",
+      "fields": {
+        "f1": {
+          <%-this.M('insertFieldMacro')%>
+        }
+      }
+    }
+  }
+}

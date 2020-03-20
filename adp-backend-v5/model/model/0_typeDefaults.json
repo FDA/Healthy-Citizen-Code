@@ -51,6 +51,16 @@
           "minWidth": 100
         }
       },
+      "Code": {
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": false,
+            "allowExpandGroup": false
+          },
+          "minWidth": 100
+        }
+      },
       "String": {
         "searchable": true,
         "transform": ["trim"],

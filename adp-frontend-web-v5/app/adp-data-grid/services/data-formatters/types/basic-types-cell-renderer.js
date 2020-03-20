@@ -47,12 +47,19 @@
       return (_.isNil(value) || value === '') ? GRID_FORMAT.EMPTY_VALUE : _.escape(value);
     }
 
+    function htmlType(args) {
+      return FormattersHelper.asText(args) ?
+        string(args) :
+        string(args).substring(0, 100) + '...';
+    }
+
     return {
       password: password,
       number: number,
       stringArray: stringArray,
       boolean: boolean,
       string: string,
+      htmlType: htmlType,
     }
   }
 })();

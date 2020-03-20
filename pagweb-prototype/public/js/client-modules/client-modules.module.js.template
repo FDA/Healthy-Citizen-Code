@@ -1,0 +1,117 @@
+;(function () {
+    "use strict";
+
+    angular
+        .module('app.clientModules', [])
+        .controller('QuestionnaireWidgetPageController', QuestionnaireWidgetPageController)
+        .factory('hcWidgetService', hcWidgetService)
+        .directive('hcWidget', hcWidget);
+
+    /** @ngInject */
+    function hcWidgetService($q) {
+        var promiseResult;
+
+        function createScript(url) {
+            var script = document.createElement('script');
+            script.id = 'hc-widget';
+            script.src = url || 'http://localhost:9000/public/js/questionnaire-widget.js';
+            document.body.appendChild(script);
+
+            return script;
+        }
+
+        function load(url) {
+            var script;
+            if (promiseResult) return promiseResult;
+
+            if (document.getElementById('hc-widget')) {
+                return $q.resolve(window.hcWidget);
+            }
+
+            script = createScript(url);
+
+            promiseResult = $q(function (resolve, reject) {
+                script.onload = function () {
+                    resolve(window.hcWidget);
+                    script.onload = null;
+                };
+
+                script.onerror = function () {
+                    reject('Error while loading script tag: ' + this.src);
+                    script.onerror = null;
+                };
+            });
+
+            return promiseResult;
+        }
+
+        return {
+            load: load
+        };
+    }
+
+    /** @ngInject */
+    function hcWidget(hcWidgetService) {
+      return {
+        restrict: 'E',
+        template: '<div></div>',
+        scope: {
+          fhirId: '@?',
+          udid: '@?',
+          url: '@?',
+          hcResearchUrl: '@?',
+          fhirDataUrl: '@?',
+          widgetId: '@?',
+          rxcuis: '@?'
+        },
+        link: function (scope, element) {
+          var params = {
+            fhirId: scope.fhirId,
+            url: scope.url,
+            hcResearchUrl: scope.hcResearchUrl,
+            fhirDataUrl: scope.fhirDataUrl,
+            widgetId: scope.widgetId,
+            udid: scope.udid,
+            rxcuis: scope.rxcuis,
+          };
+
+          if (scope.patientData) {
+              _.assign(params, scope.patientData);
+          }
+
+          hcWidgetService.load(scope.url)
+            .then(function (hcWidget) {
+              hcWidget(element[0], params);
+            });
+        }
+      }
+    }
+
+    /** @ngInject */
+    function QuestionnaireWidgetPageController(
+        AdpSessionService,
+        $http,
+        APP_CONFIG
+    ) {
+        /**
+         * Put any custom code specific to questionnaire page here
+         * In theory there should be none actually, since this page should be very basic
+         */
+        var vm = this;
+        var currentUser = lsService.getUser();
+        var endpoint = [APP_CONFIG.apiUrl, 'users', currentUser.id].join('/');
+        vm.fhirId = '';
+
+        $http.get(endpoint)
+            .then(function (response) {
+                const data = response.data.data;
+                vm.fhirId = data.fhirId;
+                vm.udid = data.fhirId;
+                vm.fhirDataUrl = data.fhirServerUrl;
+            });
+
+        vm.url = '<!-- widgetUrl -->';
+        vm.hcResearchUrl = '<!-- hcResearchUrl -->';
+        vm.onTabSelect = function(e) {}
+    }
+})();

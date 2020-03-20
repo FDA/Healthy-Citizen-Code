@@ -33,6 +33,7 @@
     "angular-ui-router": "1.0.15",
     "angularjs-bootstrap-datetimepicker": "^1.1.4",
     "bootstrap": "3.3.7",
+    "ckeditor4": "github:ckeditor/ckeditor4-releases#full/latest",
     "devextreme": "^19.2.6",
     "exceljs": "3.8.0",
     "fastclick": "~1.0.6",
