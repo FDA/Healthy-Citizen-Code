@@ -1,0 +1,51 @@
+{
+  "models": {
+    "quickFilters": {
+      "type": "Schema",
+      "description": "This collection serves for creating new datasets collections.",
+      "fields": {
+        "name": {
+          "type": "String",
+          "description": "The name of the filter",
+          "required": true
+        },
+        "description": {
+          "type": "String",
+          "description": "Detailed description of the filter"
+        },
+        "model": {
+          "type": "String",
+          "description": "Model name",
+          "required": true
+        },
+        "filter": {
+          "type": "String",
+          "description": "Mongo condition",
+          "required": true
+        }
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "delete": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "clone": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsSuperAdmin"
+          }
+        }
+      }
+    }
+  }
+}

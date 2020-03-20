@@ -64,6 +64,7 @@
       'AssociativeArray': { directiveType: 'array' },
       'Readonly': { directiveType: 'readonly' },
       'TreeSelector': { directiveType: 'tree-selector' },
+      'Html': { directiveType: 'html' },
     };
 
     // public

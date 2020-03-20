@@ -1,0 +1,30 @@
+<adp-form-field-container
+  adp-field="adpField">
+
+  <label
+    class="label">
+    {{adpField.fullName}}
+
+    <adp-required-mark
+      validation-params="validationParams"
+    >
+    </adp-required-mark>
+
+    <adp-tooltip
+      adp-field="adpField">
+    </adp-tooltip>
+  </label>
+
+  <int-number-control
+    field="adpField"
+    adp-form-data="adpFormData"
+    ui-props="adpFieldUiProps"
+    validation-params="validationParams"
+  >
+  </int-number-control>
+
+  <adp-messages
+    adp-field="adpField">
+  </adp-messages>
+
+</adp-form-field-container>

@@ -1,0 +1,307 @@
+#logo img {
+  height: 49px;
+  width: 144px !important;
+  padding: 0;
+  margin: 0;
+}
+
+.page-app-dataGraph2d,
+.page-app-dataGraph3d,
+.page-app-dataGraphVr {
+  #ribbon {
+    display: none;
+  }
+
+  #content, #content .well {
+    padding: 0 !important;
+    margin: 0 !important;
+  }
+}
+
+#fg3d-container {
+  position: relative;
+  width: 100%;
+  height: calc(100vh - 78px);
+  min-height: 100px;
+
+  &.is-fullscreen {
+    position: absolute;
+    height: 100%;
+    background: black; /* try keep this color same as graph bg color */
+  }
+}
+
+body.menu-on-top {
+  #fg3d-container {
+    height: calc(100vh - 152px);
+  }
+}
+
+@media (max-width: 979px) {
+  #fg3d-container {
+    height: calc(100vh - 90px);
+  }
+}
+
+#fg3d-box.fg3d-type-vr,
+#fg3d-container.is-fullscreen #fg3d-box {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+}
+
+#fg3d-box.fg3d-type-vr > div {
+  height: 100%;
+}
+
+.fg3d-fullscreen-button {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+}
+
+#fg3d-infobox {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  padding: 6px;
+  border-radius: 4px;
+  width: 300px;
+  max-width: 60%;
+  max-height: 90%;
+  overflow: auto;
+  background: linear-gradient(90deg, #3c3c3c, black);
+  border: 1px solid #3c3c3c;
+  color: white;
+}
+
+.fg3d-tags-container {
+  width: 130px;
+
+  .dx-tag-container {
+    justify-content: flex-end;
+  }
+
+  .dx-tag {
+    margin: 5px 0 0 5px;
+  }
+
+  .dx-tag-content {
+    background-color: transparent !important;
+    color: white !important;
+    padding: 5px 22px 5px 5px;
+    text-overflow: ellipsis;
+    overflow: hidden;
+    max-width: 120px;
+    white-space: nowrap;
+  }
+
+  .dx-tag-remove-button {
+    left: auto;
+    right: 0;
+  }
+}
+
+.fg3d-entity-info {
+  position: relative;
+  border-top: 1px solid dimgrey;
+}
+
+.fg3d-info-icon {
+  position: absolute;
+  top: 10px;
+  right: 0;
+  width: 25px;
+  height: 25px;
+  display: flex;
+  align-items: center;
+}
+
+.fg3d-info-name-p {
+  margin-right: 30px;
+}
+
+.fg3d-filter-box {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  color: white;
+
+
+  &.moved {
+    right: 310px;
+  }
+
+  input {
+    width: 100px;
+    background: #3c3c3c;
+    color: white;
+    border: 1px solid gray;
+  }
+}
+
+#fg3d-highlight {
+  position: absolute;
+  bottom: 5px;
+  right: 5px;
+  color: white;
+}
+
+.fg3d-config-button {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  color: white;
+  font-size: 150%;
+  cursor: pointer;
+}
+
+.fg3d-config-box {
+  position: absolute;
+  top: 5px;
+  left: 5px;
+  color: white;
+  z-index: 10;
+
+  &.open {
+    background: linear-gradient(-90deg, #3c3c3c, black);
+    border: 1px solid #3c3c3c;
+    padding: 10px;
+    overflow: auto;
+    max-height: 90%;
+    max-width: 60%;
+
+    > .fg3d-config-icon {
+      top: 2px;
+      left: 2px;
+    }
+
+    > .fg3d-config-form {
+      display: block;
+      margin-top: 25px;
+    }
+  }
+
+  > .fg3d-config-icon {
+    position: absolute;
+    top: 3px;
+    left: 3px;
+    display: block;
+    font-size: 160%;
+    opacity: .7;
+    cursor: pointer;
+  }
+
+  > .fg3d-config-form {
+    display: none;
+  }
+
+  button {
+    color: #3c3c3c;
+    line-height: normal;
+  }
+
+  .form-row {
+    display: flex;
+    justify-content: space-between;
+    line-height: 22px;
+    height: 22px;
+    margin-bottom: 2px;
+
+    &.dis {
+      color: gray;
+    }
+
+    input {
+      background-color: transparent;
+      border-width: 1px;
+      margin-left: 10px;
+    }
+
+    .same-width {
+      width:135px;
+    }
+  }
+}
+
+.fg3d-legend-box {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  color: white;
+  max-height: 90%;
+  overflow: auto;
+
+  &.open {
+    > .fg3d-legend-icon {
+      display: none;
+    }
+
+    > .fg3d-legend-item {
+      display: flex;
+    }
+  }
+}
+
+.fg3d-legend-icon {
+  cursor: pointer;
+}
+
+
+.fg3d-legend-item {
+  display: none;
+}
+
+.fg3d-leg-icon {
+  flex: 0 0 25px;
+  width: 25px;
+  margin-right: 5px;
+  display: flex;
+  align-items: center;
+}
+
+.fg3d-leg-icon-node {
+  width: 25px;
+  height: 25px;
+  background: url('../img/3dgraph_legend_shades.png') no-repeat center center;
+  background-position-x: 0;
+
+  &.shape_octahedron {
+    background-position-y: 0;
+  }
+
+  &.shape_cone {
+    background-position-y: -25px;
+  }
+
+  &.shape_box {
+    background-position-y: -50px;
+  }
+
+  &.shape_sphere {
+    background-position-y: -75px;
+  }
+
+  &.shape_tetrahedron {
+    background-position-y: -100px;
+  }
+
+  &.shape_torusknot {
+    background-position-y: -125px;
+  }
+
+  &.shape_torus {
+    background-position-y: -150px;
+  }
+}
+
+.fg3d-leg-icon-link {
+  width: 25px;
+  height: 0px;
+  border: 0 solid pink;
+}
+
+.fg3d-leg-txt {
+  flex: 1 1 auto;
+  line-height: 25px;
+}

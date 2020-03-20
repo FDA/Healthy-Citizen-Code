@@ -1,0 +1,10 @@
+<adp-content-container adp-fullscreen-listener>
+    <adp-section-container>
+        <adp-page-loader loading="vm.isLoading"></adp-page-loader>
+
+        <div id='fg3d-container' ng-class="{ 'is-fullscreen': $root.isFullscreen }" adp-fullscreen>
+            <div id='fg3d-box' class="fg3d-type-vr"><h1 class='text-center'>{{ vm.error_message }}</h1></div>
+        </div>
+    </adp-section-container>
+
+</adp-content-container>

@@ -30,7 +30,15 @@ gulp.task(
     gulp.series('partials', 'inject:main')
   )
 );
-gulp.task('other:serve', gulp.parallel('cp:assets:serve', 'cp:json:serve', 'cp:img:serve', 'cp:fonts:serve'));
+
+gulp.task('other:serve', gulp.parallel(
+  'cp:assets:serve',
+  'cp:json:serve',
+  'cp:img:serve',
+  'cp:fonts:serve',
+  'cp:ckeditor:serve'
+));
+
 gulp.task('other:dist', gulp.parallel(
   'cp:assets:dist',
   'cp:assets:dist',
@@ -39,7 +47,8 @@ gulp.task('other:dist', gulp.parallel(
   'cp:fonts:dist',
   'cp:dxFonts:dist',
   'cp:dxIcons:dist',
-  'cp:workers:dist'
+  'cp:workers:dist',
+  'cp:ckeditor:dist'
 ));
 
 gulp.task('serve', gulp.series('tmp', 'other:serve', 'connect:dev'));

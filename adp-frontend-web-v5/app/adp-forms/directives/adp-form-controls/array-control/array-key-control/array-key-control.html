@@ -1,0 +1,22 @@
+<adp-form-field-container
+  adp-field="keyField"
+  class="col col-12">
+
+  <label class="label">
+    Key
+    <span class="text-danger" ng-show="isKeyRequired()">&nbsp;*</span>
+  </label>
+
+  <input
+    type="text"
+    name="{{keyField.fieldName}}"
+    ng-required="isKeyRequired()"
+    ng-model="formData[keyField.fieldName]"
+    class="form-control"
+    adp-autocomplete="keyField"
+    ng-required="isKeyRequired()"
+    adp-validate="arrayKeyValidationParams"
+  >
+
+  <adp-messages adp-field="keyField"></adp-messages>
+</adp-form-field-container>

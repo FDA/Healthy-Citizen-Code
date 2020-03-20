@@ -1,0 +1,119 @@
+{
+  "models": {
+    "businessRulesRuns": {
+      "type": "Schema",
+      "fullName": "Business Rules Runs",
+      "description": "Business Rules Runs collection contains output from applying rules to feature sets.",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "parameters": {
+        "enableInCellEditing": true
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        },
+        "admin": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "{$eq:[1,1]}"
+        }
+      },
+      "fields": {
+        "rule": {
+          "type": "LookupObjectID",
+          "fullName": "Rule",
+          "required": true,
+          "lookup": {
+            "table": "businessRules",
+            "foreignKey": "_id",
+            "label": "name"
+          },
+          "parameters": {
+            "enableInCellEditing": false
+          }
+        },
+        "jobId": {
+          "type": "String",
+          "fullName": "Job ID",
+          "description": "Queue job id",
+          "parameters": {
+            "enableInCellEditing": false
+          }
+        },
+        "ruleRunId": {
+          "type": "String",
+          "fullName": "Rule Run ID",
+          "description": "Intended to distinguish different rule runs",
+          "parameters": {
+            "enableInCellEditing": false
+          }
+        },
+        "variablesPassed": {
+          "type": "Mixed",
+          "fullName": "Inputs",
+          "description": "Variables passed to decision defined in rule",
+          "parameters": {
+            "enableInCellEditing": false
+          },
+          "render": "variablesPassed",
+          "width": "200"
+        },
+        "decisionEntries": {
+          "type": "Mixed",
+          "fullName": "Decisions",
+          "description": "The entries of all decision rule results. For every decision rule result a map of the output names and corresponding entries is returned.",
+          "parameters": {
+            "enableInCellEditing": false
+          },
+          "render": "decisions"
+        },
+        "notes": {
+          "type": "String",
+          "fullName": "Notes",
+          "parameters": {
+            "enableInCellEditing": true
+          }
+        },
+        "createdAt": {
+          "type": "DateTime",
+          "fullName": "Created At",
+          "parameters": {
+            "enableInCellEditing": false
+          },
+          "showInDatatable": true,
+          "showInGraphql": true,
+          "width": "100"
+        },
+        "creator": {
+          "parameters": {
+            "enableInCellEditing": false
+          },
+          "showInDatatable": true,
+          "showInGraphql": true,
+          "width": "80"
+        }
+      }
+    }
+  }
+}

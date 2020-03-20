@@ -1,0 +1,64 @@
+#ribbon,
+#demo-setting {
+    display: none;
+}
+
+.well {
+    padding: 0 !important;
+}
+
+#main {
+    padding-bottom: 0 !important;
+}
+
+h2 {
+    margin: 5px 0 5px 20px;
+}
+
+.bpm-title {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.bpm-title-col {
+    flex: 0 1 auto;
+    display: flex;
+    align-items: center;
+}
+
+.bpm-title-col .btn {
+    margin: 0 5px;
+}
+
+#decision-menu {
+    display: inline-block;
+}
+
+.dx-menu-item-content {
+    max-width: 300px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+#editor-container {
+    padding: 5px 5px 40px 5px;
+    position: relative;
+}
+
+#bpm-canvas {
+    position: relative;
+    width: 100%;
+    height: calc(100vh - 128px);
+    min-height: 100px;
+}
+
+#bpm-canvas .bjs-powered-by {
+    display: none;
+}
+
+@media (max-width: 979px) {
+    #bpm-canvas {
+        height: calc(100vh - 153px);
+    }
+}

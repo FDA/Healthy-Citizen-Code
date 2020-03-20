@@ -1,40 +1,57 @@
 ;(function () {
-  var MESSAGE_LENGTH_TRUNCATE = 120;
-
   angular
     .module("app.adpCommon")
     .factory("AdpNotificationService", AdpAdpNotificationService);
 
   /** @ngInject */
-  function AdpAdpNotificationService() {
-    var service = {
+  function AdpAdpNotificationService(
+    AdpNotificationHelper
+  ) {
+    return {
       notifyError: notifyError,
-      notifySuccess: notifySuccess,
-      errorCounter: 0
+      notifySuccess: notifySuccess
     };
 
-    return service;
-
     function notifyError(message, title, options) {
-      ++service.errorCounter; // it's never used, in fact...
-
-      var $toast = toastr.error(modifyLongMessage(message), title, Object.assign({
-        containerId: "toast-container-error",
+      var $toast = toastr.error(AdpNotificationHelper.modifyLongMessage(message), title, Object.assign({
+        containerId: AdpNotificationHelper.CONTAINER_ID_ERROR,
         positionClass: "toast-container-universal",
         timeOut: 0,
         extendedTimeOut: 0,
+        preventDuplicates: true,
         closeButton: true,
         tapToDismiss: false,
         newestOnTop: false,
+        hideDuration: 200,
+        onHidden: function () {
+          AdpNotificationHelper.doRefreshTabs();
+        }
       }, options || {}));
 
-      if ($toast.find(".toast-more-link").length) {
-        $toast.delegate(".toast-more-link", "click", function () {
-          $toast.addClass("toast-expanded");
-        });
-        $toast.delegate(".toast-full-message", "click", function () {
-          $toast.removeClass("toast-expanded");
-        });
+      // may be undefined in case preventDuplication in force
+      if ($toast) {
+        AdpNotificationHelper.highlightToast($toast);
+
+        if ($toast.find(".toast-more-link").length) {
+          $toast.delegate(".toast-more-link", "click", function () {
+            $(".toast", AdpNotificationHelper.getToastsContainer())
+              .removeClass("toast-expanded");
+            $toast.addClass("toast-expanded");
+
+            AdpNotificationHelper.highlightToast($toast);
+            AdpNotificationHelper.doRefreshTabs();
+          });
+          $toast.delegate(".toast-full-message", "click", function () {
+            $toast.removeClass("toast-expanded");
+
+            AdpNotificationHelper.highlightToast($toast);
+            AdpNotificationHelper.doRefreshTabs();
+          });
+        }
+
+        $toast.attr("title", message.substr(0, 30) + "...");
+
+        AdpNotificationHelper.doRefreshTabs();
       }
     }
 
@@ -45,23 +62,6 @@
         closeButton: true,
         newestOnTop: false,
       }, options || {}));
-    }
-
-    function modifyLongMessage(msg) {
-      var newMsg = msg;
-      if (msg.length > MESSAGE_LENGTH_TRUNCATE) {
-        newMsg =
-          "<div class='toast-shorter-message'>" +
-          msg.substr(0, MESSAGE_LENGTH_TRUNCATE) +
-          "&#8230;" +
-          "<div class='toast-more-link'>More&#8230;</div>" +
-          "</div>" +
-          "<div class='toast-full-message'>" +
-          msg +
-          "</div>"
-      }
-
-      return newMsg;
     }
   }
 })();

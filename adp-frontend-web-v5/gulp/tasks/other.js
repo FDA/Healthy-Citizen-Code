@@ -31,6 +31,8 @@ gulp.task('cp:fonts:serve', () => cpFonts(conf.paths.tmp));
 gulp.task('cp:fonts:dist', () => cpFonts(conf.paths.distTmp));
 gulp.task('cp:dxIcons:dist', () => cpDxFonts(conf.paths.distTmp));
 gulp.task('cp:dxFonts:dist', () => cpDxIcons(conf.paths.distTmp));
+gulp.task('cp:ckeditor:serve', () => cpCkEditorToTmp(conf.paths.tmp));
+gulp.task('cp:ckeditor:dist', () => cpCkEditorToDist(conf.paths.distTmp));
 
 function cpFonts(destBasePath) {
   var fontsPath = [
@@ -40,6 +42,24 @@ function cpFonts(destBasePath) {
 
   return gulp.src(fontsPath)
     .pipe(gulp.dest(path.join(destBasePath, 'assets/fonts')));
+}
+
+function cpCkEditorToTmp(destBasePath) {
+  var fontsPath = [
+    path.join(conf.moduleDir, '/ckeditor4/**'),
+  ];
+
+  return gulp.src(fontsPath)
+    .pipe(gulp.dest(path.join(destBasePath, 'scripts/ckeditor')));
+}
+
+function cpCkEditorToDist(destBasePath) {
+  var fontsPath = [
+    path.join(conf.moduleDir, '/ckeditor4/**'),
+  ];
+
+  return gulp.src(fontsPath)
+    .pipe(gulp.dest(path.join(destBasePath, 'scripts/ckeditor')));
 }
 
 function cpDxIcons(destBasePath) {
@@ -55,8 +75,6 @@ function cpDxFonts(destBasePath) {
   return gulp.src(fonts)
     .pipe(gulp.dest(path.join(destBasePath, 'styles/fonts')));
 }
-
-
 
 gulp.task('cp:assets:serve', cpAssets.bind(this, conf.paths.tmp));
 gulp.task('cp:assets:dist', cpAssets.bind(this, conf.paths.distTmp));

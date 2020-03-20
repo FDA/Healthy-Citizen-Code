@@ -1,0 +1,30 @@
+<adp-content-container
+  ng-if="vm.loaded"
+  class="multi-record"
+>
+  <div ng-if="vm.success">
+    <adp-section-container>
+      <adp-page-title>{{ vm.schema.fullName }}</adp-page-title>
+
+      <adp-page-description schema="vm.schema"></adp-page-description>
+    </adp-section-container>
+
+    <adp-section-container
+      class="adp-data-grid-container"
+    >
+      <adp-data-grid
+        schema="vm.schema"
+      ></adp-data-grid>
+    </adp-section-container>
+  </div>
+
+  <adp-content-container ng-if="!vm.success">
+    <adp-section-container>
+      <adp-page-title>{{vm.errorMessage}}</adp-page-title>
+    </adp-section-container>
+  </adp-content-container>
+</adp-content-container>
+
+<adp-content-container ng-if="!vm.loaded">
+  <adp-page-loader></adp-page-loader>
+</adp-content-container>

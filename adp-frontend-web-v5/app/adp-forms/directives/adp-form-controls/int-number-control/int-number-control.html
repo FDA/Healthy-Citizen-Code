@@ -1,0 +1,12 @@
+<input
+  type="number"
+  name="{{field.fieldName}}"
+  id="{{field.fieldName}}"
+  adp-validate="validationParams"
+  ng-required="isRequired()"
+  ng-model="adpFormData[field.fieldName]"
+  class="form-control"
+  adp-autocomplete="field"
+  ng-keypress="onKeyPress($event)"
+  ng-pattern="INT_REGEX"
+>

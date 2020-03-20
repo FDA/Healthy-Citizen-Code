@@ -16,7 +16,19 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
   if (type === ['Date', 'Time', 'DateTime']) {
     graphqlType = 'Date';
   } else if (
-    ['String', 'Barcode', 'ObjectID', 'Password', 'Email', 'Phone', 'Url', 'Text', 'Decimal128', 'Html'].includes(type)
+    [
+      'String',
+      'Barcode',
+      'ObjectID',
+      'Password',
+      'Email',
+      'Phone',
+      'Url',
+      'Text',
+      'Decimal128',
+      'Html',
+      'Code',
+    ].includes(type)
   ) {
     graphqlType = 'String';
   } else if (type === 'Boolean') {

@@ -59,6 +59,7 @@
 
       'Mixed': MixedTypeCellRenderer.treeView,
       'TreeSelector': TreeSelectorCellRenderer.treeView,
+      'Html': BasicTypesCellRenderer.htmlType,
       custom: CustomRender,
     };
 

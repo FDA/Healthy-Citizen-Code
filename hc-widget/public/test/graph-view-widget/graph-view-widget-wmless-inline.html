@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Visualization Widget Test</title>
+</head>
+<body>
+
+<script>
+  (function(d, s, id){
+    var js, fjs = d.getElementsByTagName(s)[0];
+    if (d.getElementById(id)) {return;}
+    js = d.createElement(s); js.id = id;
+    js.src = "http://localhost:9000/hc-widget-loader.js";
+    fjs.parentNode.insertBefore(js, fjs);
+  }(document, 'script', 'hc-widget-script'))
+</script>
+
+<div
+  hc-widget
+  data-wm="false"
+  data-type="graphViewWidget"
+  data-data-source="inline"
+  data-gender="female"
+  data-age="35-44"
+  data-drugs="68071199003,00777310502,68788004803,52244044910,67457060130,68382079101,68382009305,16729018201,47781042347,64764024060"
+></div>
+
+</body>
+</html>
