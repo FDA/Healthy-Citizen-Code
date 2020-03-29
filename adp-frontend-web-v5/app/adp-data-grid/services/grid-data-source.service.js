@@ -16,8 +16,8 @@
     ServerError,
     GridOptionsHelpers
   ) {
-    return function (options, schema) {
-      options.dataSource = { store: createStore(schema) };
+    return function (options, schema, customOptions) {
+      options.dataSource = { store: createStore(schema, customOptions) };
 
       if (schema.parameters.loadInvisibleFields === false) {
         registerColumnsVisibilityListener(options);
@@ -26,10 +26,12 @@
       return options;
     }
 
-    function createStore(schema) {
+    function createStore(schema, customOptions) {
       return new DevExpress.data.CustomStore({
         load: function (loadOptions) {
           var requestSchema = provideRequestSchema(schema);
+
+          loadOptions.customOptions = customOptions.value();
 
           return GraphqlCollectionQuery(requestSchema, loadOptions)
             .then(!!loadOptions.group ? getGroupedData : getData)

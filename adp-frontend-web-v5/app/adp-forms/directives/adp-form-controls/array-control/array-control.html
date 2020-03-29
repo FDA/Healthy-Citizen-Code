@@ -45,6 +45,14 @@
 
           <button
             type="button"
+            class="subform-frame__move-to-top subform-frame__btn btn fa fa-level-up"
+            ng-show="showMoveToTop($index)"
+            ng-click="moveToTop($event, $index)"
+          >
+          </button>
+
+          <button
+            type="button"
             class="subform-frame__remove subform-frame__btn btn fa fa-trash"
             ng-disabled="isRemoveDisabled()"
             ng-click="remove($event, $index)"

@@ -1,31 +1,31 @@
 const _ = require('lodash');
 const commons = require('../lib/src/data_vis_common');
 
-module.exports = function() {
+module.exports = function () {
   const m = {};
 
-  m.init = appLib => {
+  m.init = (appLib) => {
     m.appLib = appLib;
     appLib.addRoute('get', '/getFdaVipFgData', [
       appLib.isAuthenticated,
       (req, res) =>
         commons
           .getDbData(m.appLib, req)
-          .then(data => m.transformToFgJson(data))
-          .then(config => res.json(config)),
+          .then((data) => m.transformToFgJson(data))
+          .then((config) => res.json(config)),
     ]);
   };
 
-  m.transformToFgJson = relationships => {
+  m.transformToFgJson = (relationships) => {
     const nodes = {};
     const links = [];
     const legend = { nodes: {}, links: [] };
     const tags = {};
     const entitySchema = m.appLib.appModel.models.entities;
 
-    _.each(relationships, r => {
+    _.each(relationships, (r) => {
       // arrow will be shown from domain entity to range entity: domain -> range
-      _.each(['range', 'domain'], _subj => {
+      _.each(['range', 'domain'], (_subj) => {
         const subj = r[_subj];
         if (!subj) {
           return;
@@ -100,13 +100,7 @@ module.exports = function() {
       _.each(obj, (val, fieldName) => {
         const fieldSchema = schema.fields[fieldName];
 
-        if (
-          ignoredFields.includes(fieldName.toLowerCase()) ||
-          !fieldSchema ||
-          !fieldSchema.showInViewDetails ||
-          val === undefined ||
-          val == null
-        ) {
+        if (ignoredFields.includes(fieldName.toLowerCase()) || !fieldSchema || val === undefined || val == null) {
           return;
         }
         const label = val.fullName || _.startCase(fieldName);
@@ -122,13 +116,13 @@ module.exports = function() {
         return [];
       }
 
-      _.each(_tags, tag => {
+      _.each(_tags, (tag) => {
         tags[tag._id] = tag.label;
       });
 
       const ids = _.keys(tags);
 
-      return _.map(_tags, tag => _.indexOf(ids, `${tag._id}`));
+      return _.map(_tags, (tag) => _.indexOf(ids, `${tag._id}`));
     }
   };
 

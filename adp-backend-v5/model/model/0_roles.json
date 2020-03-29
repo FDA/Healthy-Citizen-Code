@@ -25,14 +25,14 @@
         }
       },
       "hooks": {
-        "post": ["cacheRolesToPermissions"],
-      },
-//      "scopes": {
-//        "superAdminScope": {
-//          "permissions": "accessAsSuperAdmin",
-//          "where": "{$eq: ['$system', false]}"
-//        }
-//      }
+        "post": ["cacheRolesToPermissions"]
+      }
+      //      "scopes": {
+      //        "superAdminScope": {
+      //          "permissions": "accessAsSuperAdmin",
+      //          "where": "{$eq: ['$system', false]}"
+      //        }
+      //      }
     }
   }
 }

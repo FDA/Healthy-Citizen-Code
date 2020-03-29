@@ -45,7 +45,8 @@ exports.paths = {
   serverScripts: 'app-model-code.js',
   clientModulesFolder: 'client-modules',
   index: 'index.html',
-  tasks: 'gulp/tasks'
+  tasks: 'gulp/tasks',
+  acePath: 'lib/ace-builds/src-noconflict',
 };
 
 exports.endpoints = {

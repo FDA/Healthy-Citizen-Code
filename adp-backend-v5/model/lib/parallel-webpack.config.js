@@ -4,6 +4,7 @@ const webpack = require('webpack');
 
 const wPlugs = {
   TerserJSPlugin: require('terser-webpack-plugin'),
+  ShellPlugin: require('webpack-shell-plugin-next'),
   CopyWebpackPlugin: require('copy-webpack-plugin'),
   MiniCssExtractPlugin: require('mini-css-extract-plugin'),
   OptimizeCSSAssetsPlugin: require('optimize-css-assets-webpack-plugin'),
@@ -15,7 +16,6 @@ const wPlugs = {
 };
 
 const rootPath = path.resolve(__dirname);
-
 const developerMode = process.argv.indexOf('--env.develop') >= 0;
 
 const babelPresets = [
@@ -36,75 +36,10 @@ const babelConfig = {
   'exclude': ['core-js', 'babel-polyfill'],
   'plugins': ['@babel/plugin-transform-classes'],
   'presets': babelPresets,
-  minified: developerMode,
-   compact: !developerMode,
+  minified: !developerMode,
+  compact: !developerMode,
   retainLines: developerMode,
   comments: false
-};
-
-const export3dConfig = {
-  cache: true,
-  mode: developerMode ? 'development' : 'production',
-  context: `${rootPath}/export3d-template`,
-  entry: {
-    tmpl: './js/index.js'
-  },
-  output: {
-    path: `${rootPath}/export3d-template/out`,
-    filename: '[name].js',
-    libraryTarget: 'assign',
-    library: '[name]'
-  },
-  module: {
-    rules: [
-      {
-        test: /\.js$/,
-        use: [{
-          loader: 'babel-loader',
-          options: babelConfig
-        }]
-      },
-      {
-        test: /\.(service|logic|helpers)\.js$/,
-        use: [{
-          loader: `${rootPath}/export3d-template/adp-loader.js`
-        }]
-      },
-      {
-        test: /\.css$/,
-        use: [wPlugs.MiniCssExtractPlugin.loader, 'css-loader']
-      },
-      {
-        test: /\.less$/,
-        loader: [wPlugs.MiniCssExtractPlugin.loader, 'css-loader', 'less-loader']
-      },
-      {
-        test: /\.(jpg|png|ttf|eot|svg|otf|woff|woff2)/,
-        loader: 'base64-inline-loader?name=[name].[ext]'
-      }
-    ]
-  },
-  plugins: [
-    new wPlugs.MiniCssExtractPlugin({
-      filename: 'css/style.css'
-    }),
-    new wPlugs.HtmlWebpackPlugin({
-      template: './index.html',
-      inlineSource: '.(js|css|png)$'
-    }),
-    new wPlugs.HtmlWebpackInlineSourcePlugin(),
-    new wPlugs.ProvidePlugin({
-      $: 'jquery',
-      _: 'lodash'
-    }),
-    new wPlugs.DefinePlugin({
-      'DEVELOPMENT_MODE_TEST_DATA': JSON.stringify(developerMode)
-    })
-  ],
-  optimization: {
-    minimizer: developerMode ? [] : [new wPlugs.TerserJSPlugin({}), new wPlugs.OptimizeCSSAssetsPlugin({})],
-    minimize: developerMode
-  }
 };
 
 /* Common config used as base for each lib to be webpacked.
@@ -114,6 +49,27 @@ const export3dConfig = {
 *   This is converted into common plugins:[ new PluginName(params),...]
 *
 * */
+const rules = {
+  babelJs: {
+      test: /\.js$/,
+      use: [{
+        loader: 'babel-loader',
+        options: babelConfig
+      }]
+    },
+  css: {
+      test: /\.css$/,
+      use: [wPlugs.MiniCssExtractPlugin.loader, 'css-loader']
+    },
+  less: {
+      test: /\.less$/,
+      loader: [wPlugs.MiniCssExtractPlugin.loader, 'css-loader', 'less-loader']
+    },
+  assetsFile: {
+      test: /\.(jpg|png|ttf|eot|svg|otf|woff|woff2)/,
+      loader: 'file-loader?name=/assets/[contenthash:8].[ext]'
+    }
+};
 
 const commonConfig = {
   cache: true,
@@ -127,25 +83,10 @@ const commonConfig = {
   },
   module: {
     rules: [
-      {
-        test: /\.js$/,
-        use: [{
-          loader: 'babel-loader',
-          options: babelConfig
-        }]
-      },
-      {
-        test: /\.css$/,
-        use: [wPlugs.MiniCssExtractPlugin.loader, 'css-loader'],
-      },
-      {
-        test: /\.less$/,
-        loader: [wPlugs.MiniCssExtractPlugin.loader, 'css-loader', 'less-loader'],
-      },
-      {
-        test: /\.(jpg|png|ttf|eot|svg|otf|woff|woff2)/,
-        loader: 'file-loader?name=/assets/[contenthash:8].[ext]',
-      },
+      rules.babelJs,
+      rules.css,
+      rules.less,
+      rules.assetsFile,
     ],
   },
   pluginsConfig: {
@@ -155,8 +96,9 @@ const commonConfig = {
     DotEnv: {},
   },
   optimization: {
-    minimizer: [new wPlugs.TerserJSPlugin({}), new wPlugs.OptimizeCSSAssetsPlugin({})],
-  },
+    minimizer: developerMode ? [] : [new wPlugs.TerserJSPlugin({}), new wPlugs.OptimizeCSSAssetsPlugin({})],
+    minimize: !developerMode
+  }
 };
 
 /* Override 'commonWebpackConfig' (above) here with specific settings of each lib need to be webpacked */
@@ -197,9 +139,66 @@ const libraries = {
       },
     },
   },
+  'export3d': {
+    context: `${rootPath}/export3d-template`,
+    entry: {
+      tmpl: './js/index.js'
+    },
+    output: {
+      path: `${rootPath}/export3d-template/out`,
+      filename: '[name].js'
+    },
+    module: {
+      rules: [
+        rules.babelJs,
+        {
+          test: /\.(service|logic|helpers)\.js$/,
+          use: [{
+            loader: `${rootPath}/export3d-template/adp-loader.js`
+          }]
+        },
+        rules.css,
+        rules.less,
+        {
+          test: /\.(jpg|png|ttf|eot|svg|otf|woff|woff2)/,
+          loader: 'base64-inline-loader?name=[name].[ext]'
+        },
+      ]
+    },
+    pluginsConfig: {
+      HtmlWebpackPlugin: {
+        template: './index.html',
+        inlineSource: '.(js|css|png)$'
+      },
+      HtmlWebpackInlineSourcePlugin: '',
+      ProvidePlugin: {
+        $: 'jquery',
+        _: 'lodash'
+      },
+      DefinePlugin: {
+        'DEVELOPMENT_MODE_TEST_DATA': JSON.stringify(developerMode)
+      },
+      ShellPlugin: {
+        onBuildEnd: {scripts:[ 'cp model/lib/export3d-template/out/index.html model/public/js/lib/force-graph/export-template.html']}
+      }
+    }
+  }
+};
+const customMerger = (objValue, srcValue) => {
+  if (_.isArray(objValue)) {
+    return srcValue;
+  }
 };
 
-const result = _.map(libraries, (itemConfig, name) => {
+const args = process.argv.slice(2);
+let filter = args.length ? args.pop() : '';
+filter = filter && filter.substr(0,2)!=='--' ? filter : '';
+
+const result = _.compact(_.map(libraries, (itemConfig, name) => {
+  if (filter && !name.match(new RegExp(filter))) {
+      return null;
+  }
+
   const generatedConfig = {
     output: {
       path: `${rootPath}/../public/js/lib/${name}`,
@@ -207,19 +206,18 @@ const result = _.map(libraries, (itemConfig, name) => {
     },
   };
 
-  const resultConfig = _.merge(
+  const resultConfig = _.mergeWith(
     {},
     commonConfig,
     generatedConfig,
     itemConfig,
+    customMerger
   );
 
-  resultConfig.plugins = _.map(resultConfig.pluginsConfig, (params, plugName) => new wPlugs[plugName](params));
+  resultConfig.plugins = _.map(resultConfig.pluginsConfig, (params, plugName) => params? new wPlugs[plugName](params) : new wPlugs[plugName]());
   delete resultConfig.pluginsConfig;
 
   return resultConfig;
-});
-
-result.push(export3dConfig);
+}));
 
 module.exports = result;

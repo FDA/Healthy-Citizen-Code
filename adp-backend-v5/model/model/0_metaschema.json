@@ -444,7 +444,7 @@
       "fullName": "Order",
       "description": "Sets value for formOrder, datagridOrder, detailedViewOrder fields if according field is not specified."
     },
-    "formOrder":  {
+    "formOrder": {
       "type": "Number",
       "fullName": "Form Order",
       "description": "Determines field order in form."

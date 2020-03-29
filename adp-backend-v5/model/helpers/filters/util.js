@@ -35,18 +35,18 @@ function createFilter(context, operationsMap) {
 
 function getSupportedOperationsFromMap(map) {
   return Object.keys(map)
-    .map(op => `'${op}'`)
+    .map((op) => `'${op}'`)
     .join(', ');
 }
 
-const safe = { safe: true };
+const flags = { safe: true, insensitive: true };
 const stringOperations = {
-  contains: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, safe)),
-  notcontains: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...safe, negate: true })),
-  startswith: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...safe, startsWith: true })),
-  endswith: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...safe, endsWith: true })),
-  regex: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, safe)),
-  notRegex: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...safe, negate: true })),
+  contains: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, flags)),
+  notcontains: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, negate: true })),
+  startswith: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, startsWith: true })),
+  endswith: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, endsWith: true })),
+  regex: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, flags)),
+  notRegex: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, negate: true })),
   '=': (fieldPath, value) => {
     if (!value) {
       return { $or: [{ [fieldPath]: '' }, { [fieldPath]: { $exists: false } }] };
@@ -59,7 +59,7 @@ const stringOperations = {
   '>': (fieldPath, value) => construct(fieldPath, '$gt', value),
   '>=': (fieldPath, value) => construct(fieldPath, '$gte', value),
   any: () => {},
-  undefined: fieldPath => ({ [fieldPath]: { $exists: false } }),
+  undefined: (fieldPath) => ({ [fieldPath]: { $exists: false } }),
 };
 
 module.exports = {

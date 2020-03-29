@@ -48,6 +48,7 @@ module.exports = {
               $match: {
                 $and: [
                   modelToConditions.relationships,
+                  notHidden,
                   { $expr: { $eq: ['$domain._id', '$$domainId'] } },
                 ],
               },
@@ -66,6 +67,7 @@ module.exports = {
               $match: {
                 $and: [
                   modelToConditions.entityTypes,
+                  notHidden,
                   { $expr: { $eq: ['$_id', '$$domainTypeId'] } },
                 ],
               },
@@ -82,7 +84,7 @@ module.exports = {
           pipeline: [
             {
               $match: {
-                $and: [modelToConditions.entities, { $expr: { $eq: ['$_id', '$$rangeId'] } }],
+                $and: [modelToConditions.entities, notHidden, { $expr: { $eq: ['$_id', '$$rangeId'] } }],
               },
             },
           ],

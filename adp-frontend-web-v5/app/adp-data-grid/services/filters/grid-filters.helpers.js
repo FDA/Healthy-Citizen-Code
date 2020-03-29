@@ -32,7 +32,7 @@
     function filteringAllowedForField(field) {
       var type = AdpSchemaService.getFieldType(field);
 
-      return FilterOperation.supportedTypes().includes(type) && field.showInDatatable;
+      return FilterOperation.supportedTypes().includes(type);
     }
 
     function getFilterRenderer(field) {

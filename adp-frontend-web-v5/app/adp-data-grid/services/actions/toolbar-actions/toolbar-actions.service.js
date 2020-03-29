@@ -23,6 +23,7 @@
         searchPanel: {},
         printButton: {},
         gridViewButton: {},
+        quickFiltersButton: {},
         exportButton: {},
         importButton: {},
         customColumnChooserButton: {},

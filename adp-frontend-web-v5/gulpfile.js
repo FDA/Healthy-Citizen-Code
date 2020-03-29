@@ -12,6 +12,20 @@ const hub = new HubRegistry([path.join(conf.paths.tasks, '*.js')]);
 // Load tasks
 gulp.registry(hub);
 
+// root level tasks
+gulp.task('serve', gulp.series('tmp', 'other:serve', 'connect:dev'));
+gulp.task('build', gulp.series(
+  'tmp',
+  'dist',
+  'other:serve',
+  'other:dist',
+  'clean:dist',
+  'mv:dist',
+  'service-worker'
+));
+gulp.task('default', gulp.series('serve'));
+
+
 gulp.task('inject:main', gulp.series('sw:replace', 'clientModules:replace', 'inject', 'html:replace'));
 gulp.task('load:resources', gulp.parallel(
   'create:config',
@@ -36,11 +50,12 @@ gulp.task('other:serve', gulp.parallel(
   'cp:json:serve',
   'cp:img:serve',
   'cp:fonts:serve',
-  'cp:ckeditor:serve'
+  'cp:ckeditor:serve',
+  'cp:aceEditor:serve',
+  'editorWorker'
 ));
 
 gulp.task('other:dist', gulp.parallel(
-  'cp:assets:dist',
   'cp:assets:dist',
   'cp:json:dist',
   'cp:img:dist',
@@ -48,10 +63,5 @@ gulp.task('other:dist', gulp.parallel(
   'cp:dxFonts:dist',
   'cp:dxIcons:dist',
   'cp:workers:dist',
-  'cp:ckeditor:dist'
+  'cp:lib:dist'
 ));
-
-gulp.task('serve', gulp.series('tmp', 'other:serve', 'connect:dev'));
-
-gulp.task('build', gulp.series('tmp', 'dist', 'other:dist', 'clean:dist', 'mv:dist', 'service-worker'));
-gulp.task('default', gulp.series('serve'));

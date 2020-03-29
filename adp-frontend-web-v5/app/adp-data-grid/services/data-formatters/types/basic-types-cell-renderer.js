@@ -31,15 +31,28 @@
     }
 
     function boolean(args) {
-      var value = !!args.data;
+      return FormattersHelper.asText(args) ?
+        booleanText(args.data) :
+        booleanHtml(args.data);
+    }
 
-      if  (FormattersHelper.asText(args)) {
-        return value ? 'true' : 'false'
+    function booleanText(value) {
+      if (value === true) {
+        return 'true';
       } else {
-        var iconName = value ? 'check' : 'times';
-
-        return '<i class="fa fa-' + iconName + '"></i>';
+        return 'false';
       }
+    }
+
+    function booleanHtml(value) {
+      var iconName;
+      if (value === true) {
+        iconName = 'check-square-o';
+      } else {
+        iconName = 'square-o';
+      }
+
+      return '<i class="fa fa-' + iconName + '"></i>';
     }
 
     function string(args) {

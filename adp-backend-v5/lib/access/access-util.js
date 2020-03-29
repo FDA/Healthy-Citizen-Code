@@ -242,7 +242,7 @@ module.exports = appLib => {
 
     const rolesToPermissions = await appLib.cache.getUsingCache(
       () => m.getRolesToPermissions(),
-      appLib.cache.keys.ROLES_TO_PERMISSIONS
+      appLib.cache.keys.rolesToPermissions()
     );
     // add permissions for each user role
     for (const role of allUserRoles) {

@@ -6,4 +6,11 @@
     'ui.bootstrap.datetimepicker',
     'ngTagsInput'
   ]);
+
+  angular
+    .module('app.adpForms')
+    .config(function () {
+      CKEDITOR.disableAutoInline = true;
+      ace.config.set('workerPath', 'lib/ace-builds/src-noconflict');
+    });
 })();

@@ -23,16 +23,16 @@
         "responsivePriority": 50,
         "fields": {
           "view": {
-            "permissions": [["accessAsUser", "accessAsGuest"]],
+            "permissions": [["accessAsUser", "accessAsGuest"]]
           },
           "create": {
-            "permissions": [["accessAsUser", "accessAsGuest"]],
+            "permissions": [["accessAsUser", "accessAsGuest"]]
           },
           "update": {
-            "permissions": [["accessAsUser", "accessAsGuest"]],
+            "permissions": [["accessAsUser", "accessAsGuest"]]
           },
           "delete": {
-            "permissions": [["accessAsUser", "accessAsGuest"]],
+            "permissions": [["accessAsUser", "accessAsGuest"]]
           }
         }
       }

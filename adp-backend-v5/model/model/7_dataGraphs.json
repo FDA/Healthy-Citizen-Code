@@ -107,7 +107,7 @@
           "fullName": "Description of the Entity",
           "subtype": "Text",
           "description": "Description of the Entity",
-          "show": "_.get(row, 'type.label') === 'System'"
+          //"show": "_.get(row, 'type.label') === 'System'"
         },
         "locationData": {
           "type": "String",
@@ -245,6 +245,17 @@
         }
       },
       "fields": {
+        "hidden": {
+          "type": "Boolean",
+          "fullName": "Hidden"
+        },
+        "name": {
+          "type": "String",
+          "fullName": "Relationship Name",
+          "description": "The name/label of the relationship",
+          "required": false,
+          "width": "6"
+        },
         "domain": {
           "type": "LookupObjectID",
           "fullName": "From Entity ",
@@ -259,58 +270,6 @@
                   "ownRecordScope": {
                     "permissions": "accessAsUser",
                     "where": "{$eq: [1,1]}"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "hidden": {
-          "type": "Boolean",
-          "fullName": "Hidden"
-        },
-        "type": {
-          "type": "LookupObjectID",
-          "fullName": "Relationship Type",
-          "description": "Relationship Type",
-          "required": "0",
-          "lookup": {
-            "table": {
-              "relationshipTypes": {
-                "foreignKey": "_id",
-                "label": "name",
-                "scopes": {
-                  "ownRecordScope": {
-                    "permissions": "accessAsUser",
-                    "where": "{$eq: [1,1]}"
-                  }
-                }
-              }
-            }
-          },
-          "width": "6"
-        },
-        "name": {
-          "type": "String",
-          "fullName": "Relationship Name",
-          "description": "The name/label of the relationship",
-          "required": false,
-          "width": "6"
-        },
-        "tags": {
-          "type": "LookupObjectID[]",
-          "fullName": "Tags",
-          "lookup": {
-            "table": {
-              "graphTags": {
-                "foreignKey": "_id",
-                "label": "name",
-                "scopes": {
-                  "specialScope": {
-                    "permissions": {
-                      "view": "accessAsUser"
-                    },
-                    "where": "{ 'creator._id': { $eq: this.req.user._id } }"
                   }
                 }
               }
@@ -337,6 +296,47 @@
             }
           }
         },
+        "type": {
+          "type": "LookupObjectID",
+          "fullName": "Relationship Type",
+          "description": "Relationship Type",
+          "required": "0",
+          "lookup": {
+            "table": {
+              "relationshipTypes": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          },
+          "width": "6"
+        },
+        "tags": {
+          "type": "LookupObjectID[]",
+          "fullName": "Tags",
+          "lookup": {
+            "table": {
+              "graphTags": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsUser"
+                    },
+                    "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+                  }
+                }
+              }
+            }
+          }
+        },
         "trafficIntensity": {
           "type": "Number",
           "fullName": "Traffic Intensity",
@@ -357,19 +357,14 @@
           "fullName": "Link Distance",
           "description": "Default is 100",
           "required": "0",
-          "validate": [
-            "min(1)"
-          ]
+          "validate": ["min(1)"]
         },
         "linkCurvature": {
           "type": "Number",
           "fullName": "Link Curvature",
           "description": "Default is 50",
           "required": "0",
-          "validate": [
-            "min(0)",
-            "max(100)"
-          ]
+          "validate": ["min(0)", "max(100)"]
         }
       }
     },
@@ -609,28 +604,21 @@
           "fullName": "Link Width",
           "description": "Default is 0 – hairline",
           "required": "0",
-          "validate": [
-            "min(0)"
-          ]
+          "validate": ["min(0)"]
         },
         "linkDistance": {
           "type": "Number",
           "fullName": "Link Distance",
           "description": "Default is 100",
           "required": "0",
-          "validate": [
-            "min(1)"
-          ]
+          "validate": ["min(1)"]
         },
         "linkCurvature": {
           "type": "Number",
           "fullName": "Link Curvature",
           "description": "Default is set by graph options",
           "required": "0",
-          "validate": [
-            "min(0)",
-            "max(100)"
-          ]
+          "validate": ["min(0)", "max(100)"]
         },
         "particleSize": {
           "type": "Number",
@@ -677,9 +665,7 @@
           "fullName": "Font Size",
           "description": "Default is 5",
           "required": "0",
-          "validate": [
-            "min(1)"
-          ]
+          "validate": ["min(1)"]
         }
       }
     },

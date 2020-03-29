@@ -66,32 +66,18 @@
         scope.remove = remove;
         scope.isRemoveDisabled = isRemoveDisabled;
         scope.getPath = getPath;
+        scope.showMoveToTop = showMoveToTop;
+        scope.moveToTop = moveToTop;
 
         scope.guid = Guid.create;
 
         scope.onStop = function(event) {
           swapVisibilityStatus(event.newIndex, event.oldIndex);
-
-          function swapVisibilityStatus(newIndex, oldIndex) {
-            var lhs = scope.visibilityStatus[oldIndex];
-            var rhs = scope.visibilityStatus[newIndex];
-            if (lhs === rhs) {
-              return;
-            }
-
-            swap(scope.visibilityStatus, oldIndex, newIndex);
-          }
         }
 
         scope.onSorted = function updateOrder(event) {
           reorder(event.newIndex, event.oldIndex);
           scope.$apply();
-
-          function reorder(newIndex, oldIndex) {
-            var list = getData();
-            swap(list, newIndex, oldIndex);
-            setData(list);
-          }
         };
 
         scope.hasVisibleItems = function () {
@@ -211,10 +197,42 @@
           }
         }
 
+        function swapVisibilityStatus(newIndex, oldIndex) {
+          var lhs = scope.visibilityStatus[oldIndex];
+          var rhs = scope.visibilityStatus[newIndex];
+          if (lhs === rhs) {
+            return;
+          }
+
+          swap(scope.visibilityStatus, oldIndex, newIndex);
+        }
+
+        function reorder(newIndex, oldIndex) {
+          var list = getData();
+          swap(list, newIndex, oldIndex);
+          setData(list);
+        }
+
         function swap(list, newIndex, oldIndex) {
           var tmp = list[oldIndex];
           list[oldIndex] = list[newIndex];
           list[newIndex] = tmp;
+        }
+
+        function showMoveToTop(index) {
+          if (index === 0) {
+            return false;
+          }
+
+          return getData().length > 1;
+        }
+
+        function moveToTop(event, index) {
+          event.preventDefault();
+
+          reorder(0, index);
+          swapVisibilityStatus(0, index);
+          scope.$apply();
         }
       }
     }

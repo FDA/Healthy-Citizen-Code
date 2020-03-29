@@ -3,7 +3,7 @@ const escapeStrRe = require('escape-string-regexp');
 const safeRegex = require('safe-regex');
 
 const endOfRegExp = /\/([gimy]+)?$/;
-const isRegExpString = s => s.charAt(0) === '/' && endOfRegExp.test(s);
+const isRegExpString = (s) => s.charAt(0) === '/' && endOfRegExp.test(s);
 
 function getSourceFlags(s) {
   s = s.trim();
@@ -31,14 +31,16 @@ function toRegExp(pattern, opts = {}) {
     throw new Error(`Param 'pattern' must be a string`);
   }
   const sourceFlags = getSourceFlags(pattern);
-  let { source } = sourceFlags;
-  const { flags } = sourceFlags;
+  let { source, flags } = sourceFlags;
 
   if (opts.startsWith) {
     source = `^${source}`;
   }
   if (opts.endsWith) {
     source = `${source}$`;
+  }
+  if (opts.insensitive && !flags.includes('i')) {
+    flags += 'i';
   }
 
   if (opts.negate) {

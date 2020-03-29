@@ -11,7 +11,7 @@ module.exports = appLib => {
       if (modelName === 'roles' && ['create', 'update', 'delete'].includes(action)) {
         const rolesToPermissions = await appLib.accessUtil.getRolesToPermissions();
         try {
-          await appLib.cache.setCache(appLib.cache.keys.ROLES_TO_PERMISSIONS, rolesToPermissions);
+          await appLib.cache.setCache(appLib.cache.keys.rolesToPermissions(), rolesToPermissions);
         } catch (e) {
           log.warn(`Unable to set cache for hook cacheRolesToPermissions.`);
         }

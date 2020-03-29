@@ -1,10 +1,3 @@
-#logo img {
-  height: 49px;
-  width: 144px !important;
-  padding: 0;
-  margin: 0;
-}
-
 .page-app-dataGraph2d,
 .page-app-dataGraph3d,
 .page-app-dataGraphVr {
@@ -92,7 +85,7 @@ body.menu-on-top {
     padding: 5px 22px 5px 5px;
     text-overflow: ellipsis;
     overflow: hidden;
-    max-width: 120px;
+    max-width: 80%;
     white-space: nowrap;
   }
 
@@ -104,17 +97,29 @@ body.menu-on-top {
 
 .fg3d-entity-info {
   position: relative;
-  border-top: 1px solid dimgrey;
+
+  .fg3d-info-icon {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 25px;
+    height: 25px;
+    display: flex;
+    align-items: center;
+
+    .fg3d-leg-icon-link {
+      margin-bottom:6px;
+    }
+  }
 }
 
-.fg3d-info-icon {
-  position: absolute;
-  top: 10px;
-  right: 0;
-  width: 25px;
-  height: 25px;
-  display: flex;
-  align-items: center;
+.fg3d-entity-info + .fg3d-entity-info {
+  border-top: 1px solid dimgrey;
+  padding-top: 10px;
+
+  .fg3d-info-icon {
+    top: 10px;
+  }
 }
 
 .fg3d-info-name-p {
@@ -212,14 +217,20 @@ body.menu-on-top {
       color: gray;
     }
 
-    input {
-      background-color: transparent;
-      border-width: 1px;
+    > span {
+      display: block;
       margin-left: 10px;
     }
 
+    input {
+      background-color: transparent;
+      line-height: 1em;
+      border: 1px solid #5a5a5a;
+      border-radius: 3px;
+    }
+
     .same-width {
-      width:135px;
+      width: 90px;
     }
   }
 }
@@ -304,4 +315,28 @@ body.menu-on-top {
 .fg3d-leg-txt {
   flex: 1 1 auto;
   line-height: 25px;
+}
+
+.fg3d-tags-control {
+  &.dx-list {
+    width: 200px;
+    color: white;
+    background-color: #4e4e4e;
+  }
+
+  .dx-list-select-all-label {
+    padding: 0 5px;
+  }
+
+  .dx-list-select-checkbox-container {
+    width: 25px !important;
+  }
+
+  .dx-list-item {
+    color: white;
+  }
+
+  .dx-checkbox-icon {
+    border-color: rgba(255, 255, 255, .5);
+  }
 }

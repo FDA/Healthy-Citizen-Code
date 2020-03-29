@@ -10,10 +10,18 @@
   &-arrow-right:before { content: "\f061"; }
 }
 
+#logo-group {
+  width: auto !important;  // no need to limit logo group since long project name may not fit  (override smartadmin defaults)
+}
+
 #logo {
   margin-top: 0;
   overflow: hidden;
-  img { width: 30px !important; }
+  width: auto !important;  // no need to limit logo group since long project name may not fit  (override smartadmin defaults)
+  img {
+    height: 40px !important;   // suppress forcing logo width by smart-admin skins (crazy smartadmin!)
+    width: auto !important;
+  }
 }
 
 .login-info.disabled {
@@ -45,7 +53,8 @@ body.smart-style-6 .smart-form .datepicker[readonly] { border-style: solid; bord
 body.smart-style-6 .input-container.state-success .select2 > a,
 body.smart-style-6 .input-container.state-success .select2 > .select2-choices,
 body.smart-style-6 .smart-form .input-container.state-success .datepicker[readonly],
-body.smart-style-6 .input-container.state-success .input input {
+body.smart-style-6 .input-container.state-success .input input,
+body.smart-style-6 .input-container.state-success .adp-html-editor {
   border-color: #356635;
   background: #f0fff0;
   border-width: 1px;
@@ -62,11 +71,18 @@ body.smart-style-6 .input-container.state-success .select2,
 body.smart-style-6 .input-container.state-success .select2 > a,
 body.smart-style-6 .input-container.state-success .select2 > .select2-choices,
 body.smart-style-6 .smart-form .input-container.state-success .datepicker[readonly],
+body.smart-style-6 .smart-form .input-container.state-success .adp-html-editor,
 body.smart-style-6 .input-container.state-success .input input {
   border-top-width: 1px;
   border-left-width: 1px;
   border-right-width: 1px;
   box-shadow: none;
+}
+
+.adp-html-editor {
+  min-height: 72px;
+  height: auto;
+  padding: 5px 0;
 }
 
 body.smart-style-6 .input-container.state-success .select2 > .select2-choices {
@@ -176,6 +192,7 @@ body.smart-style-5 .select2-choices .select2-search-field input {
 .input-container.state-error .select2 > .select2-choices,
 .input-container.state-error .form-control,
 body.smart-style-6 .input-container.state-error .datepicker[readonly],
+body.smart-style-6 .input-container.state-error .adp-html-editor,
 .input-container.state-error .form-control:focus {
   border-color: #b94a48;
   background: #fff0f0;
@@ -714,6 +731,17 @@ nav ul span.menu-item-parent {
   font-size: 20px;
   padding: 4px !important;
   color: #b94a48;
+}
+
+.subform-frame__move-to-top {
+  position: absolute !important;
+  top: 5px !important;
+  right: 35px !important;
+  left: unset !important;
+  border: 1px solid #ccc;
+  font-size: 20px;
+  padding: 4px 6px !important;
+  color: #4c4c4c;
 }
 
 .subform-frame__title {
@@ -1362,7 +1390,6 @@ overflow: scroll;
     background-color: rgba(0,0,0,.04);
   }
 
-
   &.dx-state-hover {
     background-color: rgba(0,0,0,.04);
   }
@@ -1382,7 +1409,14 @@ overflow: scroll;
   }
 
   .adp-toolbar-menu {
-
+    &.adp-activated {
+      .dx-menu-item-has-icon {
+        background-color: #2196F3 !important;
+        .dx-icon {
+          color: white;
+        }
+      }
+    }
   }
 
   .dx-toolbar-item-auto-hide {
@@ -1391,4 +1425,26 @@ overflow: scroll;
       margin: 2px 0 0 -1px;
     }
   }
+}
+
+// FIXING STYLES FOR ACE EDITOR
+.ace_gutter-cell {
+  position: absolute !important;
+  padding-left: 19px !important;
+  padding-right: 6px !important;
+  background-repeat: no-repeat;
+}
+
+.ace_folding-enabled > .ace_gutter-cell {
+  padding-right: 13px !important;
+}
+
+.ace_folding-enabled .ace_fold-widget {
+  display: inline-block !important;
+}
+
+.ace_fold-widget {
+  box-sizing: border-box !important;
+  margin: 0 -12px 0 1px !important;
+  display: none !important;
 }

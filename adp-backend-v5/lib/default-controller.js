@@ -87,7 +87,8 @@ module.exports = appLib => {
   m.getBuildAppModelJson = (req, res, next) => {
     appLib
       .authenticationCheck(req, res, next)
-      .then(async () => {
+      .then(async ({ user, roles, permissions }) => {
+        appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
         const appModelForUser = await accessUtil.getAuthorizedAppModel(req);
         res.json({ success: true, data: appModelForUser });
       })
@@ -198,7 +199,8 @@ module.exports = appLib => {
 
     appLib
       .authenticationCheck(req, res, next)
-      .then(() => {
+      .then(({ user, roles, permissions }) => {
+        appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
         const model = _.cloneDeep(_.get(appLib.baseAppModel.models, path.join('.fields.')));
         accessUtil.handleModelByPermissions(model, accessUtil.getReqPermissions(req));
         res.json({ success: true, data: model });
