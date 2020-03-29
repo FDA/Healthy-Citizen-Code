@@ -14,7 +14,6 @@
   ) {
     $logProvider.debugEnabled(APP_CONFIG.debug);
     $locationProvider.hashPrefix('');
-    CKEDITOR.disableAutoInline = true;
   }
 
   /** @ngInject */

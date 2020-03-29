@@ -1,4 +1,4 @@
-(function() {
+(function () {
   var SELECTION_LINK_WIDTH = 2;
   var DEFAULT_NODE_SIZE = 5;
   var DEFAULT_LINK_LABEL_SIZE = 5;
@@ -16,25 +16,25 @@
   var TAP_SPEED = 500; // Max time for screen touch to be considered as 'tap'
 
   var geometryCreators = {
-    Box: function(size) {
+    Box: function (size) {
       return new Three.BoxGeometry(size, size, size);
     },
-    Tetrahedron: function(size) {
+    Tetrahedron: function (size) {
       return new Three.TetrahedronGeometry(size);
     },
-    Torus: function(size) {
+    Torus: function (size) {
       return new Three.TorusGeometry(size, size * 0.4, 6, 12);
     },
-    Octahedron: function(size) {
+    Octahedron: function (size) {
       return new Three.OctahedronGeometry(size);
     },
-    Cone: function(size) {
+    Cone: function (size) {
       return new Three.ConeGeometry(size * 0.5, size, 12);
     },
-    TorusKnot: function(size) {
+    TorusKnot: function (size) {
       return new Three.TorusKnotGeometry(size * 0.6, size * 0.2, 48, 6);
     },
-    Sphere: function(size) {
+    Sphere: function (size) {
       return new Three.SphereGeometry(size);
     },
   };
@@ -43,7 +43,7 @@
 
   /** @ngInject */
   function forceGraphControllerLogic() {
-    return function(
+    return function (
       onInterfaceUpdate,
       $scope,
       $rootScope,
@@ -82,13 +82,13 @@
         { key: 'f', action: 'toggleFullscreen' },
         {
           key: '+',
-          action: function() {
+          action: function () {
             changeLinksDistance(1.1);
           },
         },
         {
           key: '-',
-          action: function() {
+          action: function () {
             changeLinksDistance(0.9);
           },
         },
@@ -130,7 +130,7 @@
       if (typeof ForceGraph === 'undefined') {
         // This polyfill is to fix pure WebXR support in Chrome 79
         if (navigator && navigator.xr && !_.isFunction(navigator.xr.requestDevice)) {
-          navigator.xr.requestDevice = function() {
+          navigator.xr.requestDevice = function () {
             return new $.Deferred().resolve(null);
           };
         }
@@ -143,12 +143,12 @@
         proms.push(
           $http
             .get(APP_CONFIG.apiUrl + '/getFdaVipFgData')
-            .then(function(res) {
+            .then(function (res) {
               relData = pickNodesAndLinks(res);
               vm.legend = res.data.legend;
               vm.tags = res.data.tags;
             })
-            .catch(function() {
+            .catch(function () {
               vm.error_message = 'Data load error';
             })
         );
@@ -156,52 +156,54 @@
 
       $http
         .post(APP_CONFIG.apiUrl + '/graphql', { query: 'query  {userConfig { items { fg3d_config } }}' })
-        .then(function(resp) {
+        .then(function (resp) {
           vm.savedConfig = _.get(resp, 'data.data.userConfig.items[0].fg3d_config', null);
         })
-        .catch(function(e) {
+        .catch(function (e) {
           AdpNotificationService.notifyError('Error while loading preferences: ' + e.message);
         });
 
       $.when
         .apply(this, proms)
-        .done(function() {
-          vm.isLoading = false;
-          relData && $timeout(doInitGraph, 0);
-          $scope && $scope.$apply();
-          $document.on('keypress', function(e) {
+        .done(function () {
+          relData &&
+            $timeout(function () {
+              vm.isLoading = false;
+              doInitGraph();
+            }, 0);
+          $document.on('keypress', function (e) {
             onKeyPress(e);
           });
         })
-        .catch(function(e) {
+        .catch(function (e) {
           AdpNotificationService.notifyError('Error while loading code and data: ' + e.message);
         });
 
       /* Methods, available from page interface, is put into vm.### */
 
-      vm.doRefreshGraph = function() {
+      vm.doRefreshGraph = function () {
         doRefreshGraph();
       };
 
-      vm.toggleConfig = function() {
+      vm.toggleConfig = function () {
         vm.config.showOptions = !vm.config.showOptions;
       };
 
-      vm.toggleLegend = function() {
+      vm.toggleLegend = function () {
         vm.config.showLegend = !vm.config.showLegend;
       };
 
-      vm.toggleFullscreen = function() {
+      vm.toggleFullscreen = function () {
         $rootScope.isFullscreen = !$rootScope.isFullscreen;
       };
 
-      vm.reheatSimulation = function() {
+      vm.reheatSimulation = function () {
         forceGraph.numDimensions(3);
       };
 
-      vm.resetFixDragged = function() {
+      vm.resetFixDragged = function () {
         if (!vm.config.fixDragged) {
-          _.each(relData.nodes, function(node) {
+          _.each(relData.nodes, function (node) {
             node.fx = undefined;
             node.fy = undefined;
           });
@@ -209,7 +211,7 @@
         doRefreshGraph();
       };
 
-      vm.toggleCameraOrbit = function() {
+      vm.toggleCameraOrbit = function () {
         var lookAtPoint;
         var lookAtFlyTime = 1500;
         var cam = forceGraph.camera();
@@ -224,7 +226,7 @@
           lookAtPoint = new Three.Vector3(0, 0, 0);
 
           if (vm.selectedNodes.length) {
-            _.each(vm.selectedNodes, function(obj) {
+            _.each(vm.selectedNodes, function (obj) {
               if (obj.__type === 'node') {
                 lookAtPoint.add(obj.__threeObj.position);
               } else if (obj.__type === 'link') {
@@ -251,7 +253,7 @@
 
           camOrbiter.target = lookAtPoint;
 
-          $timeout(function() {
+          $timeout(function () {
             camOrbiter.autoRotate = true;
           }, lookAtFlyTime / 2);
 
@@ -270,7 +272,7 @@
         camOrbiter.update();
       };
 
-      vm.saveConfig = function() {
+      vm.saveConfig = function () {
         vm.savedConfig = Object.assign({}, vm.config);
 
         $http
@@ -280,11 +282,11 @@
               config: vm.savedConfig,
             },
           })
-          .then(function(resp) {
+          .then(function (resp) {
             if (resp.data.errors) {
               AdpNotificationService.notifyError(
                 'Config save failed: ' +
-                  _.map(resp.data.errors, function(err) {
+                  _.map(resp.data.errors, function (err) {
                     return err.message;
                   }).join('; ')
               );
@@ -292,12 +294,12 @@
               AdpNotificationService.notifySuccess('Config is saved');
             }
           })
-          .catch(function(e) {
+          .catch(function (e) {
             AdpNotificationService.notifyError('Error while save preferences: ' + e.message);
           });
       };
 
-      vm.loadConfig = function() {
+      vm.loadConfig = function () {
         if (vm.savedConfig) {
           var prevLinkDistance = vm.config.linkDistance;
           var prevTagsFilter = vm.config.tagsFilter;
@@ -324,7 +326,7 @@
         }
       };
 
-      vm.screenCapture = function() {
+      vm.screenCapture = function () {
         vm.exportingImage = true;
 
         var renderer = new Three.WebGLRenderer({ preserveDrawingBuffer: true });
@@ -357,7 +359,7 @@
         renderer.setSize(sx, sy);
         renderer.render(forceGraph.scene(), forceGraph.camera());
 
-        var getFile = function(blob) {
+        var getFile = function (blob) {
           if (blob) {
             downloadFile({ blob: blob, fileName: genExportFileName('png'), mimeType: 'image/png' });
           } else {
@@ -378,21 +380,21 @@
         }
       };
 
-      vm.exportAsHtml = function() {
+      vm.exportAsHtml = function () {
         vm.exportingHtml = true;
         $.when
           .apply(this, [
             $http.get(APP_CONFIG.apiUrl + '/public/js/lib/force-graph/export-template.html'),
             $http.get(APP_CONFIG.apiUrl + '/getFdaVipFgData'),
           ])
-          .then(function(res1, res2) {
+          .then(function (res1, res2) {
             var templateBody = res1.data;
             var graphRawData = res2.data;
 
             templateBody = templateBody
-              .replace(/(window[.\w\s=]+)'__fg_data__'/, '$1' + JSON.stringify(graphRawData))
+              .replace(/(window[.\w\s=]+)['"]__fg_data__['"]/, '$1' + JSON.stringify(graphRawData))
               .replace(
-                /(window[.\w\s=]+)'__fg_config__'/,
+                /(window[.\w\s=]+)['"]__fg_config__['"]/,
                 '$1' + JSON.stringify(Object.assign({}, vm.config, { showOptions: false }))
               );
 
@@ -402,10 +404,10 @@
               buffer: templateBody,
             });
           })
-          .catch(function(e) {
+          .catch(function (e) {
             AdpNotificationService.notifyError('Error while loading export template: ' + e.message);
           })
-          .always(function() {
+          .always(function () {
             vm.exportingHtml = false;
           });
       };
@@ -419,26 +421,26 @@
         forceGraph = new ForceGraph();
 
         forceGraph($box[0])
-          .onNodeClick(function(node, e) {
+          .onNodeClick(function (node, e) {
             onGraphClick(e, node);
           })
-          .onLinkClick(function(link, e) {
+          .onLinkClick(function (link, e) {
             onGraphClick(e, link);
           })
           .linkOpacity(LINK_OPACITY)
-          .linkDirectionalParticles(function(link) {
+          .linkDirectionalParticles(function (link) {
             return link.trf || 0;
           })
-          .linkDirectionalParticleWidth(function(link) {
+          .linkDirectionalParticleWidth(function (link) {
             return link.pw || 0;
           })
-          .linkDirectionalParticleColor(function(link) {
+          .linkDirectionalParticleColor(function (link) {
             return link.pcol || DEFAULT_COLOR;
           })
           .linkDirectionalArrowLength(4)
           .linkDirectionalArrowRelPos(0.5)
           .linkDirectionalParticleSpeed(AdpForceGraphHelpers.linkSpeed)
-          .onBackgroundClick(function(e) {
+          .onBackgroundClick(function (e) {
             onGraphClick(e);
           })
           .showNavInfo(false)
@@ -465,13 +467,20 @@
             value: getInitialLayersSelection(),
             maxDisplayedTags: 1,
             showSelectionControls: true,
-            onValueChanged: function(e) {
-              vm.config.tagsFilter = _.map(e.value, function(tag) {
+            cssClass: 'fg3d-tags-control',
+            onValueChanged: function (e) {
+              vm.config.tagsFilter = _.map(e.value, function (tag) {
                 return vm.tags.indexOf(tag);
               });
               vm.doRefreshGraph();
             },
-            onInitialized: function(e) {
+            onOpened: function (e) {
+              if (e.component._$list) {
+                e.component._$list.addClass('fg3d-tags-control');
+                e.component._$list.closest('.dx-overlay-content').css('overflow', 'visible');
+              }
+            },
+            onInitialized: function (e) {
               tagsFilterInstance = e.component;
             },
           });
@@ -509,7 +518,7 @@
       }
 
       function doCheckConfigFields() {
-        _.each(configFieldsLimits, function(obj, field) {
+        _.each(configFieldsLimits, function (obj, field) {
           if (!_.isUndefined(obj.min) && vm.config[field] < obj.min) {
             vm.config[field] = obj.min;
           }
@@ -533,7 +542,7 @@
           item.isSelected = !item.isSelected;
         } else {
           if (vm.selectedNodes.length) {
-            _.each(vm.selectedNodes, function(obj) {
+            _.each(vm.selectedNodes, function (obj) {
               obj.isSelected = false;
             });
           }
@@ -548,9 +557,9 @@
         hlLinks = [];
         hlNodes = [];
 
-        _.each(vm.selectedNodes, function(obj) {
+        _.each(vm.selectedNodes, function (obj) {
           if (obj.__type === 'node') {
-            _.each(relData.links, function(link) {
+            _.each(relData.links, function (link) {
               if (link.source === obj) {
                 hlLinks.push(link);
                 hlNodes.push(link.target);
@@ -574,7 +583,7 @@
           return;
         }
 
-        _.each(keysConf, function(one) {
+        _.each(keysConf, function (one) {
           if (e.keyCode === one.keyCode || e.key.toLowerCase() === one.key) {
             if (one.attr) {
               vm.config[one.attr] = !vm.config[one.attr];
@@ -619,7 +628,7 @@
           raycaster.linePrecision = 1; // Lib's default
           raycaster.setFromCamera(tapCoords, camera);
 
-          var intersects = _.find(raycaster.intersectObjects(forceGraph.scene().children, true), function(_ref) {
+          var intersects = _.find(raycaster.intersectObjects(forceGraph.scene().children, true), function (_ref) {
             return !!_ref.object.__graphObjType;
           });
 
@@ -644,7 +653,7 @@
       }
 
       function getTagsByFilterValue(value) {
-        return _.filter(vm.tags, function(tag, index) {
+        return _.filter(vm.tags, function (tag, index) {
           return value.indexOf(index) >= 0;
         });
       }
@@ -665,7 +674,7 @@
 
           if (!isLayerVisible(node)) {
             // just minimal mesh with 100% opacity as we dont have option to simply hide node
-            mesh = new Three.Mesh(geometryCreators.Cone(1), getNodeMaterial(DEFAULT_COLOR, 0));
+            mesh = new Three.Mesh(geometryCreators.Tetrahedron(1), getNodeMaterial(DEFAULT_COLOR, 0));
           } else {
             var isLit = isNodeLit(node);
             var isFiltered = isNodeFiltered(node);
@@ -771,13 +780,13 @@
       }
 
       function isNodeLit(node) {
-        return !!hlNodes.find(function(n) {
+        return !!hlNodes.find(function (n) {
           return node === n;
         });
       }
 
       function isLinkLit(link) {
-        return !!hlLinks.find(function(n) {
+        return !!hlLinks.find(function (n) {
           return link === n;
         });
       }
@@ -815,12 +824,12 @@
       function pickNodesAndLinks(res) {
         var data = _.pick(res.data, ['nodes', 'links']);
 
-        _.each(data.nodes, function(node) {
+        _.each(data.nodes, function (node) {
           node.l = node.obj.Acronym || node.n;
           node.__type = 'node';
         });
 
-        _.each(data.links, function(node) {
+        _.each(data.links, function (node) {
           node.__type = 'link';
         });
 
@@ -869,7 +878,7 @@
         a.click();
         window.URL.revokeObjectURL(url);
 
-        window.setTimeout(function() {
+        window.setTimeout(function () {
           //Just to make sure no special effects occurs
           document.body.removeChild(a);
         }, 5000);

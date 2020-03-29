@@ -32,7 +32,7 @@
           };
 
           var opts = _.get(scope, 'field.parameters.editor', {});
-          scope.editorConfig = _.defaults(defaults, opts);
+          scope.editorsConfig = _.defaults(defaults, opts);
         }
 
         function getData() {

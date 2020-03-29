@@ -141,7 +141,7 @@ function renderLegend(legend) {
       (legend.links || []).map(type =>
         `<div class='fg3d-legend-item'>
     <div class='fg3d-leg-icon'>
-    <div class='fg3d-leg-icon-link' style='border-bottom-width:${type.w}px; border-color:${type.col}'></div>
+    <div class='fg3d-leg-icon-link' style='border-bottom-width:${type.w || 1}px; border-color:${type.col}'></div>
     </div>
     <div class='fg3d-leg-txt'>${type.text || '[no title]'}</div></div>`)
         .join(''),
@@ -157,7 +157,7 @@ function renderInfobox(selectedNodes) {
         `<div class='fg3d-entity-info'><div class='fg3d-info-icon'>`
         + (node.__type === 'node' ?
           `<div class='fg3d-leg-icon-node shape_${node.shp.toLowerCase()}' style='background-color:${node.col}' ></div>` :
-          `<div class='fg3d-leg-icon-link' style='border-bottom-width:${node.w}px; border-color:${node.col}'></div>`
+          `<div class='fg3d-leg-icon-link' style='border-bottom-width:${node.w ? node.w + 2 : 1}px; border-color:${node.col}'></div>`
         )
         + `</div><p class='fg3d-info-name-p'><b>Name: </b>${node.n}</p>`
         + _.map(node.obj, (value, key) => `<p><b>${key}: </b>${value}</p>`)

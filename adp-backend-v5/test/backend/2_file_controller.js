@@ -15,8 +15,8 @@ const {
   auth: { admin },
 } = reqlib('test/test-util');
 
-describe('File Controller', function() {
-  before(async function() {
+describe('File Controller', function () {
+  before(async function () {
     prepareEnv();
     this.appLib = reqlib('/lib/app')();
     setAppAuthOptions(this.appLib, {
@@ -27,28 +27,28 @@ describe('File Controller', function() {
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await this.db.collection('users').deleteMany({});
     await this.db.collection('users').insertOne(admin);
     await this.appLib.setup();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
   const binaryParser = (res, callback) => {
     res.setEncoding('binary');
     res.data = '';
-    res.on('data', function(chunk) {
+    res.on('data', function (chunk) {
       res.data += chunk;
     });
-    res.on('end', function() {
+    res.on('end', function () {
       callback(null, Buffer.from(res.data, 'binary'));
     });
   };
@@ -86,7 +86,7 @@ describe('File Controller', function() {
     },
     {
       type: 'file',
-      size: 872,
+      size: 820,
       name: 'adp-bpm-diagrams/adp-bpm-editor.css',
       mimeType: 'text/css',
     },
@@ -116,7 +116,7 @@ describe('File Controller', function() {
     },
     {
       type: 'file',
-      size: 27196,
+      size: 27611,
       name: 'adp-force-graph/adp-force-graph-3d.logic.js',
       mimeType: 'application/javascript',
     },
@@ -177,7 +177,7 @@ describe('File Controller', function() {
   ];
 
   describe('Serving public files', () => {
-    it('Should show merged files for dir "/public/js/client-modules" from core and app model', async function() {
+    it('Should show merged files for dir "/public/js/client-modules" from core and app model', async function () {
       const res = await request(this.appLib.app).get('/public/js/client-modules');
       const { success, data } = res.body;
       should(success).equal(true);
@@ -186,17 +186,17 @@ describe('File Controller', function() {
       should(data).containDeep(filesList);
     });
 
-    it('Should not show any files in directories out of "/public/js/client-modules"', async function() {
+    it('Should not show any files in directories out of "/public/js/client-modules"', async function () {
       const dirs = ['/public', '/public/default-thumbnails', '/public/css', '/public/img', '/public/logo'];
-      const responses = await Promise.map(dirs, dir => request(this.appLib.app).get(dir));
-      responses.forEach(res => {
+      const responses = await Promise.map(dirs, (dir) => request(this.appLib.app).get(dir));
+      responses.forEach((res) => {
         const { success, message } = res.body;
         should(success).equal(false);
         should(message).equal('Forbidden to access directory');
       });
     });
 
-    it('Should show single files in /public directory', async function() {
+    it('Should show single files in /public directory', async function () {
       const res = await request(this.appLib.app).get('/public/manifest.json');
       should(res.statusCode).equal(200);
       should(res.type).equal('application/json');
@@ -204,7 +204,7 @@ describe('File Controller', function() {
   });
 
   describe('Upload files', () => {
-    it('Should upload photo', async function() {
+    it('Should upload photo', async function () {
       const fileName = 'test image.jpeg';
       const testFilePath = path.resolve(__dirname, `../files/${fileName}`);
       const testFileBytesSize = (await fs.stat(testFilePath)).size;
@@ -239,11 +239,8 @@ describe('File Controller', function() {
 
         // image urls
         const urls = [`/file/${id}`, `/file-thumbnail/${id}`, `/file-cropped/${id}`, `/download/${id}`];
-        const [file, thumb, crop, download] = await Promise.map(urls, async url => {
-          const res = await request(this.appLib.app)
-            .get(url)
-            .buffer()
-            .parse(binaryParser);
+        const [file, thumb, crop, download] = await Promise.map(urls, async (url) => {
+          const res = await request(this.appLib.app).get(url).buffer().parse(binaryParser);
           return { image: await jimp.read(res.body), bufSize: res.body.byteLength };
         });
         // file url
@@ -288,7 +285,7 @@ describe('File Controller', function() {
       }
     });
 
-    it('Should upload video', async function() {
+    it('Should upload video', async function () {
       const fileName = 'test video.webm';
       const testFilePath = path.resolve(__dirname, `../files/${fileName}`);
       const testFileBytesSize = (await fs.stat(testFilePath)).size;
@@ -306,10 +303,7 @@ describe('File Controller', function() {
         should(ObjectID.isValid(id)).be.equal(true);
         should(hash).be.equal('EaY3VMzIaEma9gNmRHyRV4Vnzvk=');
 
-        const { body } = await request(this.appLib.app)
-          .get(`/download/${id}`)
-          .buffer()
-          .parse(binaryParser);
+        const { body } = await request(this.appLib.app).get(`/download/${id}`).buffer().parse(binaryParser);
         should(body.byteLength).be.equal(testFileBytesSize);
 
         const fileRes = await request(this.appLib.app)
@@ -327,7 +321,7 @@ describe('File Controller', function() {
       }
     });
 
-    it('Should upload audio', async function() {
+    it('Should upload audio', async function () {
       const fileName = 'file_example_MP3_5MG.mp3';
       const testFilePath = path.resolve(__dirname, `../files/${fileName}`);
       const testFileBytesSize = (await fs.stat(testFilePath)).size;
@@ -346,10 +340,7 @@ describe('File Controller', function() {
         should(ObjectID.isValid(id)).be.equal(true);
         should(hash).be.equal('0nrSVZOsNRVIbbF2XgWj1VywuXk=');
 
-        const { body } = await request(this.appLib.app)
-          .get(`/download/${id}`)
-          .buffer()
-          .parse(binaryParser);
+        const { body } = await request(this.appLib.app).get(`/download/${id}`).buffer().parse(binaryParser);
         should(body.byteLength).be.equal(testFileBytesSize);
 
         const fileRes = await request(this.appLib.app)

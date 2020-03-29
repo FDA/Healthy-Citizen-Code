@@ -21,8 +21,12 @@
     };
 
     return function (field) {
-      return expressions[field.type];
+      return expressions[field.type] || defaultFilterExpression;
     };
+
+    function defaultFilterExpression(filterValue, selectedFilterOperation) {
+      return [this.dataField, selectedFilterOperation || this.defaultSelectedFilterOperation, filterValue];
+    }
 
     function calculateExprForBoolean(filterValue, selectedFilterOperation) {
       if (filterValue === 'TRUE_VALUE') {

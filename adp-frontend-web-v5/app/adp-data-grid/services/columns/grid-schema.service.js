@@ -14,7 +14,7 @@
         removeGroupFields,
         addIdAndPermissionsColumns,
         function (fields) {
-          return sortFields(fields, 'gridOrder');
+          return sortFields(fields, 'datagridOrder');
         }
       ]);
     }
@@ -75,14 +75,13 @@
       return fields.concat(permissionsColumns);
     }
 
-    function sortFields(fields) {
+    function sortFields(fields, orderProperty) {
       var groupedFields = groupFieldsForDetailedView(fields);
-      var orderProperty = 'detailedViewOrder';
 
       _.forEach(groupedFields, function (f) {
         if (_.isArray(f.fields)) {
           f.fields = _.sortBy(f.fields, function (f) {
-            return f[orderProperty];
+            return getOrder(f, orderProperty);
           });
         } else if (f.fields) {
           f.fields = sortObjectFields(f.fields, orderProperty);
@@ -92,7 +91,7 @@
       });
 
       var sorted = _.sortBy(groupedFields, function (f) {
-        return f[orderProperty];
+        return getOrder(f, orderProperty);
       });
 
       return flattenGroup(sorted);
@@ -138,7 +137,8 @@
 
     function sortObjectFields(objectFields, orderProperty) {
       var sortedKeys = _.sortBy(_.keys(objectFields), function (key) {
-        return _.get(objectFields, [key, orderProperty]);
+        var field = _.get(objectFields, key);
+        return getOrder(field, orderProperty);
       });
 
       var sortedFields = {};
@@ -156,6 +156,12 @@
 
     function isGroup(field) {
       return field.type === 'Group';
+    }
+
+    function getOrder(field, property) {
+      var val = Number(field[property]);
+
+      return _.isNaN(val) ? undefined : val;
     }
 
     return {

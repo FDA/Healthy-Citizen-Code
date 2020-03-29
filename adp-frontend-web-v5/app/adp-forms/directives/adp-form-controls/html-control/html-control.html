@@ -1,6 +1,8 @@
 <adp-ckeditor
   ng-model="adpFormData[field.fieldName]"
-  config="editorConfig"
+  ng-required="isRequired()"
+  editors-config="editorsConfig"
+  name="{{field.fieldName}}"
   editor-id="validationParams.formParams.path"
 >
 </adp-ckeditor>

@@ -1,10 +1,9 @@
-const Redis = require('ioredis');
 const Promise = require('bluebird');
-
-Redis.Promise = Promise;
 const log = require('log4js').getLogger('lib/cache');
 
-module.exports = options => {
+const { getRedisConnection } = require('../util/redis');
+
+module.exports = (options) => {
   const m = {};
   m.cacheStorage = null;
 
@@ -21,41 +20,21 @@ module.exports = options => {
     return prefix.endsWith(':') ? prefix : `${prefix}:`;
   }
 
-  m.getKeyWithPrefix = key => `${m.keyPrefix}${key}`;
+  m.getKeyWithPrefix = (key) => `${m.keyPrefix}${key}`;
 
-  m.getCacheStorage = async url => {
-    if (!url) {
+  m.getCacheStorage = (redisUrl) => {
+    if (!redisUrl) {
       return null;
     }
 
-    const redis = new Redis(url, {
-      lazyConnect: true,
-      maxRetriesPerRequest: 1,
-      retryStrategy: times => {
-        const delays = [25, 50, 100, 200, 400];
-        return delays[times - 1] || 5000;
-      },
-    });
-    redis.on('error', e => {
-      if (e.code !== 'ECONNREFUSED') {
-        log.error(`Redis error`, e.stack);
-      }
-    });
-    redis.on('ready', () => {
-      log.info(`Redis is ready to receive commands`);
-    });
-    redis.on('reconnecting', ms => {
-      log.warn(`Redis reconnecting in ${ms}ms since last try`);
-    });
-
+    const redisConnectionName = 'Cache_Redis';
     try {
-      await redis.connect();
-      log.info(`Successfully connected to redis by URL: ${url}`);
-      return redis;
+      return getRedisConnection({ redisUrl, log, redisConnectionName });
     } catch (e) {
-      // without disconnecting redis will keep trying to connect
-      redis.disconnect();
-      log.warn(`Unable to connect to redis by URL: ${url}. Server will continue working without cache.`, e.stack);
+      log.warn(
+        `Unable to connect ${redisConnectionName} by URL: ${redisUrl}. Server will continue working without cache`,
+        e.stack
+      );
       return null;
     }
   };
@@ -79,7 +58,7 @@ module.exports = options => {
     }
   };
 
-  m.getCache = async key => {
+  m.getCache = async (key) => {
     if (!m.isCacheReady() || !key) {
       return null;
     }
@@ -99,15 +78,15 @@ module.exports = options => {
     }
   };
 
-  m.getKeys = async keyPattern => {
+  m.getKeys = async (keyPattern) => {
     if (!m.isCacheReady() || !keyPattern) {
       return null;
     }
     const allKeys = [];
     const stream = m.cacheStorage.scanStream({ match: m.getKeyWithPrefix(keyPattern) });
 
-    return new Promise(resolve => {
-      stream.on('data', keys => {
+    return new Promise((resolve) => {
+      stream.on('data', (keys) => {
         allKeys.push(...keys);
       });
       stream.on('end', () => {
@@ -116,7 +95,7 @@ module.exports = options => {
     });
   };
 
-  m.clearCacheByKeyPattern = async keyPattern => {
+  m.clearCacheByKeyPattern = async (keyPattern) => {
     if (!m.isCacheReady() || !keyPattern) {
       return null;
     }
@@ -124,8 +103,8 @@ module.exports = options => {
       const stream = m.cacheStorage.scanStream({ match: m.getKeyWithPrefix(keyPattern) });
       const unlinkPromises = [];
 
-      return new Promise(resolve => {
-        stream.on('data', keys => {
+      return new Promise((resolve) => {
+        stream.on('data', (keys) => {
           // `keys` is an array of strings representing key names
           if (keys.length) {
             unlinkPromises.push(m.cacheStorage.unlink(keys));
@@ -140,10 +119,16 @@ module.exports = options => {
     }
   };
 
-  m.clearCacheForModel = modelName => m.clearCacheByKeyPattern(`${modelName}:*`);
+  m.clearCacheForModel = (modelName) => m.clearCacheByKeyPattern(`${modelName}:*`);
 
   m.keys = {
-    ROLES_TO_PERMISSIONS: 'rolesToPermissions',
+    usersWithStatuses(permissions) {
+      const sortedPermissions = [...permissions].sort();
+      return `usersWithStatuses:${sortedPermissions.join(',')}`;
+    },
+    rolesToPermissions() {
+      return 'rolesToPermissions';
+    },
   };
 
   m.getUsingCache = async (getPromise, key) => {

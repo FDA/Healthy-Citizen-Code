@@ -1,5 +1,6 @@
 module.exports = {
   // default system permissions that do not depend on app model permissions
+  // these permissions cannot be granted
   PERMISSIONS: {
     accessAsAnyone: 'accessAsAnyone',
     accessAsGuest: 'accessAsGuest',

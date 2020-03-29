@@ -31,6 +31,10 @@
         }
       }
 
+      if (params.customOptions && params.customOptions.quickFilterId) {
+        ret.quickFilterId = params.customOptions.quickFilterId;
+      }
+
       return ret;
     };
 

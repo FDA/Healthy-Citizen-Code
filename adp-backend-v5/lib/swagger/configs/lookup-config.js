@@ -13,8 +13,7 @@ function getBaseLookup() {
       {
         in: 'query',
         name: 'page',
-        description:
-          'Page number (default 0). Number of results per page is set in schema and cannot be changed.',
+        description: 'Page number (default 0). Number of results per page is set in schema and cannot be changed.',
         schema: {
           type: 'string',
         },
@@ -43,7 +42,7 @@ function getBaseLookup() {
 function addRoutes(lookup, lookupId, paths) {
   const baseLookup = getBaseLookup();
 
-  _.forEach(lookup.table, tableLookup => {
+  _.forEach(lookup.table, (tableLookup) => {
     const isFilteringLookup = tableLookup.where;
     const tableName = tableLookup.table;
     const lookupPath = `/lookups/${lookupId}/${tableName}`;
@@ -60,8 +59,7 @@ function addRoutes(lookup, lookupId, paths) {
         post: {
           ...baseLookup,
           summary: `Gets record from ${tableName} for lookup ${lookupId}`,
-          description:
-            'POST request is used to send form data for filtering lookup records based on user input',
+          description: 'POST request is used to send form data for filtering lookup records based on user input',
         },
       };
       paths[lookupPath].post.parameters.push({
@@ -81,7 +79,7 @@ function addLookupsForSchema(schema, paths) {
       addRoutes(lookup, lookupId, paths);
     }
     if (attributeName === 'fields' && _.isPlainObject(attribute)) {
-      _.each(attribute, field => {
+      _.each(attribute, (field) => {
         addLookupsForSchema(field, paths);
       });
     }
@@ -90,7 +88,7 @@ function addLookupsForSchema(schema, paths) {
 
 function getLookupConfig(models) {
   const paths = {};
-  _.each(models, schema => {
+  _.each(models, (schema) => {
     addLookupsForSchema(schema, paths);
   });
   return { paths };

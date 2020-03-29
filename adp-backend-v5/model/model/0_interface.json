@@ -59,11 +59,23 @@
         "accessFromPhone": { "description": "accessFromPhone" },
         "accessFromBot": { "description": "accessFromBot" },
         "accessFromCar": { "description": "accessFromCar" },
-        "viewAllBackgroundJobs": { "description": "Allows to view all jobs listing and details for each job in any queue" },
-        "viewOwnBackgroundJobs": { "description": "Allows to view own jobs listing and details for each own job in any queue" },
+        "viewAllBackgroundJobs": {
+          "description": "Allows to view all jobs listing and details for each job in any queue"
+        },
+        "viewOwnBackgroundJobs": {
+          "description": "Allows to view own jobs listing and details for each own job in any queue"
+        },
         "deleteAllBackgroundJobs": { "description": "Allows to delete all jobs in any queue" },
         "deleteOwnBackgroundJobs": { "description": "Allows to delete own jobs in any queue" },
-        "manageBackgroundJobs": { "description": "Allows to start/stop/pause/restart queues the jobs listing and details for each job" }
+        "manageBackgroundJobs": {
+          "description": "Allows to start/stop/pause/restart queues the jobs listing and details for each job"
+        },
+        "wsViewOwnJobsStatus": {
+          "description": "Allows to get real-time notifications about all jobs details for each job in any queue"
+        },
+        "wsViewAllJobsStatus": {
+          "description": "Allows to get real-time notifications about own jobs details for each own job in any queue"
+        }
       },
       "preStart": {}
     },

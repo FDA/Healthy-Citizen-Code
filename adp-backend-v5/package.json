@@ -15,9 +15,8 @@
     "test-app-specific": "node --stack_size=10000 test/app-model/app-model-specific.js",
     "clear-test-databases": "node test/clear-test-databases.js",
     "sync-es-with-mongo": "node lib/elastic-search/es-mongo-sync/sync-index-seed.js -l",
-    "tmpl3d": "webpack --config ./model/lib/export3d-template/webpack.config.js --env.develop",
-    "client-libs-build": "parallel-webpack --no-stats --max-retries=3 --config ./model/lib/parallel-webpack.config.js && ./model/lib/after-webpack.sh",
-    "client-libs-compile": "parallel-webpack --no-stats --max-retries=3 --config ./model/lib/parallel-webpack.config.js -- --env.develop && ./model/lib/after-webpack.sh"
+    "client-libs-build": "parallel-webpack --no-stats --max-retries=3 --config ./model/lib/parallel-webpack.config.js --",
+    "client-libs-compile": "parallel-webpack --max-retries=3 --config ./model/lib/parallel-webpack.config.js -- --env.develop "
   },
   "dependencies": {
     "@babel/core": "^7.7.7",
@@ -94,6 +93,9 @@
     "shortid": "^2.2.15",
     "sift": "^8.5.0",
     "sinon": "^7.5.0",
+    "socket.io": "^2.3.0",
+    "socket.io-redis": "^5.2.0",
+    "socketio-auth": "^0.1.1",
     "stringify-object": "^3.3.0",
     "swagger-jsdoc": "^3.4.0",
     "swagger-ui-express": "^4.1.2",
@@ -102,7 +104,8 @@
     "tomlify": "^0.2.2",
     "uglify-js": "^3.6.0",
     "uuid": "^3.3.3",
-    "webpack": "^4.41.4"
+    "webpack": "^4.41.4",
+    "webpack-shell-plugin-next": "^1.1.5"
   },
   "devDependencies": {
     "3d-force-graph": "^1.56.3",
@@ -151,7 +154,7 @@
     "optimize-css-assets-webpack-plugin": "^5.0.3",
     "parallel-webpack": "^2.4.0",
     "path": "^0.12.7",
-    "prettier": "^1.18.2",
+    "prettier": "2.0.2",
     "should": "^13.2.3",
     "style-loader": "^1.1.3",
     "supertest": "^4.0.2",

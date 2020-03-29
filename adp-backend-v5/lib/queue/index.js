@@ -1,9 +1,9 @@
 const Queue = require('bull');
 const Promise = require('bluebird');
 const _ = require('lodash');
-const Redis = require('ioredis');
 const log = require('log4js').getLogger('lib/queue');
 const QueueError = require('../errors/queue-error');
+const { getRedisConnection } = require('../util/redis');
 
 const { BULL_REMOVE_ON_COMPLETE, BULL_REMOVE_ON_FAIL } = process.env;
 const REMOVE_ON_COMPLETE = ['true', 'false'].includes(BULL_REMOVE_ON_COMPLETE)
@@ -13,7 +13,7 @@ const REMOVE_ON_FAIL = ['true', 'false'].includes(BULL_REMOVE_ON_FAIL)
   ? JSON.parse(BULL_REMOVE_ON_COMPLETE)
   : +BULL_REMOVE_ON_COMPLETE || 10000;
 
-module.exports = options => {
+module.exports = (options) => {
   const m = {};
   m.redisClient = null;
   m.redisSubscriber = null;
@@ -22,38 +22,22 @@ module.exports = options => {
   const { redisUrl } = options;
   const keyPrefix = options.keyPrefix || 'bull';
 
-  function getRedisInstance(url, type) {
-    const redisInstance = new Redis(url, {
-      maxRetriesPerRequest: 1,
-      retryStrategy: times => {
-        const delays = [25, 50, 100, 200, 400];
-        return delays[times - 1] || 5000;
-      },
-    });
-    redisInstance.on('error', e => {
-      if (e.code !== 'ECONNREFUSED') {
-        log.error(`Bull Redis error, type=${type}`, e.stack);
-      }
-    });
-    redisInstance.on('ready', () => {
-      log.info(`Bull Redis is ready to receive commands, type=${type}`);
-    });
-    redisInstance.on('reconnecting', ms => {
-      log.warn(`Bull Redis reconnecting in ${ms}ms since last try, type=${type}`);
-    });
-
-    return redisInstance;
-  }
-
   m.init = async () => {
     if (!redisUrl) {
       return;
     }
 
     try {
-      m.redisClient = getRedisInstance(redisUrl, 'client');
-      m.redisSubscriber = getRedisInstance(redisUrl, 'subscriber');
-      log.info(`Successfully connected to Redis by URL: ${redisUrl}`);
+      m.redisClient = await getRedisConnection({
+        redisUrl,
+        log,
+        redisConnectionName: 'Bull_Redis_Client',
+      });
+      m.redisSubscriber = await getRedisConnection({
+        redisUrl,
+        log,
+        redisConnectionName: 'Bull_Redis_Subscriber',
+      });
     } catch (e) {
       log.error(`Unable to connect to Bull Redis by URL: ${redisUrl}.`);
       throw e;
@@ -69,7 +53,12 @@ module.exports = options => {
       return m.redisSubscriber;
     }
     // 'bclient' type
-    return getRedisInstance(redisUrl, type);
+    return getRedisConnection({
+      redisUrl,
+      options: { lazyConnect: false },
+      log,
+      redisConnectionName: `Bull_Redis_${_.startCase(type)}`,
+    });
   }
 
   m.createQueue = (...args) => {
@@ -102,7 +91,7 @@ module.exports = options => {
     return queue;
   };
 
-  m.getQueue = queueName => {
+  m.getQueue = (queueName) => {
     const queue = queues.get(queueName);
     if (!queue) {
       throw new QueueError(`Queue with name ${queueName} is not found`);
@@ -122,7 +111,7 @@ module.exports = options => {
       return;
     }
 
-    _.each(['timestamp', 'finishedOn', 'processedOn'], dateField => {
+    _.each(['timestamp', 'finishedOn', 'processedOn'], (dateField) => {
       const dateFieldTimestamp = job[dateField];
       if (dateFieldTimestamp) {
         job[dateField] = new Date(dateFieldTimestamp);
@@ -141,7 +130,7 @@ module.exports = options => {
   }
 
   // Added queueName and state fields to source code of Job.prototype.toJSON
-  m.getJobJson = job => {
+  m.getJobJson = (job) => {
     return {
       id: job.id,
       name: job.name,
@@ -165,11 +154,11 @@ module.exports = options => {
     const _queueNames = _.isEmpty(queueNames) ? queues.keys() : queueNames;
     const singleJobType = _.isArray(jobTypes) && jobTypes.length === 1 ? jobTypes[0] : undefined;
     const queuesJobs = [];
-    await Promise.map(_queueNames, async queueName => {
+    await Promise.map(_queueNames, async (queueName) => {
       try {
         const queue = m.getQueue(queueName);
         const jobs = await queue.getJobs(jobTypes);
-        await Promise.map(jobs, job => prepareJob(job, queueName, singleJobType));
+        await Promise.map(jobs, (job) => prepareJob(job, queueName, singleJobType));
         return queuesJobs.push(...jobs);
       } catch (e) {
         if (e instanceof QueueError) {
@@ -197,7 +186,7 @@ module.exports = options => {
   m.getJobsByIds = async (queueName, jobIds) => {
     const queue = m.getQueue(queueName);
     const pipeline = m.redisClient.pipeline();
-    _.each(jobIds, jobId => pipeline.hgetall(queue.toKey(jobId)));
+    _.each(jobIds, (jobId) => pipeline.hgetall(queue.toKey(jobId)));
     const redisResponses = await pipeline.exec();
 
     return Promise.map(redisResponses, (redisResponse, index) => {
@@ -212,17 +201,17 @@ module.exports = options => {
     }
   };
 
-  m.resumeJob = queueName => {
+  m.resumeJob = (queueName) => {
     const queue = m.getQueue(queueName);
     return queue.resume();
   };
 
-  m.pauseQueue = queueName => {
+  m.pauseQueue = (queueName) => {
     const queue = m.getQueue(queueName);
     return queue.pause();
   };
 
-  m.resumeQueue = queueName => {
+  m.resumeQueue = (queueName) => {
     const queue = m.getQueue(queueName);
     return queue.resume();
   };

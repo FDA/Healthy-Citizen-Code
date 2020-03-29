@@ -13,7 +13,8 @@
       link: function(scope) {
         var INTERFACE = window.adpAppStore.appInterface();
 
-        scope.logoSrc = [APP_CONFIG.apiUrl, INTERFACE.app.logo.small].join('');
+        scope.apiUrl = APP_CONFIG.apiUrl;
+        scope.logoSrc = INTERFACE.app.logo.small === 'none' ? '' : INTERFACE.app.logo.small;
         scope.title = INTERFACE.app.title;
       }
     }

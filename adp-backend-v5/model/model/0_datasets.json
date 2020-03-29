@@ -6,7 +6,7 @@
       "fields": {
         "name": {
           "type": "String",
-          "description": "The name of the dataset",
+          "description": "The name of the dataset"
         },
         "description": {
           "type": "String",
@@ -14,7 +14,7 @@
         },
         "scheme": {
           "type": "Mixed",
-          "description": "App-schema-compatible JSON specification of the exported collection.",
+          "description": "App-schema-compatible JSON specification of the exported collection."
         },
         "collectionName": {
           "type": "String",

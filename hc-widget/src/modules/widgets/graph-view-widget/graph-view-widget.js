@@ -1,12 +1,11 @@
 import _map from 'lodash.map';
-import Highcharts from '../../../lib/utils/highcharts-wrapper';
+import { PieChart } from './chart/pie-chart';
 
 import $ from '../../../lib/utils/dom';
 import tpl from './graph-view-widget.hbs';
 
-import getChartOptions from './charoptions';
 import { fetchAdverseEventsForMedications } from '../../../lib/api/adverse-events/adverse-events-for-medications';
-import { showErrorToUser } from "../../../lib/utils/utils";
+import { showErrorToUser, updateIframeHeight } from '../../../lib/utils/utils'
 import { ResponseError } from '../../../lib/exceptions';
 
 const prepareData = data => {
@@ -31,7 +30,7 @@ const prepareData = data => {
     current.sort((a, b) => b[1] - a[1]);
 
     results[medName] = current.splice(0,10).map(reaction => {
-      return {name: reaction[0], y: reaction[1]};
+      return {name: reaction[0], reactionsCount: reaction[1]};
     });
   });
 
@@ -59,10 +58,9 @@ export default class GraphViewWidget {
   }
 
   init(data) {
-    this.results = prepareData(data);
+    this.reactions = prepareData(data);
 
-    // TODO add check for empty
-    if (Object.keys(this.results).length) {
+    if (Object.keys(this.reactions).length) {
       this.build();
       this.bindEvents();
       this.initialRender();
@@ -72,9 +70,10 @@ export default class GraphViewWidget {
   }
 
   build() {
-    this.widgetBody = $(tpl({results: this.results})).get(0);
+    this.widgetBody = $(tpl({results: this.reactions})).get(0);
     this.$loader.remove();
     this.$el.append(this.widgetBody);
+    updateIframeHeight();
   }
 
   bindEvents() {
@@ -82,14 +81,14 @@ export default class GraphViewWidget {
   }
 
   initialRender() {
-    const chartEl = this.widgetBody.querySelector('.js-charts-container');
-    const medicationName = Object.keys(this.results)[0];
-    const options = getChartOptions(this.results[medicationName], medicationName);
-
     const firstMenuLink = this.widgetBody.querySelector('.js-link');
     firstMenuLink.classList.add('is-active');
 
-    this.chartInstance = new Highcharts.Chart(chartEl, options);
+    const chartEl = this.widgetBody.querySelector('.js-charts-container canvas');
+    const medicationName = Object.keys(this.reactions)[0];
+    const reactionForMedication = this.reactions[medicationName];
+
+    this.chart = new PieChart(chartEl, reactionForMedication, medicationName);
   }
 
   onClick(e) {
@@ -99,18 +98,13 @@ export default class GraphViewWidget {
     }
 
     const active = this.widgetBody.querySelector('.js-link.is-active');
-    const medicationName = e.target.dataset.name;
-    const data = this.results[medicationName];
-    const options = getChartOptions(data, medicationName);
 
     active.classList.toggle('is-active');
     e.target.classList.toggle('is-active');
 
-    this.chartInstance.update(options);
-    if (this.chartInstance.hasData()) {
-      this.chartInstance.hideNoData();
-    } else {
-      this.chartInstance.showNoData();
-    }
+    const medicationName = e.target.dataset.name;
+    const reactionForMedication = this.reactions[medicationName];
+
+    this.chart.update(reactionForMedication, medicationName);
   }
 }

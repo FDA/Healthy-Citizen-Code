@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 
 const express = require('express');
+const http = require('http');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session); // TODO: switch to redis before going to high-performance production
 const bodyParser = require('body-parser');
@@ -46,8 +47,8 @@ module.exports = () => {
     keyPrefix: process.env.REDIS_KEY_PREFIX,
   });
   m.queue = require('./queue')({
-    redisUrl: process.env.BULL_REDIS_URL,
-    keyPrefix: process.env.BULL_KEY_PREFIX,
+    redisUrl: process.env.BULL_REDIS_URL || process.env.REDIS_URL,
+    keyPrefix: process.env.BULL_KEY_PREFIX || process.env.REDIS_KEY_PREFIX,
   });
 
   m.getAuthSettings = () => m.appModel.interface.app.auth;
@@ -66,7 +67,7 @@ module.exports = () => {
     mongoose.set('useCreateIndex', true);
     mongoose.set('useUnifiedTopology', true);
     if (process.env.DEVELOPMENT === 'true') {
-      const getMessage = args => {
+      const getMessage = (args) => {
         function getOptsWithoutSession(opts) {
           if (opts && opts.session) {
             return _.omit(opts, 'session');
@@ -119,7 +120,7 @@ module.exports = () => {
     }
   };
 
-  const procUncaughtExListener = err => {
+  const procUncaughtExListener = (err) => {
     m.log.error(`LAP004: Uncaught node exception`, err.stack);
   };
 
@@ -133,7 +134,7 @@ module.exports = () => {
     expressLog.error(`${req.method} ${req.url} -> ${res.statusCode} ${errMsg}`);
   };
 
-  m.configureApp = app => {
+  m.configureApp = (app) => {
     m.app = app;
     app.on('uncaughtException', (req, res, route, err) => {
       m.log.error(`LAP001: Uncaught exception`, err.stack);
@@ -251,7 +252,7 @@ module.exports = () => {
       callbacks.push(m.isAuthenticated);
       // add standard CRUD
       // let name = pluralize(name, 2);
-      const qualifiedPath = `/${_.map(path, p => `${p}/:${p}_id`).join('/') + (path.length === 0 ? '' : '/')}`;
+      const qualifiedPath = `/${_.map(path, (p) => `${p}/:${p}_id`).join('/') + (path.length === 0 ? '' : '/')}`;
       const unqualifiedPath = `/schema/${path.join('/') + (path.length === 0 ? '' : '/')}`;
       m.addRoute('get', `${unqualifiedPath}${name}`, [mainController.getSchema]); // this just returns schema, no auth is required
       m.addRoute('get', `${qualifiedPath}${name}`, callbacks.concat([mainController.getItems]));
@@ -320,7 +321,7 @@ module.exports = () => {
        * @param lookupId
        */
       function addLookupRoutes(lookup, lookupId) {
-        _.forEach(lookup.table, tableLookup => {
+        _.forEach(lookup.table, (tableLookup) => {
           const isFilteringLookup = tableLookup.where;
           const tableName = tableLookup.table;
           const lookupPath = `/lookups/${lookupId}/${tableName}`;
@@ -376,11 +377,11 @@ module.exports = () => {
     m.log.trace('Loading custom controllers:');
     try {
       const appSchemaControllersFiles = _.flatten(
-        getSchemaNestedPaths('server_controllers/**/*.js').map(pattern => glob.sync(pattern))
+        getSchemaNestedPaths('server_controllers/**/*.js').map((pattern) => glob.sync(pattern))
       );
       const coreControllers = glob.sync(`${appRoot}/model/server_controllers/**/*.js`);
       const files = [...coreControllers, ...appSchemaControllersFiles];
-      return Promise.mapSeries(files, file => {
+      return Promise.mapSeries(files, (file) => {
         m.log.trace(` ∟ ${file}`);
         const lib = require(file)(mongoose);
         return lib.init(m);
@@ -426,9 +427,7 @@ module.exports = () => {
         },
         async (jwtPayload, done) => {
           try {
-            const user = await User.findOne({ _id: jwtPayload.id })
-              .lean()
-              .exec();
+            const user = await User.findOne({ _id: jwtPayload.id }).lean().exec();
             if (user) {
               done(null, user);
             } else {
@@ -454,7 +453,7 @@ module.exports = () => {
   };
 
   /* eslint-disable promise/avoid-new, prefer-promise-reject-errors */
-  m.authenticationCheck = (req, res, next) =>
+  m.authenticationCheck = (req) =>
     new Promise((resolve, reject) => {
       passport.authenticate('jwt', { session: false }, (err, user, info) => {
         if (err) {
@@ -478,16 +477,16 @@ module.exports = () => {
           return reject(new InvalidTokenError());
         }
         return m.accessUtil.getRolesAndPermissionsForUser(user, req.device.type).then(({ roles, permissions }) => {
-          m.accessUtil.setReqAuth({ req, user, roles, permissions });
-          resolve();
+          resolve({ user, roles, permissions });
         });
-      })(req, res, next);
+      })(req);
     });
   /* eslint-enable promise/avoid-new, prefer-promise-reject-errors */
 
   m.isAuthenticated = (req, res, next) => {
-    m.authenticationCheck(req, res, next)
-      .then(() => {
+    m.authenticationCheck(req)
+      .then(({ user, roles, permissions }) => {
+        m.accessUtil.setReqAuth({ req, user, roles, permissions });
         next();
       })
       .catch(InvalidTokenError, () => {
@@ -496,14 +495,14 @@ module.exports = () => {
       .catch(ExpiredTokenError, () => {
         res.status(401).json({ success: false, message: 'User session expired, please login again' });
       })
-      .catch(err => {
+      .catch((err) => {
         m.log.error(err.stack);
         res.status(500).json({ success: false, message: `Error occurred during authentication process` });
       });
   };
 
   m.removeAllRoutes = () => {
-    _.forEach(m.app.router.mounts, mount => {
+    _.forEach(m.app.router.mounts, (mount) => {
       m.app.rm(mount.name);
     });
   };
@@ -870,11 +869,11 @@ module.exports = () => {
     });
   };
 
-  m.setOptions = opts => {
+  m.setOptions = (opts) => {
     options = opts;
   };
 
-  m.migrateMongo = async function() {
+  m.migrateMongo = async function () {
     const migrateMongo = new MigrateMongo(getMigrateConfig());
     const db = await migrateMongo.database.connect();
     await migrateMongo.up(db);
@@ -883,9 +882,9 @@ module.exports = () => {
 
   async function cacheRolesToPermissions() {
     if (m.cache) {
-      // set ROLES_TO_PERMISSIONS on startup to rewrite old cache
+      // set rolesToPermissions on startup to rewrite old cache
       const rolesToPermissions = await m.accessUtil.getRolesToPermissions();
-      await m.cache.setCache(m.cache.keys.ROLES_TO_PERMISSIONS, rolesToPermissions);
+      await m.cache.setCache(m.cache.keys.rolesToPermissions(), rolesToPermissions);
       m.log.info('Loaded rolesToPermissions: ', JSON.stringify(rolesToPermissions, null, 2));
     }
   }
@@ -996,10 +995,21 @@ module.exports = () => {
     m.baseAppModel = m.accessUtil.getBaseAppModel();
 
     setControllerProperties();
+
+    // define m.ws before loading model controllers, since it's allowed to add own ws operations inside them
+    m.ws = require('./real-time/socket-io-server')(m);
+
     await m.addRoutes();
     m.addErrorHandlers();
 
-    // require('./websocket-server')().connect(m.app);
+    // create server with ready express app
+    m.server = http.createServer(app);
+    // build ws server with ready http instance and ws operations from model controllers
+    await m.ws.build({
+      server: m.server,
+      redisUrl: process.env.SOCKETIO_REDIS_URL || process.env.REDIS_URL,
+      keyPrefix: process.env.SOCKETIO_KEY_PREFIX || process.env.REDIS_KEY_PREFIX,
+    });
 
     m.log.info(`${APP_NAME} Backend v${APP_VERSION} is running`);
     return m;
@@ -1025,7 +1035,7 @@ module.exports = () => {
    * Starts the application. It's been extracted into a separate routine to make testing possible.
    */
   m.start = () => {
-    m.httpInstance = m.app.listen(process.env.APP_PORT);
+    m.httpInstance = m.server.listen(process.env.APP_PORT);
     m.log.info('App is listening on port', process.env.APP_PORT);
   };
 

@@ -34,7 +34,7 @@
     }
 
     function doSaveState() {
-      AdpGridViewService.saveView(vm.options.grid, vm.savedList, vm.options.schema)
+      AdpGridViewService.saveView(vm.options.grid, vm.options.customGridOptions, vm.savedList, vm.options.schema)
         .then(function () {
           AdpNotificationService.notifySuccess('Grid view is saved');
           return AdpGridViewService.loadViews(vm.options.schema);

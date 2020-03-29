@@ -9,7 +9,7 @@ const log = require('log4js').getLogger('dmn-controller');
 const uuidv4 = require('uuid/v4');
 
 const { getDocValueForExpression } = require('../../lib/util/util');
-const { initJavaInstance, getValidatedDmnUtilInstance } = require('../../lib/dmn/dmn-util');
+const { initJavaInstance, getValidatedDmnUtilInstance, emitBackgroundJobEvent } = require('../../lib/dmn/dmn-util');
 const processorContext = require('../../lib/dmn/dmn-processor-context');
 
 const { setCommonContext, set: setProcessorContext } = processorContext;
@@ -43,9 +43,46 @@ module.exports = () => {
     m.dmnRunnerQueue = m.appLib.queue.createQueue(DMN_QUEUE_NAME);
     m.dmnRunnerQueue
       .on('progress', (job, progress) => log.info(`Job with id ${job.id} progress is ${progress}`))
-      .on('failed', (job, error) => log.error(`Error occurred for job with id ${job.id}.`, error.stack))
-      .on('stalled', job => log.warn(`Job with id ${job.id} progress is stalled`))
-      .on('error', error => log.error(`Bull error occurred.`, error.stack));
+      .on('error', error => log.error(`Bull error occurred.`, error.stack))
+      .on('completed', async job => {
+        const message = `Job with id ${job.id} successfully completed`;
+        log.info(message);
+        emitBackgroundJobEvent(m.appLib, {
+          creatorId: job.data.creator._id,
+          level: 'info',
+          message,
+          data: { jobId: job.id },
+        });
+      })
+      .on('failed', async (job, error) => {
+        log.error(`Error occurred for job with id ${job.id}.`, error.stack);
+        emitBackgroundJobEvent(m.appLib, {
+          creatorId: job.data.creator._id,
+          level: 'error',
+          message: `Error occurred for job with id ${job.id}. ${error.message}`,
+          data: { jobId: job.id },
+        });
+      })
+      .on('stalled', job => {
+        const message = `Job with id ${job.id} progress is stalled`;
+        log.warn(message);
+        emitBackgroundJobEvent(m.appLib, {
+          creatorId: job.data.creator._id,
+          level: 'warning',
+          message,
+          data: { jobId: job.id },
+        });
+      })
+      .on('active', job => {
+        const message = `Job with id ${job.id} has started`;
+        log.info(message);
+        emitBackgroundJobEvent(m.appLib, {
+          creatorId: job.data.creator._id,
+          level: 'info',
+          message,
+          data: { jobId: job.id },
+        });
+      });
 
     m.dmnRunnerQueue.process(dmnRunnerConcurrency, require('../../lib/dmn/dmn-queue-processor')(processorContext));
   }
@@ -76,10 +113,11 @@ module.exports = () => {
       setProcessorContext(jobContextId, { dmnUtilInstance });
 
       const userLabel = _.get(m.appLib.appModel.models.backgroundJobs, 'creator.lookup.table.users.label');
+      const creatorId = req.user._id;
       const job = await m.dmnRunnerQueue.add({
         jobContextId,
         creator: {
-          _id: req.user._id, // it's passed as string to redis job
+          _id: creatorId, // it's passed as string to redis job
           table: 'users',
           label: userLabel ? getDocValueForExpression(req.user, userLabel) : req.user.login,
         },

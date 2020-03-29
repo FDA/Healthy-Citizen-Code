@@ -18,7 +18,7 @@ gulp.task('sw:manifest', () => {
       '**\/*.{otf,svg,ttf,woff,woff2}',
       '**\/*.{jpg,png,gif}'
     ],
-    globIgnores: ['workers/**/*'],
+    globIgnores: ['workers/**/*', 'lib/**/*'],
     // vendors.js is > 2MB :(
     maximumFileSizeToCacheInBytes: 4 * 1024 * 1024
   });

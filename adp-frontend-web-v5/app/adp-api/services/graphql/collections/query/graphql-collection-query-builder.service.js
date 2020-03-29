@@ -8,12 +8,16 @@
   /** @ngInject */
   function GraphqlCollectionQueryBuilder(GraphqlCollectionFields) {
     return function (queryName, schema, options) {
+      var isQf = options.customOptions && options.customOptions.quickFilterId;
+      var qfType = isQf ? ", $quickFilterId: MongoId" : "";
+      var qfValue = isQf ? ", quickFilterId: $quickFilterId" : "";
+
       if (options.group) {
         return [
-          'query q($dxQuery: String!, $group: [dxGroupInput], $groupSummary: [dxSummaryInput], $totalSummary: [dxSummaryInput], $skip: Int, $take: Int) {',
+          'query q($dxQuery: String! ',qfType,', $group: [dxGroupInput], $groupSummary: [dxSummaryInput], $totalSummary: [dxSummaryInput], $skip: Int, $take: Int) {',
             queryName,
             '(',
-              'filter: { dxQuery: $dxQuery },',
+              'filter: { dxQuery: $dxQuery ', qfValue, ' },',
               'group: $group,',
               'groupSummary: $groupSummary,',
               'totalSummary: $totalSummary,',
@@ -32,13 +36,13 @@
       } else {
         var items = GraphqlCollectionFields.get(schema);
         return [
-          'query q($sort: String, $page: Int, $perPage: Int, $dxQuery: String!) {',
+          'query q($sort: String, $page: Int, $perPage: Int, $dxQuery: String!',qfType,') {',
             queryName,
             '(',
               'sort: $sort,',
               'page: $page,',
               'perPage: $perPage,',
-              'filter: { dxQuery: $dxQuery },',
+              'filter: { dxQuery: $dxQuery', qfValue, '},',
             ') {',
               'count',
               items,

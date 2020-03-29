@@ -41,6 +41,7 @@
     }
 
     function createColumn(field, schema) {
+      var isFilteringAllowed = GridFilterHelpers.filteringAllowedForField(field);
       var column = {
         cssClass: 'name-' + field.fieldName,
         caption: field.fullName || field.fieldName,
@@ -49,19 +50,37 @@
         showInColumnChooser: field.showInDatatable,
         hidingPriority: field.responsivePriority,
         filterOperations: FilterOperation.get(field),
-        allowFiltering: GridFilterHelpers.filteringAllowedForField(field),
+        allowFiltering: field.showInDatatable && isFilteringAllowed,
+        allowSearch: field.showInDatatable && isFilteringAllowed && isSearchAllowed(field),
         calculateFilterExpression: CustomFilterExpression(field),
         selectedFilterOperation:  FilterOperation.getSelected(field),
         cellTemplate: function (container, cellInfo) {
           container.append(getTemplateForField(field, schema, cellInfo.data));
         },
-        groupCellTemplate : function(container, cellInfo) {
+        groupCellTemplate: function (container, cellInfo) {
           var rowData = {};
+          var summaryText = "";
+
+          if (cellInfo.summaryItems) {
+            summaryText = _.map(cellInfo.summaryItems,
+              function (item) {
+                if (item.displayFormat) {
+                  return item.displayFormat.replace("{0}", item.value);
+                } else {
+                  return item.summaryType[0].toUpperCase() + item.summaryType.substr(1) + " of "
+                    + item.columnCaption + ": " + item.value;
+                }
+              })
+              .join(", ");
+          }
+
           rowData[field.fieldName] = cellInfo.data.key;
-          var tpl = '<p>' + field.fullName + ': ' + getTemplateForField(field, schema, rowData) +' </p>';
+
+          var tpl = "<p>" + field.fullName + ": " + getTemplateForField(field, schema, rowData) +
+            (summaryText ? ". " + summaryText : "") + " </p>";
 
           if (cellInfo.data.isContinuationOnNextPage) {
-            tpl += '<p>(Continues on the next page)</p>';
+            tpl += "<p>(Continues on the next page)</p>";
           }
 
           container.append(tpl);
@@ -121,6 +140,13 @@
         action: ACTIONS.VIEW,
         schema: schema,
       });
+    }
+
+    function isSearchAllowed(field) {
+      var disallowedTypes = ["ObjectID"];
+      var type = AdpSchemaService.getFieldType(field);
+
+      return disallowedTypes.indexOf(type) === -1;
     }
   }
 })();

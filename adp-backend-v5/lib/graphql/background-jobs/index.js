@@ -67,7 +67,7 @@ function addPaginationResolver(type, backgroundJobsModelName) {
     paginationResolverName: paginationBackgroundJobsResolverName,
     getPaginationContext: async ({ args, context }) => {
       const { req, appLib } = context;
-      const devExtremeContext = new DevExtremeContext(appLib, req, backgroundJobsModelName, args).init();
+      const devExtremeContext = await new DevExtremeContext(appLib, req, backgroundJobsModelName, args).init();
 
       const { conditions, sort, perPage, skip } = devExtremeContext.mongoParams;
 

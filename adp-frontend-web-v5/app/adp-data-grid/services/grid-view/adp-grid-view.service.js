@@ -24,7 +24,7 @@
       loadViews: loadViews
     };
 
-    function createMenu(schema, gridComponent) {
+    function createMenu(schema, gridComponent, customGridOptions) {
       var menuActions = {
         reset: doReset,
         save: doSave,
@@ -48,7 +48,7 @@
       }
 
       function doSave() {
-        saveView(gridComponent, savedList, schema)
+        saveView(gridComponent, customGridOptions, savedList, schema)
           .then(
             function () {
               AdpNotificationService.notifySuccess('Grid view is saved');
@@ -61,6 +61,8 @@
 
         if (id) {
           var record = getSavedItemById(savedList, id);
+
+          customGridOptions.value(record.state._customOptions || {});
 
           setStateToGrid(gridComponent, record.state);
           AdpNotificationService.notifySuccess('Grid view is restored');
@@ -78,6 +80,7 @@
 
           GridColumns(options, schema);
           gridComponent.state({columns: options.columns});
+          customGridOptions.value('quickFilterId', '');
 
           AdpNotificationService.notifySuccess('Grid view has been reset');
 
@@ -90,6 +93,7 @@
           .createModal('adpGridViewManager', {
             list: savedList,
             grid: gridComponent,
+            customGridOptions: customGridOptions,
             schema: schema
           })
           .result
@@ -180,8 +184,10 @@
         });
     }
 
-    function saveView(grid, savedList, schema) {
+    function saveView(grid, customGridOptions, savedList, schema) {
       var state = getStateFromGrid(grid);
+
+      state._customOptions = customGridOptions.value();
 
       return AdpModalService.prompt({
         title: 'Save Grid View as:',

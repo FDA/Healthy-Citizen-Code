@@ -148,9 +148,10 @@
         state.params = {
           action: {value: null, dynamic: true},
           _id: {value: null, dynamic: true},
-          filter: {value: null, dynamic: true}
+          filter: {value: null, dynamic: true},
+          customOpt: {value: null, dynamic: true}
         };
-        state.url = _getStateUrl(schemaPath) + '?action&_id&filter';
+        state.url = _getStateUrl(schemaPath) + '?action&_id&filter&customOpt';
 
         return state;
       } catch (e) {

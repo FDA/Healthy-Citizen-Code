@@ -65,6 +65,7 @@
       'Readonly': { directiveType: 'readonly' },
       'TreeSelector': { directiveType: 'tree-selector' },
       'Html': { directiveType: 'html' },
+      'Code': { directiveType: 'code' },
     };
 
     // public
@@ -113,9 +114,7 @@
             _isVisible(field);
         })
         .filter(_applyPermissions)
-        .sortBy(function (f) {
-          return f.formOrder;
-        })
+        .sortBy(getOrder)
         .value();
 
       return form;
@@ -328,6 +327,12 @@
     function hasHedearRenderer(fieldSchema) {
       var renderName = fieldSchema.headerRender;
       return !!appModelHelpers.HeaderRenderers[renderName];
+    }
+
+    function getOrder(field) {
+      var val = Number(field.formOrder);
+
+      return _.isNaN(val) ? undefined : val;
     }
 
     return {

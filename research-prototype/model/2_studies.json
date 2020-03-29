@@ -35,7 +35,6 @@
       "fields": {
         "studyName": {
           "type": "String",
-          "visibilityPriority": 2,
           "fullName": "Study Name",
           "required": true,
           "visible": true,
@@ -44,7 +43,6 @@
         },
         "populationSize": {
           "type": "Number",
-          "visibilityPriority": 3,
           "fullName": "Study Population Size",
           "required": true,
           "validate": ["min(1)"],
@@ -52,7 +50,6 @@
         },
         "recruitmentStatus": {
           "type": "String",
-          "visibilityPriority": 4,
           "fullName": "Recruitment Status",
           "list": {
             "name": "recruitmentStatuses",
@@ -68,14 +65,12 @@
         },
         "startDate": {
           "type": "Date",
-          "visibilityPriority": 5,
           "fullName": "Start Date",
           "required": false,
           "description": "The study start date."
         },
         "primaryComplete": {
           "type": "Date",
-          "visibilityPriority": 6,
           "fullName": "Primary Completion Date",
           "required": false,
           "description": "The date the study is slated to close operations.",
@@ -83,7 +78,6 @@
         },
         "studyComplete": {
           "type": "Date",
-          "visibilityPriority": 7,
           "fullName": "Study Completion Date",
           "required": false,
           "description": "The date the study is slated to be fully completed including analysis.",
@@ -91,7 +85,6 @@
         },
         "studyNotes": {
           "type": "String",
-          "visibilityPriority": 8,
           "fullName": "Study Notes",
           "description": "Study Notes."
         }

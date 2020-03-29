@@ -15,8 +15,9 @@ const config = {
     }),
     new TerserPlugin({
       terserOptions: {
-        mangle: { reserved: ['hcWidget'] }
-      }
+        mangle: { reserved: ['hcWidget'] },
+      },
+      extractComments: false,
     })
   ]
 };

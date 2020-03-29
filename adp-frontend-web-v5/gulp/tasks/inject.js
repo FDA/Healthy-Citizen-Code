@@ -230,12 +230,15 @@ function getMainBowerFiles() {
           "./lib/es5/draggable.bundle.legacy.js",
         ]
       },
-      "ckeditor": {
-        "ignore": true
-      },
       "ckeditor4": {
-        "ignore": true
+        "ignore": true,
       },
+      "ace-builds": {
+        "ignore": true,
+      },
+      "filbert": {
+        "ignore": true,
+      }
     }
   });
 }

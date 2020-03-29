@@ -13,6 +13,8 @@
     GridOptionsHelpers,
     AdpNotificationService,
     AdpGridViewService,
+    AdpGridCustomOptionsService,
+    AdpQuickFiltersService,
     AdpColumnChooserService,
     AdpModalService,
     GridFilters,
@@ -34,10 +36,15 @@
         },
       };
 
+      var customGridOptions = AdpGridCustomOptionsService.create();
+
       var other = {
         remoteOperations: true,
         twoWayBindingEnabled: false,
         errorRowEnabled: false,
+        onInitialized: function(e) {
+          customGridOptions.setGridComponent(e.component);
+        },
         onDataErrorOccurred: function () {
           this.dataErrorMessage = 'Data Loading Error';
         },
@@ -72,7 +79,7 @@
 
       GridToolbarActions.addPrintAndCreate(options, schema);
 
-      GridDataSource(options, schema);
+      GridDataSource(options, schema, customGridOptions);
       GridColumns(options, schema);
       GridFilters.create(options, schema);
       CellEditorsService(options, schema);
@@ -84,10 +91,20 @@
       GridOptionsHelpers.addToolbarHandler(options, function (e) {
         e.toolbarOptions.items.push(
           {
-            widget: 'dxMenu',
-            options: AdpGridViewService.createMenu(schema, e.component),
-            cssClass:'adp-grid-toolbar-dropdown-menu',
-            name:'gridViewButton'
+            widget: "dxMenu",
+            options: AdpGridViewService.createMenu(schema, e.component, customGridOptions),
+            cssClass: "adp-grid-toolbar-dropdown-menu",
+            name: "gridViewButton"
+          });
+      });
+
+      GridOptionsHelpers.addToolbarHandler(options, function (e) {
+        e.toolbarOptions.items.push(
+          {
+            widget: "dxMenu",
+            options: AdpQuickFiltersService.createMenu(schema, e.component, customGridOptions),
+            cssClass: "adp-grid-toolbar-dropdown-menu",
+            name: "quickFiltersButton"
           });
       });
 
@@ -107,7 +124,41 @@
       if (options.stateStoring &&
         options.stateStoring.enabled &&
         options.stateStoring.type === "localStorage") {
-        options.stateStoring.storageKey = GridOptionsHelpers.generateGridLsKey(options.stateStoring.storageKey, schema.schemaName);
+
+        var customSaveState = function(state) {
+          state._customOptions = customGridOptions.value();
+          localStorage.setItem(storageKey, JSON.stringify(state));
+        };
+
+        var storageKey = GridOptionsHelpers.generateGridLsKey(options.stateStoring.storageKey, schema.schemaName);
+
+        options.stateStoring.storageKey = storageKey;
+        options.stateStoring.type = "custom";
+        options.stateStoring.customSave = customSaveState;
+        options.stateStoring.customLoad = function () {
+          var json = localStorage.getItem(storageKey);
+          var state = {};
+
+          if (json) {
+            try {
+              state = JSON.parse(json);
+            } catch (e) {
+            }
+          }
+
+          customGridOptions.value(state._customOptions || {});
+          delete state._customOptions;
+
+          return state;
+        };
+
+        customGridOptions.setHandler('change', 'quickFilterId', function(){
+          if (this.gridComponent) {
+            var state = this.gridComponent.state();
+
+            customSaveState(state);
+          }
+        })
       }
 
       var scrollMode = _.get(options, "scrolling.mode");
