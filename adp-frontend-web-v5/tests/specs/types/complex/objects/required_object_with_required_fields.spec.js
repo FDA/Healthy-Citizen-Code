@@ -70,12 +70,8 @@ describe('complex objects', () => {
     test(
       'should submit object with filled required fields',
       async () => {
-        // click required checkbox
-        const boolean1Selector = getFieldSelector('object', 'boolean1');
-        await this.page.evaluate(
-          selector => document.querySelector(selector).click(),
-          boolean1Selector
-        );
+        await this.page.click(`[name="object"] [ng-field-name="boolean1"] .dx-checkbox-icon`);
+
         await clickSubmit(this.page);
         const submitMsg = await getSubmitMsg(this.page);
         expect(submitMsg).toBe('Required Object With Required Fields successfully added.');

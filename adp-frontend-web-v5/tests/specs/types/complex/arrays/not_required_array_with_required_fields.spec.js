@@ -19,6 +19,10 @@ const {
   }
 } = require('../../../../utils');
 
+const clickCheckboxForArrayIndex = async (index, name) => {
+  await this.page.click(`[name="array[${index}]"] [ng-field-name="${name}"] .dx-checkbox-icon`);
+}
+
 describe('complex arrays', () => {
   beforeAll(async () => {
     this.browser = await puppeteer.launch(getLaunchOptions());
@@ -83,18 +87,12 @@ describe('complex arrays', () => {
         await clickArrayItem('array', 1, this.page);
         const firstElemString1Selector = getArrayFieldSelector('array', 1, 'string1');
         await this.page.type(firstElemString1Selector, '123');
-        await this.page.evaluate(
-          selector => document.querySelector(selector).click(),
-          getArrayFieldSelector('array', 1, 'boolean1')
-        );
+        await clickCheckboxForArrayIndex(1, 'boolean1');
 
         // add item with filled required field
         await addArrayItem('array', this.page);
         await clickArrayItem('array', 2, this.page);
-        await this.page.evaluate(
-          selector => document.querySelector(selector).click(),
-          getArrayFieldSelector('array', 2, 'boolean1')
-        );
+        await clickCheckboxForArrayIndex(2, 'boolean1');
 
         await clickSubmit(this.page);
 
@@ -118,10 +116,7 @@ describe('complex arrays', () => {
         // add full filled elem
         const firstElemString1Selector = getArrayFieldSelector('array', 0, 'string1');
         await this.page.type(firstElemString1Selector, '123');
-        await this.page.evaluate(
-          selector => document.querySelector(selector).click(),
-          getArrayFieldSelector('array', 0, 'boolean1')
-        );
+        await clickCheckboxForArrayIndex(0, 'boolean1');
 
         // add partially filled item
         await addArrayItem('array', this.page);

@@ -13,9 +13,8 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
   }
 
   let graphqlType;
-  if (type === ['Date', 'Time', 'DateTime']) {
-    graphqlType = 'Date';
-  } else if (
+
+  if (
     [
       'String',
       'Barcode',
@@ -31,6 +30,8 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
     ].includes(type)
   ) {
     graphqlType = 'String';
+  } else if (type === ['Date', 'Time', 'DateTime']) {
+    graphqlType = 'Date';
   } else if (type === 'Boolean') {
     graphqlType = 'Boolean';
   } else if (['Number', 'ImperialWeight', 'BloodPressure', 'Double', 'Int32', 'Int64'].includes(type)) {
@@ -51,9 +52,9 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
     graphqlType = 'JSON';
   }
 
-  const isArray = field.type.endsWith('[]');
+  const isMultiple = field.type.endsWith('[]');
   const isSdlFormat = _.isString(graphqlType);
-  if (isArray) {
+  if (isMultiple) {
     if (isSdlFormat) {
       graphqlType = `[${graphqlType}]`;
     } else {
@@ -61,16 +62,11 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
     }
   }
 
-  // Output types should not have required fields due to field permissions
-  // Required field may be erased by permissions. In this case user should still be able to get records.
-  const isRequired = field.required === true;
-  if (isRequired && isInputType(composerType)) {
-    if (isSdlFormat) {
-      graphqlType += '!';
-    } else {
-      graphqlType = graphqlType.getTypeNonNull();
-    }
-  }
+  // Do NOT handle required since we have neither string nor boolean values.
+  // String required is impossible to implement in graphql.
+  // Boolean required is in conflict when field is simultaneously required and read-only. When value for such field is empty graphql will not pass request further to resolver.
+  // Moreover thrown required message is more precise than default graphql message since it's modifiable via app schema.
+
   return graphqlType;
 }
 

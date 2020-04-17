@@ -81,7 +81,8 @@ function addPaginationResolver(type, backgroundJobsModelName) {
 
       const jobTypes = handleConditionsByStateField(conditions);
       const queueNames = handleConditionsByQueueNameField(conditions);
-      const allJobs = (await appLib.queue.getJobs({ queueNames, jobTypes })).map(job => appLib.queue.getJobJson(job));
+      const rawJobs = await appLib.queue.getJobs({ queueNames, jobTypes });
+      const allJobs = rawJobs.filter((j) => j).map((job) => appLib.queue.getJobJson(job));
 
       const overallConditions = appLib.butil.MONGO.and(conditions, viewPermissionConditions);
       const filteredJobs = filterWithSift(allJobs, overallConditions);
@@ -93,7 +94,7 @@ function addPaginationResolver(type, backgroundJobsModelName) {
         sortedJobs = _.orderBy(
           filteredJobs,
           _.keys(sort),
-          _.values(sort).map(val => (val === 1 ? 'asc' : 'desc'))
+          _.values(sort).map((val) => (val === 1 ? 'asc' : 'desc'))
         );
       }
 
@@ -101,7 +102,7 @@ function addPaginationResolver(type, backgroundJobsModelName) {
 
       const deletePermissionConditions = getDeletePermissionConditions(userPermissions, user);
       const isDeleteAllowedFunc = getSiftFilteringFunc(deletePermissionConditions);
-      _.each(jobs, job => {
+      _.each(jobs, (job) => {
         job._actions = {
           view: true,
           deleteBackgroundJob: isDeleteAllowedFunc(job),

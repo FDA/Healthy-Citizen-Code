@@ -30,6 +30,11 @@
         animationEnabled: false,
         expandEvent: 'click',
         items: [data],
+        onItemClick: function(e) {
+          var jqueryEvent = e.event;
+          jqueryEvent.stopPropagation();
+          return false;
+        },
         itemTemplate: function (itemData) {
           return itemData.text;
         }

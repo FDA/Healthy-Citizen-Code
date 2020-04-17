@@ -226,6 +226,11 @@
     }
 
     function _cleanPrimitiveValue(args) {
+      var media = ['File', 'Image', 'Audio', 'Video', 'File[]', 'Image[]', 'Audio[]', 'Video[]'];
+      if (_.includes(media, args.field.type) && _.isEmpty(args.value)) {
+        args.parentFormData && _.set(args.parentFormData, args.field.fieldName, null);
+      }
+
       if (_.isNil(args.value) || args.value === '') {
         args.parentFormData && _.set(args.parentFormData, args.field.fieldName, null);
       }
@@ -235,14 +240,6 @@
       _.each(object, function (v, k) {
         _.isNull(v) && _.unset(object, k);
       });
-      xxRemoveId(object);
-
-      // ----------------
-      function xxRemoveId(object) {
-        var keys = _.keys(object), key = keys[0];
-        var hasOnlyIdAsProperty = keys.length === 1 && key === '_id';
-        hasOnlyIdAsProperty && _.unset(object, key);
-      }
     }
 
     function _parentPath(path) {
@@ -259,7 +256,12 @@
     }
 
     function isLastArrayItem(path, formData) {
-      var index = Number(path.match(/\[(\d+)\]$/)[1]);
+      var matches = path.match(/\[(\d+)\]$/);
+      if (matches === null) {
+        return false;
+      }
+
+      var index = Number(matches[1]);
       var indexRe = /\[\d+\]$/;
 
       var arrayPath = path.replace(indexRe, '');

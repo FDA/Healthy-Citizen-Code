@@ -41,6 +41,7 @@
     "fhir.js": "0.0.22",
     "fs-extra": "^5.0.0",
     "glob": "^7.1.3",
+    "javascript-stringify": "^2.0.1",
     "jimp": "^0.6.4",
     "lodash": "^4.17.15",
     "log4js": "^6.1.0",

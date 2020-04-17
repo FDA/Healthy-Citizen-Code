@@ -25,9 +25,7 @@ function getRedisConnection({ redisUrl, options, log, redisConnectionName = 'Red
   const opts = _.merge({}, defaultOptions, options);
   const redis = new Redis(redisUrl, opts);
   redis.on('error', (e) => {
-    if (e.code !== 'ECONNREFUSED') {
-      log.error(`${redisConnectionName} error`, e.stack);
-    }
+    log.error(`${redisConnectionName} error occurred.`, e.stack);
   });
   redis.on('reconnecting', (ms) => {
     log.warn(`${redisConnectionName} reconnecting in ${ms}ms since last try`);

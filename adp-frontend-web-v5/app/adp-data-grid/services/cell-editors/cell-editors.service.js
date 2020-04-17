@@ -12,6 +12,7 @@
     AdpSchemaService,
     AdpUnifiedArgs,
     CellEditorsValidationService,
+    GridModalEditors,
     ACTIONS
   ) {
     return function (options, schema) {
@@ -37,7 +38,12 @@
           return;
         }
 
-        enableEditor(event, schema);
+        var options = getOptions(event, schema);
+        if (GridModalEditors.isModalEditor(options.args.modelSchema.type)) {
+          enableModalEditor(event, options);
+        } else {
+          enableEditor(event.editorElement, options);
+        }
       });
 
       return options;
@@ -69,8 +75,10 @@
           return;
         }
 
-        column.allowEditing = isFieldEditable(field);
-        column.allowEditing && (column.validationRules = CellEditorsValidationService.getValidators(field));
+        if (isFieldEditable(field)) {
+          column.allowEditing = true;
+          column.validationRules = CellEditorsValidationService.getValidators(field);
+        }
       });
     }
 
@@ -95,16 +103,63 @@
       return !failed;
     }
 
-    function enableEditor(event, schema) {
-      var options = {
+    function enableEditor(element, options) {
+      var editorElement = GridEditorsFactory(options);
+      element.replaceWith(editorElement);
+    }
+
+    function enableModalEditor(event, options) {
+      event.editorElement.replaceWith('editing');
+
+      if (event.row.isNewRow) {
+        return insertWithModal(event, options);
+      } else {
+        return editWithModal(event, options);
+      }
+    }
+
+    function insertWithModal(event, options) {
+      event.component.cancelEditData();
+
+      function afterSubmit(newValue) {
+        var data = {};
+        data[options.args.modelSchema.fieldName] = newValue;
+
+        saveData(data);
+      }
+
+      function onCancel() {
+        saveData({});
+      }
+
+      function saveData(data) {
+        event.component.getDataSource().store().insert(data)
+          .then(function () {
+            event.component.refresh(true);
+          });
+      }
+
+      return GridModalEditors.call(options, afterSubmit, onCancel);
+    }
+
+    function editWithModal(event, options) {
+      function afterSubmit(newValue) {
+        event.setValue(newValue);
+        event.component.saveEditData();
+      }
+
+      function onCancel() {}
+
+      return GridModalEditors.call(options, afterSubmit, onCancel);
+    }
+
+    function getOptions(event, schema) {
+      return {
         args: unifiedApproachArgs(event, schema),
         onValueChanged: function (editorEvent) {
           event.setValue(editorEvent.value);
         }
       };
-
-      var editorElement = GridEditorsFactory(options);
-      event.editorElement.replaceWith(editorElement);
     }
 
     function unifiedApproachArgs(event, schema) {

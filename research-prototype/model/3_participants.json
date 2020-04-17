@@ -245,6 +245,25 @@
               "type": "Mixed",
               "fullName": "Answers",
               "description": "Questionnaire answers"
+            },
+            "status": {
+              "type": "String",
+              "fullName": "Answers status",
+              "description": "Questionnaire answers status"
+            },
+            "startTime": {
+              "type": "Date"
+            },
+            "endTime": {
+              "type": "Date"
+            },
+            "spentTime": {
+              "type": "Number",
+              "description": "Spent time in seconds"
+            },
+            "nextQuestion": {
+              "type": "String",
+              "description": "Name of question from questionnaire object"
             }
           }
         }

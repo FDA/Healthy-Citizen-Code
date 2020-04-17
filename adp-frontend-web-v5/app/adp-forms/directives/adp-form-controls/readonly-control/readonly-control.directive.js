@@ -5,7 +5,7 @@
     .module('app.adpForms')
     .directive('readonlyControl', readonlyControl);
 
-  function readonlyControl($filter) {
+  function readonlyControl(HtmlCellRenderer, AdpUnifiedArgs) {
     return {
       restrict: 'E',
       scope: {
@@ -17,12 +17,14 @@
       templateUrl: 'app/adp-forms/directives/adp-form-controls/readonly-control/readonly-control.html',
       require: '^^form',
       link: function (scope) {
-        var dataRow = scope.adpFormData;
-        var schema = scope.validationParams.schema;
-        var name = scope.field.fieldName;
+        var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+          path: scope.field.fieldName,
+          formData: scope.adpFormData,
+          action: scope.validationParams.formParams.action,
+          schema: scope.validationParams.schema,
+        });
 
-        var filterFn = $filter('adpDataPresenter');
-        scope.fieldValue = filterFn(dataRow, schema, name);
+        scope.template = HtmlCellRenderer(args)(args);
       }
     }
   }

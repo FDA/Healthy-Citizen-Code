@@ -32,7 +32,7 @@
  *  NOTE: you have to have lodash for this to work. Lodash is available for both web browser and ReactNative
  */
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const _ = require('lodash');
   const decimalFromString = require('bson/lib/decimal128.js').fromString;
 
@@ -266,56 +266,63 @@ module.exports = appLib => {
      * @param cb
      */
     required(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      if (!_.isString(appModelPart.required)) {
-        return cb();
+      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const { type } = appModelPart;
+      const isMultipleType = type.endsWith('[]');
+      const isAssociativeArray = type === 'AssociativeArray';
+      const isArray = type === 'Array';
+      const isMixedType = type === 'Mixed';
+      const isString = type === 'String';
+      const isBoolean = type === 'Boolean';
+      const isEmptyVal =
+        _.isNil(val) ||
+        (isString && val === '') ||
+        ((isArray || isAssociativeArray || isMixedType || isMultipleType) && _.isEmpty(val)) ||
+        (isBoolean && val === false); // this is not supposed to be
+
+      let isRequired;
+
+      if (_.isBoolean(appModelPart.required)) {
+        const pathToParent = lodashPath.split('.').slice(-1);
+        // if lodashPath is of 1 length, i.e. in root then count as parent presented
+        const isParentPresented = _.isEmpty(pathToParent) ? true : _.get(this, pathToParent);
+        isRequired = isParentPresented && appModelPart.required;
+      } else if (_.isString(appModelPart.required)) {
+        try {
+          const { action } = userContext;
+
+          if (appModelPart.required.includes('this.')) {
+            const requiredData = getRequiredData(modelName, lodashPath);
+            const context = {
+              data: val,
+              row: this,
+              modelSchema: appModelPart,
+              action,
+              indexes: requiredData.indexes,
+              parentData: _.get(this, requiredData.parentPath),
+              index: requiredData.index,
+              path: lodashPath,
+            };
+            const inlineCode = appLib.butil.getDefaultArgsAndValuesForInlineCode();
+            isRequired = new Function(inlineCode.args, `return ${appModelPart.required}`).apply(
+              context,
+              inlineCode.values
+            );
+          } else {
+            const requiredFunc = new Function('data, row, modelSchema, $action', `return ${appModelPart.required}`);
+            isRequired = requiredFunc(val, this, appModelPart, action);
+          }
+        } catch (e) {
+          return cb(
+            `Error occurred during validating required field ${appModelPart.fullName} for condition ${appModelPart.required}`
+          );
+        }
       }
 
-      try {
-        const val = vutil.getValue(this, appModelPart, lodashPath);
-        const { action } = userContext;
-
-        let isRequired;
-        if (appModelPart.required.includes('this.')) {
-          const requiredData = getRequiredData(modelName, lodashPath);
-          const context = {
-            data: val,
-            row: this,
-            modelSchema: appModelPart,
-            action,
-            indexes: requiredData.indexes,
-            parentData: _.get(this, requiredData.parentPath),
-            index: requiredData.index,
-            path: lodashPath,
-          };
-          const inlineCode = appLib.butil.getDefaultArgsAndValuesForInlineCode();
-          isRequired = new Function(inlineCode.args, `return ${appModelPart.required}`).apply(
-            context,
-            inlineCode.values
-          );
-        } else {
-          const requiredFunc = new Function('data, row, modelSchema, $action', `return ${appModelPart.required}`);
-          isRequired = requiredFunc(val, this, appModelPart, action);
-        }
-
-        const { type } = appModelPart;
-        const isArrayType = type.endsWith('[]') || type === 'Array';
-        const isObjectType = type === 'Mixed' || type === 'Object';
-        const isString = type === 'String';
-        const isBoolean = type === 'Boolean';
-        const isEmptyVal =
-          _.isNil(val) ||
-          ((isArrayType || isObjectType) && _.isEmpty(val)) ||
-          (isString && val === '') ||
-          (isBoolean && val === false); // this is not supposed to be
-        if (isRequired && isEmptyVal) {
-          cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
-        } else {
-          cb();
-        }
-      } catch (e) {
-        return cb(
-          `Error occurred during validating required field ${appModelPart.fullName} for condition ${appModelPart.required}`
-        );
+      if (isRequired && isEmptyVal) {
+        cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+      } else {
+        cb();
       }
     },
     int32(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {

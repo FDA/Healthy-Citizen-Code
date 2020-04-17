@@ -52,15 +52,15 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
 
   m.connect = require(`./connect`)(appLib, graphQlRoute, altairRoute);
 
-  m.getDb = modelName => appLib.db.model(modelName);
+  m.getDb = (modelName) => appLib.db.model(modelName);
 
-  m.getModel = modelName => appLib.appModel.models[modelName];
+  m.getModel = (modelName) => appLib.appModel.models[modelName];
 
   m.addQuery = (queryName, resolver) => {
     schemaComposer.Query.addFields({ [queryName]: resolver });
   };
 
-  m.removeQueries = queryName => {
+  m.removeQueries = (queryName) => {
     schemaComposer.Query.removeField(queryName);
   };
 
@@ -68,7 +68,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     schemaComposer.Mutation.addFields({ [mutationName]: resolver });
   };
 
-  m.removeMutations = mutationNames => {
+  m.removeMutations = (mutationNames) => {
     schemaComposer.Mutation.removeField(mutationNames);
   };
 
@@ -138,13 +138,13 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     dxGroupPostfix: `DxGroup`,
     modelPostfix: ``,
   };
-  m.getDxQueryName = modelName => {
+  m.getDxQueryName = (modelName) => {
     return `${modelName}${m.queryPostfix.dxQueryPostfix}`;
   };
-  m.getDxGroupQueryName = modelName => {
+  m.getDxGroupQueryName = (modelName) => {
     return `${modelName}${m.queryPostfix.dxGroupPostfix}`;
   };
-  m.getModelQueryName = modelName => {
+  m.getModelQueryName = (modelName) => {
     return `${modelName}${m.queryPostfix.modelPostfix}`;
   };
 
@@ -153,13 +153,13 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     deletePostfix: `DeleteOne`,
     createPostfix: `Create`,
   };
-  m.getUpdateMutationName = modelName => {
+  m.getUpdateMutationName = (modelName) => {
     return `${modelName}${m.mutationPostfix.updatePostfix}`;
   };
-  m.getDeleteMutationName = modelName => {
+  m.getDeleteMutationName = (modelName) => {
     return `${modelName}${m.mutationPostfix.deletePostfix}`;
   };
-  m.getCreateMutationName = modelName => {
+  m.getCreateMutationName = (modelName) => {
     return `${modelName}${m.mutationPostfix.createPostfix}`;
   };
 
@@ -186,7 +186,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     throw new Error(`Invalid format for model argument.`);
   }
 
-  m.addDefaultMutations = modelArg => {
+  m.addDefaultMutations = (modelArg) => {
     const { addCreateOne, addUpdateOne, addDeleteOne } = m.resolvers;
 
     const modelInfo = getModelInfo(modelArg);
@@ -207,19 +207,19 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     });
   };
 
-  m.removeDefaultMutations = modelNames => {
-    _.each(_.castArray(modelNames), modelName => {
+  m.removeDefaultMutations = (modelNames) => {
+    _.each(_.castArray(modelNames), (modelName) => {
       const mutationNames = [
         m.getCreateMutationName(modelName),
         m.getUpdateMutationName(modelName),
         m.getDeleteMutationName(modelName),
       ];
-      log.trace(`Removing mutations for '${modelName}': ${mutationNames.map(n => `'${n}'`).join(', ')}`);
+      log.trace(`Removing mutations for '${modelName}': ${mutationNames.map((n) => `'${n}'`).join(', ')}`);
       schemaComposer.Mutation.removeField(mutationNames);
     });
   };
 
-  m.addDefaultQueries = modelArg => {
+  m.addDefaultQueries = (modelArg) => {
     const { addFindManyByMongoQuery, addFindByDevExtremeFilter, addDevExtremeGroup } = m.resolvers;
 
     const modelInfo = getModelInfo(modelArg);
@@ -240,14 +240,14 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     });
   };
 
-  m.removeDefaultQueries = modelNames => {
-    _.each(_.castArray(modelNames), modelName => {
+  m.removeDefaultQueries = (modelNames) => {
+    _.each(_.castArray(modelNames), (modelName) => {
       const queryNames = [
         m.getModelQueryName(modelName),
         m.getDxQueryName(modelName),
         m.getDxGroupQueryName(modelName),
       ];
-      log.trace(`Removing queries for '${modelName}': ${queryNames.map(n => `'${n}'`).join(', ')}`);
+      log.trace(`Removing queries for '${modelName}': ${queryNames.map((n) => `'${n}'`).join(', ')}`);
       schemaComposer.Query.removeField(queryNames);
     });
   };
@@ -260,7 +260,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
   }) => {
     const { addFindManyByMongoQuery, addFindByDevExtremeFilter, addDevExtremeGroup } = m.resolvers;
 
-    const queryWrapper = next => async rp => {
+    const queryWrapper = (next) => async (rp) => {
       const result = await next(rp);
 
       const { req } = rp.context;
@@ -268,7 +268,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
       const userPermissions = getReqPermissions(req);
       const inlineContext = getInlineContext(req);
       if (_.isArray(result.items)) {
-        await Promise.map(result.items, item => transformDatasetsRecord(item, userPermissions, inlineContext));
+        await Promise.map(result.items, (item) => transformDatasetsRecord(item, userPermissions, inlineContext));
       }
 
       return result;
@@ -317,7 +317,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
    * - schemaComposer.Mutation.getField(name) returns field. This field is of object type and contains resolve function, not resolver.
    * Maybe there is a way to get resolver by resolve function but it seems like a crutch
    */
-  m.getMutationResolver = mutationName => {
+  m.getMutationResolver = (mutationName) => {
     const mutationField = schemaComposer.Mutation.get(mutationName);
     if (!mutationField) {
       return null;
@@ -325,15 +325,23 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
 
     const { updatePostfix, deletePostfix, createPostfix } = m.mutationPostfix;
     if (mutationName.endsWith(updatePostfix)) {
-      return mutationField.getResolver(updateOneResolverName);
+      const type = getBaseType(mutationName, updatePostfix);
+      return type.getResolver(updateOneResolverName);
     }
     if (mutationName.endsWith(deletePostfix)) {
-      return mutationField.getResolver(deleteOneResolverName);
+      const type = getBaseType(mutationName, deletePostfix);
+      return type.getResolver(deleteOneResolverName);
     }
     if (mutationName.endsWith(createPostfix)) {
-      return mutationField.getResolver(createOneResolverName);
+      const type = getBaseType(mutationName, createPostfix);
+      return type.getResolver(createOneResolverName);
     }
     return null;
+
+    function getBaseType(mutationFieldName, postfix) {
+      const baseTypeName = mutationFieldName.replace(new RegExp(`${postfix}$`), '');
+      return schemaComposer.get(baseTypeName);
+    }
   };
 
   m.wrapMutation = (mutationName, wrapper) => {
@@ -345,7 +353,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     }
   };
 
-  m.getQueryResolver = queryName => {
+  m.getQueryResolver = (queryName) => {
     const queryField = schemaComposer.Query.get(queryName);
     if (!queryField) {
       return null;
@@ -373,7 +381,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     }
   };
 
-  m.addBackgroundJobs = async backgroundJobsModelName => {
+  m.addBackgroundJobs = async (backgroundJobsModelName) => {
     const backgroundJobsModel = appLib.appModel.models[backgroundJobsModelName];
     const { backgroundJobsResolvers } = require('./background-jobs')({ backgroundJobsModel, backgroundJobsModelName });
 
@@ -399,7 +407,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     const modelName = 'quickFilters';
     const { testQuickFilterResolver } = require('./quick-filter')();
     schemaComposer.Query.addFields({ testQuickFilter: testQuickFilterResolver });
-    const testQuickFilterWrapper = next => async rp => {
+    const testQuickFilterWrapper = (next) => async (rp) => {
       const newResolveParams = _.clone(rp);
       newResolveParams.args = _.pick(newResolveParams.args.record, ['model', 'filter']);
       newResolveParams.projection = { count: 1 };
@@ -426,7 +434,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     const backgroundJobsModelName = 'backgroundJobs';
     const customModels = [datasetsModelName, backgroundJobsModelName];
 
-    const regularModelNames = allModelNames.filter(modelName => !customModels.includes(modelName));
+    const regularModelNames = allModelNames.filter((modelName) => !customModels.includes(modelName));
     m.addDefaultQueries(regularModelNames);
     m.addDefaultMutations(regularModelNames);
 

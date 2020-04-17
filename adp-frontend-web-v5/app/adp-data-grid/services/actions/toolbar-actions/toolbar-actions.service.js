@@ -10,7 +10,7 @@
     ActionsHandlers,
     GridActionsTemplate,
     GridOptionsHelpers,
-    AdpBrowserService
+    PrintAction
   ) {
     function sortByName(e) {
       var commonToolbarItemOptions = {
@@ -21,6 +21,7 @@
         createButton: {locateInMenu: "never", location: "before"},
         groupPanel: {location: "before"},
         searchPanel: {},
+        addRowButton: {},
         printButton: {},
         gridViewButton: {},
         quickFiltersButton: {},
@@ -35,6 +36,7 @@
         var index = _.findIndex(items, function (x) {
           return x.name === name
         });
+
         var item = items.splice(index, 1)[0];
         if (item) {
           var options = Object.assign({}, commonToolbarItemOptions, itemAddOptions, item);
@@ -93,7 +95,7 @@
       }
     }
 
-    function printButton(schema, e) {
+    function printButton(schema) {
       return {
         name: "printButton",
         widget: "dxButton",
@@ -101,80 +103,9 @@
           icon: 'print',
           stylingMode: 'text',
           onClick: function () {
-            var gridInstance = e.component;
-
-            var cache = createHidingPriorityCache(gridInstance);
-            removeHidingPriority(gridInstance);
-            $(document.body).addClass('js-print-datatable');
-
-            addEventListenersForPrinter(gridInstance, cache);
-
-            window.print();
+            PrintAction(schema, GridOptionsHelpers.getLoadOptions());
           },
         },
-      }
-    }
-
-    function createHidingPriorityCache(gridInstance) {
-      var columns = gridInstance.option('columns');
-      return _.map(columns, function (column) {
-        return column.hidingPriority;
-      });
-    }
-
-    function removeHidingPriority(gridInstance) {
-      var columns = gridInstance.option('columns');
-
-      gridInstance.beginUpdate();
-
-      _.each(columns, function (column, index) {
-        gridInstance.columnOption(index, 'hidingPriority', undefined);
-      });
-      gridInstance.columnOption('actions', 'visible', false);
-
-      gridInstance.endUpdate();
-    }
-
-    function restoreHidingPriority(gridInstance, cache) {
-      gridInstance.beginUpdate();
-
-      _.each(cache, function (hidingPriority, index) {
-        gridInstance.columnOption(index, 'hidingPriority', hidingPriority);
-      });
-      gridInstance.columnOption('actions', 'visible', true);
-
-      gridInstance.endUpdate();
-    }
-
-    function addEventListenersForPrinter(gridInstance, cache) {
-      var mediaQueryList;
-      // skipping firefox here, because it matchMedia for print is not working
-      // https://bugzilla.mozilla.org/show_bug.cgi?id=774398
-      if (window.matchMedia && !AdpBrowserService.isFirefox()) {
-        mediaQueryList = window.matchMedia('print');
-        mediaQueryList.addListener(mqlHandler);
-        console.log('matchMedia added');
-      } else {
-        window.onafterprint = afterPrint;
-        console.log('onafterprint added');
-      }
-
-      function afterPrint(mql) {
-        $(document.body).removeClass('js-print-datatable');
-        restoreHidingPriority(gridInstance, cache);
-        removeListeners(mql);
-        console.log('afterPrint');
-      }
-
-      function removeListeners(mql) {
-        window.onafterprint = null;
-        mediaQueryList && mediaQueryList.removeListener(mqlHandler);
-      }
-
-      function mqlHandler(mql) {
-        if(!mql.matches) {
-          afterPrint(mql);
-        }
       }
     }
   }

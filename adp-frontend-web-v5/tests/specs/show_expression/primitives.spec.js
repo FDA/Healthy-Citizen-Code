@@ -27,7 +27,7 @@ const selectors = {
   n1: 'input#n1',
   n2: 'input#n2',
   s2: '#s2',
-  b1: '[name="b1"]',
+  b1: '[ng-field-name="b1"]',
 };
 
 const fieldNames = {
@@ -122,7 +122,7 @@ describe('show expression', () => {
         );
         expect(n1IsVisiblityActual).toBe(true);
 
-        await this.page.click(`#checkbox-label-b1`);
+        await this.page.click('[ng-field-name="b1"] .dx-checkbox-icon');
         await this.page.waitForSelector(selectors.n2);
 
         let actualN2Visibility = await this.page.evaluate(
@@ -136,7 +136,7 @@ describe('show expression', () => {
       'should calculate fields show on edit action',
       async () => {
         await selectDxListValue('Option2', fieldNames.select, this.page);
-        await this.page.click(`#checkbox-label-b1`);
+        await this.page.click('[ng-field-name="b1"] .dx-checkbox-icon');
 
         await clickSubmit(this.page);
         const { _id } = await getResponseForCreatedRecord('helperMethods_showPrimitive', this.page);
@@ -157,7 +157,7 @@ describe('show expression', () => {
     test(
       'Should auto-fill list with single value after list is dynamically shown',
       async () => {
-        await this.page.click(`#checkbox-label-b1`);
+        await this.page.click('[ng-field-name="b1"] .dx-checkbox-icon');
 
         let autoSelected = await getDxSingleListValue(fieldNames.selectOne, this.page);
 

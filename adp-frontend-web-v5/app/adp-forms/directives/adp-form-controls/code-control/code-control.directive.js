@@ -17,7 +17,7 @@
       templateUrl: 'app/adp-forms/directives/adp-form-controls/code-control/code-control.html',
       require: '^^form',
       link: function (scope) {
-        if (_.isUndefined(getData())) {
+        if (_.isNil(getData())) {
           setData('');
         }
 

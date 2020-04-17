@@ -19,5 +19,11 @@
     "fs": "0.0.1-security",
     "log4js": "^6.1.0",
     "mongodb": "^3.4.1"
+  },
+  "prettier": {
+    "bracketSpacing": true,
+    "singleQuote": true,
+    "printWidth": 120,
+    "trailingComma": "es5"
   }
 }

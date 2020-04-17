@@ -7,6 +7,10 @@ const {
   loginWithUser,
 } = require('../../utils');
 
+const assertUrl = (expected, actual) => {
+  const { pathname, search } = new URL(expected);
+  expect(pathname + search).toBe(`/${actual}`);
+}
 
 describe('redirects for guest and user', () => {
   beforeAll(async () => {
@@ -35,11 +39,13 @@ describe('redirects for guest and user', () => {
       await this.page.goto(getUrlFor('login'));
       await this.page.waitForSelector('#login');
 
-      await this.page.goto(getUrlFor('basicTypes'));
-      await this.page.waitForSelector('#login');
+      await Promise.all([
+        this.page.goto(getUrlFor('basicTypes')),
+        this.page.waitForNavigation({ waitUntil: 'networkidle2' }),
+        await this.page.waitForSelector('#login')
+      ]);
 
-      const url = urlParse(this.page.url(), true);
-      expect(url.hash).toBe(`#/login?returnUrl=%2FbasicTypes`);
+      assertUrl(this.page.url(), 'login?returnUrl=%2FbasicTypes');
     });
 
   const guestUrls = ['login', 'register', 'forgot-password'];
@@ -53,7 +59,7 @@ describe('redirects for guest and user', () => {
         await this.page.waitForSelector('.page-app-home');
 
         const url = urlParse(this.page.url(), true);
-        expect(url.hash).toBe(`#/home`);
+        expect(url.pathname).toBe(`/home`);
       })
   }
 });

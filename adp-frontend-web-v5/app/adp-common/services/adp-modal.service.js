@@ -73,6 +73,7 @@
         backdrop: "static",
         size: options.sizeSmall ? "sm" : "lg",
         component: componentName,
+        keyboard: false,
         resolve: {
           options: function () {
             return options;

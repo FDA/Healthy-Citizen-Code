@@ -61,9 +61,12 @@
     }
 
     function htmlType(args) {
-      return FormattersHelper.asText(args) ?
-        string(args) :
-        string(args).substring(0, 100) + '...';
+      var value = string(args);
+      if (FormattersHelper.asText(args)) {
+        return value;
+      } else {
+        return value === GRID_FORMAT.EMPTY_VALUE ? value : string(args).substring(0, 100) + '...';
+      }
     }
 
     return {

@@ -13,7 +13,7 @@ const {
 } = reqlib('test/test-util');
 
 describe('V5 Backend Schema Routes', () => {
-  before(async function() {
+  before(async function () {
     this.expected = {
       type: 'Schema',
       schemaName: 'model1s',
@@ -100,6 +100,7 @@ describe('V5 Backend Schema Routes', () => {
         encounters: {
           fieldName: 'encounters',
           parameters: {
+            enableInCellEditing: true,
             grouping: {
               allowGrouping: false,
             },
@@ -122,6 +123,7 @@ describe('V5 Backend Schema Routes', () => {
             diagnoses: {
               fieldName: 'diagnoses',
               parameters: {
+                enableInCellEditing: true,
                 grouping: {
                   allowGrouping: false,
                 },
@@ -173,6 +175,7 @@ describe('V5 Backend Schema Routes', () => {
             vitalSigns: {
               type: 'Array',
               parameters: {
+                enableInCellEditing: true,
                 grouping: {
                   allowGrouping: false,
                 },
@@ -455,16 +458,16 @@ describe('V5 Backend Schema Routes', () => {
     this.db = await getMongoConnection();
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.collection('users').deleteMany({}),
       this.db.collection('mongoMigrateChangeLog').deleteMany({}),
@@ -472,7 +475,7 @@ describe('V5 Backend Schema Routes', () => {
     await Promise.all([this.db.collection('users').insertOne(admin)]);
   });
 
-  it('responds with correct schema for the model when enablePermissions=false', async function() {
+  it('responds with correct schema for the model when enablePermissions=false', async function () {
     setAppAuthOptions(this.appLib, {
       requireAuthentication: true,
       enablePermissions: false,
@@ -494,7 +497,7 @@ describe('V5 Backend Schema Routes', () => {
     );
   });
 
-  it('responds with correct schema for the model when enablePermissions=true', async function() {
+  it('responds with correct schema for the model when enablePermissions=true', async function () {
     setAppAuthOptions(this.appLib, {
       requireAuthentication: true,
       enablePermissions: true,

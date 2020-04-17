@@ -99,7 +99,7 @@ describe('required expression', () => {
         const actualRequiredSnapshot1 = await this.page.evaluate(getRequiredSnapshot, fieldNames);
         expect(actualRequiredSnapshot1).toEqual(expectedRequiredSnapshot1);
 
-        await this.page.click('#checkbox-label-b1');
+        await this.page.click('[ng-field-name="b1"] .dx-checkbox-icon');
 
         await clickSubmit(this.page);
 
@@ -132,7 +132,7 @@ describe('required expression', () => {
 
         expect(initial).toBe('');
 
-        await this.page.click('#checkbox-label-b1');
+        await this.page.click('[ng-field-name="b1"] .dx-checkbox-icon');
 
         let autoSelected = await singleSelectValue(fieldSelector, this.page);
 

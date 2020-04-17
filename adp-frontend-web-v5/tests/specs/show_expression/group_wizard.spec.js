@@ -25,9 +25,9 @@ const selectors = {
   fieldSelect: '#list_id_fieldSelect',
   s1: '#s1',
   s3: '#s3',
-  b2: '[name="b2"]',
+  b2: '[ng-field-name="b2"]',
   a2: '[name="a2[0]"]',
-  b3: '[name="b3"]',
+  b3: '[ng-field-name="b3"]',
   s4: '#s4',
 
   g1: '[ng-group-name="g1"]',
@@ -247,7 +247,7 @@ describe('show expression', () => {
         await this.page.click(selectors.m3);
         await this.page.waitForSelector(selectors.b3);
 
-        await this.page.click('#checkbox-label-b3');
+        await this.page.click('[ng-field-name="b3"] .dx-checkbox-icon');
 
         const isVisible = s => {
           const e = document.querySelector(s);
@@ -267,7 +267,7 @@ describe('show expression', () => {
       async () => {
         await this.page.click(selectors.m3);
         await this.page.waitForSelector(selectors.b3);
-        await this.page.click('#checkbox-label-b3');
+        await this.page.click('[ng-field-name="b3"] .dx-checkbox-icon');
         await selectDxListValue('Option2', selectName, this.page);
 
         await clickSubmit(this.page);
@@ -340,7 +340,7 @@ describe('show expression', () => {
         await this.page.waitFor(200);
 
         await this.page.click(selectors.m2);
-        await this.page.click('#checkbox-label-b2');
+        await this.page.click('[ng-field-name="b2"] .dx-checkbox-icon');
 
         let a2IsVisibleActual = await this.page.evaluate(
           s => document.querySelector(s) !== null,

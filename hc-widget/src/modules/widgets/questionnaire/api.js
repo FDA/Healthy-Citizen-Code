@@ -18,19 +18,25 @@ export function fetchQuestionnaireByFhirId(fhirId) {
     .then(([questionnaire, data]) => {
       const questions = lodashMap(questionnaire, (question, key) => {
         question.fieldName = key;
+        question.value = get(data, `answers.${key}`, null);
         return question;
       });
 
       return {
+        questions,
         _id: data._id,
         status: data.status,
-        questions: questions,
+        nextQuestion: data.nextQuestion,
       };
     });
 }
 
 export function fetchFhirValues(questions, options) {
   const doRequest = (question) => {
+    if (question.value) {
+      return Promise.resolve(question);
+    }
+
     if (!get(question, 'fhirResource')) {
       question.value = '';
       return Promise.resolve(question);
@@ -67,15 +73,13 @@ export function startQuestionnaire(params, questionnaireId) {
   return fetch(endpoint, options)
     .then(res => res.json())
     .then(json => {
-      if (json.success) {
-        return json.data;
-      } else {
-        throw new Error('Unable to start the questionnaire.');
+      if (!json.success) {
+        new Error('Unable to start the questionnaire.');
       }
     });
 }
 
-export function updateQuestionnaire(params, data, isCompleted) {
+export function updateQuestionnaire(params, data) {
   const endpoint = CONFIG.HC_RESEARCH_URL + '/questionnaire-by-fhirid/' + params.fhirId;
 
   const options = {
@@ -85,7 +89,6 @@ export function updateQuestionnaire(params, data, isCompleted) {
       data: {
         questionnaireId: params.questionnaireId,
         answers: data,
-        isCompleted: isCompleted,
       },
     }),
   };

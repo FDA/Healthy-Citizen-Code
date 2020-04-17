@@ -5,7 +5,7 @@
     .module('app.adpForms')
     .directive('adpCkeditor', adpCkeditor);
 
-  function adpCkeditor($timeout) {
+  function adpCkeditor($timeout, CKEDITOR_TOOLBAR) {
     return {
       restrict: 'E',
       scope: {
@@ -17,6 +17,7 @@
       link: function (scope, elem) {
         elem[0].innerHTML =
           '<div class="adp-html-editor form-control" contenteditable="true" id="' + scope.editorId + '">';
+
         scope.$watch('editorsConfig', initEditor);
         addWatchers();
 
@@ -34,7 +35,13 @@
           var editorsDefaults = {
             readOnly: scope.disabled,
             resize_enabled: true,
-          };
+            toolbarCanCollapse: true,
+            toolbarStartupExpanded: true,
+            removePlugins: 'flash',
+            resize_dir: 'both',
+            toolbar: CKEDITOR_TOOLBAR,
+            extraPlugins: 'collapse',
+        };
           var opts = _.assign({}, editorsDefaults, userConfig);
 
           return CKEDITOR.inline(editorElem, opts);

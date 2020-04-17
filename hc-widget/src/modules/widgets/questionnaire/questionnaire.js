@@ -26,14 +26,14 @@ export default class Questionnaire {
       ...options,
       ...widgetDefaults,
       events: {
-        onSubmit: () => this.onSubmit()
+        onComplete: () => this.onComplete()
       }
     };
 
     this.el = node;
 
     return this.fetchData()
-      .then(this.init.bind(this))
+      .then(data => this.init(data))
       .catch((err) => {
         console.error(err);
         showErrorToUser('No questionnaire found');
@@ -50,7 +50,9 @@ export default class Questionnaire {
 
   fetchData() {
     return fetchQuestionnaireByFhirId(this.options.fhirId)
-      .then(res => this.getFieldValues(res));
+      .then(res => {
+        return this.getFieldValues(res);
+      });
   }
 
   getFieldValues(res) {
@@ -59,7 +61,8 @@ export default class Questionnaire {
         return {
           _id: res._id,
           status: res.status,
-          questions: questions
+          questions,
+          nextQuestion: res.nextQuestion,
         }
       });
   }
@@ -80,7 +83,7 @@ export default class Questionnaire {
     updateIframeHeight();
   }
 
-  onSubmit() {
+  onComplete() {
     return this.fetchData()
       .then(data => {
         let cnt = 5;

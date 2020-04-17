@@ -3,8 +3,8 @@
     "poolParticipants": {
       "type": "Schema",
       "fullName": "Participants for Pool in Study",
-      actions: {
-        fields: {
+      "actions": {
+        "fields": {
           "update": {
             "permissions": "accessAsUser"
           },
@@ -79,12 +79,12 @@
           "fullName": "Participant Status",
           "type": "String",
           "list": {
-            name: "participantStatuses",
+            "name": "participantStatuses",
             "scopes": {
               "userScope": {
                 "permissions": "accessAsUser",
-                return: "return $list",
-                where: "return true"
+                "return": "return $list",
+                "where": "return true"
               }
             }
           },

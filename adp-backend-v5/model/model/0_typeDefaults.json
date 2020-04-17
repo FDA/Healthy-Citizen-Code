@@ -5,6 +5,7 @@
       "Array": {
         "width": 200,
         "parameters": {
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false
           }
@@ -13,6 +14,7 @@
       "AssociativeArray": {
         "width": 200,
         "parameters": {
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false
           }
@@ -21,6 +23,7 @@
       "Object": {
         "width": 200,
         "parameters": {
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false
           }
@@ -43,7 +46,7 @@
       },
       "Html": {
         "parameters": {
-          "enableInCellEditing": false,
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false,
             "allowExpandGroup": false
@@ -53,7 +56,7 @@
       },
       "Code": {
         "parameters": {
-          "enableInCellEditing": false,
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false,
             "allowExpandGroup": false
@@ -529,7 +532,47 @@
       "ImperialWeightWithOz": {
         "width": 150,
         "transform": ["trim", ["weightImperialWithOzToMetric", "weightMetricToImperialWithOz"]]
-      }
+      },
+       "File": {
+         "parameters": {
+           "enableInCellEditing": true
+         }
+       },
+       "Image": {
+         "parameters": {
+           "enableInCellEditing": true
+         }
+       },
+       "Audio": {
+         "parameters": {
+           "enableInCellEditing": true
+         }
+       },
+       "Video": {
+         "parameters": {
+           "enableInCellEditing": true
+         }
+       },
+       "File[]": {
+         "parameters": {
+           "enableInCellEditing": true
+         }
+       },
+       "Image[]": {
+         "parameters": {
+           "enableInCellEditing": true
+         }
+       },
+       "Audio[]": {
+         "parameters": {
+           "enableInCellEditing": true
+         }
+       },
+       "Video[]": {
+         "parameters": {
+           "enableInCellEditing": true
+         }
+       }
     }
   },
   "subtypeDefaults": {

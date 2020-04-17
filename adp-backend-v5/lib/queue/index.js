@@ -22,6 +22,11 @@ module.exports = (options) => {
   const { redisUrl } = options;
   const keyPrefix = options.keyPrefix || 'bull';
 
+  m.isReady = () => {
+    // RedisMock has field 'status', but has field cache.connected
+    return m.redisClient !== null && m.redisSubscriber !== null;
+  };
+
   m.init = async () => {
     if (!redisUrl) {
       return;
@@ -62,7 +67,7 @@ module.exports = (options) => {
   }
 
   m.createQueue = (...args) => {
-    if (!m.redisClient || !m.redisSubscriber) {
+    if (!m.isReady()) {
       throw new QueueError(`Unable to createQueue, no connection to Bull Redis`);
     }
 

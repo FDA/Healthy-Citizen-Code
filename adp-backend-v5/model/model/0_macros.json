@@ -1,0 +1,7 @@
+{
+  "macros": {
+    "allListValues": {
+      "inline": "{\n  \"userScope\": {\n    \"permissions\": {\n      \"view\": \"accessAsUser\"\n    },\n    \"where\": \"return true\",\n    \"return\": \"return $list\"\n  }\n}"
+    }
+  }
+}

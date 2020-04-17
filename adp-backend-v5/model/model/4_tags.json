@@ -1,0 +1,55 @@
+{
+  "models": {
+    "tags": {
+      "type": "Schema",
+      "fullName": "Tags",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        },
+        "admin": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "{$eq:[1,1]}"
+        }
+      },
+      "fields": {
+        "name": {
+          "type": "String",
+          "fullName": "Name",
+          "description": "Tag name",
+          "required": true,
+          "unique": true
+        },
+        "description": {
+          "type": "String",
+          "fullName": "Description",
+          "description": "Tag description",
+          "showInViewDetails": false
+        }
+      }
+    }
+  }
+}

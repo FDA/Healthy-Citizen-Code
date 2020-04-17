@@ -16,7 +16,7 @@
     function render(args) {
       var data = args.data;
 
-      if (_.isNil(data.label)) {
+      if (_.isEmpty(args.data) || _.isNil(data.label)) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
 

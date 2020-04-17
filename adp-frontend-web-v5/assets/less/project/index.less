@@ -256,6 +256,11 @@ body.smart-style-6 .input-container.state-error .adp-html-editor,
 .smart-style-5 .adp-tooltip-trigger { color: #fff; }
 
 .smart-form .inline-group .checkbox.checkbox-tooltip { margin: 0; padding: 0;  }
+.smart-form .inline-group .checkbox { padding-left: 0; }
+.adp-checkbox {
+  vertical-align: text-bottom;
+  margin-right: 5px;
+}
 
 .recaptcha > div { margin: 0 auto; }
 
@@ -677,7 +682,7 @@ nav ul span.menu-item-parent {
 .subform-frame {
   border: 1px solid;
   position: relative;
-  margin: 15px 0 0;
+  margin: 2px 0 15px;
 
   &--is-collapsed { padding-top: 0; }
   &--invalid { border-color: #b94a48; }
@@ -765,10 +770,7 @@ nav ul span.menu-item-parent {
   padding: 15px 0;
 }
 
-.array-form-frame {
-  position: relative;
-  margin: 15px 0;
-}
+.array-form-frame { position: relative; }
 
 .array-form-row {
   border: 1px solid;
@@ -948,35 +950,6 @@ tree-selector-control[data-child] > div { margin-top: 10px; padding-left: 2%; }
     margin-bottom: 5px;
     margin-right: 5px;
     border-radius: 2px;
-  }
-}
-
-@media print {
-  .js-print-datatable {
-    #header,
-    #left-panel,
-    #ribbon,
-    .demo,
-    .actions-column,
-    .dx-command-adaptive,
-    .dx-datagrid-header-panel,
-    .dx-datagrid-filter-row,
-    .dx-datagrid-pager,
-    .dx-datagrid-filter-panel,
-    .dx-overlay-wrapper,
-    .dx-datagrid-column-chooser { display: none; }
-
-    .dx-datagrid-hidden-column > * {
-      display: block !important;
-    }
-
-    #content {
-      margin: 0 !important;
-      padding: 0 !important;
-    }
-
-    #main,
-    .well { margin: 0; padding: 0; }
   }
 }
 
@@ -1447,4 +1420,46 @@ overflow: scroll;
   box-sizing: border-box !important;
   margin: 0 -12px 0 1px !important;
   display: none !important;
+}
+
+// FIXING STYLES FOR DX WIDGETS INSIDE FORMS
+.dx-widget, .dx-widget *, .dx-widget :after, .dx-widget :before, .dx-widget:after, .dx-widget:before {
+  -webkit-box-sizing: border-box !important;
+  box-sizing: border-box !important;
+}
+
+.dx-treeview-node {
+  padding-left: 16px !important;
+}
+
+.dx-treeview-item {
+  padding: 10px 8px !important;
+}
+
+.dx-treeview-toggle-item-visibility:before {
+  margin-top: -9px !important;
+  margin-left: -9px !important;
+}
+
+
+// CKEDITOR
+.cke_button__moretools .cke_button_icon {
+  display: inline-block;
+  font: normal normal normal 14px/1 FontAwesome;
+  text-rendering: auto;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+  font-size: 24px;
+
+  &:before {
+    content: "\f0d7";
+    position: absolute;
+    top: 1px;
+    left: 6px;
+  }
+  &.collapsed:before {
+    content: "\f0d8";
+    top: 0;
+    left: 6px;
+  }
 }

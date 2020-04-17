@@ -3,6 +3,6 @@
  */
 
 module.exports = function (mongoose) {
-    const m = {};
-    return m;
+  const m = {};
+  return m;
 };
