@@ -4,9 +4,7 @@
       "type": "Dashboard",
       "fullName": "Main Dashboard",
       "comment": "This defines the new main system dashboard. Note that it uses new schema.",
-      "permissions": [
-        "doUserActivities"
-      ],
+      "permissions": ["doUserActivities"],
       "fields": {
         "questionnaireProgressChart": {
           "type": "DashboardItem",

@@ -4,12 +4,12 @@
  */
 module.exports = function (globalMongoose) {
   const fs = require('fs');
-  const _ = require("lodash");
+  const _ = require('lodash');
   const async = require('async');
   const log = require('log4js').getLogger('research-app-model/questionnaire-controller');
   const ObjectID = require('mongodb').ObjectID;
   const axios = require('axios');
-  const Promise = require("bluebird");
+  const Promise = require('bluebird');
   const mongoose = Promise.promisifyAll(globalMongoose);
 
   let m = {};
@@ -20,22 +20,22 @@ module.exports = function (globalMongoose) {
   };
 
   const findInteractionsFromList = (rxcuis) => {
-    return axios(`https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${rxcuis.join('+')}`)
+    return axios(`https://rxnav.nlm.nih.gov/REST/interaction/list.json?rxcuis=${rxcuis.join('+')}`);
   };
 
   const findRxcuiByNdc = (ndc) => {
-    return axios(`https://rxnav.nlm.nih.gov/REST/rxcui.json?idtype=NDC&id=${ndc}`)
+    return axios(`https://rxnav.nlm.nih.gov/REST/rxcui.json?idtype=NDC&id=${ndc}`);
   };
 
   m.findDrugInteractionsForNdcs = (req, res, next) => {
     let ndcs = req.body.ndcs;
     if (!Array.isArray(ndcs)) {
-      return res.json({success: false, message: `Body should contain 'ndcs' - array of ndc codes.`});
+      return res.json({ success: false, message: `Body should contain 'ndcs' - array of ndc codes.` });
     }
 
     ndcs = _.uniq(ndcs);
     if (ndcs.length < 2) {
-      return res.json({success: false, message: 'Should contain more than 1 ndc code to find drug interactions.'});
+      return res.json({ success: false, message: 'Should contain more than 1 ndc code to find drug interactions.' });
     }
 
     let rxcuis = [];
@@ -60,22 +60,22 @@ module.exports = function (globalMongoose) {
         console.log(`Error occurred while searching for drugInteraction. rxcuis: ${rxcuis}. ${err}`);
         return res.json({
           success: false,
-          message: `Error occurred while searching for drugInteraction.`
+          message: `Error occurred while searching for drugInteraction.`,
         });
       })
       .then((response) => {
         const results = [];
         // 4. Get drug interaction info
         const fullInteractionTypeGroup = response.data.fullInteractionTypeGroup;
-        _.forEach(fullInteractionTypeGroup, group => {
-          _.forEach(group.fullInteractionType, interactionType=> {
-            _.forEach(interactionType.interactionPair, interactionPair => {
+        _.forEach(fullInteractionTypeGroup, (group) => {
+          _.forEach(group.fullInteractionType, (interactionType) => {
+            _.forEach(interactionType.interactionPair, (interactionPair) => {
               results.push({
                 severity: interactionPair.severity,
                 description: interactionPair.description,
               });
-            })
-          })
+            });
+          });
         });
         const count = results.length;
         const list = results.slice(0, 20);
@@ -83,20 +83,20 @@ module.exports = function (globalMongoose) {
           success: true,
           data: {
             list,
-            count
-          }
+            count,
+          },
         });
       })
       .catch((err) => {
         if (_.isString(err)) {
           return res.json({
             success: false,
-            message: err
+            message: err,
           });
         }
         return res.json({
           success: false,
-          message: err.message
+          message: err.message,
         });
       });
   };

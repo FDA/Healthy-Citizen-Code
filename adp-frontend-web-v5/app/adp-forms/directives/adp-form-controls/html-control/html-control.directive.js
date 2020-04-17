@@ -26,13 +26,8 @@
         scope.getData = getData;
 
         function setOptions() {
-          var defaults = {
-            removeButtons: 'Image',
-            removePlugins: 'flash',
-          };
-
           var opts = _.get(scope, 'field.parameters.editor', {});
-          scope.editorsConfig = _.defaults(defaults, opts);
+          scope.editorsConfig = opts;
         }
 
         function getData() {

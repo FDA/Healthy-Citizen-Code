@@ -1,0 +1,69 @@
+{
+  "models": {
+    "bjrExternalCommands": {
+      "type": "Schema",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "delete": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "clone": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "viewDetails": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "view": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "create": {
+            "permissions": "accessAsSuperAdmin"
+          },
+          "runExternalCommand": {
+            "permissions": "accessAsSuperAdmin",
+            "showInTable": true,
+            "icon": {
+              "link": "play"
+            },
+            "backgroundColor": "#660",
+            "borderColor": "#330",
+            "textColor": "yellow",
+            "fullName": "Run external command",
+            "description": "Run external command",
+            "action": {
+              "type": "action",
+              "link": "runExternalCommand",
+              "redirectUrl": "/runExternalCommand"
+            }
+          }
+        }
+      },
+      "fields": {
+        "name": {
+          "type": "String",
+          "description": "Command Name",
+          "required": true,
+          "unique": true
+        },
+        "description": {
+          "type": "String",
+          "description": "What this command is used for"
+        },
+        "command": {
+          "type": "String",
+          "description": "Command itself",
+          "required": true
+        },
+        "progressRegex": {
+          "type": "String"
+        },
+        "logRegex": {
+          "type": "String"
+        }
+      }
+    }
+  }
+}

@@ -1,10 +1,10 @@
 import { updateQuestionnaire } from '../api';
 import { updateIframeHeight } from '../../../../lib/utils/utils';
 
-export default function formPagination({pages, controls, beforeTransitionCb, data}) {
+export default function formPagination({ pages, controls, beforeTransitionCb, data, startingPage, onComplete }) {
   const pagination = {
-    create({pages}) {
-      this.current = 0;
+    create({ pages, startingPage, onComplete }) {
+      this.current = startingPage;
       this.total = pages.length;
       // array of fields
       this.pages = pages;
@@ -13,26 +13,27 @@ export default function formPagination({pages, controls, beforeTransitionCb, dat
       this.$nextBtn = controls.nextBtn;
       this.$prevBtn = controls.prevBtn;
       this.$finishBtn = controls.finishBtn;
+      this.onComplete = onComplete;
 
-      this.preparePages();
+      this.preparePages(startingPage);
       this.displayBtns();
       this.bindEvents();
 
       return this;
     },
 
-    preparePages() {
+    preparePages(startingPage) {
       this.pages.map((page, index) => {
-        if (index > 0) {
+        if (index !== startingPage) {
           page.el.classList.add('hidden');
         }
       });
     },
 
     bindEvents() {
-      // handle inside dom.js
       this.paginateHandler = this.paginateHandler.bind(this);
 
+      this.$finishBtn.on('click', this.paginateHandler);
       this.$nextBtn.on('click', this.paginateHandler);
       this.$prevBtn.on('click', this.paginateHandler);
     },
@@ -42,16 +43,15 @@ export default function formPagination({pages, controls, beforeTransitionCb, dat
       this.$prevBtn.off('click', this.paginateHandler);
     },
 
-    saveAnswer(isLast) {
+    saveAnswer() {
       this.setDisabled(true);
       let currentField = this.pages[this.current];
-      let isCompleted = !!isLast;
 
       const requestData = {
         [currentField.name]: currentField.value()
       };
 
-      return updateQuestionnaire(this.requestParams, requestData, isCompleted);
+      return updateQuestionnaire(this.requestParams, requestData);
     },
 
     paginateHandler(e) {
@@ -70,7 +70,7 @@ export default function formPagination({pages, controls, beforeTransitionCb, dat
       requestPromise = dir === 'next' ? this.saveAnswer() : Promise.resolve();
 
       requestPromise
-        .then(data => this.transition(transition))
+        .then(res => this.afterSave(res, transition))
         .catch(err => console.error('Unable to save answer', err));
     },
 
@@ -79,6 +79,15 @@ export default function formPagination({pages, controls, beforeTransitionCb, dat
         from: this.current,
         to: dir === 'next' ? this.current + 1 : this.current - 1
       };
+    },
+
+    afterSave(res, transition) {
+      const SUCCESS_MESSAGE = 'All questions have been answered';
+      if (res && res.message === SUCCESS_MESSAGE) {
+        this.onComplete();
+      } else {
+        this.transition(transition);
+      }
     },
 
     transition({from, to}) {
@@ -127,10 +136,10 @@ export default function formPagination({pages, controls, beforeTransitionCb, dat
     },
 
     isLast: function () {
-      return this.current === this.total - 1
+      return this.current === this.total - 1;
     }
   };
 
-  return Object.create(pagination).create({pages})
+  return Object.create(pagination).create({ pages, startingPage, onComplete })
 }
 

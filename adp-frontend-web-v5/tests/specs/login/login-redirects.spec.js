@@ -40,15 +40,19 @@ describe('login redirects', () => {
     { redirectPage: encodeURIComponent('basicTypes?action=create&string=abc'), expectedPage: 'basicTypes?action=create&string=abc' }
   ];
 
+  const assertUrl = (expected, actual) => {
+    const { pathname, search } = new URL(expected);
+    expect(pathname + search).toBe(`/${actual}`);
+  }
+
   for (const testDef of testsDefinitions) {
     test(
-      `should redirect to "${testDef.expectedPage}" page on login`,
+      `should redirect to "/${testDef.expectedPage}" page on login`,
       async () => {
         await openLoginPageWithReturnUrl(testDef.redirectPage, this.page);
         await fillLoginFormAndSubmit(this.page);
 
-        const url = urlParse(this.page.url(), true);
-        expect(url.hash).toBe(`#/${testDef.expectedPage}`);
+        assertUrl(this.page.url(), testDef.expectedPage);
       });
   }
 
@@ -58,13 +62,15 @@ describe('login redirects', () => {
       await loginWithUser(this.page);
 
       const expectedPage = 'basicTypes';
-      await this.page.goto(getUrlFor(expectedPage));
-      await logout(this.page);
+      await Promise.all([
+        this.page.goto(getUrlFor(expectedPage)),
+        this.page.waitForNavigation({ waitUntil: 'networkidle2' })
+      ]);
 
+      await logout(this.page);
       await fillLoginFormAndSubmit(this.page);
 
-      const url = urlParse(this.page.url(), true);
-      expect(url.hash).toBe(`#/${expectedPage}`);
+      assertUrl(this.page.url(), expectedPage);
     });
 
   const testsDefinitionsForGuestUsers = [
@@ -75,15 +81,14 @@ describe('login redirects', () => {
 
   for (const testDef of testsDefinitionsForGuestUsers) {
     test(
-      `should redirect to "${testDef.expectedPage}" page on user login for guest`,
+      `should redirect to "/${testDef.expectedPage}" page on user login for guest`,
       async () => {
         await this.page.goto(getUrlFor(testDef.expectedPage));
         await this.page.waitForSelector('#login');
 
         await fillLoginFormAndSubmit(this.page);
 
-        const url = urlParse(this.page.url(), true);
-        expect(url.hash).toBe(`#/${testDef.expectedPage}`);
+        assertUrl(this.page.url(), testDef.expectedPage);
       });
   }
 });

@@ -25,7 +25,7 @@
           scope.field['arguments'].multiple = true;
         }
 
-        if (_.isUndefined(scope.adpFormData[scope.field.fieldName])) {
+        if (_.isNil(scope.adpFormData[scope.field.fieldName])) {
           scope.adpFormData[scope.field.fieldName] = [];
         }
 

@@ -11,6 +11,7 @@
     ng-array-parent-path="{{getPath()}}"
     ng-repeat="dataItem in adpFormData[field.fieldName] track by dataItem._id"
     name="{{field.fieldName}}[{{$index}}]"
+    ng-order="{{$index}}"
   >
 
     <div

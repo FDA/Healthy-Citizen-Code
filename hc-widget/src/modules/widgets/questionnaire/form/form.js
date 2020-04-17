@@ -10,17 +10,12 @@ export default class HcWidgetForm {
     this.$el = $(formTemplate());
     this.el = this.$el.get(0);
 
-    this.init(data);
+    this.render(data);
     this.bindEvents();
   }
 
-  init(data) {
-    this.data = data;
-    this.render(data);
-  }
-
-  render() {
-    this.fields = map(this.data.questions, this.createField.bind(this));
+  render(data) {
+    this.fields = map(data.questions, q => this.createField(q));
 
     const paginationOptions = {
       pages: this.fields,
@@ -28,14 +23,22 @@ export default class HcWidgetForm {
       controls: {
         nextBtn: $('[data-paginate=next]', this.el),
         prevBtn: $('[data-paginate=prev]', this.el),
-        finishBtn: $('[type=submit]', this.el)
+        finishBtn: $('.js-finish-btn', this.el)
       },
       data: {
         fhirId: this.options.fhirId,
-        questionnaireId: this.data._id
-      }
+        questionnaireId: data._id,
+      },
+      onComplete: this.options.events.onComplete,
+      startingPage: this.getStartPage(data),
     };
+
     this.pagination = formPagination(paginationOptions);
+  }
+
+  getStartPage(data) {
+    let startIndex = data.questions.map(q => q.fieldName).indexOf(data.nextQuestion);
+    return startIndex > -1 ? startIndex : 0;
   }
 
   createField(question) {
@@ -57,14 +60,12 @@ export default class HcWidgetForm {
 
   bindEvents() {
     this.$el
-      .on('submit', this.submit.bind(this))
       .on('change', this.changeHandler.bind(this))
       .on('keyup', this.changeHandler.bind(this));
   }
 
   unbindEvents() {
     this.$el
-      .off('submit', this.submit)
       .off('change', this.changeHandler)
       .off('keyup', this.changeHandler);
   }
@@ -84,17 +85,5 @@ export default class HcWidgetForm {
   changeHandler() {
     const isValid = HcWidgetForm.validatePage(this.pagination);
     this.pagination.setDisabled(!isValid);
-  }
-
-  submit(e) {
-    e.preventDefault();
-
-    if (!HcWidgetForm.validatePage(this.pagination)) {
-      this.pagination.setDisabled(true);
-      return;
-    }
-
-    this.pagination.saveAnswer(true)
-      .then(this.options.events.onSubmit);
   }
 }

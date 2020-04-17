@@ -59,7 +59,8 @@ const stringOperations = {
   '>': (fieldPath, value) => construct(fieldPath, '$gt', value),
   '>=': (fieldPath, value) => construct(fieldPath, '$gte', value),
   any: () => {},
-  undefined: (fieldPath) => ({ [fieldPath]: { $exists: false } }),
+  empty: (fieldPath) => ({ [fieldPath]: '' }),
+  notEmpty: (fieldPath) => ({ $and: [{ [fieldPath]: { $ne: null } }, { [fieldPath]: { $ne: '' } }] }),
 };
 
 module.exports = {

@@ -32,10 +32,10 @@ const selectors = {
   g3: '[ng-group-name="g3"]',
   g4: '[ng-group-name="g4"]',
   s1: '#s1',
-  b2: '[name="b2"]',
+  b2: '[ng-field-name="b2"]',
   a2: '[name="a2[0]"]',
   s3: '#s3',
-  b3: '[name="b3"]',
+  b3: '[ng-field-name="b3"]',
   s4: '#s4',
 };
 
@@ -141,7 +141,7 @@ describe('show expression', () => {
       'should show/hide fields inside Group',
       async () => {
         await toggleGroup(selectors.g3, groupType, this.page);
-        await this.page.click('#checkbox-label-b3');
+        await this.page.click('[ng-field-name="b3"] .dx-checkbox-icon');
 
         let s3IsVisibleActual = await this.page.evaluate(
           s => document.querySelector(s) !== null,
@@ -159,7 +159,7 @@ describe('show expression', () => {
         await this.page.waitFor(200);
 
         await toggleGroup(selectors.g2, groupType, this.page);
-        await this.page.click('#checkbox-label-b2');
+        await this.page.click('[ng-field-name="b2"] .dx-checkbox-icon');
 
         let a2IsVisibleActual = await this.page.evaluate(
           s => document.querySelector(s) !== null,
@@ -173,7 +173,7 @@ describe('show expression', () => {
       'should show correct fields for Group on edit action',
       async () => {
         await toggleGroup(selectors.g3, groupType, this.page);
-        await this.page.click('#checkbox-label-b3');
+        await this.page.click('[ng-field-name="b3"] .dx-checkbox-icon');
 
         await selectDxListValue('Option2', selectFieldName, this.page);
         await this.page.waitForSelector(selectors.b2);

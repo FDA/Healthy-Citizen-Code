@@ -3,8 +3,8 @@
     "pools": {
       "type": "Schema",
       "fullName": "Pools for Study",
-      actions: {
-        fields: {
+      "actions": {
+        "fields": {
           "update": {
             "permissions": "accessAsUser"
           },

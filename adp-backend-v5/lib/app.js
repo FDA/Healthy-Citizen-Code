@@ -996,20 +996,20 @@ module.exports = () => {
 
     setControllerProperties();
 
-    // define m.ws before loading model controllers, since it's allowed to add own ws operations inside them
-    m.ws = require('./real-time/socket-io-server')(m);
+    // define m.ws before loading model controllers, since it's allowed to add own ws events inside them
+    m.ws = require('./real-time')({
+      appLib: m,
+      redisUrl: process.env.SOCKETIO_REDIS_URL || process.env.REDIS_URL,
+      keyPrefix: process.env.SOCKETIO_KEY_PREFIX || process.env.REDIS_KEY_PREFIX,
+    });
 
     await m.addRoutes();
     m.addErrorHandlers();
 
     // create server with ready express app
     m.server = http.createServer(app);
-    // build ws server with ready http instance and ws operations from model controllers
-    await m.ws.build({
-      server: m.server,
-      redisUrl: process.env.SOCKETIO_REDIS_URL || process.env.REDIS_URL,
-      keyPrefix: process.env.SOCKETIO_KEY_PREFIX || process.env.REDIS_KEY_PREFIX,
-    });
+    // build ws server with ready http instance and ws events from model controllers
+    await m.ws.build(m.server);
 
     m.log.info(`${APP_NAME} Backend v${APP_VERSION} is running`);
     return m;

@@ -107,6 +107,7 @@
     function getPasswordConfirmation() {
       var field = getPasswordModelField();
 
+      field.fieldName = 'passwordConfirmation';
       field.fullName = 'Verify Password';
       field.validate = [
         {
@@ -138,13 +139,9 @@
 
     // check for details https://jira.conceptant.com/browse/HC-1362
     function removeRegexValidator(field) {
-      var validatorIndex = _.findIndex(field.validate, function (o) {
-        return o.validator === 'regex'
+      field.validate = field.validate.filter(function (v) {
+        return v.validator !== 'regex'
       });
-
-      if (validatorIndex > -1) {
-        field.validate.splice(validatorIndex, 1);
-      }
     }
 
     return {

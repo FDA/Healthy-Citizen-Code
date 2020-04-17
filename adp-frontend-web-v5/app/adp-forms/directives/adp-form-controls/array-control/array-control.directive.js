@@ -113,10 +113,9 @@
           function () {
             if (scope.rootForm.$submitted) {
               scope.errorCount = getData().map(function (_v, i) {
-                var formToCount = scope.form[scope.field.fieldName + i];
-                var counter = AdpFormService.countErrors(formToCount);
-
-                return counter;
+                var formName = scope.field.fieldName + '[' + i + ']';
+                var formToCount = scope.form[formName];
+                return AdpFormService.countErrors(formToCount);
               });
             }
           });
@@ -230,9 +229,32 @@
         function moveToTop(event, index) {
           event.preventDefault();
 
-          reorder(0, index);
-          swapVisibilityStatus(0, index);
-          scope.$apply();
+          moveToFirstPosition(getData());
+          moveToFirstPosition(scope.visibilityStatus);
+
+          // WORKAROUND with setTimeout after angularjs changes dom,
+          // to ensure order of elements is correct
+          setTimeout(sortElements);
+
+          function moveToFirstPosition(list) {
+            var itemToMove = list.splice(index, 1)[0];
+            list.unshift(itemToMove);
+          }
+
+          function sortElements() {
+            var parent = element[0].querySelector('[array-sortable]');
+
+            _.toArray(parent.children)
+              .sort(function (a,b) {
+                var orderA = Number(a.getAttribute('ng-order'));
+                var orderB = Number(b.getAttribute('ng-order'));
+
+                return orderA > orderB ? 1 : -1;
+              })
+              .forEach(function (node) {
+                parent.appendChild(node)
+              });
+          }
         }
       }
     }

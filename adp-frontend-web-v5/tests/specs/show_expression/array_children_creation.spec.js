@@ -16,13 +16,13 @@ const {
 const selectorsChild0 = {
   a1: '[name="a1[0]"]',
   s1: '[name="a1[0]"] [name="s1"]',
-  b1: '[name="a1[0]"] [name="b1"]'
+  b1: '[name="a1[0]"] [ng-field-name="b1"]'
 };
 
 const selectorsChild1 = {
   a1: '[name="a1[1]"]',
   s1: '[name="a1[1]"] [name="s1"]',
-  b1: '[name="a1[1]"] [name="b1"]'
+  b1: '[name="a1[1]"] [ng-field-name="b1"]'
 };
 
 const getVisibilitySnapshot = selectors => {
@@ -64,7 +64,7 @@ describe('show expression', () => {
       'newly created items should have its own show attribute values',
       async () => {
         const clickCheckboxByIndex = async (index) => {
-          let checkboxSelector = `[name="a1[${index}]"] .checkbox`;
+          let checkboxSelector = `[name="a1[${index}]"] [ng-field-name="b1"] .dx-checkbox-icon`;
           await this.page.click(checkboxSelector);
         };
 

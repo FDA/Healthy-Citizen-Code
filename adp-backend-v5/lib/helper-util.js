@@ -36,6 +36,8 @@ module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
     DxSummaryCalculators: 'dx_summary.js',
     DxDataSources: 'dx_data_sources.js',
     DxCalculateFilterExpression: 'dx_calculate_filter_expression.js',
+    MenuActions: 'menu_actions.js',
+    MenuRenderers: 'menu_renderers.js',
   };
 
   /** appModelHelpers keys sent to frontend */
@@ -49,6 +51,8 @@ module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
     'DxSummaryCalculators',
     'DxDataSources',
     'DxCalculateFilterExpression',
+    'MenuActions',
+    'MenuRenderers',
   ];
 
   m.frontendHelperKeyToFileName = _.pick(m.helperKeyToFileName, m.frontendHelpersKeys);
@@ -79,8 +83,8 @@ module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
 
   function getExistingHelperFullPaths(fileName) {
     return helperDirPaths
-      .map(p => path.resolve(appRoot, `${p}/${fileName}`))
-      .filter(fullPath => fs.existsSync(fullPath));
+      .map((p) => path.resolve(appRoot, `${p}/${fileName}`))
+      .filter((fullPath) => fs.existsSync(fullPath));
   }
 
   function loadAppModelHelpers() {
@@ -94,7 +98,7 @@ module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
     });
 
     function loadHelper(existingHelperFullPaths, arg = appLib) {
-      const modules = existingHelperFullPaths.map(p => require(p)(arg));
+      const modules = existingHelperFullPaths.map((p) => require(p)(arg));
       return _.merge(...modules);
     }
   }
@@ -192,7 +196,7 @@ module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
       const helperArr = [];
       helperArr.push(`window.appModelHelpers['${helperKey}'] = {};`);
       if (helperPaths.length) {
-        const requireHelperPathsStr = helperPaths.map(helperPath => `require('${helperPath}')()`).join(',');
+        const requireHelperPathsStr = helperPaths.map((helperPath) => `require('${helperPath}')()`).join(',');
         helperArr.push(`Object.assign(window.appModelHelpers['${helperKey}'], ${requireHelperPathsStr});`);
       }
       return helperArr.join('\n');

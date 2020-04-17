@@ -110,42 +110,6 @@ describe('File Controller', function () {
     },
     {
       type: 'file',
-      size: 787,
-      name: 'adp-force-graph/adp-force-graph-3d.controller.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 27611,
-      name: 'adp-force-graph/adp-force-graph-3d.logic.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 3844,
-      name: 'adp-force-graph/adp-force-graph-vr.controller.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1402,
-      name: 'adp-force-graph/adp-force-graph.helpers.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 63,
-      name: 'adp-force-graph/adp-force-graph.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1877,
-      name: 'adp-force-graph/adp-webvowl.directive.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
       size: 1180,
       name: 'default/default.module.js',
       mimeType: 'application/javascript',

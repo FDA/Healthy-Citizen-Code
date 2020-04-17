@@ -32,7 +32,7 @@ function getLaunchOptions() {
 }
 
 function getUrlFor(section) {
-  return `${config.hostUrl}/#/${section}`;
+  return `${config.hostUrl}/${section}`;
 }
 
 function getUserCredentials() {
@@ -253,7 +253,7 @@ async function getFormErrorCountMessage(page) {
 }
 
 async function waitForContentRemovedFromDom(selector, page) {
-  await page.waitForFunction(s => !document.querySelector(s), {}, selector);
+  await page.waitForFunction(s => document.querySelector(s) === null, {}, selector);
 }
 
 module.exports = {

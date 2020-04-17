@@ -68,7 +68,7 @@
        throw new Error('Property fields in INTERFACE.main_menu not found.');
       }
 
-      return _.map(menuInterface.fields, function (item, fieldName) {
+      var items = _.map(menuInterface.fields, function (item, fieldName) {
         try {
           var stateName;
           var menuItem = {
@@ -77,6 +77,27 @@
             type: item.type,
             fieldName: fieldName
           };
+
+          _.each({menuOrder: "order", menuGroup: "group", className: "css"},
+            function (param, key) {
+              if (!_.isUndefined(item[key])) {
+                menuItem[param] = item[key];
+              }
+            });
+
+          _.each({action: "MenuActions", render: "MenuRenderers"},
+            function (helperType, attr) {
+              if (!_.isUndefined(item[attr])) {
+                var menuActionFn = _.get(appModelHelpers, helperType + "." + item[attr].link);
+
+                if (_.isFunction(menuActionFn)) {
+                  menuItem[attr] = function(unifiedArgs){
+                    var context = Object.assign({},unifiedArgs,{schema: item});
+                    return menuActionFn.call(context);
+                  }
+                }
+              }
+            });
 
           if (!_.isUndefined(item.link)) {
             if (_.startsWith(item.link, 'http')) {
@@ -103,6 +124,8 @@
           console.error('Menu item :', item);
         }
       });
+
+      return items.sort( menuItemsSorter );
     }
 
     /**
@@ -202,6 +225,13 @@
       if (APP_CONFIG.debug) {
         console.log.apply(console, arguments);
       }
+    }
+
+    function menuItemsSorter(itemA, itemB) {
+      var a = itemA.order || 1000000;
+      var b = itemB.order || 1000000;
+
+      return a === b ? 0 : a > b ? 1 : -1;
     }
   }
 })();

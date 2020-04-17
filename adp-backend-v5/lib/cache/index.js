@@ -39,19 +39,26 @@ module.exports = (options) => {
     }
   };
 
-  m.isCacheReady = () => {
+  m.isReady = () => {
     // RedisMock has field 'status', but has field cache.connected
     return m.cacheStorage && (m.cacheStorage.status === 'ready' || m.cacheStorage.connected);
   };
 
+  /**
+   *
+   * @param key
+   * @param value
+   * @returns {Promise<boolean>}
+   */
   m.setCache = async (key, value) => {
-    if (!m.isCacheReady()) {
-      return;
+    if (!m.isReady()) {
+      return false;
     }
 
     const keyWithPrefix = m.getKeyWithPrefix(key);
     try {
       await m.cacheStorage.set(keyWithPrefix, JSON.stringify(value));
+      return true;
     } catch (e) {
       log.error(`Unable to set value into cache by key: '${keyWithPrefix}'. Value: ${value}`, e.stack);
       throw e;
@@ -59,7 +66,7 @@ module.exports = (options) => {
   };
 
   m.getCache = async (key) => {
-    if (!m.isCacheReady() || !key) {
+    if (!m.isReady() || !key) {
       return null;
     }
 
@@ -79,7 +86,7 @@ module.exports = (options) => {
   };
 
   m.getKeys = async (keyPattern) => {
-    if (!m.isCacheReady() || !keyPattern) {
+    if (!m.isReady() || !keyPattern) {
       return null;
     }
     const allKeys = [];
@@ -96,7 +103,7 @@ module.exports = (options) => {
   };
 
   m.clearCacheByKeyPattern = async (keyPattern) => {
-    if (!m.isCacheReady() || !keyPattern) {
+    if (!m.isReady() || !keyPattern) {
       return null;
     }
     try {
@@ -110,8 +117,10 @@ module.exports = (options) => {
             unlinkPromises.push(m.cacheStorage.unlink(keys));
           }
         });
-        stream.on('end', () => {
-          resolve(Promise.all(unlinkPromises));
+        stream.on('end', async () => {
+          await Promise.all(unlinkPromises);
+          log.info(`Cleared cache by keyPattern '${keyPattern}'`);
+          resolve();
         });
       });
     } catch (e) {
@@ -122,9 +131,9 @@ module.exports = (options) => {
   m.clearCacheForModel = (modelName) => m.clearCacheByKeyPattern(`${modelName}:*`);
 
   m.keys = {
-    usersWithStatuses(permissions) {
+    usersWithPermissions(permissions) {
       const sortedPermissions = [...permissions].sort();
-      return `usersWithStatuses:${sortedPermissions.join(',')}`;
+      return `usersWithPermissions:${sortedPermissions.join(',')}`;
     },
     rolesToPermissions() {
       return 'rolesToPermissions';
@@ -140,8 +149,8 @@ module.exports = (options) => {
 
     const data = await getPromise();
     try {
-      await m.setCache(key, data);
-      log.debug(`Set value in cache by key: ${key}`);
+      const isSet = await m.setCache(key, data);
+      isSet && log.debug(`Set value in cache by key: ${key}`);
     } catch (e) {
       //
     }

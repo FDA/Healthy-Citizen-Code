@@ -13,6 +13,7 @@
     $location,
     AdpNotificationService,
     AdpAppModel,
+    AdpSocketIoService,
     ResponseError
   ) {
     return {
@@ -29,6 +30,7 @@
     function login(credentials) {
       return $http.post(APP_CONFIG.apiUrl + '/login', credentials)
         .then(setupAppForUser)
+        .then(AdpSocketIoService.login)
         .catch(function(err){
           if (err.xhrStatus === 'error') {
             throw new ResponseError('Unable to connect to the server. Please try again later');
@@ -44,6 +46,7 @@
     }
 
     function logout() {
+      AdpSocketIoService.logout();
       lsService.removeUserData();
       lsService.setGuestUserData();
 
@@ -51,7 +54,7 @@
         .then(function () {
           var authSetting = window.adpAppStore.appInterface().app.auth;
           if (authSetting.requireAuthentication) {
-            return $state.go('auth.login', {returnUrl: encodeURI($location.url())});
+            return $state.go('auth.login', { returnUrl: encodeURI($location.url()) });
           } else {
             $state.go($state.current.name, {}, {reload: 'app'});
           }
@@ -76,6 +79,10 @@
     }
 
     function handleUnauthorized() {
+      if (lsService.isGuest()) {
+        return;
+      }
+
       return logout()
         .then(function () {
           var message = getSessionExpMessage();

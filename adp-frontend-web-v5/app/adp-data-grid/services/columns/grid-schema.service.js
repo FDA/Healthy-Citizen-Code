@@ -6,7 +6,7 @@
     .factory('GridSchema', GridSchema);
 
   /** @ngInject */
-  function GridSchema() {
+  function GridSchema(GridOptionsHelpers) {
     function getFieldsForGrid(schema) {
       return filterFields(schema.fields, [
         _.toArray,
@@ -164,9 +164,22 @@
       return _.isNaN(val) ? undefined : val;
     }
 
+    function getSchemaForVisibleColumns(schema) {
+      var visibleColumns = GridOptionsHelpers.getVisibleColumnNames();
+      var resultSchema = _.cloneDeep(schema);
+
+      resultSchema.fields = {};
+      visibleColumns.forEach(function (name) {
+        resultSchema.fields[name] = schema.fields[name];
+      });
+
+      return resultSchema;
+    }
+
     return {
       getFieldsForGrid: getFieldsForGrid,
       getFieldsForDetailedView: getFieldsForDetailedView,
+      getSchemaForVisibleColumns: getSchemaForVisibleColumns,
     };
   }
 })();

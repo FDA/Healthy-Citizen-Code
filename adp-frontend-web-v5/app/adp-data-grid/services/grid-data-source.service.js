@@ -14,7 +14,8 @@
     $q,
     ErrorHelpers,
     ServerError,
-    GridOptionsHelpers
+    GridOptionsHelpers,
+    GridSchema
   ) {
     return function (options, schema, customOptions) {
       options.dataSource = { store: createStore(schema, customOptions) };
@@ -53,8 +54,6 @@
           var data = _.merge({}, keys, values);
           var cleanedData = cleanupData(data, schema);
 
-          _.unset(cleanedData, '_actions');
-
           return GraphqlCollectionMutator.update(schema, cleanedData)
             .catch(function (error) {
               ErrorHelpers.handleError(error, 'Unknown error, while trying to update record in cell editor');
@@ -66,7 +65,6 @@
 
     function registerColumnsVisibilityListener(options) {
       GridOptionsHelpers.onOptionChanged(options, function (e) {
-        console.log(e)
         var columnsVisibilityChanged = /^columns\[\d+\].visible$/.test(e.fullName);
         var changedToVisible = e.value === true;
 
@@ -81,15 +79,7 @@
         return schema;
       }
 
-      var visibleColumns = GridOptionsHelpers.getVisibleColumnNames();
-      var resultSchema = _.cloneDeep(schema);
-
-      resultSchema.fields = {};
-      visibleColumns.forEach(function (name) {
-        resultSchema.fields[name] = schema.fields[name];
-      });
-
-      return resultSchema;
+      return GridSchema.getSchemaForVisibleColumns(schema);
     }
 
     function getData(data) {
@@ -110,7 +100,16 @@
 
     function cleanupData(values, schema) {
       var data = _.cloneDeep(values);
-      [ '__KEY__', '_actions'].forEach(function (path) {
+
+      [
+        '__KEY__',
+        '__DX_INSERT_INDEX__',
+        '_actions',
+        'parentKey',
+        'pageIndex',
+        'rowIndex',
+        'dataRowIndex',
+      ].forEach(function (path) {
         _.unset(data, path);
       });
 

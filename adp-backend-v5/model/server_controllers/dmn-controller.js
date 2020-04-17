@@ -1,7 +1,3 @@
-const path = require('path');
-require('dotenv').config({
-  path: path.resolve(__dirname, '../.env'),
-});
 const _ = require('lodash');
 const Promise = require('bluebird');
 const { ObjectID } = require('mongodb');
@@ -9,9 +5,11 @@ const log = require('log4js').getLogger('dmn-controller');
 const uuidv4 = require('uuid/v4');
 
 const { getDocValueForExpression } = require('../../lib/util/util');
-const { initJavaInstance, getValidatedDmnUtilInstance, emitBackgroundJobEvent } = require('../../lib/dmn/dmn-util');
-const processorContext = require('../../lib/dmn/dmn-processor-context');
+const { initJavaInstance, getValidatedDmnUtilInstance } = require('../../lib/dmn/dmn-util');
+const { addLogsAndNotificationsForQueueEvents } = require('../../lib/util/backgroundJobs');
+const { getOrCreateContext } = require('../../lib/graphql/background-jobs/processors/processor-context');
 
+const processorContext = getOrCreateContext('dmnContext');
 const { setCommonContext, set: setProcessorContext } = processorContext;
 
 const DMN_QUEUE_NAME = 'dmnRunner';
@@ -22,8 +20,14 @@ const ruleCollectionName = 'businessRules';
 module.exports = () => {
   const m = {};
 
-  m.init = async appLib => {
+  m.init = async (appLib) => {
+    if (!appLib.queue.isReady()) {
+      log.warn(`DMN runner is disabled due to required Bull queue is disabled`);
+      return;
+    }
+
     if (process.env.JAVA_ENABLE !== 'true') {
+      log.warn(`DMN runner is disabled due to required JAVA is disabled`);
       return;
     }
 
@@ -41,50 +45,12 @@ module.exports = () => {
 
   function createDmnQueue() {
     m.dmnRunnerQueue = m.appLib.queue.createQueue(DMN_QUEUE_NAME);
-    m.dmnRunnerQueue
-      .on('progress', (job, progress) => log.info(`Job with id ${job.id} progress is ${progress}`))
-      .on('error', error => log.error(`Bull error occurred.`, error.stack))
-      .on('completed', async job => {
-        const message = `Job with id ${job.id} successfully completed`;
-        log.info(message);
-        emitBackgroundJobEvent(m.appLib, {
-          creatorId: job.data.creator._id,
-          level: 'info',
-          message,
-          data: { jobId: job.id },
-        });
-      })
-      .on('failed', async (job, error) => {
-        log.error(`Error occurred for job with id ${job.id}.`, error.stack);
-        emitBackgroundJobEvent(m.appLib, {
-          creatorId: job.data.creator._id,
-          level: 'error',
-          message: `Error occurred for job with id ${job.id}. ${error.message}`,
-          data: { jobId: job.id },
-        });
-      })
-      .on('stalled', job => {
-        const message = `Job with id ${job.id} progress is stalled`;
-        log.warn(message);
-        emitBackgroundJobEvent(m.appLib, {
-          creatorId: job.data.creator._id,
-          level: 'warning',
-          message,
-          data: { jobId: job.id },
-        });
-      })
-      .on('active', job => {
-        const message = `Job with id ${job.id} has started`;
-        log.info(message);
-        emitBackgroundJobEvent(m.appLib, {
-          creatorId: job.data.creator._id,
-          level: 'info',
-          message,
-          data: { jobId: job.id },
-        });
-      });
+    addLogsAndNotificationsForQueueEvents(m.appLib, m.dmnRunnerQueue, log);
 
-    m.dmnRunnerQueue.process(dmnRunnerConcurrency, require('../../lib/dmn/dmn-queue-processor')(processorContext));
+    m.dmnRunnerQueue.process(
+      dmnRunnerConcurrency,
+      require('../../lib/graphql/background-jobs/processors/dmn-queue-processor')(processorContext)
+    );
   }
 
   m.runDmnRule = async (req, res) => {

@@ -99,7 +99,7 @@ function isTrueCondition(c) {
 
 function mapValuesDeep(obj, handler) {
   if (_.isArray(obj)) {
-    return obj.map(innerObj => mapValuesDeep(innerObj, handler));
+    return obj.map((innerObj) => mapValuesDeep(innerObj, handler));
   }
   if (_.isPlainObject(obj)) {
     return _.reduce(
@@ -137,7 +137,7 @@ function isValidObjectId(id) {
 }
 
 function stringifyObjectId(obj) {
-  const valHandler = val => {
+  const valHandler = (val) => {
     if (isValidObjectId(val)) {
       return val.toString();
     }
@@ -183,9 +183,9 @@ function getMongoDuplicateErrorMessage(err, models) {
   const schemaFieldFullName = _.get(schemaField, 'fullName', indexField);
   const schemaFullName = schema.fullName;
   if (errorValue === 'null') {
-    return `Unable to process. A '${schemaFullName}' with empty '${schemaFieldFullName}' already exists`;
+    return `Unable to process. '${schemaFullName}' record with empty '${schemaFieldFullName}' already exists`;
   }
-  return `Unable to process. A '${schemaFullName}' with the '${schemaFieldFullName}' '${errorValue}' already exists`;
+  return `Unable to process. '${schemaFullName}' record with the '${schemaFieldFullName}' '${errorValue}' already exists`;
 }
 
 const defaultArgsAndValuesForInlineCode = {
@@ -203,7 +203,7 @@ function getDocValueForExpression(doc, expression) {
 }
 
 function stringifyLog(obj, space) {
-  const valHandler = value => {
+  const valHandler = (value) => {
     if (value instanceof RegExp) {
       return value.toString();
     }
@@ -239,7 +239,7 @@ function getJsonPathByFullModelPath(models, modelPath) {
   const schemeName = mPath.shift();
   let curScheme = models[schemeName];
   const jsonPath = [];
-  _.each(mPath, pathPart => {
+  _.each(mPath, (pathPart) => {
     curScheme = curScheme[pathPart];
     if (pathPart !== 'fields') {
       if (curScheme.type === 'Array') {
@@ -257,7 +257,7 @@ function getMongoPathByFullModelPath(models, modelPath) {
   const schemeName = mPath.shift();
   let curScheme = models[schemeName];
   const mongoPath = [];
-  _.each(mPath, pathPart => {
+  _.each(mPath, (pathPart) => {
     curScheme = curScheme[pathPart];
     if (pathPart !== 'fields') {
       if (curScheme.type === 'Array') {
@@ -273,7 +273,7 @@ function getMongoPathByFullModelPath(models, modelPath) {
 function getItemPathByFullModelPath(modelPath) {
   return modelPath
     .slice(1)
-    .filter(p => p !== 'fields')
+    .filter((p) => p !== 'fields')
     .join('.');
 }
 
@@ -302,7 +302,7 @@ function updateSearchConditions(searchConditions, fields, term) {
   if (!_.isString(term) || !term.length) {
     return;
   }
-  fields.forEach(field => {
+  fields.forEach((field) => {
     const condition = {};
     /* eslint-disable security/detect-non-literal-regexp */
     condition[field] = new RegExp(`${term || ''}.*`, 'i');
@@ -311,7 +311,7 @@ function updateSearchConditions(searchConditions, fields, term) {
 }
 function isMongoReplicaSet(mongooseCon) {
   const isStandalone = [...mongooseCon.db.s.topology.s.description.servers.values()]
-    .map(s => s.type)
+    .map((s) => s.type)
     .includes('Standalone');
   return !isStandalone;
 }

@@ -1,29 +1,25 @@
 {
   "validatorShortcuts": {
     "dischargeDispositionAndStatusExpired": {
-      "arguments": {
-      },
+      "arguments": {},
       "errorMessages": {
         "default": "If 'Discharge Disposition' = 'Expired' then 'Discharge Status' = 'Expired'"
       }
     },
     "notBeforeEncounterAdmissionDate": {
-      "arguments": {
-      },
+      "arguments": {},
       "errorMessages": {
         "default": "This date cannot be before encounter Admission Date ($date)"
       }
     },
     "notAfterEncounterDischargeDate": {
-      "arguments": {
-      },
+      "arguments": {},
       "errorMessages": {
         "default": "This date cannot be after encounter Discharge Date ($date)"
       }
     },
     "homeLabsTestResultUnit": {
-      "arguments": {
-      },
+      "arguments": {},
       "errorMessages": {
         "default": "Incorrect result test unit",
         "1": "Blood Glucose test result is measured in mg/dL",

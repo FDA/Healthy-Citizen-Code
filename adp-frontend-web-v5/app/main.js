@@ -101,22 +101,11 @@
         if (error.status === 401) {
           lsService.removeUserData();
           lsService.setGuestUserData();
-          _setRedirect();
 
           return getModel();
         } else {
           console.log('Unexpected error on model fetch.', error);
         }
       });
-  }
-
-  function _setRedirect() {
-    var redirectUrl = window.location.hash.replace(/#\/(.*)/, function (_a, url) {
-      return url;
-    });
-
-    if (redirectUrl) {
-      window.location.hash = '/login?returnUrl=' + decodeURI(redirectUrl);
-    }
   }
 })(window);

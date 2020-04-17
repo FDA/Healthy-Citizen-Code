@@ -109,14 +109,6 @@ const libraries = {
   'bpmn-js': {
     entry: './src/bpm/bpmnjs.js',
   },
-  'force-graph': {
-    entry: './src/force-graph/force-graph.js',
-    pluginsConfig: {
-      CopyWebpackPlugin: [
-        {context: './src/force-graph', from: 'img/!*'},
-      ],
-    },
-  },
   'web-vowl': {
     entry: {
       webvowl: './src/WebVOWL/src/webvowl/js/entry.js',
@@ -138,50 +130,6 @@ const libraries = {
         d3: 'd3',
       },
     },
-  },
-  'export3d': {
-    context: `${rootPath}/export3d-template`,
-    entry: {
-      tmpl: './js/index.js'
-    },
-    output: {
-      path: `${rootPath}/export3d-template/out`,
-      filename: '[name].js'
-    },
-    module: {
-      rules: [
-        rules.babelJs,
-        {
-          test: /\.(service|logic|helpers)\.js$/,
-          use: [{
-            loader: `${rootPath}/export3d-template/adp-loader.js`
-          }]
-        },
-        rules.css,
-        rules.less,
-        {
-          test: /\.(jpg|png|ttf|eot|svg|otf|woff|woff2)/,
-          loader: 'base64-inline-loader?name=[name].[ext]'
-        },
-      ]
-    },
-    pluginsConfig: {
-      HtmlWebpackPlugin: {
-        template: './index.html',
-        inlineSource: '.(js|css|png)$'
-      },
-      HtmlWebpackInlineSourcePlugin: '',
-      ProvidePlugin: {
-        $: 'jquery',
-        _: 'lodash'
-      },
-      DefinePlugin: {
-        'DEVELOPMENT_MODE_TEST_DATA': JSON.stringify(developerMode)
-      },
-      ShellPlugin: {
-        onBuildEnd: {scripts:[ 'cp model/lib/export3d-template/out/index.html model/public/js/lib/force-graph/export-template.html']}
-      }
-    }
   }
 };
 const customMerger = (objValue, srcValue) => {

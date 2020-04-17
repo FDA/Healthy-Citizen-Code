@@ -2,7 +2,7 @@ const _ = require('lodash');
 const RJSON = require('relaxed-json');
 const { ValidationError } = require('../errors');
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {};
 
   function getFilterForField(fieldPath, operation, value, scheme, wholeFilter) {
@@ -42,7 +42,7 @@ module.exports = appLib => {
     function getSchemePathByFieldPath(_fieldPath) {
       const parts = _fieldPath.split('.');
       const _schemePath = ['fields'];
-      _.each(parts, part => {
+      _.each(parts, (part) => {
         const isArrIndexPart = /^\d+$/.test(part);
         if (!isArrIndexPart) {
           _schemePath.push(part);
@@ -78,28 +78,39 @@ module.exports = appLib => {
     }
   }
 
+  const customUnaryOperations = {
+    undefined(fieldPath) {
+      return { [fieldPath]: null };
+    },
+    notUndefined(fieldPath) {
+      return { [fieldPath]: { $ne: null } };
+    },
+  };
+
   /**
    * Devexterme filter expression parser.
    * Expression types^
+   * 0. Truth check:
+   *  - 'fieldPath' => { fieldPath: { $eq: true } }
+   *  - ['fieldPath'] => { fieldPath: { $eq: true } }
    * 1. Unary:
-   * - Truth check
-   *    'fieldName' => { fieldName: { $eq: true } }
-   *    ['fieldName'] => { fieldName: { $eq: true } }
-   * - logical NOT ['!', 'fieldName'] => { fieldName: { $eq: true } }
+   * - logical NOT ['!', _expression_] => { $nor: [_expression_] }
+   * - custom unary operations defined in customUnaryOperations
    *
    * 2. Binary
    * - Expression with length of three:
    *  [leftOperand, operator, rightOperand]
    *
-   * leftOperand {String} - fieldName or other nested expression
+   * leftOperand {String} - fieldPath or other nested expression
    * rightOperand {any} - comparision value or other nested expression
    *
-   * operator {String}:
-   *  - 'and' | 'or' - in most cases expression is nested
-   *  - '=', '<>'(not equal), '>', '>=', '<', '<=', 'contains', 'notcontains', 'startswith', 'endswith'
+   * operators:
+   *  - 'and' | 'or' - logical operators
+   *  - type operators defined model/helpers/filters.
+   *  For example default operators for String are '=', '<>'(not equal), '>', '>=', '<', '<=', 'contains', 'notcontains', 'startswith', 'endswith'
+   *  Default operators might be redefined.
    *
    * - Expression with length of three+
-   *
    * It assumed that that this is a chain of "or" or "and" -
    *  either one or the other, no combinations
    *  [nestedExpression, operator, nestedExpression, operator, ...rest]
@@ -142,13 +153,21 @@ module.exports = appLib => {
 
     const isUnaryOperator = expression.length === 2;
     if (isUnaryOperator) {
-      if (expression[0] !== '!') {
-        throw new ValidationError(
-          `Invalid unary operator ${expression[0]}. Element with size=2 must have unary operator '!' on first place.`
-        );
+      if (expression[0] === '!') {
+        const nor = parse(expression[1], scheme, wholeExpression);
+        return nor ? { $nor: [nor] } : null;
       }
-      const nor = parse(expression[1], scheme, wholeExpression);
-      return nor ? { $nor: [nor] } : null;
+
+      const fieldPath = expression[0];
+      const operationName = expression[1];
+      const unaryOperation = customUnaryOperations[operationName];
+      if (unaryOperation) {
+        return unaryOperation(fieldPath);
+      }
+
+      // Extend the array size to three to handle "unary" operations specific for fieldPath type.
+      // For example ['string', 'empty'] to ['string', 'empty', undefined] since value does not matter.
+      expression.push(undefined);
     }
 
     if (expression.length % 2 !== 1) {
@@ -157,9 +176,9 @@ module.exports = appLib => {
 
     // odd number of expressions - must be single connecting operator
     const operator = expression[1];
-    const isLogicOperator = ['and', 'or'].includes(operator);
+    const isLogicalOperator = ['and', 'or'].includes(operator);
 
-    if (isLogicOperator) {
+    if (isLogicalOperator) {
       const hasAnotherOperator = expression.find((el, i) => i % 2 === 1 && el.toLowerCase() !== operator);
 
       if (hasAnotherOperator) {
@@ -172,8 +191,8 @@ module.exports = appLib => {
 
       result[`$${operator}`] = expression
         .filter((el, i) => i % 2 === 0)
-        .map(el => parse(el, scheme))
-        .map(cond => cond);
+        .map((el) => parse(el, scheme))
+        .map((cond) => cond);
 
       return result;
     }

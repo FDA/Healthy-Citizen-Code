@@ -3,13 +3,13 @@
  */
 
 module.exports = function () {
-    var _ = require('lodash');
+  var _ = require('lodash');
 
-    var m = {
-        "study": function (study) {
-            return _.get(study, 'studyName', "Unknown Study");
-        }
-    };
+  var m = {
+    study: function (study) {
+      return _.get(study, 'studyName', 'Unknown Study');
+    },
+  };
 
-    return m;
+  return m;
 };

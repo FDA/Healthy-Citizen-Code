@@ -35,7 +35,7 @@ describe('login', () => {
       await loginWithUser(this.page);
 
       const url = urlParse(this.page.url(), true);
-      expect(url.hash).toBe('#/home');
+      expect(url.pathname).toBe('/home');
 
       const hasLocalStorageVals = await this.page.evaluate(
         () => !!localStorage.getItem('ls.user') && !!localStorage.getItem('ls.token')
@@ -58,7 +58,6 @@ describe('login', () => {
         this.page.click('button[type="submit"]'),
         this.page.waitForSelector(errorBoxSelector),
         this.page.waitForSelector(formWithErrorSelector),
-
       ]);
 
       const errorMessageText = await errorNode.evaluate(node => node.innerText)

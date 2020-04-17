@@ -1,0 +1,62 @@
+{
+  "models": {
+    "userPreferences": {
+      "type": "Schema",
+      "fullName": "User preferences",
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        }
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "upsert": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "indexes": {
+        "primaryIndex": {
+          "keys": {
+            "type": 1,
+            "creator._id": 1
+          },
+          "options": {
+            "unique": true
+          }
+        }
+      },
+      "fields": {
+        "type": {
+          "type": "String",
+          "fullName": "Preferences type",
+          "required": "1"
+        },
+        "preferences": {
+          "type": "Mixed",
+          "fullName": "Preferences of the given type",
+          "required": "0"
+        }
+      }
+    }
+  }
+}

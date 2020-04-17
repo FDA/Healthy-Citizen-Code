@@ -14,7 +14,7 @@
         var INTERFACE = window.adpAppStore.appInterface();
 
         scope.apiUrl = APP_CONFIG.apiUrl;
-        scope.logoSrc = INTERFACE.app.logo.small === 'none' ? '' : INTERFACE.app.logo.small;
+        scope.logoSrc = INTERFACE.app.header.components.logo ? INTERFACE.app.logo.small : '';
         scope.title = INTERFACE.app.title;
       }
     }

@@ -5,8 +5,8 @@
       "fullName": "Questionnaires",
       "limitReturnedRecords": 50,
       "description": "Contains various questionnaires",
-      actions: {
-        fields: {
+      "actions": {
+        "fields": {
           "update": {
             "permissions": "accessAsUser"
           },
@@ -63,7 +63,6 @@
           "formRender": {
             "formRenderer": "questionaire"
           }
-
         },
         "pools": {
           "fullName": "Assigned to Pools",

@@ -134,7 +134,7 @@
       "fields": {
         "type": {
           "description": "Icon type: font-awesome, in the future: image etc",
-          "list": ["font-awesome"],
+          "list": ["font-awesome", "image", "class"],
           "default": "font-awesome"
         }
       }
@@ -458,6 +458,10 @@
       "type": "Number",
       "fullName": "Detailed View Order",
       "description": "Determines field order in detailed view."
+    },
+    "indexes": {
+      "fullName": "Indexes specification",
+      "description": "Specification in format { 'anyKeyJustToDistinguishIndexSpecs': { keys, options } } is passed as createIndex(keys, options) for current collection. More info - https://docs.mongodb.com/manual/reference/method/db.collection.createIndex"
     }
   }
 }

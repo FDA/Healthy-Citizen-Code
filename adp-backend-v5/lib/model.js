@@ -31,7 +31,7 @@ const {
 const { combineModels } = require('./util/model');
 const { getSchemaPaths, getSchemaNestedPaths } = require('./util/env');
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {};
 
   function ObjectIdOrScalar(key, options) {
@@ -40,7 +40,7 @@ module.exports = appLib => {
 
   ObjectIdOrScalar.prototype = Object.create(mongoose.SchemaType.prototype);
 
-  ObjectIdOrScalar.prototype.cast = val => {
+  ObjectIdOrScalar.prototype.cast = (val) => {
     if (!_.isNumber(val) && !_.isString(val) && !_.isBoolean(val) && !(_.get(val, 'constructor.name') === 'ObjectID')) {
       throw new Error(`${val} is not an objectId instance or scalar type`);
     }
@@ -219,7 +219,6 @@ module.exports = appLib => {
       }
 
       setMongooseIndexesByScheme(obj, mongooseModel, name);
-
       if (_.has(obj, 'list')) {
         if (appLib.appModelHelpers.Lists[obj.list]) {
           if (_.isString(appLib.appModelHelpers.Lists[obj.list])) {
@@ -296,7 +295,7 @@ module.exports = appLib => {
    * then this is the app schema author's mistake.
    * More info: https://confluence.conceptant.com/display/DEV/Object+and+Array+Types
    */
-  m.validateRequiredFields = models => {
+  m.validateRequiredFields = (models) => {
     const allErrors = [];
     _.each(models, (model, modelName) => {
       const hasRequiredParent = false;
@@ -309,8 +308,8 @@ module.exports = appLib => {
 
     function getFieldsErrors(part, path, hasRequiredParent) {
       const fieldsErrors = [];
-      const validTypesGoDeeper = ['Schema', 'Object', 'Array'];
-      if (!validTypesGoDeeper.includes(part.type)) {
+      const validTypesToGoDeeper = ['Schema', 'Object', 'Array'];
+      if (!validTypesToGoDeeper.includes(part.type)) {
         return fieldsErrors;
       }
 
@@ -318,7 +317,7 @@ module.exports = appLib => {
       _.each(part.fields, (field, fieldName) => {
         const isFieldRequired = field.required === true;
         isPartHasRequiredFields = isPartHasRequiredFields || isFieldRequired;
-        if (validTypesGoDeeper.includes(field.type)) {
+        if (validTypesToGoDeeper.includes(field.type)) {
           const nestedFieldsErrors = getFieldsErrors(field, _.concat(path, fieldName), isFieldRequired);
           fieldsErrors.push(...nestedFieldsErrors);
         }
@@ -353,7 +352,7 @@ module.exports = appLib => {
 
     if (appLib.appModel.interface) {
       validateInterfaceParts(appLib.appModel.interface, []); // TODO: add test for this
-      _.each(['loginPage', 'charts', 'pages'], interfacePart => {
+      _.each(['loginPage', 'charts', 'pages'], (interfacePart) => {
         if (appLib.appModel.interface[interfacePart]) {
           validateInterfaceParts(appLib.appModel.interface[interfacePart], [interfacePart]);
         }
@@ -397,7 +396,9 @@ module.exports = appLib => {
       part.type = _.get(part, 'type', appLib.appModel.metaschema.type.default);
       const defaults = _.get(appLib.appModel, ['typeDefaults', 'fields', part.type], {});
       _.mergeWith(part, defaults, doNotOverwrite);
-      if (_.has(part, 'subtype')) {
+      const { subtype } = part;
+      const isBackwardCompatibilitySubtype = subtype === part.type;
+      if (subtype && !isBackwardCompatibilitySubtype) {
         const subtypeDefaults = _.get(appLib.appModel, `subtypeDefaults.fields.${part.subtype}`, {});
         _.mergeWith(part, subtypeDefaults, doNotOverwrite);
         // _.merge(part, defaults);
@@ -495,7 +496,7 @@ module.exports = appLib => {
         if (typeof part.validate === 'string') {
           part.validate = [part.validate];
         }
-        part.validate = _.map(part.validate, handler => {
+        part.validate = _.map(part.validate, (handler) => {
           /* eslint-disable security/detect-unsafe-regex */
           const matches = _.isString(handler) ? handler.match(/^([a-zA-Z_][a-zA-Z0-9_]*)(\((.*)\))?$/) : null;
           let handlerSpec;
@@ -505,7 +506,7 @@ module.exports = appLib => {
             if (appLib.appModel.validatorShortcuts[handlerName]) {
               handlerSpec = {
                 validator: handlerName,
-                arguments: _.mapValues(appLib.appModel.validatorShortcuts[handlerName].arguments, o =>
+                arguments: _.mapValues(appLib.appModel.validatorShortcuts[handlerName].arguments, (o) =>
                   o.replace(/\$(\d+)/g, (match, p1) => matchedArguments[parseInt(p1, 10) - 1])
                 ),
                 errorMessages: appLib.appModel.validatorShortcuts[handlerName].errorMessages,
@@ -521,7 +522,7 @@ module.exports = appLib => {
           return handlerSpec;
         });
         // make sure all validators exist
-        _.each(part.validate, val => {
+        _.each(part.validate, (val) => {
           if (_.get(val, 'validator') && !_.has(appLib.appModelHelpers.Validators, val.validator)) {
             errors.push(`Validator "${val.validator}" doesn't exist in ${path.join('.')}`);
           }
@@ -552,7 +553,7 @@ module.exports = appLib => {
      */
     function makeSureAllTransformersExist(part, path) {
       if (_.has(part, 'transform')) {
-        _.each(part.transform, val => {
+        _.each(part.transform, (val) => {
           if (_.isArray(val)) {
             if (!_.has(appLib.appModelHelpers.Transformers, val[0])) {
               errors.push(`Transformer "${val[0]}" doesn't exist in ${path.join('.')}`);
@@ -577,7 +578,7 @@ module.exports = appLib => {
     function generateLookupId(path) {
       return _(path)
         .difference(['fields'])
-        .map(v => _.capitalize(v))
+        .map((v) => _.capitalize(v))
         .value()
         .join('');
     }
@@ -645,7 +646,7 @@ module.exports = appLib => {
         }
 
         const sourceTable = path[0];
-        _.each(part.lookup.table, tableLookup => {
+        _.each(part.lookup.table, (tableLookup) => {
           transformLookupScopes(tableLookup);
           transformLookupLabels(tableLookup);
           transformLookupSortBy(tableLookup);
@@ -718,7 +719,7 @@ module.exports = appLib => {
         if (!part.lookup.table) {
           errors.push(`Lookup in ${path.join('.')} doesn't have property "table"`);
         } else {
-          _.each(part.lookup.table, tableLookup => {
+          _.each(part.lookup.table, (tableLookup) => {
             validateTableLookup(tableLookup);
           });
           validateLookupId(part.lookup, path);
@@ -752,7 +753,7 @@ module.exports = appLib => {
             tableLookupErrors.push(`Lookup in ${pathStr} refers to nonexisting foreignKey "${foreignKey}"`);
           }
 
-          const fieldsInLabel = (label.match(/this\.\w+/gi) || []).map(s => s.replace('this.', ''));
+          const fieldsInLabel = (label.match(/this\.\w+/gi) || []).map((s) => s.replace('this.', ''));
           const missedFields = fieldsInLabel.reduce((res, fieldInLabel) => {
             if (!model.fields[fieldInLabel]) {
               res.push(fieldInLabel);
@@ -839,6 +840,10 @@ module.exports = appLib => {
     }
 
     function addValidatorForConditionalRequired(part) {
+      if (!part.required) {
+        return;
+      }
+
       const requiredValidator = {
         validator: 'required',
         arguments: {},
@@ -846,13 +851,10 @@ module.exports = appLib => {
           default: 'Field is required',
         },
       };
-
-      if (_.isString(part.required)) {
-        if (part.validate) {
-          part.validate.push(requiredValidator);
-        } else {
-          part.validate = [requiredValidator];
-        }
+      if (_.isArray(part.validate)) {
+        part.validate.push(requiredValidator);
+      } else {
+        part.validate = [requiredValidator];
       }
     }
 
@@ -888,7 +890,7 @@ module.exports = appLib => {
       if (part.type && part.type !== 'Schema') {
         const visible = part.visible === true || part.visible === undefined;
 
-        ['showInDatatable', 'showInViewDetails', 'showInForm', 'showInGraphql'].forEach(showField => {
+        ['showInDatatable', 'showInViewDetails', 'showInForm', 'showInGraphql'].forEach((showField) => {
           const isShowFieldSpecified = part[showField] !== undefined;
           if (!isShowFieldSpecified) {
             part[showField] = visible;
@@ -909,7 +911,7 @@ module.exports = appLib => {
           return errors.push(`Attribute 'order' must be a number for path '${path.join('.')}'`);
         }
 
-        ['formOrder', 'datagridOrder', 'detailedViewOrder'].forEach(orderField => {
+        ['formOrder', 'datagridOrder', 'detailedViewOrder'].forEach((orderField) => {
           const isOrderFieldSpecified = part[orderField] !== undefined;
           if (!isOrderFieldSpecified) {
             part[orderField] = order;
@@ -1022,7 +1024,7 @@ module.exports = appLib => {
         },
         []
       );
-      _.each(supportsExternalData, reference => {
+      _.each(supportsExternalData, (reference) => {
         const ref = _.get(part, reference);
         if (!_.isPlainObject(ref)) {
           return;
@@ -1070,7 +1072,7 @@ module.exports = appLib => {
         });
 
         // set admin permissions for default actions if not exists
-        _.each(appLib.accessCfg.DEFAULT_ACTIONS, action => {
+        _.each(appLib.accessCfg.DEFAULT_ACTIONS, (action) => {
           if (!actions.fields[action] || !actions.fields[action].permissions) {
             _.set(actions.fields, `${action}.permissions`, appLib.accessCfg.PERMISSIONS.accessAsSuperAdmin);
           }
@@ -1216,7 +1218,7 @@ module.exports = appLib => {
 
       // schema actions
       const actionFields = _.get(part, 'actions.fields');
-      _.each(actionFields, val => {
+      _.each(actionFields, (val) => {
         const actionPermissions = _.get(val, 'permissions');
         addToUsedPermissions(actionPermissions);
       });
@@ -1224,7 +1226,7 @@ module.exports = appLib => {
       // add lookup scopes
       if (part.type.startsWith('LookupObjectID')) {
         const lookups = _.get(part, 'lookup.table');
-        _.each(lookups, lookup => {
+        _.each(lookups, (lookup) => {
           addPermissionsFromScopes(lookup);
         });
       }
@@ -1236,7 +1238,7 @@ module.exports = appLib => {
 
       function addPermissionsFromScopes(aPart) {
         const scopeFields = _.get(aPart, 'scopes');
-        _.each(scopeFields, scopeObj => {
+        _.each(scopeFields, (scopeObj) => {
           const scopePermissions = _.get(scopeObj, 'permissions');
           addToUsedPermissions(scopePermissions);
         });
@@ -1250,7 +1252,7 @@ module.exports = appLib => {
         if (_.isString(permissions)) {
           appLib.appModel.usedPermissions.add(permissions);
         } else if (Array.isArray(permissions)) {
-          _.flattenDeep(permissions).forEach(permission => {
+          _.flattenDeep(permissions).forEach((permission) => {
             if (_.isString(permission)) {
               appLib.appModel.usedPermissions.add(permission);
             } else {
@@ -1258,7 +1260,7 @@ module.exports = appLib => {
             }
           });
         } else if (_.isPlainObject(permissions)) {
-          _.each(permissions, objPermission => {
+          _.each(permissions, (objPermission) => {
             addToUsedPermissions(objPermission);
           });
         }
@@ -1498,7 +1500,7 @@ module.exports = appLib => {
 
         const urlBeginnings = ['http://', 'https://', '/'];
 
-        const isNameUrl = urlBeginnings.some(b => name.startsWith(b));
+        const isNameUrl = urlBeginnings.some((b) => name.startsWith(b));
         if (isNameUrl) {
           list.name = getListFullUrl(name);
           list.isDynamicList = true;
@@ -1510,7 +1512,7 @@ module.exports = appLib => {
           list.isDynamicList = false;
           return;
         }
-        const isListReferenceUrl = urlBeginnings.some(b => listReference.startsWith(b));
+        const isListReferenceUrl = urlBeginnings.some((b) => listReference.startsWith(b));
         if (isListReferenceUrl) {
           list.name = getListFullUrl(listReference);
           list.isDynamicList = true;
@@ -1525,7 +1527,7 @@ module.exports = appLib => {
           }
 
           const appUrl = process.env.APP_URL;
-          const isValidAppUrl = appUrl && ['http://', 'https://'].some(b => appUrl.startsWith(b));
+          const isValidAppUrl = appUrl && ['http://', 'https://'].some((b) => appUrl.startsWith(b));
           if (!isValidAppUrl) {
             errors.push(
               `Param 'APP_URL' must be valid (startsWith 'http://' or 'https://') to build a full url for dynamic list with a short url '${url}'`
@@ -1536,7 +1538,7 @@ module.exports = appLib => {
       }
 
       function handleScopes(list) {
-        _.each(list.scopes, scope => {
+        _.each(list.scopes, (scope) => {
           scope.where = scope.where || 'return true';
           scope.return = scope.return || 'return $list';
         });
@@ -1625,7 +1627,7 @@ module.exports = appLib => {
       if (typeof model.schemaTransform === 'string') {
         model.schemaTransform = [model.schemaTransform];
       }
-      model.schemaTransform.forEach(transformer => {
+      model.schemaTransform.forEach((transformer) => {
         schemaTransformers[transformer](schema);
       });
     }
@@ -1633,6 +1635,42 @@ module.exports = appLib => {
     return schema;
   };
 
+  // For now we have adp hooks and mongoose hooks
+  // Adp hooks are invoked in methods defined in dba, so if model code queries the database without using dba methods hooks are not invoked
+  // Mongoose hooks are convenient for code in models, since using mongoose save new record invokes hooks
+  // We going to refuse using mongoose in the future
+  // TODO: in future rewrite all models' code to use only dba methods and add new dba methods if existing ones don't cover all needs
+  m.getCollectionToMongooseMiddlewares = () => {
+    const clearCacheForUsersWithPermissions = function () {
+      return appLib.cache.clearCacheByKeyPattern(`usersWithPermissions:*`);
+    };
+
+    // some of queries may trigger updating linked records
+    // i.e. 'remove' role may trigger 'updateMany' users which results in 2 function invocations
+    // in a good way function should be invoked only once and in same transaction in which main queries are executed
+    const queryMiddlewares = [
+      'findOneAndDelete',
+      'findOneAndRemove',
+      'findOneAndUpdate',
+      'remove',
+      'update',
+      'updateOne',
+      'updateMany',
+      'deleteMany',
+      'deleteOne',
+    ];
+    const docMiddlewares = ['save', 'remove', 'updateOne', 'deleteOne'];
+
+    const clearUserWithStatusesAfterWriteHook = function (schema) {
+      schema.post(queryMiddlewares, { query: true, document: false }, clearCacheForUsersWithPermissions);
+      schema.post(docMiddlewares, { query: false, document: true }, clearCacheForUsersWithPermissions);
+    };
+
+    return {
+      users: (schema) => clearUserWithStatusesAfterWriteHook(schema),
+      roles: (schema) => clearUserWithStatusesAfterWriteHook(schema),
+    };
+  };
   /**
    * Generates mongoose models based on models JSON and puts them in m.mongooseModels hash
    * Note that some methods require m.mongoos_models to be populated before they work correctly
@@ -1640,8 +1678,9 @@ module.exports = appLib => {
    * @param models JSON defining the model
    * @param isOverride
    */
-  m.generateMongooseModels = (db, models, isOverride) =>
-    Promise.map(Object.entries(models), ([name, model]) => {
+  m.generateMongooseModels = (db, models, isOverride) => {
+    const collectionToMongooseMiddlewares = m.getCollectionToMongooseMiddlewares();
+    return Promise.map(Object.entries(models), async ([name, model]) => {
       try {
         const collectionName = name;
         const mongooseModelName = name;
@@ -1650,22 +1689,28 @@ module.exports = appLib => {
         if (isOverride) {
           delete db.models[mongooseModelName];
         }
+
+        const addMongooseMiddlewares = collectionToMongooseMiddlewares[mongooseModelName];
+        if (addMongooseMiddlewares) {
+          await addMongooseMiddlewares(schema);
+        }
         return db.model(mongooseModelName, schema);
       } catch (e) {
         log.error('MDL001', `Unable to generate mongoose model ${name}`);
         throw e;
       }
     });
+  };
 
-  m.removeIrrelevantSingleUniqueIndexes = collectionName => {
+  m.removeIrrelevantSingleUniqueIndexes = (collectionName) => {
     const collection = appLib.db.collection(collectionName);
     const modelUniqueFields = getModelUniqueFields(collectionName);
     return getRemoveModelUniqueIndexesPromise(collection, modelUniqueFields);
 
     async function getRemoveModelUniqueIndexesPromise(_collection, _modelUniqueFields) {
       try {
-        const uniqueIndexes = (await _collection.getIndexes({ full: true })).filter(i => i.unique === true);
-        return Promise.map(uniqueIndexes, index => {
+        const uniqueIndexes = (await _collection.getIndexes({ full: true })).filter((i) => i.unique === true);
+        return Promise.map(uniqueIndexes, (index) => {
           const keyPaths = Object.keys(index.key);
           const isUniqueIndexNotExistsInSchema = keyPaths.length === 1 && !_modelUniqueFields.has(keyPaths[0]);
           if (isUniqueIndexNotExistsInSchema) {
@@ -1690,7 +1735,7 @@ module.exports = appLib => {
       }
       const curObj = _.isEmpty(curPath) ? curAppModel : _.get(curAppModel, curPath);
       if (curObj.unique === true) {
-        const indexPath = curPath.filter(part => part !== 'fields').join('.');
+        const indexPath = curPath.filter((part) => part !== 'fields').join('.');
         uniqueFieldPaths.add(indexPath);
       }
       _.each(curObj.fields, (field, fieldName) => {
@@ -1704,7 +1749,7 @@ module.exports = appLib => {
   m.handleIndexes = async () => {
     const collectionNames = Object.keys(appLib.appModel.models);
 
-    await Promise.mapSeries(collectionNames, collectionName =>
+    await Promise.mapSeries(collectionNames, (collectionName) =>
       // log.info(`Handling indexes for collection '${collectionName}'`);
       m.removeIrrelevantSingleUniqueIndexes(collectionName)
     );
@@ -1716,7 +1761,7 @@ module.exports = appLib => {
         return appLib.db
           .collection(collectionName)
           .createIndex(indexSpec.keys, indexSpec.options)
-          .catch(e => {
+          .catch((e) => {
             throw new Error(
               `Unable to create index for collection '${collectionName}' and indexSpecName '${indexSpecName}'.\n${e.stack}`
             );

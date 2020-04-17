@@ -12,7 +12,14 @@
         template: '=',
       },
       link: function (scope, element) {
-        element.append(scope.template);
+        var removeWatcher = scope.$watch('template', function (val) {
+          if (_.isNil(val)) {
+            return;
+          }
+
+          element.append(scope.template);
+          removeWatcher();
+        });
       }
     }
   }

@@ -19,6 +19,7 @@ gulp.task('html:replace', function () {
 
   return requestPromise(options)
     .then(function (body) {
+      body.data.socketIoClientPath = [APP_CONFIG.apiUrl, 'socket.io', 'socket.io.js'].join('/');
       return replaceMeta(body, `${conf.paths.tmp}/index.html`, 'index.html')
     });
 });

@@ -4,6 +4,7 @@
   angular.module('app')
     .run(setupUserData)
     .run(runBlock)
+    .run(setupSocketIo)
     .run(handleReturnUrlForUnauthorizedUsers);
 
   /** @ngInject */
@@ -30,6 +31,10 @@
     AdpSessionService.setAjaxAuthHeaders();
   }
 
+  function setupSocketIo(AdpSocketIoService){
+    AdpSocketIoService.login();
+  }
+
   function handleReturnUrlForUnauthorizedUsers(
     $urlService,
     $rootScope,
@@ -47,8 +52,15 @@
       });
 
       if (!registeredRoutes.length && lsService.isGuest()) {
-        return $state.go('auth.login', { returnUrl: encodeURI($location.url()) });
+        return $state.go('auth.login', { returnUrl: getReturnUrl($location.url()) });
       }
-    })
+    });
+
+    function getReturnUrl(url) {
+      var returnUrl = encodeURI(url);
+      var isEmpty = returnUrl === '/' || returnUrl === '';
+
+      return isEmpty ? '' : returnUrl;
+    }
   }
 })();

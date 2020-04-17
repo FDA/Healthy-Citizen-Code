@@ -44,19 +44,33 @@
       return gridInstance.dxDataGrid('instance');
     }
 
-    function getVisibleColumnNames() {
-      var instance = gridInstance()
-      var result = []
+    function getLoadOptions() {
+      var instance = gridInstance();
+      var loadOptions = _.cloneDeep(instance.getDataSource().loadOptions());
+      loadOptions.filter = instance.getCombinedFilter();
 
-      for (var i = 0; i < instance.columnCount(); i++) {
-        var columnName = instance.columnOption(i, 'dataField')
+      var selectedRows = instance.getSelectedRowKeys();
 
-        if (instance.columnOption(i, 'visible') && columnName) {
-          result.push(instance.columnOption(i, 'dataField'))
-        }
+      if (selectedRows.length) {
+        loadOptions.filter = [];
+        _.each(selectedRows, function (row) {
+          loadOptions.filter.push(["_id", "=", row._id]);
+          loadOptions.filter.push("or");
+        });
+        loadOptions.filter.pop();
       }
 
-      return result;
+      return loadOptions;
+    }
+
+    function getVisibleColumnNames() {
+      var instance = gridInstance();
+
+      var result = instance.getVisibleColumns().map(function (c) {
+        return c.dataField;
+      });
+
+      return _.compact(result);
     }
 
     function generateGridLsKey(storageKey, schemaName) {
@@ -70,6 +84,7 @@
       onEditorPreparing: onEditorPreparing,
       onOptionChanged: onOptionChanged,
       getVisibleColumnNames: getVisibleColumnNames,
+      getLoadOptions: getLoadOptions,
     };
   }
 })();

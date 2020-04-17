@@ -3,8 +3,8 @@
     "arms": {
       "type": "Schema",
       "fullName": "Arms for Study",
-      actions: {
-        fields: {
+      "actions": {
+        "fields": {
           "update": {
             "permissions": "accessAsUser"
           },
@@ -71,12 +71,12 @@
           "fullName": "Arm Type",
           "type": "String",
           "list": {
-            name: "armTypes",
+            "name": "armTypes",
             "scopes": {
               "userScope": {
                 "permissions": "accessAsUser",
-                return: "return $list",
-                where: "return true"
+                "return": "return $list",
+                "where": "return true"
               }
             }
           },

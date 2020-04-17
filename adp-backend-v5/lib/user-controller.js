@@ -17,19 +17,20 @@ const {
   getForgotPasswordMail,
   sendMail,
 } = require('./user-auth-service');
+const { getMongoDuplicateErrorMessage } = require('./util/util');
 
 const User = mongoose.model('users');
 const { LinkedRecordError, InvalidTokenError, ExpiredTokenError, ValidationError } = require('./errors');
 
 const TOKEN_EXPIRES_IN = process.env.TOKEN_EXPIRES_IN || '1d';
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const { transformers } = appLib;
 
   const m = {};
   m.appLib = appLib;
 
-  m.addAuthRoutes = function() {
+  m.addAuthRoutes = function () {
     appLib.addRoute('post', '/login', [m.postLogin, m.postLoginResponse]);
     /**
      * @swagger
@@ -230,7 +231,7 @@ module.exports = appLib => {
         req.loginData = { success: false, message: 'Invalid credentials.' };
         return next();
       }
-      req.logIn(user, async loginErr => {
+      req.logIn(user, async (loginErr) => {
         if (loginErr) {
           return next(loginErr);
         }
@@ -254,9 +255,9 @@ module.exports = appLib => {
 
           const linkedRecords = _(appLib.appModel.models.users.fields)
             .map((val, key) => ({ key, lookup: val.lookup, required: val.required }))
-            .filter(val => val.lookup && val.required)
+            .filter((val) => val.lookup && val.required)
             .keyBy('key')
-            .mapValues(val => existingUser[val.key])
+            .mapValues((val) => existingUser[val.key])
             .value();
 
           const userData = _.merge(linkedRecords, {
@@ -328,7 +329,8 @@ module.exports = appLib => {
     _.set(userContext, 'user._id', userDocObjectId);
 
     try {
-      await appLib.authenticationCheck(req, res, next);
+      const { user, roles, permissions } = await appLib.authenticationCheck(req, res, next);
+      appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
     } catch (e) {
       if (e instanceof InvalidTokenError || e instanceof ExpiredTokenError) {
         // get guest permissions anyway
@@ -350,7 +352,7 @@ module.exports = appLib => {
     }
 
     // check if user already exists
-    const { login } = req.body;
+    const { login, email } = req.body;
     const existingUser = await User.findOne({ login });
     if (existingUser) {
       return res.status(409).json({ success: false, message: `User ${login} already exists` });
@@ -388,12 +390,17 @@ module.exports = appLib => {
 
       res.json({
         success: true,
-        message: 'Account had been successfully created',
-        data: _.merge(linkedRecords, { id: createdUser._id, login }),
+        message: 'Account has been successfully created',
+        data: { id: createdUser._id, login, email },
       });
     } catch (e) {
-      log.error(e);
-      res.status(400).json({ success: false, message: e });
+      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+      if (duplicateErrMsg) {
+        log.info(duplicateErrMsg);
+        return res.status(409).json({ success: false, message: duplicateErrMsg });
+      }
+      log.error(e.stack);
+      res.status(400).json({ success: false, message: 'Unable to signup' });
     }
   };
 

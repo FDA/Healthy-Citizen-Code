@@ -3,6 +3,7 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const log = require('log4js').getLogger('lib/database-abstraction');
 const { AccessError, ValidationError } = require('./errors');
+const { getMongoDuplicateErrorMessage } = require('./util/util');
 
 /**
  * @module database-abstraction
@@ -12,7 +13,7 @@ const { AccessError, ValidationError } = require('./errors');
  * Overall it would be great to get rid of mongoose completely and work directly with the driver.
  * This will be possible with further expansion of this module.
  */
-module.exports = appLib => {
+module.exports = (appLib) => {
   const { transformers } = appLib;
   const { hashObject, MONGO } = appLib.butil;
 
@@ -41,6 +42,11 @@ module.exports = appLib => {
       await appLib.cache.clearCacheForModel(model.modelName);
       return data;
     } catch (e) {
+      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+      if (duplicateErrMsg) {
+        log.error(duplicateErrMsg);
+        throw new Error(duplicateErrMsg);
+      }
       log.error(`Unable to replace '${model.modelName}' item by conditions: `, newConditions, e.stack);
       if (e instanceof ValidationError) {
         throw e;
@@ -212,7 +218,7 @@ module.exports = appLib => {
     if (_.isEmpty(data)) {
       return data;
     }
-    await Promise.mapSeries(data, el => transformers.postInitTransformData(modelName, userContext, el));
+    await Promise.mapSeries(data, (el) => transformers.postInitTransformData(modelName, userContext, el));
     return data;
   };
 
@@ -228,7 +234,7 @@ module.exports = appLib => {
    * Executes fn in transaction if its allowed by current mongo configuration
    * @param fn - function returning Promise
    */
-  m.withTransaction = async fn => {
+  m.withTransaction = async (fn) => {
     if (!appLib.isMongoReplicaSet) {
       return fn();
     }

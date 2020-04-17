@@ -1,0 +1,677 @@
+{
+  "models": {
+    "entities": {
+      "type": "Schema",
+      "fullName": "Entities",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        },
+        "admin": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "{$eq:[1,1]}"
+        }
+      },
+      "fields": {
+        "hidden": {
+          "type": "Boolean",
+          "fullName": "Hidden"
+        },
+        "name": {
+          "type": "String",
+          "fullName": "Entity Name",
+          "description": "Entity Name",
+          "required": true
+        },
+        "acronym": {
+          "type": "String",
+          "fullName": "Acronym",
+          "description": "Acronym",
+          "showInViewDetails": false
+        },
+        "tags": {
+          "type": "LookupObjectID[]",
+          "fullName": "Tags",
+          "lookup": {
+            "table": {
+              "tags": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsUser"
+                    },
+                    "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "type": {
+          "type": "LookupObjectID",
+          "fullName": "Entity Type",
+          "description": "Entity Type",
+          "required": true,
+          "lookup": {
+            "table": {
+              "entityTypes": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "entitySize": {
+          "type": "Number",
+          "fullName": "Entity Size"
+        },
+        "authorativeData": {
+          "type": "String[]",
+          "fullName": "Authoritative Data Source(s)",
+          "description": "Authoritative Data Source(s)",
+          "show": "_.get(row, 'type.label') === 'System'"
+        },
+        "description": {
+          "type": "Text",
+          "fullName": "Description of the Entity",
+          "description": "Description of the Entity"
+        },
+        "locationData": {
+          "type": "String",
+          "fullName": "Data Location",
+          "description": "Data Location",
+          "show": "_.get(row, 'type.label') === 'Data Entity'"
+        },
+        "dataOwner": {
+          "type": "String",
+          "fullName": "Data Entity Owner",
+          "description": "Center or Office that owns data entity",
+          "show": "_.get(row, 'type.label') === 'Data Entity'"
+        },
+        "locationSystem": {
+          "type": "String",
+          "fullName": "System Location",
+          "description": "System Location",
+          "show": "_.get(row, 'type.label') === 'System'"
+        },
+        "providesData": {
+          "type": "String[]",
+          "fullName": "Provides data to (Systems, Offices)",
+          "description": "Provides data to (Systems, Offices)",
+          "show": "_.get(row, 'type.label') === 'System'"
+        },
+        "systemOwner": {
+          "type": "String",
+          "fullName": "System Owner",
+          "description": "Center or Office that owns system",
+          "show": "_.get(row, 'type.label') === 'System'"
+        },
+        "poc": {
+          "type": "String",
+          "fullName": "System POC",
+          "description": "System Point of Contact",
+          "show": "_.get(row, 'type.label') === 'System'"
+        },
+        "investment": {
+          "type": "String",
+          "fullName": "Investment",
+          "description": "Investment",
+          "show": "_.get(row, 'type.label') === 'System'",
+          "formWidth": "3",
+          "showInDatatable": false,
+          "showInForm": true
+        },
+        "missionSupport": {
+          "type": "String",
+          "fullName": "Mission Support",
+          "description": "Mission Support",
+          "show": "_.get(row, 'type.label') === 'System'",
+          "formWidth": "3",
+          "showInDatatable": false,
+          "showInForm": true
+        },
+        "businessCapability": {
+          "type": "String",
+          "fullName": "Business Capability",
+          "description": "Business Capability",
+          "show": "_.get(row, 'type.label') === 'System'",
+          "formWidth": "3",
+          "showInDatatable": false,
+          "showInForm": true
+        },
+        "userCenters": {
+          "type": "String",
+          "fullName": "Center Users",
+          "description": "Center Users",
+          "show": "_.get(row, 'type.label') === 'System'",
+          "formWidth": "6",
+          "showInDatatable": false,
+          "showInForm": true
+        },
+        "user": {
+          "type": "String",
+          "fullName": "Types of Users",
+          "description": "Types of Users",
+          "show": "_.get(row, 'type.label') === 'System'",
+          "formWidth": "6",
+          "showInDatatable": false,
+          "showInForm": true
+        },
+        "numberUsers": {
+          "type": "Number",
+          "fullName": "Number of Users",
+          "description": "Number of Users",
+          "show": "_.get(row, 'type.label') === 'System'",
+          "formWidth": "6",
+          "showInDatatable": false,
+          "showInForm": true
+        },
+        "interfaces": {
+          "type": "String",
+          "fullName": "System Interfaces",
+          "description": "System Interfaces",
+          "show": "_.get(row, 'type.label') === 'System'",
+          "showInDatatable": false,
+          "showInForm": true
+        }
+      }
+    },
+    "relationships": {
+      "type": "Schema",
+      "fullName": "Relationships",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        },
+        "admin": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "{$eq:[1,1]}"
+        }
+      },
+      "fields": {
+        "hidden": {
+          "type": "Boolean",
+          "fullName": "Hidden"
+        },
+        "name": {
+          "type": "String",
+          "fullName": "Relationship Name",
+          "description": "The name/label of the relationship",
+          "required": false,
+          "width": "6"
+        },
+        "domain": {
+          "type": "LookupObjectID",
+          "fullName": "From Entity ",
+          "description": "From Entity (i.e. Domain)",
+          "required": true,
+          "lookup": {
+            "table": {
+              "entities": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "range": {
+          "type": "LookupObjectID",
+          "fullName": "To Entity",
+          "description": "To Entity (i.e. Range)",
+          "required": true,
+          "lookup": {
+            "table": {
+              "entities": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "type": {
+          "type": "LookupObjectID",
+          "fullName": "Relationship Type",
+          "description": "Relationship Type",
+          "required": "0",
+          "lookup": {
+            "table": {
+              "relationshipTypes": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          },
+          "width": "6"
+        },
+        "tags": {
+          "type": "LookupObjectID[]",
+          "fullName": "Tags",
+          "lookup": {
+            "table": {
+              "tags": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsUser"
+                    },
+                    "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "trafficIntensity": {
+          "type": "Number",
+          "fullName": "Traffic Intensity",
+          "required": "0",
+          "validate": ["min(0)"]
+        },
+        "particleSize": {
+          "type": "Number",
+          "fullName": "Particle Size",
+          "required": "0",
+          "validate": ["min(0)"]
+        },
+        "particleSpeed": {
+          "type": "Number",
+          "fullName": "Particle Speed",
+          "required": "0",
+          "validate": ["min(0)"]
+        },
+        "linkDistance": {
+          "type": "Number",
+          "fullName": "Link Distance",
+          "description": "Default is 100",
+          "required": "0",
+          "validate": ["min(1)"]
+        },
+        "linkCurvature": {
+          "type": "Number",
+          "fullName": "Link Curvature",
+          "description": "Default is 50",
+          "required": "0",
+          "validate": ["min(0)", "max(100)"]
+        }
+      }
+    },
+    "entityTypes": {
+      "type": "Schema",
+      "fullName": "Entity Types",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        },
+        "admin": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "{$eq:[1,1]}"
+        }
+      },
+      "fields": {
+        "hidden": {
+          "type": "Boolean",
+          "fullName": "Hidden"
+        },
+        "name": {
+          "type": "String",
+          "fullName": "Name",
+          "required": true
+        },
+        "ontologyElement": {
+          "type": "String",
+          "fullName": "Ontology Element",
+          "required": true,
+          "list": {
+            "values": {
+              "owlClass": "owl:Class",
+              "rdfsClass": "rdfs:Class",
+              "owlDeprecatedClass": "owl:DeprecatedClass",
+              "owlThing": "owl:Thing",
+              "rdfsResource": "rdfs:Resource",
+              "externalClass": "ExternalClass"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "nodeColor": {
+          "type": "String",
+          "fullName": "Node Color",
+          "description": "Default is white",
+          "required": "0",
+          "list": {
+            "values": {
+              "red": "Red",
+              "blue": "Blue",
+              "green": "Green",
+              "yellow": "Yellow",
+              "purple": "Purple",
+              "lime": "Lime",
+              "white": "White"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "nodeShape": {
+          "type": "String",
+          "fullName": "Node Shape",
+          "description": "Default is sphere",
+          "required": "1",
+          "list": {
+            "values": {
+              "Sphere": "Sphere",
+              "Box": "Cube",
+              "Tetrahedron": "Pyramid",
+              "Torus": "Torus",
+              "Octahedron": "Diamond",
+              "Cone": "Cone",
+              "TorusKnot": "Torus knot"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "entitySize": {
+          "type": "Number",
+          "fullName": "Entity Size",
+          "description": "Default is 10",
+          "required": "0"
+        },
+        "description": {
+          "type": "String",
+          "fullName": "Description",
+          "subtype": "Text"
+        }
+      }
+    },
+    "relationshipTypes": {
+      "type": "Schema",
+      "fullName": "Relationship Types",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        },
+        "admin": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "{$eq:[1,1]}"
+        }
+      },
+      "fields": {
+        "hidden": {
+          "type": "Boolean",
+          "fullName": "Hidden"
+        },
+        "name": {
+          "type": "String",
+          "fullName": "Name",
+          "required": true
+        },
+        "ontologyElement": {
+          "type": "String",
+          "fullName": "Ontology Element",
+          "required": true,
+          "list": {
+            "values": {
+              "owlObjectProperty": "owl:ObjectProperty",
+              "owlDatatypeProperty": "owl:DatatypeProperty",
+              "owlDeprecatedProperty": "owl:DeprecatedProperty",
+              "owlFunctionalProperty": "owl:FunctionalProperty",
+              "rdfProperty": "rdf:Property"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "trafficIntensity": {
+          "type": "Number",
+          "fullName": "Traffic Intensity",
+          "required": "0",
+          "validate": ["min(0)"]
+        },
+        "linkColor": {
+          "type": "String",
+          "fullName": "Link Color",
+          "required": "0",
+          "list": {
+            "values": {
+              "red": "Red",
+              "blue": "Blue",
+              "green": "Green",
+              "yellow": "Yellow",
+              "purple": "Purple",
+              "lime": "Lime"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "linkWidth": {
+          "type": "Number",
+          "fullName": "Link Width",
+          "description": "Default is 0 – hairline",
+          "required": "0",
+          "validate": ["min(0)"]
+        },
+        "linkDistance": {
+          "type": "Number",
+          "fullName": "Link Distance",
+          "description": "Default is 100",
+          "required": "0",
+          "validate": ["min(1)"]
+        },
+        "linkCurvature": {
+          "type": "Number",
+          "fullName": "Link Curvature",
+          "description": "Default is set by graph options",
+          "required": "0",
+          "validate": ["min(0)", "max(100)"]
+        },
+        "particleSize": {
+          "type": "Number",
+          "fullName": "Particle Size",
+          "required": "0",
+          "validate": ["min(0)"]
+        },
+        "particleSpeed": {
+          "type": "Number",
+          "fullName": "Particle Speed",
+          "description": "Default is 5",
+          "required": "0",
+          "validate": ["min(0)"]
+        },
+        "particleColor": {
+          "type": "String",
+          "fullName": "Particle Color",
+          "required": "0",
+          "list": {
+            "values": {
+              "red": "Red",
+              "blue": "Blue",
+              "green": "Green",
+              "yellow": "Yellow",
+              "purple": "Purple",
+              "lime": "Lime"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "description": {
+          "type": "String",
+          "fullName": "Description",
+          "subtype": "Text"
+        },
+        "fontSize": {
+          "type": "Number",
+          "fullName": "Font Size",
+          "description": "Default is 5",
+          "required": "0",
+          "validate": ["min(1)"]
+        }
+      }
+    }
+  }
+}
