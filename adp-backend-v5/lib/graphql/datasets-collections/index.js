@@ -1,4 +1,3 @@
-const _ = require('lodash');
 const log = require('log4js').getLogger('lib/graphql-datasets');
 const { ObjectID } = require('mongodb');
 
@@ -12,130 +11,16 @@ const {
 } = require('../mutation');
 const GraphQlContext = require('../../request-context/graphql/GraphQlContext');
 const { COMPOSER_TYPES, MongoIdITC, dxQueryInputRequired } = require('../type/common');
+const {
+  getExternalDatasetsMongooseModelName,
+  addQueriesAndMutationsForDatasetsRecord,
+  getNewSchemeByProjections,
+  getCloneRecordsPipeline,
+  removeQueriesAndMutationsForDatasetsRecord,
+} = require('./util');
 const { handleGraphQlError } = require('../util');
 
 const cloneResolverName = 'clone';
-
-// Actions postfix will be added to result of this function
-function getExternalDatasetsMongooseModelName(datasetsRecordId) {
-  return `_ds_${datasetsRecordId}`;
-}
-
-async function addMongooseSchemaForDatasetsRecord(datasetsRecord, appLib, mongooseModelName) {
-  try {
-    const { scheme, collectionName } = datasetsRecord;
-    const mongooseModel = appLib.mutil.getMongooseModel(scheme, collectionName);
-    appLib.db.model(mongooseModelName, mongooseModel);
-  } catch (e) {
-    log.error(e.stack);
-    throw new Error(`Unable to build mongoose schema for ${datasetsRecord._id}`);
-  }
-}
-async function addQueriesAndMutationsForDatasetsRecord(record, appLib, addDefaultQueries, addDefaultMutations) {
-  // make a clone to protect changing stored scheme in memory by record ref
-  const recordClone = _.cloneDeep(record);
-  const { _id, scheme } = recordClone;
-  const mongooseModelName = getExternalDatasetsMongooseModelName(_id);
-  await addMongooseSchemaForDatasetsRecord(recordClone, appLib, mongooseModelName);
-
-  appLib.appModel.models[mongooseModelName] = scheme;
-  appLib.datasetsModelsNames.add(mongooseModelName);
-
-  const modelInfo = { [mongooseModelName]: scheme };
-  addDefaultQueries(modelInfo);
-  addDefaultMutations(modelInfo);
-}
-
-function removeMongooseSchemaForDatasetsRecord(db, modelName) {
-  delete db.models[modelName];
-}
-function removeQueriesAndMutationsForDatasetsRecord(appLib, record, removeDefaultQueries, removeDefaultMutations) {
-  const mongooseModelName = getExternalDatasetsMongooseModelName(record._id);
-
-  removeDefaultQueries(mongooseModelName);
-  removeDefaultMutations(mongooseModelName);
-
-  removeMongooseSchemaForDatasetsRecord(appLib.db, mongooseModelName);
-  delete appLib.appModel.models[mongooseModelName];
-  appLib.datasetsModelsNames.delete(mongooseModelName);
-
-  appLib.graphQl.connect.rebuildGraphQlSchema();
-}
-
-// Seems like we don't need cloneRecordsFromId because we can determine collection by parentCollectionName
-/* async function checkCloneRecordsFromId(cloneRecordsFromId, datasetsModelName) {
-  const record = await appLib.db
-    .collection(datasetsModelName)
-    .findOne({ _id: cloneRecordsFromId, ...appLib.dba.getConditionForActualRecord() }, { _id: 1 });
-  if (!record) {
-    throw new Error(`Unable to find record with id ${cloneRecordsFromId} for cloning record from it`);
-  }
-
-  const cloneRecordFromCollection = await appLib.db.listCollections({ name: record.collectionName });
-  if (!cloneRecordFromCollection) {
-    throw new Error(`Unable to find collection ${record.collectionName} for cloning record from it`);
-  }
-} */
-
-async function getParentCollectionScheme(appLib, parentCollectionName, datasetsModelName) {
-  const schemeFromModels = appLib.appModel.models[parentCollectionName];
-  if (schemeFromModels) {
-    return schemeFromModels;
-  }
-
-  const parentDatasetRecord = await appLib.db
-    .collection(datasetsModelName)
-    .findOne({ collectionName: parentCollectionName, ...appLib.dba.getConditionForActualRecord() });
-  if (parentDatasetRecord) {
-    return parentDatasetRecord.scheme;
-  }
-  throw new Error(`Parent collection scheme for name ${parentCollectionName} is not found`);
-}
-
-async function getNewSchemeByProjections(datasetsModelName, appLib, parentCollectionName, projections) {
-  const parentCollectionScheme = await getParentCollectionScheme(appLib, parentCollectionName, datasetsModelName);
-  const newScheme = _.cloneDeep(parentCollectionScheme);
-  const fieldPaths = _.map(projections, projection => projection.split('.').join('.fields.'));
-  const defaultFieldPaths = _.keys(_.get(appLib.appModel, 'typeDefaults.fields.Schema.fields', {}));
-  const newSchemeFields = [...fieldPaths, ...defaultFieldPaths];
-  newScheme.fields = _.pick(parentCollectionScheme.fields, newSchemeFields);
-  return { newScheme, newSchemeFields, parentCollectionScheme };
-}
-
-async function getCloneRecordsPipeline({
-  appLib,
-  parentCollectionScheme,
-  userPermissions,
-  inlineContext,
-  filter,
-  newSchemeFields,
-  outCollectionName,
-}) {
-  // parentCollectionScheme is used for filter to allow filter for example by fields f1 and f2 and export (using projection) only field f2
-  const scopeConditionsMeta = await appLib.accessUtil.getScopeConditionsMeta(
-    parentCollectionScheme,
-    userPermissions,
-    inlineContext,
-    'create'
-  );
-  const filterConditions = appLib.filterParser.parse(filter.dxQuery, parentCollectionScheme);
-  const scopeConditions = scopeConditionsMeta.overallConditions;
-  const cloneConditions = appLib.butil.MONGO.and(
-    appLib.dba.getConditionForActualRecord(),
-    scopeConditions,
-    filterConditions
-  );
-
-  const project = _.reduce(
-    newSchemeFields,
-    (res, projection) => {
-      res[projection] = 1;
-      return res;
-    },
-    {}
-  );
-  return [{ $match: cloneConditions }, { $project: project }, { $out: outCollectionName }];
-}
 
 module.exports = ({
   appLib,
@@ -192,9 +77,9 @@ module.exports = ({
         // nullify scheme since we can't check if it's valid for now
         const datasetsId = ObjectID();
         args.record.collectionName = getExternalDatasetsMongooseModelName(datasetsId);
-        const datasetsRecord = { ...args.record, scheme: null };
+        const datasetsRecord = { _id: datasetsId, ...args.record, scheme: null };
 
-        const createdDatasetsRecord = await appLib.dba.withTransaction(session =>
+        const createdDatasetsRecord = await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.postItem(graphQlContext, datasetsRecord, session)
         );
         await appLib.db.createCollection(datasetsRecord.collectionName);
@@ -247,14 +132,11 @@ module.exports = ({
           outCollectionName: datasetsItem.collectionName,
         });
 
-        const createdDatasetsRecord = await appLib.dba.withTransaction(session =>
+        const createdDatasetsRecord = await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.postItem(graphQlContext, datasetsItem, session)
         );
 
-        const cloneRecordsPromise = appLib.db
-          .collection(parentCollectionName)
-          .aggregate(pipeline)
-          .next();
+        const cloneRecordsPromise = appLib.db.collection(parentCollectionName).aggregate(pipeline).next();
 
         // Error occurred if cloning records is in process simultaneously with creating indexes:
         // Unhandled rejection MongoError: indexes of target collection oraimports-prototype.testDataset_asd changed during processing.
@@ -289,7 +171,7 @@ module.exports = ({
         const { req } = context;
         const graphQlContext = await new GraphQlContext(appLib, req, datasetsModelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
-        const deletedDoc = await appLib.dba.withTransaction(session =>
+        const deletedDoc = await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.deleteItem(graphQlContext, session)
         );
 
@@ -329,7 +211,7 @@ module.exports = ({
         )[0];
         const { name, description } = args.record;
         const newRecord = { ...recordInDb, name, description };
-        const datasetRecord = appLib.dba.withTransaction(session =>
+        const datasetRecord = appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.putItem(graphQlContext, newRecord, session)
         );
         return m.transformDatasetsRecord(datasetRecord, userPermissions);

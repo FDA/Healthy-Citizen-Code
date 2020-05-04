@@ -1,9 +1,12 @@
 const Promise = require('bluebird');
 const $ = require('cheerio');
-const axios = require('axios');
 const urlParse = require('url-parse');
+
 const { trimSpaceChars } = require('../util/string');
 const { insertOrReplaceDocByCondition } = require('../util/mongo');
+const { getAxiosProxySettings } = require('../util/proxy');
+// eslint-disable-next-line import/order
+const axios = require('axios').create(getAxiosProxySettings());
 
 async function parseSafetyAlertsPage(pageUrl, dbCon, collectionName) {
   try {

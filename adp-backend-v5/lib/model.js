@@ -155,7 +155,7 @@ module.exports = (appLib) => {
    */
   m.getMongooseSchemaDefinition = (name, obj, mongooseModel) => {
     const { type, fields } = obj;
-    if (type === 'Group') {
+    if (type === 'Group' || type === 'Grid') {
       return;
     }
 
@@ -337,17 +337,17 @@ module.exports = (appLib) => {
   // TODO: rewrite using m.traverseAppModel ?
   // TODO: split this method into multiple functions, it's getting big
   // TODO: add validation for hooks existence and that its returning Promises
-  m.validateAndCleanupAppModel = () => {
+  m.validateAndCleanupAppModel = (models) => {
     let errors = [];
     const warnings = [];
     const allowedAttributes = _.keys(appLib.appModel.metaschema);
 
     setAppAuthSettings();
     initLookupAndTreeSelectorMeta();
-    validateModelParts(appLib.appModel.models, []);
+    validateModelParts(models, []);
     setLookupFieldsMeta();
     handlePermissions();
-    const requiredWarnings = m.validateRequiredFields(appLib.appModel.models);
+    const requiredWarnings = m.validateRequiredFields(models);
     warnings.push(...requiredWarnings);
 
     if (appLib.appModel.interface) {
@@ -468,22 +468,28 @@ module.exports = (appLib) => {
      * @param path
      */
     function validateDefaultSortBy(part, path) {
-      if (_.has(part, 'defaultSortBy')) {
-        if (typeof part.defaultSortBy !== 'object') {
-          errors.push(`defaultSortBy in ${path.join('.')} has incorrect format, must be an object`);
-        } else {
-          _.each(part.defaultSortBy, (val, key) => {
-            if (val !== -1 && val !== 1) {
-              errors.push(
-                `defaultSortBy in ${path.join('.')} has incorrect format, the sorting order must be either 1 or -1`
-              );
-            }
-            if (!_.has(part.fields, key) && key !== '_id') {
-              errors.push(`defaultSortBy in ${path.join('.')} refers to nonexisting field "${key}"`);
-            }
-          });
-        }
+      if (!_.has(part, 'defaultSortBy')) {
+        return;
       }
+
+      if (typeof part.defaultSortBy !== 'object') {
+        return errors.push(`defaultSortBy in ${path.join('.')} has incorrect format, must be an object`);
+      }
+
+      _.each(part.defaultSortBy, (val, key) => {
+        if (val !== -1 && val !== 1) {
+          errors.push(
+            `defaultSortBy in ${path.join('.')} has incorrect format, the sorting order must be either 1 or -1`
+          );
+        }
+
+        if (part.type !== 'Grid') {
+          const hasNonExistingField = !_.has(part.fields, key) && key !== '_id';
+          if (hasNonExistingField) {
+            errors.push(`defaultSortBy in ${path.join('.')} refers to nonexisting field "${key}"`);
+          }
+        }
+      });
     }
 
     /**
@@ -1087,6 +1093,8 @@ module.exports = (appLib) => {
         const actions = _.get(part, 'actions', { fields: {} });
         _.each(actions.fields, (spec, modelActionName) => {
           const link = _.get(spec, 'action.link');
+          const type = _.get(spec, 'action.type');
+
           if (!link) {
             if (!appLib.allActionsNames.includes(modelActionName)) {
               errors.push(`Invalid action ${modelActionName} specified by path '${path}'`);
@@ -1100,11 +1108,13 @@ module.exports = (appLib) => {
             );
           }
 
-          const isFrontendAction = link.startsWith('/');
-          if (!isFrontendAction && !appLib.allActionsNames.includes(link)) {
-            return errors.push(
-              `Action link '${link}' is not valid (must be one of default or custom actions if specified), found by path '${path}' for modelActionName '${modelActionName}'`
-            );
+          if (type !== 'module') {
+            const isFrontendAction = link.startsWith('/');
+            if (!isFrontendAction && !appLib.allActionsNames.includes(link)) {
+              return errors.push(
+                `Action link '${link}' is not valid (must be one of default or custom actions if specified), found by path '${path}' for modelActionName '${modelActionName}'`
+              );
+            }
           }
         });
       }
@@ -1192,7 +1202,7 @@ module.exports = (appLib) => {
      * @param part
      */
     function deleteDisabledMenuItems(part) {
-      if (part.type === 'Menu' && part.fields) {
+      if (_.isPlainObject(part) && part.type === 'Menu' && part.fields) {
         _.each(part.fields, (val, key) => {
           if (val === false) {
             delete part.fields[key];

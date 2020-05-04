@@ -12,8 +12,8 @@
     var vm = this;
     vm.dataGridOptions = null;
     vm.$onInit = function onInit() {
-      vm.dataGridOptions = GridOptions.create(vm.schema);
+      var opts = GridOptions.create(vm.schema);
+      vm.dataGridOptions = _.merge({}, opts, vm.options);
     };
-
   }
 })();

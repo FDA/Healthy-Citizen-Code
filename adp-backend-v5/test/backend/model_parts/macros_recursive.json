@@ -3,7 +3,7 @@
     "macros_recursive": {
       "type": "Schema",
       "fields": {
-        <%-this.M('recursiveMacro')%>
+        <@-this.M('recursiveMacro')@>
       }
     }
   }

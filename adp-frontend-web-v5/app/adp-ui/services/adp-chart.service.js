@@ -7,20 +7,14 @@
 
   /** @ngInject */
   function AdpChartService (
-    AdpChartDataGetterService,
     APP_CONFIG,
     $q,
     $http
   ){
-    function setData(model) {
-      var promise = model.data.type === 'url' ?
-        _request(model.data) :
-        $q.when(model.data);
-
-      return promise
-        .then(function (data) {
-          return AdpChartDataGetterService.setData(model, data);
-        });
+    function fetchData(data) {
+      return data.type === 'url' ?
+        _request(data) :
+        $q.when(data);
     }
 
     function _request(params) {
@@ -40,7 +34,8 @@
         var isObject = _.isObject(option);
 
         if (isObject && option.type === 'function') {
-          options[key] = new Function(option['arguments'].join(','), option.code);
+          var args = option.arguments || [];
+          options[key] = new Function(args.join(','), option.code);
         }
 
         if (isObject && option.type === 'code') {
@@ -59,8 +54,8 @@
     }
 
     return {
-      setData: setData,
-      evalOptions: evalOptions
+      fetchData: fetchData,
+      evalOptions: evalOptions,
     };
   }
 })();

@@ -4,6 +4,7 @@
  */
 module.exports = function (globalMongoose) {
   const Promise = require('bluebird');
+  const RJSON = require('relaxed-json');
   const _ = require('lodash');
   const crypto = require('crypto');
   const exec = Promise.promisify(require('child_process').exec);
@@ -29,7 +30,7 @@ module.exports = function (globalMongoose) {
 
     m.conditionForActualRecord = m.appLib.dba.getConditionForActualRecord();
 
-    const parseQuestionnaireFileWrapper = next => async rp => {
+    const parseQuestionnaireFileWrapper = (next) => async (rp) => {
       try {
         const tmpfile = `${getRandomString()}.json`;
         const uploadedFileId = _.get(rp.args.record, 'questionnaireDefinitionFile.0.id');
@@ -44,7 +45,7 @@ module.exports = function (globalMongoose) {
         const stdout = await exec(cmd);
 
         const questionsDefinition = stdout.replace(/[\s\S]*-----------CUTLINE---------/m, '');
-        const questionnaireDefinition = JSON.parse(questionsDefinition);
+        const questionnaireDefinition = RJSON.parse(questionsDefinition);
         const questionnaire = _.reduce(
           questionnaireDefinition,
           (acc, sheetData) => {
@@ -434,7 +435,7 @@ module.exports = function (globalMongoose) {
       if (nModified === 1) {
         return res.json({
           success: true,
-          message: 'Your questionnaire is started',
+          message: 'Your questionnaire has been started',
         });
       }
       if (nModified === 0) {

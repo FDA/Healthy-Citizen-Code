@@ -36,11 +36,13 @@ function buildLookupFromDoc(doc, tableSpec) {
 
 function buildLookupsFromDocs(docs, tableSpec) {
   const tableSpecParams = getTableSpecParams(tableSpec);
-  return _.map(docs, doc => getLookup(doc, tableSpecParams));
+  return _.map(docs, (doc) => getLookup(doc, tableSpecParams));
 }
 
 module.exports = {
   getLabelOrDataValue,
   buildLookupFromDoc,
   buildLookupsFromDocs,
+  getTableSpecParams,
+  getLookup,
 };

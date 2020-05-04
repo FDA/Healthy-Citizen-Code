@@ -12,6 +12,7 @@ const { downloadUsingWget } = require('../util/download');
 const { camelCaseKeysDeep } = require('../util/object');
 const { getNormalizedNDCByPackageNDC } = require('../util/ndc');
 const { getDate } = require ('../util/date');
+const { getWgetProxyParams } = require('../util/proxy');
 
 const resCollectionName = args.resCollectionName || 'recallsRes';
 
@@ -117,7 +118,7 @@ function createIndexes(dbCon) {
       }
       return true;
     });
-    const newCsvPaths = await downloadUsingWget(notExistsingFileInfos, true);
+    const newCsvPaths = await downloadUsingWget(notExistsingFileInfos, true, getWgetProxyParams());
     const csvPaths = existingCsvPaths.concat(newCsvPaths);
 
     await Promise.mapSeries(csvPaths, csvPath => {

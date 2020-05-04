@@ -5,7 +5,10 @@
     .module('app.adpForms')
     .directive('stringControl', stringControl);
 
-  function stringControl(AdpValidationUtils) {
+  function stringControl(
+    AdpValidationUtils,
+    AdpFieldsService
+  ) {
     return {
       restrict: 'E',
       scope: {
@@ -17,32 +20,28 @@
       templateUrl: 'app/adp-forms/directives/adp-form-controls/string-control/string-control.html',
       require: '^^form',
       link: function (scope) {
-        if (_.isNil(getData())) {
-          setData(null);
-        }
-
-        function setData(value) {
-          return scope.adpFormData[scope.field.fieldName] = value;
-        }
-
         function getData() {
           return scope.adpFormData[scope.field.fieldName];
         }
 
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
-        scope.fieldType = resolveSubtype();
+        scope.config = {
+          value: getData(),
+          mode: getTextMode(),
+          inputAttr: {
+            autocomplete: AdpFieldsService.autocompleteValue(scope.field),
+          },
+          valueChangeEvent: 'input blur',
+        }
 
-        function resolveSubtype() {
+        function getTextMode() {
           var types = {
-            'String': 'text',
-            'Phone': 'text',
-            'Url': 'text',
             'Email': 'email',
             'PasswordAuth': 'password',
-            'Number': 'number',
+            'Url': 'url',
           };
 
-          return types[scope.field.type];
+          return types[scope.field.type] || 'text';
         }
       }
     }

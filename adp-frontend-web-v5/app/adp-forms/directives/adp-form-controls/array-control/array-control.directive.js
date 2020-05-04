@@ -23,7 +23,7 @@
       templateUrl: 'app/adp-forms/directives/adp-form-controls/array-control/array-control.html',
       require: '^^form',
       link: function (scope, element, attrs, formCtrl) {
-        scope.fields = AdpFieldsService.getFormFields(scope.field.fields).notGrouped;
+        scope.schemaFields = AdpFieldsService.getFormFields(scope.field.fields).notGrouped;
         scope.visibilityStatus = [];
         scope.form = formCtrl;
         scope.rootForm = AdpFormService.getRootForm(scope.form);
@@ -37,7 +37,7 @@
         // schema - original ungrouped schema
         scope.nextValidationParams = {
           field: scope.field,
-          fields: scope.fields,
+          fields: scope.schemaFields,
           formData: scope.adpFormData,
           modelSchema: scope.adpFields,
           schema: scope.validationParams.schema.fields[scope.field.fieldName],
@@ -160,7 +160,7 @@
         }
 
         function getFields() {
-          return scope.fields;
+          return scope.schemaFields;
         }
 
         function isRemoveDisabled() {

@@ -46,6 +46,7 @@ describe('form field validation', () => {
       validationRule: 'regex',
       errorMessage: 'Value 111 is not correct, should contain only latin letters without whitespaces',
       message: 'invalid value for regex',
+      type: 'String',
     },
 
     {
@@ -54,6 +55,7 @@ describe('form field validation', () => {
       validationRule: 'minLength',
       errorMessage: 'Value is too short, should be at least 5 characters long',
       message: 'left border for minLength',
+      type: 'String'
     },
 
     {
@@ -62,6 +64,7 @@ describe('form field validation', () => {
       validationRule: 'minLength',
       errorMessage: 'Value is too short, should be at least 5 characters long',
       message: 'less than left border minLength',
+      type: 'String',
     },
 
     {
@@ -70,6 +73,7 @@ describe('form field validation', () => {
       validationRule: 'maxLength',
       errorMessage: 'Value is too long, should be at most 10 characters long',
       message: 'right border for maxLength',
+      type: 'String',
     },
 
     {
@@ -78,6 +82,7 @@ describe('form field validation', () => {
       validationRule: 'maxLength',
       errorMessage: 'Value is too long, should be at most 10 characters long',
       message: 'more than right border for maxLength',
+      type: 'String',
     },
 
     {
@@ -214,7 +219,12 @@ describe('form field validation', () => {
       `Should display validation message for field "${testDef.fieldName}" with value ${testDef.fieldValue}
       for ${testDef.validationRule} validation rule and ${testDef.message}`,
       async () => {
-        await this.page.type(`#${testDef.fieldName}`, testDef.fieldValue);
+        // TEMP for dx fields condition
+        const selector = testDef.type === 'String' ?
+          `#${testDef.fieldName} input` :
+          `#${testDef.fieldName}`;
+
+        await this.page.type(selector, testDef.fieldValue);
 
         const errorMessageSelector = `[ng-field-name="${testDef.fieldName}"] [ng-message="${testDef.validationRule}"]`;
         await this.page.waitForSelector(errorMessageSelector);
@@ -235,18 +245,21 @@ describe('form field validation', () => {
       fieldValue: 'abcdEFGH',
       validationRule: 'regex',
       message: 'correct input for regex(latin letters only)',
+      type: 'String',
     },
     {
       fieldName: 'stringWithMinMaxLength',
       fieldValue: '12345',
       validationRule: 'minLength',
       message: 'left border',
+      type: 'String',
     },
     {
       fieldName: 'stringWithMinMaxLength',
       fieldValue: '1234567890',
       validationRule: 'maxLength',
       message: 'right border',
+      type: 'String',
     },
 
     {
@@ -307,7 +320,12 @@ describe('form field validation', () => {
     test(
       `Should pass for field "${testDef.fieldName}" with ${testDef.message} for ${testDef.validationRule} validation rule`,
       async () => {
-        await this.page.type(`#${testDef.fieldName}`, testDef.fieldValue);
+        // TEMP for dx fields condition
+        const selector = testDef.type === 'String' ?
+          `#${testDef.fieldName} input` :
+          `#${testDef.fieldName}`;
+
+        await this.page.type(selector, testDef.fieldValue);
 
         const validControl = await this.page.$(`#${testDef.fieldName}.ng-valid`);
         expect(validControl).toBeTruthy();

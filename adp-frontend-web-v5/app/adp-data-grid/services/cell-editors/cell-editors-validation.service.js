@@ -23,6 +23,16 @@
         rules.push(requiredValidator);
       }
 
+      if (field.type === 'Decimal128') {
+        var DECIMAL_REGEX = /^[+-]?(\d+)?\.?(\d+)?([Ee][+-]?(\d+))?$/;
+
+        rules.push({
+          type: 'pattern',
+          pattern: DECIMAL_REGEX,
+          message: 'Please enter correct decimal value'
+        });
+      }
+
       (field.validate || []).forEach(function (validatorRule) {
         if (!AdpValidationRules[validatorRule.validator]) {
           return;

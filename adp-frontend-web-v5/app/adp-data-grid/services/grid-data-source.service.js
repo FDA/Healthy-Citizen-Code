@@ -30,14 +30,14 @@
     function createStore(schema, customOptions) {
       return new DevExpress.data.CustomStore({
         load: function (loadOptions) {
-          var requestSchema = provideRequestSchema(schema);
+          var requestSchema = provideRequestSchema(schema, customOptions.gridComponent);
 
           loadOptions.customOptions = customOptions.value();
 
           return GraphqlCollectionQuery(requestSchema, loadOptions)
             .then(!!loadOptions.group ? getGroupedData : getData)
-            .catch(function () {
-              AdpNotificationService.notifyError(ServerError.UNABLE_TO_GET_DATA);
+            .catch(function (err) {
+              ErrorHelpers.handleError(err);
               return $q.reject();
             });
         },
@@ -74,12 +74,12 @@
       });
     }
 
-    function provideRequestSchema(schema) {
+    function provideRequestSchema(schema, gridInstance) {
       if (schema.parameters.loadInvisibleFields) {
         return schema;
       }
 
-      return GridSchema.getSchemaForVisibleColumns(schema);
+      return GridSchema.getSchemaForVisibleColumns(schema, gridInstance);
     }
 
     function getData(data) {

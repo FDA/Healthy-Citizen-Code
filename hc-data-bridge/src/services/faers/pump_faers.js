@@ -14,6 +14,7 @@ const { mongoConnect, setUpdateAtIfRecordChanged } = require('../util/mongo');
 const { getDate } = require('../util/date');
 const { downloadUsingWget, isUrlExists } = require('../util/download');
 const { conditionForActualRecord } =  require('../util/mongo');
+const { getWgetProxyParams } = require('../util/proxy');
 
 const { mongoUrl } = args;
 if (!mongoUrl) {
@@ -280,7 +281,7 @@ function createIndexes(indexFieldNames, dbCon) {
     const fileInfos = await getFileInfos();
     console.log(`Found files:\n${fileInfos.map(i => i.url).join('\n')}`);
 
-    const zipPaths = await downloadUsingWget(fileInfos, true);
+    const zipPaths = await downloadUsingWget(fileInfos, true, getWgetProxyParams());
 
     await Promise.mapSeries(zipPaths, async zipPath => {
       console.log(`Handling zip ${zipPath}`);

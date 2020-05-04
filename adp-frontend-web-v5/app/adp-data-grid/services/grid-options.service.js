@@ -11,16 +11,9 @@
     GridDataSource,
     GridToolbarActions,
     GridOptionsHelpers,
-    AdpNotificationService,
-    AdpGridViewService,
     AdpGridCustomOptionsService,
-    AdpQuickFiltersService,
-    AdpColumnChooserService,
-    AdpModalService,
     GridFilters,
-    CellEditorsService,
-    GridImportService,
-    GridExportService
+    CellEditorsService
   ) {
     function create(schema) {
       var presentation = {
@@ -28,21 +21,12 @@
         showColumnLines: true,
         wordWrapEnabled: true,
       };
-
-      var search = {
-        searchPanel: {
-          visible: true,
-          placeholder: 'Search...'
-        },
-      };
-
       var customGridOptions = AdpGridCustomOptionsService.create();
-
       var other = {
         remoteOperations: true,
         twoWayBindingEnabled: false,
         errorRowEnabled: false,
-        onInitialized: function(e) {
+        onInitialized: function (e) {
           customGridOptions.setGridComponent(e.component);
         },
         onDataErrorOccurred: function () {
@@ -60,72 +44,28 @@
 
           var noDataTextChanged = e.component.option('noDataText') !== noDataText;
           noDataTextChanged && e.component.option('noDataText', noDataText);
-        }
+        },
       };
-
+      var schemaParameters = _.cloneDeep(schema.parameters) || {};
       var options = _.assign(
         {},
-        _.cloneDeep(schema.parameters) || {},
         presentation,
-        search,
-        other
+        other,
+        schemaParameters
       );
 
-      // Its very important to keep this cb register in very beginning to be sure its called AFTER ALL toolbar modifications
-      GridOptionsHelpers.addToolbarHandler(options, function(e){
-        GridToolbarActions.removeUnnecessary(e);
-        GridToolbarActions.sortByName(e);
-      });
-
-      GridToolbarActions.addPrintAndCreate(options, schema);
-
       GridDataSource(options, schema, customGridOptions);
-      GridColumns(options, schema);
+      GridColumns(options, schema, customGridOptions);
       GridFilters.create(options, schema);
       CellEditorsService(options, schema);
-
       GridFilters.setFiltersFromUrl(options, schema);
-      GridExportService(options, schema);
-      GridImportService(options, schema);
-
-      GridOptionsHelpers.addToolbarHandler(options, function (e) {
-        e.toolbarOptions.items.push(
-          {
-            widget: "dxMenu",
-            options: AdpGridViewService.createMenu(schema, e.component, customGridOptions),
-            cssClass: "adp-grid-toolbar-dropdown-menu",
-            name: "gridViewButton"
-          });
-      });
-
-      GridOptionsHelpers.addToolbarHandler(options, function (e) {
-        e.toolbarOptions.items.push(
-          {
-            widget: "dxMenu",
-            options: AdpQuickFiltersService.createMenu(schema, e.component, customGridOptions),
-            cssClass: "adp-grid-toolbar-dropdown-menu",
-            name: "quickFiltersButton"
-          });
-      });
-
-      if (_.get(options, 'columnChooser.enabled', false)) {
-        // Disabling default columnChooser is not an option as some functionality will be broken. Default button is filtered out from toolbar.
-        GridOptionsHelpers.addToolbarHandler(options, function (e) {
-          e.toolbarOptions.items.push(
-            {
-              widget: 'dxMenu',
-              options: AdpColumnChooserService.createMenu(schema, e.component),
-              cssClass:'adp-grid-toolbar-dropdown-menu',
-              name:'customColumnChooserButton'
-            });
-        });
-      }
+      GridToolbarActions(options, schema, customGridOptions);
 
       if (options.stateStoring &&
         options.stateStoring.enabled &&
         options.stateStoring.type === "localStorage") {
 
-        var customSaveState = function(state) {
+        var customSaveState = function (state) {
           state._customOptions = customGridOptions.value();
           localStorage.setItem(storageKey, JSON.stringify(state));
         };
@@ -164,6 +104,12 @@
       var scrollMode = _.get(options, "scrolling.mode");
       if (scrollMode === 'virtual' || scrollMode === 'infinite') {
         options.paging.pageSize = Math.max(100, options.paging.pageSize);
+      }
+
+      options.filterBuilder = {
+        onEditorPreparing: function (e) {
+          GridFilters.setFilterComponent(e, schema);
+        }
       }
 
       return options;

@@ -24,13 +24,6 @@
           return;
         }
 
-        var field = schema.fields[event.dataField];
-        var isFilteringAllowed = field && GridFilterHelpers.filteringAllowedForField(field);
-
-        if (!isFilteringAllowed) {
-          return;
-        }
-
         setFilterComponent(event, schema);
       });
 
@@ -64,8 +57,16 @@
     }
 
     function setFilterComponent(event, schema) {
+      var field = schema.fields[event.dataField];
+      var isFilteringAllowed = field && GridFilterHelpers.filteringAllowedForField(field);
+
+      if (!isFilteringAllowed) {
+        return;
+      }
+
+      event.cancel = true; // Cancels creating the default editor
       var filterComponent = createFilterComponent(event, schema);
-      filterComponent && event.editorElement.replaceWith(filterComponent.getElement());
+      filterComponent.getElement().appendTo(event.editorElement);
     }
 
     function createFilterComponent(event, schema) {
@@ -75,6 +76,7 @@
           filterChangeHandler(filterOptions, event);
         },
         placeholder: getPlaceholder(event, schema),
+        parentType: event.parentType,
       };
 
       return GridFiltersFactory.create(options);
@@ -91,14 +93,16 @@
 
     function unifiedApproachArgs(event, schema) {
       var fieldName = event.dataField;
+      var value = event.value;
+
       var wrapIntoFormData = function (event) {
         var data = {};
-        data[event.dataField] = event.filterValue;
+        data[event.dataField] = value;
 
         return data;
       }
 
-      var formData = _.isNil(event.filterValue) ? null : wrapIntoFormData(event);
+      var formData = _.isNil(value) ? null : wrapIntoFormData(event);
 
       return AdpUnifiedArgs.getHelperParamsWithConfig({
         path: fieldName,
@@ -140,7 +144,7 @@
     }
 
     function mapFilterValuesToColumns(columns, filters) {
-      columns.forEach(function (column) {
+      (columns || []).forEach(function (column) {
         var filter = filters[column.dataField];
         addFilterValues(column, filter);
       });
@@ -171,6 +175,7 @@
     return {
       create: create,
       setFiltersFromUrl: setFiltersFromUrl,
+      setFilterComponent: setFilterComponent,
     }
   }
 })();

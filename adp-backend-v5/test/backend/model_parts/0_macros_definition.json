@@ -1,7 +1,7 @@
 {
   "macros": {
     "macro1": {
-      "inline": "{\n  '<%=scope%>': {\n    'permissions': {\n      'view': '<%=permission%>'\n    },\n    'where': 'return true',\n    'return': 'return $list'\n  }\n}",
+      "inline": "{\n  '<@=scope@>': {\n    'permissions': {\n      'view': '<@=permission@>'\n    },\n    'where': 'return true',\n    'return': 'return $list'\n  }\n}",
       "parameters": {
         "scope": {
           "default": "userScope",
@@ -17,10 +17,10 @@
       "file": "insert_field_macro_template.ejs"
     },
     "recursiveMacro": {
-      "inline": "'recursiveMacroField': { 'fields': { <%-this.M('insertFieldMacro')%> } }"
+      "inline": "'recursiveMacroField': { 'fields': { <@-this.M('insertFieldMacro')@> } }"
     },
     "infiniteRecursiveMacro": {
-      "inline": "'infiniteRecursiveMacroField': { 'fields': { <%-this.M('infiniteRecursiveMacro')%> } }"
+      "inline": "'infiniteRecursiveMacroField': { 'fields': { <@-this.M('infiniteRecursiveMacro')@> } }"
     }
   }
 }

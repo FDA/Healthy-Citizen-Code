@@ -10,7 +10,7 @@ function getTransformedInterfaceAppPermissions(permissions, errors) {
   }
   if (_.isArray(permissions)) {
     const appPermissions = {};
-    permissions.forEach(permission => {
+    permissions.forEach((permission) => {
       if (_.isString(permission)) {
         appPermissions[permission] = { description: permission };
       } else {
@@ -23,11 +23,11 @@ function getTransformedInterfaceAppPermissions(permissions, errors) {
 }
 
 function expandPermissionsForScopes(scopes, actions) {
-  _.each(scopes, scope => {
+  _.each(scopes, (scope) => {
     const permissionName = scope.permissions;
     if (_.isString(permissionName) || _.isArray(permissionName)) {
       scope.permissions = {};
-      _.each(actions, action => {
+      _.each(actions, (action) => {
         scope.permissions[action] = permissionName;
       });
     }
@@ -36,7 +36,7 @@ function expandPermissionsForScopes(scopes, actions) {
 
 function getAppModelWithTransformedPermissions(appModel) {
   const appModelCopy = _.cloneDeep(appModel);
-  _.each(appModelCopy, model => {
+  _.each(appModelCopy, (model) => {
     const modelActionNames = _.keys(_.get(model, 'actions.fields'));
     expandPermissionsForScopes(model.scopes, modelActionNames);
   });
@@ -44,7 +44,7 @@ function getAppModelWithTransformedPermissions(appModel) {
 }
 
 function transformListPermissions(listsFields, appModel) {
-  _.each(listsFields, listField => {
+  _.each(listsFields, (listField) => {
     const listPath = `${listField}.list`;
     const { scopes } = _.get(appModel, listPath);
     expandPermissionsForScopes(scopes, ['view']);
@@ -52,7 +52,10 @@ function transformListPermissions(listsFields, appModel) {
 }
 
 function transformMenuPermissions(mainMenuItems, actionsToInject) {
-  _.each(mainMenuItems, menuItem => {
+  _.each(mainMenuItems, (menuItem) => {
+    if (!_.isPlainObject(menuItem)) {
+      return;
+    }
     transformMenuItemScopes(menuItem, actionsToInject);
   });
 }
@@ -60,14 +63,14 @@ function transformMenuPermissions(mainMenuItems, actionsToInject) {
 function transformMenuItemScopes(menuItem, actionsToInject) {
   expandPermissionsForScopes(menuItem.scopes, actionsToInject);
   if (menuItem.type === 'MenuGroup') {
-    _.each(menuItem.fields, subMenu => {
+    _.each(menuItem.fields, (subMenu) => {
       transformMenuItemScopes(subMenu, actionsToInject);
     });
   }
 }
 
 function transformPagesPermissions(pages, actionsToInject) {
-  _.each(pages, page => expandPermissionsForScopes(page.scopes, actionsToInject));
+  _.each(pages, (page) => expandPermissionsForScopes(page.scopes, actionsToInject));
 }
 
 module.exports = {

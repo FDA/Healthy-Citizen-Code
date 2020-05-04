@@ -55,11 +55,21 @@
       return ['Date', 'DateTime', 'Time'].includes(type);
     }
 
+    function getSorter(attrName) {
+      return function (itemA, itemB) {
+        var a = _.isUndefined(itemA[attrName]) ? 1000000 : itemA[attrName];
+        var b = _.isUndefined(itemB[attrName]) ? 1000000 : itemB[attrName];
+
+        return a === b ? 0 : a > b ? 1 : -1;
+      }
+    }
+
     return {
       getFieldType: getFieldType,
       getCurrentSchema: getCurrentSchema,
       getSchemaByName: getSchemaByName,
       getPageParams: getPageParams,
+      getSorter: getSorter,
       isField: isField,
       isGroup: isGroup,
       isLookup: isLookup,

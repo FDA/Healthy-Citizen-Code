@@ -1,18 +1,22 @@
-module.exports = function (globalMongoose) {
-  const mongoose = globalMongoose;
-  const _ = require('lodash');
-  const questionnaireStatuses = require('../helpers/questionnaire_helper').statuses;
-  const ObjectID = require('mongodb').ObjectID;
+const _ = require('lodash');
+const { ObjectID } = require('mongodb');
+const log = require('log4js').getLogger('research-app-model/dashboard-controller');
+const questionnaireStatuses = require('../helpers/questionnaire_helper').statuses;
 
-  let m = {};
+module.exports = function () {
+  const m = {};
 
   m.init = (appLib) => {
+    m.appLib = appLib;
+    m.db = m.appLib.db;
+    m.conditionForActualRecord = m.appLib.dba.getConditionForActualRecord();
+
     appLib.addRoute('get', `/dashboards/dashboard/data`, [appLib.isAuthenticated, m.dashboard]);
   };
 
   const getNotStartedQuestionnaires = (userId) => {
     const pipeline = [
-      { $match: { 'creator._id': userId } },
+      { $match: { ...m.conditionForActualRecord, 'creator._id': userId } },
       {
         $project: {
           _id: 1,
@@ -95,11 +99,12 @@ module.exports = function (globalMongoose) {
       },
     ];
 
-    return mongoose.model('questionnaires').aggregate(pipeline);
+    return m.db.model('questionnaires').aggregate(pipeline);
   };
 
-  const getInProgressAndCompletedQuestionnaires = (userId) => {
+  const getInProgressAndCompletedQuestionnaires = async (userId) => {
     const pipeline = [
+      { $match: m.conditionForActualRecord },
       {
         $project: {
           answersToQuestionnaires: 1,
@@ -159,20 +164,16 @@ module.exports = function (globalMongoose) {
       },
     ];
 
-    return mongoose
-      .model('participants')
-      .aggregate(pipeline)
-      .then((docs) => {
-        _.forEach(docs, (doc) => {
-          const newStats = {};
-          _.forEach(doc.stats, (stat) => {
-            newStats[stat.status] = stat.count;
-          });
-          doc.stats = newStats;
-        });
-
-        return docs;
+    const docs = await m.db.model('participants').aggregate(pipeline);
+    _.forEach(docs, (doc) => {
+      const newStats = {};
+      _.forEach(doc.stats, (stat) => {
+        newStats[stat.status] = stat.count;
       });
+      doc.stats = newStats;
+    });
+
+    return docs;
   };
 
   const writeZeroStatuses = (obj) => {
@@ -186,23 +187,25 @@ module.exports = function (globalMongoose) {
     return newObj;
   };
 
-  const getQuestionnaireProgressChart = (userId) => {
-    return Promise.all([getInProgressAndCompletedQuestionnaires(userId), getNotStartedQuestionnaires(userId)]).then(
-      ([inProgressAndCompletedQ, notStartedQ]) => {
-        const result = _(inProgressAndCompletedQ)
-          .concat(notStartedQ)
-          .groupBy('questionnaire._id')
-          .map(_.spread(_.merge))
-          .map(writeZeroStatuses)
-          .value();
+  const getQuestionnaireProgressChart = async (userId) => {
+    const [inProgressAndCompletedQ, notStartedQ] = await Promise.all([
+      getInProgressAndCompletedQuestionnaires(userId),
+      getNotStartedQuestionnaires(userId),
+    ]);
 
-        return result;
-      }
-    );
+    const result = _(inProgressAndCompletedQ)
+      .concat(notStartedQ)
+      .groupBy('questionnaire._id')
+      .map(_.spread(_.merge))
+      .map(writeZeroStatuses)
+      .value();
+
+    return result;
   };
 
   const getQuestionnaireSpentTimeChart = (userId) => {
     const pipeline = [
+      { $match: m.conditionForActualRecord },
       {
         $unwind: '$answersToQuestionnaires',
       },
@@ -227,7 +230,7 @@ module.exports = function (globalMongoose) {
       { $match: { 'questionnaire.creator._id': userId } },
       {
         $group: {
-          _id: '$answersToQuestionnaires.questionnaireId',
+          _id: '$answersToQuestionnaires.questionnaireId._id',
           average: { $avg: '$answersToQuestionnaires.spentTime' },
           questionnaire: { $first: '$questionnaire' },
         },
@@ -248,10 +251,10 @@ module.exports = function (globalMongoose) {
         },
       },
     ];
-    return mongoose.model('participants').aggregate(pipeline);
+    return m.db.model('participants').aggregate(pipeline);
   };
 
-  const getQuestionnaireDayChart = (days = 30, userId) => {
+  const getQuestionnaireDayChart = async (days = 30, userId) => {
     const oneDayInSec = 1000 * 60 * 60 * 24;
     const now = Date.now();
     const today = now - (now % oneDayInSec);
@@ -270,6 +273,7 @@ module.exports = function (globalMongoose) {
 
     const day0 = new Date(0);
     const pipeline = [
+      { $match: m.conditionForActualRecord },
       {
         $unwind: '$answersToQuestionnaires',
       },
@@ -285,7 +289,7 @@ module.exports = function (globalMongoose) {
       {
         $lookup: {
           from: 'questionnaires',
-          localField: 'answersToQuestionnaires.questionnaireId',
+          localField: 'answersToQuestionnaires.questionnaireId._id',
           foreignField: '_id',
           as: 'questionnaire',
         },
@@ -314,103 +318,149 @@ module.exports = function (globalMongoose) {
       },
     ];
 
-    return mongoose
-      .model('participants')
-      .aggregate(pipeline)
-      .then((doc) => {
-        _.forEach(doc, (stat) => {
-          results[stat._id.toISOString()] = stat.count;
-        });
+    const doc = await m.db.model('participants').aggregate(pipeline);
+    _.forEach(doc, (stat) => {
+      results[stat._id.toISOString()] = stat.count;
+    });
 
-        return [
-          {
-            name: `Questionnaires by day for last ${days} days`,
-            data: results,
-          },
-        ];
-      });
+    return [
+      {
+        name: `Completed questionnaires by day for last ${days} days`,
+        data: results,
+      },
+    ];
   };
 
   const getQuestionnairesCount = (userId) => {
     // TODO: scope to the current user only
-    return mongoose.model('questionnaires').countDocuments({ 'creator._id': userId });
+    return m.db.model('questionnaires').countDocuments({ ...m.conditionForActualRecord, 'creator._id': userId });
   };
 
-  const getAnswersCount = (userId) => {
+  const getAnswersCount = async (userId) => {
     // TODO: scope to the current user only
-    return mongoose
-      .model('participants')
-      .aggregate([
-        {
-          $project: {
-            answersToQuestionnaires: 1,
-            _id: 0,
-          },
+    const allAnswersToQuestionnaires = await m.db.model('participants').aggregate([
+      { $match: m.conditionForActualRecord },
+      {
+        $project: {
+          answersToQuestionnaires: 1,
+          _id: 0,
         },
-        {
-          $unwind: '$answersToQuestionnaires',
+      },
+      {
+        $unwind: '$answersToQuestionnaires',
+      },
+      {
+        $lookup: {
+          from: 'questionnaires',
+          localField: 'answersToQuestionnaires.questionnaireId._id',
+          foreignField: '_id',
+          as: 'questionnaires',
         },
-        {
-          $lookup: {
-            from: 'questionnaires',
-            localField: 'answersToQuestionnaires.questionnaireId._id',
-            foreignField: '_id',
-            as: 'questionnaires',
-          },
-        },
-        { $match: { 'questionnaires.creator._id': userId } },
-        { $project: { 'answersToQuestionnaires.answers': 1, _id: 0 } },
-      ])
-      .then((allAnswersToQuestionnaires) => {
-        let allAnswersCnt = 0;
-        _.forEach(allAnswersToQuestionnaires, (answerToQuestionnaire) => {
-          const answersObject = answerToQuestionnaire.answersToQuestionnaires.answers;
-          const answersCnt = _.keys(answersObject).length;
-          allAnswersCnt += answersCnt;
-        });
-        return allAnswersCnt;
-      });
+      },
+      { $match: { 'questionnaires.creator._id': userId } },
+      { $project: { 'answersToQuestionnaires.answers': 1, _id: 0 } },
+    ]);
+
+    let allAnswersCnt = 0;
+    _.forEach(allAnswersToQuestionnaires, (answerToQuestionnaire) => {
+      const answersObject = answerToQuestionnaire.answersToQuestionnaires.answers;
+      const answersCnt = _.keys(answersObject).length;
+      allAnswersCnt += answersCnt;
+    });
+    return allAnswersCnt;
   };
 
   const getParticipantsCount = () => {
-    return mongoose.model('participants').countDocuments();
+    return m.db.model('participants').countDocuments(m.conditionForActualRecord);
   };
 
-  m.dashboard = (req, res, next) => {
-    const userId = new ObjectID(req.user._id);
-    Promise.all([
-      getQuestionnaireProgressChart(userId),
-      getQuestionnaireSpentTimeChart(userId),
-      getQuestionnaireDayChart(30, userId),
-      getQuestionnairesCount(userId),
-      getAnswersCount(userId),
-      getParticipantsCount(userId),
-    ])
-      .then(
-        ([
-          questionnaireProgressChart,
-          questionnaireSpentTimeChart,
-          questionnaireDayChart,
-          questionnairesCnt,
-          answersCnt,
-          participantsCnt,
-        ]) => {
-          const dashboardData = {
-            questionnaireProgressChart,
-            questionnaireSpentTimeChart,
-            questionnaireDayChart,
-            numberOfQuestionnaires: { number: questionnairesCnt },
-            numberOfAnswers: { number: answersCnt },
-            numberOfParticipants: { number: participantsCnt },
-          };
-          res.json({ success: true, data: dashboardData });
-          next();
-        }
-      )
-      .catch((err) => {
-        console.error(`Unable to get dashboard data`, err.stack);
-        res.json({ success: false, data: err.message });
-      });
+  m.dashboard = async (req, res) => {
+    try {
+      const userId = new ObjectID(req.user._id);
+      const [
+        questionnaireProgressChart,
+        questionnaireSpentTimeChart,
+        questionnaireDayChart,
+        questionnairesCnt,
+        answersCnt,
+        participantsCnt,
+      ] = await Promise.all([
+        getQuestionnaireProgressChart(userId),
+        getQuestionnaireSpentTimeChart(userId),
+        getQuestionnaireDayChart(30, userId),
+        getQuestionnairesCount(userId),
+        getAnswersCount(userId),
+        getParticipantsCount(userId),
+      ]);
+
+      const dashboardData = {
+        questionnaireProgressChart: mapDataToProgressChart(questionnaireProgressChart),
+        questionnaireSpentTimeChart: mapDataSpentTimeChart(questionnaireSpentTimeChart),
+        questionnaireDayChart: mapDataToDayChart(questionnaireDayChart),
+        numberOfQuestionnaires: { number: questionnairesCnt },
+        numberOfAnswers: { number: answersCnt },
+        numberOfParticipants: { number: participantsCnt },
+      };
+      res.json({ success: true, data: dashboardData });
+    } catch (e) {
+      log.error(`Unable to get dashboard data`, e.stack);
+      res.json({ success: false, data: e.message });
+    }
+  };
+
+  const mapDataToProgressChart = (data) => {
+    let result = [
+      ['questionnaireName', 'Completed', 'Not started', 'In Progress'],
+    ];
+
+    const getValue = v => v === 0 ? null : v;
+
+    data.forEach((item) => {
+      result.push([
+        item.questionnaire.questionnaireName,
+        getValue(item.stats['Completed']),
+        getValue(item.stats['Not started']),
+        getValue(item.stats['In Progress']),
+      ]);
+    });
+
+    return result;
+  }
+
+  const mapDataSpentTimeChart = (data) => {
+    let result = [
+      [
+        "questionnaireName",
+        "average seconds spent",
+        "anticipated seconds spent"
+      ],
+    ];
+
+    data.forEach((item) => {
+      result.push([
+        item.questionnaire.questionnaireName,
+        item.stats.average,
+        item.stats.anticipated,
+      ]);
+    });
+
+    return result;
+  }
+
+  const mapDataToDayChart = (data) => {
+    let result = [
+      ['Questionnaires', 'Questionnaires Completed in the Last 30 Days'],
+    ];
+    let answers = data[0].data;
+
+    Object.keys(answers).forEach((date) => {
+      result.push([
+        date,
+        answers[date],
+      ]);
+    });
+
+    return result;
   };
 
   return m;

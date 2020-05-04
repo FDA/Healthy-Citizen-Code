@@ -73,18 +73,31 @@ async function getUserIdsToNotifyAboutBgJobs(appLib, jobCreatorId) {
   }
 
   async function isJobCreatorAllowedToSeeJobStatus(creatorId) {
-    const user = await appLib.db.model('users').findOne({ _id: creatorId });
+    const user = await appLib.db.model('users').findOne({ _id: creatorId }).lean();
     if (!user) {
       return false;
     }
 
+    const wsViewOwnJobsStatusPermission = 'wsViewOwnJobsStatus';
+
+    // check if default User role(not presented in user.roles in db) contains necessary permission
+    const rolesToPermissions = await appLib.cache.getUsingCache(
+      () => appLib.accessUtil.getRolesToPermissions(),
+      appLib.cache.keys.rolesToPermissions()
+    );
+    const userPermissions = rolesToPermissions[appLib.accessCfg.ROLES.User];
+    if (userPermissions.includes(wsViewOwnJobsStatusPermission)) {
+      return true;
+    }
+
+    // then check non-default roles
     const userRoleIds = user.roles.map((r) => r._id);
     const roles = await appLib.db
       .model('roles')
-      .find({ $and: [{ _id: { $in: userRoleIds } }, { permissions: 'wsViewOwnJobsStatus' }] })
+      .find({ $and: [{ _id: { $in: userRoleIds } }, { permissions: wsViewOwnJobsStatusPermission }] })
       .exec();
 
-    const isAllowed = roles.length;
+    const isAllowed = !!roles.length;
     return isAllowed;
   }
 }
@@ -105,45 +118,50 @@ async function emitBackgroundJobEvent(appLib, { creatorId, level, message, data 
 
 function addLogsAndNotificationsForQueueEvents(appLib, bullQueue, log) {
   bullQueue
-    .on('progress', (job, progress) => log.info(`Job with id ${job.id} progress is ${progress}`))
+    .on('progress', (job, progress) => {
+      const queueName = job.queue.name;
+      return log.info(`'${queueName}' Job with id ${job.id} progress is ${progress}`);
+    })
     .on('error', (error) => log.error(`Bull error occurred.`, error.stack))
     .on('completed', async (job) => {
-      const message = `Job with id ${job.id} successfully completed`;
+      const queueName = job.queue.name;
+      const message = `'${queueName}' Job with id ${job.id} successfully completed`;
       log.info(message);
       emitBackgroundJobEvent(appLib, {
         creatorId: job.data.creator._id,
         level: 'info',
-        message,
-        data: { jobId: job.id },
+        message: `Job with id ${job.id} successfully completed`,
+        data: { jobId: job.id, queueName, status: 'completed' },
       });
     })
     .on('failed', async (job, error) => {
-      log.error(`Error occurred for job with id ${job.id}.`, error.stack);
+      const queueName = job.queue.name;
+      log.error(`Error occurred in queue '${queueName}', job id ${job.id}.`, error.stack);
       emitBackgroundJobEvent(appLib, {
         creatorId: job.data.creator._id,
         level: 'error',
         message: `Error occurred for job with id ${job.id}. ${error.message}`,
-        data: { jobId: job.id },
+        data: { jobId: job.id, queueName, status: 'error' },
       });
     })
     .on('stalled', (job) => {
-      const message = `Job with id ${job.id} progress is stalled`;
-      log.warn(message);
+      const queueName = job.queue.name;
+      log.warn(`'${queueName}' Job with id ${job.id} is stalled`);
       emitBackgroundJobEvent(appLib, {
         creatorId: job.data.creator._id,
         level: 'warning',
-        message,
-        data: { jobId: job.id },
+        message: `Job with id ${job.id} is stalled`,
+        data: { jobId: job.id, queueName, status: 'stall' },
       });
     })
     .on('active', (job) => {
-      const message = `Job with id ${job.id} has started`;
-      log.info(message);
+      const queueName = job.queue.name;
+      log.info(`'${queueName}' Job with id ${job.id} has started`);
       emitBackgroundJobEvent(appLib, {
         creatorId: job.data.creator._id,
         level: 'info',
-        message,
-        data: { jobId: job.id },
+        message: `Job with id ${job.id} has started`,
+        data: { jobId: job.id, queueName, status: 'start' },
       });
     });
 }

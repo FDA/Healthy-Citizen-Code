@@ -3,7 +3,7 @@
     "macros_error": {
       "type": "Schema",
       "fields": {
-        <%-this.M('invalidMacroName')%>
+        <@-this.M('invalidMacroName')@>
       }
     }
   }

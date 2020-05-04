@@ -25,7 +25,7 @@ async function execActionForLookup(actionName, lookupName, page) {
   const PARENT_FORM_SELECTOR = '.basicTypes';
   await clickLookupAction(lookupName, actionName, PARENT_FORM_SELECTOR, page);
 
-  const LABEL_FIELD_SELECTOR = '[name="string"]';
+  const LABEL_FIELD_SELECTOR = '[name="string"] input';
   const labelValue =  uuidv4();
   await typeIntoLabelField(LABEL_FIELD_SELECTOR,  labelValue, page);
 

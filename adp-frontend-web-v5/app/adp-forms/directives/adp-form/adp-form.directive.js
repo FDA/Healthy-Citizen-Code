@@ -50,7 +50,6 @@
           scope.errorCount = 0;
 
           scope.loading = false;
-          scope.isFullscreen = false;
           scope.uploaderCnt = 0;
 
           bindEvents();

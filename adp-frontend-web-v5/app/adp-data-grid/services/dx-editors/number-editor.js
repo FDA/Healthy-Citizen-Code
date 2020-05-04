@@ -14,51 +14,43 @@
         editorName: 'dxNumberBox',
 
         create: function (init) {
-          var options = getOptions(init);
           this.element = $('<div>');
+          this.element[this.editorName](this.getOptions(init));
+        },
 
-          this.element[this.editorName](options);
+        getOptions: function (init) {
+          var self = this;
+
+          return {
+            onKeyDown: function (e) {
+              // WORKAROUND: to allow removing zero from input
+              if (changedToNull(e.event)) {
+                self.reset();
+              }
+            },
+            onValueChanged: init.onValueChanged,
+            value: init.args.data,
+            valueChangeEvent: 'blur input',
+            placeholder: init.placeholder,
+            format: {
+              type: 'decimal'
+            },
+          }
         },
       });
     };
 
-    function getOptions(init) {
-      var INPUT_TIMEOUT = 300;
-      var type = init.args.modelSchema.type;
-
-      var options = {
-        mode: 'number',
-        onValueChanged: _.debounce(init.onValueChanged, INPUT_TIMEOUT),
-        value: init.args.data,
-        valueChangeEvent: 'change keyup input',
-        placeholder: init.placeholder,
-      };
-
-      // TODO: rework to factory
-      var isInt = ['Int32', 'Int64'].includes(type);
-      if (isInt) {
-        options.onKeyPress = function (e) {
-          var domEvent = e.event;
-          var isInt = /[+\-]|\d+/.test(domEvent.key);
-          if (!isInt) {
-            domEvent.preventDefault();
-          }
-        }
+    function changedToNull(e) {
+      if (e.key !== 'Backspace') {
+        return false;
       }
 
-      var isDecimal = type === 'Decimal128';
-      if (isDecimal) {
-        options.value = castToString(options.value);
-        options.onValueChanged = _.debounce(function (e) {
-          init.onValueChanged({ value: castToString(e.value) });
-        }, INPUT_TIMEOUT);
-      }
+      var input = e.target;
+      var hasSingleChar = input.value.length === 1 && input.selectionStart === 1;
+      var hasSingleNegativeChar = /\-\d/.test(input.value) && input.selectionStart === 2;
+      var allTextSelected = input.value.length === (input.selectionEnd - input.selectionStart);
 
-      return options;
-    }
-
-    function castToString(number) {
-      return _.isNil(number) ? number : number.toString();
+      return hasSingleChar || hasSingleNegativeChar || allTextSelected;
     }
   }
 })();

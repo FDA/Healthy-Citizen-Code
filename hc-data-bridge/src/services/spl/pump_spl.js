@@ -7,11 +7,14 @@ const args = require('optimist').argv;
 const _ = require('lodash');
 const unzipper = require('unzipper');
 const uuidv4 = require('uuid/v4');
-const axios = require('axios');
 const $ = require('cheerio');
 const { mongoConnect, setUpdateAtIfRecordChanged, conditionForActualRecord } = require('../util/mongo');
 const { downloadUsingWget } = require('../util/download');
 const SplDataParser = require('./spl_data_parser');
+
+const { getAxiosProxySettings, getWgetProxyParams } = require('../util/proxy');
+// eslint-disable-next-line import/order
+const axios = require('axios').create(getAxiosProxySettings());
 
 const FILE_INFOS_URL = 'https://dailymed.nlm.nih.gov/dailymed/spl-resources-all-drug-labels.cfm';
 
@@ -300,7 +303,7 @@ async function upsertSplDoc(splDoc, dbCollection, pathToXml) {
       zipPaths = await downloadUsingWget(
         fileInfos,
         false,
-        '--no-passive-ftp --retry-connrefused --wait=30 --waitretry=30'
+        `--no-passive-ftp --retry-connrefused --wait=30 --waitretry=30 ${getWgetProxyParams()}`
       );
     }
 

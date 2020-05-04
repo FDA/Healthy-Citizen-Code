@@ -38,17 +38,20 @@
         placeholder: init.placeholder || momentFormat,
         displayFormat: momentToDxFormatConvert(momentFormat),
         showAnalogClock: false,
-        onValueChanged: _.debounce(onValueChanged, INPUT_TIMEOUT),
         tabIndex: 0,
         value: init.args.data,
-        valueChangeEvent: 'change keyup input',
-        useMaskBehavior: true
+        valueChangeEvent: 'change keyup input blur',
+        useMaskBehavior: true,
+        onValueChanged: init.parentType === 'filterBuilder' ?
+          onValueChanged :
+          _.debounce(onValueChanged, INPUT_TIMEOUT),
       };
 
       function onValueChanged(e) {
         if (e.value) {
           e.value = moment(moment(e.value).format(momentFormat), momentFormat).toDate();
         }
+
         init.onValueChanged(e);
       }
     }

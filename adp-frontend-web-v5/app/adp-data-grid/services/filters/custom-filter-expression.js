@@ -14,8 +14,8 @@
       Time: transformBetweenToNonStrictRange,
       Number: transformBetweenToNonStrictRange,
       ImperialWeight: transformBetweenToNonStrictRange,
-      ImperialWeightWithOz: transformBetweenToNonStrictRange,
-      ImperialHeight: transformBetweenToNonStrictRange,
+      ImperialWeightWithOz: imperialUnitMultipeExpr,
+      ImperialHeight: imperialUnitMultipeExpr,
       LookupObjectID: transformLookup,
       'LookupObjectID[]': transformLookup,
     };
@@ -38,6 +38,17 @@
       }
 
       return this.defaultCalculateFilterExpression.apply(this, arguments);
+    }
+
+    function imperialUnitMultipeExpr(filterValue, selectedFilterOperation) {
+      var mapToNumbers = function (v) {
+        return _.isNil(v) ? v :  v.split('.').map(Number);
+      }
+      var val = _.isArray(filterValue) ?
+        filterValue.map(mapToNumbers) :
+        mapToNumbers(filterValue);
+
+      return transformBetweenToNonStrictRange.call(this, val, selectedFilterOperation);
     }
 
     function transformBetweenToNonStrictRange(filterValue, selectedFilterOperation) {

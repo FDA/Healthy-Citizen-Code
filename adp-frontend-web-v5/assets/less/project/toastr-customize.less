@@ -1,4 +1,5 @@
 @animation: 1.5s;
+@toast-width: 300px;
 
 .toast-error {
   background-color: #C46A69;
@@ -12,7 +13,7 @@
 
 .toast-container-universal {
   pointer-events: none;
-  max-width: 300px;
+  max-width: @toast-width;
 
   > div {
     position: relative;
@@ -20,7 +21,7 @@
     overflow: hidden;
     margin: 0 0 6px;
     padding: 15px 15px 15px 50px;
-    width: 300px;
+    width: @toast-width;
     border-radius: 3px 3px 3px 3px;
     background-position: 15px center;
     background-repeat: no-repeat;
@@ -97,6 +98,8 @@
 }
 
 #toast-container-error-tabs {
+  max-width: @toast-width;
+
   .toast-tab {
     position:relative;
     width: 35px;
@@ -137,7 +140,7 @@
   top: 55px;
   right: 5px;
   z-index: 999999;
-  max-width: 300px;
+  max-width: @toast-width;
 }
 
 @media (max-width: 979px) {

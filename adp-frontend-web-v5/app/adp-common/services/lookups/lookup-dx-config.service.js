@@ -73,7 +73,7 @@
       return _.assign(defaultsConfig, lookupMultipleConfig);
     }
 
-    function gridEditorSingle(options) {
+    function gridEditorMultiple(options) {
       var defaultsConfig = defaults(options);
 
       var filterConfig = {
@@ -96,7 +96,7 @@
       return _.assign(defaultsConfig, filterConfig);
     }
 
-    function gridEditorMultiple(options) {
+    function gridEditorSingle(options) {
       var defaultsConfig = defaults(options);
 
       var filterConfig = {
@@ -132,14 +132,19 @@
           'table-selector': true,
           'class': hasSingleTable ? ' hidden' : '',
         },
-        value: items[0],
+        value: items[0].value,
         dataSource: items,
+        valueExpr: 'value',
+        displayExpr: 'label',
         onValueChanged: options.onTableChanged,
       };
 
       function getNamesForTables(lookup) {
         return _.map(lookup.table, function (table) {
-          return table.table;
+          return {
+            value: table.table,
+            label: table.tableLabel || _.startCase(table.table),
+          }
         });
       }
     }
@@ -159,7 +164,7 @@
         removeBtn.off('click');
       });
 
-      var content = $('<span>').html(AdpLookupHelpers.formatLabel(templateConf.lookupData, templateConf.args));
+      var content = $('<span>').html(AdpLookupHelpers.selectionLabel(templateConf.lookupData, templateConf.args));
 
       $('<div class="dx-tag-content">')
         .append(content, removeBtn)
@@ -174,7 +179,7 @@
 
       var label = _.isNil(data) ?
         '<div class="adp-text-box-label-empty">' + placeholder + '</div>' :
-        AdpLookupHelpers.formatLabel(data, args);
+        AdpLookupHelpers.selectionLabel(data, args);
 
       var tpl = $('<div class="adp-text-box-label">')
         .append(label);
@@ -206,6 +211,8 @@
         dataSource: LookupDataSource(options.args, options.selectedTableName),
         valueExpr: 'this',
         onValueChanged: options.onValueChanged,
+        multiline: true,
+        wrapItemText: true
       }
     }
   }

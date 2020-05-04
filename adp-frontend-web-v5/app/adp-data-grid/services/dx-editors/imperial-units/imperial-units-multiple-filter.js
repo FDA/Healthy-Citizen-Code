@@ -18,17 +18,19 @@
           this.init();
         },
 
-        init: function() {
-          var initialValue = this.options.args.data || [0, 0]
-          this.value = initialValue;
-
+        init: function () {
+          this.value = this.getInitialValue(this.options.args.data);
 
           this.elements = this.units.map(function (unit, index) {
-            return this.createSelectBox(unit, index, initialValue[index]);
+            return this.createSelectBox(unit, index, this.value[index]);
           }, this);
           this.element.append(this.elements);
 
           this.addRangeText(this.options.placeholder);
+        },
+
+        getInitialValue: function (v) {
+          return typeof v === 'string' ? v.split('.').map(Number) : [0, 0];
         },
 
         addRangeText: function (placeholder) {
@@ -65,15 +67,22 @@
         },
 
         getValue: function() {
-          return _.isNull(this.value) ? null : this.value.slice();
+          return _.isNull(this.value) ? null : this.value.join('.');
         },
 
         reset: function () {
           this.elements.forEach(function (el) {
-            var filterInstance = el.dxSelectBox('instance');
-            filterInstance.reset();
+            // WORKAROUND: dx grid somehow manages to dispose second filter before first while
+            // filter operation changed from any to 'between'
+            // dxGrid throws error: 'dxSelectBox' is not init for this element
+            // this code attempts to reset filter if element exist, if not just pass through
+            try {
+              var filterInstance = el.dxSelectBox('instance');
+              filterInstance.reset();
+            } catch (e) {}
           });
           this.setValue(null);
+          this.options.onValueChanged({ value: null });
         },
 
         getElement: function () {

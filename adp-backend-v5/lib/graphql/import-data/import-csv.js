@@ -6,57 +6,128 @@ const _ = require('lodash');
 const { getDateFromAmPmTime } = require('../../util/date');
 const { importItems } = require('./import-json');
 const { getResponseWithErrors } = require('./util');
+const { getLookup, getTableSpecParams } = require('./../../util/lookups');
 
-function parseCsvToJsonValue(csvValue, type) {
+const CSV_MULTIPLE_TYPE_SEPARATOR = '; ';
+
+async function getLookupByLabel({ appLib, csvLabelValue, tableSpecs }) {
+  const {
+    db,
+    appModel: { models },
+  } = appLib;
+  const isMultiple = _.keys(tableSpecs).length > 1;
+
+  let tableSpec;
+  let label;
+  if (isMultiple) {
+    const [collection, labelVal] = csvLabelValue.split(' | ');
+    tableSpec = tableSpecs[collection];
+    label = labelVal;
+  } else {
+    // eslint-disable-next-line prefer-destructuring
+    tableSpec = _.values(tableSpecs)[0];
+    label = csvLabelValue;
+  }
+
+  const { foreignKeyFieldName, labelField, table } = tableSpec;
+  if (!/this\.\w+/.test(labelField)) {
+    throw new Error(`Complicated lookup labels are not supported. '${labelField}' is not a single field.`);
+  }
+
+  const labelFieldSimplified = labelField.replace('this.', '');
+  const type = _.get(models, `${table}.fields.${labelFieldSimplified}.type`);
+  if (type === 'Date') {
+    label = new Date(label);
+    if (label === 'Invalid Date') {
+      throw new Error(`Invalid label value ${label} for 'Date' label type`);
+    }
+  }
+
+  const docs = await db
+    .collection(table)
+    .find({ [labelFieldSimplified]: label, ...appLib.dba.getConditionForActualRecord() }, { [foreignKeyFieldName]: 1 })
+    .toArray();
+  if (!docs.length) {
+    throw new Error(`Unable to find referenced document by label '${csvLabelValue}'`);
+  }
+  if (docs.length > 1) {
+    throw new Error(
+      `Found multiple lookup documents(${docs.length}) by label '${csvLabelValue}'. It must be a single document.`
+    );
+  }
+
+  const doc = docs[0];
+  return getLookup(doc, tableSpec);
+}
+
+function getTableSpecs(schemeSpec) {
+  return _.mapValues(schemeSpec.lookup.table, (tableSpec) => getTableSpecParams(tableSpec));
+}
+
+async function parseCsvToJsonValue({ appLib, scheme, val, fieldName }) {
+  const schemeSpec = scheme.fields[fieldName];
+  const { type } = schemeSpec;
+
   const stringTypes = ['String', 'Email', 'Phone', 'Url', 'Text', 'Barcode', 'Decimal128'];
   const numberTypes = ['Number', 'Double', 'Int32', 'Int64'];
 
-  if (!csvValue || csvValue === '-') {
+  if (!val || val === '-') {
     return null;
   }
 
   if (stringTypes.includes(type)) {
-    return _.unescape(csvValue);
+    return _.unescape(val);
   }
 
   if (type === 'String[]') {
-    return _.unescape(csvValue).split(', ');
+    return _.unescape(val).split(', ');
   }
 
   if (numberTypes.includes(type)) {
-    return Number(csvValue);
+    return Number(val);
   }
 
   if (type === 'Boolean') {
-    if (csvValue === 'true') {
+    if (val === 'true') {
       return true;
     }
-    if (csvValue === 'false') {
+    if (val === 'false') {
       return false;
     }
-    throw new Error(`Invalid Boolean value ${csvValue}`);
+    throw new Error(`Invalid Boolean value ${val}`);
   }
 
   // dates appears in client timezone which is not available for server, parse it ignoring timezone
   if (type === 'Date') {
-    return new Date(csvValue);
+    return new Date(val);
   }
   if (type === 'DateTime') {
-    return new Date(csvValue);
+    return new Date(val);
   }
   if (type === 'Time') {
-    return getDateFromAmPmTime(csvValue);
+    return getDateFromAmPmTime(val);
   }
 
   if (type === 'ObjectID') {
-    if (!ObjectID.isValid(csvValue)) {
-      throw new Error(`Invalid ObjectId value ${csvValue}`);
+    if (!ObjectID.isValid(val)) {
+      throw new Error(`Invalid ObjectId value ${val}`);
     }
-    return ObjectID(csvValue);
+    return ObjectID(val);
   }
 
-  if (['TreeSelector', 'LookupObjectID', 'LookupObjectID[]'].includes(type)) {
-    throw new Error(`LookupObjectID and Treeselector are not supported ('${type}')`);
+  if (type === 'LookupObjectID') {
+    const tableSpecs = getTableSpecs(schemeSpec);
+    return getLookupByLabel({ appLib, csvLabelValue: val, tableSpecs });
+  }
+
+  if (type === 'LookupObjectID[]') {
+    const tableSpecs = getTableSpecs(schemeSpec);
+    const labelValues = val.split(CSV_MULTIPLE_TYPE_SEPARATOR);
+    return Promise.map(labelValues, (csvLabelValue) => getLookupByLabel({ appLib, csvLabelValue, tableSpecs }));
+  }
+
+  if (type === 'TreeSelector') {
+    throw new Error(`Treeselector type is not supported`);
   }
 
   if (['Location', 'Image', 'Video', 'Audio', 'File', 'Image[]', 'Video[]', 'Audio[]', 'File[]'].includes(type)) {
@@ -69,7 +140,7 @@ function parseCsvToJsonValue(csvValue, type) {
   throw new Error(`Unknown field type ('${type}')`);
 }
 
-async function getItemsFromCsv({ filePath, context, log }) {
+async function getItemsFromCsv({ filePath, context }) {
   const { modelName, appLib } = context;
   const scheme = appLib.appModel.models[modelName];
   const fieldFullNameToFieldName = {};
@@ -95,37 +166,35 @@ async function getItemsFromCsv({ filePath, context, log }) {
   const errors = {};
   let csvRowIndex = 0;
 
-  return new Promise(resolve => {
-    stream
-      .on('headers', () => {
+  await new Promise((resolve) => {
+    stream.on('headers', () => {
+      try {
         if (nonExistingFields.length) {
           stream.destroy();
-          errors.overall = `File contains invalid column names: ${nonExistingFields.map(f => `'${f}'`).join(', ')}`;
-          resolve({ items, errors });
+          errors.overall = `File contains invalid column names: ${nonExistingFields.map((f) => `'${f}'`).join(', ')}`;
         }
-      })
-      .on('data', async csvRowData => {
-        const item = {};
-        _.each(csvRowData, (val, key) => {
-          const { type } = scheme.fields[key];
-          try {
-            item[key] = parseCsvToJsonValue(val, type);
-          } catch (e) {
-            _.set(errors, `${csvRowIndex}.${key}`, e.message);
-          }
-        });
-        items.push(item);
-        csvRowIndex++;
-      })
-      .on('end', async () => {
-        resolve({ items, errors });
-      })
-      .on('error', e => {
-        log.error(e.stack);
-        errors.overall = `Unable to parse csv file.`;
-        resolve({ items, errors });
-      });
+      } finally {
+        resolve();
+      }
+    });
   });
+  if (!_.isEmpty(errors)) {
+    return { errors };
+  }
+
+  for await (const csvRowData of stream) {
+    const item = {};
+    for (const [fieldName, val] of _.entries(csvRowData)) {
+      try {
+        item[fieldName] = await parseCsvToJsonValue({ appLib, scheme, val, fieldName });
+      } catch (e) {
+        _.set(errors, `${csvRowIndex}.${fieldName}`, e.message);
+      }
+    }
+    items.push(item);
+    csvRowIndex++;
+  }
+  return { items, errors };
 }
 
 async function importCsv({ filePath, context, log }) {

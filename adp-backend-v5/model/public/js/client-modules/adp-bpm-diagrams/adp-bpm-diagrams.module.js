@@ -1,4 +1,4 @@
-(function() {
+(function () {
   angular
     .module('app.adpBpmDiagrams', [])
     .controller('DmnEditorController', getRuleEditorController('dmn'))
@@ -6,7 +6,7 @@
 
   /** @ngInject */
   function getRuleEditorController(diagramType) {
-    return function(
+    return function (
       $scope,
       APP_CONFIG,
       AdpBpmHelper,
@@ -29,6 +29,7 @@
       vm.diskSave = saveRulesToDisk;
       vm.nativeName = diagram.nativeName;
       vm.extraCSS = APP_CONFIG.apiUrl + '/public/js/client-modules/adp-bpm-diagrams/adp-bpm-editor.css';
+      vm.diagramType = diagramType;
 
       initialise();
 
@@ -36,7 +37,7 @@
         var promises = [];
 
         promises.push(
-          AdpBpmHelper.loadRulesRecord(diagramType, recordId).then(function(res) {
+          AdpBpmHelper.loadRulesRecord(diagramType, recordId).then(function (res) {
             if (!res || !res[0]) {
               throw new ResponseError('Record is not found by ID');
             }
@@ -51,12 +52,12 @@
 
         $.when
           .apply(this, promises)
-          .then(function() {
+          .then(function () {
             vm.isLoading = false;
             $scope.$applyAsync();
             $timeout(doStart);
           })
-          .catch(function(error) {
+          .catch(function (error) {
             ErrorHelpers.handleError(error, 'Unknown error while loading record rules & editor code');
             throw error;
           });
@@ -67,12 +68,12 @@
 
         var diagram = AdpBpmHelper.getDiagram(diagramType, vm.record);
 
-        doInitialOpenDiagram(diagram).catch(function(err) {
+        doInitialOpenDiagram(diagram).catch(function (err) {
           AdpNotificationService.notifyError(err);
 
           var emptyDiagram = AdpBpmHelper.getDiagram(diagramType, {});
 
-          doInitialOpenDiagram(emptyDiagram).catch(function(err) {
+          doInitialOpenDiagram(emptyDiagram).catch(function (err) {
             AdpNotificationService.notifyError(err);
           });
         });
@@ -99,7 +100,7 @@
       function openDiagram(definition) {
         var deferred = new $.Deferred();
 
-        vm.instance.importXML(definition, function(err) {
+        vm.instance.importXML(definition, function (err) {
           if (err) {
             console.log('Could not import diagram into modeller', err);
             deferred.reject(err);
@@ -112,7 +113,7 @@
       }
 
       function saveRulesRecord() {
-        return prepareDefinition().then(function(definition) {
+        return prepareDefinition().then(function (definition) {
           return AdpBpmHelper.putRulesRecord(diagramType, vm, definition);
         });
       }
@@ -120,27 +121,27 @@
       function loadRulesFromDisk() {
         var typeName = diagramType.toUpperCase();
 
-        return AdpModalService.upload({
+        return AdpModalService.readFile({
           title: typeName + ' rules file',
-          validate: function(file) {
+          validate: function (file) {
             if (file.name.substr(file.name.lastIndexOf('.') + 1) !== diagramType && file.type !== 'text/xml') {
               return 'Please select ' + typeName + ' or XML file';
             }
           },
         })
-          .then(function(file) {
+          .then(function (file) {
             return openDiagram(file.contents);
           })
-          .then(function() {
+          .then(function () {
             AdpNotificationService.notifySuccess('Rules are loaded successfully');
           })
-          .catch(function(err) {
+          .catch(function (err) {
             AdpNotificationService.notifyError(err);
           });
       }
 
       function saveRulesToDisk() {
-        return prepareDefinition().then(function(definition) {
+        return prepareDefinition().then(function (definition) {
           return AdpFileDownloader({
             buffer: definition,
             mimeType: 'text/xml',
@@ -152,7 +153,13 @@
       function prepareDefinition() {
         var deferred = new $.Deferred();
 
-        vm.instance.saveXML({ format: true }, function(err, definition) {
+        if (diagramType === 'bpmn') {
+          _.each(vm.instance._definitions.rootElements, function (root) {
+            root.isExecutable = true;
+          });
+        }
+
+        vm.instance.saveXML({ format: true }, function (err, definition) {
           return err ? deferred.reject(err) : deferred.resolve(definition);
         });
 

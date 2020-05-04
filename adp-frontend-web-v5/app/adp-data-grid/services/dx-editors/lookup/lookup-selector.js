@@ -41,8 +41,8 @@
 
         setEditorsOptions: function(parentOptions) {
           this.editorOptions = this.multiple ?
-            LookupDxConfig.gridEditorSingle(parentOptions) :
-            LookupDxConfig.gridEditorMultiple(parentOptions);
+            LookupDxConfig.gridEditorMultiple(parentOptions) :
+            LookupDxConfig.gridEditorSingle(parentOptions);
 
           this.setChangeHandler(parentOptions.onValueChanged);
         },

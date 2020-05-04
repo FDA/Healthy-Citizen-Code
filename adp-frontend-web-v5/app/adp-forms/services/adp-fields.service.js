@@ -66,6 +66,7 @@
       'TreeSelector': { directiveType: 'tree-selector' },
       'Html': { directiveType: 'html' },
       'Code': { directiveType: 'code' },
+      'Grid': { directiveType: 'grid' },
     };
 
     // public

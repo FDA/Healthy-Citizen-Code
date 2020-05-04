@@ -7,13 +7,14 @@
     class="btn btn-primary"
     type="button"
     ng-click="vm.confirm()">
-    Yes
+    {{vm.options.okButtonText || 'Yes'}}
   </button>
 
   <button
     class="btn btn-default"
     type="button"
-    ng-click="vm.cancel()">
+    ng-click="vm.cancel()"
+    ng-if="!vm.options.hideCancelButton">
     Cancel
   </button>
 </div>

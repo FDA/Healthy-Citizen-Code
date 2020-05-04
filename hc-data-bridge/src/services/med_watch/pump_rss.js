@@ -1,11 +1,13 @@
 const args = require('optimist').argv;
 const Promise = require('bluebird');
-const axios = require('axios');
 const _ = require('lodash');
-const { mongoConnect } = require('../util/mongo');
 
+const { mongoConnect } = require('../util/mongo');
 const { upsertSafetyAlert, parseSingleAlertPage } = require('./pump_util');
 const { parseString } = require('../util/parse_xml_string');
+const { getAxiosProxySettings } = require('../util/proxy');
+// eslint-disable-next-line import/order
+const axios = require('axios').create(getAxiosProxySettings());
 
 const { mongoUrl, medWatchCollectionName } = args;
 const collectionName = medWatchCollectionName || 'medWatch';

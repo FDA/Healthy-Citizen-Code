@@ -1,8 +1,10 @@
-const axios = require('axios');
 const _ = require('lodash');
 const Promise = require('bluebird');
 
 const SearchParamsParser = require('../gen_app_model_by_fhir/search_params_mapper');
+const { getAxiosProxySettings } = require('../util/proxy');
+// eslint-disable-next-line import/order
+const axios = require('axios').create(getAxiosProxySettings());
 
 const FHIR_URL_PREFIX = '/fhir';
 

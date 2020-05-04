@@ -2,7 +2,7 @@ module.exports = function () {
   const m = {};
 
   m.init = (appLib) => {
-    const modelName = 'userPreferences';
+    const modelName = 'userSettings';
     const {
       addMutation,
       resolvers: { addUpsertOne },

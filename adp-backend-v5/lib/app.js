@@ -960,12 +960,12 @@ module.exports = () => {
     m.appModel = await m.mutil.getCombinedModel({
       appModelSources: options.appModelSources,
       appModelProcessors: m.appModelHelpers.appModelProcessors,
-      macrosDirPaths: [...getSchemaNestedPaths('macroses'), `${coreModelPath}/macroses`],
+      macrosDirPaths: [...getSchemaNestedPaths('macros'), `${coreModelPath}/macros`],
     });
 
     m.accessUtil.setAvailablePermissions();
 
-    const { errors, warnings } = m.mutil.validateAndCleanupAppModel();
+    const { errors, warnings } = m.mutil.validateAndCleanupAppModel(m.appModel.models);
     if (warnings.length) {
       const warningsList = warnings.map((w, index) => `${index + 1}) ${w}`).join('\n');
       m.log.warn(`Warnings during model building:\n${warningsList}`);

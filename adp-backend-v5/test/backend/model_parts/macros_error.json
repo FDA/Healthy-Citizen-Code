@@ -4,7 +4,7 @@
       "type": "Schema",
       "fields": {
         "f1": {
-          <%-this.M('insertFieldMacro')%>
+          <@-this.M('insertFieldMacro')@>
         }
       }
     }

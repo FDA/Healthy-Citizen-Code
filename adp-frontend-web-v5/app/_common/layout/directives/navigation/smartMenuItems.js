@@ -3,6 +3,7 @@
 
   angular.module('SmartAdmin.Layout')
     .directive('smartMenuItems', function (
+      AdpSchemaService,
       $rootScope,
       $compile
     ) {
@@ -19,6 +20,8 @@
           var ul = $('<ul />', {
             'smart-menu': ''
           }).addClass('adp-level0');
+
+          menuItems.sort( AdpSchemaService.getSorter('order') )
 
           _.forEach(menuItems, function (item) {
             createMenuItem(item, ul, 1);
@@ -106,6 +109,9 @@
                 .addClass("adp-level" + level);
               li.append(ul);
               li.attr('data-menu-collapse', '');
+
+              item.items.sort( AdpSchemaService.getSorter('order') )
+
               _.forEach(item.items, function (child) {
                 createMenuItem(child, ul, level + 1);
               })

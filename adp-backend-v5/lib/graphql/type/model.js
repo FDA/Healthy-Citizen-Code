@@ -30,7 +30,7 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
     ].includes(type)
   ) {
     graphqlType = 'String';
-  } else if (type === ['Date', 'Time', 'DateTime']) {
+  } else if (['Date', 'Time', 'DateTime'].includes(type)) {
     graphqlType = 'Date';
   } else if (type === 'Boolean') {
     graphqlType = 'Boolean';
@@ -48,7 +48,14 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
     graphqlType = getObjectType(field, modelName, fieldPath, composerType);
   } else if (type === 'Array') {
     graphqlType = getArrayType(field, modelName, fieldPath, composerType);
+  } else if (['Mixed', 'File', 'Image', 'Video', 'Audio'].includes(type)) {
+    graphqlType = 'JSON';
+  } else if (type === 'AssociativeArray') {
+    // getObjectType is used to generate nested lookups/treeselectors Queries
+    getObjectType(field, modelName, fieldPath, composerType);
+    graphqlType = 'JSON';
   } else {
+    // TODO: log/warning fallback type?
     graphqlType = 'JSON';
   }
 
@@ -110,7 +117,7 @@ function getTypeName(modelName, composerType) {
   throw new Error(`Invalid composerType: ${composerType}`);
 }
 
-function createTypeByModel(model, modelName, composerType, typeName) {
+function createType(model, modelName, composerType, typeName) {
   const config = {
     name: typeName || getTypeName(modelName, composerType),
     fields: {},
@@ -132,34 +139,28 @@ function createTypeByModel(model, modelName, composerType, typeName) {
   return isInputType(composerType) ? schemaComposer.createInputTC(config) : schemaComposer.createObjectTC(config);
 }
 
-/**
- * @param model
- * @param modelName
- * @param composerType
- * @returns {NamedTypeComposer<any>}
- */
 function getOrCreateTypeByModel(model, modelName, composerType) {
   const typeName = getTypeName(modelName, composerType);
   if (schemaComposer.has(typeName)) {
     return schemaComposer.get(typeName);
   }
-  return createTypeByModel(model, modelName, composerType, typeName);
+  return createType(model, modelName, composerType, typeName);
 }
 
-function generateOutputAndInputTypesByModel(model, modelName) {
-  getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT);
-  getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT_WITH_ACTIONS);
-  getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.INPUT);
-  getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.INPUT_WITHOUT_ID);
+function createTypeByModel(model, modelName, composerType) {
+  const typeName = getTypeName(modelName, composerType);
+  return createType(model, modelName, composerType, typeName);
 }
 
-function getInputModelType(modelName) {
-  return schemaComposer.getITC(getTypeName(modelName, COMPOSER_TYPES.INPUT));
+function updateOutputAndInputTypesByModel(model, modelName) {
+  createTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT);
+  createTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT_WITH_ACTIONS);
+  createTypeByModel(model, modelName, COMPOSER_TYPES.INPUT);
+  createTypeByModel(model, modelName, COMPOSER_TYPES.INPUT_WITHOUT_ID);
 }
 
 module.exports = {
-  generateOutputAndInputTypesByModel,
+  updateOutputAndInputTypesByModel,
   createTypeByModel,
   getOrCreateTypeByModel,
-  getInputModelType,
 };

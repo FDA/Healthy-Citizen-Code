@@ -18,30 +18,50 @@
     }
 
     function formatLabel(lookupData, args) {
-      var params = {
+      var params = getLookupParams(lookupData, args);
+
+      return getLabelRenderer(params);
+    }
+
+    function selectionLabel(lookupData, args) {
+      var params = getLookupParams(lookupData, args);
+      var label = evalLabelExpr(params);
+      if (label) {
+        return label;
+      }
+
+      var isMultipleTable = _.keys(args.modelSchema.lookup.table).length > 1;
+      return isMultipleTable ?
+        [_.startCase(params.lookup.table), params.lookup.label].join(' | ') :
+        params.lookup.label;
+    }
+
+    function getLookupParams(lookupData, args) {
+      return {
         lookup: lookupData,
         fieldData: lookupData,
         formData: args.row,
         fieldSchema: args.modelSchema,
       };
-
-      return getLabelRenderer(params);
     }
 
-    // TODO: replace with unified args
     function getLabelRenderer(params) {
+      var label = evalLabelExpr(params);
+
+      return _.isNil(label) ? params.lookup.label : label;
+    }
+
+    function evalLabelExpr(params) {
       var renderName = params.fieldSchema.lookupLabelRender;
       var renderFn = appModelHelpers.LookupLabelRenderers[renderName];
 
       if (renderFn) {
         return renderFn(params);
-      }
-
-      if (renderName) {
+      } else if (renderName) {
         return labelExpression(renderName, params);
+      } else {
+        return null;
       }
-
-      return params.lookup.label;
     }
 
     function labelExpression(expression, params) {
@@ -60,6 +80,7 @@
     }
 
     return {
+      selectionLabel: selectionLabel,
       formatLabel: formatLabel,
       lookupItemTemplate: lookupItemTemplate,
       tablesList: tablesList,

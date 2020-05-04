@@ -17,23 +17,20 @@
       templateUrl: 'app/adp-forms/directives/adp-form-controls/string-array-control/string-array-control.html',
       require: '^^form',
       link: function (scope) {
-        if (isEmpty()) {
-          setData([]);
-        }
-
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
-        function setData(value) {
-          return scope.adpFormData[scope.field.fieldName] = value;
-        }
-
-        function isEmpty() {
-          var data = getData();
-          return _.isUndefined(data) || _.isNull(data) || _.isEmpty(data);
-        }
-
-        // return ref object for form field value
-        function getData() {
-          return scope.adpFormData[scope.field.fieldName];
+        scope.config = {
+          elementAttr: {
+            class: 'adp-select-box',
+          },
+          value: scope.adpFormData[scope.field.fieldName],
+          acceptCustomValue: true,
+          placeholder: 'Type in new value and press Enter',
+          openOnFieldClick: false,
+          onValueChanged: function (e) {
+            if (e.value && e.value.length === 0) {
+              scope.adpFormData[scope.field.fieldName] = null;
+            }
+          }
         }
       }
     }

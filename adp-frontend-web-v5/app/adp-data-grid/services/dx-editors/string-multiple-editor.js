@@ -15,6 +15,7 @@
         value: init.args.data,
         acceptCustomValue: true,
         onValueChanged: init.onValueChanged,
+        openOnFieldClick: false,
       };
     }
 

@@ -1,12 +1,15 @@
 const fs = require('fs-extra');
 const path = require('path');
-const axios = require('axios');
 const uuidv4 = require('uuid/v4');
 const PromiseFtp = require('promise-ftp');
 const Promise = require('bluebird');
 const exec = Promise.promisify(require('child_process').exec);
 const urlParse = require('url-parse');
 const sh = require('shelljs');
+
+const { getAxiosProxySettings } = require('../util/proxy');
+// eslint-disable-next-line import/order
+const axios = require('axios').create(getAxiosProxySettings());
 
 function downloadFile(url, destPath) {
   destPath = destPath || `${__dirname}/${uuidv4()}`;

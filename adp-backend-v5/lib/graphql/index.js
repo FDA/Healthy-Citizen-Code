@@ -1,6 +1,8 @@
 const _ = require('lodash');
+const RJSON = require('relaxed-json');
 const Promise = require('bluebird');
 const log = require('log4js').getLogger('lib/graphql');
+const { ValidationError } = require('../errors');
 
 const {
   addFindByMongoQueryResolver,
@@ -303,8 +305,8 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
 
     schemaComposer.Mutation.addFields({
       [createMutationName]: createOne,
-      [updateMutationName]: deleteOne,
-      [deleteMutationName]: updateOne,
+      [updateMutationName]: updateOne,
+      [deleteMutationName]: deleteOne,
       [`${modelName}Clone`]: cloneOne,
     });
 
@@ -408,12 +410,15 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     const { testQuickFilterResolver } = require('./quick-filter')();
     schemaComposer.Query.addFields({ testQuickFilter: testQuickFilterResolver });
     const testQuickFilterWrapper = (next) => async (rp) => {
-      const newResolveParams = _.clone(rp);
-      newResolveParams.args = _.pick(newResolveParams.args.record, ['model', 'filter']);
-      newResolveParams.projection = { count: 1 };
-
-      // throws error on invalid 'model', 'filter'args
-      await testQuickFilterResolver.resolve(newResolveParams);
+      let conditions;
+      try {
+        conditions = RJSON.parse(rp.args.record.filter);
+      } catch (e) {
+        throw new ValidationError(`Invalid filter string. ${e.message}`);
+      }
+      if (!_.isPlainObject(conditions)) {
+        throw new ValidationError(`Invalid filter string, must be an object representing mongo conditions`);
+      }
 
       return next(rp);
     };

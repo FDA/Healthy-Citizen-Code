@@ -1,8 +1,11 @@
 const args = require('optimist').argv;
 const Promise = require('bluebird');
-const axios = require('axios');
 // const rp = require('request-promise');
 const querystring = require('querystring');
+
+const { getAxiosProxySettings } = require('../util/proxy');
+// eslint-disable-next-line import/order
+const axios = require('axios').create(getAxiosProxySettings());
 
 const { mongoConnect, insertOrReplaceDocByCondition } = require('../util/mongo');
 

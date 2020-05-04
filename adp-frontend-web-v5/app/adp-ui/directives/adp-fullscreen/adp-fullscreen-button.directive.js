@@ -14,10 +14,6 @@
         scope.toggleFullScreen = function () {
           $rootScope.isFullscreen = !$rootScope.isFullscreen;
         };
-
-        scope.$on('$destroy', function () {
-          $rootScope.isFullscreen = false;
-        });
       }
     }
   }

@@ -118,18 +118,19 @@
     }
 
     function transformToImperialUnitMultiplePositions(value) {
-      var result = value.split('.').map(transformToNumber);
+      var result = (value || '').split('.').map(transformToNumber);
       var filtered = _.filter(result, _.isNumber);
       var atLeastOneInvalid = filtered.length !== 2;
 
-      return atLeastOneInvalid ? null : result;
+      return atLeastOneInvalid ? null : value;
     }
 
     function validateRangeImperialUnitMultiplePositions(value, field) {
       var units = AdpFieldsService.getUnits(field);
+      var valueAsNumbers = value.split('.');
 
       var filtered = units.filter(function (unit, index) {
-        return isValidForRange(value[index], unit.range);
+        return isValidForRange(valueAsNumbers[index], unit.range);
       });
 
       return filtered.length === 2 ? value : null;

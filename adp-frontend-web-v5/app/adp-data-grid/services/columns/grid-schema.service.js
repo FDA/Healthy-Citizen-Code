@@ -11,7 +11,7 @@
       return filterFields(schema.fields, [
         _.toArray,
         getReadableFields,
-        removeGroupFields,
+        removeFieldsThatNotForGrid,
         addIdAndPermissionsColumns,
         function (fields) {
           return sortFields(fields, 'datagridOrder');
@@ -55,8 +55,10 @@
       return _.get(field, 'fieldInfo.read', true);
     }
 
-    function removeGroupFields(fields) {
-      _.remove(fields, isGroup);
+    function removeFieldsThatNotForGrid(fields) {
+      _.remove(fields, function (f) {
+        return isGroup(f) || isGrid(f);
+      });
 
       return fields;
     }
@@ -158,14 +160,18 @@
       return field.type === 'Group';
     }
 
+    function isGrid(field) {
+      return field.type === 'Grid';
+    }
+
     function getOrder(field, property) {
       var val = Number(field[property]);
 
       return _.isNaN(val) ? undefined : val;
     }
 
-    function getSchemaForVisibleColumns(schema) {
-      var visibleColumns = GridOptionsHelpers.getVisibleColumnNames();
+    function getSchemaForVisibleColumns(schema, gridInstance) {
+      var visibleColumns = GridOptionsHelpers.getVisibleColumnNames(gridInstance);
       var resultSchema = _.cloneDeep(schema);
 
       resultSchema.fields = {};

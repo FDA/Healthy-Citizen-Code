@@ -8,7 +8,6 @@
   /** @ngInject */
   function FilterOperation(AdpSchemaService) {
     var commonOperations = {
-      list: ['='],
       equality: ['=', '<>'],
       equalityOnly: ['='],
       string: ['contains', 'notcontains', 'startswith', 'endswith', '=', '<>'],
@@ -32,8 +31,8 @@
       DateTime: commonOperations.numeric,
       Time: commonOperations.numeric,
 
-      List: commonOperations.list,
-      'List[]': commonOperations.list,
+      List: commonOperations.equality,
+      'List[]': commonOperations.equality,
 
       Boolean: commonOperations.equalityOnly,
 

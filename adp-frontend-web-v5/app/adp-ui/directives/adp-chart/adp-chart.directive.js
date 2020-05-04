@@ -6,23 +6,44 @@
     .directive('adpChart', adpChart);
 
   /** @ngInject */
-  function adpChart($compile) {
+  function adpChart(
+    $compile,
+    $q,
+    AdpChartService
+  ) {
     return {
       restrict: 'E',
       scope: {
         item: '=',
-        data: '='
+        data: '=',
       },
       transclude: true,
       replace: true,
       link: function (scope, element) {
         var INTERFACE = window.adpAppStore.appInterface();
-        var chartData = INTERFACE.charts[scope.item.parameters.chartId];
-        var type = chartData.subtype.toLocaleLowerCase();
+        var chartDefinition = INTERFACE.charts[scope.item.parameters.chartId];
+        scope.chartOptions = AdpChartService.evalOptions(chartDefinition.specification);
+
+        var requestParams = chartDefinition.data;
+        var type = chartDefinition.subtype.toLowerCase();
+
+        var initPromise = requestParams ?
+          AdpChartService.fetchData(requestParams) :
+          $q.when(scope.data);
+
+        scope.loading = true;
+        initPromise
+          .then(function (data) {
+            scope.chartData = data;
+            scope.loading = false;
+          });
+
         var template = [
           '<adp-chart-' + type,
-          ' adp-chart-data=data',
-          ' adp-chart-item=item>',
+            ' ng-if=!loading',
+            ' options=chartOptions',
+            ' data=chartData',
+          '>',
           '</adp-chart-' + type + '>',
         ].join('');
 

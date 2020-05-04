@@ -9,21 +9,23 @@
   function GridFiltersFactory(
     GridFilterHelpers,
     AdpSchemaService,
-    NumberEditor,
+    NumberFilter,
     DateFilter,
-    ListEditorFactory,
+    ListFilter,
     StringEditor,
     BooleanFilter,
     ImperialUnitSingleEditor,
     ImperialUnitMultipleEditor,
-    LookupEditor
+    LookupFilter,
+    DecimalFilter
   ) {
     var filtersMap = {
-      list: ListEditorFactory.multiple,
-      dynamicList: ListEditorFactory.multiple,
+      list: ListFilter,
+      dynamicList: ListFilter,
       string: StringEditor,
-      number: NumberEditor,
-      decimal128: NumberEditor,
+      number: NumberFilter,
+      double: NumberFilter,
+      decimal128: DecimalFilter,
       date: DateFilter,
       time: DateFilter,
       dateTime: DateFilter,
@@ -31,7 +33,8 @@
       imperialWeight: ImperialUnitSingleEditor,
       imperialWeightWithOz: ImperialUnitMultipleEditor,
       imperialHeight: ImperialUnitMultipleEditor,
-      lookupObjectId: LookupEditor.multiple,
+      lookupObjectId: LookupFilter,
+      objectId: StringEditor,
     };
 
     function create(options) {

@@ -19,6 +19,9 @@
         onValueChanged: options.onValueChanged,
         placeholder: 'Select ' + options.unit.shortName,
         showClearButton: true,
+        elementAttr: {
+          class: 'adp-select-box adp-imperial-units-multiple',
+        },
       };
 
       return options.element[editorName](editorOptions);

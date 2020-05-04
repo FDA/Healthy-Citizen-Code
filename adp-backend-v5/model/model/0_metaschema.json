@@ -53,6 +53,7 @@
         "DashboardItem",
         "Group",
         "Location",
+        "Grid",
 
         // ex-subtypes
         "Password",
@@ -354,9 +355,23 @@
       "comment": "different actions may require different roles",
       "fields": {
         // TODO: move fields underneath fields
-        "showInTable": {
+        "showInTable": { // Deprecated! replaced with showPosition
           "description": "Used in actions. If true then there should be a button in the datatables view linked to this action",
           "default": true
+        },
+        "position": {
+          "list": ["grid.row", "grid.top.left", "grid.top.right"],
+          "description": "Position, where to show action button",
+          "default": "gridRow"
+        },
+        "actionOrder": {
+          "type": "Number",
+          "description": "Number to help order actions by",
+          "default": 0
+        },
+        "locateInMenu": {
+          "type": "String",
+          "description": "Determine collapsing of the toolbar action button into drop menu, in case of narrow grid"
         },
         "permissions": {
           "type": "String[]",
@@ -381,10 +396,13 @@
         "fullName": {
           "description": "If set then this name will be displayed on the button as a label"
         },
+        "description": {
+          "description": "If set then this text will be displayed as hint for action button"
+        },
         "action": {
           "fields": {
             "type": {
-              "list": ["action", "link"],
+              "list": ["action", "link", "module"],
               "default": "action"
             },
             "link": {
@@ -462,6 +480,10 @@
     "indexes": {
       "fullName": "Indexes specification",
       "description": "Specification in format { 'anyKeyJustToDistinguishIndexSpecs': { keys, options } } is passed as createIndex(keys, options) for current collection. More info - https://docs.mongodb.com/manual/reference/method/db.collection.createIndex"
+    },
+    "showHeader": {
+      "fullName": "Height Attribute of type=Grid",
+      "description": "Allows to specify height of rendered table. Number, px"
     }
   }
 }

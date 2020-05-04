@@ -1,5 +1,7 @@
 const _ = require('lodash');
 const RJSON = require('relaxed-json');
+const ejs = require('ejs');
+const { ObjectID } = require('mongodb');
 const { ValidationError } = require('../errors');
 
 module.exports = (appLib) => {
@@ -75,6 +77,11 @@ module.exports = (appLib) => {
     if (type === 'reference') {
       const referencedFilterName = value;
       return getFilterFromMetaschema(referencedFilterName, context);
+    }
+
+    if (type === 'template') {
+      const template = value;
+      return ejs.render(template, { _, ObjectID }, { context });
     }
   }
 

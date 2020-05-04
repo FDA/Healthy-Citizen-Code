@@ -1,0 +1,114 @@
+{
+  "interface": {
+    "mainMenu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "default": "/dataGraph3d",
+      "fields": {
+        "visualization": {
+          "type": "MenuGroup",
+          "fullName": "Visualization",
+          "icon": {
+            "type": "font-awesome",
+            "link": "eye"
+          },
+          "fields": {
+            "forceGraph3d": {
+              "type": "MenuItem",
+              "fullName": "Force Graph 3D",
+              "link": "/dataGraph3d",
+              "icon": {
+                "type": "font-awesome",
+                "link": "cube"
+              },
+              "menuOrder": 1
+            },
+            "forceGraphVr": {
+              "type": "MenuItem",
+              "fullName": "Force Graph VR",
+              "link": "/dataGraphVr",
+              "icon": {
+                "type": "font-awesome",
+                "link": "cubes"
+              },
+              "menuOrder": 2
+            }
+          }
+        },
+        "entities": {
+          "type": "MenuItem",
+          "fullName": "Entities",
+          "link": "/entities",
+          "icon": {
+            "type": "font-awesome",
+            "link": "circle"
+          }
+        },
+        "relationships": {
+          "type": "MenuItem",
+          "fullName": "Relationships",
+          "link": "/relationships",
+          "icon": {
+            "type": "font-awesome",
+            "link": "link"
+          }
+        },
+        "settings": {
+          "type": "MenuGroup",
+          "fullName": "Settings",
+          "icon": {
+            "type": "font-awesome",
+            "link": "cogs"
+          },
+          "fields": {
+            "tags": {
+              "type": "MenuItem",
+              "fullName": "Tags",
+              "link": "/graphTags",
+              "icon": {
+                "type": "font-awesome",
+                "link": "tags"
+              }
+            },
+            "entityTypes": {
+              "type": "MenuItem",
+              "fullName": "Entity Types",
+              "link": "/entityTypes",
+              "icon": {
+                "type": "font-awesome",
+                "link": "circle"
+              }
+            },
+            "relationshipTypes": {
+              "type": "MenuGroup",
+              "fullName": "Relationship Types",
+              "link": "/relationshipTypes",
+              "icon": {
+                "type": "font-awesome",
+                "link": "link"
+              }
+            },
+            "roles": {
+              "type": "MenuItem",
+              "fullName": "Roles",
+              "link": "/roles",
+              "icon": {
+                "type": "font-awesome",
+                "link": "users"
+              }
+            },
+            "quickFilters": {
+              "type": "MenuItem",
+              "fullName": "Quick Filters",
+              "link": "/quickFilters",
+              "icon": {
+                "type": "font-awesome",
+                "link": "filter"
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

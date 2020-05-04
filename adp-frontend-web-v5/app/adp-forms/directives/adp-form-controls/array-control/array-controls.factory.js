@@ -8,7 +8,8 @@
   function arrayControlsFactory(
     $compile,
     AdpFieldsService,
-    AdpPath
+    AdpPath,
+    visibilityUtils
   ) {
     return {
       restrict: 'E',
@@ -33,16 +34,6 @@
           requiredMap: scope.validationParams.formParams.requiredMap,
         };
 
-        // default value
-        formParams.visibilityMap[formParams.path] = true;
-        scope.display = function() {
-          return formParams.visibilityMap[formParams.path];
-        };
-
-        scope.showLabel = function(field) {
-          return field.type !== 'Boolean';
-        };
-
         // DEPRECATED: will be replaced with formParams
         // validationParams fields naming is wrong, use formParams instead
         // modelSchema - grouped fields
@@ -57,6 +48,24 @@
 
           formParams: formParams
         };
+
+        // default value
+        formParams.visibilityMap[formParams.path] = true;
+        scope.display = function() {
+          return formParams.visibilityMap[formParams.path];
+        };
+
+        scope.showLabel = function(field) {
+          if (['Array', 'AssociativeArray'].includes(field.type)) {
+            return visibilityUtils.arrayHasVisibleChild(getData(), scope.nextValidationParams);
+          }
+
+          return field.type !== 'Boolean';
+        };
+
+        function getData() {
+          return scope.formData[scope.field.fieldName];
+        }
 
         if (scope.field.formWidth) {
           scope.className += ' col-' + scope.field.formWidth;

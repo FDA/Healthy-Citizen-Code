@@ -861,26 +861,26 @@
       function doLoadConfig(){
         return $http
           .post(APP_CONFIG.apiUrl + '/graphql', {
-            query: 'query q( $filter: mongoQueryInput ) {userPreferences( filter: $filter ) { items { preferences } }}',
+            query: 'query q( $filter: mongoQueryInput ) {userSettings( filter: $filter ) { items { settings } }}',
             variables: {
               filter: { "mongoQuery": "{ type: { $eq: 'fg3d'} }" },
             }
           })
           .then(function (resp) {
-            vm.savedConfig = _.get(resp, 'data.data.userPreferences.items[0].preferences', null);
+            vm.savedConfig = _.get(resp, 'data.data.userSettings.items[0].settings', null);
           })
           .catch(function (e) {
-            AdpNotificationService.notifyError('Error while loading preferences: ' + e.message);
+            AdpNotificationService.notifyError('Error while loading settings: ' + e.message);
           });
       }
 
       function doSaveConfig(){
         return $http
           .post(APP_CONFIG.apiUrl + '/graphql', {
-            query: 'mutation m( $filter: userPreferencesInputWithoutId, $record: userPreferencesInputWithoutId ){ userPreferencesUpsertOne( filter: $filter, record: $record) { preferences } }',
+            query: 'mutation m( $filter: userSettingsInputWithoutId, $record: userSettingsInputWithoutId ){ userSettingsUpsertOne( filter: $filter, record: $record) { settings } }',
             variables: {
               filter: { type: 'fg3d' },
-              record: { preferences: vm.savedConfig, type:'fg3d' },
+              record: { settings: vm.savedConfig, type:'fg3d' },
             },
           })
           .then(function (resp) {
@@ -896,7 +896,7 @@
             }
           })
           .catch(function (e) {
-            AdpNotificationService.notifyError('Error while save preferences: ' + e.message);
+            AdpNotificationService.notifyError('Error while saving settings: ' + e.message);
           });
       }
     };
