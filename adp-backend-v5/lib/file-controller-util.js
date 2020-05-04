@@ -8,10 +8,13 @@ const mime = require('mime');
 const Promise = require('bluebird');
 const imageMediaTypes = require('../model/model/0_mediaTypes.json').mediaTypes.images;
 
-const imagesTypesMap = _.uniq(imageMediaTypes.map(ext => mime.getType(ext)));
+const imagesTypesMap = _.uniq(imageMediaTypes.map((ext) => mime.getType(ext)));
+const DEFAULT_UPLOAD_DIR = '../uploads';
 
 module.exports = () => {
   const m = {};
+
+  m.DEFAULT_UPLOAD_DIR = DEFAULT_UPLOAD_DIR;
 
   /**
    * Wrapper that cast file structure given from middleware (like express-fileupload, multer, etc)
@@ -19,7 +22,7 @@ module.exports = () => {
    * @returns {undefined}
    */
   function castFiles(files) {
-    return _.castArray(files).map(f => ({
+    return _.castArray(files).map((f) => ({
       tempFilePath: f.tempFilePath, // tempFilePath is moved
       path: f.path, // path is copied, original file is not touched
       type: f.mimetype || f.type,
@@ -28,8 +31,8 @@ module.exports = () => {
     }));
   }
 
-  m.getFilesFromPaths = files => {
-    return _.castArray(files).map(f => {
+  m.getFilesFromPaths = (files) => {
+    return _.castArray(files).map((f) => {
       const filePath = path.resolve(f);
       const fileName = path.basename(filePath);
       return {
@@ -41,10 +44,10 @@ module.exports = () => {
     });
   };
 
-  m.handleUpload = (files, owner, cropParams, uploadDir = '../uploads') => {
+  m.handleUpload = (files, owner, cropParams, uploadDir = DEFAULT_UPLOAD_DIR) => {
     const castedFiles = castFiles(files);
     // using mapSeries to avoid "ParallelSaveError": Can't save() the same doc multiple times in parallel
-    return Promise.mapSeries(castedFiles, file => m.handleSingleFileUpload(file, owner, cropParams, uploadDir));
+    return Promise.mapSeries(castedFiles, (file) => m.handleSingleFileUpload(file, owner, cropParams, uploadDir));
   };
 
   m.handleSingleFileUpload = async (file, owner, cropParams, uploadDir) => {
@@ -61,7 +64,7 @@ module.exports = () => {
       const shasum = crypto.createHash(algorithm);
       try {
         const stream = fs.createReadStream(filePath);
-        stream.on('data', data => {
+        stream.on('data', (data) => {
           shasum.update(data);
         });
         // making digest
@@ -80,7 +83,7 @@ module.exports = () => {
    * @param fileId
    * @returns {*}
    */
-  m.removeFile = async fileId => {
+  m.removeFile = async (fileId) => {
     const File = mongoose.model('files');
     const file = await File.findById(fileId);
     if (!file) {
@@ -92,7 +95,7 @@ module.exports = () => {
     isImage(file) && pathsToRemove.push(`${fullFilePath}_thumbnail`);
     cropped && pathsToRemove.push(`${fullFilePath}_cropped`);
 
-    return Promise.all([File.findByIdAndRemove(fileId), Promise.map(pathsToRemove, p => fs.unlink(p))]);
+    return Promise.all([File.findByIdAndRemove(fileId), Promise.map(pathsToRemove, (p) => fs.unlink(p))]);
   };
 
   m.createFile = async (reqFile, hash, owner, uploadDir) => {
@@ -120,9 +123,7 @@ module.exports = () => {
     );
 
     const savedFile = await newFile.save();
-    const uploadFolder = Math.random()
-      .toString(36)
-      .substr(2, 4);
+    const uploadFolder = Math.random().toString(36).substr(2, 4);
     const destinationPath = path.resolve(uploadDir, uploadFolder, savedFile._id.toString());
     const relativePath = path.relative(process.cwd(), destinationPath);
     if (reqFile.path) {
@@ -144,7 +145,7 @@ module.exports = () => {
     return savedFile;
   };
 
-  m.fileToObject = savedFile => {
+  m.fileToObject = (savedFile) => {
     const _doc = savedFile.toObject();
 
     return {
@@ -161,7 +162,7 @@ module.exports = () => {
     return imagesTypesMap.includes(file.mimeType);
   }
 
-  m.thumb = async savedFile => {
+  m.thumb = async (savedFile) => {
     const imageBuffer = await jimp.read(savedFile.filePath);
     const cover = imageBuffer.cover(48, 48);
     const coverBuffer = await cover.getBufferAsync(savedFile.mimeType);
@@ -185,7 +186,7 @@ module.exports = () => {
     await fs.writeFile(croppedFilePath, croppedBuffer);
   };
 
-  m.getCropParams = req => {
+  m.getCropParams = (req) => {
     const paramsStr = _.get(req, 'body.cropParams');
     if (!paramsStr) {
       return;
@@ -219,7 +220,7 @@ module.exports = () => {
     return true;
   }
 
-  m.updateCrop = async cropParams => {
+  m.updateCrop = async (cropParams) => {
     const File = mongoose.model('files');
 
     const fileRecord = File.findById(cropParams.id);

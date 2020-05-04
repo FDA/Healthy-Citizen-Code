@@ -34,18 +34,18 @@
       };
     }
 
-    function refreshGrid() {
-      var instance = gridInstance();
+    function refreshGrid(instance) {
+      var instance = instance || gridInstance();
       instance.refresh();
     }
 
     function gridInstance() {
-      var gridInstance = $('[dx-data-grid]');
+      var gridInstance = $('.multi-record [dx-data-grid]');
       return gridInstance.dxDataGrid('instance');
     }
 
-    function getLoadOptions() {
-      var instance = gridInstance();
+    function getLoadOptions(instance) {
+      var instance = instance || gridInstance();
       var loadOptions = _.cloneDeep(instance.getDataSource().loadOptions());
       loadOptions.filter = instance.getCombinedFilter();
 
@@ -63,8 +63,8 @@
       return loadOptions;
     }
 
-    function getVisibleColumnNames() {
-      var instance = gridInstance();
+    function getVisibleColumnNames(instance) {
+      var instance = instance || gridInstance();
 
       var result = instance.getVisibleColumns().map(function (c) {
         return c.dataField;

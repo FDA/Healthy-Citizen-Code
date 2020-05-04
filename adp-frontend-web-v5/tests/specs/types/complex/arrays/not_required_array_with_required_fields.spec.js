@@ -85,7 +85,7 @@ describe('complex arrays', () => {
         // add full filled elem
         await addArrayItem('array', this.page);
         await clickArrayItem('array', 1, this.page);
-        const firstElemString1Selector = getArrayFieldSelector('array', 1, 'string1');
+        const firstElemString1Selector = `${getArrayFieldSelector('array', 1, 'string1')} input`;
         await this.page.type(firstElemString1Selector, '123');
         await clickCheckboxForArrayIndex(1, 'boolean1');
 
@@ -114,14 +114,14 @@ describe('complex arrays', () => {
       'should not submit if the array has elements one of which is not empty and has no filled required fields',
       async () => {
         // add full filled elem
-        const firstElemString1Selector = getArrayFieldSelector('array', 0, 'string1');
+        const firstElemString1Selector = `${getArrayFieldSelector('array', 0, 'string1')} input`;
         await this.page.type(firstElemString1Selector, '123');
         await clickCheckboxForArrayIndex(0, 'boolean1');
 
         // add partially filled item
         await addArrayItem('array', this.page);
         await clickArrayItem('array', 1, this.page);
-        const secondElemString1Selector = getArrayFieldSelector('array', 1, 'string1');
+        const secondElemString1Selector = `${getArrayFieldSelector('array', 1, 'string1')} input`;
         await this.page.type(secondElemString1Selector, '123');
 
         await clickSubmit(this.page);

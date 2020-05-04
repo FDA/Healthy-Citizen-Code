@@ -48,7 +48,7 @@ describe('complex objects', () => {
     test(
       'should not submit object with filled non-required field and empty required field',
       async () => {
-        const string2Selector = getFieldSelector('object', 'string2');
+        const string2Selector = `${getFieldSelector('object', 'string2')} input`;
         await this.page.waitForSelector(string2Selector);
         await this.page.type(string2Selector, '123');
         await clickSubmit(this.page);

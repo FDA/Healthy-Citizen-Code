@@ -8,6 +8,7 @@
   /** @ngInject */
   function MultiRecordPageService(
     GraphqlCollectionQuery,
+    GridOptionsHelpers,
     ActionsHandlers,
     AdpQueryParams,
     ResponseError,

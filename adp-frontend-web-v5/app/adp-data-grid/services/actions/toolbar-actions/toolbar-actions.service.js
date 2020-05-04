@@ -1,112 +1,263 @@
 ;(function () {
-  'use strict';
+  "use strict";
+  var TOOLBAR_POSITION_SIGNATURE = "grid.top";
 
   angular
-    .module('app.adpDataGrid')
-    .factory('GridToolbarActions', GridToolbarActions);
+    .module("app.adpDataGrid")
+    .factory("GridToolbarActions", GridToolbarActions);
 
   /** @ngInject */
   function GridToolbarActions(
+    $location,
+    AdpClientCommonHelper,
     ActionsHandlers,
+    AdpIconsHelper,
+    AdpSchemaService,
     GridActionsTemplate,
-    GridOptionsHelpers,
-    PrintAction
+    GridOptionsHelpers
   ) {
-    function sortByName(e) {
-      var commonToolbarItemOptions = {
-        location: "after",
-        locateInMenu: "auto",
-      };
-      var itemsOrder = {
-        createButton: {locateInMenu: "never", location: "before"},
-        groupPanel: {location: "before"},
-        searchPanel: {},
-        addRowButton: {},
-        printButton: {},
-        gridViewButton: {},
-        quickFiltersButton: {},
-        exportButton: {},
-        importButton: {},
-        customColumnChooserButton: {},
-      };
-      var items = e.toolbarOptions.items;
-      var newItems = [];
+    var actionFactoriesByType = {
+      "action": getForHelperType,
+      "link": getForLinkType,
+      "module": getForModuleType,
+    };
+    var toolbarActions = {
+      "create": createAddAction,
+      "group": assignGroupingToColumns,
+      "search": searchAddAction,
+    };
 
-      _.each(itemsOrder, function (itemAddOptions, name) {
-        var index = _.findIndex(items, function (x) {
-          return x.name === name
-        });
+    return function (gridOptions, schema, customGridOptions) {
+      var actions = getToolbarActions(schema);
 
-        var item = items.splice(index, 1)[0];
-        if (item) {
-          var options = Object.assign({}, commonToolbarItemOptions, itemAddOptions, item);
-          options.cssClass =  "adp-grid-toolbar-item " + (options.cssClass || '');
-          newItems.push( options);
-        }
+      GridOptionsHelpers.addToolbarHandler(gridOptions, function (e) {
+        removeUnnecessary(e);
       });
 
-      if (items.length) {
-        console.warn("Elements of toolbar have no names to be sorted: ", items);
+      _.each(actions, function (action) {
+        var actionType = _.get(action, "action.type", "")
+        var actionLink = _.get(action, "action.link", "")
+        var actionFactory = actionFactoriesByType[actionType];
+        var actionMethod = actionFactory(actionLink, action);
 
-        newItems.unshift.apply(this, _.map(items, function (item) {
-          return Object.assign({}, commonToolbarItemOptions, item);
-        }))
-      }
+        if (_.isFunction(actionMethod)) {
+          var actionOptions = {
+            title: action.fullName || "",
+            description: action.description || "",
+            location: getLocalPosition(action.position),
+            sortIndex: action.actionOrder,
+            icon: action.icon,
+            className: action.className,
+            locateInMenu: action.locateInMenu || "auto",
+            table: action.table,
+          };
+          var context = {
+            schema: schema,
+            customGridOptions: customGridOptions,
+            gridOptions: gridOptions,
+            actionOptions: actionOptions
+          };
 
-      e.toolbarOptions.items = newItems;
-    }
-
-    function removeUnnecessary(e) {
-      // we have to remove columnChooser from toolbar because we add custom one. Disabling columnChooser by grid config is not an option
-      e.toolbarOptions.items = _.filter(e.toolbarOptions.items, function (item) {
-        return item.name !== "columnChooserButton"
+          actionMethod.call(context, getWidgetRegistrator(gridOptions, actionOptions, action));
+        }
       })
     }
 
-    function addPrintAndCreate(options, schema) {
-      GridOptionsHelpers.addToolbarHandler(options, function (e) {
-        var buttons = _.compact([printButton(schema, e), createButton(schema)]);
-        Array.prototype.unshift.apply(e.toolbarOptions.items, buttons);
-      });
-    }
+    function getWidgetRegistrator(gridOptions, actionOptions, action) {
+      return function (getWidgetOptions) {
+        GridOptionsHelpers.addToolbarHandler(gridOptions, function (e) {
+          var itemOptions = getWidgetOptions(e.component, e);
 
-    return {
-      addPrintAndCreate: addPrintAndCreate,
-      sortByName: sortByName,
-      removeUnnecessary: removeUnnecessary
-    };
+          if (itemOptions) {
+            var widgetOptions = Object.assign(itemOptions, actionOptions);
 
-    function createButton(schema) {
-      var hasPermissions = _.get(schema, 'actions.fields.create', null);
-      if (_.isNil(hasPermissions)) {
-        return;
-      }
+            widgetOptions.cssClass = (widgetOptions.cssClass || "") + " adp-toolbar-action-" + action.__name;
 
-      return {
-        name: "createButton",
-        widget: "dxButton",
-        template: '<button type="button" class="btn page-action btn-primary">Create New</button>',
-        onClick: function () {
-          ActionsHandlers.create(schema)
-            .then(function () {
-              GridOptionsHelpers.refreshGrid();
-            });
-        },
+            e.toolbarOptions.items.unshift(widgetOptions);
+          }
+        });
       }
     }
 
-    function printButton(schema) {
-      return {
-        name: "printButton",
-        widget: "dxButton",
-        options: {
-          icon: 'print',
-          stylingMode: 'text',
+    function getForHelperType(actionName) {
+      var defaultAction = toolbarActions[actionName];
+
+      if (defaultAction) {
+        return defaultAction;
+      }
+
+      var helperAction = _.get(appModelHelpers, "CustomActions." + actionName);
+      if (helperAction) {
+        return getHelperButtonFactory(helperAction);
+      }
+    }
+
+    function getForLinkType(linkUrl) {
+      return getLinkButton(linkUrl);
+    }
+
+    function getForModuleType(moduleName, action) {
+      var injector = angular.element(document)
+        .injector();
+
+      if (injector.has(moduleName)) {
+        var methodName = _.get(action, "action.method");
+        var moduleReturn = injector.get(moduleName);
+
+        if (methodName) {
+          return moduleReturn[methodName]();
+        } else {
+          return moduleReturn;
+        }
+      } else {
+        console.error("No module found for grid-top action:", moduleName);
+      }
+    }
+
+    function getLinkButton(linkUrl) {
+      return function (widgetRegistator) {
+        var actionOptions = this.actionOptions;
+        var className = "adp-toolbar-menu grid-view-menu " + (actionOptions.className || "");
+        var buttonSpec;
+
+        if (actionOptions.icon) {
+          buttonSpec = {icon: AdpIconsHelper.getIconClass(actionOptions.icon), hint: actionOptions.title, cssClass: className}
+        } else {
+          buttonSpec = {text: actionOptions.title}
+        }
+
+        return widgetRegistator(function () {
+          return {
+            widget: "dxMenu",
+            options: {
+              dataSource: [buttonSpec],
+              cssClass: className,
+              onItemClick: function () {
+                $location.path(linkUrl);
+              }
+            }
+          }
+        });
+      }
+    }
+
+    function createAddAction(toolbarWidgetRegister) {
+      var schema = this.schema;
+      var actionOptions = this.actionOptions;
+      var buttonText = actionOptions.title || "Create New";
+      var className = "btn page-action btn-primary " + actionOptions.className;
+      var customOptions = this.customGridOptions;
+      return toolbarWidgetRegister(function () {
+        return {
+          name: "createButton",
+          widget: "dxButton",
+          template: "<button type=\"button\" class=\"" + className + "\">" + buttonText + "</button>",
           onClick: function () {
-            PrintAction(schema, GridOptionsHelpers.getLoadOptions());
-          },
-        },
+            ActionsHandlers.create(schema)
+              .then(function () {
+                GridOptionsHelpers.refreshGrid(customOptions.gridComponent);
+              });
+          }
+        }
+      })
+    }
+
+    function getHelperButtonFactory(actionCb) {
+      return function (toolbarWidgetRegister) {
+        var self = this;
+
+        return toolbarWidgetRegister(function () {
+          return {
+            widget: "dxMenu",
+            options: {
+              dataSource: [{template: AdpClientCommonHelper.getMenuItemTemplate(self.actionOptions)}],
+              cssClass: "adp-toolbar-menu grid-view-menu",
+              onItemClick: function () {
+                actionCb.call(self)
+              },
+            },
+          };
+        });
       }
+    }
+
+    function assignGroupingToColumns(toolbarWidgetRegister) {
+      var gridOptions = this.gridOptions;
+      var actionOptions = this.actionOptions;
+      var self = this;
+
+      gridOptions.columns.forEach(function (column) {
+        var field = self.schema.fields[column.dataField];
+        if (!field) {
+          return;
+        }
+        var grp = _.get(field, "parameters.grouping", {});
+        _.assign(column, grp);
+      });
+
+      gridOptions.groupPanel = {visible: true};
+      if (actionOptions.title) {
+        gridOptions.groupPanel.emptyPanelText = actionOptions.title;
+      }
+
+      return toolbarWidgetRegister(function (gridComponent, toolbarEvent) {
+        return getReInsertItem(toolbarEvent.toolbarOptions.items, "groupPanel", self.actionOptions)
+      })
+    }
+
+    function searchAddAction(toolbarWidgetRegister) {
+      var actionOptions = this.actionOptions;
+
+      this.gridOptions.searchPanel = {
+        visible: true,
+        placeholder: actionOptions.title || "Search..."
+      };
+
+      return toolbarWidgetRegister(function (gridComponent, toolbarEvent) {
+        return getReInsertItem(toolbarEvent.toolbarOptions.items, "searchPanel", actionOptions)
+      })
+    }
+
+    function getReInsertItem(items, itemName, actionOptions) {
+      var found = _.remove(items, function (item) {
+        return item.name === itemName
+      })
+
+      if (found.length) {
+        return Object.assign(found[0], actionOptions);
+      }
+    }
+
+    function getToolbarActions(schema) {
+      var actions = _.get(schema, "actions.fields", {});
+      actions = _.map(actions,
+        function (item, name) {
+          if (item.position &&
+            item.position.substr(0, TOOLBAR_POSITION_SIGNATURE.length) === TOOLBAR_POSITION_SIGNATURE) {
+            item.__name = name;
+            return item;
+          } else {
+            return null;
+          }
+        });
+
+      actions = _.compact(actions);
+      actions.sort(AdpSchemaService.getSorter('actionOrder'));
+
+      return actions;
+    }
+
+    function getLocalPosition(position) {
+      return position.substr(TOOLBAR_POSITION_SIGNATURE.length + 1) === "left" ? "before" : "after";
+    }
+
+    function removeUnnecessary(e) {
+      // we have to remove columnChooser from toolbar because we add custom one.
+      // Disabling columnChooser by grid config is not an option!
+
+      e.toolbarOptions.items = _.filter(e.toolbarOptions.items, function (item) {
+        return item.name !== "columnChooserButton"
+      })
     }
   }
 })();

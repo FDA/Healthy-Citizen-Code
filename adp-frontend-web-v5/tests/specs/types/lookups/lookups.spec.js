@@ -1,7 +1,6 @@
 const puppeteer = require('puppeteer');
 
 const {
-
   getLaunchOptions,
   loginWithUser,
   getUrlFor,
@@ -87,7 +86,7 @@ describe('lookup types', () => {
         await selectLookupValue(lastLabel, lookupNames.multiple, this.page);
         const [actualLookupValue] = await getMultipleLookupValue(lookupNames.multiple, this.page);
 
-        expect(actualLookupValue).toBe(lastLabel);
+        expect(actualLookupValue).toMatch(lastLabel);
       });
 
     test(
@@ -99,7 +98,7 @@ describe('lookup types', () => {
         await clickEditButton(_id, this.page);
 
         const [actualLookupValue] = await getMultipleLookupValue(lookupNames.multiple, this.page);
-        expect(actualLookupValue).toBe(lastLabel);
+        expect(actualLookupValue).toMatch(lastLabel);
       });
   });
 });

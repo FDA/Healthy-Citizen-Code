@@ -238,6 +238,9 @@ function getMainBowerFiles() {
       },
       "filbert": {
         "ignore": true,
+      },
+      "echarts": {
+        "main": ['./dist/echarts.common.min.js']
       }
     }
   });

@@ -16,7 +16,9 @@
     ImperialUnitMultipleEditor,
     LookupEditor,
     TextEditor,
-    StringMultipleEditor
+    StringMultipleEditor,
+    IntEditor,
+    DecimalEditor
   ) {
     var editorsByType = {
       String: StringEditor,
@@ -24,6 +26,7 @@
       Url: StringEditor,
       Email: StringEditor,
       Number: NumberEditor,
+      Double: NumberEditor,
       Text: TextEditor,
       'String[]': StringMultipleEditor,
       Boolean: BooleanEditor,
@@ -41,6 +44,9 @@
 
       LookupObjectID: LookupEditor.single,
       'LookupObjectID[]': LookupEditor.multiple,
+      Int32: IntEditor,
+      Int64: IntEditor,
+      Decimal128: DecimalEditor,
     };
 
     return function (options) {

@@ -1,5 +1,6 @@
 ;(function () {
   'use strict';
+  var ROW_POSITION_SIGNATURE = "grid.row";
 
   angular
     .module('app.adpDataGrid')
@@ -12,12 +13,13 @@
     GridOptionsHelpers,
     AdpUnifiedArgs
   ) {
-    return function (options, schema) {
+    return function (options, schema, customGridOptions) {
       var tableActions = _.pickBy(schema.actions.fields, function (action) {
-        return _.get(action, 'showInTable', true);
+        // ToDo: ShowInTable is deprecated so here for compatibility reasons only
+        return _.startsWith(action.position, ROW_POSITION_SIGNATURE) || _.get(action, 'showInTable', true);
       });
 
-      if (_.isEmpty(tableActions)) {
+      if (actionsIsEmpty(tableActions)) {
         return;
       }
 
@@ -32,7 +34,7 @@
         showInColumnChooser: true,
       });
 
-      options.onCellClick = handleActionInTable(schema);
+      options.onCellClick = handleActionInTable(schema, customGridOptions);
     }
 
     function getColumnCaption(schema) {
@@ -53,23 +55,29 @@
       }
     }
 
-    function handleActionInTable(schema) {
+    function handleActionInTable(schema, customGridOptions) {
       return function (cellInfo) {
         var actionBtn = $(cellInfo.event.target).closest('[data-action]')[0];
         if (!actionBtn) {
           return;
         }
 
-        var actionFnName = getActionCallbackName(cellInfo);
-        var hasCustomAction = _.hasIn(appModelHelpers.CustomActions, actionFnName);
-        if (hasCustomAction) {
-          callCustomAction(cellInfo, schema);
-          return;
-        }
+        var actionType = getActionType(cellInfo);
 
-        if (_.hasIn(ActionsHandlers, actionFnName)) {
-          callBuiltInAction(cellInfo, schema);
-          return;
+        if (actionType==='module') {
+            callModuleAction(cellInfo, schema, customGridOptions.gridComponent);
+        } else {
+          var actionFnName = getActionCallbackName(cellInfo);
+          var hasCustomAction = _.hasIn(appModelHelpers.CustomActions, actionFnName);
+          if (hasCustomAction) {
+            callCustomAction(cellInfo, schema);
+            return;
+          }
+
+          if (_.hasIn(ActionsHandlers, actionFnName)) {
+            callBuiltInAction(cellInfo, schema, customGridOptions.gridComponent);
+            return;
+          }
         }
       }
     }
@@ -87,13 +95,38 @@
       customActionFn.call(actionFnArgs, cellInfo.data);
     }
 
-    function callBuiltInAction(cellInfo, schema) {
+    function callBuiltInAction(cellInfo, schema, gridInstance) {
       var actionFnName = getActionCallbackName(cellInfo);
 
       ActionsHandlers[actionFnName](schema, cellInfo.data)
         .then(function () {
-          GridOptionsHelpers.refreshGrid();
+          GridOptionsHelpers.refreshGrid(gridInstance);
         });
+    }
+
+    function callModuleAction(cellInfo, schema, gridInstance) {
+      var injector = angular.element(document).injector();
+      var actionFnArgs = AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: "",
+        formData: cellInfo.data,
+        action: getActionName(cellInfo),
+        schema: schema,
+      });
+      var actionCallback = getActionCallbackName(cellInfo).split('.');
+      var actionModule = actionCallback[0];
+      var actionMethod = actionCallback[1];
+
+      if (injector.has(actionModule)) {
+        var customActionFn = injector.get(actionModule);
+
+        if (actionMethod) {
+          customActionFn = customActionFn[actionMethod];
+        }
+
+        if (_.isFunction(customActionFn)) {
+          customActionFn.apply(actionFnArgs, [cellInfo.data, gridInstance]);
+        }
+      }
     }
 
     function getActionCallbackName(cellInfo) {
@@ -106,9 +139,20 @@
       return actionElement.dataset.actionName;
     }
 
+    function getActionType(cellInfo) {
+      var actionElement = getActionElement(cellInfo);
+      return actionElement.dataset.type;
+    }
+
     function getActionElement(cellInfo) {
       var target = cellInfo.event.target;
       return $(target).closest('[data-action]')[0];
+    }
+
+    function actionsIsEmpty(actions) {
+      var actionNames = _.keys(actions);
+      var hasOnlyViewsKey = actionNames.length === 0 && actionNames[0] === 'view';
+      return _.isEmpty(actions) || hasOnlyViewsKey;
     }
   }
 })();

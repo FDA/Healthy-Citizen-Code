@@ -32,6 +32,7 @@
       "Mixed": {
         "width": 200,
         "parameters": {
+          "enableInCellEditing": false,
           "grouping": {
             "allowGrouping": false
           }
@@ -129,7 +130,7 @@
       "Double": {
         "autocomplete": "enable",
         "parameters": {
-          "enableInCellEditing": false,
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
@@ -139,7 +140,7 @@
       "Int32": {
         "autocomplete": "enable",
         "parameters": {
-          "enableInCellEditing": false,
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
@@ -158,7 +159,7 @@
       "Int64": {
         "autocomplete": "enable",
         "parameters": {
-          "enableInCellEditing": false,
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
@@ -177,7 +178,7 @@
       "Decimal128": {
         "autocomplete": "enable",
         "parameters": {
-          "enableInCellEditing": false,
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
@@ -233,42 +234,70 @@
               "foreignKey": "_id",
               "label": "login"
             },
-            "fullName": "creator",
+            "fullName": "Creator",
             "visible": false,
             "synthesize": "creator",
             "description": "Record Creator",
             "permissions": "accessAsSuperAdmin",
             "generatorSpecification": {
               "generator": "scgCreator"
+            },
+            "showInDatatable": true,
+            "showInViewDetails": true,
+            "showInGraphql": true,
+            "parameters": {
+              "enableInCellEditing": false,
+              "visible": false
             }
           },
           "createdAt": {
-            "type": "Date",
-            "fullName": "createdAt",
+            "type": "DateTime",
+            "fullName": "Created at",
             "visible": false,
             "synthesize": "createdAt",
             "description": "Record Created At",
             "permissions": "accessAsSuperAdmin",
-            "index": true
+            "index": true,
+            "showInDatatable": true,
+            "showInViewDetails": true,
+            "showInGraphql": true,
+            "parameters": {
+              "enableInCellEditing": false,
+              "visible": false
+            }
           },
           "updatedAt": {
-            "type": "Date",
-            "fullName": "updatedAt",
+            "type": "DateTime",
+            "fullName": "Updated at",
             "visible": false,
             "synthesize": "updatedAt",
             "description": "Record Updated At",
             "permissions": "accessAsSuperAdmin",
-            "index": true
+            "index": true,
+            "showInDatatable": true,
+            "showInViewDetails": true,
+            "showInGraphql": true,
+            "parameters": {
+              "enableInCellEditing": false,
+              "visible": false
+            }
           },
           "deletedAt": {
-            "type": "Date",
-            "fullName": "deletedAt",
+            "type": "DateTime",
+            "fullName": "Deleted at",
             "visible": false,
             "description": "Record Deleted At",
             "permissions": "accessAsSuperAdmin",
             "index": true,
             "generatorSpecification": {
               "generator": "scgDeletedAt"
+            },
+            "showInDatatable": true,
+            "showInViewDetails": true,
+            "showInGraphql": true,
+            "parameters": {
+              "enableInCellEditing": false,
+              "visible": false
             }
           }
         },
@@ -285,6 +314,7 @@
           "fields": {
             "update": {
               "description": "Update record",
+              "position": "grid.row",
               "backgroundColor": "#4CAF50",
               "borderColor": "#388E3C",
               "textColor": "white",
@@ -298,11 +328,12 @@
             },
             "delete": {
               "description": "Delete record",
+              "position": "grid.row",
               "backgroundColor": "#F44336",
               "borderColor": "#f32c1e",
               "textColor": "white",
               "icon": {
-                "link": "trash-o"
+                "link": "trash"
               },
               "action": {
                 "type": "action",
@@ -311,6 +342,7 @@
             },
             "clone": {
               "description": "Clone record",
+              "position": "grid.row",
               "backgroundColor": "#4CAF50",
               "borderColor": "#388E3C",
               "textColor": "white",
@@ -324,6 +356,7 @@
             },
             "viewDetails": {
               "description": "View record details",
+              "position": "grid.row",
               "backgroundColor": "#2196F3",
               "borderColor": "#0c7cd5",
               "textColor": "white",
@@ -338,19 +371,137 @@
             "view": {
               "showInTable": false
             },
+            "upsert": {
+              "showInTable": false
+            },
+
             "create": {
-              "description": "Create record",
+              "fullName": "Create Record",
+              "description": "Create new record",
               "backgroundColor": "#2196F3",
               "borderColor": "#0c7cd5",
               "textColor": "white",
+              "position": "grid.top.left",
               "showInTable": false,
               "action": {
                 "type": "action",
                 "link": "create"
               }
             },
-            "upsert": {
-              "showInTable": false
+            "group": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.left",
+              "showInTable": false,
+              "action": {
+                "type": "action",
+                "link": "group"
+              }
+            },
+
+            "search": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.right",
+              "showInTable": false,
+              "fullName": "Search....",
+              "action": {
+                "type": "action",
+                "link": "search"
+              }
+            },
+            "print": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.right",
+              "showInTable": false,
+              "description": "Print all records",
+              "icon": {
+                "link": "print"
+              },
+              "action": {
+                "type": "module",
+                "link": "AdpGridPrint"
+              }
+            },
+            "manageViews": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.right",
+              "showInTable": false,
+              "description": "Manage grid views",
+              "icon": {
+                "type": "dx",
+                "link": "detailslayout"
+              },
+              "action": {
+                "type": "module",
+                "link": "AdpGridViewManager"
+              }
+            },
+            "quickFilter": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.right",
+              "showInTable": false,
+              "description": "Apply quick filter",
+              "icon": {
+                "link": "filter"
+              },
+              "action": {
+                "type": "module",
+                "link": "AdpGridQuickFilter"
+              }
+            },
+            "export": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.right",
+              "showInTable": false,
+              "description": "Export collection",
+              "icon": {
+                "type": "font-awesome",
+                "link": "download"
+              },
+              "action": {
+                "type": "module",
+                "link": "AdpDataExport"
+              }
+            },
+            "import": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.right",
+              "showInTable": false,
+              "description": "Import data into collection",
+              "icon": {
+                "type": "font-awesome",
+                "link": "upload"
+              },
+              "action": {
+                "type": "module",
+                "link": "AdpDataImport"
+              }
+            },
+            "syntheticGenerate": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.right",
+              "showInTable": false,
+              "description": "Synthetic content generator",
+              "icon": {
+                "type": "font-awesome",
+                "link": "magic"
+              },
+              "action": {
+                "type": "module",
+                "link": "AdpSyntheticGenerate"
+              }
+            },
+            "chooseColumns": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.right",
+              "showInTable": false,
+              "description": "Configure grid columns",
+              "icon": {
+                "link": "columns"
+              },
+              "action": {
+                "type": "module",
+                "link": "AdpGridColumnChooser"
+              }
             }
           }
         },
@@ -363,7 +514,6 @@
             "visible": true
           },
           "columnChooser": {
-            "enabled": true,
             "allowSearch": true,
             "mode": "select"
           },
@@ -384,15 +534,6 @@
           },
           "paging": {
             "pageSize": 10
-          },
-          "groupPanel": {
-            "visible": true
-          },
-          "export": {
-            "enabled": true
-          },
-          "import": {
-            "enabled": true
           },
           "selection": {
             "selectAllMode": "page",

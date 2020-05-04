@@ -58,7 +58,7 @@ describe('data presetting', () => {
 
         await presetDataAndWaitForSelector(dataToPreset, this.page);
         const actualValue = await this.page.$$eval(
-          '[name="stringMultiple"] ti-tag-item span',
+          '[name="stringMultiple"] .dx-tag span',
             els => els.map(el => el.innerText)
         );
 
@@ -174,7 +174,14 @@ describe('data presetting', () => {
           };
 
           await presetDataAndWaitForSelector(dataToPreset, this.page);
-          const actualValue = await this.page.$eval(`[name="${testDef.name}"]`, el => el.value);
+          let selector = `[name="${testDef.name}"]`;
+          if (['String', 'Email', 'Phone'].includes(testDef.type)) {
+            selector += ' input';
+          } else if (testDef.type === 'Text') {
+            selector += ' textarea';
+          }
+
+          const actualValue = await this.page.$eval(selector, el => el.value);
 
           expect(actualValue).toBe(testDef.expected);
         });

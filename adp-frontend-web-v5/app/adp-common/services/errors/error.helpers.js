@@ -20,7 +20,9 @@
         if (shouldDisplayToUser) {
           AdpNotificationService.notifyError(error.message);
         } else if (error instanceof ServerError) {
-          AdpNotificationService.notifyError(ServerError.UNABLE_SEND);
+          var messages = Array.isArray(error.message) ? error.message : [error.message];
+
+          AdpNotificationService.notifyError(messages.join('<br/>'), 'Server error');
         } else {
           console.error(defaultMessage, error);
         }

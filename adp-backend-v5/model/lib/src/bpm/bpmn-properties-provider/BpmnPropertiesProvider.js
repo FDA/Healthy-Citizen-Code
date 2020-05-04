@@ -1,40 +1,46 @@
 'use strict';
 
 var inherits = require('inherits');
-
 var PropertiesActivator = require('bpmn-js-properties-panel/lib/PropertiesActivator');
+var getBusinessObject = require('bpmn-js/lib/util/ModelUtil').getBusinessObject;
+var cmdHelper = require('bpmn-js-properties-panel/lib/helper/CmdHelper');
+var scriptImplementation = require('./parts/implementation/AdpScript');
 
-var entryFactory = require('bpmn-js-properties-panel/lib/factory/EntryFactory'),
-  getBusinessObject = require('bpmn-js/lib/util/ModelUtil').getBusinessObject,
-  utils = require('bpmn-js-properties-panel/lib/Utils'),
-  cmdHelper = require('bpmn-js-properties-panel/lib/helper/CmdHelper');
-
-function createGeneralTabGroups(
-    element, canvas, bpmnFactory,
-    elementRegistry, translate) {
-
+function createGeneralTabGroups(element, canvas, bpmnFactory, elementRegistry, translate) {
   var generalGroup = {
     id: 'general',
     label: translate('Test section'),
     entries: []
   };
 
-generalGroup.entries.push(
-  entryFactory.textBox({
-    id: 'expression',
-    label: translate('Expression'),
-    modelProperty: 'expression',
-    getProperty: function(element) {
-      return getBusinessObject(element).expression;
+  var bo = getBusinessObject(element);
+
+  if (!bo) {
+    return;
+  }
+
+  var script = scriptImplementation( 'script', false, translate);
+  generalGroup.entries.push({
+    id: 'script-implementation',
+    label: translate('Script'),
+    html: script.template,
+
+    get: function(element) {
+      return script.get(element, bo);
     },
-    setProperty: function(element, properties) {
 
-      element = element.labelTarget || element;
-
+    set: function(element, values, containerElement) {
+      var properties = script.set(element, values, containerElement);
+      properties.scriptFormat="Javascript";
+      if(element.type==='bpmn:Process') {
+        properties.isExecutable=true;
+      }
       return cmdHelper.updateProperties(element, properties);
     },
-  })
-);
+
+    script : script,
+    cssClasses: ['bpp-textfield']
+  });
 
   return [
     generalGroup

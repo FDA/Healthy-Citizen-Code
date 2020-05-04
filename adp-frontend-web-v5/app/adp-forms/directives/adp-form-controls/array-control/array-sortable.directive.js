@@ -31,6 +31,7 @@
           return new Draggable.Sortable(sortableContainer, {
             draggable: draggableSelector,
             handle: draggableSelector + ' > .subform-frame > .subform-frame__title',
+            delay: 300,
             mirror: {
               constrainDimensions: true,
               appendTo: 'body',

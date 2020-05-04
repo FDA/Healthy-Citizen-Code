@@ -22,9 +22,9 @@
                                 </button>
                             </div>
                         </div>
-                        <div id="editor-container">
+                        <div id="editor-container" class="adp-bpm-{{vm.diagramType}}">
                             <div id="bpm-canvas"></div>
-                            <div id="bpm-properties"></div>
+                            <div id="bpm-properties" ng-if="vm.diagramType==='bpmn'"></div>
                         </div>
                     </div>
                 </adp-section-container>

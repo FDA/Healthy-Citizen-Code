@@ -21,15 +21,14 @@
     GridColumnsHelpers,
     GridSorting
   ) {
-    return function (options, schema) {
+    return function (options, schema, customGridOptions) {
       var gridFields = GridSchema.getFieldsForGrid(schema);
 
       options.columns = schemaToColumn(gridFields, schema);
-      GridTableActions(options, schema);
+      GridTableActions(options, schema, customGridOptions);
 
       GridColumnsHelpers.setWidthToColumns(options, schema);
       GridSorting.setSortingOptions(options, schema);
-      addGroupingOptions(options, schema);
 
       return options;
     }
@@ -84,10 +83,23 @@
           }
 
           container.append(tpl);
-        }
-      };
+        },
+        customizeText: function (event) {
+          if (
+            (FilterOperation.hasBetweenOperation(field.type) && event.target === 'filterRow')
+            || _.includes(['filterPanel', 'filterBuilder'], event.target)
+          ) {
+            var args = getCustomTextArgs(field, schema, event.value);
+            var filterContent = HtmlCellRenderer(args)(args);
 
-      customizeBetweenOperationTextForColumn(column, field, schema);
+            return filterContent === GRID_FORMAT.EMPTY_VALUE ?
+              GRID_FORMAT.NOT_SET_FILTER_VALUE :
+              filterContent;
+          } else {
+            return event.value;
+          }
+        },
+      };
 
       return column;
     }
@@ -99,40 +111,6 @@
       return templateFn(args);
     }
 
-    function customizeBetweenOperationTextForColumn(column, field, schema) {
-      if (!FilterOperation.hasBetweenOperation(field.type)) {
-        return;
-      }
-
-      column.customizeText = function (event) {
-        return event.target === 'filterRow' ? getTextForHeaderFilter(field, schema, event.value) : event.valueText;
-      };
-    }
-
-    function getTextForHeaderFilter(field, schema, fieldValue) {
-      var rowData = {};
-      rowData[field.fieldName] = fieldValue;
-
-      var tpl = getTemplateForField(field, schema, rowData);
-
-      return tpl === GRID_FORMAT.EMPTY_VALUE ?
-        GRID_FORMAT.NOT_SET_FILTER_VALUE :
-        tpl;
-    }
-
-    function addGroupingOptions(options, schema) {
-      options.columns.forEach(function (column) {
-        var field = schema.fields[column.dataField];
-        if (!field) {
-          return;
-        }
-        var grp = _.get(field, "parameters.grouping", {});
-        _.assign(column, grp);
-      });
-
-      options.remoteOperations = { groupPaging: true };
-    }
-
     function getTemplateArguments(field, schema, recordData) {
       return AdpUnifiedArgs.getHelperParamsWithConfig({
         path: field.fieldName,
@@ -140,6 +118,15 @@
         action: ACTIONS.VIEW,
         schema: schema,
       });
+    }
+
+    function getCustomTextArgs(field, schema, value) {
+      var rowData = {};
+      rowData[field.fieldName] = value;
+      var args = getTemplateArguments(field, schema, rowData);
+      args.params = { asText: true };
+
+      return args;
     }
 
     function isSearchAllowed(field) {

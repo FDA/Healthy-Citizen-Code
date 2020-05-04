@@ -131,7 +131,7 @@
     }
 
     function _cleanArrayItem(args) {
-      _.unset(args.value, '_id')
+      _.unset(args.value, '_id');
       _cleanObjectInPlace(args.value);
 
       if (_.isEmpty(args.value)) {
@@ -140,6 +140,7 @@
     }
 
     function _cleanAssociativeArrayItem(args) {
+      _.unset(args.value, '_id');
       _cleanObjectInPlace(args.value);
 
       var isEmpty =_.isEmpty(args.value) || hasOnlyKey(args.value);
@@ -155,6 +156,7 @@
     }
 
     function _cleanAssociativeArrayItemBeforeSending(args) {
+      _.unset(args.value, '_id');
       _cleanObjectInPlace(args.value);
 
       var isEmpty =_.isEmpty(args.value) || hasOnlyKey(args.value);

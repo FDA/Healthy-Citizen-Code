@@ -46,7 +46,7 @@
           return null;
         }
 
-        var nextSchema = _.get(parentArgs, 'modelSchema.fields.' + key);
+        var nextSchema = _.get(parentArgs, 'modelSchema.fields.' + key, {});
         var nextArgs = _.assign({}, parentArgs, { data: value, modelSchema: nextSchema });
 
         return MapperFn(nextArgs, Builder);

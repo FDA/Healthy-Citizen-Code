@@ -4,7 +4,6 @@
   angular.module('app.adpForms', [
     'ngMessages',
     'ui.bootstrap.datetimepicker',
-    'ngTagsInput'
   ]);
 
   angular
@@ -33,6 +32,10 @@
         if (!hasCollapseButton) {
           return;
         }
+
+        editor.once('instanceReady', function () {
+          toggleButtons(editor);
+        });
 
         editor.ui.addButton('Collapse', {
           label: 'Show more buttons',

@@ -6,8 +6,8 @@
     .factory('AdpFullscreenService', AdpFullscreenService);
 
   /** @ngInject */
-  function AdpFullscreenService (){
-    var registeredElement = null;
+  function AdpFullscreenService ($rootScope){
+    var registeredElements = [];
 
     return {
       requestFullscreen: requestFullscreen,
@@ -24,7 +24,9 @@
         return;
       }
 
-      forceFullscreen(registeredElement || _elem);
+      var element = registeredElements.length ? registeredElements[registeredElements.length-1] : _elem;
+
+      forceFullscreen(element);
     }
 
     function forceFullscreen( element ) {
@@ -64,10 +66,14 @@
     }
 
     function fullscreenEnabled() {
-      return !!(document.fullscreenElement
-        || document.mozFullScreenElement
-        || document.webkitFullscreenElement
-        || document.msFullscreenElement);
+      return !!getFullscreenElement();
+    }
+
+    function getFullscreenElement(){
+      return document.fullscreenElement
+      || document.mozFullScreenElement
+      || document.webkitFullscreenElement
+      || document.msFullscreenElement;
     }
 
     function toggleFullScreen(element) {
@@ -75,11 +81,20 @@
     }
 
     function registerFullScreenElement(el){
-      registeredElement = el;
+      registeredElements.push(el);
     }
 
-    function unregisterFullScreenElement(el){  // there is no need to stack many, at least by nowy...
-      registeredElement = null;
+    function unregisterFullScreenElement(el){
+      var index = registeredElements.indexOf(el);
+
+      if (index >= 0) {
+        registeredElements.splice(index, 1);
+      }
+
+      // make sure isFullscreen is false if fullscreened element was destroyed before FS mode exit
+      if (!getFullscreenElement()) {
+        $rootScope.isFullscreen = false;
+      }
     }
   }
 })();

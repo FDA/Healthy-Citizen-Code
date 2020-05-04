@@ -21,11 +21,14 @@
     }
 
     function multiple(args) {
+      if (_.isPlainObject(args.data)) {
+        return  single(args);
+      }
       if (!_.isArray(args.data) || _.isEmpty(args.data)) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
-      var separator = FormattersHelper.asText(args) ? '; ': '</br>';
+      var separator = FormattersHelper.asText(args) ? (FormattersHelper.commaDotSeparator(args) || '; ') : '</br>';
 
       return args.data.map(function (v) {
         return lookupLabel(v, args);
@@ -39,7 +42,7 @@
       if (AdpLookupHelpers.tablesList(args.modelSchema).length > 1) {
         return [
           value.table,
-          formattedValue,
+          formattedValue + '\n',
         ].join(separator);
       } else {
         return formattedValue;

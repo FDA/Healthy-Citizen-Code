@@ -10,7 +10,7 @@
     return {
       confirm: confirm,
       prompt: prompt,
-      upload: upload,
+      readFile: readFile,
       createModal: createModal,
       passwordUpdate: passwordUpdate,
     };
@@ -52,9 +52,9 @@
     //  autoOpenFileDialog: true  - opens 'file open' dialog automatically
     //  readFile: true           - set to false and prompt will return file without reading its contents (useful for server-uploading)
     //  }
-    function upload(options) {
-      return createModal("adpUploadDialogModal",
-        _.extend({actionType: "upload", sizeSmall: true}, options || {})
+    function readFile(options) {
+      return createModal("adpReadFileDialogModal",
+        _.extend({actionType: "readFile", sizeSmall: true}, options || {})
       ).result;
     }
 
@@ -88,7 +88,6 @@
 
     function _handleOnClose(modalInstance) {
       modalInstance.closed
-        .then(_disableFullscreen)
         .then(_removeActionClass);
     }
 
@@ -102,14 +101,6 @@
       $("body").removeClass(function (index, className) {
         return (className.match(regex) || []).join(" ").trim();
       });
-
-      return result || "EMPTY_RESULT";
-    }
-
-    function _disableFullscreen(result) {
-      if (AdpFullscreenService.fullscreenEnabled()) {
-        AdpFullscreenService.exitFullscreen();
-      }
 
       return result || "EMPTY_RESULT";
     }

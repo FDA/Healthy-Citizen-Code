@@ -1,10 +1,8 @@
-<textarea
-  type="{{uiProps.uiSubtypeType}}"
+<div
+  dx-text-area="config"
   name="{{field.fieldName}}"
-  id="{{field.fieldName}}"
   adp-validate="validationParams"
-  rows="4"
   ng-model="adpFormData[field.fieldName]"
   ng-required="isRequired()"
-  adp-autocomplete="field"
-  class="form-control"></textarea>
+></div>
+

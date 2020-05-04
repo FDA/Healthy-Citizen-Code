@@ -5,7 +5,7 @@ const Promise = require('bluebird');
 const { default: sift } = require('sift');
 const { getDefaultArgsAndValuesForInlineCode, MONGO } = require('../util/util');
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {};
   const appPermissions = appLib.accessCfg.PERMISSIONS;
   const deviceTypeToPermissions = {
@@ -32,10 +32,10 @@ module.exports = appLib => {
 
   function isArrayConditionPassed(actionPermissions, permissions) {
     // here we check AND condition
-    return _.every(actionPermissions, permissionElem => {
+    return _.every(actionPermissions, (permissionElem) => {
       if (_.isArray(permissionElem)) {
         // here we check OR condition
-        return _.some(permissionElem, nestedPermission => permissions.has(nestedPermission));
+        return _.some(permissionElem, (nestedPermission) => permissions.has(nestedPermission));
       }
       if (_.isString(permissionElem)) {
         return permissions.has(permissionElem);
@@ -56,19 +56,19 @@ module.exports = appLib => {
    * @param req
    * @returns {*}
    */
-  m.getInlineContext = req => ({ req });
+  m.getInlineContext = (req) => ({ req });
 
   /**
    * Retrieves user context by request
    */
-  m.getUserContext = req => req;
+  m.getUserContext = (req) => req;
 
   m.addActionsToDocs = (docs, actionFuncs) => {
     if (_.isEmpty(actionFuncs)) {
       return docs;
     }
 
-    _.each(docs, doc => {
+    _.each(docs, (doc) => {
       doc._actions = {};
       _.each(actionFuncs, (actionFunc, actionName) => {
         doc._actions[actionName] = actionFunc(doc);
@@ -140,12 +140,12 @@ module.exports = appLib => {
     inlineContext,
     isCheckActionPermissions
   ) => {
-    const allActionsMeta = await Promise.map(_.castArray(actions), action =>
+    const allActionsMeta = await Promise.map(_.castArray(actions), (action) =>
       m.getObjScopeMetaForAction(actionsObj, userPermissions, action, inlineContext, isCheckActionPermissions)
     );
     return {
       meta: allActionsMeta,
-      overallConditions: MONGO.or(...allActionsMeta.map(meta => meta.overallConditions)),
+      overallConditions: MONGO.or(...allActionsMeta.map((meta) => meta.overallConditions)),
     };
   };
 
@@ -164,7 +164,7 @@ module.exports = appLib => {
     req.user = user;
   };
 
-  m.getReqUser = req => {
+  m.getReqUser = (req) => {
     return req.user;
   };
 
@@ -172,7 +172,7 @@ module.exports = appLib => {
     req.roles = roles;
   };
 
-  m.getReqRoles = req => {
+  m.getReqRoles = (req) => {
     return req.roles;
   };
 
@@ -180,7 +180,7 @@ module.exports = appLib => {
     req.permissions = permissions;
   };
 
-  m.getReqPermissions = req => {
+  m.getReqPermissions = (req) => {
     if (!appLib.getAuthSettings().enablePermissions) {
       return m.getAllAppPermissionsSet();
     }
@@ -195,13 +195,10 @@ module.exports = appLib => {
 
   m.getRolesToPermissions = async () => {
     try {
-      const roles = await appLib.db
-        .collection('roles')
-        .find(appLib.dba.getConditionForActualRecord())
-        .toArray();
+      const roles = await appLib.db.collection('roles').find(appLib.dba.getConditionForActualRecord()).toArray();
 
       const rolesToPermissions = {};
-      roles.forEach(role => {
+      roles.forEach((role) => {
         rolesToPermissions[role.name] = role.permissions;
       });
       // override permission for superAdmin
@@ -269,7 +266,7 @@ module.exports = appLib => {
 
   m.getAvailActionsFromScopes = (scopes, permissions) => {
     const scopeActions = new Set();
-    _.each(scopes, scope => {
+    _.each(scopes, (scope) => {
       const scopePermissions = scope.permissions;
       if (_.isPlainObject(scopePermissions)) {
         _.each(scopePermissions, (actionPermission, actionName) => {
@@ -333,15 +330,15 @@ module.exports = appLib => {
     } else if (actions === true) {
       chosenActions = shownModelActionsNames;
     } else {
-      chosenActions = shownModelActionsNames.filter(action => actions.includes(action));
+      chosenActions = shownModelActionsNames.filter((action) => actions.includes(action));
     }
 
-    const allChosenActionsMeta = await Promise.map(chosenActions, modelAction =>
+    const allChosenActionsMeta = await Promise.map(chosenActions, (modelAction) =>
       m.getObjScopeMetaForAction(appModel, userPermissions, modelAction, inlineContext, true)
     );
 
     const actionFuncs = {};
-    _.each(allChosenActionsMeta, meta => {
+    _.each(allChosenActionsMeta, (meta) => {
       const { overallConditions: condition, action } = meta;
       if (condition === true || condition === false) {
         // simple condition
@@ -381,7 +378,7 @@ module.exports = appLib => {
       const isPermissionGranted = m.isPermissionGranted(fieldPermissions, userPermissions);
 
       if (_.isArray(data)) {
-        _.each(data, doc => filterDoc(doc, isPermissionGranted, fieldPath, field, isObjectField, isArrayField));
+        _.each(data, (doc) => filterDoc(doc, isPermissionGranted, fieldPath, field, isObjectField, isArrayField));
       } else {
         filterDoc(data, isPermissionGranted, fieldPath, field, isObjectField, isArrayField);
       }
@@ -484,11 +481,11 @@ module.exports = appLib => {
         const userArrValue = userValue || [];
 
         // map by object id no matter whether its String or ObjectID instance
-        const mappedDbArray = _.map(userArrValue, userObj => {
+        const mappedDbArray = _.map(userArrValue, (userObj) => {
           if (!userObj._id) {
             return {};
           }
-          const matchedDbDoc = _.find(dbValue, doc => doc._id && userObj._id.toString() === doc._id.toString());
+          const matchedDbDoc = _.find(dbValue, (doc) => doc._id && userObj._id.toString() === doc._id.toString());
           return matchedDbDoc || {};
         });
         // rewrite mapped array to merge db and user objects 1 to 1
@@ -531,7 +528,7 @@ module.exports = appLib => {
       if (!field.visible || !field.permissions) {
         return;
       }
-      _.each(actions, action => {
+      _.each(actions, (action) => {
         const newPath = path.concat(fieldKey);
         const fieldPermissions = _.get(field, `permissions.${action}`);
         const actionToSend = getFieldVerbByAction(action);
@@ -575,7 +572,7 @@ module.exports = appLib => {
     const allListsForUser = {};
     const isPermissionsEnabled = appLib.getAuthSettings().enablePermissions;
 
-    await Promise.map(listsFieldsToGet, async listField => {
+    await Promise.map(listsFieldsToGet, async (listField) => {
       const { type: elemType, required: elemRequired, list } = _.get(appLib.appModel.models, listField);
 
       const listScopes = list.scopes;
@@ -665,7 +662,11 @@ module.exports = appLib => {
      */
     function cleanMenuPart(parentMenu, path, permissions) {
       const curMenu = parentMenu[path];
-      const scopes = _.get(curMenu, 'scopes');
+      if (!_.isPlainObject(curMenu)) {
+        return;
+      }
+
+      const { scopes } = curMenu;
 
       let actionsFromScopes;
       if (!scopes) {
@@ -677,9 +678,10 @@ module.exports = appLib => {
 
       // delete menu from parent obj or clean up scopes and go deeper
       if (!actionsFromScopes.has('view')) {
-        delete parentMenu[path];
+        _.unset(parentMenu, path);
       } else {
-        delete parentMenu[path].scopes;
+        _.unset(parentMenu, `${path}.scopes`);
+
         _.each(curMenu.fields, (obj, nestedPath) => {
           cleanMenuPart(curMenu.fields, nestedPath, permissions);
         });
@@ -728,7 +730,7 @@ module.exports = appLib => {
       {}
     );
 
-    const schemaListsFields = appLib.ListsFields.filter(path => path.startsWith(fieldsPathInAppModel));
+    const schemaListsFields = appLib.ListsFields.filter((path) => path.startsWith(fieldsPathInAppModel));
     const allowedLists = await m.getListsForUser(userPermissions, inlineContext, schemaListsFields);
 
     await Promise.map(Object.entries(allowedLists), ([fieldPath, list]) => validate(list, fieldPath));
@@ -757,7 +759,7 @@ module.exports = appLib => {
         if (!Array.isArray(userVal)) {
           listsErrors.push(`Value '${userVal}' should be an array for '${fieldPath}'.`);
         } else {
-          userVal.forEach(val => {
+          userVal.forEach((val) => {
             if (!listValues[val]) {
               listsErrors.push(`Value '${val}' is not allowed for list field '${fieldPath}'.`);
             }
@@ -769,7 +771,7 @@ module.exports = appLib => {
     }
   };
 
-  m.removePermissionsFromObjFields = obj => {
+  m.removePermissionsFromObjFields = (obj) => {
     _.each(obj.fields, (field, fieldKey) => {
       _.unset(obj, ['fields', fieldKey, 'permissions']);
       if (field.fields) {
@@ -779,7 +781,7 @@ module.exports = appLib => {
   };
 
   m.injectFieldsInfo = (model, actions, userPermissions) => {
-    _.each(model.fields, field => {
+    _.each(model.fields, (field) => {
       if (!field.permissions || !appLib.getAuthSettings().enablePermissions) {
         field.fieldInfo = { read: true, write: true };
         // go deeper for parent field permissions
@@ -788,7 +790,7 @@ module.exports = appLib => {
         }
         return;
       }
-      _.each(actions, action => {
+      _.each(actions, (action) => {
         const fieldPermissions = _.get(field, `permissions.${action}`);
         const isPermissionGranted = m.isPermissionGranted(fieldPermissions, userPermissions);
         const fieldVerb = getFieldVerbByAction(action);
@@ -838,7 +840,7 @@ module.exports = appLib => {
     delete part.transform;
 
     if (['LookupObjectID', 'LookupObjectID[]'].includes(part.type)) {
-      return _.each(part.lookup.table, lookupSpec => {
+      return _.each(part.lookup.table, (lookupSpec) => {
         delete lookupSpec.foreignKeyType;
         delete lookupSpec.scopes;
         delete lookupSpec.sortBy;
@@ -847,7 +849,7 @@ module.exports = appLib => {
     }
 
     if (part.type === 'TreeSelector') {
-      return _.each(part.table, treeSelectorSpec => {
+      return _.each(part.table, (treeSelectorSpec) => {
         delete treeSelectorSpec.foreignKeyType;
         delete treeSelectorSpec.scopes;
         delete treeSelectorSpec.sortBy;
@@ -870,7 +872,7 @@ module.exports = appLib => {
 
     const actionsFromScopes = m.getAvailActionsFromScopes(model.scopes, userPermissions);
     const actionsFromActions = m.getAvailActionsFromActions(model.actions, userPermissions);
-    const intersectedActions = new Set([...actionsFromActions].filter(a => actionsFromScopes.has(a)));
+    const intersectedActions = new Set([...actionsFromActions].filter((a) => actionsFromScopes.has(a)));
 
     // delete scopes and permission details
     delete model.scopes;
@@ -899,7 +901,7 @@ module.exports = appLib => {
 
   m.injectListValuesForModel = async (userPermissions, inlineContext, model) => {
     const modelName = model.schemaName;
-    const listFields = appLib.ListsFields.filter(f => f.startsWith(modelName));
+    const listFields = appLib.ListsFields.filter((f) => f.startsWith(modelName));
     const lists = await m.getListsForUser(userPermissions, inlineContext, listFields);
     _.each(lists, (list, fieldPathWithModel) => {
       const fieldPath = fieldPathWithModel.replace(`${modelName}.`, '');
@@ -911,10 +913,10 @@ module.exports = appLib => {
     });
   };
 
-  m.getAuthorizedAppModel = async req => {
+  m.getAuthorizedAppModel = async (req) => {
     const authorizedModel = _.cloneDeep(appLib.baseAppModel);
     const userPermissions = m.getReqPermissions(req);
-    _.each(authorizedModel.models, model => {
+    _.each(authorizedModel.models, (model) => {
       m.handleModelByPermissions(model, userPermissions);
     });
 
@@ -927,14 +929,14 @@ module.exports = appLib => {
     return authorizedModel;
   };
 
-  m.getUnauthorizedAppModel = req => {
+  m.getUnauthorizedAppModel = (req) => {
     const userPermissions = m.getReqPermissions(req);
     const unauthorizedModel = _.cloneDeep(appLib.baseAppModel);
     // actions for read and write
     const actions = ['view', 'update'];
     const { models } = unauthorizedModel;
     unauthorizedModel.models = { users: models.users };
-    _.each(unauthorizedModel.models, model => {
+    _.each(unauthorizedModel.models, (model) => {
       m.injectFieldsInfo(model, actions, userPermissions);
     });
 
@@ -976,7 +978,7 @@ module.exports = appLib => {
     },
   });
 
-  m.getFieldActionByModelAction = action => {
+  m.getFieldActionByModelAction = (action) => {
     if (action === 'view') {
       return 'read';
     }

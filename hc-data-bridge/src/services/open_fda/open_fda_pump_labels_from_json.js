@@ -9,10 +9,13 @@ const unzip = require('unzip');
 const JSONStream = require('JSONStream');
 const es = require('event-stream');
 const Promise = require('bluebird');
-const fetch = require('node-fetch');
 const { mongoConnect } = require('../util/mongo');
 const { getNormalizedNDCByPackageNDC } = require('../util/ndc');
 const { isValidMongoDbUrl } = require('../../lib/helper');
+
+const { getAxiosProxySettings } = require('../util/proxy');
+// eslint-disable-next-line import/order
+const axios = require('axios').create(getAxiosProxySettings());
 
 class PumpLabelsOpenFda {
   constructor(params) {
@@ -31,12 +34,12 @@ class PumpLabelsOpenFda {
 
   pump() {
     return this.getLabelFilesInfo()
-      .then(labelFilesInfo => {
+      .then((labelFilesInfo) => {
         const jsonStr = JSON.stringify(labelFilesInfo, null, 2);
         const labelFilesInfoPath = path.resolve(__dirname, `./resources/labelFilesInfo.json`);
         fs.outputFileSync(labelFilesInfoPath, jsonStr);
 
-        this.urlsToDownload = labelFilesInfo.partitions.map(p => p.file);
+        this.urlsToDownload = labelFilesInfo.partitions.map((p) => p.file);
         return this.downloadAndPumpFiles();
       })
       .then(() => {
@@ -45,24 +48,22 @@ class PumpLabelsOpenFda {
   }
 
   getLabelFilesInfo() {
-    return fetch(this.downloadJsonUrl)
-      .then(res => {
-        if (res.status === 200) {
-          return res.json();
-        }
-        throw `Cannot download 'download.json' by url ${this.downloadJsonUrl}`;
-      })
-      .then(json => json.results.drug.label);
+    return axios.get(this.downloadJsonUrl).then((res) => {
+      if (res.status === 200) {
+        return res.data.results.drug.label;
+      }
+      throw `Cannot download 'download.json' by url ${this.downloadJsonUrl}`;
+    });
   }
 
   getConnection() {
     return mongoConnect(this.mongoUrl)
-      .then(dbConnection => {
+      .then((dbConnection) => {
         this.dbCon = dbConnection;
       })
-      .catch(e => {
+      .catch((e) => {
         throw new Error(`Cannot get connection to ${this.mongoUrl}`);
-      })
+      });
   }
 
   ensureIndexes() {
@@ -75,10 +76,8 @@ class PumpLabelsOpenFda {
   downloadAndPumpFiles() {
     let promise = this.getConnection().then(() => this.ensureIndexes());
 
-    _.forEach(this.urlsToDownload, urlToDownload => {
-      promise = promise
-        .then(() => this.downloadFile(urlToDownload))
-        .then(zipPath => this.pumpZipFile(zipPath));
+    _.forEach(this.urlsToDownload, (urlToDownload) => {
+      promise = promise.then(() => this.downloadFile(urlToDownload)).then((zipPath) => this.pumpZipFile(zipPath));
     });
     return promise;
   }
@@ -90,18 +89,16 @@ class PumpLabelsOpenFda {
       const outputPath = path.join(this.zipDir, filename);
 
       progress(request(urlToDownload), {})
-        .on('progress', state => {
+        .on('progress', (state) => {
           readline.clearLine(process.stdout, 0); // move cursor to beginning of line
           readline.cursorTo(process.stdout, 0);
 
           const percent = (100 * state.percent).toFixed(2);
           const speed = (state.speed / 1024).toFixed(1);
           const remaining = state.time.remaining ? state.time.remaining.toFixed(1) : '?';
-          process.stdout.write(
-            `Downloaded: ${percent}%, speed: ${speed}kbytes/sec, remaining: ${remaining}sec`
-          );
+          process.stdout.write(`Downloaded: ${percent}%, speed: ${speed}kbytes/sec, remaining: ${remaining}sec`);
         }) // write text
-        .on('error', err => {
+        .on('error', (err) => {
           console.log(`\nFailed downloading file by url: ${urlToDownload}`);
           reject(err);
         })
@@ -117,9 +114,9 @@ class PumpLabelsOpenFda {
 
   pumpZipFile(zipPath) {
     return this.parseZipToJson(zipPath)
-      .then(unzippedFiles => {
+      .then((unzippedFiles) => {
         let promise = Promise.resolve();
-        _.forEach(unzippedFiles, unzippedFile => {
+        _.forEach(unzippedFiles, (unzippedFile) => {
           promise = promise.then(() => this.parseJsonAndWriteToMongo(unzippedFile));
         });
         return promise;
@@ -133,12 +130,12 @@ class PumpLabelsOpenFda {
   }
 
   parseZipToJson(zipPath) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       const unzippedFiles = [];
       const stream = fs
         .createReadStream(zipPath)
         .pipe(unzip.Parse())
-        .on('entry', entry => {
+        .on('entry', (entry) => {
           const fileName = entry.path;
           // const { type } = entry; // 'Directory' or 'File'
           // const { size } = entry;
@@ -155,21 +152,19 @@ class PumpLabelsOpenFda {
 
   parseJsonAndWriteToMongo(jsonPath) {
     console.log('Pumping...');
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       fs.createReadStream(jsonPath)
         .pipe(JSONStream.parse('results'))
         .pipe(
-          es.map(results => {
+          es.map((results) => {
             const promise = Promise.map(
               results,
-              result => {
+              (result) => {
                 const packageNdc = _.castArray(result.openfda.package_ndc);
                 const doc = {
                   id: result.id,
                   rawData: result,
-                  ndc11: _.compact(
-                    packageNdc.map(ndc => getNormalizedNDCByPackageNDC(ndc))
-                  ),
+                  ndc11: _.compact(packageNdc.map((ndc) => getNormalizedNDCByPackageNDC(ndc))),
                 };
                 return this.upsertCollections(doc);
               },
@@ -184,23 +179,21 @@ class PumpLabelsOpenFda {
 
   upsertCollections(doc) {
     return this.upsertOpenFdaDoc(doc)
-      .then(insertedOpenFdaDoc => this.upsertMedicationMasterDoc(insertedOpenFdaDoc))
+      .then((insertedOpenFdaDoc) => this.upsertMedicationMasterDoc(insertedOpenFdaDoc))
       .then(() => {
         this.docsProcessed++;
         if (this.docsProcessed % 5000 === 0) {
           console.log(`OpenFda docs processed: ${this.docsProcessed}`);
         }
       })
-      .catch(err => {
+      .catch((err) => {
         console.log(`Error occurred during upserting doc: ${JSON.stringify(doc)}. \n${err}`);
       });
   }
 
   upsertMedicationMasterDoc(insertedOpenFdaDoc) {
     // Field generic_name from original doc is size 1 array.
-    const genericNames = _.get(insertedOpenFdaDoc, 'rawData.openfda.generic_name.0', '').split(
-      ', '
-    );
+    const genericNames = _.get(insertedOpenFdaDoc, 'rawData.openfda.generic_name.0', '').split(', ');
     const brandName = _.get(insertedOpenFdaDoc, 'rawData.openfda.brand_name.0', '');
     // one medication can be packaged in many ways => has many ndc11 codes
     return Promise.map(insertedOpenFdaDoc.ndc11, (ndc11, i) =>
@@ -223,7 +216,7 @@ class PumpLabelsOpenFda {
     return this.dbCon
       .collection(this.openFdaCollectionName)
       .findAndModify({ id: doc.id }, { _id: 1 }, doc, { new: true, upsert: true })
-      .then(commandResult => commandResult.value);
+      .then((commandResult) => commandResult.value);
   }
 }
 
@@ -234,9 +227,7 @@ const openFdaCollectionName = args.openFdaCollectionName;
 const medicationMasterCollectionName = args.medicationMasterCollectionName;
 
 if (!openFdaCollectionName || !medicationMasterCollectionName || !isValidMongoDbUrl(mongoUrl)) {
-  console.log(
-    `One of param 'openFdaCollectionName' or 'medicationMasterCollectionName' or 'mongoUrl' is invalid`
-  );
+  console.log(`One of param 'openFdaCollectionName' or 'medicationMasterCollectionName' or 'mongoUrl' is invalid`);
   process.exit(1);
 }
 
@@ -253,6 +244,6 @@ pumpOpenFda
     console.log(`All files are downloaded and pumped.`);
     process.exit(0);
   })
-  .catch(err => {
+  .catch((err) => {
     console.log(err);
   });

@@ -18,6 +18,7 @@ const {
   getPreparedWidgetHtml,
   kebabCase,
   step1aObtainAuthAndTokenUrls,
+  handleAxiosError
 } = require('../controller_util/widget');
 
 const ISS = 'https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3';
@@ -134,7 +135,7 @@ module.exports = function(globalMongoose) {
         res.send(getWidgetHtml(widgetId, params));
       })
       .catch(err => {
-        log.error(err.stack);
+        handleAxiosError(err, log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -175,7 +176,7 @@ module.exports = function(globalMongoose) {
         res.json({ success: true, data: params });
       })
       .catch(err => {
-        log.error(err.stack);
+        handleAxiosError(err, log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -201,7 +202,7 @@ module.exports = function(globalMongoose) {
         res.send(getPreparedWidgetHtml({ iss: ISS, patient, fhir_access_token, widgetType: WIDGET_TYPE_FALLBACK }));
       })
       .catch(err => {
-        log.error(err.stack);
+        handleAxiosError(err, log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -229,7 +230,7 @@ module.exports = function(globalMongoose) {
         res.send(getPreparedWidgetHtmlWithRxcuis(rxcuis));
       })
       .catch(err => {
-        log.error(err.stack);
+        handleAxiosError(err, log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -256,7 +257,7 @@ module.exports = function(globalMongoose) {
         res.send(getPreparedWidgetHtml({ iss, fhir_access_token, patient, widgetType }));
       })
       .catch(err => {
-        log.error(err.stack);
+        handleAxiosError(err, log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -312,7 +313,7 @@ module.exports = function(globalMongoose) {
         res.redirect(302, authroizeRedirectUrl);
       })
       .catch(err => {
-        log.error(err.stack);
+        handleAxiosError(err, log);
         res.send(getNotFoundWidgetHtml());
       });
   };

@@ -1,14 +1,17 @@
-(function() {
+(function () {
   angular.module('app.adpBpmDiagrams').factory('AdpBpmnHelper', AdpBpmnHelperFactory);
 
   /** @ngInject */
   function AdpBpmnHelperFactory(AdpSchemaService, AdpBpmnConfig) {
     function getDiagram(record) {
-      return record[AdpBpmnConfig.diagramFieldName] || AdpBpmnConfig.emptyDiagram;
+      return (
+        (record[AdpBpmnConfig.diagramFieldName] && record[AdpBpmnConfig.diagramFieldName].xml) ||
+        AdpBpmnConfig.emptyDiagram
+      );
     }
 
     function getRecordToSave(vm, definition) {
-      vm.record[AdpBpmnConfig.diagramFieldName] = definition;
+      vm.record[AdpBpmnConfig.diagramFieldName] = { xml: definition };
 
       return new $.Deferred().resolve(vm.record);
     }
@@ -22,10 +25,10 @@
       jsUrl: AdpBpmnConfig.jsUrl,
       cssUrl: AdpBpmnConfig.cssUrl,
       filePrefix: 'process_',
-      getInstance: function(options) {
+      getInstance: function (options) {
         return new window[AdpBpmnConfig.libName](options);
       },
-      isLibLoaded: function() {
+      isLibLoaded: function () {
         return !!window[AdpBpmnConfig.libName];
       },
       getRecordToSave: getRecordToSave,

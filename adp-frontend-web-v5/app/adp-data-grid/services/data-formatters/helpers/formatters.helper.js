@@ -7,13 +7,9 @@
 
   /** @ngInject */
   function FormattersHelper() {
-
-    function asText(args) {
-      return _.get(args, "params.asText", false);
-    }
-
     return {
-      asText: asText
+      asText: function(args) {return _.get(args, "params.asText", false);},
+      commaDotSeparator: function(args) {return _.get(args, "params.commaDotSeparator");},
     }
   }
 })();

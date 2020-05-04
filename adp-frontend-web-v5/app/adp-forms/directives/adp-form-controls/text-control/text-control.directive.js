@@ -5,7 +5,10 @@
     .module('app.adpForms')
     .directive('textControl', textControl);
 
-  function textControl(AdpValidationUtils) {
+  function textControl(
+    AdpValidationUtils,
+    AdpFieldsService
+  ) {
     return {
       restrict: 'E',
       scope: {
@@ -17,14 +20,17 @@
       templateUrl: 'app/adp-forms/directives/adp-form-controls/text-control/text-control.html',
       require: '^^form',
       link: function (scope) {
-        if (!getData()) {
-          setData('')
-        }
-
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
 
-        function setData(value) {
-          return scope.adpFormData[scope.field.fieldName] = value;
+        scope.config = {
+          value: getData(),
+          inputAttr: {
+            autocomplete: AdpFieldsService.autocompleteValue(scope.field),
+            id: scope.field.fieldName,
+          },
+          minHeight: '80px',
+          autoResizeEnabled: true,
+          valueChangeEvent: 'input blur',
         }
 
         function getData() {

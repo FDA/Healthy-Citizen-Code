@@ -9,9 +9,15 @@ const { mergeFiles } = require('../public-files-controller');
 
 const { getTransformedInterfaceAppPermissions } = require('../access/transform-permissions');
 
-function getMacrosesSchemeChange(schemeBefore, schemeAfter) {
+// We need to distinguish backend and frontend delimiters used in app schema to leave frontend ejs code as is and let frontend evaluate it
+const EJS_BACKEND_APP_SCHEMA_DELIMETER = '@';
+
+function getMacrosSchemeChange(schemeBefore, schemeAfter) {
   if (schemeBefore === schemeAfter) {
     return null;
+  }
+  if (_.isEmpty(schemeBefore)) {
+    return schemeAfter;
   }
 
   const schemeChange = {};
@@ -23,19 +29,19 @@ function getMacrosesSchemeChange(schemeBefore, schemeAfter) {
   return schemeChange;
 }
 
-async function updateMacroses({ macrosesSchemeChange, macroses, macrosDirPaths, functionContext }) {
-  await Promise.mapSeries(_.entries(macrosesSchemeChange), async ([macrosName, macrosSpec]) => {
-    macroses[macrosName] = {};
-    const macros = macroses[macrosName];
-    macros.parameters = getMacrosParameters(macrosSpec.parameters);
-    macros.func = await getMacrosFunc(macrosSpec, functionContext);
+async function updateMacros({ macrosSchemeChange, macros, macrosDirPaths, functionContext }) {
+  await Promise.mapSeries(_.entries(macrosSchemeChange), async ([macrosName, macrosSpec]) => {
+    macros[macrosName] = {};
+    const macro = macros[macrosName];
+    macro.parameters = getMacrosParameters(macrosSpec.parameters);
+    macro.func = await getMacrosFunc(macrosSpec, functionContext);
   });
 
-  return macroses;
+  return macros;
 
   async function getMacrosFunc(macrosSpec, context) {
     // specify ejs context to make context functions visible for ejs when called recursively
-    const ejsOptions = { context };
+    const ejsOptions = { context, delimiter: EJS_BACKEND_APP_SCHEMA_DELIMETER };
     if (macrosSpec.inline) {
       return ejs.compile(macrosSpec.inline, ejsOptions).bind(context);
     }
@@ -72,9 +78,7 @@ function parseModel(modelContent) {
 
 async function combineModels({ modelSources, log = () => {}, appModelProcessors, macrosDirPaths }) {
   const model = {};
-  const macroses = {};
-  let macrosesScheme = {};
-
+  const macros = {};
   const errors = [];
 
   await Promise.mapSeries(modelSources, (modelSource, index) => {
@@ -94,40 +98,40 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
       jsonFiles = glob.sync(modelSource);
     }
 
-    const macrosFunctionContext = { ...appModelProcessors, macroses };
+    const macrosFunctionContext = { ...appModelProcessors, macros };
     if (_.isFunction(appModelProcessors.M)) {
       appModelProcessors.M = appModelProcessors.M.bind(macrosFunctionContext);
     }
 
-    return Promise.mapSeries(jsonFiles, async jsonFile => {
+    return Promise.mapSeries(jsonFiles, async (jsonFile) => {
       try {
         const modelContent = await fs.readFile(jsonFile, 'utf8');
         const modelPart = parseModel(modelContent);
-        if (modelPart) {
-          // merge valid json models to
-          // 1) know macros specification (it must not include macroses)
-          // 2) speed up merging models without macroses
-          return mergePartToModel(model, modelPart);
+        const hasMacros = _.get(modelPart, 'macros');
+        if (hasMacros) {
+          // merge macros to model to build macros specification (it must not include macros) before processing other model parts
+          const prevMacros = _.cloneDeep(model.macros);
+          mergePartToModel(model, modelPart);
+
+          // Macros from model may override macros from core, therefore macros are changed during parsing process
+          // Reference macrosFunctionContext.macros is updated
+          const macrosSchemeChange = getMacrosSchemeChange(prevMacros, model.macros);
+          return updateMacros({
+            macrosSchemeChange,
+            macros,
+            macrosDirPaths,
+            functionContext: macrosFunctionContext,
+          });
         }
 
-        // Macroses from model may override macroses from core, therefore macroses are changed during parsing process
-        const macrosesSchemeChange = getMacrosesSchemeChange(macrosesScheme, model.macros);
-        macrosesScheme = model.macros;
-        await updateMacroses({
-          macrosesSchemeChange,
-          macroses,
-          macrosDirPaths,
-          functionContext: macrosFunctionContext,
-        });
-
-        const options = { async: true, context: macrosFunctionContext };
-        const expandedModel = await ejs.render(modelContent, {}, options);
+        const ejsOptions = { async: true, context: macrosFunctionContext, delimiter: EJS_BACKEND_APP_SCHEMA_DELIMETER };
+        const expandedModel = await ejs.render(modelContent, {}, ejsOptions);
 
         const expandedModelPart = parseModel(expandedModel);
         if (expandedModelPart) {
           return mergePartToModel(model, expandedModelPart);
         }
-        errors.push(`Invalid model is expanded with macroses for file "${jsonFile}". Invalid model: ${expandedModel}`);
+        errors.push(`Invalid model is expanded with macros for file "${jsonFile}". Invalid model: ${expandedModel}`);
       } catch (e) {
         if (e instanceof CallStackError) {
           return errors.push(`Unable to parse model for file "${jsonFile}". ${e.message}`);

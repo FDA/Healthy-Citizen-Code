@@ -14,7 +14,7 @@ function getLaunchOptions() {
       args: [
         '--no-sandbox',
         '--disable-gpu',
-        '--window-size=2880x1800'
+        '--window-size=2880,1800'
       ]
     };
   } else {
@@ -25,7 +25,7 @@ function getLaunchOptions() {
         '--no-sandbox',
         '--headless',
         '--disable-gpu',
-        '--window-size=2880x1800'
+        '--window-size=2880,1800'
       ]
     }
   }
@@ -56,8 +56,8 @@ async function loginWithUser(page) {
 
 async function fillLoginFormAndSubmit(page) {
   const { login, password } = getUserCredentials();
-  await page.type('#login', login);
-  await page.type('#password', password);
+  await page.type('#login input', login);
+  await page.type('#password input', password);
 
   await Promise.all([
     page.waitForNavigation({ waitUntil: 'networkidle2' }),

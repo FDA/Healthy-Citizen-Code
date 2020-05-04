@@ -597,7 +597,7 @@ describe('V5 Core Utility', () => {
         filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
-      const { errors, warnings } = mutil.validateAndCleanupAppModel();
+      const { errors, warnings } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(0, errors.join('\n')); // sampleModel1 has no errors
       const { M1 } = appLib.appModel.models;
       M1.should.not.have.property('comment'); // comments removed
@@ -624,7 +624,7 @@ describe('V5 Core Utility', () => {
         filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
-      const { errors } = mutil.validateAndCleanupAppModel();
+      const { errors } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(3, errors.join('\n'));
       errors[0].should.equal('Lookup in M3.fields.F1 refers to nonexisting collection "M0"');
       errors[1].should.equal('Lookup in M4.fields.F1 refers to nonexisting foreignKey "F1a"');
@@ -639,7 +639,7 @@ describe('V5 Core Utility', () => {
         filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
-      const { errors } = mutil.validateAndCleanupAppModel();
+      const { errors } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(3, errors.join('\n'));
       errors[0].should.equal('defaultSortBy in M2 has incorrect format, the sorting order must be either 1 or -1');
       errors[1].should.equal('defaultSortBy in M3 refers to nonexisting field "F2"');
@@ -658,7 +658,7 @@ describe('V5 Core Utility', () => {
         filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
-      const { errors } = mutil.validateAndCleanupAppModel();
+      const { errors } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(4, errors.join('\n'));
       errors[0].should.equal(`Validator "validator0" doesn't exist in M2.fields.F1`);
       errors[1].should.equal(`Transformer "transformer0" doesn't exist in M2.fields.F1`);
@@ -676,7 +676,7 @@ describe('V5 Core Utility', () => {
         filterUtil,
       };
       const mutil = reqlib('/lib/model')(appLib);
-      const { warnings } = mutil.validateAndCleanupAppModel();
+      const { warnings } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       warnings.length.should.equal(5, warnings.join('\n'));
       warnings[0].should.equal(
         "Model part by path 'complexTypes.object2' is required but doesn't have any required field"

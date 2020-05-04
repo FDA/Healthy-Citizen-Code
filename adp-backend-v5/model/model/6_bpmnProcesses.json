@@ -79,27 +79,6 @@
           "fullName": "Definition",
           "showInDatatable": false,
           "showInForm": false
-        },
-        "target": {
-          "type": "LookupObjectID",
-          "fullName": "Target",
-          "required": true,
-          "lookup": {
-            "table": {
-              "datasets": {
-                "foreignKey": "_id",
-                "label": "name",
-                "scopes": {
-                  "specialScope": {
-                    "permissions": {
-                      "view": "accessAsUser"
-                    },
-                    "where": true
-                  }
-                }
-              }
-            }
-          }
         }
       }
     }

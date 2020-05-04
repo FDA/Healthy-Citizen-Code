@@ -3,7 +3,7 @@ const _ = require('lodash');
 const { random } = require('../util/random');
 const ScgError = require('./errors/scg-error');
 
-async function generateDataByModel({ functions, model, env }) {
+async function generateDataByModel({ functions, model, env, log }) {
   const unifiedContext = {
     row: {},
     modelSchema: model,
@@ -11,7 +11,7 @@ async function generateDataByModel({ functions, model, env }) {
     config: env,
     generators: functions,
   };
-  await generateObjectField(functions, unifiedContext);
+  await generateObjectField(functions, unifiedContext, log);
 
   const generatorSpecifications = _.castArray(model.generatorSpecification);
   for (const generatorSpecification of generatorSpecifications) {
@@ -33,7 +33,7 @@ async function generateFieldsForRecord(functions, generatorSpecification, unifie
   return generatorFunc.call(contextWithParams);
 }
 
-function generateDataByField(functions, unifiedContext) {
+function generateDataByField(functions, unifiedContext, log) {
   const { modelSchema } = unifiedContext;
   const { type } = modelSchema;
 
@@ -41,13 +41,13 @@ function generateDataByField(functions, unifiedContext) {
     return;
   }
   if (type === 'Array') {
-    return generateArrayField(functions, unifiedContext);
+    return generateArrayField(functions, unifiedContext, log);
   }
   if (type === 'Object') {
-    return generateObjectField(functions, unifiedContext);
+    return generateObjectField(functions, unifiedContext, log);
   }
   if (type === 'Mixed') {
-    return generateMixedField(functions, unifiedContext);
+    return generateMixedField(functions, unifiedContext, log);
   }
 
   const generatorName = getGeneratorName(modelSchema);
@@ -73,7 +73,7 @@ function getGeneratorParams(fieldSpec) {
     fieldParams.lookup = fieldSpec.lookup;
   }
   if (type === 'TreeSelector') {
-    const treeSelectorTableName = _.keys(fieldSpec.table).filter(key => key !== 'id')[0];
+    const treeSelectorTableName = _.keys(fieldSpec.table).filter((key) => key !== 'id')[0];
     fieldParams.tableSpec = fieldSpec.table[treeSelectorTableName];
   }
 
@@ -121,11 +121,11 @@ async function generateMultipleFieldData(generatorFunc, unifiedContext) {
   return compactArrayResult(result);
 }
 
-async function generateArrayField(functions, unifiedContext) {
+async function generateArrayField(functions, unifiedContext, log) {
   const elemNumber = random.integer(0, 10);
-  await Promise.map([...Array(elemNumber).keys()], i => {
+  await Promise.map([...Array(elemNumber).keys()], (i) => {
     const nestedContext = { ...unifiedContext, path: unifiedContext.path.concat(i) };
-    return generateObjectField(functions, nestedContext);
+    return generateObjectField(functions, nestedContext, log);
   });
 }
 
@@ -136,7 +136,7 @@ function compactArrayResult(result) {
   }
 }
 
-async function generateObjectField(functions, unifiedContext) {
+async function generateObjectField(functions, unifiedContext, log) {
   const objSpec = unifiedContext.modelSchema;
   for (const [fieldName, fieldSpec] of Object.entries(objSpec.fields)) {
     const nestedPath = unifiedContext.path.concat(fieldName);
@@ -148,15 +148,15 @@ async function generateObjectField(functions, unifiedContext) {
     };
 
     try {
-      const fieldData = await generateDataByField(functions, nestedContext);
+      const fieldData = await generateDataByField(functions, nestedContext, log);
       if (fieldData !== undefined) {
         _.set(unifiedContext.row, nestedPath, fieldData);
       }
     } catch (e) {
       if (e instanceof ScgError) {
-        console.error(e.message);
+        log.error(e.message);
       } else {
-        console.error(e.stack);
+        log.error(e.stack);
       }
     }
   }
@@ -164,6 +164,37 @@ async function generateObjectField(functions, unifiedContext) {
 
 function generateMixedField() {}
 
+async function generateDocs({ appLib, env, functions, collectionName, count, log, onDocInsert = _.noop() }) {
+  const { models } = appLib.appModel;
+  const {
+    transformers,
+    errors: { ValidationError },
+    butil: { stringifyObj },
+  } = appLib;
+  const model = models[collectionName];
+
+  for (let i = 0; i < count; i++) {
+    const record = await generateDataByModel({ functions, model, env, log });
+
+    try {
+      await transformers.preSaveTransformData(collectionName, {}, record, []);
+    } catch (e) {
+      const msg = `Generated '${collectionName}' record failed validation. It will be skipped.`;
+      if (e instanceof ValidationError) {
+        log.error(`${msg}\n${e.message}`);
+      } else {
+        log.error(`${msg}\n${e.stack}\nRecord:${stringifyObj(record)}`);
+      }
+      continue;
+    }
+
+    const response = await appLib.db.model(collectionName).collection.insertOne(record);
+    const insertedDoc = response.ops[0];
+    onDocInsert({ collectionName, insertedDoc });
+  }
+}
+
 module.exports = {
   generateDataByModel,
+  generateDocs,
 };

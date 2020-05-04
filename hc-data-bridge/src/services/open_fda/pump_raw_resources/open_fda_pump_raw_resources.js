@@ -4,16 +4,18 @@ const path = require('path');
 const unzip = require('unzip');
 const JSONStream = require('JSONStream');
 const Promise = require('bluebird');
-const fetch = require('node-fetch');
 const sh = require('shelljs');
 const objectHash = require('object-hash');
-const es = require('event-stream')
+const es = require('event-stream');
 const { mongoConnect, insertOrReplaceDocByCondition } = require('../../util/mongo');
 const readline = require('readline');
 
 const transformers = require('./transformers');
 const transformersContexts = require('./transformer_contexts');
 const { isValidMongoDbUrl } = require('../../../lib/helper');
+const { getAxiosProxySettings } = require('../../util/proxy');
+// eslint-disable-next-line import/order
+const axios = require('axios').create(getAxiosProxySettings());
 
 // wget settings
 const CONNECT_TIMEOUT = 5; // sometimes one of many IPs cannot respond, reduce default 60sec to 5 sec
@@ -101,14 +103,14 @@ class PumpRawResourceOpenFda {
         obj.fileFilter = () => true;
       }
       if (!_.isFunction(obj.getDocId)) {
-        obj.getDocId = doc => objectHash.sha1(doc);
+        obj.getDocId = (doc) => objectHash.sha1(doc);
       }
     });
     return res;
   }
 
   _downloadUsingWget(fileInfos) {
-    return Promise.mapSeries(fileInfos, fileInfo => {
+    return Promise.mapSeries(fileInfos, (fileInfo) => {
       const { url, destDir } = fileInfo;
       const command = `wget -N '${url}' -P '${destDir}' --connect-timeout ${CONNECT_TIMEOUT} --tries ${TRIES} --progress=dot:mega`;
       return new Promise((resolve, reject) => {
@@ -131,7 +133,7 @@ class PumpRawResourceOpenFda {
     console.log(`Start downloading files`);
     console.log(this.SPLITTER);
 
-    const downloadedResMetas = await Promise.map(this.settings.pumpParams, async paramsObj => {
+    const downloadedResMetas = await Promise.map(this.settings.pumpParams, async (paramsObj) => {
       const resourceMeta = _.get(this.downloadFilesInfo, paramsObj.resourcePath, {});
       if (!resourceMeta.partitions) {
         console.log(`There is no resource for path ${paramsObj.resourcePath}`);
@@ -151,8 +153,8 @@ class PumpRawResourceOpenFda {
         zipPaths,
       };
     });
-    const resMetas = downloadedResMetas.filter(resMeta => resMeta.zipPaths);
-    return Promise.mapSeries(resMetas, resMeta => {
+    const resMetas = downloadedResMetas.filter((resMeta) => resMeta.zipPaths);
+    return Promise.mapSeries(resMetas, (resMeta) => {
       console.log(this.SPLITTER);
       console.log(`Start processing for resource '${resMeta.resourcePath}'`);
       return this._saveArchivesToMongo(resMeta).then(() => {
@@ -168,8 +170,8 @@ class PumpRawResourceOpenFda {
    */
   _getFileInfos(partitions, fileFilter, zipDestinationDir) {
     const fileInfos = partitions
-      .filter(p => fileFilter(p.file, _))
-      .map(p => {
+      .filter((p) => fileFilter(p.file, _))
+      .map((p) => {
         const domainRegExp = /(?:https?:\/\/)?.+?\//;
         const match = domainRegExp.exec(p.file);
         const indexAfterFirstSlash = match.index + match[0].length;
@@ -182,14 +184,12 @@ class PumpRawResourceOpenFda {
   }
 
   _getDownloadFilesInfo() {
-    return fetch(this.settings.downloadJsonUrl)
-      .then(res => {
-        if (res.status === 200) {
-          return res.json();
-        }
-        throw new Error(`Cannot download 'download.json' by url ${this.settings.downloadJsonUrl}`);
-      })
-      .then(json => json.results);
+    return axios.get(this.settings.downloadJsonUrl).then((res) => {
+      if (res.status === 200) {
+        return res.data.results;
+      }
+      throw new Error(`Cannot download 'download.json' by url ${this.settings.downloadJsonUrl}`);
+    });
   }
 
   _saveArchivesToMongo(resMeta) {
@@ -210,11 +210,11 @@ class PumpRawResourceOpenFda {
       }
 
       mongoConnect(mongoUrl)
-        .then(dbConnection => {
+        .then((dbConnection) => {
           this.connections[mongoUrl] = dbConnection;
           resolve();
         })
-        .catch(err => {
+        .catch((err) => {
           reject(`Cannot get connection to ${mongoUrl}. ${err.message}`);
         });
     })
@@ -222,10 +222,10 @@ class PumpRawResourceOpenFda {
       .then(() => {
         const dbCon = this.connections[mongoUrl];
 
-        return Promise.mapSeries(zipPaths, zipPath => {
+        return Promise.mapSeries(zipPaths, (zipPath) => {
           console.log(`Unzipping file ${zipPath}`);
-          return this._extractJsonFilesFromZip(zipPath, zipDestinationDir, jsonDestinationDir).then(unzippedFiles =>
-            Promise.mapSeries(unzippedFiles, unzippedFile => {
+          return this._extractJsonFilesFromZip(zipPath, zipDestinationDir, jsonDestinationDir).then((unzippedFiles) =>
+            Promise.mapSeries(unzippedFiles, (unzippedFile) => {
               console.log(`Saving to mongo file ${unzippedFile}`);
               return this._parseJsonAndWriteToMongo({
                 jsonPath: unzippedFile,
@@ -245,7 +245,7 @@ class PumpRawResourceOpenFda {
   }
 
   _extractJsonFilesFromZip(zipPath, zipDestinationDir, jsonDestinationDir) {
-    return new Promise(resolve => {
+    return new Promise((resolve) => {
       // find nestedPath like 'device/enforcement'
       const nestedZipPath = zipPath.substring(zipDestinationDir.length + 1, zipPath.lastIndexOf('/'));
       const jsonNestedDir = path.resolve(jsonDestinationDir, nestedZipPath);
@@ -254,7 +254,7 @@ class PumpRawResourceOpenFda {
       const unzippedFiles = [];
       fs.createReadStream(zipPath)
         .pipe(unzip.Parse())
-        .on('entry', entry => {
+        .on('entry', (entry) => {
           const fileName = entry.path;
           const unzippedFile = path.resolve(__dirname, jsonNestedDir, fileName);
           unzippedFiles.push(unzippedFile);
@@ -263,7 +263,7 @@ class PumpRawResourceOpenFda {
         .on('close', () => {
           resolve(unzippedFiles);
         })
-        .on('error', e => console.log(`Error while extracting json files from zip ${zipPath}. ${e.stack}`));
+        .on('error', (e) => console.log(`Error while extracting json files from zip ${zipPath}. ${e.stack}`));
     });
   }
 
@@ -273,10 +273,12 @@ class PumpRawResourceOpenFda {
     const batchSize = 50;
     const concurrency = 10;
 
-    return new Promise(resolve => {
-      const stream = fs.createReadStream(jsonPath)
+    return new Promise((resolve) => {
+      const stream = fs
+        .createReadStream(jsonPath)
         .pipe(JSONStream.parse('results.*'))
-        .pipe(es.mapSync(async result => {
+        .pipe(
+          es.mapSync(async (result) => {
             try {
               const docId = getDocId(result, _);
               if (!docId) {
@@ -292,7 +294,7 @@ class PumpRawResourceOpenFda {
                 stream.pause();
                 await Promise.map(
                   docs,
-                  d => {
+                  (d) => {
                     try {
                       return insertOrReplaceDocByCondition(d, dbCon.collection(collection), { id: d.id });
                     } catch (e) {
@@ -316,10 +318,11 @@ class PumpRawResourceOpenFda {
               console.log(`Resuming stream`);
               stream.resume();
             }
-      }))
+          })
+        )
         .on('end', () => {
           resolve(
-            Promise.map(docs, d => insertOrReplaceDocByCondition(d, dbCon.collection(collection), { id: d.id }), {
+            Promise.map(docs, (d) => insertOrReplaceDocByCondition(d, dbCon.collection(collection), { id: d.id }), {
               concurrency,
             })
           );

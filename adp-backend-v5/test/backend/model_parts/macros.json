@@ -7,7 +7,7 @@
           "type": "String",
           "list": {
             "name": "f1",
-            "scopes": <%-this.M('macro1', 'somescope')%>, // somescope works here as a positional parameter #1 since it was defined first in the "parameters" attribute
+            "scopes": <@-this.M('macro1', 'somescope')@>, // somescope works here as a positional parameter #1 since it was defined first in the "parameters" attribute
             "values": {
               'a': 'a'
             }
@@ -17,13 +17,13 @@
           "type": "String",
           "list": {
             "name": "f2",
-            "scopes": <%-this.M('macro1', {permission: 'accessAsGuest'})%>, // passing parameters as an object
+            "scopes": <@-this.M('macro1', {permission: 'accessAsGuest'})@>, // passing parameters as an object
             "values": {
               'a': 'a'
             }
           }
         },
-        <%-this.M('insertFieldMacro')%>
+        <@-this.M('insertFieldMacro')@>
       }
     }
   }

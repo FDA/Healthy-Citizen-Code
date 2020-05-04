@@ -7,6 +7,7 @@
       templateUrl: 'app/adp-data-grid/components/adp-data-grid/adp-data-grid.template.html',
       bindings: {
         schema: '<',
+        options: '<',
       },
       controller: 'adpDataGridController',
       controllerAs: 'vm'

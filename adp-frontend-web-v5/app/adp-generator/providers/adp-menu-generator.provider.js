@@ -69,6 +69,10 @@
       }
 
       var items = _.map(menuInterface.fields, function (item, fieldName) {
+        if (!item) {
+          return;
+        }
+
         try {
           var stateName;
           var menuItem = {
@@ -125,7 +129,7 @@
         }
       });
 
-      return items.sort( menuItemsSorter );
+      return _.compact(items);
     }
 
     /**
@@ -225,13 +229,6 @@
       if (APP_CONFIG.debug) {
         console.log.apply(console, arguments);
       }
-    }
-
-    function menuItemsSorter(itemA, itemB) {
-      var a = itemA.order || 1000000;
-      var b = itemB.order || 1000000;
-
-      return a === b ? 0 : a > b ? 1 : -1;
     }
   }
 })();

@@ -55,19 +55,17 @@
         // temp workaround, when switching from any operation with filterValue
         // dx triggers change with wrong value
         // just skip and proceed with correct value
-        if (!_.isArray(filter.value[0])) {
+        if (_.isString(filter.value)) {
           return '';
         }
+
         var val = filter.value.map(function (v) {
-          if (_.isArray(v)) {
-            return v.join('.');
-          } else {
-            return null;
-          }
+          return _.isString(v) ? v : null;
         });
+
         return getRangeValue(val, filter.fieldName);
       } else {
-        return [filter.fieldName, filter.value.join('.')].join('=');
+        return [filter.fieldName, filter.value].join('=');
       }
     }
 

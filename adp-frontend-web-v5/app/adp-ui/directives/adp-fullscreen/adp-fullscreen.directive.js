@@ -4,19 +4,15 @@
   angular.module('app')
     .directive('adpFullscreen', adpFullscreen);
 
-  function adpFullscreen(AdpFullscreenService, $rootScope) {
+  function adpFullscreen(AdpFullscreenService) {
     return {
       restrict: 'EA',
       link: function (scope, element) {
-        scope.$watch(function () {
-          return $rootScope.isFullscreen;
-        }, onChange);
+        AdpFullscreenService.registerFullScreenElement(element[0]);
 
-        function onChange(fullscreenEnabled) {
-          fullscreenEnabled ?
-            AdpFullscreenService.requestFullscreen(element[0]) :
-            AdpFullscreenService.exitFullscreen();
-        }
+        scope.$on('$destroy', function () {
+          AdpFullscreenService.unregisterFullScreenElement(element[0]);
+        });
       }
     }
   }

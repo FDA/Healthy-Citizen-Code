@@ -11,25 +11,38 @@
     GRID_FORMAT
   ) {
     return {
-      render: render,
+      single: single,
+      multiple: multiple,
     };
 
-    function render(args) {
+    function single(args) {
       var value = args.data;
-      var schema = args.modelSchema;
-
       if (_.isNil(value) || value === 0) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
-      var units = AdpFieldsService.getUnits(schema);
-      var valueArray = _.isArray(value) ? value : [value];
+      var unit = AdpFieldsService.getUnits(args.modelSchema)[0];
+      return value + unit.label
+    }
+
+    function multiple(args) {
+      var value = unwrapValue(args.data);
+
+      if (_.isNil(value)) {
+        return GRID_FORMAT.EMPTY_VALUE;
+      }
+
+      var units = AdpFieldsService.getUnits(args.modelSchema);
 
       var valueWithUnits = _.map(units, function(unit, index) {
-        return valueArray[index] + unit.label
+        return value[index] + unit.label
       });
 
       return valueWithUnits.join(' ');
+    }
+
+    function unwrapValue(value) {
+      return _.isString(value) ? value.split('.').map(Number) : value;
     }
   }
 })();

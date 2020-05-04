@@ -1,8 +1,8 @@
 {
   "models": {
-    "userPreferences": {
+    "userSettings": {
       "type": "Schema",
-      "fullName": "User preferences",
+      "fullName": "User Settings",
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",
@@ -48,12 +48,12 @@
       "fields": {
         "type": {
           "type": "String",
-          "fullName": "Preferences type",
+          "fullName": "Setting type",
           "required": "1"
         },
-        "preferences": {
+        "settings": {
           "type": "Mixed",
-          "fullName": "Preferences of the given type",
+          "fullName": "Setting Value",
           "required": "0"
         }
       }

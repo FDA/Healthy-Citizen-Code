@@ -27,7 +27,7 @@ async function presetDataAndWaitForSelector(data, waitForSelector, page) {
 async function assertFormForActionIsVisible(action, expectedStringFieldValue, page) {
   const [form, actualStringFieldValue] = await Promise.all([
     page.$(`.form-action-${action}`),
-    page.$eval('[name="string"]', el => el.value),
+    page.$eval('[name="string"] input', el => el.value),
   ]);
 
   expect(form).toBeTruthy();

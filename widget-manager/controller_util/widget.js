@@ -1,5 +1,13 @@
 const _ = require('lodash');
-const axios = require('axios');
+const https = require('https');
+
+// At instance level
+const axios = require('axios').create({
+  httpsAgent: new https.Agent({
+    rejectUnauthorized: false,
+  }),
+});
+
 const urlParse = require('url-parse');
 const querystring = require('querystring');
 const { Base64 } = require('js-base64');
@@ -40,7 +48,7 @@ function getPreparedWidgetHtml({ iss, fhir_access_token, patient, widgetType }) 
 function extractCodingsForEpicStu3(res) {
   const result = [];
 
-  res.entry.forEach(entry => {
+  res.entry.forEach((entry) => {
     const codings = _.get(entry, 'resource.code.coding', null);
     if (codings === null) {
       return;
@@ -51,7 +59,7 @@ function extractCodingsForEpicStu3(res) {
           return code;
         }
       })
-      .filter(item => item);
+      .filter((item) => item);
     result.push(rxcuis);
   });
 
@@ -94,18 +102,18 @@ function getFhirData(iss, patientStu3, accessToken) {
         Authorization: `Bearer ${accessToken}`,
       },
     })
-    .then(res => res.data);
+    .then((res) => res.data);
 }
 
 function getFhirAuthParamsWithLaunchCode(authorizeUrl, tokenUrl, epicClientId, launchCode) {
-  return step2ObtainAuthorizationCode(authorizeUrl, epicClientId, launchCode).then(authorizationCode =>
+  return step2ObtainAuthorizationCode(authorizeUrl, epicClientId, launchCode).then((authorizationCode) =>
     step3ObtainAuthorizationParams(tokenUrl, epicClientId, authorizationCode)
   );
 }
 
 function getFhirAuthParamsWithBasicAuth(authorizeUrl, tokenUrl, epicClientId, basicAuthLogin, basicAuthPassword) {
   const basicAuth = Base64.encode(`${basicAuthLogin}:${basicAuthPassword}`);
-  return step1ObtainLaunchCode(epicClientId, basicAuth).then(launchCode =>
+  return step1ObtainLaunchCode(epicClientId, basicAuth).then((launchCode) =>
     getFhirAuthParamsWithLaunchCode(authorizeUrl, tokenUrl, epicClientId, launchCode)
   );
 }
@@ -198,7 +206,7 @@ function step1ObtainLaunchCode(clientId, basicAuth) {
       'Content-Type': 'application/json',
     },
     data: {},
-  }).then(res => res.data.token);
+  }).then((res) => res.data.token);
 }
 
 function step2ObtainAuthorizationCode(authorizeUrl, clientId, launchCode, redirectUrl1 = 'https://localhost') {
@@ -214,10 +222,10 @@ function step2ObtainAuthorizationCode(authorizeUrl, clientId, launchCode, redire
       },
       maxRedirects: 1,
     })
-    .then(res => {
+    .then((res) => {
       throw new Error(`Should fail on redirect with 'code' param in redirect url but succeed.`);
     })
-    .catch(error => {
+    .catch((error) => {
       if (!error.request) {
         throw new Error(error);
       }
@@ -225,9 +233,7 @@ function step2ObtainAuthorizationCode(authorizeUrl, clientId, launchCode, redire
 
       if (query.error) {
         throw new Error(
-          `Error while obtaining auth code by cliendId='${clientId}', launchCode='${launchCode}'. From response: error='${
-            query.error
-          }', description='${query.error_description}'`
+          `Error while obtaining auth code by cliendId='${clientId}', launchCode='${launchCode}'. From response: error='${query.error}', description='${query.error_description}'`
         );
       }
 
@@ -243,7 +249,7 @@ function step3ObtainAuthorizationParams(tokenUrl, clientId, authorizationCode, r
     redirect_uri: redirectUrl,
   });
   console.log(`Request POST for ${tokenUrl} with params ${params}`);
-  return axios.post(tokenUrl, params).then(res => ({
+  return axios.post(tokenUrl, params).then((res) => ({
     fhir_access_token: res.data.access_token,
     patient: res.data.patient,
   }));
@@ -257,7 +263,7 @@ function step1aObtainAuthAndTokenUrls(iss) {
         Accept: 'application/json',
       },
     })
-    .then(res => {
+    .then((res) => {
       const { data } = res;
       if (data.resourceType !== 'CapabilityStatement') {
         throw new Error(
@@ -270,7 +276,7 @@ function step1aObtainAuthAndTokenUrls(iss) {
       const extensions = _.get(data, 'rest.0.security.extension', []);
       // more: http://www.hl7.org/fhir/smart-app-launch/StructureDefinition-oauth-uris.html
       const oauthUrisExtensionUrl = 'http://fhir-registry.smarthealthit.org/StructureDefinition/oauth-uris';
-      const oauthUrisExtension = extensions.find(e => e.url === oauthUrisExtensionUrl);
+      const oauthUrisExtension = extensions.find((e) => e.url === oauthUrisExtensionUrl);
       if (!oauthUrisExtension) {
         throw new Error(`Unable to find extension with url '${oauthUrisExtensionUrl}'`);
       }
@@ -291,6 +297,22 @@ function step1aObtainAuthAndTokenUrls(iss) {
     });
 }
 
+function handleAxiosError(error, log) {
+  if (error.response) {
+    // The request was made and the server responded with a status code
+    // that falls out of the range of 2xx
+    log.error(error.response);
+  } else if (error.request) {
+    // The request was made but no response was received
+    // `error.request` is an instance of XMLHttpRequest in the browser and an instance of
+    // http.ClientRequest in node.js
+    log.error(error.request);
+  } else {
+    // Something happened in setting up the request that triggered an Error
+    log.error(error.stack);
+  }
+}
+
 module.exports = {
   getPreparedWidgetHtml,
   extractCodingsForEpicStu3,
@@ -302,4 +324,5 @@ module.exports = {
   step3ObtainAuthorizationParams,
   kebabCase,
   step1aObtainAuthAndTokenUrls,
+  handleAxiosError
 };

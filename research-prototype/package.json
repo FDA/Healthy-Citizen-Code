@@ -18,7 +18,9 @@
     "bluebird": "^3.5.1",
     "fs": "0.0.1-security",
     "log4js": "^6.1.0",
-    "mongodb": "^3.4.1"
+    "mongodb": "^3.4.1",
+    "relaxed-json": "^1.0.3",
+    "lodash": "^4.17.15"
   },
   "prettier": {
     "bracketSpacing": true,

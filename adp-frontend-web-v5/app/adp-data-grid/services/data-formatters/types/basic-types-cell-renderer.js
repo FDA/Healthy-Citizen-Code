@@ -37,7 +37,7 @@
     }
 
     function booleanText(value) {
-      if (value === true) {
+      if (value === true || value === 'TRUE_VALUE') {
         return 'true';
       } else {
         return 'false';
@@ -61,12 +61,26 @@
     }
 
     function htmlType(args) {
-      var value = string(args);
       if (FormattersHelper.asText(args)) {
-        return value;
+        return string(args);
       } else {
-        return value === GRID_FORMAT.EMPTY_VALUE ? value : string(args).substring(0, 100) + '...';
+        var value = stripHtml(args.data);
+        return value ?
+          getSubstr(value) :
+          GRID_FORMAT.EMPTY_VALUE;
       }
+    }
+
+    function stripHtml(html) {
+      var tmp = document.createElement("DIV");
+      tmp.innerHTML = html;
+      return (tmp.textContent || tmp.innerText).trim() || "";
+    }
+
+    function getSubstr(str) {
+      var maxStrLen = 100;
+      return str.length > maxStrLen ? str.substring(0, maxStrLen) + '...' : str;
+
     }
 
     return {

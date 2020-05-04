@@ -75,8 +75,8 @@
           return;
         }
 
-        if (isFieldEditable(field)) {
-          column.allowEditing = true;
+        column.allowEditing = isFieldEditable(field);
+        if (column.allowEditing) {
           column.validationRules = CellEditorsValidationService.getValidators(field);
         }
       });

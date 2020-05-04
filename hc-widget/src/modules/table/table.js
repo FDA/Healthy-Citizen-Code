@@ -12,16 +12,19 @@ const SORT = {
   DESC: 'desc'
 };
 
-function convertType(v, type) {
-  if (type === 'Number') {
-    return v ? parseInt(v.value) : -Infinity;
-  } else if (type === 'Date') {
-    // m/d/y
-    let dateParts = v.view.split('/').map(Number);
-    // month index in js starts with zero
-    return new Date(dateParts[2], dateParts[0] - 1, dateParts[1]);
+function convertType(cell) {
+  if (cell.type === 'Number') {
+    return cell ? parseInt(cell.value) : -Infinity;
+  } else if (cell.type === 'Date') {
+    let dateParts = cell.view.split('/').map(Number);
+    // m/d/y format string
+    let year = dateParts[2];
+    let month = dateParts[0] - 1;
+    let day = dateParts[1];
+
+    return new Date(year, month, day);
   } else {
-    return v.view;
+    return cell.view;
   }
 }
 
@@ -134,11 +137,10 @@ export default class Table {
   sortList(data) {
     let sortKey = this.heads[this.sorted];
     let list = data || this.data;
-    let type = list[0][sortKey].data;
 
     list.sort((a, b) => {
-      let aValue = convertType(a[sortKey], type),
-        bValue = convertType(b[sortKey], type);
+      let aValue = convertType(a[sortKey]),
+        bValue = convertType(b[sortKey]);
 
       if (aValue === bValue) {
         return 0;

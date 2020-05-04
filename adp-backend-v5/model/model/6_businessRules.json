@@ -68,7 +68,8 @@
         "name": {
           "type": "String",
           "fullName": "Name",
-          "required": true
+          "required": true,
+          "unique": true
         },
         "description": {
           "type": "Text",
@@ -79,27 +80,6 @@
           "fullName": "Definition",
           "showInDatatable": false,
           "showInForm": false
-        },
-        "target": {
-          "type": "LookupObjectID",
-          "fullName": "Target",
-          "required": true,
-          "lookup": {
-            "table": {
-              "datasets": {
-                "foreignKey": "_id",
-                "label": "name",
-                "scopes": {
-                  "specialScope": {
-                    "permissions": {
-                      "view": "accessAsUser"
-                    },
-                    "where": true
-                  }
-                }
-              }
-            }
-          }
         }
       }
     }

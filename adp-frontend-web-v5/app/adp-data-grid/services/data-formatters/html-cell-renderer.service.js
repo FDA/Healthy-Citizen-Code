@@ -45,9 +45,9 @@
       'Location' : LocationCellRenderer.render,
 
       // imperial units
-      'ImperialHeight': ImperialTypesCellRenderer.render,
-      'ImperialWeightWithOz': ImperialTypesCellRenderer.render,
-      'ImperialWeight': ImperialTypesCellRenderer.render,
+      'ImperialHeight': ImperialTypesCellRenderer.multiple,
+      'ImperialWeightWithOz': ImperialTypesCellRenderer.multiple,
+      'ImperialWeight': ImperialTypesCellRenderer.single,
 
       // lists
       'List': ListTypesCellRenderer.single,

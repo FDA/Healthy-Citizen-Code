@@ -55,8 +55,7 @@
 
       return parentPath.join('.');
     }
-
-
+    
     return {
       next: next,
       parent: parent,

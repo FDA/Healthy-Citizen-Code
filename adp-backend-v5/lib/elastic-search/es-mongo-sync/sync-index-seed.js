@@ -20,7 +20,7 @@ function generateTomlForOneTimeIndexSeed(mongoUrlWithoutDbName, dbName, esUrls, 
     {
       'elasticsearch-urls': _.castArray(esUrls),
       'mongo-url': mongoUrlWithoutDbName,
-      'direct-read-namespaces': collectionNames.map(c => `${dbName}.${c}`),
+      'direct-read-namespaces': collectionNames.map((c) => `${dbName}.${c}`),
       gzip: true,
       stats: true,
       'index-stats': true,
@@ -42,14 +42,14 @@ function runSeedIndexConfig(configPath, enableLog) {
   const proc = spawn('monstache', ['-f', configPath]);
   console.info(`Started syncing Mongo with ES with Monctache config '${configPath}'.`);
   if (enableLog) {
-    proc.stdout.on('data', data => {
+    proc.stdout.on('data', (data) => {
       console.info(data.toString());
     });
-    proc.stderr.on('data', data => {
+    proc.stderr.on('data', (data) => {
       console.error(data.toString());
     });
   }
-  proc.on('close', code => {
+  proc.on('close', (code) => {
     console.info(`Finished syncing with code ${code}.`);
   });
 }
@@ -73,7 +73,7 @@ async function getAllCollecitonNames(appRoot) {
     modelSources: [`${appRoot}/model/model`, ...getSchemaNestedPaths('model')],
     log: console.log.bind(console),
     appModelProcessors: appLib.appModelHelpers.appModelProcessors,
-    macrosDirPaths: [...getSchemaNestedPaths('macroses'), `${appRoot}/model/macroses`],
+    macrosDirPaths: [...getSchemaNestedPaths('macros'), `${appRoot}/model/macros`],
   });
 
   return _.keys(appLib.appModel.models);
@@ -105,7 +105,7 @@ async function startIndexSeedSync(appRoot) {
     collections = allCollections;
   } else {
     const allCollectionsSet = new Set(allCollections);
-    const notExistingCollections = collections.filter(c => !allCollectionsSet.has(c));
+    const notExistingCollections = collections.filter((c) => !allCollectionsSet.has(c));
     if (!_.isEmpty(notExistingCollections)) {
       return console.error(
         `Found not existing collections: ${notExistingCollections.join(', ')}. Please adjust 'collections' option.`

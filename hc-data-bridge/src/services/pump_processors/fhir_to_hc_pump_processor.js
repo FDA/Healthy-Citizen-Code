@@ -4,7 +4,9 @@ const helper = require('./../../lib/helper');
 const SettingsProvider = require('./../settings_provider');
 
 const settingsProvider = new SettingsProvider();
-const fetch = require('node-fetch');
+const { getAxiosProxySettings } = require('../util/proxy');
+// eslint-disable-next-line import/order
+const axios = require('axios').create(getAxiosProxySettings());
 
 // TODO: distinguish and beautify logs
 class FhirToHcPumpProcessor {
@@ -333,16 +335,13 @@ class FhirToHcPumpProcessor {
    * 2) PUT method for updating existing object, do nothing with url
    */
   getUrlAndMethod (url, headers) {
-    return fetch(url, { headers })
+    return axios.get(url, { headers })
       .then((res) => {
         if (res.status !== 200) {
           throw Error(`Invalid status code ${res.status} during requesting ${res.url}. ` +
             `Headers: ${JSON.stringify(headers)}`);
         }
-        return res.json();
-      })
-      .then((json) => {
-        if (json.success) { // object existing
+        if (res.data.success) { // object existing
           return {
             url,
             method: 'PUT',
