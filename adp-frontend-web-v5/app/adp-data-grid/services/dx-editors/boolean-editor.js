@@ -7,13 +7,14 @@
 
   /** @ngInject */
   function BooleanEditor(
+    AdpFieldsService,
     DxEditorMixin
   ) {
     function getOptions(init) {
-      return {
+      var defaults = {
         elementAttr: {
           class: 'adp-select-box',
-          id: 'list_id_' + init.args.modelSchema.fieldName,
+          id: 'cell_list_id_' + init.args.modelSchema.fieldName,
         },
         value: init.args.data,
         displayExpr: 'label',
@@ -23,6 +24,8 @@
         onValueChanged: init.onValueChanged,
         valueChangeEvent: 'change',
       };
+
+      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
     }
 
     function getDataSource() {

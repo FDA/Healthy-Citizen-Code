@@ -1,9 +1,8 @@
 const RandExp = require('randexp');
 
-const usPhoneNumberRegex = new RegExp(
-  '^(\\+1\\s?)?((\\([2-9][0-9]{2}\\))|[2-9][0-9]{2})[\\s\\-]?[2-9][0-9]{2}[\\s\\-]?[0-9]{4}$'
-);
-const randExp = new RandExp(usPhoneNumberRegex);
+// eslint-disable-next-line security/detect-unsafe-regex
+const phoneNumberRegex = /^[2-9][0-9]{2}[2-9][0-9]{6}$/;
+const randExp = new RandExp(phoneNumberRegex);
 
 module.exports = () => {
   return {

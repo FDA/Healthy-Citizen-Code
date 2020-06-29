@@ -20,9 +20,9 @@ function isInputType(composerType) {
 const MongoIdScalarTC = schemaComposer.createScalarTC({
   name: 'MongoId',
   description: 'Mongo document "_id" represented as string',
-  serialize: value => value,
-  parseValue: value => ObjectID(value),
-  parseLiteral: ast => ObjectID(ast.value),
+  serialize: (value) => value,
+  parseValue: (value) => ObjectID(value),
+  parseLiteral: (ast) => ObjectID(ast.value),
 });
 
 const MongoIdITC = schemaComposer.createInputTC({
@@ -35,9 +35,9 @@ const MongoIdITC = schemaComposer.createInputTC({
 const AnythingType = new GraphQLScalarType({
   name: 'Anything',
   description: 'Any value.',
-  parseValue: value => value,
+  parseValue: (value) => value,
   parseLiteral: anythingParseLiteral,
-  serialize: value => value,
+  serialize: (value) => value,
 });
 
 function anythingParseLiteral(ast) {
@@ -115,6 +115,13 @@ const dxQueryInput = schemaComposer.createInputTC({
 
 const dxQueryInputRequired = dxQueryInput.getTypeNonNull();
 
+const mongoQueryInput = schemaComposer.createInputTC({
+  name: 'mongoQueryInput',
+  fields: {
+    mongoQuery: { type: 'String' },
+  },
+});
+
 module.exports = {
   COMPOSER_TYPES,
   isInputType,
@@ -126,4 +133,5 @@ module.exports = {
   dxQueryInput,
   dxQueryInputRequired,
   dxQueryWithQuickFilterInput,
+  mongoQueryInput,
 };

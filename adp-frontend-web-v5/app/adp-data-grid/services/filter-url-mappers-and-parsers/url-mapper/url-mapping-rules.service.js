@@ -83,6 +83,7 @@
         var filterValueToSet = valueMap[filter.value];
         return [filter.fieldName, filterValueToSet].join('=');
       },
+      currency: numberMapper,
       number: numberMapper,
       date: datetimeMapper,
       time: datetimeMapper,

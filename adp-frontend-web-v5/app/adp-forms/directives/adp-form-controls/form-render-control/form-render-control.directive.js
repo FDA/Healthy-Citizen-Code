@@ -12,10 +12,10 @@
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/form-render-control/form-render-control.html',
       require: '^^form',

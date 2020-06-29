@@ -2,12 +2,10 @@ const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
-const reqlib = require('app-root-path').require;
+const { getMongoConnection, setAppAuthOptions, prepareEnv, conditionForActualRecord } = require('../test-util');
+const { buildGraphQlDxQuery } = require('../graphql-util.js');
 
-const { getMongoConnection, setAppAuthOptions, prepareEnv, conditionForActualRecord } = reqlib('test/test-util');
-const { buildGraphQlDxQuery } = reqlib('test/graphql-util.js');
-
-describe('V5 Backend DevExtreme and Quick Filter Support', () => {
+describe('V5 Backend DevExtreme and Quick Filter Support', function () {
   const modelName = 'model5s';
   // const quickFiltersModelName = 'quickFilters';
 
@@ -42,7 +40,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', () => {
 
   before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     setAppAuthOptions(this.appLib, {
       requireAuthentication: false,
       enablePermissions: false,
@@ -64,7 +62,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', () => {
     await Promise.all([this.db.close(), this.appLib.shutdown()]);
   });
 
-  describe('Filtering', () => {
+  describe('Filtering', function () {
     it('should filter with Quick Filter', async function () {
       const res = await request(this.appLib.app)
         .post('/graphql')
@@ -149,7 +147,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', () => {
   });
 
   // TODO: Resolve how to validate quick filters with multiple and regex model values. For example only validate filter object using sift.
-  // describe('Quick Filter record saving', () => {
+  // describe('Quick Filter record saving', function () {
   //   it('should not create a quick filter record on invalid filter field', async function() {
   //     const newQuickFilter = { name: '1', model: modelName, filter: '{ "n": { "$ft": 1 }}' };
   //     const res = await request(this.appLib.app)
@@ -204,7 +202,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', () => {
   //   });
   // });
 
-  describe(`GraphQL 'testQuickFilter' query`, () => {
+  describe(`GraphQL 'testQuickFilter' query`, function () {
     const query = (projections) => ({
       query: `query { testQuickFilter (model: "${modelName}", filter: "${quickFilterRecord.filter}") { ${projections} } }`,
     });

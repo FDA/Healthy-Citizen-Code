@@ -1,4 +1,4 @@
-const { createFilter, stringOperations } = require('./util');
+const { createFilter, stringOperations } = require('../../../lib/filter/util');
 
 function string() {
   return createFilter(this, stringOperations);

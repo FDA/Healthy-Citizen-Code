@@ -223,7 +223,7 @@ module.exports = () => {
   m.updateCrop = async (cropParams) => {
     const File = mongoose.model('files');
 
-    const fileRecord = File.findById(cropParams.id);
+    const fileRecord = await File.findById(cropParams.id);
     if (!fileRecord) {
       throw new Error(`Unable to find file with id: ${cropParams.id}`);
     }

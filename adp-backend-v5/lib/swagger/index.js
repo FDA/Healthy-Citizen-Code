@@ -1,8 +1,7 @@
 const _ = require('lodash');
-const appRoot = require('app-root-path').path;
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-const { getSchemaNestedPaths } = require('../util/env');
+const { getSchemaNestedPaths, appRoot } = require('../util/env');
 
 const MOUNT_POINT = 'api-docs';
 
@@ -10,7 +9,7 @@ const { getGraphqlConfig } = require('./configs/graphql-config');
 const { getCrudRoutesConfig } = require('./configs/crud-config');
 const { getLookupConfig } = require('./configs/lookup-config');
 
-const connectSwagger = appLib => {
+const connectSwagger = (appLib) => {
   const swaggerDefinition = getSwaggerConfig(appLib);
   const swaggerSpec = swaggerJSDoc({
     swaggerDefinition,
@@ -41,7 +40,7 @@ function getSwaggerConfig(appLib) {
       description:
         'Endpoints of this section will be active only if user specifies the configuration. It must have at least one GraphQL Query.',
       externalDocs: {
-        url: '/graphiql',
+        url: '/graphql',
         description: 'Test interactive ui here',
       },
     };

@@ -8,8 +8,8 @@ const log = require('log4js').getLogger('lib/model');
 const mongoose = require('mongoose');
 const fs = require('fs-extra');
 const _ = require('lodash');
-const appRoot = require('app-root-path').path;
 const Promise = require('bluebird');
+const { appRoot } = require('./util/env');
 
 const { Schema } = mongoose;
 const {
@@ -37,9 +37,7 @@ module.exports = (appLib) => {
   function ObjectIdOrScalar(key, options) {
     mongoose.SchemaType.call(this, key, options, 'ObjectIdOrScalar');
   }
-
   ObjectIdOrScalar.prototype = Object.create(mongoose.SchemaType.prototype);
-
   ObjectIdOrScalar.prototype.cast = (val) => {
     if (!_.isNumber(val) && !_.isString(val) && !_.isBoolean(val) && !(_.get(val, 'constructor.name') === 'ObjectID')) {
       throw new Error(`${val} is not an objectId instance or scalar type`);
@@ -79,8 +77,8 @@ module.exports = (appLib) => {
     'Date[]': [Date],
     'Number[]': [Number],
     'Double[]': [Number],
-    'Int32[]': [mongooseTypes.Int32],
-    'Int64[]': [mongooseTypes.Long],
+    'Int32[]': [Number],
+    'Int64[]': [Number],
     'Decimal128[]': [mongooseTypes.Decimal128],
     'Boolean[]': [Boolean],
     'Mixed[]': [mongooseTypes.Mixed],
@@ -119,6 +117,10 @@ module.exports = (appLib) => {
     Time: Date,
     DateTime: Date,
     Barcode: String,
+    Blank: String,
+    Currency: Number,
+    List: String,
+    'List[]': [String],
   };
 
   /**
@@ -404,25 +406,28 @@ module.exports = (appLib) => {
         // _.merge(part, defaults);
       }
 
-      function doNotOverwrite(objValue, srcValue) {
-        // objValue is the target value, see https://lodash.com/docs/4.17.10#mergeWith
-        if (_.isArray(objValue) && _.isArray(srcValue)) {
-          return srcValue.concat(objValue);
+      function doNotOverwrite(destinationValue, sourceValue) {
+        // destinationValue is the target value, see https://lodash.com/docs/4.17.10#mergeWith
+        if (_.isBoolean(destinationValue)) {
+          return destinationValue;
         }
-        if (_.isString(objValue) && _.isArray(srcValue)) {
-          return srcValue.concat([objValue]);
+        if (_.isArray(destinationValue) && _.isArray(sourceValue)) {
+          return sourceValue.concat(destinationValue);
         }
-        if (typeof objValue === 'undefined') {
-          return _.cloneDeep(srcValue);
+        if (_.isString(destinationValue) && _.isArray(sourceValue)) {
+          return sourceValue.concat([destinationValue]);
         }
-        if (srcValue == null || objValue == null) {
+        if (typeof destinationValue === 'undefined') {
+          return _.cloneDeep(sourceValue);
+        }
+        if (sourceValue == null || destinationValue == null) {
           return null;
         }
-        if (_.isString(srcValue) && _.isString(objValue)) {
-          return objValue;
+        if (_.isString(sourceValue) && _.isString(destinationValue)) {
+          return destinationValue;
         }
-        return _.mergeWith(objValue, srcValue, doNotOverwrite);
-        // return objValue;
+        return _.mergeWith(destinationValue, sourceValue, doNotOverwrite);
+        // return destinationValue;
       }
     }
 
@@ -1066,10 +1071,12 @@ module.exports = (appLib) => {
     function transformActions(part) {
       if (part.type === 'Schema') {
         const actions = _.get(part, 'actions', { fields: {} });
-        _.each(actions.fields, (val, key) => {
+        const removedActions = [];
+        _.each(actions.fields, (val, actionName) => {
           if (val === false) {
             // delete old disabled actions
-            delete actions.fields[key];
+            removedActions.push(actionName);
+            delete actions.fields[actionName];
           }
           if (_.isPlainObject(val) && !val.permissions) {
             // set admin permissions for declared actions (including actions with frontend router)
@@ -1079,7 +1086,9 @@ module.exports = (appLib) => {
 
         // set admin permissions for default actions if not exists
         _.each(appLib.accessCfg.DEFAULT_ACTIONS, (action) => {
-          if (!actions.fields[action] || !actions.fields[action].permissions) {
+          const isRemovedAction = removedActions.includes(action);
+          const actionSpecHasPermissions = !!_.get(actions.fields, `${action}.permissions`);
+          if (!isRemovedAction && !actionSpecHasPermissions) {
             _.set(actions.fields, `${action}.permissions`, appLib.accessCfg.PERMISSIONS.accessAsSuperAdmin);
           }
         });
@@ -1110,7 +1119,8 @@ module.exports = (appLib) => {
 
           if (type !== 'module') {
             const isFrontendAction = link.startsWith('/');
-            if (!isFrontendAction && !appLib.allActionsNames.includes(link)) {
+            const isUrlAction = link.startsWith('http://') || link.startsWith('https://');
+            if (!isUrlAction && !isFrontendAction && !appLib.allActionsNames.includes(link)) {
               return errors.push(
                 `Action link '${link}' is not valid (must be one of default or custom actions if specified), found by path '${path}' for modelActionName '${modelActionName}'`
               );
@@ -1296,17 +1306,20 @@ module.exports = (appLib) => {
       }
 
       const listName = list.name;
-      const listVal = list.values;
-      const listValByName = _.get(appLib.appModelHelpers, ['Lists', listName]);
+      const listValues = list.values;
+      const listReferenceByName = _.get(appLib.appModelHelpers, ['Lists', listName]);
 
-      if (listValByName && listVal) {
+      if (listReferenceByName && listValues) {
         return errors.push(
           `Attribute ${listPath} must have only one source of values for list (either 'name' or 'values')`
         );
       }
 
-      if (!list.isDynamicList && !_.isPlainObject(listValByName || listVal)) {
-        errors.push(`Attribute ${listPath} must have list values(inlined or referenced) represented as object`);
+      const isValidListReference = _.isPlainObject(listReferenceByName) || _.isFunction(listReferenceByName);
+      if (!list.isDynamicList && !_.isPlainObject(listValues) && !isValidListReference) {
+        errors.push(
+          `Attribute ${listPath} must have list 'values' represented as object or 'name' referenced to object or function`
+        );
       }
     }
 
@@ -1477,7 +1490,7 @@ module.exports = (appLib) => {
           scopes: anyoneListScopeForViewAction,
         };
       } else if (_.isPlainObject(listVal)) {
-        const newFormatListFields = ['name', 'values', 'scopes'];
+        const newFormatListFields = ['name', 'values', 'scopes', 'params'];
         const isNewListFormat = _.every(listVal, (field, fieldName) => newFormatListFields.includes(fieldName));
 
         if (isNewListFormat) {

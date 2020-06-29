@@ -1,19 +1,17 @@
 <div
-  ng-if="directiveType === 'dx-select-box'"
-  dx-select-box="config"
-></div>
-
-<div
-  ng-if="directiveType === 'dx-tag-box'"
+  ng-if="isMultiple"
   dx-tag-box="config"
-></div>
-
-<input
-  type="text"
-  class="hidden"
   adp-validate="validationParams"
   ng-required="isRequired()"
   name="{{field.fieldName}}"
   ng-model="adpFormData[field.fieldName]"
-  id="{{field.fieldName}}"
->
+></div>
+
+<div
+  ng-if="!isMultiple"
+  dx-select-box="config"
+  adp-validate="validationParams"
+  ng-required="isRequired()"
+  name="{{field.fieldName}}"
+  ng-model="adpFormData[field.fieldName]"
+></div>

@@ -99,6 +99,11 @@
 
 #toast-container-error-tabs {
   max-width: @toast-width;
+  display: flex;
+  z-index: 10;
+  position: relative;
+  flex-wrap: wrap-reverse;
+  align-items: flex-start;
 
   .toast-tab {
     position:relative;
@@ -108,24 +113,35 @@
     background-position: center center;
     background-repeat: no-repeat;
     display: inline-block;
-    margin: 0 5px 5px 0;
+    margin: 3px 5px 5px 0;
     overflow: hidden;
     opacity: .6;
+    cursor: pointer;
+    flex: 0 0 auto;
   }
 
   .toast-tab-active {
     top:5px;
     opacity:1;
+    cursor: default;
   }
 
   .close-all-toast {
-    display: block;
-    color: maroon;
-    cursor: pointer;
-    pointer-events: auto;
-    width: 100%;
+    display: inline-block;
     text-align: right;
-    margin: 5px;
+    margin: 20px 5px 5px 5px;
+    flex: 1 0 auto;
+    order: 1000;
+
+    > a {
+      display: inline-block;
+      background-color: #edecec;
+      padding: 1px 4px;
+      border-radius: 3px;
+      color: maroon;
+      cursor: pointer;
+      pointer-events: auto;
+    }
   }
 }
 

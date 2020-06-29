@@ -10,11 +10,12 @@
 
     function editAction(data, gridInstance) {
       var schema = getSchemaByName(this.row.$meta_table);
-      _.unset(data, '_table');
-      _.unset(data, '_tableLabel');
-      _.unset(data, '$meta_table');
+      var dataToUpdate = _.cloneDeep(data);
+      _.unset(dataToUpdate, '_table');
+      _.unset(dataToUpdate, '_tableLabel');
+      _.unset(dataToUpdate, '$meta_table');
 
-      return ActionsHandlers.update(schema, data).then(function () {
+      return ActionsHandlers.update(schema, dataToUpdate).then(function () {
         gridInstance.refresh();
       });
     }

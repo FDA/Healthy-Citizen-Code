@@ -159,17 +159,17 @@ function hashObject(obj) {
  * - E11000 duplicate key error collection: rlog-mobile.refrigerantTypes index: array.nestedArrayStr_1 dup key: { : "123" }
  * - E11000 duplicate key error collection: rlog-mobile.refrigerantTypes index: obj.nestedObjNumber_1 dup key: { : 11111111 }
  * NOTE: If many fields break index constraint then only one field is represented in error message.
- * @param err
+ * @param error
  * @param appLib
  * @returns {*}
  */
-function getMongoDuplicateErrorMessage(err, models) {
-  const isDuplicateError = ['BulkWriteError', 'MongoError'].includes(err.name) && err.code === 11000;
+function getMongoDuplicateErrorMessage(error, models) {
+  const isDuplicateError = ['BulkWriteError', 'MongoError'].includes(error.name) && error.code === 11000;
   if (!isDuplicateError) {
     return null;
   }
   // find out errorValue from error message because its not possible to get it from indexName if error occurred in array
-  const match = err.message.match(
+  const match = error.message.match(
     /E11000 duplicate key error collection: (?:.+)\.(.+) index: (.+) dup key: { (.+): (.+) }/
   );
 
@@ -185,7 +185,18 @@ function getMongoDuplicateErrorMessage(err, models) {
   if (errorValue === 'null') {
     return `Unable to process. '${schemaFullName}' record with empty '${schemaFieldFullName}' already exists`;
   }
-  return `Unable to process. '${schemaFullName}' record with the '${schemaFieldFullName}' '${errorValue}' already exists`;
+
+  let formattedErrorValue = errorValue;
+  if (_.get(schemaField, 'type') === 'String' && errorValue.startsWith('"') && errorValue.endsWith('"')) {
+    formattedErrorValue = errorValue.slice(1, -1);
+  }
+  return `Unable to process. '${schemaFullName}' record with the '${schemaFieldFullName}' '${formattedErrorValue}' already exists`;
+}
+
+function getMongoSortParallelArrayErrorMessage(error) {
+  if (error.name === 'MongoError' && error.message === 'cannot sort with keys that are parallel arrays') {
+    return 'Unable to sort by more than 1 array fields';
+  }
 }
 
 const defaultArgsAndValuesForInlineCode = {
@@ -334,6 +345,15 @@ function expandObjectAsNumberedList(obj) {
   return string;
 }
 
+function showMemoryUsage(logger = console) {
+  const used = process.memoryUsage();
+  let message = '\n';
+  Object.entries(used).forEach(([key, val]) => {
+    message += `${key} ${Math.round((val / 1024 / 1024) * 100) / 100} MB\n`;
+  });
+  logger.info(message);
+}
+
 module.exports = {
   getUrlParts,
   generateId,
@@ -345,6 +365,7 @@ module.exports = {
   stringifyObjectId,
   hashObject,
   getMongoDuplicateErrorMessage,
+  getMongoSortParallelArrayErrorMessage,
   getDefaultArgsAndValuesForInlineCode,
   getDocValueForExpression,
   stringifyLog,
@@ -359,4 +380,5 @@ module.exports = {
   isMongoReplicaSet,
   expandObjectAsKeyValueList,
   expandObjectAsNumberedList,
+  showMemoryUsage,
 };

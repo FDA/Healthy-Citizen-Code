@@ -70,7 +70,8 @@ describe('complex objects', () => {
     test(
       'should submit object with filled required fields',
       async () => {
-        await this.page.click(`[name="object"] [ng-field-name="boolean1"] .dx-checkbox-icon`);
+        await this.page.click(`[name="object"] [ng-field-name="boolean1"] .dx-switch-handle`);
+        await this.page.waitFor(200);
 
         await clickSubmit(this.page);
         const submitMsg = await getSubmitMsg(this.page);

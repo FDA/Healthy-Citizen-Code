@@ -5,14 +5,13 @@
     .module('app.adpForms')
     .directive('arraySortable', arraySortable);
 
-  function arraySortable(
-  ) {
+  function arraySortable(AdpSortable) {
     return {
       restrict: 'A',
       scope: {
+        arraysPath: '=',
         onSorted: '=',
         onStop: '=',
-        arraysPath: '=',
       },
       link: function (scope, element) {
         var removeWatcher = scope.$watch('arraysPath', function (arraysPath) {
@@ -28,7 +27,7 @@
         function createSortable(sortableContainer, arraysPath) {
           var draggableSelector = '[ng-array-parent-path="' + arraysPath + '"]';
 
-          return new Draggable.Sortable(sortableContainer, {
+          return new AdpSortable(sortableContainer, {
             draggable: draggableSelector,
             handle: draggableSelector + ' > .subform-frame > .subform-frame__title',
             delay: 300,

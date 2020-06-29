@@ -57,8 +57,11 @@ module.exports = function (globalMongoose) {
 
         _.set(rp.args.record, 'questionnaireDefinition.questionnaire', questionnaire);
       } catch (e) {
+        if (e instanceof ValidationError) {
+          throw e;
+        }
         log.error(e.stack);
-        throw new Error('Unable to find questionnaire file');
+        throw new Error('Unable to process questionnaire file');
       }
       return next(rp);
     };
@@ -271,7 +274,7 @@ module.exports = function (globalMongoose) {
         ]),
       });
     } catch (e) {
-      log.error(e);
+      log.error(e.stack);
       return res.json({
         success: false,
         message: 'Unable to retrieve any questionnaires for this participant',
@@ -505,7 +508,7 @@ module.exports = function (globalMongoose) {
 
         _.forEach(questionnaireAnswersObj.questionnaire, (questionnaireObj, questionnaireKey) => {
           // unwind each question-answer pair in questionnaire to separate object
-          const answer = questionnaireAnswersObj.answers[questionnaireKey];
+          const answer = _.get(questionnaireAnswersObj, `answers.${questionnaireKey}`);
           if (!answer) {
             return;
           }
@@ -523,6 +526,7 @@ module.exports = function (globalMongoose) {
       });
       res.json({ success: true, data: results });
     } catch (e) {
+      log.error(e.stack);
       res.json({
         success: false,
         message: 'Unable to get the questionnaire answers',

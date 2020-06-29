@@ -1,12 +1,18 @@
 <div class="modal-header">
     <h3 class="modal-title">{{vm.options.title}}</h3>
 </div>
-<div class="modal-body readFile-action-modal">
+<div class="modal-body readFile-action-modal drop-zone">
     <section class="input-container" ng-class="{'state-error': vm.error}">
-        <input type="file" select-ng-file ng-model="vm.fileArray" ng-change="vm.onChange()">
+        <input type="file" select-ng-file ng-model="vm.fileArray" ng-change="vm.onChange()" style="height:1px; opacity:0">
+        <button class="btn btn-primary"
+                ng-click="vm.onInput()"
+        >
+            Drop here or Choose file
+        </button>
         <div class="note note-error" ng-if="vm.error">
             {{vm.error}}
         </div>
+        <div class="selected-files-list">{{ vm.selectedFilesText }}</div>
     </section>
 </div>
 <div class="modal-footer">

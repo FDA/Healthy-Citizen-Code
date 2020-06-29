@@ -4,6 +4,7 @@
   angular.module('SmartAdmin.Layout')
     .directive('smartMenuItems', function (
       AdpSchemaService,
+      AdpIconsHelper,
       $rootScope,
       $compile
     ) {
@@ -58,7 +59,6 @@
           function createItem(item, parent, level) {
             var li = $('<li />', {'ui-sref-active-eq': 'active'});
             var a = $('<a />');
-            var i = $('<i />');
             var itemBody = null;
             var unifiedParams = {appSchema: appSchema, menuLevel: level};
 
@@ -83,7 +83,8 @@
             }
 
             if (item.icon) {
-              i.attr('class', iconTypes[item.icon.type] + item.icon.link);
+              var i = AdpIconsHelper.getIconHtml(item.icon);
+
               a.append(i);
             }
 

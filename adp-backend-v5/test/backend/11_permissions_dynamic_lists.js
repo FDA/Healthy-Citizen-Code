@@ -1,30 +1,29 @@
 const request = require('supertest');
 require('should');
 
-const reqlib = require('app-root-path').require;
-
 const {
   auth: { admin, user, loginWithUser },
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
-} = reqlib('test/test-util');
+} = require('../test-util');
+
 const modelName = 'model9_dynamic_list_permissions';
 
-describe('V5 Backend List Permissions', () => {
-  before(async function() {
+describe('V5 Backend List Permissions', function () {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.collection('users').deleteMany({}),
       this.db.createCollection(modelName),
@@ -33,13 +32,13 @@ describe('V5 Backend List Permissions', () => {
     await Promise.all([this.db.collection('users').insertOne(admin), this.db.collection('users').insertOne(user)]);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
-  describe('lists permissions', () => {
-    describe('check security for writing operations', () => {
-      it('should allow admin to create item with any valid list values', async function() {
+  describe('lists permissions', function () {
+    describe('check security for writing operations', function () {
+      it('should allow admin to create item with any valid list values', async function () {
         const model9Sample = {
           dynamicList: 'val1',
           arrayDynamicList: ['val1', 'val2', 'val3', 'val4'],
@@ -65,7 +64,7 @@ describe('V5 Backend List Permissions', () => {
         res.body.id.should.not.be.empty();
       });
 
-      it('should not allow admin to create item with invalid list values', async function() {
+      it('should not allow admin to create item with invalid list values', async function () {
         const model9Sample = {
           dynamicList: 'invalidVal',
           arrayDynamicList: ['val1', 'invalidVal'],
@@ -94,7 +93,7 @@ describe('V5 Backend List Permissions', () => {
         message.should.containEql(errMessageArrayDynamicList);
       });
 
-      it('should allow user to create and update item with list values available for that user', async function() {
+      it('should allow user to create and update item with list values available for that user', async function () {
         const model9Sample = {
           dynamicList: 'val1',
           arrayDynamicList: ['val1', 'val2'],
@@ -131,7 +130,7 @@ describe('V5 Backend List Permissions', () => {
         res2.body.success.should.equal(true);
       });
 
-      it('should not allow user to create item with list values not available for that user', async function() {
+      it('should not allow user to create item with list values not available for that user', async function () {
         const model9Sample = {
           dynamicList: 'val3',
           arrayDynamicList: ['val3', 'val4'],
@@ -162,7 +161,7 @@ describe('V5 Backend List Permissions', () => {
         const { message } = res.body;
         message.should.startWith('Incorrect request: ');
         message.should.containEql(errMessageDynamicList);
-        errMessageArrayDynamicList.forEach(m => message.should.containEql(m));
+        errMessageArrayDynamicList.forEach((m) => message.should.containEql(m));
       });
     });
   });

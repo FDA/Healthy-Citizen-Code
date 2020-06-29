@@ -7,9 +7,11 @@ const exec = Promise.promisify(require('child_process').exec);
 const urlParse = require('url-parse');
 const sh = require('shelljs');
 
-const { getAxiosProxySettings } = require('../util/proxy');
+const { getAxiosProxySettings, getWgetProxyParams } = require('../util/proxy');
 // eslint-disable-next-line import/order
 const axios = require('axios').create(getAxiosProxySettings());
+
+const wgetProxyParams = getWgetProxyParams();
 
 function downloadFile(url, destPath) {
   destPath = destPath || `${__dirname}/${uuidv4()}`;
@@ -17,7 +19,7 @@ function downloadFile(url, destPath) {
   fs.ensureDirSync(path.dirname(resolvedFilePath));
 
   if (url.startsWith('ftp')) {
-    return downloadFileByFtp(url, resolvedFilePath);
+    return downloadFileByFtpUsingWget(url, resolvedFilePath);
   }
   return downloadFileByHttp(url, resolvedFilePath);
 }
@@ -56,6 +58,18 @@ async function downloadFileByFtp(ftpUrl, destPath) {
     stream.pipe(fs.createWriteStream(destPath));
   });
   await ftp.end();
+}
+
+async function downloadFileByFtpUsingWget(ftpUrl, destPath) {
+  const command = `wget -N '${ftpUrl}' -O '${destPath}' ${wgetProxyParams}`;
+  return new Promise((resolve, reject) => {
+    exec(command, {}, error => {
+      if (error !== null) {
+        return reject(error);
+      }
+      resolve(destPath);
+    });
+  });
 }
 
 // wget settings
@@ -108,4 +122,4 @@ async function isUrlExists(url) {
   }
 }
 
-module.exports = { downloadFile, downloadFileByHttp, downloadFileByFtp, downloadUsingWget, isUrlExists };
+module.exports = { downloadFile, downloadUsingWget, isUrlExists };

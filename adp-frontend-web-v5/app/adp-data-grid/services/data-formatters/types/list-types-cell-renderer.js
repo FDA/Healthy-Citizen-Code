@@ -6,36 +6,66 @@
     .factory('ListTypesCellRenderer', ListTypesCellRenderer);
 
   /** @ngInject */
-  function ListTypesCellRenderer(GRID_FORMAT) {
+  function ListTypesCellRenderer(
+    GRID_FORMAT,
+    AdpListsService,
+    FormattersHelper
+  ) {
     function single(args) {
-      var value = args.data;
-      if (_.isNil(value)) {
-        return GRID_FORMAT.EMPTY_VALUE;
-      }
-
-      var list = getList(args.modelSchema);
-      var label = list[value];
-
-      return label || value;
+      return cellRenderer(args, 'single');
     }
 
     function multiple(args) {
-      var value = args.data;
+      return cellRenderer(args, 'multiple');
+    }
 
+    function cellRenderer(args, type) {
+      var value = args.data;
       if (_.isNil(value) || _.isEmpty(value)) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
-      var list = getList(args.modelSchema);
-      var values = _.map(value, function (v) {
-        return list[v];
-      });
+      if (FormattersHelper.asText(args)) {
+        return _.isArray(value) ? value.join(',') : value;
+      }
 
-      return values.join(', ');
+      var content = $('<div>');
+      getList(args)
+        .then(function (list) {
+          var contentGetter = getContentGetterFn(type);
+          var labels = contentGetter(list, value);
+          content.append(labels);
+        });
+
+      return content;
     }
 
-    function getList(field) {
-      return field.list || field.dynamicList;
+    function getList(args) {
+      if (args.modelSchema.dynamicList) {
+        return AdpListsService.requestDynamicList(args)
+          .catch(function (error) {
+            console.error('Error while try fetch List with: ', args, error);
+            return {};
+          });
+      } else {
+        return Promise.resolve(args.modelSchema.list);
+      }
+    }
+
+    function getContentGetterFn(type) {
+      return ({
+        single: getSingleValueForList,
+        multiple: getMultipleValues,
+      })[type];
+    }
+
+    function getSingleValueForList(list, value) {
+      var label = list[value];
+      return label || value;
+    }
+
+    function getMultipleValues(list, value) {
+      return _.map(value, _.partial(getSingleValueForList, list)).join(', ')
     }
 
     return {

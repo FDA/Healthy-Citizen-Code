@@ -7,7 +7,8 @@
 
   function lookupSelectorMultiple(
     LookupDxConfig,
-    LookupDataSource
+    LookupDataSource,
+    AdpFieldsService
   ) {
     return {
       restrict: 'AE',
@@ -18,7 +19,10 @@
       template: '<div dx-tag-box="config"></div>',
       link: function (scope, element) {
         (function init() {
-          scope.config = LookupDxConfig.multiple(scope.props);
+          scope.config = AdpFieldsService.configFromParameters(
+            scope.props.args.modelSchema,
+            LookupDxConfig.multiple(scope.props)
+          );
           addTableWatcher(scope.props);
         })();
 

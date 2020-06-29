@@ -118,7 +118,7 @@
       if (_.isUndefined(params.icon)) {
         return params.fullName;
       } else {
-        return '<i class="' + AdpIconsHelper.getIconClass(params.icon) + '"></i>';
+        return AdpIconsHelper.getIconHtml(params.icon);//'<i class="' + AdpIconsHelper.getIconClass(params.icon) + '"></i>';
       }
     }
   }

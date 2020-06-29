@@ -54,8 +54,6 @@
         "Group",
         "Location",
         "Grid",
-
-        // ex-subtypes
         "Password",
         "Email",
         "Phone",
@@ -68,7 +66,11 @@
         "Time",
         "DateTime",
         "DynamicList",
-        "Barcode"
+        "Barcode",
+        "Currency",
+        "List",
+        "List[]",
+        "Blank"
       ],
       "fullName": "Type",
       "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Some types are only available for interface elements and not the model"

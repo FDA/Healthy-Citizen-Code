@@ -8,15 +8,16 @@
   function objectControl(
     AdpValidationUtils,
     AdpFieldsService,
-    AdpFormService
+    AdpFormService,
+    AdpUnifiedArgs
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '=',
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/object-control/object-control.html',
       require: '^^form',
@@ -56,20 +57,19 @@
         scope.getHeader = function() {
           scope.hasHeaderRender = AdpFieldsService.hasHedearRenderer(scope.field);
 
-          var params = {
-            fieldData: getData(),
-            formData: scope.adpFormData,
-            fieldSchema: scope.field
-          };
+          var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+            path: formParams.path,
+            action: formParams.action,
+            formData: formParams.row,
+            schema: formParams.modelSchema,
+          });
 
-          return AdpFieldsService.getHeaderRenderer(params);
+          return AdpFieldsService.getHeaderRenderer(args);
         };
 
         scope.toggle = function () {
           scope.isVisible = !scope.isVisible;
         };
-
-        // var requiredFn = AdpValidationUtils.isRequired(scope.validationParams.formParams);
 
         if (isEmpty()) {
           setData({})

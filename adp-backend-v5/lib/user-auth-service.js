@@ -34,7 +34,7 @@ async function sendMail(mail) {
   const smtpTransport = mailer.createTransport(getTransportOpts());
 
   try {
-    await smtpTransport.sendMail(mail);
+    return await smtpTransport.sendMail(mail);
   } finally {
     smtpTransport.close();
   }

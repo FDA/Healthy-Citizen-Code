@@ -6,19 +6,17 @@ const jimp = require('jimp');
 const fs = require('fs-extra');
 const { ObjectID } = require('mongodb');
 
-const reqlib = require('app-root-path').require;
-
 const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
   auth: { admin },
-} = reqlib('test/test-util');
+} = require('../test-util');
 
 describe('File Controller', function () {
   before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     setAppAuthOptions(this.appLib, {
       requireAuthentication: false,
       enablePermissions: false,
@@ -54,231 +52,50 @@ describe('File Controller', function () {
   };
 
   const filesList = [
-    {
-      type: 'file',
-      size: 0,
-      name: 'test-module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 0,
-      name: 'client/client.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 0,
-      name: 'nested/nested_file.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 0,
-      name: 'nested/another_nested/another_nested_file.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 5101,
-      name: 'adp-bpm-diagrams/adp-bpm-diagrams.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 820,
-      name: 'adp-bpm-diagrams/adp-bpm-editor.css',
-      mimeType: 'text/css',
-    },
-    {
-      type: 'file',
-      size: 2380,
-      name: 'adp-bpm-diagrams/adp-bpm.helper.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 3339,
-      name: 'adp-bpm-diagrams/adp-decision-menu.helper.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1481,
-      name: 'adp-client-common/adp-client-common.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 3533,
-      name: 'adp-data-export/adp-data-export-generators.service.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 6887,
-      name: 'adp-data-export/adp-data-export.helpers.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 64,
-      name: 'adp-data-export/adp-data-export.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1712,
-      name: 'adp-data-export/adp-data-export.service.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1213,
-      name: 'adp-data-export/adp-export-config-modal.component.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 2939,
-      name: 'adp-data-export/adp-export-config-modal.controller.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 2136,
-      name: 'adp-data-import/adp-data-import-report-modal.component.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 64,
-      name: 'adp-data-import/adp-data-import.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 2412,
-      name: 'adp-data-import/adp-data-import.service.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 2550,
-      name: 'adp-grid-column-chooser/adp-grid-column-chooser.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 2564,
-      name: 'adp-grid-control-actions/adp-grid-control-actions.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1868,
-      name: 'adp-grid-print/adp-grid-print-table-builder.service.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 3326,
-      name: 'adp-grid-print/adp-grid-print.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 4252,
-      name: 'adp-grid-quick-filter/adp-grid-quick-filter.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1766,
-      name: 'adp-grid-view-manager/adp-grid-view-manager.component.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 2385,
-      name: 'adp-grid-view-manager/adp-grid-view-manager.controller.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 653,
-      name: 'adp-grid-view-manager/adp-grid-view-manager.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 6255,
-      name: 'adp-grid-view-manager/adp-grid-view-manager.service.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 928,
-      name: 'adp-synthetic-generate/adp-synthetic-generate.component.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1472,
-      name: 'adp-synthetic-generate/adp-synthetic-generate.controller.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 2578,
-      name: 'adp-synthetic-generate/adp-synthetic-generate.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1877,
-      name: 'adp-webvowl/adp-webvowl.directive.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 61,
-      name: 'adp-webvowl/adp-webvowl.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1180,
-      name: 'default/default.module.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1555,
-      name: 'adp-bpm-diagrams/bpm-types/adp-bpmn.config.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 1144,
-      name: 'adp-bpm-diagrams/bpm-types/adp-bpmn.helper.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 946,
-      name: 'adp-bpm-diagrams/bpm-types/adp-dnm.config.js',
-      mimeType: 'application/javascript',
-    },
-    {
-      type: 'file',
-      size: 2104,
-      name: 'adp-bpm-diagrams/bpm-types/adp-dnm.helper.js',
-      mimeType: 'application/javascript',
-    },
+    { name: 'test-module.js' },
+    { name: 'client/client.module.js' },
+    { name: 'nested/nested_file.js' },
+    { name: 'nested/another_nested/another_nested_file.js' },
+    { name: 'adp-bpm-diagrams/adp-bpm-diagrams.module.js' },
+    { name: 'adp-bpm-diagrams/adp-bpm-editor.css', mimeType: 'text/css' },
+    { name: 'adp-bpm-diagrams/adp-bpm.helper.js' },
+    { name: 'adp-bpm-diagrams/adp-decision-menu.helper.js' },
+    { name: 'adp-client-common/adp-client-common.module.js' },
+    { name: 'adp-data-export/adp-data-export-generators.service.js' },
+    { name: 'adp-data-export/adp-data-export.helpers.js' },
+    { name: 'adp-data-export/adp-data-export.module.js' },
+    { name: 'adp-data-export/adp-data-export.service.js' },
+    { name: 'adp-data-export/adp-export-config-modal.component.js' },
+    { name: 'adp-data-export/adp-export-config-modal.controller.js' },
+    { name: 'adp-data-import/adp-data-import-report-modal.component.js' },
+    { name: 'adp-data-import/adp-data-import.module.js' },
+    { name: 'adp-data-import/adp-data-import.service.js' },
+    { name: 'adp-grid-column-chooser/adp-grid-column-chooser.module.js' },
+    { name: 'adp-grid-control-actions/adp-grid-control-actions.module.js' },
+    { name: 'adp-grid-print/adp-grid-print-table-builder.service.js' },
+    { name: 'adp-grid-print/adp-grid-print.module.js' },
+    { name: 'adp-grid-quick-filter/adp-grid-quick-filter.module.js' },
+    { name: 'adp-grid-view-manager/adp-grid-view-manager.component.js' },
+    { name: 'adp-grid-view-manager/adp-grid-view-manager.controller.js' },
+    { name: 'adp-grid-view-manager/adp-grid-view-manager.module.js' },
+    { name: 'adp-grid-view-manager/adp-grid-view-manager.service.js' },
+    { name: 'adp-synthetic-generate/adp-synthetic-generate.component.js' },
+    { name: 'adp-synthetic-generate/adp-synthetic-generate.controller.js' },
+    { name: 'adp-synthetic-generate/adp-synthetic-generate.module.js' },
+    { name: 'adp-webvowl/adp-webvowl.directive.js' },
+    { name: 'adp-webvowl/adp-webvowl.module.js' },
+    { name: 'default/default.module.js' },
+    { name: 'adp-bpm-diagrams/bpm-types/adp-bpmn.config.js' },
+    { name: 'adp-bpm-diagrams/bpm-types/adp-bpmn.helper.js' },
+    { name: 'adp-bpm-diagrams/bpm-types/adp-dnm.config.js' },
+    { name: 'adp-bpm-diagrams/bpm-types/adp-dnm.helper.js' },
+    { name: 'adp-filter-builder/adp-filter-builder.component.js' },
+    { name: 'adp-filter-builder/adp-filter-builder.controller.js' },
+    { name: 'adp-filter-builder/adp-filter-builder.module.js' },
+    { name: 'adp-filter-builder/adp-filter-builder.service.js' },
   ];
 
-  describe('Serving public files', () => {
+  describe('Serving public files', function () {
     it('Should show merged files for dir "/public/js/client-modules" from core and app model', async function () {
       const res = await request(this.appLib.app).get('/public/js/client-modules');
       const { success, data } = res.body;
@@ -305,7 +122,7 @@ describe('File Controller', function () {
     });
   });
 
-  describe('Upload files', () => {
+  describe('Upload files', function () {
     it('Should upload photo', async function () {
       const fileName = 'test image.jpeg';
       const testFilePath = path.resolve(__dirname, `../files/${fileName}`);

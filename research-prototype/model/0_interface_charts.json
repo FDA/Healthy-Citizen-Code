@@ -125,7 +125,8 @@
           yAxis: {
             type: 'value',
             nameLocation: 'center',
-            "name": "Questionnaires"
+            "name": "Questionnaires",
+            "nameGap": 40
           },
           series: [
             {

@@ -1,7 +1,6 @@
 const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
-const reqlib = require('app-root-path').require;
 
 const {
   auth: { admin, user },
@@ -13,7 +12,7 @@ const {
   checkRestSuccessfulResponse,
   checkRestErrorResponse,
   conditionForActualRecord,
-} = reqlib('test/test-util');
+} = require('../test-util');
 const {
   buildGraphQlQuery,
   buildGraphQlCreate,
@@ -22,22 +21,22 @@ const {
   checkGraphQlSuccessfulResponse,
   checkGraphQlErrorResponse,
   checkGraphQlNoDataResponse,
-} = reqlib('test/graphql-util.js');
+} = require('../graphql-util.js');
 
-describe('V5 Backend Scheme Permissions', () => {
-  before(async function() {
+describe('V5 Backend Scheme Permissions', function () {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
@@ -48,7 +47,7 @@ describe('V5 Backend Scheme Permissions', () => {
     ...conditionForActualRecord,
   };
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.collection('users').deleteMany({}),
       this.db.collection('mongoMigrateChangeLog').deleteMany({}),
@@ -75,13 +74,13 @@ describe('V5 Backend Scheme Permissions', () => {
     ]);
   });
 
-  describe('scheme permissions', () => {
+  describe('scheme permissions', function () {
     const docId = MODEL8_SAMPLE._id.toString();
-    const getRestGraphQlData = res => res.body.data;
-    const getGraphqlData = modelName => res => res.body.data[modelName].items[0];
+    const getRestGraphQlData = (res) => res.body.data;
+    const getGraphqlData = (modelName) => (res) => res.body.data[modelName].items[0];
 
-    describe('GET', () => {
-      const getFunc = function(settings) {
+    describe('GET', function () {
+      const getFunc = function (settings) {
         return f;
 
         async function f() {
@@ -96,18 +95,18 @@ describe('V5 Backend Scheme Permissions', () => {
           checkData && checkData(getData(res));
         }
       };
-      const checkData = data => {
+      const checkData = (data) => {
         data.number1.should.equal(1);
         data.number2.should.equal(2);
       };
-      const readDocRestRequest = modelName => r => r.get(`/${modelName}/${docId}`);
+      const readDocRestRequest = (modelName) => (r) => r.get(`/${modelName}/${docId}`);
 
       const fieldsToGet = 'number1, number2';
-      const readDocGraphqlRequest = modelName => r =>
+      const readDocGraphqlRequest = (modelName) => (r) =>
         r.post('/graphql').send(buildGraphQlQuery(modelName, `{_id: '${docId}'}`, `items { ${fieldsToGet} }`));
 
-      describe('should not allow authorized user to read the protected document by guest scope', () => {
-        beforeEach(async function() {
+      describe('should not allow authorized user to read the protected document by guest scope', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -139,8 +138,8 @@ describe('V5 Backend Scheme Permissions', () => {
         );
       });
 
-      describe('should allow guest user to read the protected document by guest scope', () => {
-        beforeEach(async function() {
+      describe('should allow guest user to read the protected document by guest scope', function () {
+        beforeEach(async function () {
           setAppAuthOptions(this.appLib, {
             requireAuthentication: false,
             enablePermissions: true,
@@ -167,8 +166,8 @@ describe('V5 Backend Scheme Permissions', () => {
         it('GraphQL: should allow guest user to read the protected document by guest scope', getFunc(graphqlSettings));
       });
 
-      describe('should allow admin to read the protected document by scope with impracticable object condition', () => {
-        beforeEach(async function() {
+      describe('should allow admin to read the protected document by scope with impracticable object condition', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -203,8 +202,8 @@ describe('V5 Backend Scheme Permissions', () => {
         );
       });
 
-      describe('should allow admin to read the protected document by scope with impracticable string condition', () => {
-        beforeEach(async function() {
+      describe('should allow admin to read the protected document by scope with impracticable string condition', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -239,8 +238,8 @@ describe('V5 Backend Scheme Permissions', () => {
         );
       });
 
-      describe('should allow user to read the protected document by scope with condition requiring preparation', () => {
-        beforeEach(async function() {
+      describe('should allow user to read the protected document by scope with condition requiring preparation', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -275,8 +274,8 @@ describe('V5 Backend Scheme Permissions', () => {
         );
       });
 
-      describe('should allow user to read the protected document by scope with condition requiring "GUEST OR USER"', () => {
-        beforeEach(async function() {
+      describe('should allow user to read the protected document by scope with condition requiring "GUEST OR USER"', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -311,8 +310,8 @@ describe('V5 Backend Scheme Permissions', () => {
         );
       });
 
-      describe('should not allow user to read the protected document by scope with condition requiring "Guest AND User"', () => {
-        beforeEach(async function() {
+      describe('should not allow user to read the protected document by scope with condition requiring "Guest AND User"', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -343,8 +342,8 @@ describe('V5 Backend Scheme Permissions', () => {
         );
       });
 
-      describe('should not allow user to read the protected document by scope with condition requiring "(Guest OR User) AND FromCar"', () => {
-        beforeEach(async function() {
+      describe('should not allow user to read the protected document by scope with condition requiring "(Guest OR User) AND FromCar"', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -375,8 +374,8 @@ describe('V5 Backend Scheme Permissions', () => {
         );
       });
 
-      describe('should not allow user to read the protected document by impracticable action', () => {
-        beforeEach(async function() {
+      describe('should not allow user to read the protected document by impracticable action', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -404,8 +403,8 @@ describe('V5 Backend Scheme Permissions', () => {
         );
       });
 
-      describe('should allow guest to read the protected document with one available and one unavailable scopes', () => {
-        beforeEach(async function() {
+      describe('should allow guest to read the protected document with one available and one unavailable scopes', function () {
+        beforeEach(async function () {
           setAppAuthOptions(this.appLib, {
             requireAuthentication: false,
             enablePermissions: true,
@@ -439,8 +438,8 @@ describe('V5 Backend Scheme Permissions', () => {
     });
   });
 
-  describe('POST', () => {
-    const postFunc = function(settings) {
+  describe('POST', function () {
+    const postFunc = function (settings) {
       return f;
 
       async function f() {
@@ -455,12 +454,13 @@ describe('V5 Backend Scheme Permissions', () => {
       }
     };
     const record = {};
-    const createDocRestRequest = modelName => r => r.post(`/${modelName}`).send({ data: record });
+    const createDocRestRequest = (modelName) => (r) => r.post(`/${modelName}`).send({ data: record });
 
-    const createDocGraphqlRequest = modelName => r => r.post('/graphql').send(buildGraphQlCreate(modelName, record));
+    const createDocGraphqlRequest = (modelName) => (r) =>
+      r.post('/graphql').send(buildGraphQlCreate(modelName, record));
 
-    describe('should not allow authorized user to create document by guest scope', () => {
-      beforeEach(async function() {
+    describe('should not allow authorized user to create document by guest scope', function () {
+      beforeEach(async function () {
         this.token = await setupAppAndGetToken(
           this.appLib,
           {
@@ -485,8 +485,8 @@ describe('V5 Backend Scheme Permissions', () => {
       it('GraphQL: should not allow authorized user to create document by guest scope', postFunc(graphqlSettings));
     });
 
-    describe('should allow guest user to create document by guest scope', () => {
-      beforeEach(async function() {
+    describe('should allow guest user to create document by guest scope', function () {
+      beforeEach(async function () {
         setAppAuthOptions(this.appLib, {
           requireAuthentication: false,
           enablePermissions: true,
@@ -497,7 +497,7 @@ describe('V5 Backend Scheme Permissions', () => {
       const modelName = 'model8guests';
       const restSettings = {
         makeRequest: createDocRestRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(200);
           should(res.body.success).equal(true);
           should(res.body.id).not.be.undefined();
@@ -505,7 +505,7 @@ describe('V5 Backend Scheme Permissions', () => {
       };
       const graphqlSettings = {
         makeRequest: createDocGraphqlRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(200);
           should(res.body.errors).be.undefined();
           should(res.body.data[`${modelName}Create`]._id).not.be.undefined();
@@ -517,8 +517,8 @@ describe('V5 Backend Scheme Permissions', () => {
       it('GraphQL: should allow guest user to create document by guest scope', postFunc(graphqlSettings));
     });
 
-    describe('should allow admin to create document by scope with impracticable condition', () => {
-      beforeEach(async function() {
+    describe('should allow admin to create document by scope with impracticable condition', function () {
+      beforeEach(async function () {
         this.token = await setupAppAndGetToken(
           this.appLib,
           {
@@ -532,7 +532,7 @@ describe('V5 Backend Scheme Permissions', () => {
       const modelName = 'model8object_scope';
       const restSettings = {
         makeRequest: createDocRestRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(200);
           should(res.body.success).equal(true);
           should(res.body.id).not.be.undefined();
@@ -540,7 +540,7 @@ describe('V5 Backend Scheme Permissions', () => {
       };
       const graphqlSettings = {
         makeRequest: createDocGraphqlRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(200);
           should(res.body.errors).be.undefined();
           should(res.body.data[`${modelName}Create`]._id).not.be.undefined();
@@ -555,8 +555,8 @@ describe('V5 Backend Scheme Permissions', () => {
     });
   });
 
-  describe('PUT', () => {
-    const putFunc = function(settings) {
+  describe('PUT', function () {
+    const putFunc = function (settings) {
       return f;
 
       async function f() {
@@ -572,12 +572,12 @@ describe('V5 Backend Scheme Permissions', () => {
     };
     const record = {};
     const docId = MODEL8_SAMPLE._id.toString();
-    const updateDocRestRequest = modelName => r => r.put(`/${modelName}/${docId}`).send({ data: record });
-    const updateDocGraphqlRequest = modelName => r =>
+    const updateDocRestRequest = (modelName) => (r) => r.put(`/${modelName}/${docId}`).send({ data: record });
+    const updateDocGraphqlRequest = (modelName) => (r) =>
       r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId));
 
-    describe('should not allow authorized user to update document by guest scope', () => {
-      beforeEach(async function() {
+    describe('should not allow authorized user to update document by guest scope', function () {
+      beforeEach(async function () {
         this.token = await setupAppAndGetToken(
           this.appLib,
           {
@@ -591,7 +591,7 @@ describe('V5 Backend Scheme Permissions', () => {
       const modelName = 'model8guests';
       const restSettings = {
         makeRequest: updateDocRestRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(400);
           should(res.body.success).equal(false);
           should(res.body.message).equal('Unable to update requested element', res.body.message);
@@ -606,8 +606,8 @@ describe('V5 Backend Scheme Permissions', () => {
       it('GraphQL: should not allow authorized user to update document by guest scope', putFunc(graphqlSettings));
     });
 
-    describe('should allow guest user to update document by guest scope', () => {
-      beforeEach(async function() {
+    describe('should allow guest user to update document by guest scope', function () {
+      beforeEach(async function () {
         setAppAuthOptions(this.appLib, {
           requireAuthentication: false,
           enablePermissions: true,
@@ -629,8 +629,8 @@ describe('V5 Backend Scheme Permissions', () => {
       it('GraphQL: should allow guest user to update document by guest scope', putFunc(graphqlSettings));
     });
 
-    describe('should allow admin to update document by scope with impracticable condition', () => {
-      beforeEach(async function() {
+    describe('should allow admin to update document by scope with impracticable condition', function () {
+      beforeEach(async function () {
         this.token = await setupAppAndGetToken(
           this.appLib,
           {
@@ -644,7 +644,7 @@ describe('V5 Backend Scheme Permissions', () => {
       const modelName = 'model8object_scope';
       const restSettings = {
         makeRequest: updateDocRestRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(200);
           should(res.body.success).equal(true);
           should(res.body.id).not.be.undefined();
@@ -652,7 +652,7 @@ describe('V5 Backend Scheme Permissions', () => {
       };
       const graphqlSettings = {
         makeRequest: updateDocGraphqlRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(200);
           should(res.body.errors).be.undefined();
           should(res.body.data[`${modelName}UpdateOne`]._id).not.be.undefined();
@@ -667,8 +667,8 @@ describe('V5 Backend Scheme Permissions', () => {
     });
   });
 
-  describe('DELETE', () => {
-    const deleteFunc = function(settings) {
+  describe('DELETE', function () {
+    const deleteFunc = function (settings) {
       return f;
 
       async function f() {
@@ -683,7 +683,7 @@ describe('V5 Backend Scheme Permissions', () => {
       }
     };
 
-    const deleteFuncCheckingSoftDelete = function(settings) {
+    const deleteFuncCheckingSoftDelete = function (settings) {
       return f;
 
       async function f() {
@@ -701,11 +701,12 @@ describe('V5 Backend Scheme Permissions', () => {
     };
 
     const docId = MODEL8_SAMPLE._id.toString();
-    const deleteDocRestRequest = modelName => r => r.del(`/${modelName}/${docId}`);
-    const deleteDocGraphqlRequest = modelName => r => r.post('/graphql').send(buildGraphQlDeleteOne(modelName, docId));
+    const deleteDocRestRequest = (modelName) => (r) => r.del(`/${modelName}/${docId}`);
+    const deleteDocGraphqlRequest = (modelName) => (r) =>
+      r.post('/graphql').send(buildGraphQlDeleteOne(modelName, docId));
 
-    describe('should not allow authorized user to delete document by guest scope', () => {
-      beforeEach(async function() {
+    describe('should not allow authorized user to delete document by guest scope', function () {
+      beforeEach(async function () {
         this.token = await setupAppAndGetToken(
           this.appLib,
           {
@@ -719,7 +720,7 @@ describe('V5 Backend Scheme Permissions', () => {
       const modelName = 'model8guests';
       const restSettings = {
         makeRequest: deleteDocRestRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(400);
           should(res.body.success).equal(false);
           should(res.body.message).equal('Unable to delete requested element', res.body.message);
@@ -734,8 +735,8 @@ describe('V5 Backend Scheme Permissions', () => {
       it('GraphQL: should not allow authorized user to delete document by guest scope', deleteFunc(graphqlSettings));
     });
 
-    describe('should allow guest user to delete document by guest scope', () => {
-      beforeEach(async function() {
+    describe('should allow guest user to delete document by guest scope', function () {
+      beforeEach(async function () {
         setAppAuthOptions(this.appLib, {
           requireAuthentication: false,
           enablePermissions: true,
@@ -764,8 +765,8 @@ describe('V5 Backend Scheme Permissions', () => {
       );
     });
 
-    describe('should allow admin to delete document by scope with impracticable condition', () => {
-      beforeEach(async function() {
+    describe('should allow admin to delete document by scope with impracticable condition', function () {
+      beforeEach(async function () {
         this.token = await setupAppAndGetToken(
           this.appLib,
           {
@@ -779,7 +780,7 @@ describe('V5 Backend Scheme Permissions', () => {
       const modelName = 'model8object_scope';
       const restSettings = {
         makeRequest: deleteDocRestRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(200);
           should(res.body.success).equal(true);
         },
@@ -788,7 +789,7 @@ describe('V5 Backend Scheme Permissions', () => {
       };
       const graphqlSettings = {
         makeRequest: deleteDocGraphqlRequest(modelName),
-        checkResponse: res => {
+        checkResponse: (res) => {
           should(res.statusCode).equal(200);
           should(res.body.errors).be.undefined();
         },

@@ -16,7 +16,9 @@
     FilterUrlParser
   ) {
     function create(options, schema) {
-      options.filterRow = {visible: true};
+      if (!options.filterRow.visible) {
+        return;
+      }
 
       GridOptionsHelpers.onEditorPreparing(options, function (event) {
         var isFilterRow = event.parentType === 'filterRow';
@@ -176,6 +178,7 @@
       create: create,
       setFiltersFromUrl: setFiltersFromUrl,
       setFilterComponent: setFilterComponent,
+      unifiedApproachArgs:unifiedApproachArgs,
     }
   }
 })();

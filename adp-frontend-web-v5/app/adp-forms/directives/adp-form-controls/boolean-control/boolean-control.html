@@ -1,8 +1,4 @@
-<label class="checkbox"
-  id="checkbox-label-{{field.fieldName}}"
-  for="{{$id + field.fieldName}}">
-
-  <input
+ <input
     type="hidden"
     name="{{field.fieldName}}"
     id="{{$id + field.fieldName}}"
@@ -12,9 +8,6 @@
   >
 
   <div
-    dx-check-box="config"
-    class="adp-checkbox"
+    dx-switch="config"
+    class="adp-switch"
   ></div>
-
-  {{field.fullName}} <adp-required-mark validation-params="validationParams"></adp-required-mark>
-</label>

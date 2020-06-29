@@ -16,7 +16,7 @@
       return GraphqlRequest({
         name: getQueryName(schema),
         query: getQuery(schema),
-        variables: params,
+        variables: _.pick(params, ['sort', 'mongoQuery', 'page', 'perPage']),
       });
     };
 

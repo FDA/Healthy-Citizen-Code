@@ -4,26 +4,25 @@
  */
 const request = require('supertest');
 require('should');
-const reqlib = require('app-root-path').require;
 
-const { prepareEnv, getMongoConnection } = reqlib('test/test-util');
+const { prepareEnv, getMongoConnection } = require('../test-util');
 
-describe('V5 Backend Basic Routes', () => {
-  before(function() {
+describe('V5 Backend Basic Routes', function () {
+  before(function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     return this.appLib.setup();
   });
 
-  after(async function() {
+  after(async function () {
     await this.appLib.shutdown();
     const db = await getMongoConnection();
     await db.dropDatabase();
     await db.close();
   });
 
-  describe('GET /', () => {
-    it('responds with backend status', function(done) {
+  describe('GET /', function () {
+    it('responds with backend status', function (done) {
       request(this.appLib.app)
         .get('/')
         .set('Accept', 'application/json')
@@ -35,8 +34,8 @@ describe('V5 Backend Basic Routes', () => {
         });
     });
   });
-  describe('GET /schemas', () => {
-    it('responds with list of schemas', function(done) {
+  describe('GET /schemas', function () {
+    it('responds with list of schemas', function (done) {
       request(this.appLib.app)
         .get('/schemas')
         .set('Accept', 'application/json')
@@ -54,8 +53,8 @@ describe('V5 Backend Basic Routes', () => {
         });
     });
   });
-  describe('GET /routes', () => {
-    it('responds with list of basic routes', function(done) {
+  describe('GET /routes', function () {
+    it('responds with list of basic routes', function (done) {
       request(this.appLib.app)
         .get('/routes')
         .set('Accept', 'application/json')

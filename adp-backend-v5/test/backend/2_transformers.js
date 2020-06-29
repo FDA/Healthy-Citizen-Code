@@ -4,11 +4,10 @@ const _ = require('lodash');
 const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const request = require('supertest');
-const reqlib = require('app-root-path').require;
 
-const { prepareEnv, getMongoConnection } = reqlib('test/test-util');
+const { prepareEnv, getMongoConnection } = require('../test-util');
 
-describe('V5 Backend Transformers', () => {
+describe('V5 Backend Transformers', function () {
   const sampleData0 = {
     n: 7,
     n2: 8,
@@ -83,31 +82,31 @@ describe('V5 Backend Transformers', () => {
     },
   };
 
-  before(async function() {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     this.appLib.isAuthenticated = (req, res, next) => next(); // disable authentication
     await this.appLib.setup();
-    this.dba = reqlib('/lib/database-abstraction')(this.appLib);
+    this.dba = require('../../lib/database-abstraction')(this.appLib);
     this.M6 = mongoose.model('model6s');
     await this.appLib.db.createCollection('model6s');
   });
 
-  after(async function() {
+  after(async function () {
     await this.appLib.shutdown();
     const db = await getMongoConnection();
     await db.dropDatabase();
     await db.close();
   });
 
-  beforeEach(function() {
+  beforeEach(function () {
     return this.M6.deleteMany({});
   });
 
   // This is a quick sanity check. Most tests are done in CRUD section below
-  describe('when called directly in db call', () => {
-    describe('creates', () => {
-      it('1st level data', async function() {
+  describe('when called directly in db call', function () {
+    describe('creates', function () {
+      it('1st level data', async function () {
         const data = _.cloneDeep(sampleData0);
         const userContext = { _id: 1 };
         await this.dba.createItem(this.M6, userContext, data);
@@ -129,9 +128,9 @@ describe('V5 Backend Transformers', () => {
     });
   });
 
-  describe('When called via CRUD', () => {
-    describe('Create Item', () => {
-      it('posts and stores 1st level data', async function() {
+  describe('When called via CRUD', function () {
+    describe('Create Item', function () {
+      it('posts and stores 1st level data', async function () {
         const postRes = await request(this.appLib.app)
           .post('/model6s')
           .send({ data: sampleData0 })
@@ -174,7 +173,7 @@ describe('V5 Backend Transformers', () => {
         should.not.exist(docInDB.virtualStringWithInlineSynthesizer);
       });
 
-      it('supports standard transformers', async function() {
+      it('supports standard transformers', async function () {
         const sampleDataWithStandardTransformers = _.cloneDeep(sampleData0);
         sampleDataWithStandardTransformers.height = [6, 1];
         sampleDataWithStandardTransformers.weight = 100;
@@ -203,8 +202,8 @@ describe('V5 Backend Transformers', () => {
       });
     });
 
-    describe('Update Item', () => {
-      it('puts and stores 1st level data', async function() {
+    describe('Update Item', function () {
+      it('puts and stores 1st level data', async function () {
         const postRes = await request(this.appLib.app)
           .post('/model6s')
           .send({ data: sampleData0 })

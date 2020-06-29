@@ -19,7 +19,7 @@ module.exports = function () {
   m.transformToFgJson = (relationships) => {
     const nodes = {};
     const links = [];
-    const legend = { nodes: {}, links: [] };
+    const legend = { nodes: {}, links: {} };
     const tags = {};
     const entitySchema = m.appLib.appModel.models.entities;
 
@@ -37,13 +37,13 @@ module.exports = function () {
             id,
             n: subj.name,
             tags: getSubjectTags(subj.tags),
-            d: clearSomeTags(subj.description || '').replace(/\n/g, ' '),
+            d: commons.clearSomeTags(subj.description || '').replace(/\n/g, ' '),
             col: _.get(subj, 'type.nodeColor'),
             size: getOwnOrTypeAttribute(subj, 'nodeSize'),
             shp: _.get(subj, 'type.nodeShape'),
             obj: getObjAnnotations(subj, entitySchema),
-            crtd: new Date(subj.createdAt).getTime() / 1000,
-            uptd: new Date(subj.updatedAt).getTime() / 1000,
+            crtd: commons.formatDateTime(subj.createdAt, 'DateTime'),
+            uptd: commons.formatDateTime(subj.updatedAt, 'DateTime'),
           };
           const typeName = _.get(subj, 'type.name');
 
@@ -60,7 +60,7 @@ module.exports = function () {
         const link = {
           n: r.name,
           tags: getSubjectTags(r.tags),
-          d: clearSomeTags(r.description || '').replace(/\n/g, ' '),
+          d: commons.clearSomeTags(r.description || '').replace(/\n/g, ' '),
           source: r.domain._id,
           target: r.range._id,
           col: _.get(r, 'type.linkColor'),
@@ -79,8 +79,8 @@ module.exports = function () {
             Type: _.get(r, 'type.name'),
             Range: _.get(r, 'range.name'),
           },
-          crtd: new Date(r.createdAt).getTime(),
-          uptd: new Date(r.updatedAt).getTime(),
+          crtd: commons.formatDateTime(r.createdAt, 'DateTime'),
+          uptd: commons.formatDateTime(r.updatedAt, 'DateTime'),
         };
         const typeName = link.obj.Type;
 
@@ -138,13 +138,6 @@ module.exports = function () {
       const ids = _.keys(tags);
 
       return _.map(_tags, (tag) => _.indexOf(ids, `${tag._id}`));
-    }
-
-    function clearSomeTags(text) {
-      return text.replace(/<(\/?)(\w+)([^>]*)>/g, (match, close, tag, rest) => {
-        const isAllowed = tag.match(/^(b|i|u|ul|ol|li|a|img|hr|table|tbody|thead|tr|td|th|br)$/);
-        return (isAllowed ? '<' : '&lt;') + close + tag + rest + (isAllowed ? '>' : '&gt;');
-      });
     }
 
     function getOwnOrTypeAttribute(node, attrName) {

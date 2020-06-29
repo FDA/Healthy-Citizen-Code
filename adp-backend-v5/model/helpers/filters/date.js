@@ -1,5 +1,6 @@
+const _ = require('lodash');
 const { ValidationError } = require('../../../lib/errors');
-const { createFilter } = require('./util');
+const { createFilter, parseRelativeDateValue } = require('../../../lib/filter/util');
 
 const oneDayInMillis = 86400000; // 1000 * 60 * 60 * 24
 
@@ -10,7 +11,12 @@ function getShiftDate(d, days) {
 
 function date() {
   const { fieldPath, value } = this.data;
-  const midnight = new Date(value); // frontend must send user timezone midnight date
+  if (_.isNil(value)) {
+    // for DX group query
+    return { [fieldPath]: null };
+  }
+
+  const midnight = parseRelativeDateValue(value) || new Date(value); // frontend must send a midnight date in user timezone
   if (Number.isNaN(midnight.getTime())) {
     throw new ValidationError(`Invalid value '${value}' for filter by path '${fieldPath}'`);
   }

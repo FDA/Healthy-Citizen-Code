@@ -1,25 +1,24 @@
 <adp-form-field-container
-  adp-data="data"
-  adp-field="adpField">
+  adp-form-data="::adpFormData"
+  adp-field="::adpField">
 
-  <div class="inline-group">
+    <label class="label">
+        {{adpField.fullName}}
+        <adp-required-mark validation-params="validationParams"></adp-required-mark>
+
+        <adp-tooltip adp-field="adpField"></adp-tooltip>
+    </label>
+
     <boolean-control
-      field="adpField"
-      adp-form-data="adpFormData"
-      ui-props="adpFieldUiProps"
-      validation-params="validationParams"
+      field="::adpField"
+      adp-form-data="::adpFormData"
+      ui-props="::adpFieldUiProps"
+      validation-params="::validationParams"
     >
     </boolean-control>
 
-    <label class="checkbox checkbox-tooltip">
-      <adp-tooltip
-        adp-field="adpField">
-      </adp-tooltip>
-    </label>
-  </div>
-
-  <adp-messages
-    adp-field="adpField">
-  </adp-messages>
+    <adp-messages
+            adp-field="adpField">
+    </adp-messages>
 
 </adp-form-field-container>

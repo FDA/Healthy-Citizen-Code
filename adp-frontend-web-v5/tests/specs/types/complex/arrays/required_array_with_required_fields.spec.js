@@ -12,7 +12,8 @@ const {
 } = require('../../../../utils');
 
 const clickCheckboxForArrayIndex = async (index, name) => {
-  await this.page.click(`[name="array[${index}]"] [ng-field-name="${name}"] .dx-checkbox-icon`);
+  await this.page.click(`[name="array[${index}]"] [ng-field-name="${name}"] .dx-switch-handle`);
+  await this.page.waitFor(200);
 }
 
 describe('complex objects', () => {

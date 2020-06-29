@@ -14,13 +14,13 @@
     return {
       restrict: 'E',
       scope: {
-        adpField: '=',
-        adpFields: '=',
-        adpFormData: '=',
-        fieldSelection: '=',
-        schema: '=',
-        adpFormParams: '=?',
-        validationParams: '='
+        adpField: '<',
+        adpFields: '<',
+        adpFormData: '<',
+        fieldSelection: '<',
+        schema: '<',
+        adpFormParams: '<?',
+        validationParams: '<'
       },
       link: function (scope, element) {
         scope.uiProps = AdpFieldsService.getUiProps(scope.adpField);
@@ -66,10 +66,10 @@
           '<adp-form-field-' + scope.uiProps.directiveType,
             'ng-class="[className]"',
             'ng-if="display()"',
-            'adp-form-data="adpFormData"',
-            'adp-field-ui-props="uiProps"',
-            'validation-params="nextValidationParams"',
-            'adp-field="adpField"',
+            'adp-form-data="::adpFormData"',
+            'adp-field-ui-props="::uiProps"',
+            'validation-params="::nextValidationParams"',
+            'adp-field="::adpField"',
           '>',
           '</adp-form-field-' + scope.uiProps.directiveType + '>'
         ].join(' ');

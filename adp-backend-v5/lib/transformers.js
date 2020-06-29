@@ -6,7 +6,7 @@ const { ValidationError } = require('./errors');
  * Implements functionality required for "transform" attribute for the app model
  * NOTE: leaving log.trace calls commented out here because debugging those is very slow in WebStorm
  */
-module.exports = appLib => {
+module.exports = (appLib) => {
   const log = require('log4js').getLogger('lib/transformers');
   const async = require('async');
   const _ = require('lodash');
@@ -79,10 +79,9 @@ module.exports = appLib => {
         }
       } else if (type === 'validate') {
         if (m.appLib.appModelHelpers.Validators[handler.validator]) {
-          // try {
           const boundHandler = m.appLib.appModelHelpers.Validators[handler.validator].bind(data);
           process.nextTick(() => {
-            boundHandler(modelName, lodashPath, appModelPart, userContext, handler, err => {
+            boundHandler(modelName, lodashPath, appModelPart, userContext, handler, (err) => {
               if (err) {
                 cb(`${appModelPart.fullName}: ${err}`);
               } else {
@@ -205,7 +204,7 @@ module.exports = appLib => {
     function traverseAppModelPart(part, key, tPath, tCb) {
       async.series(
         [
-          cb1 => {
+          (cb1) => {
             // log.trace( `A:${part} R:${root} P:${path} K:${key}` );
             if (key === 'fields') {
               async.eachOfSeries(
@@ -219,7 +218,7 @@ module.exports = appLib => {
               cb1();
             }
           },
-          cb2 => {
+          (cb2) => {
             processor(part, key, tPath, cb2);
           },
         ],
@@ -265,14 +264,14 @@ module.exports = appLib => {
         appModelPath,
         (val, key, path, tCb) => {
           if (_.includes(attributes, key)) {
-            Promise.mapSeries(val, functionName => processor(key, functionName, val, path))
+            Promise.mapSeries(val, (functionName) => processor(key, functionName, val, path))
               .then(() => tCb())
-              .catch(err => tCb(err));
+              .catch((err) => tCb(err));
           } else {
             tCb();
           }
         },
-        err => {
+        (err) => {
           if (err) {
             cb(err);
           } else {
@@ -292,7 +291,7 @@ module.exports = appLib => {
       const fieldPath = path.concat(fieldKey);
       if (field.virtual === true) {
         if (_.isArray(data)) {
-          _.each(data, doc => {
+          _.each(data, (doc) => {
             appLib.accessUtil.clearField(doc, fieldPath, field);
           });
         } else {

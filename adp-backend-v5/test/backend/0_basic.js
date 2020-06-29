@@ -582,21 +582,19 @@ const sampleRequiredValidation = {
   },
 };
 
-const reqlib = require('app-root-path').require;
-
-const accessCfg = reqlib('/lib/access/access-config');
-const filterUtil = reqlib('/lib/filter/util');
+const accessCfg = require('../../lib/access/access-config');
+const filterUtil = require('../../lib/filter/util');
 // TODO: add check on transformation array of permissions to objects
-describe('V5 Core Utility', () => {
-  describe('validateAndCleanupAppModel', () => {
-    it('removes comments, adds type defaults, assumes type', () => {
+describe('V5 Core Utility', function () {
+  describe('validateAndCleanupAppModel', function () {
+    it('removes comments, adds type defaults, assumes type', function () {
       const appLib = {
         appModel: _.cloneDeep(sampleModel1),
         getAuthSettings: () => ({}),
         accessCfg,
         filterUtil,
       };
-      const mutil = reqlib('/lib/model')(appLib);
+      const mutil = require('../../lib/model')(appLib);
       const { errors, warnings } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(0, errors.join('\n')); // sampleModel1 has no errors
       const { M1 } = appLib.appModel.models;
@@ -616,14 +614,14 @@ describe('V5 Core Utility', () => {
       warnings.length.should.equal(0, errors.join('\n'));
     });
 
-    it('validates lookups', () => {
+    it('validates lookups', function () {
       const appLib = {
         appModel: _.cloneDeep(sampleModel2WithLookups),
         getAuthSettings: () => ({}),
         accessCfg,
         filterUtil,
       };
-      const mutil = reqlib('/lib/model')(appLib);
+      const mutil = require('../../lib/model')(appLib);
       const { errors } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(3, errors.join('\n'));
       errors[0].should.equal('Lookup in M3.fields.F1 refers to nonexisting collection "M0"');
@@ -631,21 +629,21 @@ describe('V5 Core Utility', () => {
       errors[2].should.equal('Lookup label "this.F1a" in M4.fields.F1 uses nonexisting fields: "F1a"');
     });
 
-    it('validates defaultSortBy', () => {
+    it('validates defaultSortBy', function () {
       const appLib = {
         appModel: _.cloneDeep(sampleModel3DefaultSortBy),
         getAuthSettings: () => ({}),
         accessCfg,
         filterUtil,
       };
-      const mutil = reqlib('/lib/model')(appLib);
+      const mutil = require('../../lib/model')(appLib);
       const { errors } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(3, errors.join('\n'));
       errors[0].should.equal('defaultSortBy in M2 has incorrect format, the sorting order must be either 1 or -1');
       errors[1].should.equal('defaultSortBy in M3 refers to nonexisting field "F2"');
       errors[2].should.equal('defaultSortBy in M4 has incorrect format, must be an object');
     });
-    it('validates validators and transformers presence', () => {
+    it('validates validators and transformers presence', function () {
       const appLib = {
         appModel: _.cloneDeep(sampleModel4ValidatorsAndTransformers),
         getAuthSettings: () => ({}),
@@ -657,7 +655,7 @@ describe('V5 Core Utility', () => {
         },
         filterUtil,
       };
-      const mutil = reqlib('/lib/model')(appLib);
+      const mutil = require('../../lib/model')(appLib);
       const { errors } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(4, errors.join('\n'));
       errors[0].should.equal(`Validator "validator0" doesn't exist in M2.fields.F1`);
@@ -667,7 +665,7 @@ describe('V5 Core Utility', () => {
         `Transformer "transformer2,transformer3,transformer4" doesn't look right in M2.fields.F1 (if array then must contain only two elements)`
       );
     });
-    it('validates required field contradictions', () => {
+    it('validates required field contradictions', function () {
       const appLib = {
         appModel: _.cloneDeep(sampleRequiredValidation),
         getAuthSettings: () => ({}),
@@ -675,7 +673,7 @@ describe('V5 Core Utility', () => {
         allActionsNames: [...accessCfg.DEFAULT_ACTIONS],
         filterUtil,
       };
-      const mutil = reqlib('/lib/model')(appLib);
+      const mutil = require('../../lib/model')(appLib);
       const { warnings } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       warnings.length.should.equal(5, warnings.join('\n'));
       warnings[0].should.equal(

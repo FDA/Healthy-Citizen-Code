@@ -9,9 +9,10 @@
     return {
       restrict: 'E',
       scope: {
-        adpField: '=',
-        adpIsError: '=',
-        adpIsSuccess: '='
+        adpField: '<',
+        adpFormData: '<',
+        adpIsError: '<',
+        adpIsSuccess: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-field-container/adp-form-field-container.html',
       require: '^^form',
@@ -26,37 +27,38 @@
           scope.field = scope.adpField;
           scope.form = formCtrl;
 
-          scope.$watch(function () { return angular.toJson(scope.form); }, watchHandler);
+          scope.successCondition = successCondition;
+          scope.errorCondition = errorCondition;
         }
 
-        function watchHandler() {
-          scope.model = scope.form[scope.field.fieldName];
-
-          if (_.isUndefined(scope.model)) {
-            return;
+        function successCondition() {
+          var model = scope.form[scope.field.fieldName];
+          if (_.isNil(model)) {
+            return false;
           }
 
-          evalErrorState();
-          evalSuccessState();
-        }
-
-        function evalErrorState() {
-          if (_.isUndefined(scope.adpIsError)) {
-            scope.errorCondition = (scope.form.$submitted || scope.model.$dirty) && scope.model.$invalid;
-          } else {
-            scope.errorCondition = scope.adpIsError();
-          }
-        }
-
-        function evalSuccessState() {
+          var successCondition;
           if (_.isUndefined(scope.adpIsSuccess)) {
-            scope.successCondition = scope.model.$dirty && scope.model.$valid;
+            successCondition = model.$dirty && model.$valid;
 
             if (!scope.field.required) {
-              scope.successCondition = scope.successCondition && !!scope.model.$viewValue;
+              return successCondition && !!model.$viewValue;
             }
           } else {
-            scope.successCondition = scope.adpIsSuccess();
+            return scope.adpIsSuccess();
+          }
+        }
+
+        function errorCondition() {
+          var model = scope.form[scope.field.fieldName];
+          if (_.isNil(model)) {
+            return false;
+          }
+
+          if (_.isUndefined(scope.adpIsError)) {
+            return (scope.form.$submitted || model.$dirty) && model.$invalid;
+          } else {
+            return scope.adpIsError();
           }
         }
       }

@@ -73,7 +73,8 @@ describe('show expression', () => {
           s2: true,
           b2: true,
         };
-        await this.page.click('[ng-field-name="b2"] .dx-checkbox-icon');
+        await this.page.click('[ng-field-name="b2"] .dx-switch-handle');
+        await this.page.waitFor(200);
 
         const actualSnapshot = await this.page.evaluate(getVisibilitySnapshot, selectors);
         expect(actualSnapshot).toEqual(expectedSnapshot);

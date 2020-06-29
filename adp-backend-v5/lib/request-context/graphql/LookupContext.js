@@ -36,7 +36,7 @@ module.exports = class LookupContext extends GraphQlContext {
     const searchConditions = [];
 
     if (filter.dxQuery) {
-      const dxQueryConditions = this.appLib.filterParser.parse(filter.dxQuery, this.appModel);
+      const { conditions: dxQueryConditions } = this.appLib.filterParser.parse(filter.dxQuery, this.appModel);
       searchConditions.push(dxQueryConditions);
     } else if (filter.q) {
       const term = _.get(filter, 'q');

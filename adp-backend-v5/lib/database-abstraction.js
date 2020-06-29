@@ -190,6 +190,7 @@ module.exports = (appLib) => {
   m.getPreparedItems = async ({ model, userContext, mongoParams, actionFuncs }) => {
     const docs = await m.aggregateItems({ model, mongoParams });
     const docsWithActions = appLib.accessUtil.addActionsToDocs(docs, actionFuncs);
+    // return m.postTransform(docsWithActions, model.modelName, userContext);
     return m.postTransform(docsWithActions, model.modelName, userContext);
   };
 

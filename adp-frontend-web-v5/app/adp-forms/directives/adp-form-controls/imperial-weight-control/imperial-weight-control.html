@@ -1,21 +1,7 @@
-<label class="select">
-  <select
-    adp-select2
-    data-options="options"
-    style="width:100%"
-    aria-label="{{field.fieldName}}"
-    class="select2 form-control"
-    ng-required="isRequired()"
-    adp-validate="validationParams"
-    name="{{field.fieldName}}"
-    ng-model="adpFormData[field.fieldName]"
-    id="{{field.fieldName}}">
-    <option value=""></option>
-
-    <option
-      ng-repeat="rangeItem in rangeList track by $index"
-      value="{{rangeItem.value}}">
-      {{rangeItem.label}}
-    </option>
-  </select>
-</label>
+<div
+  dx-select-box="config"
+  adp-validate="validationParams"
+  ng-required="isRequired()"
+  name="{{field.fieldName}}"
+  ng-model="adpFormData[field.fieldName]"
+></div>

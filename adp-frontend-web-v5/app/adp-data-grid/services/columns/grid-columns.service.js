@@ -35,8 +35,17 @@
 
     function schemaToColumn(gridFields, schema) {
       return gridFields.map(function (field) {
-        return createColumn(field, schema);
+        var column = createColumn(field, schema);
+        injectColumnOptionsFromSchema(column, field.parameters);
+
+        return column;
       });
+    }
+
+    function injectColumnOptionsFromSchema(column, parameters) {
+      var helpersPaths = ['headerFilter.dataSource', 'calculateFilterExpression'];
+      var parametersToMerge = _.omit(parameters, helpersPaths);
+      _.merge(column, parametersToMerge);
     }
 
     function createColumn(field, schema) {
@@ -50,32 +59,53 @@
         hidingPriority: field.responsivePriority,
         filterOperations: FilterOperation.get(field),
         allowFiltering: field.showInDatatable && isFilteringAllowed,
-        allowSearch: field.showInDatatable && isFilteringAllowed && isSearchAllowed(field),
-        calculateFilterExpression: CustomFilterExpression(field),
+        calculateFilterExpression: CustomFilterExpression(field, schema),
         selectedFilterOperation:  FilterOperation.getSelected(field),
         cellTemplate: function (container, cellInfo) {
           container.append(getTemplateForField(field, schema, cellInfo.data));
         },
         groupCellTemplate: function (container, cellInfo) {
-          var rowData = {};
+          // refactor: it's too complex, better to keep inside some service
           var summaryText = "";
+          var findFormat = function (columnName) {
+            var summaryItem = _.find(cellInfo.summaryItems, function (item) {
+              return columnName === item.column;
+            });
+
+            return _.get(summaryItem, 'valueFormat', null);
+          };
+
+          var formatValue = function (val, columnName) {
+            var modelSchema = schema.fields[columnName];
+            var format = findFormat(columnName) || 'currency';
+
+            if (modelSchema.type === 'Currency') {
+              var formatted = DevExpress.localization.formatNumber(val, format);
+              return _.isNil(formatted) ? GRID_FORMAT.EMPTY_VALUE : formatted;
+            }
+
+            var rowData = {};
+            rowData[modelSchema.fieldName] = val;
+            var argsArray = [modelSchema, schema, rowData];
+            var templateFn = modelSchema.type === 'TreeSelector' ? getTextTemplateForField : getTemplateForField;
+
+            return templateFn.apply(null, argsArray);
+          };
 
           if (cellInfo.summaryItems) {
             summaryText = _.map(cellInfo.summaryItems,
               function (item) {
                 if (item.displayFormat) {
-                  return item.displayFormat.replace("{0}", item.value);
+                  return item.displayFormat.replace("{0}", formatValue(item.value, item.column));
                 } else {
-                  return item.summaryType[0].toUpperCase() + item.summaryType.substr(1) + " of "
-                    + item.columnCaption + ": " + item.value;
+                  return _.startCase(item.summaryType) + " of "
+                    + item.columnCaption + ": " + formatValue(item.value, item.column);
                 }
               })
               .join(", ");
           }
 
-          rowData[field.fieldName] = cellInfo.data.key;
-
-          var tpl = "<p>" + field.fullName + ": " + getTemplateForField(field, schema, rowData) +
+          var tpl = "<p>" + field.fullName + ": " + formatValue(cellInfo.data.key, cellInfo.column.dataField) +
             (summaryText ? ". " + summaryText : "") + " </p>";
 
           if (cellInfo.data.isContinuationOnNextPage) {
@@ -89,8 +119,9 @@
             (FilterOperation.hasBetweenOperation(field.type) && event.target === 'filterRow')
             || _.includes(['filterPanel', 'filterBuilder'], event.target)
           ) {
-            var args = getCustomTextArgs(field, schema, event.value);
-            var filterContent = HtmlCellRenderer(args)(args);
+            var rowData = {};
+            rowData[field.fieldName] = event.value;
+            var filterContent = getTextTemplateForField(field, schema, rowData);
 
             return filterContent === GRID_FORMAT.EMPTY_VALUE ?
               GRID_FORMAT.NOT_SET_FILTER_VALUE :
@@ -111,6 +142,14 @@
       return templateFn(args);
     }
 
+    function getTextTemplateForField(field, schema, rowData) {
+      var args = getTemplateArguments(field, schema, rowData);
+      args.params = { asText: true };
+      var templateFn = HtmlCellRenderer(args);
+
+      return templateFn(args);
+    }
+
     function getTemplateArguments(field, schema, recordData) {
       return AdpUnifiedArgs.getHelperParamsWithConfig({
         path: field.fieldName,
@@ -118,22 +157,6 @@
         action: ACTIONS.VIEW,
         schema: schema,
       });
-    }
-
-    function getCustomTextArgs(field, schema, value) {
-      var rowData = {};
-      rowData[field.fieldName] = value;
-      var args = getTemplateArguments(field, schema, rowData);
-      args.params = { asText: true };
-
-      return args;
-    }
-
-    function isSearchAllowed(field) {
-      var disallowedTypes = ["ObjectID"];
-      var type = AdpSchemaService.getFieldType(field);
-
-      return disallowedTypes.indexOf(type) === -1;
     }
   }
 })();

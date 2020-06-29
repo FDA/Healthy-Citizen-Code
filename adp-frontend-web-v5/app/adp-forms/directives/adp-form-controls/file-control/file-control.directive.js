@@ -9,10 +9,10 @@
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/file-control/file-control.html',
       require: '^^form',

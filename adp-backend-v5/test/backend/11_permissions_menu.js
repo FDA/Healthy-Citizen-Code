@@ -1,7 +1,6 @@
 const request = require('supertest');
 const _ = require('lodash');
 require('should');
-const reqlib = require('app-root-path').require;
 
 const { getSchemaNestedPaths } = require('../../lib/util/env');
 
@@ -9,7 +8,7 @@ const {
   auth: { user, loginWithUser },
   getMongoConnection,
   prepareEnv,
-} = reqlib('test/test-util');
+} = require('../test-util');
 
 const menuPart = {
   interface: {
@@ -208,20 +207,20 @@ const authPart = {
   },
 };
 
-describe('V5 Backend Menu Permissions', () => {
-  before(async function() {
+describe('V5 Backend Menu Permissions', function () {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.collection('users').deleteMany({}),
       this.db.collection('mongoMigrateChangeLog').deleteMany({}),
@@ -229,11 +228,11 @@ describe('V5 Backend Menu Permissions', () => {
     await Promise.all([this.db.collection('users').insertOne(user)]);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
-  it('should correctly strip down menu for user', async function() {
+  it('should correctly strip down menu for user', async function () {
     const { appLib } = this;
     appLib.setOptions({
       appModelSources: [...getSchemaNestedPaths('model'), menuPart, authPart],

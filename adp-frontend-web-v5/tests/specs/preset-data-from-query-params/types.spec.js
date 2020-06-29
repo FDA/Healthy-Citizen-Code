@@ -9,7 +9,6 @@ const {
 } = require('../../utils');
 const {
   getDxSingleListValue,
-  getSingleSelectValueByName,
   getDxMultipleListValue,
   getImperialUnitMultipleValue,
 } = require('../../utils/select.helpers');
@@ -116,7 +115,7 @@ describe('data presetting', () => {
         };
 
         await presetDataAndWaitForSelector(dataToPreset, this.page);
-        const actualValue = await getSingleSelectValueByName('imperialWeight', this.page);
+        const actualValue = await getDxSingleListValue('imperialWeight', this.page);
         const expectedValue = '1lb';
 
         expect(actualValue).toBe(expectedValue);
@@ -160,7 +159,7 @@ describe('data presetting', () => {
 
       { type: 'Text', name: 'text', expected: 'lorem', },
       { type: 'Email', name: 'email', expected: 'some@some', },
-      { type: 'Phone', name: 'phone', expected: '+79994448388', },
+      { type: 'Phone', name: 'phone', expected: '799-944-4838', },
       { type: 'Number', name: 'number', expected: '123', },
     ];
 
@@ -175,15 +174,13 @@ describe('data presetting', () => {
 
           await presetDataAndWaitForSelector(dataToPreset, this.page);
           let selector = `[name="${testDef.name}"]`;
-          if (['String', 'Email', 'Phone'].includes(testDef.type)) {
-            selector += ' input';
-          } else if (testDef.type === 'Text') {
-            selector += ' textarea';
-          }
+          selector += (testDef.type === 'Text' ? ' textarea' : ' .dx-texteditor-input');
 
           const actualValue = await this.page.$eval(selector, el => el.value);
+          const expectedValue = ['Date', 'DateTime', 'Time'].includes(testDef.type) ?
+            testDef.expected.toUpperCase() : testDef.expected;
 
-          expect(actualValue).toBe(testDef.expected);
+          expect(actualValue).toBe(expectedValue);
         });
     }
   });

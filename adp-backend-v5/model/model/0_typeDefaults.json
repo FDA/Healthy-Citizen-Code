@@ -8,7 +8,8 @@
           "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false
-          }
+          },
+          "allowSearch": false
         }
       },
       "AssociativeArray": {
@@ -17,7 +18,8 @@
           "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false
-          }
+          },
+          "allowSearch": false
         }
       },
       "Object": {
@@ -26,33 +28,48 @@
           "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false
-          }
+          },
+          "allowSearch": false
         }
       },
       "Mixed": {
         "width": 200,
         "parameters": {
-          "enableInCellEditing": false,
+          "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false
-          }
+          },
+          "allowSearch": false
         }
       },
       "BloodPressure": {
         "parameters": {
           "grouping": {
             "allowGrouping": false
-          }
+          },
+          "allowSearch": false
         }
       },
       "Html": {
         "parameters": {
+          "renderAsHtml": false,
+          "maxDatagridCellHeight": 200,
           "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false,
             "allowExpandGroup": false
           },
-          "minWidth": 100
+          "minWidth": 100,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true,
+          "editor": {
+            "resize_minHeight": 54,
+            "resize_maxHeight": 270
+          }
         }
       },
       "Code": {
@@ -62,7 +79,13 @@
             "allowGrouping": false,
             "allowExpandGroup": false
           },
-          "minWidth": 100
+          "minWidth": 100,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "String": {
@@ -70,12 +93,19 @@
         "transform": ["trim"],
         "autocomplete": "enable",
         "parameters": {
+          "renderAsHtml": false,
           "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
           },
-          "minWidth": 100
+          "minWidth": 100,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "String[]": {
@@ -85,7 +115,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         },
         "width": 150
       },
@@ -93,29 +129,83 @@
         "autocomplete": "enable",
         "width": 150,
         "parameters": {
-          "enableInCellEditing": true
-        }
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        },
+        "transform": [["null", "stringifyLookupObjectId"]]
       },
       "LookupObjectID[]": {
         "autocomplete": "enable",
         "width": 150,
         "parameters": {
-          "enableInCellEditing": true
-        }
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        },
+        "transform": [["null", "stringifyLookupObjectId"]]
       },
       "TreeSelector": {
         "autocomplete": "enable",
-        "width": 150
+        "width": 150,
+        "parameters": {
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true,
+          "grouping": {
+            "allowGrouping": false,
+            "allowExpandGroup": false
+          }
+        },
+        "transform": [["null", "stringifyTreeSelector"]]
       },
       "DateTime": {
-        "width": 150
+        "width": 150,
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
       },
       "Date": {
-        "width": 150
+        "width": 150,
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
       },
       "Time": {
         "width": 150,
-        "transform": [["time", "null"]]
+        "transform": [["time", "null"]],
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
       },
       "Number": {
         "autocomplete": "enable",
@@ -124,7 +214,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "Double": {
@@ -134,7 +230,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "Int32": {
@@ -144,7 +246,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         },
         "validate": [
           {
@@ -163,7 +271,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         },
         "validate": [
           {
@@ -182,7 +296,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         },
         "validate": [
           {
@@ -193,7 +313,83 @@
             }
           }
         ],
-        "transform": [["null", "toString"]]
+        "transform": [["null", "decimalToString"]]
+      },
+      "Int32[]": {
+        "autocomplete": "enable",
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        },
+        "validate": [
+          {
+            "validator": "int32",
+            "arguments": {},
+            "errorMessages": {
+              "default": "Please enter correct int32 value"
+            }
+          }
+        ]
+      },
+      "Int64[]": {
+        "autocomplete": "enable",
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        },
+        "validate": [
+          {
+            "validator": "int64",
+            "arguments": {},
+            "errorMessages": {
+              "default": "Please enter correct int64 value"
+            }
+          }
+        ]
+      },
+      "Decimal128[]": {
+        "autocomplete": "enable",
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        },
+        "validate": [
+          {
+            "validator": "decimal128",
+            "arguments": {},
+            "errorMessages": {
+              "default": "Please enter correct decimal value"
+            }
+          }
+        ],
+        "transform": [["null", "decimalToString"]]
       },
       "Boolean": {
         "width": 120,
@@ -202,11 +398,32 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "ObjectID": {
         "width": 120
+      },
+      "Currency": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
       },
       "Schema": {
         "generatorSpecification": [
@@ -502,6 +719,20 @@
                 "type": "module",
                 "link": "AdpGridColumnChooser"
               }
+            },
+            "filterBuilder": {
+              "permissions": "accessAsUser",
+              "position": "grid.top.right",
+              "showInTable": false,
+              "description": "Advanced Filtering Expressions Builder",
+              "icon": {
+                "type": "font-awesome",
+                "link": "search-plus"
+              },
+              "action": {
+                "type": "module",
+                "link": "AdpFilterBuilder"
+              }
             }
           }
         },
@@ -511,6 +742,9 @@
           "columnResizingMode": "widget",
           "columnHidingEnabled": true,
           "filterRow": {
+            "visible": true
+          },
+          "headerFilter": {
             "visible": true
           },
           "columnChooser": {
@@ -565,7 +799,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "Email": {
@@ -588,7 +828,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "Url": {
@@ -612,7 +858,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "Phone": {
@@ -621,7 +873,7 @@
           {
             "validator": "regex",
             "arguments": {
-              "regex": "^(\\+1\\s?)?((\\([2-9][0-9]{2}\\))|[2-9][0-9]{2})[\\s\\-]?[2-9][0-9]{2}[\\s\\-]?[0-9]{4}$",
+              "regex": "^[2-9][0-9]{2}[2-9][0-9]{6}$",
               "regexOptions": "i"
             },
             "errorMessages": {
@@ -635,7 +887,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "Text": {
@@ -646,7 +904,13 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "ImperialHeight": {
@@ -663,57 +927,166 @@
               "default": "This height doesn't look reasonable, should be more than 1\" less than 8'11\""
             }
           }
-        ]
+        ],
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
       },
       "ImperialWeight": {
         "width": 150,
         "transform": ["trim", ["weightImperialToMetric", "weightMetricToImperial"]],
-        "validate": ["min(1)", "max(1000)"]
+        "validate": ["min(1)", "max(1000)"],
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
       },
       "ImperialWeightWithOz": {
         "width": 150,
-        "transform": ["trim", ["weightImperialWithOzToMetric", "weightMetricToImperialWithOz"]]
+        "transform": ["trim", ["weightImperialWithOzToMetric", "weightMetricToImperialWithOz"]],
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
       },
-       "File": {
-         "parameters": {
-           "enableInCellEditing": true
-         }
-       },
-       "Image": {
-         "parameters": {
-           "enableInCellEditing": true
-         }
-       },
-       "Audio": {
-         "parameters": {
-           "enableInCellEditing": true
-         }
-       },
-       "Video": {
-         "parameters": {
-           "enableInCellEditing": true
-         }
-       },
-       "File[]": {
-         "parameters": {
-           "enableInCellEditing": true
-         }
-       },
-       "Image[]": {
-         "parameters": {
-           "enableInCellEditing": true
-         }
-       },
-       "Audio[]": {
-         "parameters": {
-           "enableInCellEditing": true
-         }
-       },
-       "Video[]": {
-         "parameters": {
-           "enableInCellEditing": true
-         }
-       }
+      "File": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "Image": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "Audio": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "Video": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "File[]": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "Image[]": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "Audio[]": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "Video[]": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "Blank": {
+        "showInForm": true,
+        "showInDatatable": false,
+        "showInViewDetails": false,
+        "showInGraphql": false,
+        "virtual": true,
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": false
+          },
+          "allowHeaderFiltering": false,
+          "headerFilter": {
+            "allowSearch": false
+          },
+          "allowSearch": false
+        }
+      }
     }
   },
   "subtypeDefaults": {
@@ -795,7 +1168,7 @@
           {
             "validator": "regex",
             "arguments": {
-              "regex": "^(\\+1\\s?)?((\\([2-9][0-9]{2}\\))|[2-9][0-9]{2})[\\s\\-]?[2-9][0-9]{2}[\\s\\-]?[0-9]{4}$",
+              "regex": "^[2-9][0-9]{2}[2-9][0-9]{6}$",
               "regexOptions": "i"
             },
             "errorMessages": {
@@ -863,6 +1236,48 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
+          }
+        }
+      },
+      "List": {
+        "width": 150,
+        "list": {
+          "scopes": {
+            "userScope": {
+              "permissions": {
+                "view": "accessAsUser"
+              },
+              "where": "return true",
+              "return": "return $list"
+            }
+          }
+        },
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": false,
+            "allowExpandGroup": false
+          }
+        }
+      },
+      "List[]": {
+        "width": 150,
+        "list": {
+          "scopes": {
+            "userScope": {
+              "permissions": {
+                "view": "accessAsUser"
+              },
+              "where": "return true",
+              "return": "return $list"
+            }
+          },
+        },
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": false,
+            "allowExpandGroup": false
           }
         }
       }

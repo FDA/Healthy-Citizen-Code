@@ -152,11 +152,15 @@ function createTypeByModel(model, modelName, composerType) {
   return createType(model, modelName, composerType, typeName);
 }
 
+const { createPaginationTC } = require('../pagination/preparePaginationType');
+
 function updateOutputAndInputTypesByModel(model, modelName) {
   createTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT);
-  createTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT_WITH_ACTIONS);
   createTypeByModel(model, modelName, COMPOSER_TYPES.INPUT);
   createTypeByModel(model, modelName, COMPOSER_TYPES.INPUT_WITHOUT_ID);
+
+  const outputWithActionsType = createTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT_WITH_ACTIONS);
+  createPaginationTC(outputWithActionsType);
 }
 
 module.exports = {

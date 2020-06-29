@@ -1,17 +1,20 @@
 import 'babel-polyfill'
 import * as Three from 'three';
-import * as Fg from '3d-force-graph';
-import * as SpriteText from 'three-spritetext'
-import * as OrbitControls from 'three-orbit-controls'
-import * as FgVr from '3d-force-graph-vr';
-import * as Color from 'color'
+import Fg from '3d-force-graph';
+import FgVr from '3d-force-graph-vr';
+import SpriteText from 'three-spritetext'
+import OrbitControls from 'three-orbit-controls'
+import Color from 'color'
+import SimpleBar from 'simplebar'
 
 import './less/style.less'
 import './less/a-style.css'
+import 'simplebar/dist/simplebar.min.css'
 
 window.Three = Three;
-window.ForceGraph = Fg.default;
-window.SpriteText = SpriteText.default;
-window.OrbitControls = OrbitControls.default(Three);
-window.ForceGraphVr = FgVr.default;
-window.Color = Color.default;
+window.Color = Color;
+window.ForceGraph = Fg;
+window.SpriteText = SpriteText;
+window.OrbitControls = OrbitControls(Three);
+window.ForceGraphVr = FgVr;
+window.SimpleBar = SimpleBar;

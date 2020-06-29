@@ -1,9 +1,9 @@
-const Queue = require('bull');
 const Promise = require('bluebird');
 const _ = require('lodash');
 const log = require('log4js').getLogger('lib/queue');
 const QueueError = require('../errors/queue-error');
 const { getRedisConnection } = require('../util/redis');
+const { Queue } = require('./util');
 
 const { BULL_REMOVE_ON_COMPLETE, BULL_REMOVE_ON_FAIL } = process.env;
 const REMOVE_ON_COMPLETE = ['true', 'false'].includes(BULL_REMOVE_ON_COMPLETE)
@@ -78,7 +78,7 @@ module.exports = (options) => {
 
     const additionalOptions = {
       defaultJobOptions: { removeOnComplete: REMOVE_ON_COMPLETE, removeOnFail: REMOVE_ON_FAIL },
-      keyPrefix,
+      prefix: keyPrefix,
       createClient,
     };
     const lastIndex = args.length - 1;

@@ -36,13 +36,14 @@
       } else {
         var items = GraphqlCollectionFields.get(schema);
         return [
-          'query q($sort: String, $page: Int, $perPage: Int, $dxQuery: String!',qfType,') {',
+          'query q($sort: String, $page: Int, $perPage: Int, $dxQuery: String!',qfType,', $isGroupFilter: Boolean) {',
             queryName,
             '(',
               'sort: $sort,',
               'page: $page,',
               'perPage: $perPage,',
               'filter: { dxQuery: $dxQuery', qfValue, '},',
+              'isGroupFilter: $isGroupFilter',
             ') {',
               'count',
               items,

@@ -11,34 +11,26 @@
   ) {
     function createFilterComponent(options) {
       var editorName = 'dxSelectBox';
-      var editorOptions = {
+      var defaults = {
         value: options.value,
         valueExpr: 'value',
         displayExpr: 'label',
-        dataSource: getDataSource(options.unit),
+        dataSource: options.unit.list,
         onValueChanged: options.onValueChanged,
         placeholder: 'Select ' + options.unit.shortName,
         showClearButton: true,
         elementAttr: {
           class: 'adp-select-box adp-imperial-units-multiple',
+          id: options.attrId,
         },
       };
 
+      var editorOptions = AdpFieldsService.configFromParameters(options.modelSchema, defaults);
       return options.element[editorName](editorOptions);
     }
 
-    function getDataSource(unit) {
-      var begin = unit.range[0];
-      var end = unit.range[1];
-      var unitRange = _.range(begin, end);
-
-      return _.map(unitRange, function (i) {
-        return { value: i, label: i + unit.label };
-      });
-    }
-
     function getUnits(modelSchema) {
-      return AdpFieldsService.getUnits(modelSchema);
+      return AdpFieldsService.getUnitsList(modelSchema);
     }
 
     function createRangePlaceholderElement(placeholder) {

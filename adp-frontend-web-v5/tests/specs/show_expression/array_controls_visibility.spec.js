@@ -66,7 +66,8 @@ describe('show expression', () => {
     test(
       'should show Array label and AddItem button if show is true',
       async () => {
-        await this.page.click('[ng-field-name="b1"] .dx-checkbox-icon');
+        await this.page.click('[ng-field-name="b1"] .dx-switch-handle');
+        await this.page.waitFor(200);
 
         const expected = {
           label: true,
@@ -80,7 +81,9 @@ describe('show expression', () => {
     test(
       'should show Array label and AddItem button if array has no items',
       async () => {
-        await this.page.click('[ng-field-name="b1"] .dx-checkbox-icon');
+        await this.page.click('[ng-field-name="b1"] .dx-switch-handle');
+        await this.page.waitFor(200);
+
         const removeArrayElemSelector = getRemoveArrayElemSelector('a1', 0);
         await this.page.click(removeArrayElemSelector);
 

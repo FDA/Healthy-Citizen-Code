@@ -62,6 +62,7 @@ function getEventManager(appLib) {
       async hook({ data, socketFilter, authFilter, context }) {
         const ioNamespace = this;
         const sockets = await filterSockets({ appLib, ioNamespace, socketFilter, authFilter, context });
+        console.log(`Emitting ${JSON.stringify(data)} to sockets ${sockets.map((s) => s.id)}`);
         _.each(sockets, (socket) => {
           socket.emit('message', data);
         });

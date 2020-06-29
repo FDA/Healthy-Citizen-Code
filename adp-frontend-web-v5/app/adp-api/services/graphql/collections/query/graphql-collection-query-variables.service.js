@@ -6,7 +6,7 @@
     .factory('GraphqlCollectionQueryVariables', GraphqlCollectionQueryVariables);
 
   /** @ngInject */
-  function GraphqlCollectionQueryVariables() {
+  function GraphqlCollectionQueryVariables(GraphqlHelper) {
     return function (params) {
       var ret;
 
@@ -15,14 +15,15 @@
           group: params.group || [],
           groupSummary: params.groupSummary || [],
           totalSummary: params.totalSummary || [],
-          dxQuery: dxQuery(params.filter),
+          dxQuery: dxQuery(params),
           skip: params.skip,
           take: params.take,
         };
       } else {
         ret = {
           sort: sort(params.sort),
-          dxQuery: dxQuery(params.filter),
+          dxQuery: dxQuery(params),
+          isGroupFilter: params.isGroupFilter,
         };
 
         if (params.take) {
@@ -52,7 +53,15 @@
       return '{' + sortParams.join(', ') + '}';
     }
 
-    function dxQuery(filter) {
+    function dxQuery(params) {
+      var filter = params.filter;
+      var buildFilter = params.customOptions && _.clone(params.customOptions.filterBuilder);
+
+      if (buildFilter && buildFilter.length) {
+        buildFilter = GraphqlHelper.processCustomTypedValues(buildFilter);
+        filter = filter ? [filter, buildFilter] : buildFilter;
+      }
+
       if (!filter) {
         return '';
       }

@@ -7,29 +7,27 @@ require('should');
 const assert = require('assert');
 const mongoose = require('mongoose');
 const request = require('supertest');
-const reqlib = require('app-root-path').require;
+const { prepareEnv, getMongoConnection } = require('../test-util');
 
-const { prepareEnv, getMongoConnection } = reqlib('test/test-util');
-
-describe('V5 Backend Routes Functionality', () => {
-  before(async function() {
+describe('V5 Backend Routes Functionality', function () {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     await this.appLib.setup();
-    this.dba = reqlib('/lib/database-abstraction')(this.appLib);
+    this.dba = require('../../lib/database-abstraction')(this.appLib);
     this.M6 = mongoose.model('model6s');
     this.appLib.authenticationCheck = (req, res, next) => next(); // disable authentication
   });
 
-  after(async function() {
+  after(async function () {
     await this.appLib.shutdown();
     const db = await getMongoConnection();
     await db.dropDatabase();
     await db.close();
   });
 
-  describe('GET /lists', () => {
-    it('responds with list of lists', function(done) {
+  describe('GET /lists', function () {
+    it('responds with list of lists', function (done) {
       request(this.appLib.app)
         .get('/lists')
         .set('Accept', 'application/json')

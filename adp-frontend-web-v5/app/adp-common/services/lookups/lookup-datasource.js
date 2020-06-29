@@ -24,12 +24,22 @@
         pageSize: 15,
         load: setFetchFn(args, selectedTable),
         key: '_id',
-        byKey: function () {
-          return Promise.resolve(args.data);
+        byKey: function (key) {
+          return Promise.resolve(selectItemByKey(args.data, key));
         }
       };
 
       return options;
+    }
+
+    function selectItemByKey(data, key) {
+      if (_.isArray(data)) {
+        return _.find(data, function (i) {
+          return key === i._id;
+        });
+      } else {
+        return data;
+      }
     }
 
     function setFetchFn(args, selectedTable) {

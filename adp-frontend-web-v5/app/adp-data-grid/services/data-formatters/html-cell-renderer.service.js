@@ -21,9 +21,13 @@
     GRID_FORMAT
   ) {
     var htmlCellRenderers = {
+      'Phone': BasicTypesCellRenderer.phone,
       'Password': BasicTypesCellRenderer.password,
       'String[]': BasicTypesCellRenderer.stringArray,
+      'Int32[]': BasicTypesCellRenderer.stringArray,
+      'Int64[]': BasicTypesCellRenderer.stringArray,
       'Number': BasicTypesCellRenderer.number,
+      'Currency': BasicTypesCellRenderer.currency,
       'Boolean': BasicTypesCellRenderer.boolean,
 
       'Date': DateTypesCellRenderer.date,
@@ -59,7 +63,8 @@
 
       'Mixed': MixedTypeCellRenderer.treeView,
       'TreeSelector': TreeSelectorCellRenderer.treeView,
-      'Html': BasicTypesCellRenderer.htmlType,
+      'Html': BasicTypesCellRenderer.escapedHtmlOrRawHtml,
+      String: BasicTypesCellRenderer.stringOrHtml,
       custom: CustomRender,
     };
 

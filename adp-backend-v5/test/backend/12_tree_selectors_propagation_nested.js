@@ -4,24 +4,22 @@ const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
-const reqlib = require('app-root-path').require;
-
 const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
   checkRestSuccessfulResponse,
   conditionForActualRecord,
-} = reqlib('test/test-util');
+} = require('../test-util');
 const {
   buildGraphQlUpdateOne,
   buildGraphQlDeleteOne,
   buildGraphQlQuery,
   checkGraphQlSuccessfulResponse,
   checkGraphQlErrorResponse,
-} = reqlib('test/graphql-util.js');
+} = require('../graphql-util.js');
 
-describe('V5 TreeSelectors propagation (nested)', () => {
+describe('V5 TreeSelectors propagation (nested)', function () {
   const parent = {
     _id: ObjectID('5c6d437f9ea7665b9d924b00'),
     name: 'parent',
@@ -86,19 +84,19 @@ describe('V5 TreeSelectors propagation (nested)', () => {
     ...conditionForActualRecord,
   };
 
-  before(async function() {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.collection('treeCollection').deleteMany({}),
       this.db.collection('model11treeselector_nested_propagation').deleteMany({}),
@@ -115,17 +113,17 @@ describe('V5 TreeSelectors propagation (nested)', () => {
     return this.appLib.setup();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
-  describe(`should update TreeSelector lookups labels and data when parent's record is updated`, () => {
+  describe(`should update TreeSelector lookups labels and data when parent's record is updated`, function () {
     const docId = parent._id.toString();
     const modelName = 'treeCollection';
     const record = {
       name: 'new_parent_name',
     };
-    const getTestFunc = function(settings) {
+    const getTestFunc = function (settings) {
       return f;
 
       async function f() {
@@ -141,7 +139,7 @@ describe('V5 TreeSelectors propagation (nested)', () => {
       }
     };
 
-    const checkTreeselectorPropagation = async db => {
+    const checkTreeselectorPropagation = async (db) => {
       const id = model11treeselectorNestedSample._id;
       const doc = await db.collection('model11treeselector_nested_propagation').findOne({ _id: id });
 
@@ -184,12 +182,12 @@ describe('V5 TreeSelectors propagation (nested)', () => {
       });
     };
     const restSettings = {
-      makeRequest: r => r.put(`/${modelName}/${docId}`).send({ data: record }),
+      makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
       checkResponse: checkRestSuccessfulResponse,
       checkTreeselectorPropagation,
     };
     const graphqlSettings = {
-      makeRequest: r => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
+      makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
       checkResponse: checkGraphQlSuccessfulResponse,
       checkTreeselectorPropagation,
     };
@@ -203,16 +201,14 @@ describe('V5 TreeSelectors propagation (nested)', () => {
       getTestFunc(graphqlSettings)
     );
   });
-  describe(`should handle TreeSelector lookups when leaf without record label field is deleted`, () => {
+  describe(`should handle TreeSelector lookups when leaf without record label field is deleted`, function () {
     // More info about handling here: https://confluence.conceptant.com/display/DEV/Tree+Selector+Control
-    const getTestFunc = function(settings) {
+    const getTestFunc = function (settings) {
       return f;
 
       async function f() {
         const { delRequest, getRequest, putRequest, checkGetResponse, checkPutResponse } = settings;
-        await delRequest(request(this.appLib.app))
-          .set('Accept', 'application/json')
-          .expect('Content-Type', /json/);
+        await delRequest(request(this.appLib.app)).set('Accept', 'application/json').expect('Content-Type', /json/);
 
         const getRes = await getRequest(request(this.appLib.app))
           .set('Accept', 'application/json')
@@ -225,7 +221,7 @@ describe('V5 TreeSelectors propagation (nested)', () => {
         checkPutResponse(putRes);
       }
     };
-    const treeSelectorDataAllItems = treeSelectorData.map(elem => ({
+    const treeSelectorDataAllItems = treeSelectorData.map((elem) => ({
       ...elem,
       _id: elem._id.toString(),
     }));
@@ -274,19 +270,19 @@ describe('V5 TreeSelectors propagation (nested)', () => {
       },
     };
     const restSettings = {
-      delRequest: r => r.del(`/${treeCollectionName}/${treeDocId}`),
-      getRequest: r => r.get(`/${propagationCollectionName}/${nestedDocId}`),
-      checkGetResponse: res => {
+      delRequest: (r) => r.del(`/${treeCollectionName}/${treeDocId}`),
+      getRequest: (r) => r.get(`/${propagationCollectionName}/${nestedDocId}`),
+      checkGetResponse: (res) => {
         res.body.success.should.equal(true);
         const { data } = res.body;
 
         should(data).be.deepEqual({ ...getRecord, deletedAt: new Date(0).toISOString() });
       },
-      putRequest: r =>
+      putRequest: (r) =>
         r.put(`/${propagationCollectionName}/${nestedDocId}`).send({
           data: putRecord,
         }),
-      checkPutResponse: res => {
+      checkPutResponse: (res) => {
         const { success, message } = res.body;
         should(success).be.equal(false);
 
@@ -306,14 +302,14 @@ describe('V5 TreeSelectors propagation (nested)', () => {
     const lookupFields = 'table label _id';
     const selectFields = `items { _id nested { array1 { array2 { treeSelectorRequiredAllowedNode{${lookupFields}} treeSelectorRequiredNotAllowedNode{${lookupFields}} treeSelectorNotRequiredAllowedNode{${lookupFields}} treeSelectorNotRequiredNotAllowedNode{${lookupFields}} } } }}`;
     const graphqlSettings = {
-      delRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(treeCollectionName, treeDocId)),
-      getRequest: r =>
+      delRequest: (r) => r.post('/graphql').send(buildGraphQlDeleteOne(treeCollectionName, treeDocId)),
+      getRequest: (r) =>
         r.post('/graphql').send(buildGraphQlQuery(propagationCollectionName, `{_id: '${nestedDocId}' }`, selectFields)),
-      checkGetResponse: res => {
+      checkGetResponse: (res) => {
         const data = res.body.data[propagationCollectionName].items[0];
         should(data).be.deepEqual({ ...getRecord });
       },
-      putRequest: r =>
+      putRequest: (r) =>
         r.post('/graphql').send(buildGraphQlUpdateOne(propagationCollectionName, putRecord, nestedDocId)),
       checkPutResponse: checkGraphQlErrorResponse,
     };

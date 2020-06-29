@@ -2,8 +2,6 @@ const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
-const reqlib = require('app-root-path').require;
-
 const {
   getMongoConnection,
   setAppAuthOptions,
@@ -11,10 +9,10 @@ const {
   checkRestSuccessfulResponse,
   conditionForActualRecord,
   checkForEqualityConsideringInjectedFields,
-} = reqlib('test/test-util');
-const { buildGraphQlUpdateOne, buildGraphQlQuery, checkGraphQlSuccessfulResponse } = reqlib('test/graphql-util.js');
+} = require('../test-util');
+const { buildGraphQlUpdateOne, buildGraphQlQuery, checkGraphQlSuccessfulResponse } = require('../graphql-util.js');
 
-describe('V5 Backend Lookups Backpropagation With Cache', () => {
+describe('V5 Backend Lookups Backpropagation With Cache', function () {
   const model4sSamples = [
     {
       _id: new ObjectID('587179f6ef4807703afd0df0'),
@@ -52,9 +50,9 @@ describe('V5 Backend Lookups Backpropagation With Cache', () => {
     ...conditionForActualRecord,
   };
 
-  before(async function() {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
 
@@ -67,12 +65,12 @@ describe('V5 Backend Lookups Backpropagation With Cache', () => {
     sinon.stub(this.appLib.cache, 'getCacheStorage').resolves(redisMockClient);
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.collection('lookup_test_model1').deleteMany({}),
       this.db.collection('lookup_test_model2').deleteMany({}),
@@ -89,7 +87,7 @@ describe('V5 Backend Lookups Backpropagation With Cache', () => {
     return this.appLib.setup();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
@@ -98,9 +96,9 @@ describe('V5 Backend Lookups Backpropagation With Cache', () => {
   const lookupModelName = 'lookup_test_model1';
   const propagationModelName = 'model3_propagation';
 
-  describe('backpropagation with cache enabled', () => {
-    describe('should update label in single and multiple lookups when original record is changed', () => {
-      const getTestFunc = function(settings) {
+  describe('backpropagation with cache enabled', function () {
+    describe('should update label in single and multiple lookups when original record is changed', function () {
+      const getTestFunc = function (settings) {
         return f;
 
         async function f() {
@@ -131,7 +129,7 @@ describe('V5 Backend Lookups Backpropagation With Cache', () => {
         const keys = await appLib.cache.getKeys(`${propagationModelName}:*`);
         should(keys.length).be.equal(1);
       };
-      const checkPropagationModelCacheIsClear = async appLib => {
+      const checkPropagationModelCacheIsClear = async (appLib) => {
         const keys = await appLib.cache.getKeys(`${propagationModelName}:*`);
         should(keys).be.empty();
       };
@@ -187,12 +185,12 @@ describe('V5 Backend Lookups Backpropagation With Cache', () => {
       const putRecord = { name: 'new_name', anotherName: 'new_anotherName' };
 
       const restSettings = {
-        propagationModelRequest: r => r.get(`/${propagationModelName}/${propagationDocId}`),
+        propagationModelRequest: (r) => r.get(`/${propagationModelName}/${propagationDocId}`),
         warmupCache,
-        changeLookupRequest: r => r.put(`/${lookupModelName}/${lookupDocId}`).send({ data: putRecord }),
+        changeLookupRequest: (r) => r.put(`/${lookupModelName}/${lookupDocId}`).send({ data: putRecord }),
         checkResponse: checkRestSuccessfulResponse,
         checkLookupPropagation,
-        getData: res => res.body.data,
+        getData: (res) => res.body.data,
         checkPropagationModelCacheIsClear,
       };
 
@@ -205,16 +203,16 @@ describe('V5 Backend Lookups Backpropagation With Cache', () => {
         }
       }`;
       const graphqlSettings = {
-        propagationModelRequest: r =>
+        propagationModelRequest: (r) =>
           r
             .post('/graphql')
             .send(buildGraphQlQuery(propagationModelName, `{_id: '${propagationDocId}' }`, selectFields)),
         warmupCache,
-        changeLookupRequest: r =>
+        changeLookupRequest: (r) =>
           r.post('/graphql').send(buildGraphQlUpdateOne(lookupModelName, putRecord, lookupDocId)),
         checkResponse: checkGraphQlSuccessfulResponse,
         checkLookupPropagation,
-        getData: res => res.body.data[propagationModelName].items[0],
+        getData: (res) => res.body.data[propagationModelName].items[0],
         checkPropagationModelCacheIsClear,
       };
 

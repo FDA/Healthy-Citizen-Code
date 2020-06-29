@@ -5,7 +5,7 @@ const { sortObjectByKeys, MONGO, expandObjectAsKeyValueList } = require('../util
 const { getLabelOrDataValue } = require('../util/lookups');
 const { ValidationError } = require('../errors');
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {};
 
   m.validateNewItem = async (context, newItem) => {
@@ -39,7 +39,7 @@ module.exports = appLib => {
       {}
     );
 
-    const schemaListsFields = appLib.ListsFields.filter(path => path.startsWith(fieldsPathInAppModel));
+    const schemaListsFields = appLib.ListsFields.filter((path) => path.startsWith(fieldsPathInAppModel));
     const schemaAllowedLists = appLib.accessUtil.getListsForUser(userPermissions, inlineContext, schemaListsFields);
     _.each(schemaAllowedLists, (list, fieldPath) => {
       const userVal = userData[fieldPath];
@@ -54,7 +54,7 @@ module.exports = appLib => {
         if (!Array.isArray(userVal)) {
           listsErrors.push(`Value '${userVal}' should be an array for '${fieldPath}'.`);
         } else {
-          userVal.forEach(val => {
+          userVal.forEach((val) => {
             if (!list.values[val]) {
               listsErrors.push(`Value '${val}' is not allowed for '${fieldPath}'.`);
             }
@@ -77,7 +77,7 @@ module.exports = appLib => {
       const singleTableMeta = Object.values(treeSelectorMeta.table)[0];
       const treeSelectorResult = JSONPath({ path: jsonPath, json: item });
 
-      _.each(treeSelectorResult, treeSelectorData => {
+      _.each(treeSelectorResult, (treeSelectorData) => {
         const { parent, isLeaf, requireLeafSelection, foreignKey, table } = singleTableMeta;
         const lastChildId = treeSelectorData[treeSelectorData.length - 1]._id;
         const [fromField, toField] = Object.entries(parent)[0];
@@ -96,17 +96,17 @@ module.exports = appLib => {
               },
             },
           ])
-          .then(docs => {
+          .then((docs) => {
             if (!docs.length) {
               return { [itemPath]: `Unable to find a chain` };
             }
 
             const doc = docs[0];
             const expectedTree = treeSelectorData.slice(0, -1);
-            const expectedIds = expectedTree.map(node =>
+            const expectedIds = expectedTree.map((node) =>
               node._id.constructor.name === 'ObjectID' ? node._id.toString() : node._id
             );
-            const realIds = doc.tree.map(node =>
+            const realIds = doc.tree.map((node) =>
               node._id.constructor.name === 'ObjectID' ? node._id.toString() : node._id
             );
             if (!_.isEqual(expectedIds, realIds)) {
@@ -154,9 +154,9 @@ module.exports = appLib => {
     _.each(lookupFieldsMeta, (lookupMeta, itemPath) => {
       const { jsonPath } = lookupMeta.paths;
       const lookupVals = JSONPath({ path: jsonPath, json: item });
-      const lookups = _.flatten(lookupVals).filter(l => l);
+      const lookups = _.flatten(lookupVals).filter((l) => l);
 
-      const promise = Promise.map(lookups, async lookupObj => {
+      const promise = Promise.map(lookups, async (lookupObj) => {
         const { table, _id } = lookupObj;
         const lookupTableMeta = lookupMeta.table[table];
         if (!lookupTableMeta) {
@@ -169,15 +169,15 @@ module.exports = appLib => {
         const doc = await appLib.db.collection(table).findOne(condition);
 
         if (!doc) {
-          return `Lookup with _id '${_id.toString()}' in collection ${table} does not exist.`;
+          return `Lookup with _id '${_id.toString()}' in collection ${table} does not exist`;
         }
         lookupObj.label = getLabelOrDataValue(doc, lookupTableMeta.label);
 
         _.each(lookupTableMeta.data, (dataExpr, dataFieldName) => {
           _.set(lookupObj, `data.${dataFieldName}`, getLabelOrDataValue(doc, dataExpr));
         });
-      }).then(errors => {
-        const errMessages = errors.filter(msg => msg);
+      }).then((errors) => {
+        const errMessages = errors.filter((msg) => msg);
         if (errMessages.length) {
           return { [itemPath]: errMessages };
         }

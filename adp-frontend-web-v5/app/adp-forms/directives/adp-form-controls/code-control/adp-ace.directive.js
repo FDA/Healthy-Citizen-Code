@@ -31,9 +31,13 @@
           editorsInstance = enableEditor();
           setMode(config.mode);
           setOptions(editorsInstance, config);
-          bindEvents();
+          bindEvents(config.mode);
 
-          editorsInstance.session.setValue(ngModel.$viewValue);
+          var initialValue = isJsonMode(config.mode) ?
+            JSON.stringify(ngModel.$viewValue, null, 4) :
+            ngModel.$viewValue;
+
+          editorsInstance.session.setValue(initialValue);
         }
 
         function setHtmlForEditor() {
@@ -70,7 +74,7 @@
           editorsInstance.session.setMode(mode);
         }
 
-        function bindEvents() {
+        function bindEvents(mode) {
           var editor = getEditor();
           var session = editor.session;
 
@@ -83,14 +87,37 @@
               // for any text transformation !
               !scope.$$phase && !scope.$root.$$phase) {
               scope.$evalAsync(function () {
-                ngModel.$setViewValue(newValue);
+                isJsonMode(mode) ?
+                  setJsonValue(ngModel, newValue) :
+                  ngModel.$setViewValue(newValue);
               });
             }
+          });
+
+          // https://stackoverflow.com/a/10667290/4575370
+          session.on('changeAnnotation', function (){
+            var valid = editor.getSession().getAnnotations().length === 0;
+            ngModel.$setValidity('syntaxCodeEditorError', valid);
           });
 
           scope.$on('$destroy', function () {
             editor.destroy();
           });
+        }
+
+        function isJsonMode(mode) {
+          return mode === 'ace/mode/json';
+        }
+        function setJsonValue(mode, value) {
+          var parsed = _.attempt(function(jsonString) {
+            return JSON.parse(jsonString);
+          }, value);
+
+          if (_.isError(parsed)) {
+            return;
+          }
+
+          ngModel.$setViewValue(parsed);
         }
       }
     };

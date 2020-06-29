@@ -12,94 +12,60 @@
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/imperial-units-control/imperial-units-control.html',
       require: '^^form',
-      link: function (scope, el, attrs, formCtrl) {
-        scope.form = formCtrl;
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+      link: function (scope) {
+        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams)
+        var units = AdpFieldsService.getUnitsList(scope.field)
 
-        function init() {
-          scope.units = AdpFieldsService.getUnits(scope.field);
+        scope.configFirstUnit = createConfig(units[0], 0);
+        scope.configSecondUnit = createConfig(units[1], 1);
 
-          initModelValue();
-          createViewValue();
-          setOptions();
-          addWatchers();
+        function createConfig(unit, position) {
+          var defaults = {
+            value: getData(position),
+            valueExpr: 'value',
+            displayExpr: 'label',
+            dataSource: unit.list,
+            placeholder: 'Select ' + unit.shortName,
+            showClearButton: true,
+            onValueChanged: function (e) {
+              setData(e.value, position);
+            },
+            elementAttr: {
+              class: 'adp-select-box',
+              id: 'list_id_' + scope.field.fieldName + '_' + position,
+            },
+          }
+
+          return AdpFieldsService.configFromParameters(scope.field, defaults);
         }
-        init();
 
-        function getFieldData() {
-          return scope.adpFormData[scope.field.fieldName];
+        function getData(position) {
+          if (_.isEmpty(scope.adpFormData[scope.field.fieldName])) {
+            return null;
+          }
+
+          return scope.adpFormData[scope.field.fieldName][position];
         }
 
-        function setFieldData(value) {
-          if (_.isEmpty(_.compact(value))) {
+        function setData(value, position) {
+          var valueList = _.isEmpty(scope.adpFormData[scope.field.fieldName]) ? [0, 0] :
+            scope.adpFormData[scope.field.fieldName];
+
+          valueList[position] = value;
+
+          if (_.isEmpty(_.compact(valueList))) {
             scope.adpFormData[scope.field.fieldName] = null;
           } else {
-            scope.adpFormData[scope.field.fieldName] = value;
+            scope.adpFormData[scope.field.fieldName] = valueList;
           }
         }
-
-        function createViewValue() {
-          var fieldData = getFieldData() || [0, 0];
-          scope.viewValue = {};
-          scope.ranges = {};
-
-          _.each(scope.units, function(unit, index) {
-            var unitRange = _.range.apply(this, unit.range);
-            scope.viewValue[unit.name] = fieldData[index];
-
-            scope.ranges[unit.name] = _.map(unitRange, function (i) {
-              return { value: i, label: i + unit.label };
-            });
-          })
-        }
-
-        function initModelValue() {
-          var fieldData = getFieldData();
-
-          if (_.isNumber(fieldData)) {
-            fieldData = [fieldData];
-          }
-
-          if (_.isEmpty(fieldData)) {
-            fieldData = scope.units.map(function() {
-              return 0;
-            });
-          }
-
-          setFieldData(fieldData);
-        }
-
-        function setOptions() {
-          // hiding search input
-          // https://github.com/select2/select2/issues/489#issuecomment-100602293
-          scope.options = {
-            minimumResultsForSearch: -1
-          };
-        }
-
-        function addWatchers() {
-          scope.$watchGroup(createWatcherCondition(), function () {
-            setFieldData(_.map(scope.viewValue, parseInt));
-          });
-        }
-
-        function createWatcherCondition() {
-          return _.map(scope.units, function(unit) {
-            return ['viewValue', unit.name].join('.');
-          });
-        }
-
-        scope.validate = function () {
-          scope.form[scope.field.fieldName].$setDirty();
-          scope.form[scope.field.fieldName].$validate();
-        };
       }
     }
   }

@@ -16,10 +16,9 @@
       },
       link: function (scope, elem) {
         elem[0].innerHTML =
-          '<div class="adp-html-editor form-control" contenteditable="true" id="' + scope.editorId + '">';
+          '<div class="adp-html-editor form-control clearfix" contenteditable="true" id="' + scope.editorId + '">';
 
         scope.$watch('editorsConfig', initEditor);
-        addWatchers();
 
         function initEditor(config) {
           var oldInstance = getEditorInstance();
@@ -29,6 +28,7 @@
 
           var editor = createEditor(getEditorElement(), config);
           bindEvents(editor);
+          setStylesForEditor(config);
         }
 
         function createEditor(editorElem, userConfig) {
@@ -37,10 +37,12 @@
             resize_enabled: true,
             toolbarCanCollapse: true,
             toolbarStartupExpanded: true,
-            removePlugins: 'flash',
+            removePlugins: 'flash,sourcearea',
+            extraPlugins: 'collapse',
             resize_dir: 'both',
             toolbar: CKEDITOR_TOOLBAR,
-            extraPlugins: 'collapse',
+            resize_minHeight: 300,
+            resize_maxHeight: 600,
         };
           var opts = _.assign({}, editorsDefaults, userConfig);
 
@@ -55,50 +57,51 @@
           return CKEDITOR.instances[scope.editorId];
         }
 
-        function onChange(data) {
-          if(scope.change && typeof scope.change === 'function'){
-            scope.change(data);
-          }
-        }
-
         function bindEvents(editor) {
-          editor.on('change', function (e) {
-            $timeout(function () {
-              scope.ngModel = e.editor.getData();
-            });
+          editor.on('instanceReady', function (e) {
+            $('.cke_button__sourcedialog_label').hide();
+            editor.setData(scope.ngModel || '');
 
-            onChange(e.editor.getData());
+            $(editor.element.$).css(scope.editorStyles)
           });
 
-          editor.on('focus', function (e) {
-            if (scope.ngModel !== e.editor.getData()) {
-              editor.setData(scope.ngModel);
-            }
+          var inputEvents = [
+            'input.ckeditor' + scope.editorId,
+            'cut.ckeditor' + scope.editorId,
+          ].join(' ');
+
+          var editorEl = elem.find('.adp-html-editor');
+          editorEl.on(inputEvents, function (e) {
+            scope.ngModel = $(e.target).html();
           });
 
-          editor.on('key', function (e) {
-            $timeout(function () {
-              scope.ngModel = e.editor.getData();
-              onChange(e.editor.getData());
-            }, 0);
+          editor.on('change', function () {
+            scope.ngModel = editorEl.html();
+          });
+
+          editor.on('paste', function (e) {
+            scope.ngModel = e.data.dataValue;
+          });
+
+          editor.on('blur', function (e) {
+            scope.ngModel = e.editor.getData();
           });
 
           scope.$on('$destroy', function () {
             editor.destroy();
+            editorEl.off(inputEvents);
           });
         }
 
-        function addWatchers() {
-          scope.$watch('ngModel', function (value) {
-            var editor = getEditorInstance();
-            if (!editor) {
-              return;
-            }
+        function setStylesForEditor(config) {
+          scope.editorStyles = {};
+          if (_.isNumber(config.resize_minHeight)) {
+            scope.editorStyles.minHeight = config.resize_minHeight + 'px';
+          }
 
-            if(value !== editor.getData()){
-              editor.setData(value || '');
-            }
-          });
+          if (_.isNumber(config.resize_maxHeight)) {
+            scope.editorStyles.maxHeight = config.resize_maxHeight + 'px';
+          }
         }
       }
     };

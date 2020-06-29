@@ -8,6 +8,7 @@
   /** @ngInject */
   function BooleanFilter(
     DxEditorMixin,
+    BasicTypesCellRenderer,
     BOOLEAN_FILTER_VALUES
   ) {
     function getOptions(init) {
@@ -43,6 +44,10 @@
 
           this.element[this.editorName](options);
         },
+
+        formatValue: function(params){
+          return BasicTypesCellRenderer.boolean(params.args);
+        }
       });
     }
   }

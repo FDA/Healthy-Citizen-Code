@@ -34,8 +34,20 @@
 
 module.exports = (appLib) => {
   const _ = require('lodash');
-  const decimalFromString = require('bson/lib/decimal128.js').fromString;
-
+  const Decimal128 = require('bson/lib/decimal128.js');
+  const decimalFromString = Decimal128.fromString;
+  const isValidDecimal128 = (value) => {
+    try {
+      if (value instanceof Decimal128) {
+        return true;
+      }
+      // if can cast string to decimal without an error so it's a valid value
+      decimalFromString(value);
+    } catch (e) {
+      return false;
+    }
+    return true;
+  };
   const vutil = appLib.appModelHelpers.ValidatorUtils;
 
   /**
@@ -334,12 +346,29 @@ module.exports = (appLib) => {
       const INT32_MAX = 0x7fffffff;
       const INT32_MIN = -0x80000000;
 
+      const getErrorForValue = (value) =>
+        vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, value, this, lodashPath, appModelPart);
+
+      const isMultiple = appModelPart.type.endsWith('[]');
+      if (isMultiple) {
+        for (const elem of val) {
+          if (!Number.isInteger(elem)) {
+            return cb(getErrorForValue(elem));
+          }
+          if (elem < INT32_MIN || elem > INT32_MAX) {
+            // outside of the range
+            return cb(getErrorForValue(elem));
+          }
+        }
+        return cb();
+      }
+
       if (!Number.isInteger(val)) {
-        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        return cb(getErrorForValue(val));
       }
       if (val < INT32_MIN || val > INT32_MAX) {
         // outside of the range
-        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        return cb(getErrorForValue(val));
       }
 
       cb();
@@ -349,15 +378,30 @@ module.exports = (appLib) => {
       if (val === undefined) {
         return cb();
       }
+      const getErrorForValue = (value) =>
+        vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, value, this, lodashPath, appModelPart);
+
+      const isMultiple = appModelPart.type.endsWith('[]');
+      if (isMultiple) {
+        for (const elem of val) {
+          if (!Number.isInteger(elem)) {
+            return cb(getErrorForValue(elem));
+          }
+          if (elem < Number.MIN_SAFE_INTEGER || elem > Number.MAX_SAFE_INTEGER) {
+            // outside of the range
+            return cb(getErrorForValue(elem));
+          }
+        }
+        return cb();
+      }
 
       if (!Number.isInteger(val)) {
-        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        return cb(getErrorForValue(val));
       }
       if (val < Number.MIN_SAFE_INTEGER || val > Number.MAX_SAFE_INTEGER) {
         // outside of the range
-        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        return cb(getErrorForValue(val));
       }
-
       cb();
     },
     decimal128(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
@@ -365,11 +409,21 @@ module.exports = (appLib) => {
       if (val === undefined) {
         return cb();
       }
-      try {
-        // if can cast string to decimal without an error so it's a valid value
-        decimalFromString(val);
-      } catch (e) {
-        cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+
+      const isMultiple = appModelPart.type.endsWith('[]');
+      if (isMultiple) {
+        const invalidIndex = val.findIndex((elem) => !isValidDecimal128(elem));
+        if (invalidIndex !== -1) {
+          const invalidElem = val[invalidIndex];
+          return cb(
+            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, invalidElem, this, lodashPath, appModelPart)
+          );
+        }
+        return cb();
+      }
+
+      if (!isValidDecimal128(val)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
       }
       cb();
     },

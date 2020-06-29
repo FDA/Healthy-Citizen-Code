@@ -17,10 +17,13 @@
     var operationsByType = {
       String: commonOperations.string,
       'String[]': commonOperations.string,
+      'Int32[]': commonOperations.numeric,
+      'Int64[]': commonOperations.numeric,
       Email: commonOperations.string,
       Phone: commonOperations.string,
       Text: commonOperations.string,
       Url: commonOperations.string,
+      Currency: commonOperations.numeric,
       Number: commonOperations.numeric,
       Double: commonOperations.numeric,
       Int32: commonOperations.numeric,

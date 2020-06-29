@@ -134,10 +134,12 @@
         var $closeAll = $(".close-all-toast", config.$tabBox);
 
         if (!$closeAll.length && $toasts.length > 1) {
-          $("<a>")
+          $("<div>")
             .addClass("close-all-toast")
-            .text("close all")
-            .click(onCloseAllClick)
+            .append($("<a>")
+              .text("close all")
+              .click(onCloseAllClick)
+            )
             .prependTo(config.$tabBox);
         } else if ($closeAll.length && $toasts.length < 2) {
           $closeAll.remove();

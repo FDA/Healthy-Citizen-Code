@@ -1,10 +1,9 @@
 const Mocha = require('mocha');
-const glob = require('glob');
 const _ = require('lodash');
 const path = require('path');
-const appRoot = require('app-root-path').path;
 const dotenv = require('dotenv');
-const { prepareEnv, getSchemaNestedPaths } = require('../../lib/util/env');
+const { prepareEnv, getSchemaNestedPaths, appRoot } = require('../../lib/util/env');
+const { globSyncAsciiOrder } = require('../../lib/util/glob');
 
 // specific tests can import modules by absolute path
 process.env.APP_LIB_MODULE_PATH = path.resolve(appRoot, 'lib/app');
@@ -17,11 +16,11 @@ const mocha = new Mocha({
   timeout: 15000,
 });
 
-const files = _.flatten(getSchemaNestedPaths('test/**/*.js').map(pattern => glob.sync(pattern)));
-files.forEach(file => mocha.addFile(file));
+const files = _.flatten(getSchemaNestedPaths('test/**/*.js').map((pattern) => globSyncAsciiOrder(pattern)));
+files.forEach((file) => mocha.addFile(file));
 
 // Run the tests.
-mocha.run(failures => {
+mocha.run((failures) => {
   const exitCode = failures ? -1 : 0; // exit with non-zero status if there were failures
   process.exit(exitCode);
 });

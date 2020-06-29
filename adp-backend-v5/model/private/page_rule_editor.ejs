@@ -25,6 +25,7 @@
                         <div id="editor-container" class="adp-bpm-{{vm.diagramType}}">
                             <div id="bpm-canvas"></div>
                             <div id="bpm-properties" ng-if="vm.diagramType==='bpmn'"></div>
+                            <adp-page-loader loading="vm.isLoading"></adp-page-loader>
                         </div>
                     </div>
                 </adp-section-container>

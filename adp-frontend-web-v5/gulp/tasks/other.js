@@ -47,7 +47,7 @@ function cpFonts(destBasePath) {
 
 function cpCkEditorToTmp(destBasePath) {
   var fontsPath = [
-    path.join(conf.moduleDir, '/ckeditor4/**'),
+    path.join('smartadmin-plugin', '/ckeditor/**'),
   ];
 
   return gulp.src(fontsPath)

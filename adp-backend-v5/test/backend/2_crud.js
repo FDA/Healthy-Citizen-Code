@@ -2,7 +2,6 @@ const request = require('supertest');
 const should = require('should');
 const assert = require('assert');
 const _ = require('lodash');
-const reqlib = require('app-root-path').require;
 
 const {
   checkForEqualityConsideringInjectedFields,
@@ -12,13 +11,13 @@ const {
   prepareEnv,
   checkItemSoftDeleted,
   conditionForActualRecord,
-} = reqlib('test/test-util');
+} = require('../test-util');
 
 // NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
-describe('V5 Backend CRUD', () => {
-  before(async function() {
+describe('V5 Backend CRUD', function () {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     setAppAuthOptions(this.appLib, {
       requireAuthentication: false,
       enablePermissions: false,
@@ -28,13 +27,13 @@ describe('V5 Backend CRUD', () => {
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await Promise.all([this.db.close(), this.appLib.shutdown()]);
   });
 
-  beforeEach(async function() {
-    const sampleDataModel2 = [{ data: 0 }, { data: 1 }, { data: 2 }, { data: 3 }].map(d => ({
+  beforeEach(async function () {
+    const sampleDataModel2 = [{ data: 0 }, { data: 1 }, { data: 2 }, { data: 3 }].map((d) => ({
       ...d,
       ...conditionForActualRecord,
     }));
@@ -47,9 +46,9 @@ describe('V5 Backend CRUD', () => {
   });
 
   // Create item
-  describe('Create Item', () => {
-    describe('1st level', () => {
-      it('posts and stores 1st level data', async function() {
+  describe('Create Item', function () {
+    describe('1st level', function () {
+      it('posts and stores 1st level data', async function () {
         const res = await request(this.appLib.app)
           .post('/model1s')
           .send({ data: sampleData0 })
@@ -72,8 +71,8 @@ describe('V5 Backend CRUD', () => {
       });
     });
 
-    describe('1st level, wrong path', () => {
-      it('show error message', async function() {
+    describe('1st level, wrong path', function () {
+      it('show error message', async function () {
         const res = await request(this.appLib.app)
           .post(`/model1s1/`)
           .send({ data: sampleData0.encounters[1].vitalSigns[1] })
@@ -87,9 +86,9 @@ describe('V5 Backend CRUD', () => {
     });
 
     // Get Items ---------------------------------------------------------------------------
-    describe('Get Items', () => {
-      describe('1st level', () => {
-        it('returns correct 1st level data', async function() {
+    describe('Get Items', function () {
+      describe('1st level', function () {
+        it('returns correct 1st level data', async function () {
           const res = await request(this.appLib.app)
             .get('/model1s')
             .set('Accept', 'application/json')
@@ -101,8 +100,8 @@ describe('V5 Backend CRUD', () => {
         });
       });
 
-      describe('from model 2 capped to 3 items in return', () => {
-        it('returns 3 items', async function() {
+      describe('from model 2 capped to 3 items in return', function () {
+        it('returns 3 items', async function () {
           const res = await request(this.appLib.app)
             .get(`/model2s`)
             .set('Accept', 'application/json')
@@ -113,8 +112,8 @@ describe('V5 Backend CRUD', () => {
         });
       });
 
-      describe('1st level with extra query parameter', () => {
-        it('returns 3 items', async function() {
+      describe('1st level with extra query parameter', function () {
+        it('returns 3 items', async function () {
           const res = await request(this.appLib.app)
             .get(`/model2s?_=1489752996234`)
             .set('Accept', 'application/json')
@@ -127,9 +126,9 @@ describe('V5 Backend CRUD', () => {
     });
 
     // Get Item ------------------------------------------------------------
-    describe('Get item', () => {
-      describe('1st level', () => {
-        it('returns correct 1st level data', async function() {
+    describe('Get item', function () {
+      describe('1st level', function () {
+        it('returns correct 1st level data', async function () {
           const res = await request(this.appLib.app)
             .get('/model1s/587179f6ef4807703afd0dff')
             .set('Accept', 'application/json')
@@ -142,9 +141,9 @@ describe('V5 Backend CRUD', () => {
     });
 
     // Update Item
-    describe('Update Item', () => {
-      describe('1st level', () => {
-        it('puts and stores 1st level data', async function() {
+    describe('Update Item', function () {
+      describe('1st level', function () {
+        it('puts and stores 1st level data', async function () {
           const putRes = await request(this.appLib.app)
             .put(`/model1s/${sampleData1._id}`)
             .send({ data: sampleData0 })
@@ -166,7 +165,7 @@ describe('V5 Backend CRUD', () => {
           );
         });
 
-        it('puts empty object', async function() {
+        it('puts empty object', async function () {
           const putRes = await request(this.appLib.app)
             .put(`/model1s/${sampleData1._id}`)
             .send({ data: {} })
@@ -186,9 +185,9 @@ describe('V5 Backend CRUD', () => {
     });
 
     // Delete Item
-    describe('Delete Item', () => {
-      describe('1st level', () => {
-        it('soft deletes 1st level data', async function() {
+    describe('Delete Item', function () {
+      describe('1st level', function () {
+        it('soft deletes 1st level data', async function () {
           const delRes = await request(this.appLib.app)
             .del(`/model1s/${sampleData1._id}`)
             .set('Accept', 'application/json')

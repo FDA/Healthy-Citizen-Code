@@ -2,32 +2,30 @@ const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
-const reqlib = require('app-root-path').require;
-
 const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
   checkRestSuccessfulResponse,
   conditionForActualRecord,
-} = reqlib('test/test-util');
+} = require('../test-util');
 const {
   buildGraphQlUpdateOne,
   buildGraphQlDeleteOne,
   checkGraphQlSuccessfulResponse,
   checkGraphQlErrorResponse,
-} = reqlib('test/graphql-util.js');
+} = require('../graphql-util.js');
 
-describe('V5 Backend Lookups Backpropagation (nested)', () => {
+describe('V5 Backend Lookups Backpropagation (nested)', function () {
   const model4sSamples = [
     { _id: new ObjectID('587179f6ef4807703afd0df0'), name: 'name11', anotherName: 'anotherName11' },
     { _id: new ObjectID('587179f6ef4807703afd0df1'), name: 'name12', anotherName: 'anotherName12' },
-  ].map(d => ({ ...d, ...conditionForActualRecord }));
+  ].map((d) => ({ ...d, ...conditionForActualRecord }));
 
   const model4s2Samples = [
     { _id: new ObjectID('687179f6ef4807703afd0df0'), name: 'name21' },
     { _id: new ObjectID('687179f6ef4807703afd0df1'), name: 'name22' },
-  ].map(d => ({ ...d, ...conditionForActualRecord }));
+  ].map((d) => ({ ...d, ...conditionForActualRecord }));
 
   const model3PropagationSample = {
     _id: new ObjectID('487179f6ef4807703afd0df0'),
@@ -81,19 +79,19 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
     ...conditionForActualRecord,
   };
 
-  before(async function() {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.collection('lookup_test_model1_nested').deleteMany({}),
       this.db.collection('lookup_test_model2_nested').deleteMany({}),
@@ -109,7 +107,7 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
     return this.appLib.setup();
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
@@ -119,9 +117,9 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
   const propagationModelName = 'model3_propagation_nested';
   const nestedDoc = model3PropagationSample.nested.array1[0].array2[0];
 
-  describe('backpropogation', () => {
-    describe('should update label in single and multiple lookups when original record is changed', () => {
-      const getTestFunc = function(settings) {
+  describe('backpropogation', function () {
+    describe('should update label in single and multiple lookups when original record is changed', function () {
+      const getTestFunc = function (settings) {
         return f;
 
         async function f() {
@@ -135,7 +133,7 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
       };
 
       const putRecord = { name: 'new_name', anotherName: 'new_anotherName' };
-      const checkLookupPropagation = async db => {
+      const checkLookupPropagation = async (db) => {
         const doc = await db.collection(propagationModelName).findOne({ _id: ObjectID(propagationDocId) });
 
         // changed label only for one lookup record, the rest stays the same
@@ -172,12 +170,12 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
       };
 
       const restSettings = {
-        makeRequest: r => r.put(`/${lookupModelName}/${lookupDocId}`).send({ data: putRecord }),
+        makeRequest: (r) => r.put(`/${lookupModelName}/${lookupDocId}`).send({ data: putRecord }),
         checkResponse: checkRestSuccessfulResponse,
         checkLookupPropagation,
       };
       const graphqlSettings = {
-        makeRequest: r => r.post('/graphql').send(buildGraphQlUpdateOne(lookupModelName, putRecord, lookupDocId)),
+        makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(lookupModelName, putRecord, lookupDocId)),
         checkResponse: checkGraphQlSuccessfulResponse,
         checkLookupPropagation,
       };
@@ -192,8 +190,8 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
       );
     });
 
-    describe('should not allow to delete original record if there are lookups referenced this record', () => {
-      const getTestFunc = function(settings) {
+    describe('should not allow to delete original record if there are lookups referenced this record', function () {
+      const getTestFunc = function (settings) {
         return f;
 
         async function f() {
@@ -209,8 +207,8 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
       };
 
       const restSettings = {
-        makeRequest: r => r.del(`/${lookupModelName}/${lookupDocId}`),
-        checkResponse: res => {
+        makeRequest: (r) => r.del(`/${lookupModelName}/${lookupDocId}`),
+        checkResponse: (res) => {
           res.body.message.should.equal(
             'ERROR: Unable to delete this record because there are other records referring. Please update the referring records and remove reference to this record.'
           );
@@ -234,7 +232,7 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
         },
       };
       const graphqlSettings = {
-        makeRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(lookupModelName, lookupDocId)),
+        makeRequest: (r) => r.post('/graphql').send(buildGraphQlDeleteOne(lookupModelName, lookupDocId)),
         checkResponse: checkGraphQlErrorResponse,
       };
 
@@ -248,8 +246,8 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
       );
     });
 
-    describe('should allow to delete original record if lookups referenced this record are removed (using update)', () => {
-      const getTestFunc = function(settings) {
+    describe('should allow to delete original record if lookups referenced this record are removed (using update)', function () {
+      const getTestFunc = function (settings) {
         return f;
 
         async function f() {
@@ -284,16 +282,16 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
       };
 
       const restSettings = {
-        putRequest: r => r.put(`/${propagationModelName}/${propagationDocId}`).send({ data: putRecord }),
+        putRequest: (r) => r.put(`/${propagationModelName}/${propagationDocId}`).send({ data: putRecord }),
         checkPutResponse: checkRestSuccessfulResponse,
-        delRequest: r => r.del(`/${lookupModelName}/${lookupDocId}`),
+        delRequest: (r) => r.del(`/${lookupModelName}/${lookupDocId}`),
         checkDelResponse: checkRestSuccessfulResponse,
       };
       const graphqlSettings = {
-        putRequest: r =>
+        putRequest: (r) =>
           r.post('/graphql').send(buildGraphQlUpdateOne(propagationModelName, putRecord, propagationDocId)),
         checkPutResponse: checkGraphQlSuccessfulResponse,
-        delRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(lookupModelName, lookupDocId)),
+        delRequest: (r) => r.post('/graphql').send(buildGraphQlDeleteOne(lookupModelName, lookupDocId)),
         checkDelResponse: checkGraphQlSuccessfulResponse,
       };
 
@@ -307,8 +305,8 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
       );
     });
 
-    it('should allow to delete original record if lookups referenced this record are removed (using delete)', () => {
-      const getTestFunc = function(settings) {
+    it('should allow to delete original record if lookups referenced this record are removed (using delete)', function () {
+      const getTestFunc = function (settings) {
         return f;
 
         async function f() {
@@ -327,15 +325,15 @@ describe('V5 Backend Lookups Backpropagation (nested)', () => {
       };
 
       const restSettings = {
-        delDocRequest: r => r.del(`/${propagationModelName}/${propagationDocId}`),
+        delDocRequest: (r) => r.del(`/${propagationModelName}/${propagationDocId}`),
         checkDelDocResponse: checkRestSuccessfulResponse,
-        delLookupRequest: r => r.del(`/${lookupModelName}/${lookupDocId}`),
+        delLookupRequest: (r) => r.del(`/${lookupModelName}/${lookupDocId}`),
         checkDelLookupResponse: checkRestSuccessfulResponse,
       };
       const graphqlSettings = {
-        delDocRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(propagationModelName, propagationDocId)),
+        delDocRequest: (r) => r.post('/graphql').send(buildGraphQlDeleteOne(propagationModelName, propagationDocId)),
         checkDelDocResponse: checkGraphQlSuccessfulResponse,
-        delLookupRequest: r => r.post('/graphql').send(buildGraphQlDeleteOne(lookupModelName, lookupDocId)),
+        delLookupRequest: (r) => r.post('/graphql').send(buildGraphQlDeleteOne(lookupModelName, lookupDocId)),
         checkDelLookupResponse: checkGraphQlSuccessfulResponse,
       };
 

@@ -1,12 +1,13 @@
 const _ = require('lodash');
 const socketIo = require('socket.io');
-const socketIoAuth = require('socketio-auth');
 const addDeviceToSocketRequest = require('express-device').capture();
+const socketIoAuth = require('./socketio-auth');
 const { InvalidTokenError, ExpiredTokenError } = require('../errors');
 
 function addAuthentication({ appLib, io, log }) {
   socketIoAuth(io, {
-    async authenticate(socket, data, cb) {
+    debug: log.debug.bind(log),
+    async authenticate(socket, cb) {
       try {
         addDeviceToSocketRequest(socket.request);
         const { user } = await appLib.authenticationCheck(socket.request);

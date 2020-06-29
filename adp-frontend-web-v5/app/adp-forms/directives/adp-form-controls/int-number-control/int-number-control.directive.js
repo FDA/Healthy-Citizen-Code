@@ -5,30 +5,47 @@
     .module('app.adpForms')
     .directive('intNumberControl', intNumberControl);
 
-  function intNumberControl(AdpValidationUtils) {
+  function intNumberControl(
+    AdpValidationUtils,
+    AdpFieldsService
+  ) {
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/int-number-control/int-number-control.html',
       require: '^^form',
       link: function (scope) {
-        scope.INT_REGEX = /^[+-]?\d+$/;
-        if (_.isNil(scope.adpFormData[scope.field.fieldName])) {
-          scope.adpFormData[scope.field.fieldName] = null;
+        if (_.isNil(getData())) {
+          reset();
         }
 
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+        scope.config = getConfig(scope.field);
 
-        scope.onKeyPress = function (e) {
-          var isInt = /[+\-]|\d+/.test(e.key);
-          if (!isInt) {
-            e.preventDefault();
-          }
+        function getConfig(field) {
+          var defaults = {
+            valueChangeEvent: 'blur input',
+            format: '#',
+            inputAttr: {
+              autocomplete: AdpFieldsService.autocompleteValue(field),
+            },
+            showSpinButtons: true,
+          };
+
+          return AdpFieldsService.configFromParameters(field, defaults);
+        }
+
+        function getData() {
+          return scope.adpFormData[scope.field.fieldName];
+        }
+
+        function reset() {
+          scope.adpFormData[scope.field.fieldName] = null;
         }
       }
     }

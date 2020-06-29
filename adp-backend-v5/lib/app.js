@@ -10,20 +10,18 @@ const compression = require('compression');
 const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const device = require('express-device');
-
-const appRoot = require('app-root-path').path;
+const nodePath = require('path');
 const mongoose = require('mongoose');
 const _ = require('lodash');
-const nodePath = require('path');
 const passport = require('passport');
 const JwtStrategy = require('passport-jwt').Strategy;
 const LocalStrategy = require('passport-local').Strategy;
 const { ExtractJwt } = require('passport-jwt');
-const glob = require('glob');
 const pEvent = require('p-event');
 const { MigrateMongo } = require('migrate-mongo');
 const expressLog = require('log4js').getLogger('express');
 const mongooseLog = require('log4js').getLogger('mongoose');
+const requestId = require('express-request-id');
 
 const getMigrateConfig = require('../migrate/config.js');
 const { InvalidTokenError, ExpiredTokenError } = require('./errors');
@@ -31,7 +29,9 @@ const { serveDirs } = require('./public-files-controller');
 const { version: APP_VERSION, name: APP_NAME } = require('../package.json');
 const { comparePassword } = require('./util/password');
 const { prepareEnv, getSchemaNestedPaths } = require('./util/env');
+const { globSyncAsciiOrder } = require('./util/glob');
 const connectSwagger = require('./swagger');
+const { appRoot } = require('./util/env');
 
 module.exports = () => {
   const m = {};
@@ -154,6 +154,7 @@ module.exports = () => {
     app.use(compression());
     app.use(device.capture());
     app.use(cookieParser());
+    app.use(requestId());
     app.use(
       fileUpload({
         useTempFiles: true,
@@ -271,7 +272,7 @@ module.exports = () => {
       // TODO: this is to be depriciated in favor of server_controllers
       if (schema.controller) {
         // add custom routes
-        const controllerPath = require('path').resolve(appRoot, 'lib', `${schema.controller}-controller`);
+        const controllerPath = nodePath.resolve(appRoot, 'lib', `${schema.controller}-controller`);
         try {
           m.controllers[schema.controller] = require(controllerPath)(m);
         } catch (e) {
@@ -373,15 +374,15 @@ module.exports = () => {
     m.addRoute('get', '/dashboards/:id', [m.isAuthenticated, m.controllers.main.getDashboardJson]);
   };
 
-  m.loadControllers = () => {
+  m.loadControllers = async () => {
     m.log.trace('Loading custom controllers:');
     try {
       const appSchemaControllersFiles = _.flatten(
-        getSchemaNestedPaths('server_controllers/**/*.js').map((pattern) => glob.sync(pattern))
+        getSchemaNestedPaths('server_controllers/**/*.js').map((pattern) => globSyncAsciiOrder(pattern))
       );
-      const coreControllers = glob.sync(`${appRoot}/model/server_controllers/**/*.js`);
+      const coreControllers = globSyncAsciiOrder(`${appRoot}/model/server_controllers/**/*.js`);
       const files = [...coreControllers, ...appSchemaControllersFiles];
-      return Promise.mapSeries(files, (file) => {
+      return await Promise.mapSeries(files, (file) => {
         m.log.trace(` ∟ ${file}`);
         const lib = require(file)(mongoose);
         return lib.init(m);

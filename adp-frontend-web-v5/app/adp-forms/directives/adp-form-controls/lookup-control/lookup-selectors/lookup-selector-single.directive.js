@@ -7,7 +7,8 @@
 
   function lookupSelectorSingle(
     LookupDataSource,
-    LookupDxConfig
+    LookupDxConfig,
+    AdpFieldsService
   ) {
     return {
       restrict: 'AE',
@@ -18,7 +19,11 @@
       template: '<div dx-select-box="config"></div>',
       link: function (scope, element) {
         (function init() {
-          scope.config = LookupDxConfig.single(scope.props);
+          scope.config = AdpFieldsService.configFromParameters(
+            scope.props.args.modelSchema,
+            LookupDxConfig.single(scope.props)
+          );
+
           addTableWatcher(scope.props);
         })();
 

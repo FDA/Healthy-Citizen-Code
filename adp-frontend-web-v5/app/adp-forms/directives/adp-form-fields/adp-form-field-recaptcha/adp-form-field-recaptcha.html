@@ -1,12 +1,13 @@
 <adp-form-field-container
   ng-if="!captchaDisabled"
-  adp-field="adpField">
+  adp-form-data="::adpFormData"
+  adp-field="::adpField">
 
   <recaptcha-control
-    field="adpField"
-    adp-form-data="adpFormData"
-    ui-props="adpFieldUiProps"
-    validation-params="validationParams"
+    field="::adpField"
+    adp-form-data="::adpFormData"
+    ui-props="::adpFieldUiProps"
+    validation-params="::validationParams"
   >
   </recaptcha-control>
 

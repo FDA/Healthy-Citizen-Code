@@ -227,11 +227,10 @@ function getMainBowerFiles() {
       },
       "@shopify/draggable": {
         "main": [
-          "./lib/es5/draggable.bundle.legacy.js",
+          "./lib/es5/draggable.js",
+          "./lib/es5/plugins.js",
+          "./lib/es5/sortable.js",
         ]
-      },
-      "ckeditor4": {
-        "ignore": true,
       },
       "ace-builds": {
         "ignore": true,
@@ -241,7 +240,7 @@ function getMainBowerFiles() {
       },
       "echarts": {
         "main": ['./dist/echarts.common.min.js']
-      }
+      },
     }
   });
 }

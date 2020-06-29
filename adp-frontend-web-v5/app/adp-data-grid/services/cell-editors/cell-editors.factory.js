@@ -18,7 +18,8 @@
     TextEditor,
     StringMultipleEditor,
     IntEditor,
-    DecimalEditor
+    DecimalEditor,
+    CurrencyEditor
   ) {
     var editorsByType = {
       String: StringEditor,
@@ -47,6 +48,7 @@
       Int32: IntEditor,
       Int64: IntEditor,
       Decimal128: DecimalEditor,
+      Currency: CurrencyEditor,
     };
 
     return function (options) {

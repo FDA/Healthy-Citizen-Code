@@ -40,7 +40,7 @@
   }
 
   function medicationsRequest({ patientStu3, fhirAccessToken }, cors) {
-    const endpoint = `https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3/MedicationRequest?patient=${patientStu3}&_include=MedicationRequest:medication`;
+    const endpoint = `https://apporchard.epic.com/interconnect-aocurprd-oauth/api/FHIR/STU3/MedicationRequest?patient=${patientStu3}&_include=MedicationRequest:medication`;
     const requestInit = {
       mode: cors,
       headers: {

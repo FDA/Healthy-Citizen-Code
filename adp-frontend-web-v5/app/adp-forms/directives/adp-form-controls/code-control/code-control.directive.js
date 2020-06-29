@@ -9,10 +9,10 @@
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/code-control/code-control.html',
       require: '^^form',
@@ -24,6 +24,10 @@
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
         scope.getData = getData;
         scope.editorsConfig = _.get(scope, 'field.parameters.codeEditor', {});
+
+        if (scope.field.type === 'Mixed') {
+          scope.editorsConfig.mode = 'ace/mode/json';
+        }
 
         function getData() {
           return scope.adpFormData[scope.field.fieldName];

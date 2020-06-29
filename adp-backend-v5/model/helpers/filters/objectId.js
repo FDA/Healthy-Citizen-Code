@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const { createFilter } = require('./util');
+const { createFilter } = require('../../../lib/filter/util');
 const { ValidationError } = require('../../../lib/errors');
 
 function objectId() {
@@ -12,11 +12,22 @@ function objectId() {
     { data: { fieldPath, operation, value: objectIdValue } },
     {
       any: () => {},
-      undefined: _fieldPath => ({ [_fieldPath]: { $exists: false } }),
+      undefined: (_fieldPath) => ({ [_fieldPath]: { $exists: false } }),
       '=': '$eq',
       '<>': '$ne',
     }
   );
 }
 
-module.exports = objectId;
+function objectIdForSift() {
+  const { fieldPath, operation, value } = this.data;
+  if (operation !== '=') {
+    throw new Error(`Only '=' operation is supported`);
+  }
+  return { [fieldPath]: value };
+}
+
+module.exports = {
+  objectId,
+  objectIdForSift,
+};

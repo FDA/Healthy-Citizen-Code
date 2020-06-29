@@ -10,7 +10,8 @@
     LookupDataSource,
     AdpLookupHelpers,
     DxEditorMixin,
-    LookupDxConfig
+    LookupDxConfig,
+    AdpFieldsService
   ) {
     return {
       single: function (options) {
@@ -40,9 +41,14 @@
         },
 
         setEditorsOptions: function(parentOptions) {
-          this.editorOptions = this.multiple ?
+          var defaults = this.multiple ?
             LookupDxConfig.gridEditorMultiple(parentOptions) :
             LookupDxConfig.gridEditorSingle(parentOptions);
+
+          this.editorOptions = AdpFieldsService.configFromParameters(
+            parentOptions.args.modelSchema,
+            defaults
+          );
 
           this.setChangeHandler(parentOptions.onValueChanged);
         },

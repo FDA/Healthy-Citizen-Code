@@ -8,6 +8,7 @@
   /** @ngInject */
   function adpFileUploaderList(
     AdpFileUploaderModalService,
+    AdpFilePathService,
     AdpMimeService
   ) {
     return {
@@ -40,6 +41,10 @@
           }
 
           item.remove();
+        }
+
+        $scope.getDownloadUrl = function(item){
+          return AdpFilePathService.download(item._file)
         }
       }
     }

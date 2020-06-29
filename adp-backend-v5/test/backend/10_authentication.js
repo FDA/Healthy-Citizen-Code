@@ -1,17 +1,16 @@
 const request = require('supertest');
 require('should');
 const assert = require('assert');
-const reqlib = require('app-root-path').require;
 
-const { setAppAuthOptions, prepareEnv, getMongoConnection } = reqlib('test/test-util');
+const { setAppAuthOptions, prepareEnv, getMongoConnection } = require('../test-util');
 
-describe('V5 Backend Authentication', () => {
-  before(function() {
+describe('V5 Backend Authentication', function () {
+  before(function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
   });
 
-  afterEach(async function() {
+  afterEach(async function () {
     await this.appLib.shutdown();
     const db = await getMongoConnection();
     await db.dropDatabase();
@@ -21,7 +20,7 @@ describe('V5 Backend Authentication', () => {
   // This is a quick sanity check. Most tests are done in CRUD section below
   // Need to write multiple tests for each app.auth setting. For now it requires multiple server starts.
   // Maybe in the future we will implement hot reload with new settings
-  it('should not contain /signup, /account/password, /login, /logout when enableAuthentication=false', async function() {
+  it('should not contain /signup, /account/password, /login, /logout when enableAuthentication=false', async function () {
     setAppAuthOptions(this.appLib, {
       requireAuthentication: false,
       enableAuthentication: false,
@@ -44,7 +43,7 @@ describe('V5 Backend Authentication', () => {
     // res.body.data.brief.should.containEql('GET /forgot');
   });
 
-  it('routes should contain /signup, /account/password, /login, /logout when enableAuthentication!=false', async function() {
+  it('routes should contain /signup, /account/password, /login, /logout when enableAuthentication!=false', async function () {
     setAppAuthOptions(this.appLib, {
       enableAuthentication: true,
     });
@@ -65,7 +64,7 @@ describe('V5 Backend Authentication', () => {
     // res.body.data.brief.should.containEql('GET /forgot');
   });
 
-  it('should get 401 unauthorized code requesting app model when requireAuthentication=true and token is not provided', async function() {
+  it('should get 401 unauthorized code requesting app model when requireAuthentication=true and token is not provided', async function () {
     setAppAuthOptions(this.appLib, {
       requireAuthentication: true,
     });
@@ -81,7 +80,7 @@ describe('V5 Backend Authentication', () => {
     res.body.success.should.equal(false);
   });
 
-  it('should get stripped down json prebuild model (necessary for frontend) when requireAuthentication=true and token is not provided', async function() {
+  it('should get stripped down json prebuild model (necessary for frontend) when requireAuthentication=true and token is not provided', async function () {
     setAppAuthOptions(this.appLib, {
       requireAuthentication: true,
     });
@@ -109,7 +108,7 @@ describe('V5 Backend Authentication', () => {
     pages.home.should.not.be.empty();
   });
 
-  it('should get json model as guest when requireAuthentication=false', async function() {
+  it('should get json model as guest when requireAuthentication=false', async function () {
     setAppAuthOptions(this.appLib, {
       requireAuthentication: false,
     });

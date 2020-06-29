@@ -20,12 +20,12 @@
     return {
       restrict: 'E',
       scope: {
-        adpFields: '=',
-        adpData: '=',
-        adpSubmit: '=',
-        adpFormParams: '=?',
-        disableFullscreen: '=',
-        schema: '='
+        adpFields: '<',
+        adpData: '<',
+        adpSubmit: '<',
+        adpFormParams: '<?',
+        disableFullscreen: '<',
+        schema: '<'
       },
       transclude: {
         'header': '?formHeader',

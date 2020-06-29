@@ -1,16 +1,10 @@
 const _ = require('lodash');
-const https = require('https');
-
-// At instance level
-const axios = require('axios').create({
-  httpsAgent: new https.Agent({
-    rejectUnauthorized: false,
-  }),
-});
-
 const urlParse = require('url-parse');
 const querystring = require('querystring');
 const { Base64 } = require('js-base64');
+
+const { getAxiosProxySettings } = require('./proxy');
+const axios = require('axios').create(getAxiosProxySettings());
 
 const REDIRECT_URL_1 = 'https://localhost';
 const REDIRECT_URL_2 = 'https://localhost';
@@ -199,7 +193,7 @@ function getWidgetHtml(widgetId, widgetParams) {
 
 function step1ObtainLaunchCode(clientId, basicAuth) {
   return axios({
-    url: `https://dev-unified-api.ucsf.edu/clinical/apex/api/UCSF/2015/OAuth/Token/LaunchCode/launchcode?clientID=${clientId}&userID=1&userINI=WPR`,
+    url: `https://apporchard.epic.com/interconnect-aocurprd-oauth/api/UCSF/2015/OAuth/Token/LaunchCode/launchcode?clientID=${clientId}&userID=1&userINI=WPR`,
     method: 'post',
     headers: {
       Authorization: `Basic ${basicAuth}`,

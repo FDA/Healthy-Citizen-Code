@@ -1,20 +1,21 @@
 const _ = require('lodash');
+const nodePath = require('path');
 require('should');
 const assert = require('assert');
-const reqlib = require('app-root-path').require;
 
-describe('App Model Routes', () => {
-  before(function() {
-    require('dotenv').load({ path: './.env' });
-    this.appLib = reqlib('/lib/app')();
+describe('App Model Routes', function () {
+  before(function () {
+    const envPath = nodePath.resolve(__dirname, '../../../.env');
+    require('dotenv').load({ path: envPath });
+    this.appLib = require('../../../lib/app')();
     return this.appLib.setup();
   });
 
-  after(function() {
+  after(function () {
     return this.appLib.shutdown();
   });
 
-  it('Generates core models', function() {
+  it('Generates core models', function () {
     this.appLib.db.readyState.should.equal(1);
     assert(_.indexOf(this.appLib.db.modelNames(), 'users') >= 0);
     assert(_.keys(_.get(this.appLib.appModel, 'metaschema').length > 0));

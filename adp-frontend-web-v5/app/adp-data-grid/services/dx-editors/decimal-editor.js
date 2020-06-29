@@ -6,15 +6,19 @@
     .factory('DecimalEditor', DecimalEditor);
 
   /** @ngInject */
-  function DecimalEditor(DxEditorMixin) {
+  function DecimalEditor(
+    DxEditorMixin,
+    AdpFieldsService
+  ) {
     function getOptions(init) {
-      return {
+      var defaults = {
         mode: 'text',
         onValueChanged: init.onValueChanged,
         value: init.args.data,
         valueChangeEvent: 'blur input',
+        showSpinButtons: true,
         onKeyPress: function(e) {
-          var isDecimalChar = /(\+|-|\.|\d)/.test(e.event.key);
+          var isDecimalChar = /(\+|-|\.|(\d|e))/.test(e.event.key);
           if (!isDecimalChar) {
             e.event.preventDefault();
           }
@@ -25,6 +29,8 @@
           this.option('value', pasteText.replace(/[^0-9.\-+]/g, ''));
         }
       };
+
+      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
     }
 
     return function () {

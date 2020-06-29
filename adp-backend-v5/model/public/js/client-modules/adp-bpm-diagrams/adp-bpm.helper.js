@@ -1,4 +1,4 @@
-(function() {
+(function () {
   angular.module('app.adpBpmDiagrams').factory('AdpBpmHelper', AdpBpmHelperFactory);
 
   /** @ngInject */
@@ -27,7 +27,7 @@
     function getOnDiagramOpen(type, vm) {
       var config = getDiagramConfig(type);
 
-      return (config.getOnDiagramOpen || function() {})(vm);
+      return (config.getOnDiagramOpen || function () {})(vm);
     }
 
     function getDiagram(type, record) {
@@ -43,10 +43,10 @@
       };
 
       return GraphqlCollectionQuery(config.getSchema(), params)
-        .then(function(result) {
+        .then(function (result) {
           return result.items;
         })
-        .catch(function(error) {
+        .catch(function (error) {
           ErrorHelpers.handleError(error, 'Unknown error while loading rules record');
           throw error;
         });
@@ -57,13 +57,13 @@
 
       return config
         .getRecordToSave(vm, definition)
-        .then(function(record) {
+        .then(function (record) {
           return GraphqlCollectionMutator.update(config.getSchema(), record);
         })
-        .then(function() {
+        .then(function () {
           AdpNotificationService.notifySuccess('Ruleset is successfully stored into database');
         })
-        .catch(function(error) {
+        .catch(function (error) {
           ErrorHelpers.handleError(error, 'Unknown error while saving DEFINITION');
         });
     }
@@ -74,6 +74,17 @@
       return config.filePrefix + id + new Date().getTime() + '.' + type;
     }
 
+    function getAdditionalData(type, record) {
+      var config = getDiagramConfig(type);
+      var getter =
+        config.getAdditionalData ||
+        function () {
+          return {};
+        };
+
+      return getter(record);
+    }
+
     return {
       getDiagramConfig: getDiagramConfig,
       isLibLoaded: isLibLoaded,
@@ -82,6 +93,7 @@
       loadRulesRecord: loadRulesRecord,
       putRulesRecord: putRulesRecord,
       getFileName: getFileName,
+      getAdditionalData: getAdditionalData,
     };
   }
 })();

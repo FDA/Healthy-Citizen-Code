@@ -31,7 +31,7 @@ module.exports = function () {
       {
         $lookup: {
           from: 'pools',
-          localField: 'pools',
+          localField: 'pools._id',
           foreignField: '_id',
           as: 'pools',
         },
@@ -39,9 +39,9 @@ module.exports = function () {
       { $unwind: '$pools' },
       {
         $lookup: {
-          from: 'poolparticipants',
+          from: 'poolParticipants',
           localField: 'pools._id',
-          foreignField: 'poolId',
+          foreignField: 'poolId._id',
           as: 'poolParticipants',
         },
       },
@@ -409,6 +409,10 @@ module.exports = function () {
   };
 
   const mapDataToProgressChart = (data) => {
+    if (data.length === 0) {
+      return [];
+    }
+
     let result = [
       ['questionnaireName', 'Completed', 'Not started', 'In Progress'],
     ];
@@ -428,6 +432,10 @@ module.exports = function () {
   }
 
   const mapDataSpentTimeChart = (data) => {
+    if (data.length === 0) {
+      return [];
+    }
+
     let result = [
       [
         "questionnaireName",
@@ -448,6 +456,10 @@ module.exports = function () {
   }
 
   const mapDataToDayChart = (data) => {
+    if (_.isEmpty(data)) {
+      return [];
+    }
+
     let result = [
       ['Questionnaires', 'Questionnaires Completed in the Last 30 Days'],
     ];

@@ -33,6 +33,7 @@
           var requestSchema = provideRequestSchema(schema, customOptions.gridComponent);
 
           loadOptions.customOptions = customOptions.value();
+          loadOptions.isGroupFilter = groupingEnabled(customOptions.gridComponent);
 
           return GraphqlCollectionQuery(requestSchema, loadOptions)
             .then(!!loadOptions.group ? getGroupedData : getData)
@@ -114,6 +115,16 @@
       });
 
       return AdpFormDataUtils.transformDataBeforeSending(data, schema);
+    }
+
+    function groupingEnabled(grid) {
+      for (var i = 0; i < grid.columnCount(); i++){
+        if(grid.columnOption(i, 'groupIndex') > -1){
+          return true;
+        }
+      }
+
+      return false;
     }
   }
 })();
