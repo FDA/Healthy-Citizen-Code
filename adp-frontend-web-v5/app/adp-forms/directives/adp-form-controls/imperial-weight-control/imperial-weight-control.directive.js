@@ -12,62 +12,36 @@
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/imperial-weight-control/imperial-weight-control.html',
       require: '^^form',
-      link: function (scope, el, attrs, formCtrl) {
-        scope.form = formCtrl;
+      link: function (scope) {
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+        scope.config = getConfig(scope.field);
 
-        (function init() {
-          var initialValue = isEmpty() ? null : getData().toString();
-          setData(initialValue);
-
-          createRangesList();
-          setOptions();
-        })();
-
-        function createRangesList() {
-          var weigthUnit = AdpFieldsService.getUnits(scope.field)[0];
-          var unitRange = _.range.apply(this, weigthUnit.range);
-
-          scope.rangeList = _.map(unitRange, function (i) {
-            return { value: i, label: i + weigthUnit.label };
-          });
+        function getConfig(field) {
+          var defaults = getDefaults(field);
+          return AdpFieldsService.configFromParameters(field, defaults);
         }
 
-        function setOptions() {
-          // hiding search input
-          // https://github.com/select2/select2/issues/489#issuecomment-100602293
-          scope.options = {
-            minimumResultsForSearch: -1,
-            onChange: function(e) {
-              scope.adpFormData[scope.field.fieldName] = parseInt(e.added.id, 10);
+        function getDefaults(field) {
+          var unit = AdpFieldsService.getUnitsList(field)[0];
+
+          return {
+            valueExpr: 'value',
+            displayExpr: 'label',
+            dataSource: unit.list,
+            placeholder: 'Select ' + unit.shortName,
+            showClearButton: true,
+            elementAttr: {
+              class: 'adp-select-box',
+              id: 'list_id_' + scope.field.fieldName,
             },
-            formatResult: function (state) {
-              return state.text;
-            },
-            formatSelection: function (state) {
-              return state.text;
-            }
           };
-        }
-
-        function isEmpty() {
-          var data = getData();
-          return _.isUndefined(data) || _.isNull(data);
-        }
-
-        function getData() {
-          return scope.adpFormData[scope.field.fieldName];
-        }
-
-        function setData(value) {
-          return scope.adpFormData[scope.field.fieldName] = value;
         }
       }
     }

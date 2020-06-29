@@ -7,7 +7,8 @@
 
   function adpValidate(
     AdpValidationRules,
-    AdpFormValidationRules
+    AdpFormValidationRules,
+    AdpValidationUtils
   ) {
     return {
       restrict: 'A',
@@ -17,6 +18,8 @@
         var unbind = scope.$watch(attrs.adpValidate, function(validationParams) {
           init();
           extendValidators(validationParams);
+          overloadBuiltInRequiredValidation(validationParams);
+
           unbind();
         });
 
@@ -71,6 +74,25 @@
           });
 
           return result;
+        }
+
+        function overloadBuiltInRequiredValidation(validationParams) {
+          if (validationParams.field.type !== 'TreeSelector') {
+            return;
+          }
+
+          var isRequired = AdpValidationUtils.getRequiredFn(validationParams.formParams);
+          if (!isRequired()) {
+            return;
+          }
+
+          var formField = scope.form[validationParams.field.fieldName];
+          formField.$validators.required = function (modelValue) {
+            var filtered = _.filter(modelValue, function (i) {
+              return !_.isEmpty(i);
+            });
+            return !_.isEmpty(filtered);
+          }
         }
       }
     }

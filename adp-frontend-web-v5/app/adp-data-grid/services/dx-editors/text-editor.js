@@ -6,16 +6,19 @@
     .factory('TextEditor', TextEditor);
 
   /** @ngInject */
-  function TextEditor(DxEditorMixin) {
+  function TextEditor(
+    DxEditorMixin,
+    AdpFieldsService
+  ) {
     function getOptions(init) {
-      var INPUT_TIMEOUT = 300;
-
-      return {
+      var defaults = {
         mode: 'text',
-        onValueChanged: _.debounce(init.onValueChanged, INPUT_TIMEOUT),
+        onValueChanged: init.onValueChanged,
         value: init.args.data,
         valueChangeEvent: 'change input',
       };
+
+      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
     }
 
     return function () {

@@ -5,8 +5,6 @@ const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
-const reqlib = require('app-root-path').require;
-
 const {
   getMongoConnection,
   setAppAuthOptions,
@@ -14,17 +12,17 @@ const {
   checkRestSuccessfulResponse,
   conditionForActualRecord,
   sortByIdDesc,
-} = reqlib('test/test-util');
+} = require('../test-util');
 const {
   buildGraphQlCreate,
   buildGraphQlTreeselectorQuery,
   checkGraphQlSuccessfulResponse,
   checkGraphQlErrorResponse,
-} = reqlib('test/graphql-util.js');
+} = require('../graphql-util.js');
 
-const { getTreeselectorTypeName } = reqlib('lib/graphql/type/lookup');
+const { getTreeselectorTypeName } = require('../../lib/graphql/type/lookup');
 
-describe('V5 TreeSelectors', () => {
+describe('V5 TreeSelectors', function () {
   const parent1 = {
     _id: ObjectID('5c6d437f9ea7665b9d924b00'),
     name: 'parent1',
@@ -52,7 +50,7 @@ describe('V5 TreeSelectors', () => {
       name: 'child3',
       hasChildren: true,
     },
-  ].map(d => ({ ...d, ...conditionForActualRecord }));
+  ].map((d) => ({ ...d, ...conditionForActualRecord }));
 
   const parent2 = {
     _id: ObjectID('5c6d437f9ea7665b9d924b01'),
@@ -61,19 +59,19 @@ describe('V5 TreeSelectors', () => {
     ...conditionForActualRecord,
   };
 
-  before(async function() {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.createCollection('model11treeselector'),
       this.db.createCollection('treeCollection'),
@@ -85,19 +83,19 @@ describe('V5 TreeSelectors', () => {
     await Promise.all([this.db.collection('treeCollection').insertMany([parent1, ...parent1children, parent2])]);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
-  describe('returns correct results', () => {
-    beforeEach(function() {
+  describe('returns correct results', function () {
+    beforeEach(function () {
       setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
       });
       return this.appLib.setup();
     });
 
-    const getTestFunc = function(settings) {
+    const getTestFunc = function (settings) {
       return f;
 
       async function f() {
@@ -116,29 +114,29 @@ describe('V5 TreeSelectors', () => {
     const treeselectorId = 'Model11treeselectorTreeselector';
     const treeSelectorTableName = 'treeCollection';
 
-    const getRestData = res => res.body.data;
+    const getRestData = (res) => res.body.data;
     const treeselectorTypeName = getTreeselectorTypeName(treeselectorId, treeSelectorTableName);
-    const getGraphqlData = res => res.body.data[treeselectorTypeName].items;
+    const getGraphqlData = (res) => res.body.data[treeselectorTypeName].items;
 
-    describe('for search for treeselector with filtering condition', () => {
+    describe('for search for treeselector with filtering condition', function () {
       const _treeselectorId = 'model11treeselectorWithFilteringId';
       const tableName = 'treeCollection';
       const typeName = getTreeselectorTypeName(_treeselectorId, tableName);
       const form = { filteringField: parent1.name };
-      const checkData = results => {
+      const checkData = (results) => {
         results.length.should.equal(1);
         const { label } = results[0];
         label.should.equal(form.filteringField);
       };
 
       const restSettings = {
-        makeRequest: r => r.post(`/treeselectors/${_treeselectorId}/${tableName}`).send(form),
+        makeRequest: (r) => r.post(`/treeselectors/${_treeselectorId}/${tableName}`).send(form),
         checkResponse: checkRestSuccessfulResponse,
         checkData,
         getData: getRestData,
       };
       const graphqlSettings = {
-        makeRequest: r =>
+        makeRequest: (r) =>
           r.post('/graphql').send(
             buildGraphQlTreeselectorQuery({
               treeselectorId: _treeselectorId,
@@ -149,7 +147,7 @@ describe('V5 TreeSelectors', () => {
           ),
         checkResponse: checkGraphQlSuccessfulResponse,
         checkData,
-        getData: res => res.body.data[typeName].items,
+        getData: (res) => res.body.data[typeName].items,
       };
       it(
         `REST: returns correct results for search for treeselector with filtering condition`,
@@ -161,8 +159,8 @@ describe('V5 TreeSelectors', () => {
       );
     });
 
-    describe('when requesting roots containing data attribute', () => {
-      const checkData = data => {
+    describe('when requesting roots containing data attribute', function () {
+      const checkData = (data) => {
         data.length.should.equal(2);
 
         should(data[0]).be.deepEqual({
@@ -186,13 +184,13 @@ describe('V5 TreeSelectors', () => {
         });
       };
       const restSettings = {
-        makeRequest: r => r.get(`/treeselectors/${treeselectorId}/${treeSelectorTableName}`),
+        makeRequest: (r) => r.get(`/treeselectors/${treeselectorId}/${treeSelectorTableName}`),
         checkResponse: checkRestSuccessfulResponse,
         checkData,
         getData: getRestData,
       };
       const graphqlSettings = {
-        makeRequest: r =>
+        makeRequest: (r) =>
           r.post('/graphql').send(
             buildGraphQlTreeselectorQuery({
               treeselectorId,
@@ -209,9 +207,9 @@ describe('V5 TreeSelectors', () => {
       it('GraphQL: when requesting roots containing data attribute', getTestFunc(graphqlSettings));
     });
 
-    describe('when requesting children (for default first page)', () => {
+    describe('when requesting children (for default first page)', function () {
       const foreignKeyVal = parent1._id.toString();
-      const checkData = data => {
+      const checkData = (data) => {
         // limitReturnedRecords = 2
         data.length.should.equal(2);
         const childrenSortedByIdDesc = sortByIdDesc(parent1children);
@@ -230,14 +228,14 @@ describe('V5 TreeSelectors', () => {
       };
 
       const restSettings = {
-        makeRequest: r =>
+        makeRequest: (r) =>
           r.get(`/treeselectors/${treeselectorId}/${treeSelectorTableName}?foreignKeyVal=${foreignKeyVal}`),
         checkResponse: checkRestSuccessfulResponse,
         checkData,
         getData: getRestData,
       };
       const graphqlSettings = {
-        makeRequest: r =>
+        makeRequest: (r) =>
           r.post('/graphql').send(
             buildGraphQlTreeselectorQuery({
               treeselectorId,
@@ -255,9 +253,9 @@ describe('V5 TreeSelectors', () => {
       it('GraphQL: when requesting children (for default first page)', getTestFunc(graphqlSettings));
     });
 
-    describe('when requesting children with pagination (page=2)', () => {
+    describe('when requesting children with pagination (page=2)', function () {
       const foreignKeyVal = parent1._id.toString();
-      const checkData = data => {
+      const checkData = (data) => {
         data.length.should.equal(1);
         const childrenSortedByIdDesc = sortByIdDesc(parent1children);
         const thirdChild = childrenSortedByIdDesc[2];
@@ -275,7 +273,7 @@ describe('V5 TreeSelectors', () => {
 
       const page = `2`;
       const restSettings = {
-        makeRequest: r =>
+        makeRequest: (r) =>
           r.get(
             `/treeselectors/${treeselectorId}/${treeSelectorTableName}?foreignKeyVal=${foreignKeyVal}&page=${page}`
           ),
@@ -284,7 +282,7 @@ describe('V5 TreeSelectors', () => {
         getData: getRestData,
       };
       const graphqlSettings = {
-        makeRequest: r =>
+        makeRequest: (r) =>
           r.post('/graphql').send(
             buildGraphQlTreeselectorQuery({
               treeselectorId,
@@ -304,15 +302,15 @@ describe('V5 TreeSelectors', () => {
     });
   });
 
-  describe('create TreeSelector', () => {
-    beforeEach(function() {
+  describe('create TreeSelector', function () {
+    beforeEach(function () {
       setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
       });
       return this.appLib.setup();
     });
 
-    describe('should submit doc with TreeSelector data ending with leaf', () => {
+    describe('should submit doc with TreeSelector data ending with leaf', function () {
       const treeSelectorData = [
         { ...parent1Lookup, _id: parent1Lookup._id.toString() },
         {
@@ -324,7 +322,7 @@ describe('V5 TreeSelectors', () => {
       const record = {
         treeSelector: treeSelectorData,
       };
-      const getTestFunc = function(settings) {
+      const getTestFunc = function (settings) {
         return f;
 
         async function f() {
@@ -341,31 +339,31 @@ describe('V5 TreeSelectors', () => {
           const { treeSelector } = doc;
           should(treeSelector.length).be.equal(2);
 
-          const expectedStoredData = treeSelectorData.map(d => ({ ...d, _id: ObjectID(d._id) }));
+          const expectedStoredData = treeSelectorData.map((d) => ({ ...d, _id: ObjectID(d._id) }));
           should(treeSelector).be.deepEqual(expectedStoredData);
         }
       };
 
       const modelName = 'model11treeselector';
-      const createDocRestRequest = r => r.post(`/${modelName}`).send({ data: record });
-      const createDocGraphqlRequest = r => r.post('/graphql').send(buildGraphQlCreate(modelName, record));
+      const createDocRestRequest = (r) => r.post(`/${modelName}`).send({ data: record });
+      const createDocGraphqlRequest = (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record));
 
       const restSettings = {
         makeRequest: createDocRestRequest,
         checkResponse: checkRestSuccessfulResponse,
-        getCreatedDocId: res => res.body.id,
+        getCreatedDocId: (res) => res.body.id,
       };
       const graphqlSettings = {
         makeRequest: createDocGraphqlRequest,
         checkResponse: checkGraphQlSuccessfulResponse,
-        getCreatedDocId: res => res.body.data[`${modelName}Create`]._id,
+        getCreatedDocId: (res) => res.body.data[`${modelName}Create`]._id,
       };
 
       it('REST: should submit doc with TreeSelector data ending with leaf', getTestFunc(restSettings));
       it('GraphQL: should submit doc with TreeSelector data ending with leaf', getTestFunc(graphqlSettings));
     });
 
-    describe('should not submit doc with TreeSelector data ending with not leaf', () => {
+    describe('should not submit doc with TreeSelector data ending with not leaf', function () {
       const treeSelectorData = [
         { ...parent1Lookup, _id: parent1Lookup._id.toString() },
         {
@@ -377,7 +375,7 @@ describe('V5 TreeSelectors', () => {
       const record = {
         treeSelector: treeSelectorData,
       };
-      const getTestFunc = function(settings) {
+      const getTestFunc = function (settings) {
         return f;
 
         async function f() {
@@ -393,12 +391,12 @@ describe('V5 TreeSelectors', () => {
       };
 
       const modelName = 'model11treeselector';
-      const createDocRestRequest = r => r.post(`/${modelName}`).send({ data: record });
-      const createDocGraphqlRequest = r => r.post('/graphql').send(buildGraphQlCreate(modelName, record));
+      const createDocRestRequest = (r) => r.post(`/${modelName}`).send({ data: record });
+      const createDocGraphqlRequest = (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record));
 
       const restSettings = {
         makeRequest: createDocRestRequest,
-        checkResponse: res => {
+        checkResponse: (res) => {
           const { success, message } = res.body;
           success.should.equal(false);
           message.should.equal(

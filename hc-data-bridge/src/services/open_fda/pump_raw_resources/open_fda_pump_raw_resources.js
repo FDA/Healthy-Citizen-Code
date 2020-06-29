@@ -13,13 +13,10 @@ const readline = require('readline');
 const transformers = require('./transformers');
 const transformersContexts = require('./transformer_contexts');
 const { isValidMongoDbUrl } = require('../../../lib/helper');
-const { getAxiosProxySettings } = require('../../util/proxy');
+const { downloadUsingWget } = require('../../util/download');
+const { getAxiosProxySettings, getWgetProxyParams } = require('../../util/proxy');
 // eslint-disable-next-line import/order
 const axios = require('axios').create(getAxiosProxySettings());
-
-// wget settings
-const CONNECT_TIMEOUT = 5; // sometimes one of many IPs cannot respond, reduce default 60sec to 5 sec
-const TRIES = 5;
 
 class PumpRawResourceOpenFda {
   constructor(settings) {
@@ -109,23 +106,6 @@ class PumpRawResourceOpenFda {
     return res;
   }
 
-  _downloadUsingWget(fileInfos) {
-    return Promise.mapSeries(fileInfos, (fileInfo) => {
-      const { url, destDir } = fileInfo;
-      const command = `wget -N '${url}' -P '${destDir}' --connect-timeout ${CONNECT_TIMEOUT} --tries ${TRIES} --progress=dot:mega`;
-      return new Promise((resolve, reject) => {
-        sh.exec(command, (code, stdout, stderr) => {
-          if (code !== 0) {
-            return reject();
-          }
-          const fileName = url.substr(url.lastIndexOf('/') + 1);
-          const filePath = path.resolve(destDir, fileName);
-          resolve(filePath);
-        });
-      });
-    });
-  }
-
   async pump() {
     console.log(`Downloading openfda all available files list...`);
     this.downloadFilesInfo = await this._getDownloadFilesInfo();
@@ -133,6 +113,7 @@ class PumpRawResourceOpenFda {
     console.log(`Start downloading files`);
     console.log(this.SPLITTER);
 
+    const wgetProxyParams = getWgetProxyParams();
     const downloadedResMetas = await Promise.map(this.settings.pumpParams, async (paramsObj) => {
       const resourceMeta = _.get(this.downloadFilesInfo, paramsObj.resourcePath, {});
       if (!resourceMeta.partitions) {
@@ -142,7 +123,7 @@ class PumpRawResourceOpenFda {
 
       const { fileFilter, zipDestinationDir } = paramsObj;
       const fileInfos = this._getFileInfos(resourceMeta.partitions, fileFilter, zipDestinationDir);
-      const zipPaths = await this._downloadUsingWget(fileInfos);
+      const zipPaths = await downloadUsingWget(fileInfos, false, wgetProxyParams);
       if (!paramsObj.transformerContext) {
         paramsObj.transformerContext = {};
       } else {
@@ -184,12 +165,17 @@ class PumpRawResourceOpenFda {
   }
 
   _getDownloadFilesInfo() {
-    return axios.get(this.settings.downloadJsonUrl).then((res) => {
-      if (res.status === 200) {
-        return res.data.results;
-      }
-      throw new Error(`Cannot download 'download.json' by url ${this.settings.downloadJsonUrl}`);
-    });
+    return axios
+      .get(this.settings.downloadJsonUrl)
+      .then((res) => {
+        if (res.status === 200) {
+          return res.data.results;
+        }
+        throw new Error(`Cannot download 'download.json' by url ${this.settings.downloadJsonUrl}`);
+      })
+      .catch((e) => {
+        throw new Error(`Cannot download 'download.json' by url ${this.settings.downloadJsonUrl}. ${e.stack}`);
+      });
   }
 
   _saveArchivesToMongo(resMeta) {

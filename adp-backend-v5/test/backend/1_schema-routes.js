@@ -2,7 +2,6 @@ const request = require('supertest');
 require('should');
 const assert = require('assert');
 const _ = require('lodash');
-const reqlib = require('app-root-path').require;
 
 const {
   diffObjects,
@@ -10,9 +9,9 @@ const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
-} = reqlib('test/test-util');
+} = require('../test-util');
 
-describe('V5 Backend Schema Routes', () => {
+describe('V5 Backend Schema Routes', function () {
   before(async function () {
     this.expected = {
       type: 'Schema',
@@ -25,12 +24,19 @@ describe('V5 Backend Schema Routes', () => {
           searchable: true,
           autocomplete: 'enable',
           parameters: {
+            renderAsHtml: false,
             enableInCellEditing: true,
             grouping: {
               allowGrouping: true,
               allowExpandGroup: true,
             },
             minWidth: 100,
+            allowHeaderFiltering: true,
+            headerFilter: {
+              allowSearch: true,
+            },
+            filterType: 'include',
+            allowSearch: true,
           },
           fullName: 'String',
           responsivePriority: 100,
@@ -63,12 +69,19 @@ describe('V5 Backend Schema Routes', () => {
                   searchable: true,
                   autocomplete: 'enable',
                   parameters: {
+                    renderAsHtml: false,
                     enableInCellEditing: true,
                     grouping: {
                       allowGrouping: true,
                       allowExpandGroup: true,
                     },
                     minWidth: 100,
+                    allowHeaderFiltering: true,
+                    headerFilter: {
+                      allowSearch: true,
+                    },
+                    filterType: 'include',
+                    allowSearch: true,
                   },
                   responsivePriority: 100,
                   width: 100,
@@ -90,6 +103,7 @@ describe('V5 Backend Schema Routes', () => {
                 grouping: {
                   allowGrouping: false,
                 },
+                allowSearch: false,
               },
               responsivePriority: 100,
               showInDatatable: true,
@@ -115,12 +129,19 @@ describe('V5 Backend Schema Routes', () => {
                   searchable: true,
                   autocomplete: 'enable',
                   parameters: {
+                    renderAsHtml: false,
                     enableInCellEditing: true,
                     grouping: {
                       allowGrouping: true,
                       allowExpandGroup: true,
                     },
                     minWidth: 100,
+                    allowHeaderFiltering: true,
+                    headerFilter: {
+                      allowSearch: true,
+                    },
+                    filterType: 'include',
+                    allowSearch: true,
                   },
                   responsivePriority: 100,
                   width: 100,
@@ -146,6 +167,12 @@ describe('V5 Backend Schema Routes', () => {
                       allowGrouping: true,
                       allowExpandGroup: true,
                     },
+                    allowHeaderFiltering: true,
+                    headerFilter: {
+                      allowSearch: true,
+                    },
+                    filterType: 'include',
+                    allowSearch: true,
                   },
                   width: 150,
                   responsivePriority: 100,
@@ -167,6 +194,7 @@ describe('V5 Backend Schema Routes', () => {
                 grouping: {
                   allowGrouping: false,
                 },
+                allowSearch: false,
               },
               responsivePriority: 100,
               showInDatatable: true,
@@ -187,6 +215,7 @@ describe('V5 Backend Schema Routes', () => {
             grouping: {
               allowGrouping: false,
             },
+            allowSearch: false,
           },
           responsivePriority: 100,
           showInDatatable: true,
@@ -243,6 +272,12 @@ describe('V5 Backend Schema Routes', () => {
           parameters: {
             enableInCellEditing: false,
             visible: false,
+            allowHeaderFiltering: true,
+            headerFilter: {
+              allowSearch: true,
+            },
+            filterType: 'include',
+            allowSearch: true,
           },
           fieldName: 'creator',
           autocomplete: 'enable',
@@ -266,6 +301,12 @@ describe('V5 Backend Schema Routes', () => {
           parameters: {
             enableInCellEditing: false,
             visible: false,
+            allowHeaderFiltering: true,
+            headerFilter: {
+              allowSearch: true,
+            },
+            filterType: 'include',
+            allowSearch: true,
           },
           fieldName: 'createdAt',
           width: 150,
@@ -288,6 +329,12 @@ describe('V5 Backend Schema Routes', () => {
           parameters: {
             enableInCellEditing: false,
             visible: false,
+            allowHeaderFiltering: true,
+            headerFilter: {
+              allowSearch: true,
+            },
+            filterType: 'include',
+            allowSearch: true,
           },
           fieldName: 'updatedAt',
           width: 150,
@@ -310,6 +357,12 @@ describe('V5 Backend Schema Routes', () => {
           parameters: {
             enableInCellEditing: false,
             visible: false,
+            allowHeaderFiltering: true,
+            headerFilter: {
+              allowSearch: true,
+            },
+            filterType: 'include',
+            allowSearch: true,
           },
           fieldName: 'deletedAt',
           width: 150,
@@ -522,6 +575,19 @@ describe('V5 Backend Schema Routes', () => {
               link: 'AdpGridColumnChooser',
             },
           },
+          filterBuilder: {
+            position: 'grid.top.right',
+            showInTable: false,
+            description: 'Advanced Filtering Expressions Builder',
+            icon: {
+              type: 'font-awesome',
+              link: 'search-plus',
+            },
+            action: {
+              type: 'module',
+              link: 'AdpFilterBuilder',
+            },
+          },
         },
       },
       parameters: {
@@ -530,6 +596,9 @@ describe('V5 Backend Schema Routes', () => {
         columnResizingMode: 'widget',
         columnHidingEnabled: true,
         filterRow: {
+          visible: true,
+        },
+        headerFilter: {
           visible: true,
         },
         columnChooser: {
@@ -585,7 +654,7 @@ describe('V5 Backend Schema Routes', () => {
     };
 
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     this.db = await getMongoConnection();
   });
 

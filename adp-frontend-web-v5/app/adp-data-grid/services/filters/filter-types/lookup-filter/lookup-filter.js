@@ -8,6 +8,7 @@
   /** @ngInject */
   function LookupFilter(
     LookupFilterSelector,
+    LookupTypesCellRenderer,
     LookupFilterTableSelector
   ) {
     return function () {
@@ -22,6 +23,10 @@
         create: function (init) {
           this.lookupOptions = init;
           this.init();
+        },
+
+        formatValue: function(params) {
+          return LookupTypesCellRenderer.multiple(params.args);
         },
 
         init: function () {

@@ -23,17 +23,14 @@
       xlsx: {
         native: 'Excel XLSX file',
         mime: 'application/octet-stream',
-        processor: function (wb) {
-          return wb.xlsx.writeBuffer();
-        },
+        processor: GridExportGenerators.xlsxGenerator,
         useCellRenderers: true,
+        emptyFiller: '',
       },
       csv: {
         native: 'CSV file',
         mime: 'text/csv',
-        processor: function (wb) {
-          return wb.csv.writeBuffer();
-        },
+        processor: GridExportGenerators.csvGenerator,
         useCellRenderers: true,
         emptyFiller: '',
         commaDotSeparator: '\\;',

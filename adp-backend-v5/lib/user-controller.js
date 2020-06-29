@@ -345,15 +345,16 @@ module.exports = (appLib) => {
       return res.status(403).json({ success: false, message: `Not authorized to signup` });
     }
 
+    const signupFields = _.pick(req.body, ['login', 'email', 'password']);
     try {
-      await transformers.preSaveTransformData('users', userContext, req.body, []);
+      await transformers.preSaveTransformData('users', userContext, signupFields, []);
     } catch (e) {
       return res.status(422).json({ success: false, message: e.message });
     }
 
     // check if user already exists
-    const { login, email } = req.body;
-    const existingUser = await User.findOne({ login });
+    const { login, email } = signupFields;
+    const existingUser = await User.findOne({ login: { $eq: login } });
     if (existingUser) {
       return res.status(409).json({ success: false, message: `User ${login} already exists` });
     }
@@ -379,11 +380,7 @@ module.exports = (appLib) => {
 
     try {
       // create user record
-      const userData = _.merge(linkedRecords, {
-        ...req.body,
-        _id: userDocObjectId,
-        password: req.body.password,
-      });
+      const userData = _.merge(linkedRecords, { ...signupFields, _id: userDocObjectId });
       // remove recaptcha and other non-model fields
       const strictUser = new User(userData, true);
       const createdUser = await strictUser.save();
@@ -416,11 +413,15 @@ module.exports = (appLib) => {
       return res.status(422).json({ success: false, message: e.message });
     }
 
+    const userId = _.get(req, 'user.id');
+    if (!ObjectID.isValid(userId)) {
+      return res.json({ success: false, message: `Invalid user id specified.` });
+    }
+
     try {
-      const userId = _.get(req, 'user.id');
       const user = await User.findById(userId);
       if (!user) {
-        res.json({ success: false, message: `Unable to find account with by user id ${userId}.` });
+        return res.json({ success: false, message: `Unable to find account with by user id ${userId}.` });
       }
       // update password
       user.password = req.body.password;
@@ -437,27 +438,12 @@ module.exports = (appLib) => {
   };
 
   /**
-   * POST /account/delete
-   * Delete user account.
-   */
-  /*
-   m.postDeleteAccount = (req, res, next) => {
-   User.remove({_id: req.user.id}, (err) => {
-   if (err) {
-   return next(err);
-   }
-   req.logout();
-   });
-   };
-   */
-
-  /**
    * Process the reset password request.
    */
   m.postReset = async (req, res) => {
     try {
       const { token, password } = req.body;
-      if (!token) {
+      if (!_.isString(token)) {
         return res.json({ success: false, message: 'Password reset token must be specified.' });
       }
 
@@ -492,7 +478,7 @@ module.exports = (appLib) => {
   m.postForgot = async (req, res) => {
     try {
       const { email } = req.body;
-      if (!email) {
+      if (!_.isString(email)) {
         return res.json({ success: false, message: `Parameter 'email' must be set in request body.` });
       }
 

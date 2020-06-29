@@ -16,10 +16,14 @@ const {
 } = require('./transformers_util');
 
 // eslint-disable-next-line no-unused-vars
-module.exports = appLib => {
+module.exports = (appLib) => {
   const _ = require('lodash');
   const { hashPassword, bcryptHashRegex } = require('../../lib/util/password');
   const { getTime } = require('../../lib/util/date');
+
+  function stringifyObjId(value) {
+    return appLib.butil.isValidObjectId(value) ? value.toString() : value;
+  }
 
   const m = {
     /** Special transformer doing nothing, allows to specify 'null' in transformer array ['null', 'postTransformer'].
@@ -33,6 +37,21 @@ module.exports = appLib => {
       const value = _.get(this, path);
       if (value) {
         _.set(this, path, value.toString());
+      }
+      next();
+    },
+    decimalToString(path, appModelPart, userContext, next) {
+      const value = _.get(this, path);
+      if (value) {
+        if (_.isArray(value)) {
+          _.set(
+            this,
+            path,
+            value.map((elem) => elem.toString())
+          );
+        } else {
+          _.set(this, path, value.toString());
+        }
       }
       next();
     },
@@ -111,6 +130,29 @@ module.exports = appLib => {
     time(path, appModelPart, userContext, next) {
       const value = _.get(this, path);
       _.set(this, path, getTime(value));
+      next();
+    },
+    stringifyLookupObjectId(path, appModelPart, userContext, next) {
+      const value = _.get(this, path);
+      if (!_.isNil(value) || !_.isEmpty(value)) {
+        const isArrayVal = _.isArray(value);
+        let formatted = _.castArray(value).map((obj) => {
+          if (obj._id) {
+            return { ...obj, _id: stringifyObjId(obj._id) };
+          }
+          return obj;
+        });
+        formatted = isArrayVal ? formatted : formatted[0];
+        _.set(this, path, formatted);
+      }
+      next();
+    },
+    stringifyTreeSelector(path, appModelPart, userContext, next) {
+      const value = _.get(this, path);
+      if (!_.isEmpty(value)) {
+        _.each(value, (obj) => stringifyObjId(obj._id));
+        _.set(this, path, value);
+      }
       next();
     },
   };

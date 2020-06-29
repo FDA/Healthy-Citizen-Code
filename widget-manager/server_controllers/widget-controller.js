@@ -21,21 +21,20 @@ const {
   handleAxiosError
 } = require('../controller_util/widget');
 
-const ISS = 'https://dev-unified-api.ucsf.edu/clinical/apex/api/FHIR/STU3';
-const AUTHORIZE_URL = 'https://dev-unified-api.ucsf.edu/clinical/apex/oauth2/authorize';
-const TOKEN_URL = `https://dev-unified-api.ucsf.edu/clinical/apex/oauth2/token`;
-const EPIC_AUTH_FULL_URL = `${process.env.WIDGET_API_URL}/epic/auth`;
+const ISS = process.env.EPIC_ISS || 'https://apporchard.epic.com/interconnect-aocurprd-oauth/api/FHIR/STU3';
+const AUTHORIZE_URL = 'https://apporchard.epic.com/interconnect-aocurprd-oauth/oauth2/authorize';
+const TOKEN_URL = `https://apporchard.epic.com/interconnect-aocurprd-oauth/oauth2/token`;
+const EPIC_AUTH_FULL_URL = process.env.EPIC_AUTH_FULL_URL || `${process.env.WIDGET_API_URL}/epic/auth`;
 
 const ENV_EPIC_CLIENT_ID_PREFIX = 'EPIC_CLIENT_ID_';
-const EPIC_CLIENT_ID_UCSF_FALLBACK = 'ed495ec6-3b4e-4ca0-9bb5-5d00ae1be4e1';
+const EPIC_CLIENT_ID_UCSF_FALLBACK = 'HealthyCitizenWidgets';
 
 const ISS_COOKIE_NAME = 'iss';
 const CLIENT_ID_COOKIE_NAME = 'clientId';
 const WIDGET_TYPE_COOKIE_NAME = 'widgetType';
-const WIDGET_TYPE_FALLBACK = 'ucsfRecalls';
+const WIDGET_TYPE_FALLBACK = process.env.WIDGET_TYPE_FALLBACK || 'recalls';
 // const AUTHORIZE_URL_COOKIE_NAME = 'authorize_url';
 const TOKEN_URL_COOKIE_NAME = 'token_url';
-
 
 module.exports = function(globalMongoose) {
   const mongoose = globalMongoose;

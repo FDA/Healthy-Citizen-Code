@@ -6,30 +6,33 @@
     .directive('gridControl', gridControl);
 
   function gridControl(
-    GraphqlMultipleSchemasQuery
+    GraphqlMultipleSchemasQuery,
+    GRID_CONTROL_ACTIONS
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/grid-control/grid-control.html',
       require: '^^form',
       link: function (scope) {
         scope.schema = mergeSchema(scope.field.table);
         setParametersToSchema(scope.field, scope.schema);
-        addActions(scope.schema, scope.field.table)
-        customizeToolbar(scope.schema);
+        addActions(scope.schema, scope.field.table);
         showHideHeader(scope.field.showHeader, scope.schema);
 
         scope.options = {
           dataSource: {
             store: new DevExpress.data.CustomStore({
               load: function () {
-                return GraphqlMultipleSchemasQuery(scope.field.table)
+                return GraphqlMultipleSchemasQuery(scope.field.table, {
+                  row: _.cloneDeep(scope.adpFormData),
+                  action: scope.validationParams.formParams.action,
+                })
                   .then(function (data) {
                     return mergeGridData(data, scope.field.table);
                   })
@@ -55,19 +58,23 @@
             }
           };
 
-          _.each(tableDefinition, function (table, name) {
-            var schema = getSchemaByName(name);
-            table.fields.forEach(function (fieldName) {
-              if (fieldName === '_tableLabel') {
-                resultedSchema.fields._tableLabel = { type: 'String', fullName: '_tableLabel', fieldName: '_tableLabel' };
-              } else if (fieldName === '_table') {
-                resultedSchema.fields._table =  { type: 'String', fullName: '_table', fieldName: '_table' };
-              } else {
-                resultedSchema.fields[fieldName] = _.isNil(schema.fields[fieldName]) ?
-                  { type: 'String', fieldName: _.startCase(fieldName) } :
-                  schema.fields[fieldName];
-              }
-            });
+          var tablesList = getUniqueTablesList(tableDefinition);
+
+          if (_.includes(tablesList, '_tableLabel')) {
+            resultedSchema.fields._tableLabel = { type: 'String', fullName: '_tableLabel', fieldName: '_tableLabel' };
+          }
+
+          if (_.includes(tablesList, '_table')) {
+            resultedSchema.fields._table =  { type: 'String', fullName: '_table', fieldName: '_table' };
+          }
+
+          _.keys(tableDefinition).forEach(function (tableName) {
+            var schema = getSchemaByName(tableName);
+            _.merge(resultedSchema.fields, schema.fields);
+          });
+
+          _.each(resultedSchema.fields, function (field, fieldName) {
+            field.showInDatatable = _.includes(tablesList, fieldName);
           });
 
           return resultedSchema;
@@ -95,59 +102,19 @@
           schema.parameters = _.merge({}, defaults, field.parameters);
         }
 
-        function customizeToolbar(schema) {
-          var disabledActions = [
-            'print', 'viewDetails', 'quickFilter', 'import', 'manageViews',
-            'create', 'update', 'delete', 'clone',
-          ];
-          removeActions(disabledActions, schema);
-        }
-
         function showHideHeader(showHeader, schema) {
           if (showHeader) {
             return;
           }
 
-          removeActions(['search', 'export', 'group', 'chooseColumns', 'gridCreateControl'], schema);
-        }
-
-        function removeActions(actionsList, schema) {
-          actionsList.forEach(function (actionName) {
-            _.unset(schema.actions.fields, actionName);
+          _.forEach(schema.actions.fields, function (action, name) {
+            _.startsWith(action.position, 'grid.top.') && _.unset(schema.actions.fields, name);
           });
         }
 
         function addActions(schema, tables) {
-          schema.actions.fields.gridControlEdit = {
-            permissions: 'accessAsUser',
-            description: 'Edit',
-            fullName: 'Edit',
-            action: {
-              type: 'module',
-              link: "AdpGridControlActions",
-              method: "edit",
-            }
-          };
-
-          schema.actions.fields.gridCreateControl = {
-            actionOrder: 1,
-            backgroundColor: "#2196F3",
-            borderColor: "#0c7cd5",
-            description: "Create new record",
-            fullName: "Create Record",
-            position: "grid.top.left",
-            textColor: "white",
-            "icon": {
-              "link": "columns"
-            },
-            action: {
-              type: 'module',
-              link: 'AdpGridControlActions',
-              method: "create",
-            },
-            __name: 'create',
-            table: tables,
-          }
+          schema.actions.fields = _.cloneDeep(GRID_CONTROL_ACTIONS);
+          schema.actions.fields.gridCreateControl.table = tables;
         }
 
         function mergeGridData(data, tables) {
@@ -164,6 +131,18 @@
           });
 
           return _.flow(_.toArray, _.flatten)(data);
+        }
+
+        function getUniqueTablesList(tableDef) {
+          return _.flow(
+            function (defObj) {
+              return _.map(defObj, function (item) {
+                return item.fields;
+              });
+            },
+            _.flatten,
+            _.uniq
+          )(tableDef);
         }
       }
     }

@@ -157,7 +157,11 @@
       return {
         args: unifiedApproachArgs(event, schema),
         onValueChanged: function (editorEvent) {
-          event.setValue(editorEvent.value);
+          var isEmpty = _.isArray(editorEvent.value) ?
+            _.isEmpty(editorEvent.value) :
+            _.isNil(editorEvent.value);
+
+          event.setValue(isEmpty ? null : editorEvent.value);
         }
       };
     }

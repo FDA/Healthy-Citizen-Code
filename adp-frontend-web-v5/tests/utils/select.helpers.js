@@ -3,21 +3,21 @@ module.exports = {
   clickLookupAction,
   getMultipleLookupValue,
   getSingleLookupValue,
-  selectOptionByValueForName,
-  getSingleSelectValueByName,
   getImperialUnitMultipleValue,
   selectImperialUnitMultipleValue,
 
   selectDxListValue,
   getDxSingleListValue,
-  selectDxListValueWithParent,
   getDxMultipleListValue,
   clearDxListValue,
   removeDxMultiSelectValue,
 };
 
-async function selectLookupValue(value, lookupName, page) {
-  const lookupSelector = `.lookup-name-${lookupName} .adp-lookup-selector`;
+async function selectLookupValue(value, lookupName, page, parentSelector) {
+  let lookupSelector = `.lookup-name-${lookupName} .adp-lookup-selector`;
+  if (parentSelector) {
+    lookupSelector = `${parentSelector} ${lookupSelector}`;
+  }
   await page.click(lookupSelector);
 
   const inputSelector = `${lookupSelector} .dx-texteditor-input`;
@@ -61,59 +61,27 @@ async function clickLookupAction(lookupName, actionName, parentSelector, page) {
   await page.waitForSelector(parentSelector);
 }
 
-async function selectOptionByValueForName(value, fieldName, page) {
-  const selector = getSelectSelector(fieldName);
-  await page.click(selector);
-  await clickOptionByText(value, page);
-}
-
-function getSelectSelector(fieldName) {
-  return `#s2id_${fieldName}`;
-}
-
-async function clickOptionByText(value, page) {
-  const texts = await page.$$eval(
-    '.select2-drop .select2-result-label',
-    el => el.map(a => a.innerText)
-  );
-
-  let indexToClick = texts.indexOf(value) + 1;
-  await page.click(`.select2-drop .select2-result:nth-child(${indexToClick})`);
-}
-
-async function getSingleSelectValueByName(fieldName, page) {
-  const selector = getSelectSelector(fieldName);
-  return page.$eval(`${selector} .select2-chosen`, el => el.innerText);
-}
-
-async function selectImperialUnitMultipleValue(values, fieldName, page) {
-  await selectOptionByValueForName(values[0], `${fieldName}_${0}`, page);
-  await selectOptionByValueForName(values[1], `${fieldName}_${1}`, page);
+async function selectImperialUnitMultipleValue(values, fieldName, page, idPrefix) {
+  await selectDxListValue(values[0], `${fieldName}_${0}`, page, idPrefix);
+  await selectDxListValue(values[1], `${fieldName}_${1}`, page, idPrefix);
 }
 
 async function getImperialUnitMultipleValue(fieldName, page) {
-  const first = await getSingleSelectValueByName(`${fieldName}_${0}`, page);
-  const second = await getSingleSelectValueByName(`${fieldName}_${1}`, page);
+  const first = await getDxSingleListValue(`${fieldName}_${0}`, page);
+  const second = await getDxSingleListValue(`${fieldName}_${1}`, page);
 
   return [first, second];
 }
 
-async function selectDxListValue(value, fieldName, page) {
-  const listSelector = `#list_id_${fieldName}`;
+async function selectDxListValue(value, fieldName, page, idPrefix = 'list_id') {
+  const listSelector = `#${idPrefix}_${fieldName}`;
   await page.click(listSelector);
 
   await clickDxOptionByText(value, listSelector, page);
 }
 
-async function selectDxListValueWithParent(value, fieldName, parentSelector, page) {
-  const listSelector = `${parentSelector} #list_id_${fieldName}`;
-  await page.click(listSelector);
-
-  await clickDxOptionByText(value, listSelector, page);
-}
-
-async function getDxSingleListValue(fieldName, page) {
-  const listSelector = `#list_id_${fieldName}`;
+async function getDxSingleListValue(fieldName, page, idPrefix = 'list_id') {
+  const listSelector = `#${idPrefix}_${fieldName}`;
 
   return await page.$eval(
     `${listSelector} .dx-texteditor-input`,
@@ -158,6 +126,7 @@ async function clickDxOptionByText(value, listSelector, page) {
     els => els.map(el => el.innerText)
   );
 
-  let indexToClick = texts.indexOf(value) + 1;
-  await page.click(`#${selectorId} .dx-item.dx-list-item:nth-child(${indexToClick}) .dx-item-content`);
+  const indexToClick = texts.indexOf(value) + 1;
+  const selectorToClick = `#${selectorId} .dx-item.dx-list-item:nth-child(${indexToClick}) .dx-item-content`;
+  await page.click(selectorToClick);
 }

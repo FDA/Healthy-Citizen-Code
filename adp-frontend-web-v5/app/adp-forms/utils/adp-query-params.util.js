@@ -7,6 +7,7 @@
 
   function AdpQueryParams(
     AdpFieldsService,
+    AdpListsService,
     AdpValidationUtils
   ) {
     var typeResolvers = {
@@ -17,7 +18,7 @@
       'String[]': function (items, field) {
         var hasList = !_.isUndefined(field.list);
         if (hasList) {
-          var values = AdpFieldsService.getListValueByLabel(items, field.list);
+          var values = AdpListsService.getListValueByLabel(items, field.list);
           return _.isEmpty(values) ? null : values;
         }
 
@@ -41,14 +42,17 @@
       'DateTime': _date,
       'Time': _date,
       'ImperialHeight': _imperialUnit,
-      'ImperialWeight': _imperialUnit,
+      'ImperialWeight': function (item, field) {
+        var val = _imperialUnit(item, field);
+        return _.isNil(val) ? val : val[0];
+      },
       'ImperialWeightWithOz': _imperialUnit
     };
 
     function _string(item, field) {
       var hasList = !_.isUndefined(field.list);
       if (hasList) {
-        var values = AdpFieldsService.getListValueByLabel([item], field.list);
+        var values = AdpListsService.getListValueByLabel([item], field.list);
         return values[0];
       }
 

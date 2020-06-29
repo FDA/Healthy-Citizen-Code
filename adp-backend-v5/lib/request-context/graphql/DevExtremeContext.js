@@ -11,7 +11,7 @@ module.exports = class DevExtremeContext extends GraphQlContext {
       butil: { MONGO },
     } = this.appLib;
     const { dxQuery, quickFilterId } = filter || {};
-    const dxConditions = parse(dxQuery, this.appModel);
+    const { conditions: dxConditions } = parse(dxQuery, this.appModel);
     const quickFilterConditions = await getQuickFilterConditions(this.appLib, quickFilterId, this.userContext);
     this.mongoParams = {
       conditions: MONGO.and(dxConditions, quickFilterConditions),

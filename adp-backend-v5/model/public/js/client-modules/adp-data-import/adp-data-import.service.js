@@ -34,7 +34,7 @@
           title: 'Import data',
           readFile: false,
           validate: function (file) {
-            if (!['text/csv', 'application/json'].includes(file.type)) {
+            if (!file.name.match(/\.(csv|json)$/i)) {
               return 'Only CSV/JSON files allowed';
             }
           },

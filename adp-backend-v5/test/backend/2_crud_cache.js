@@ -4,8 +4,6 @@ const sinon = require('sinon');
 const RedisMock = require('ioredis-mock');
 RedisMock.Promise = require('bluebird');
 
-const reqlib = require('app-root-path').require;
-
 const {
   checkForEqualityConsideringInjectedFields,
   samples: { sampleData0, sampleData1, sampleData2, sampleDataToCompare0 },
@@ -13,10 +11,10 @@ const {
   setAppAuthOptions,
   stringifyObjectId,
   prepareEnv,
-} = reqlib('test/test-util');
+} = require('../test-util');
 
 function getAppLibWithAuthDisabled() {
-  const appLib = reqlib('/lib/app')();
+  const appLib = require('../../lib/app')();
   setAppAuthOptions(appLib, {
     requireAuthentication: false,
     enablePermissions: false,
@@ -24,19 +22,19 @@ function getAppLibWithAuthDisabled() {
   return appLib;
 }
 
-describe('V5 Backend Cache', () => {
-  before(async function() {
+describe('V5 Backend Cache', function () {
+  before(async function () {
     prepareEnv();
     this.db = await getMongoConnection();
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  describe('Cache enabled/disabled', () => {
-    beforeEach(async function() {
+  describe('Cache enabled/disabled', function () {
+    beforeEach(async function () {
       await this.db.collection('model1s').deleteMany({});
       await Promise.all([
         this.db.collection('model1s').insertOne(sampleData0),
@@ -44,11 +42,11 @@ describe('V5 Backend Cache', () => {
       ]);
     });
 
-    afterEach(function() {
+    afterEach(function () {
       return this.appLib.shutdown();
     });
 
-    it('when cache is enabled returns value from cache on 2nd GET request', async function() {
+    it('when cache is enabled returns value from cache on 2nd GET request', async function () {
       this.appLib = getAppLibWithAuthDisabled();
 
       const redisMockClient = new RedisMock();
@@ -111,7 +109,7 @@ describe('V5 Backend Cache', () => {
       this.setCacheSpy.callCount.should.equal(1);
     });
 
-    it('when cache is disabled returns value from db on 2nd GET request', async function() {
+    it('when cache is disabled returns value from db on 2nd GET request', async function () {
       delete process.env.REDIS_URL;
       this.appLib = getAppLibWithAuthDisabled();
 
@@ -162,8 +160,8 @@ describe('V5 Backend Cache', () => {
    * 3. (Here comes multiple branches) Post new item or Put/Delete 2nd item, it should clear cache for whole item collection
    * 4. Get 1st item, it should be retrieved from db
    */
-  describe('Cache complex scenario', () => {
-    beforeEach(function() {
+  describe('Cache complex scenario', function () {
+    beforeEach(function () {
       this.appLib = getAppLibWithAuthDisabled();
 
       const redisMockClient = new RedisMock();
@@ -175,11 +173,11 @@ describe('V5 Backend Cache', () => {
       return Promise.all([this.db.collection('model1s').deleteMany({}), this.appLib.setup()]);
     });
 
-    afterEach(function() {
+    afterEach(function () {
       return this.appLib.shutdown();
     });
 
-    const step0 = async function() {
+    const step0 = async function () {
       const res1 = await request(this.appLib.app)
         .post('/model1s')
         .send({ data: sampleData0 })
@@ -205,7 +203,7 @@ describe('V5 Backend Cache', () => {
       return [savedId1, savedId2];
     };
 
-    const step1 = async function() {
+    const step1 = async function () {
       const res = await request(this.appLib.app)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
@@ -221,7 +219,7 @@ describe('V5 Backend Cache', () => {
       this.setCacheSpy.callCount.should.equal(1);
     };
 
-    const step2 = async function() {
+    const step2 = async function () {
       const res = await request(this.appLib.app)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
@@ -237,7 +235,7 @@ describe('V5 Backend Cache', () => {
       this.setCacheSpy.callCount.should.equal(1);
     };
 
-    const step4 = async function() {
+    const step4 = async function () {
       // no cache - all functions must be called
       const beforeGetItemsCallCount = this.getItemsUsingCacheSpy.callCount;
       const beforeGetCacheSpy = this.getCacheSpy.callCount;
@@ -255,7 +253,7 @@ describe('V5 Backend Cache', () => {
       this.setCacheSpy.callCount.should.equal(beforeSetCacheSpy + 1);
     };
 
-    const cacheTest = async function(step3) {
+    const cacheTest = async function (step3) {
       const { dba, cache } = this.appLib;
       this.getItemsUsingCacheSpy = sinon.spy(dba, 'getItemsUsingCache');
       this.getCacheSpy = sinon.spy(cache, 'getCache');
@@ -269,8 +267,8 @@ describe('V5 Backend Cache', () => {
       await step4.call(this);
     };
 
-    it('clear cache by creating new item', function() {
-      const step3 = async function() {
+    it('clear cache by creating new item', function () {
+      const step3 = async function () {
         this.clearCacheForModel = sinon.spy(this.appLib.cache, 'clearCacheForModel');
         const res = await request(this.appLib.app)
           .post(`/model1s`)
@@ -284,8 +282,8 @@ describe('V5 Backend Cache', () => {
       return cacheTest.call(this, step3);
     });
 
-    it('clear cache by deleting old item', function() {
-      const step3 = async function() {
+    it('clear cache by deleting old item', function () {
+      const step3 = async function () {
         this.clearCacheForModel = sinon.spy(this.appLib.cache, 'clearCacheForModel');
         const res = await request(this.appLib.app)
           .del(`/model1s/${sampleData0._id.toString()}`)
@@ -298,8 +296,8 @@ describe('V5 Backend Cache', () => {
       return cacheTest.call(this, step3);
     });
 
-    it('clear cache by updating old item', function() {
-      const step3 = async function() {
+    it('clear cache by updating old item', function () {
+      const step3 = async function () {
         this.clearCacheForModel = sinon.spy(this.appLib.cache, 'clearCacheForModel');
         const res = await request(this.appLib.app)
           .put(`/model1s/${sampleData0._id.toString()}`)

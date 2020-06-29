@@ -24,7 +24,7 @@ const fieldNames = {
   listMultipleOnlyValue: 'listMultipleOnlyValue',
 };
 
-const PAGE_TO_TEST = 'dynamicListTypes';
+const PAGE_TO_TEST = 'listStringTypesDynamic';
 
 async function selectValueAndAssertForSingleList(expectedValue, fieldName, page) {
   await selectDxListValue(expectedValue, fieldName, page);

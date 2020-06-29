@@ -38,7 +38,7 @@
           }
 
           _updateVisibilityMap(params, currentPath);
-          _setEmptyValueIfFieldHidden(formDataRef, params.visibilityMap);
+          _setEmptyValueIfFieldHidden(formDataRef, params.visibilityMap, currentField, currentPath);
         });
     }
 

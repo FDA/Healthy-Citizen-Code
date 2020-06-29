@@ -1,4 +1,6 @@
 (function() {
+  var DEFAULT_COLOR = 'white';
+
   angular
     .module('app.adpForceGraph')
     .controller('OntologyController', function() {})
@@ -19,9 +21,37 @@
       }, 0);
     }
 
+    function linkParticleColor(link) {
+      return link.pcol || mixColors(link.col || DEFAULT_COLOR, 0, 0, 0.65);
+    }
+
+    function mixColors(col1, col2, mix, bright) {
+      var col = Color(col1);
+      var mixture = col.mix(Color(col2), _.isUndefined(mix) ? 0.5 : mix);
+      var res, coof;
+
+      if (_.isUndefined(bright) || bright === 0.5) {
+        res = mixture;
+      } else if (bright > 0.5) {
+        coof = Math.min(1, bright - 0.5) * 2;
+        res = mixture.hwb();
+        res.color[1] += (100 - res.color[1]) * coof;
+        res.color[2] -= res.color[2] * coof;
+      } else {
+        coof = Math.max(0, 0.5 - bright) * 2;
+        res = mixture.hwb();
+        res.color[1] -= res.color[1] * coof;
+        res.color[2] += (100 - res.color[2]) * coof;
+      }
+
+      return res.hex();
+    }
+
     return {
       linkSpeed: linkSpeed,
       fitGraphSize: fitGraphSize,
+      linkParticleColor:linkParticleColor,
+      mixColors:mixColors,
     };
   }
 

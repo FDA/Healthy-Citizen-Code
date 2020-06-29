@@ -3,47 +3,8 @@ const Promise = require('bluebird');
 const _ = require('lodash');
 const { Engine } = require('bpmn-engine');
 const { EventEmitter } = require('events');
-const { getValidatedDmnUtilInstance, processDmnVariables } = require('../dmn/dmn-util');
-const { getAimlResult } = require('../aiml/util');
-const { ruleCollectionName } = require('../dmn');
 const { flattenObject, getPercentage, processDataMapping, upsertResultRecords } = require('../util');
-
-function getServices(db, log) {
-  const m = {};
-
-  m.lookup = async (value, collectionName, fieldName) => {
-    const doc = await db.collection(collectionName).findOne({ [fieldName]: value, deletedAt: new Date(0) }, { _id: 1 });
-    return !!doc;
-  };
-
-  m.mux = (ws, vs) => {
-    if (!Array.isArray(ws) || !Array.isArray(vs) || ws.length !== vs.length) {
-      throw new Error(`Invalid params. Weights and values should be arrays of same length`);
-    }
-
-    return ws.reduce((result, w, index) => {
-      result += w * vs[index];
-      return result;
-    }, 0);
-  };
-
-  m.dmn = async (name, variables) => {
-    const dmnRuleRecord = await db.collection(ruleCollectionName).findOne({ name });
-    if (!dmnRuleRecord) {
-      throw new Error(`Unable to find dmn rule with name '${name}'`);
-    }
-    const { dmnXml, decisionId } = dmnRuleRecord.definition;
-    const dmnUtilInstance = await getValidatedDmnUtilInstance(dmnXml, decisionId);
-    const result = await processDmnVariables(dmnUtilInstance, _.castArray(variables));
-    return _.isArray(variables) ? result : result[0];
-  };
-
-  m.aiml = (endpoint, variables) => {
-    return getAimlResult(endpoint, variables, log);
-  };
-
-  return m;
-}
+const { getServices } = require('./services');
 
 module.exports = (context) => {
   return async (job) => {

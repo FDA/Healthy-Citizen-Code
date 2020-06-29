@@ -9,12 +9,13 @@
     AdpBrowserService,
     PrintTableBuilder,
     AdpNotificationService,
-    GridSchema
+    GridSchema,
+    ErrorHelpers
   ) {
     return function (toolbarWidgetRegister) {
       var schema = this.schema;
       var actionOptions = this.actionOptions;
-      var customOptions = this.customOptions;
+      var customOptions = this.customGridOptions;
 
       return toolbarWidgetRegister(function () {
         return {

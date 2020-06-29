@@ -64,8 +64,9 @@ describe('show expression', () => {
       'newly created items should have its own show attribute values',
       async () => {
         const clickCheckboxByIndex = async (index) => {
-          let checkboxSelector = `[name="a1[${index}]"] [ng-field-name="b1"] .dx-checkbox-icon`;
+          let checkboxSelector = `[name="a1[${index}]"] [ng-field-name="b1"] .dx-switch-handle`;
           await this.page.click(checkboxSelector);
+          await this.page.waitFor(200);
         };
 
         await clickCheckboxByIndex(0);

@@ -8,6 +8,7 @@
   /** @ngInject */
   function GraphqlMultipleSchemasQuery(
     GraphqlCollectionQueryWithMongoFilter,
+    AdpUnifiedArgs,
     $q
   ) {
     return function (tableDefinitions, params) {
@@ -28,8 +29,13 @@
     function requestSingleCollectionData(table, name, params) {
       var requestSchema = getRequestSchema(table, name);
       var requestParams = _.assign({}, params, {
-        where: table.where,
-      })
+        mongoQuery: evalWhereCondition({
+          schema: requestSchema,
+          row: params.row,
+          action: params.action,
+          condition: table.where,
+        }),
+      });
 
       return GraphqlCollectionQueryWithMongoFilter(requestSchema, requestParams)
         .then(function (result) {
@@ -40,18 +46,19 @@
     function getRequestSchema(table, name) {
       var APP_MODEL = window.adpAppStore.appModel();
       var schema = APP_MODEL[name];
-      var requestSchema = _.clone(schema);
+      return _.clone(schema);
+    }
 
-      requestSchema.fields = {};
-      table.fields.forEach(function (name) {
-        if (_.includes(['_tableLabel', '_table'], name) || _.isNil(schema.fields[name])) {
-          return;
-        }
-
-        requestSchema.fields[name] = schema.fields[name];
+    function evalWhereCondition(params) {
+      var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: '',
+        action: params.action,
+        formData: params.row,
+        schema: params.schema,
       });
 
-      return requestSchema;
+      var evaluatedCondition = new Function('return ' + params.condition).call(args);
+      return JSON.stringify(evaluatedCondition);
     }
   }
 })();

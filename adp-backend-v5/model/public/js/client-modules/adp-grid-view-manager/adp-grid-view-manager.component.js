@@ -25,7 +25,7 @@
       '' +
       '    <footer>' +
       '        <button' +
-      '                class="btn btn-default align-left"' +
+      '                class="btn btn-default float-left"' +
       '                type="button"' +
       '                ng-click="vm.save()">' +
       '            Save Current Grid View' +

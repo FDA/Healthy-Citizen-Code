@@ -74,7 +74,7 @@
           dataSource: getMenuDataSource(list),
         });
 
-        menuComponent.element().toggleClass('adp-activated', !!customGridOptions.value('quickFilterId'));
+        AdpClientCommonHelper.highlightToolbarButton(menuComponent.element(), customGridOptions.value('quickFilterId'))
       }
 
       function onItemClick(e) {

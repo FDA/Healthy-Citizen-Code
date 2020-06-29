@@ -8,6 +8,7 @@
   /** @ngInject */
   function DateEditor(
     AdpSchemaService,
+    AdpFieldsService,
     DxEditorMixin,
     AdpValidationUtils
   ) {
@@ -31,28 +32,27 @@
         .replace(/D/g, 'd')
         .replace(/Y/g, 'y');
 
-      var options = {
+      var defaults = {
         type: fieldType.toLowerCase(),
         placeholder: momentFormat,
         displayFormat: formatForDx,
         showAnalogClock: false,
         onValueChanged: init.onValueChanged,
-        tabIndex: 0,
         value: init.args.data,
-        valueChangeEvent: 'change',
+        valueChangeEvent: 'change keyup',
         useMaskBehavior: true,
         showClearButton: true,
       };
 
       if (notInFuture(field)) {
-        options.max = today();
+        defaults.max = today();
       }
 
       if (notInPast(field)) {
-        options.min = today();
+        defaults.min = today();
       }
 
-      return options;
+      return AdpFieldsService.configFromParameters(field, defaults);
     }
 
     function today() {

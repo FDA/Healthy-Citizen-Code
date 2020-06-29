@@ -55,6 +55,11 @@
             "foreignKey": "_id",
             "label": "name"
           }
+        },
+        "timezone": {
+          "type": "String",
+          "fullName": "Timezone",
+          "description": "Timezone required for date/time calculation"
         }
       }
     }

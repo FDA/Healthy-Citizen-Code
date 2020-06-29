@@ -27,8 +27,8 @@ describe('synthetic types', () => {
       await this.page.waitFor('form');
 
       const selectors = {
-        number1Selector: 'input#number1',
-        number2Selector: 'input#number2',
+        number1Selector: '[name=number1] .dx-texteditor-input',
+        number2Selector: '[name=number2] .dx-texteditor-input',
         number3Selector: '[ng-field-name="number3"] .input span',
         sumPlusIncrementSelector: '[ng-field-name="sumPlusIncrement"] .input span',
         sumPlusIncrementWithWatchSelector:

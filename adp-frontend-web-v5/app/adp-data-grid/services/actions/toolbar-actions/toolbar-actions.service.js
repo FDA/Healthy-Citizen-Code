@@ -98,7 +98,7 @@
 
     function getForModuleType(moduleName, action) {
       var injector = angular.element(document)
-        .injector();
+                            .injector();
 
       if (injector.has(moduleName)) {
         var methodName = _.get(action, "action.method");
@@ -121,7 +121,9 @@
         var buttonSpec;
 
         if (actionOptions.icon) {
-          buttonSpec = {icon: AdpIconsHelper.getIconClass(actionOptions.icon), hint: actionOptions.title, cssClass: className}
+          // buttonSpec = {icon: AdpIconsHelper.getIconClass(actionOptions.icon), hint: actionOptions.title, cssClass: className}
+          // buttonSpec = {template: AdpIconsHelper.getIconHtml(actionOptions.icon, {className:className, hint:actionOptions.title})};
+          buttonSpec = {template: AdpClientCommonHelper.getMenuItemTemplate(actionOptions, {className: className})};
         } else {
           buttonSpec = {text: actionOptions.title}
         }
@@ -154,9 +156,9 @@
           template: "<button type=\"button\" class=\"" + className + "\">" + buttonText + "</button>",
           onClick: function () {
             ActionsHandlers.create(schema)
-              .then(function () {
-                GridOptionsHelpers.refreshGrid(customOptions.gridComponent);
-              });
+                           .then(function () {
+                             GridOptionsHelpers.refreshGrid(customOptions.gridComponent);
+                           });
           }
         }
       })
@@ -230,7 +232,8 @@
 
     function getToolbarActions(schema) {
       var actions = _.get(schema, "actions.fields", {});
-      actions = _.map(actions,
+      actions = _.map(
+        actions,
         function (item, name) {
           if (item.position &&
             item.position.substr(0, TOOLBAR_POSITION_SIGNATURE.length) === TOOLBAR_POSITION_SIGNATURE) {
@@ -242,7 +245,7 @@
         });
 
       actions = _.compact(actions);
-      actions.sort(AdpSchemaService.getSorter('actionOrder'));
+      actions.sort(AdpSchemaService.getSorter("actionOrder"));
 
       return actions;
     }

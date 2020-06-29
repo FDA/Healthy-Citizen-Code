@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
-const { createFilter } = require('./util');
+const { createFilter } = require('../../../lib/filter/util');
 const { ValidationError } = require('../../../lib/errors');
 
 function getForeignKeyType(tableSpec, allModels) {
@@ -13,28 +13,41 @@ function getForeignKeyType(tableSpec, allModels) {
   return _.get(allModels, [collectionName, foreignKeyField, 'type']);
 }
 
-function treeSelector() {
+function treeSelector(castObjectId = true) {
   const { fieldPath, value } = this.data;
-  let foreignKeys = _.castArray(value);
 
+  const pathForLookupId = `${fieldPath}._id`;
   const tableSpec = _.get(this.modelSchema, `${this.path}.table`);
-  const foreignKeyType = getForeignKeyType(tableSpec);
+  const foreignKeyType = getForeignKeyType(tableSpec, this.appLib.appModel);
+  const treeSelectorObjects = value ? _.castArray(value) : [];
   if (foreignKeyType === 'ObjectID') {
-    const isAllKeysValid = foreignKeys.every(k => ObjectID.isValid(k));
+    const isAllKeysValid = treeSelectorObjects.every((obj) => ObjectID.isValid(obj._id));
     if (!isAllKeysValid) {
       throw new ValidationError(`Invalid value '${value}' for filter by path '${fieldPath}'`);
     }
-    foreignKeys = foreignKeys.map(k => ObjectID(k));
   }
-  const pathForLookupId = `${fieldPath}._id`;
+  const objectIds = treeSelectorObjects.map((obj) => (castObjectId ? ObjectID(obj._id) : obj._id));
 
+  const equalCondition = _.isEmpty(value) ? { [fieldPath]: [] } : { [pathForLookupId]: { $in: objectIds } };
   return createFilter(this, {
     any: () => {},
     undefined: () => ({ [fieldPath]: { $exists: false } }),
-    subtree: () => ({ [pathForLookupId]: { $in: foreignKeys } }),
-    allImmediateChildrenOfSelectedNodes: () => ({ [pathForLookupId]: { $in: foreignKeys } }),
-    allExceptSelectedSubtrees: () => ({ [pathForLookupId]: { $nin: foreignKeys } }),
+    subtree: () => ({ [pathForLookupId]: { $in: objectIds } }),
+    '=': () => equalCondition,
+    allImmediateChildrenOfSelectedNodes: () => ({ [pathForLookupId]: { $in: objectIds } }),
+    allExceptSelectedSubtrees: () => ({ [pathForLookupId]: { $nin: objectIds } }),
   });
 }
 
-module.exports = treeSelector;
+function treeSelectorForSift() {
+  if (this.data.operation !== '=') {
+    throw new Error(`Only '=' operation is supported`);
+  }
+  const castObjectId = false;
+  return treeSelector.call(this, castObjectId);
+}
+
+module.exports = {
+  treeSelector,
+  treeSelectorForSift,
+};

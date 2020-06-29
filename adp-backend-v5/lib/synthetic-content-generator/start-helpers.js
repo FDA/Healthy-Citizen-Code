@@ -4,11 +4,11 @@ const fs = require('fs-extra');
 const path = require('path');
 const dotenv = require('dotenv');
 const RJSON = require('relaxed-json');
-const glob = require('glob');
 const mongoose = require('mongoose');
 
 const { combineModels } = require('../util/model');
 const { getAbsolutePath } = require('../util/env');
+const { globSyncAsciiOrder } = require('../util/glob');
 
 const defaultBatchName = new Date().toISOString();
 const defaultCount = 10;
@@ -64,12 +64,12 @@ async function getParamsForGeneratorFiles({ appLib, pregeneratorFiles, batchName
 
 function getHelperFiles(corePath, schemaPath, helperName) {
   return _.concat(
-    glob.sync(`${corePath}/model/helpers/${helperName}/**/*.js`),
-    glob.sync(`${corePath}/model/helpers/${helperName}.js`),
+    globSyncAsciiOrder(`${corePath}/model/helpers/${helperName}/**/*.js`),
+    globSyncAsciiOrder(`${corePath}/model/helpers/${helperName}.js`),
     _.flatten(
       schemaPath.map((p) => [
-        ...glob.sync(`${p}/helpers/${helperName}/**/*.js`),
-        ...glob.sync(`${p}/helpers/${helperName}.js`),
+        ...globSyncAsciiOrder(`${p}/helpers/${helperName}/**/*.js`),
+        ...globSyncAsciiOrder(`${p}/helpers/${helperName}.js`),
       ])
     )
   );

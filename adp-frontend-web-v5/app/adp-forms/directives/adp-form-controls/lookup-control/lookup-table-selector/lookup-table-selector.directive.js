@@ -14,7 +14,13 @@
       templateUrl: 'app/adp-forms/directives/adp-form-controls/lookup-control/lookup-table-selector/lookup-table-selector.html',
       replace: true,
       link: function (scope) {
-        scope.config = LookupDxConfig.tableSelector(scope.props);
+       var removeWatcher = scope.$watch('props', function (props) {
+          if (_.isNil(props)) {
+            return;
+          }
+          scope.config = LookupDxConfig.tableSelector(scope.props);
+          removeWatcher();
+        });
       }
     }
   }

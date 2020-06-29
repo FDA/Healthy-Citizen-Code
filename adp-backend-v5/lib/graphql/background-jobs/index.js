@@ -194,8 +194,11 @@ function addDeleteResolver(type, backgroundJobsModelName) {
   return type.getResolver(deleteOneResolverName);
 }
 
-module.exports = ({ backgroundJobsModel, backgroundJobsModelName }) => {
+module.exports = ({ appLib, backgroundJobsModelName }) => {
   const m = {};
+  backgroundJobsModelName = 'backgroundJobs';
+  const backgroundJobsModel = appLib.appModel.models[backgroundJobsModelName];
+
   m.backgroundJobsResolvers = {};
 
   const type = getOrCreateTypeByModel(backgroundJobsModel, backgroundJobsModelName, COMPOSER_TYPES.OUTPUT_WITH_ACTIONS);

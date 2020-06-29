@@ -71,7 +71,11 @@ async function getOutputDatasetScheme({ modelInfo, appLib, inputDataset, dataset
   // input scheme is already flattened, bring it as is
   const inputScheme = _.get(inputRecord, 'scheme');
   if (!inputScheme) {
-    throw new Error(`Unable to find inputScheme to create output dataset scheme for dataset '${datasetName}'`);
+    throw new Error(
+      `Unable to find inputScheme by inputDataset '${JSON.stringify(
+        inputDataset
+      )}' to create output dataset scheme for dataset '${datasetName}'`
+    );
   }
 
   // not processing recursively since input scheme fields are of 1 depth level

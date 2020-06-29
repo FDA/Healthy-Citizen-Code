@@ -34,7 +34,7 @@ async function importItems({ items, context, log }) {
     try {
       const nonExistingFields = _.difference(_.keys(doc), fieldNames);
       if (nonExistingFields.length) {
-        errors[index] = `Item contains unknown fields: ${nonExistingFields.map(f => `'${f}'`).join(', ')}`;
+        errors[index] = `Item contains unknown fields: ${nonExistingFields.map((f) => `'${f}'`).join(', ')}`;
         return;
       }
 
@@ -47,7 +47,7 @@ async function importItems({ items, context, log }) {
 
       if (record.errors) {
         errors[index] = _.values(record.errors)
-          .map(v => v.message)
+          .map((v) => v.message)
           .join(' | ');
         return;
       }
@@ -69,7 +69,7 @@ async function importItems({ items, context, log }) {
 
   const { getMongoDuplicateErrorMessage } = appLib.butil;
   try {
-    const res = await appLib.dba.withTransaction(session =>
+    const res = await appLib.dba.withTransaction((session) =>
       model.collection.insertMany(preparedItems, {
         session,
         checkKeys: false,
@@ -105,7 +105,7 @@ async function getItemsFromJson(filePath, log) {
 async function importJson({ filePath, context, log }) {
   try {
     const items = await getItemsFromJson(filePath, log);
-    return importItems({ items, context, log });
+    return await importItems({ items, context, log });
   } catch (e) {
     const errorMessage = e instanceof ValidationError ? e.message : 'Unable to import json file';
     return getOverallErrorResponse(errorMessage);

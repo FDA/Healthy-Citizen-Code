@@ -1,25 +1,24 @@
 const request = require('supertest');
 require('should');
-const reqlib = require('app-root-path').require;
 
-const { prepareEnv, getMongoConnection } = reqlib('test/test-util');
+const { prepareEnv, getMongoConnection } = require('../test-util');
 
-describe('V5 Backend Dynamic Routes', () => {
-  before(function() {
+describe('V5 Backend Dynamic Routes', function () {
+  before(function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     return this.appLib.setup();
   });
 
-  after(async function() {
+  after(async function () {
     await this.appLib.shutdown();
     const db = await getMongoConnection();
     await db.dropDatabase();
     await db.close();
   });
 
-  describe('GET /routes', () => {
-    it('responds with list of 1st level dynamic routes', function(done) {
+  describe('GET /routes', function () {
+    it('responds with list of 1st level dynamic routes', function (done) {
       request(this.appLib.app)
         .get('/routes')
         .set('Accept', 'application/json')

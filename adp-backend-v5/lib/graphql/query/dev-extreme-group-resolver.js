@@ -6,6 +6,7 @@ const { getOrCreateEnum, dxQueryWithQuickFilterInput } = require('../type/common
 const { handleGraphQlError } = require('../util');
 const { getQuickFilterConditions } = require('../../graphql/quick-filter/util');
 const GraphQlContext = require('../../request-context/graphql/GraphQlContext');
+const { ValidationError } = require('../../errors');
 
 const devExtremeGroupResolverName = 'groupDx';
 
@@ -92,7 +93,7 @@ function addDevExtremeGroupResolver(model, modelName) {
         } = appLib;
 
         const { filter: { dxQuery, quickFilterId } = {} } = args;
-        const dxConditions = parse(dxQuery, appModel);
+        const { conditions: dxConditions } = parse(dxQuery, appModel);
         const action = 'view';
         const [scopeConditionsMeta, quickFilterConditions, actionFuncsMeta] = await Promise.all([
           getScopeConditionsMeta(appModel, userPermissions, inlineContext, action),
@@ -115,10 +116,10 @@ function addDevExtremeGroupResolver(model, modelName) {
         const isEmptyGroup = _.isEmpty(args.group);
 
         if (isEmptyGroup) {
-          return getData({ args, model: dbModel, conditions, appLib, actionFuncs, userContext });
+          return await getData({ args, model: dbModel, conditions, appLib, actionFuncs, userContext });
         }
 
-        return getGroups({ args, model: dbModel, conditions, appLib, actionFuncs, userContext, appModel });
+        return await getGroups({ args, model: dbModel, conditions, appLib, actionFuncs, userContext, appModel });
       } catch (e) {
         handleGraphQlError(e, `Unable to find requested elements`, log, appLib);
       }
@@ -146,21 +147,40 @@ async function getData({ args, model, conditions, appLib, actionFuncs, userConte
   return response;
 }
 
+function validateGroups(group, appModel) {
+  // check for `MongoError: cannot sort with keys that are parallel arrays`
+  let numberOfArrayFields = 0;
+  _.each(group, (g) => {
+    const fieldSchema = appModel.fields[g.selector];
+    if (fieldSchema.type.endsWith('[]')) {
+      numberOfArrayFields++;
+    }
+  });
+  if (numberOfArrayFields > 1) {
+    throw new ValidationError('Unable to sort by more than 1 array fields');
+  }
+}
+
 async function getGroups({ args, model, conditions, appLib, actionFuncs, userContext, appModel }) {
-  const pipeline = [{ $match: conditions }];
   const { requireGroupCount, requireTotalCount, totalSummary, groupSummary, group, skip, take } = args;
+  validateGroups(group, appModel);
+  transformGroupOptions(group, appModel);
 
   const groupIndex = 0;
   const firstGroup = group[0];
   const groupCount = getGroupCount(requireGroupCount, firstGroup, appModel);
+  const { preTransformPipeline, postTransformPipeline } = getTransformPipelinesForGroup(group, groupIndex, appModel);
 
+  const pipeline = [{ $match: conditions }];
   pipeline.push({
     $facet: {
       ...groupCount,
       total: getTotalPipeline(requireTotalCount, group, groupSummary, totalSummary),
       data: [
+        ...preTransformPipeline,
         getGroupPipeline(group, groupIndex, groupSummary, appModel),
         getGroupSort(group, groupIndex),
+        ...postTransformPipeline,
         { $skip: skip },
         { $limit: take },
       ],
@@ -199,6 +219,36 @@ function getTotalPipeline(requireTotalCount, group, groupSummary, totalSummary) 
   ];
 }
 
+function transformGroupOptions(group, appModel) {
+  _.each(group, (g) => {
+    const { selector } = g;
+    const fieldSchema = appModel.fields[selector];
+    if (fieldSchema.type.endsWith('[]')) {
+      g.originalSelector = selector;
+      // create selector to group by unwinded duplicated field
+      g.selector = `_${selector}_`;
+    }
+  });
+}
+
+function getTransformPipelinesForGroup(group, groupIndex, appModel) {
+  let preTransformPipeline = [];
+  let postTransformPipeline = [];
+
+  const { selector, originalSelector } = group[groupIndex];
+  const fieldName = originalSelector || selector;
+  const fieldSchema = appModel.fields[fieldName];
+  if (fieldSchema.type.endsWith('[]')) {
+    preTransformPipeline = [
+      { $addFields: { [selector]: `$${originalSelector}` } },
+      { $unwind: { path: `$${selector}`, preserveNullAndEmptyArrays: true } },
+    ];
+    postTransformPipeline = [{ $unset: [`items.${selector}`] }];
+  }
+
+  return { preTransformPipeline, postTransformPipeline };
+}
+
 function getGroupPipeline(group, groupIndex, groupSummary, appModel) {
   return {
     $group: {
@@ -214,6 +264,49 @@ function isExpandedGroup(group, currentGroupIndex) {
   return isLastGroup && groupObj.isExpanded;
 }
 
+// Necessary for transformable fields.
+// Let's consider a field of 'ImperialHeight' type with [1, 0] value (1 feet, 0 inches) which is presented as 30 in db (metric value).
+// For { key: 30 } (without key group transformation) DevExtreme sends invalid request for items of this group: ["imperialHeight","=", 30] (in metric system)
+// For { key: [1, 0] } (with key group transformation) DevExtreme sends valid request: ["imperialHeight","=",[1,0]] (imperial system)
+async function getGroupKey({ groupIdValue, groupSelector, appModel, userContext, appLib }) {
+  const { schemaName } = appModel;
+  const fieldSchema = appModel.fields[groupSelector];
+  const fieldTransform = _.get(fieldSchema, 'transform');
+
+  if (fieldSchema.type === 'LookupObjectID' && _.isEmpty(groupIdValue)) {
+    // lookups are grouped be { _id, table, label } condition and if lookup value is null the groupIdValue is empty object {}
+    return null;
+  }
+
+  if (!fieldTransform) {
+    return groupIdValue;
+  }
+  const data = [{ [groupSelector]: groupIdValue }];
+  const transformedData = await appLib.dba.postTransform(data, schemaName, userContext);
+  return transformedData[0][groupSelector];
+}
+
+function getPreviousGroupCondition(groupIdValue, appModel, groupSelector) {
+  const { type } = appModel.fields[groupSelector];
+  if (type === 'LookupObjectID') {
+    if (_.isEmpty(groupIdValue)) {
+      // lookups are grouped be { _id, table, label } condition and if lookup value is null the groupIdValue is empty object {}
+      return { [groupSelector]: null };
+    }
+    return {
+      [`${groupSelector}._id`]: groupIdValue._id,
+      [`${groupSelector}.table`]: groupIdValue.table,
+    };
+  }
+
+  if (groupIdValue === null && type.endsWith('[]')) {
+    // Since grouping uses $unwind for array fields it adds both values { arrField: [] } and { arrField: null } to group { _id: null }
+    // However, filter { arrField: null } does not retrieve { arrField: [] } value.
+    return { $or: [{ [groupSelector]: null }, { [groupSelector]: [] }] };
+  }
+  return { [groupSelector]: groupIdValue };
+}
+
 async function getGroupData({
   group,
   groupIndex,
@@ -226,7 +319,15 @@ async function getGroupData({
   currentGroupFilter,
   appModel,
 }) {
-  const transformedGroup = { key: dbGroupData._id };
+  const groupSelector = group[groupIndex].originalSelector || group[groupIndex].selector;
+  const groupKey = await getGroupKey({
+    groupIdValue: dbGroupData._id,
+    appModel,
+    groupSelector,
+    userContext,
+    appLib,
+  });
+  const transformedGroup = { key: groupKey };
   if (!_.isEmpty(group) && groupSummary) {
     transformedGroup.summary = getSummary(groupSummary, dbGroupData, 'groupSummary');
   }
@@ -248,13 +349,23 @@ async function getGroupData({
     }
   } else {
     // build new query
-    const additionalCondition = { [group[groupIndex].selector]: dbGroupData._id };
-    const filterForNextGroups = appLib.butil.MONGO.and(currentGroupFilter, additionalCondition);
-    const pipeline = [{ $match: filterForNextGroups }];
+    const prevGroupCondition = getPreviousGroupCondition(dbGroupData._id, appModel, groupSelector);
+    const filterForNextGroups = appLib.butil.MONGO.and(currentGroupFilter, prevGroupCondition);
 
     const nextGroupIndex = groupIndex + 1;
-    pipeline.push(getGroupPipeline(group, nextGroupIndex, groupSummary, appModel));
-    pipeline.push(getGroupSort(group, nextGroupIndex));
+    const { preTransformPipeline, postTransformPipeline } = getTransformPipelinesForGroup(
+      group,
+      nextGroupIndex,
+      appModel
+    );
+
+    const pipeline = [
+      { $match: filterForNextGroups },
+      ...preTransformPipeline,
+      getGroupPipeline(group, nextGroupIndex, groupSummary, appModel),
+      getGroupSort(group, nextGroupIndex),
+      ...postTransformPipeline,
+    ];
 
     const nestedDbGroupData = await appLib.dba.aggregatePipeline({ model, pipeline });
     transformedGroup.items = await transformGroups({
@@ -286,7 +397,7 @@ function transformGroups({
   currentGroupFilter,
   appModel,
 }) {
-  return Promise.map(allGroupsData, dbGroupData =>
+  return Promise.map(allGroupsData, (dbGroupData) =>
     getGroupData({
       group,
       groupIndex,
@@ -310,7 +421,7 @@ async function transformData({ data, appLib, actionFuncs, model, userContext }) 
 }
 
 function getSummary(totalSummary, data, keyPrefixInData) {
-  return _.range(0, totalSummary.length).map(i => data[`${keyPrefixInData}${i}`]);
+  return _.range(0, totalSummary.length).map((i) => data[`${keyPrefixInData}${i}`]);
 }
 
 function getCommonResponse(dbData, args) {

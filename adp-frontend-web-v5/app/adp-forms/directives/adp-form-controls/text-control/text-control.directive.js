@@ -12,29 +12,29 @@
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/text-control/text-control.html',
       require: '^^form',
       link: function (scope) {
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+        scope.config = getConfig(scope.field);
 
-        scope.config = {
-          value: getData(),
-          inputAttr: {
-            autocomplete: AdpFieldsService.autocompleteValue(scope.field),
-            id: scope.field.fieldName,
-          },
-          minHeight: '80px',
-          autoResizeEnabled: true,
-          valueChangeEvent: 'input blur',
-        }
+        function getConfig(field) {
+          var defaults = {
+            inputAttr: {
+              autocomplete: AdpFieldsService.autocompleteValue(scope.field),
+              id: scope.field.fieldName,
+            },
+            minHeight: '80px',
+            autoResizeEnabled: true,
+            valueChangeEvent: 'input blur',
+          };
 
-        function getData() {
-          return scope.adpFormData[scope.field.fieldName];
+          return AdpFieldsService.configFromParameters(field, defaults);
         }
       }
     }

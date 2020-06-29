@@ -24,15 +24,20 @@
         dismiss: "&"
       },
       controllerAs: "vm",
-      controller: function ($element) {
+      controller: function (
+        $element,
+        AdpFileDropzoneHelper
+      ) {
         var vm = this;
         vm.fileArray = [];
+        vm.selectedFilesText = "";
 
         vm.$onInit = function () {
-          vm.options = _.extend({
+          vm.options = _.extend(
+            {
               uploadButtonText: "Upload",
               outputFormat: "text",
-              autoOpenFileDialog: true,
+              autoOpenFileDialog: false,
               readFile: true,
               validate: function () {
                 return ""
@@ -44,18 +49,22 @@
         };
 
         vm.$postLink = function () {
+          initDropZone();
+
           if (vm.options.autoOpenFileDialog) {
-            $("input", $element)
-              .click();
+            vm.onInput();
           }
+        };
+
+        vm.onInput = function () {
+          $("input", $element).click();
         };
 
         vm.onChange = function () {
           vm.error = validate();
-
-          if (!vm.error) {
-            readIfNotEmpty();
-          }
+          vm.selectedFilesText = vm.error ? "" : _.map(vm.fileArray, function (file) {
+            return file.name
+          }).join(", ");
         };
 
         vm.onReadFile = function () {
@@ -63,6 +72,7 @@
         };
 
         vm.cancel = function () {
+          destroyDropZone()
           vm.dismiss();
         };
 
@@ -78,11 +88,12 @@
           if (vm.options.readFile) {
             var reader = new FileReader();
             var readerMethod = "readAs" + vm.options.outputFormat.substr(0, 1)
-              .toUpperCase() + vm.options.outputFormat.substr(1);
+                                            .toUpperCase() + vm.options.outputFormat.substr(1);
 
             if (reader[readerMethod]) {
               reader.onload = function (event) {
-                var result = _.assign({},
+                var result = _.assign(
+                  {},
                   getFileProps(vm.fileArray[0]),
                   {contents: event.target.result});
 
@@ -101,6 +112,23 @@
 
         function validate() {
           return vm.options.validate(vm.fileArray[0]);
+        }
+
+        function initDropZone() {
+          var $dropZone = $(".drop-zone", $element);
+
+          AdpFileDropzoneHelper.bindEvents($dropZone, {
+            onDrop: function (e) {
+              vm.fileArray = [e.originalEvent.dataTransfer.files[0]];
+              vm.onChange();
+            }
+          })
+        }
+
+        function destroyDropZone() {
+          var $dropZone = $(".drop-zone", $element);
+
+          AdpFileDropzoneHelper.getUnbindEvents($dropZone)();
         }
       }
     });

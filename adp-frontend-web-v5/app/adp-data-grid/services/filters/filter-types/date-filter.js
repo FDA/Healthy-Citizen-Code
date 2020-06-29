@@ -9,6 +9,7 @@
   function DateFilter(
     AdpSchemaService,
     DxEditorMixin,
+    DateTypesCellRenderer,
     AdpValidationUtils
   ) {
     return function () {
@@ -18,6 +19,10 @@
         create: function (init) {
           this.element = $('<div>');
           this.element[this.editorName](getOptions(init));
+        },
+
+        formatValue: function(params) {
+          return DateTypesCellRenderer.date(params.args);
         },
       });
     };

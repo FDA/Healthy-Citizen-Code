@@ -13,7 +13,8 @@
     GridOptionsHelpers,
     AdpGridCustomOptionsService,
     GridFilters,
-    CellEditorsService
+    CellEditorsService,
+    GridHeaderFilters
   ) {
     function create(schema) {
       var presentation = {
@@ -47,16 +48,23 @@
         },
       };
       var schemaParameters = _.cloneDeep(schema.parameters) || {};
+      var overriders = {
+        filterPanel: {
+          visible: false    // Filter panel is blocked since its functionality is moved into filterBuilder(action) instead
+        }
+      };
       var options = _.assign(
         {},
         presentation,
         other,
-        schemaParameters
+        schemaParameters,
+        overriders
       );
 
       GridDataSource(options, schema, customGridOptions);
       GridColumns(options, schema, customGridOptions);
       GridFilters.create(options, schema);
+      GridHeaderFilters(options, schema);
       CellEditorsService(options, schema);
       GridFilters.setFiltersFromUrl(options, schema);
       GridToolbarActions(options, schema, customGridOptions);
@@ -92,11 +100,15 @@
           return state;
         };
 
-        customGridOptions.setHandler('change', 'quickFilterId', function(){
+        customGridOptions.setHandler("change", "$$$", function () {
           if (this.gridComponent) {
-            var state = this.gridComponent.state();
+            var gridComponent = this.gridComponent;
+            // deferring save is required since 'change' handler invoked by customLoad() synchronously and 'normal' state of the grid still empty at that point
+            setTimeout(function () {
+              var state = gridComponent.state();
 
-            customSaveState(state);
+              customSaveState(state);
+            }, 300);
           }
         })
       }
@@ -104,12 +116,6 @@
       var scrollMode = _.get(options, "scrolling.mode");
       if (scrollMode === 'virtual' || scrollMode === 'infinite') {
         options.paging.pageSize = Math.max(100, options.paging.pageSize);
-      }
-
-      options.filterBuilder = {
-        onEditorPreparing: function (e) {
-          GridFilters.setFilterComponent(e, schema);
-        }
       }
 
       return options;

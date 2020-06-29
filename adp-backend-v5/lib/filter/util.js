@@ -1,3 +1,6 @@
+const _ = require('lodash');
+const chrono = require('chrono-node');
+const { toRegExp } = require('../util/regexp');
 const { ValidationError } = require('../errors');
 
 const typeToFilterName = {
@@ -11,6 +14,11 @@ const typeToFilterName = {
   Int32: 'number',
   Int64: 'number',
   Decimal128: 'decimal128',
+  'Number[]': 'number',
+  'Double[]': 'number',
+  'Int32[]': 'number',
+  'Int64[]': 'number',
+  'Decimal128[]': 'decimal128',
   Boolean: 'boolean',
   Array: 'none',
   Object: 'none',
@@ -38,6 +46,7 @@ const typeToFilterName = {
   ImperialWeightWithOz: 'imperialWeightWithOz',
   BloodPressure: 'none',
   Barcode: 'string',
+  Currency: 'currency',
 };
 
 function getDefaultFilterName(fieldScheme) {
@@ -47,18 +56,97 @@ function getDefaultFilterName(fieldScheme) {
   }
 
   if (list) {
-    if (list.isDynamicList) {
-      return 'dynamicList';
-    }
+    const isMultiple = type.endsWith('[]');
+    const { isDynamicList } = list;
 
-    if (type.endsWith('[]')) {
+    if (!isMultiple && !isDynamicList) {
+      return 'list';
+    }
+    if (isMultiple && !isDynamicList) {
       return 'listMultiple';
     }
-    return 'list';
+    if (!isMultiple && isDynamicList) {
+      return 'dynamicList';
+    }
+    if (isMultiple && isDynamicList) {
+      return 'dynamicListMultiple';
+    }
   }
   return typeToFilterName[type];
 }
 
+function construct(fieldName, operator, compValue) {
+  return { [fieldName]: { [operator]: compValue } };
+}
+
+function constructRegex(fieldName, regex) {
+  return { [fieldName]: { $regex: regex } };
+}
+
+function createFilter(context, operationsMap) {
+  const { fieldPath, operation, value } = context.data;
+  const operationValue = operationsMap[operation];
+  if (!operationValue) {
+    const supportedOperations = getSupportedOperationsFromMap(operationsMap);
+    throw new ValidationError(
+      `Invalid operation '${operation}' for filter by path '${fieldPath}'. Supported operations: ${supportedOperations}.`
+    );
+  }
+  if (_.isString(operationValue)) {
+    // operationValue is mongo operator
+    return construct(fieldPath, operationValue, value);
+  }
+  if (_.isPlainObject(operationValue)) {
+    return operationValue;
+  }
+  if (_.isFunction(operationValue)) {
+    const argumentsNum = operationValue.length;
+    if (argumentsNum === 0) {
+      return operationValue();
+    }
+    return operationValue(fieldPath, value);
+  }
+  throw new ValidationError(`Invalid specification for operation '${operation}', filter by path '${fieldPath}'.`);
+}
+
+function getSupportedOperationsFromMap(map) {
+  return Object.keys(map)
+    .map((op) => `'${op}'`)
+    .join(', ');
+}
+
+const flags = { safe: true, insensitive: true };
+const stringOperations = {
+  contains: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, flags)),
+  notcontains: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, negate: true })),
+  startswith: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, startsWith: true })),
+  endswith: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, endsWith: true })),
+  regex: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, flags)),
+  notRegex: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, negate: true })),
+  '=': (fieldPath, value) => {
+    if (!value) {
+      return { $or: [{ [fieldPath]: '' }, { [fieldPath]: { $exists: false } }] };
+    }
+    return construct(fieldPath, '$eq', value);
+  },
+  '<>': (fieldPath, value) => construct(fieldPath, '$ne', value),
+  '<': (fieldPath, value) => construct(fieldPath, '$lt', value),
+  '<=': (fieldPath, value) => construct(fieldPath, '$lte', value),
+  '>': (fieldPath, value) => construct(fieldPath, '$gt', value),
+  '>=': (fieldPath, value) => construct(fieldPath, '$gte', value),
+  any: () => {},
+  empty: (fieldPath) => ({ [fieldPath]: '' }),
+  notEmpty: (fieldPath) => ({ $and: [{ [fieldPath]: { $ne: null } }, { [fieldPath]: { $ne: '' } }] }),
+};
+
+function parseRelativeDateValue(value) {
+  return chrono.parseDate(value);
+}
+
 module.exports = {
   getDefaultFilterName,
+  construct,
+  createFilter,
+  stringOperations,
+  parseRelativeDateValue,
 };

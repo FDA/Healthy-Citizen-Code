@@ -54,7 +54,7 @@
     //  }
     function readFile(options) {
       return createModal("adpReadFileDialogModal",
-        _.extend({actionType: "readFile", sizeSmall: true}, options || {})
+        _.extend({actionType: "readFile"}, options || {})
       ).result;
     }
 
@@ -73,6 +73,8 @@
         backdrop: "static",
         size: options.sizeSmall ? "sm" : "lg",
         component: componentName,
+        backdropClass: options.backdropClass || '',
+        windowClass: options.windowClass || '',
         keyboard: false,
         resolve: {
           options: function () {

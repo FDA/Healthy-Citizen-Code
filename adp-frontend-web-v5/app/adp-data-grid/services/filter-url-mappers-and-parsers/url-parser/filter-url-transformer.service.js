@@ -10,9 +10,11 @@
     BOOLEAN_FILTER_VALUES,
     GridFilterHelpers,
     AdpFieldsService,
+    AdpListsService,
     AdpValidationUtils
   ) {
     var transformers = {
+      currency: [transformToNumber],
       number: [transformToNumber],
       date: [transformToDate],
       time: [transformToDate],
@@ -97,7 +99,7 @@
     }
 
     function transformToList(value, field) {
-      var valuesByLabel = AdpFieldsService.getListValueByLabel(value, field.list);
+      var valuesByLabel = AdpListsService.getListValueByLabel(value, field.list);
       return valuesByLabel.length === 0 ? null : valuesByLabel;
     }
 

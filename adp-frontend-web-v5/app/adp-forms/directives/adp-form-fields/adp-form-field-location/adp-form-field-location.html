@@ -1,6 +1,6 @@
 <adp-form-field-container
-  adp-data="data"
-  adp-field="adpField">
+  adp-form-data="::adpFormData"
+  adp-field="::adpField">
   <label
     class="label">
     {{adpField.fullName}}
@@ -15,10 +15,10 @@
   </label>
 
   <location-control
-    field="adpField"
-    adp-form-data="adpFormData"
-    ui-props="adpFieldUiProps"
-    validation-params="validationParams"
+    field="::adpField"
+    adp-form-data="::adpFormData"
+    ui-props="::adpFieldUiProps"
+    validation-params="::validationParams"
   >
   </location-control>
 

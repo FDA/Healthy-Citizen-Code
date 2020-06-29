@@ -44,11 +44,11 @@
     </span>
 
     <span ng-message="int32">
-      {{messages.int32}}
+      {{messages.int32 || "Value is not a valid int32 number."}}
     </span>
 
     <span ng-message="int64">
-      {{messages.int64}}
+      {{messages.int64 || "Value is not a valid int32 number."}}
     </span>
 
     <span ng-message="number">
@@ -71,8 +71,12 @@
       </span>
     </span>
 
-     <span ng-message="associativeArrayKeyUnique">
+    <span ng-message="associativeArrayKeyUnique">
       {{messages.associativeArrayKeyUnique}}
+    </span>
+
+    <span ng-message="syntaxCodeEditorError">
+      Code editor contains errors. Fix all syntax errors before submitting
     </span>
   </span>
 

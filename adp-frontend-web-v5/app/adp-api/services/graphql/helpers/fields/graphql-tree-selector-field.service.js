@@ -23,7 +23,6 @@
         '_id',
         'label',
         'table',
-        'isLeaf'
       ];
 
       return fields.join('\n');

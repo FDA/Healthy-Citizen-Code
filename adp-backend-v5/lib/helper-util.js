@@ -3,8 +3,9 @@ const MemoryFs = require('memory-fs');
 const fs = require('fs-extra');
 const _ = require('lodash');
 const path = require('path');
-const appRoot = require('app-root-path').path;
 const log = require('log4js').getLogger('lib/helper-util');
+
+const { appRoot } = require('./util/env');
 
 module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
   const m = {};

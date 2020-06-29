@@ -62,3 +62,13 @@ h2 {
     height: calc(100vh - 153px);
   }
 }
+
+.djs-popup-body .bpmn-icon-send,
+.djs-popup-body .bpmn-icon-receive,
+.djs-popup-body .bpmn-icon-user,
+.djs-popup-body .bpmn-icon-manual,
+.djs-popup-body .bpmn-icon-call-activity,
+.djs-popup-body .bpmn-icon-subprocess-collapsed,
+.djs-popup-body .bpmn-icon-subprocess-expanded {
+  display: none;
+}

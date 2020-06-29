@@ -1,5 +1,5 @@
 const { ValidationError, AccessError, LinkedRecordError } = require('../errors');
-const { getMongoDuplicateErrorMessage } = require('../util/util');
+const { getMongoDuplicateErrorMessage, getMongoSortParallelArrayErrorMessage } = require('../util/util');
 
 const reDate = /^(?:new )?Date\("?(.+)"?\)$/;
 function dateReviver(key, value) {
@@ -19,9 +19,11 @@ function handleGraphQlError(e, defaultMessage, log, appLib) {
   }
 
   const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
-  if (duplicateErrMsg) {
-    log.info(duplicateErrMsg);
-    throw new Error(duplicateErrMsg);
+  const sortParallelArrayErrMsg = getMongoSortParallelArrayErrorMessage(e);
+  const mongoError = duplicateErrMsg || sortParallelArrayErrMsg;
+  if (mongoError) {
+    log.info(mongoError);
+    throw new Error(mongoError);
   }
 
   log.error(e.stack);

@@ -6,19 +6,29 @@ var utils = require('bpmn-js-properties-panel/lib/Utils'),
 module.exports = function (scriptValuePropName, isFormatRequired, translate) {
 
   return {
-    template:
-      '<div class="bpp-row">' +
-      '<label for="cam-script-val">' + escapeHTML(translate('Expression')) + '</label>' +
-      '<div class="bpp-field-wrapper">' +
-      '<textarea id="cam-script-val" type="text" name="scriptValue"></textarea>' +
-      '</div>' +
-      '</div>',
+    template: function (className, label) {
+      return '' +
+        '<div class="bpp-row">' +
+        '<label for="cam-script-format">' + escapeHTML(translate('Format')) + '</label>' +
+        '<div class="bpp-field-wrapper">' +
+        '<select id="cam-script-type" name="scriptFormat" data-value>' +
+        '<option value="Javascript" selected>' + escapeHTML(translate('Javascript')) + '</option>' +
+        '</select>' +
+        '</div>' +
+        '</div>' +
+        '<div class="bpp-row ' + className + '">' +
+        '<label for="cam-script-val">' + escapeHTML(translate(label)) + '</label>' +
+        '<div class="bpp-field-wrapper ' + className + '">' +
+        '<textarea id="cam-script-val" type="text" name="scriptValue"></textarea>' +
+        '</div>' +
+        '</div>'
+    },
 
     get: function (element, bo) {
       var values = {};
-      var boScript = bo.get(scriptValuePropName);
 
-      values.scriptValue = boScript;
+      values.scriptValue = bo.get(scriptValuePropName);
+      values.scriptFormat = bo.get('scriptFormat');
 
       return values;
     },
@@ -28,7 +38,7 @@ module.exports = function (scriptValuePropName, isFormatRequired, translate) {
       var update = {};
 
       update[scriptValuePropName] = scriptValue || '';
-      update.scriptFormat = 'Javascript';
+      update.scriptFormat = values.scriptFormat;
 
       return update;
     }

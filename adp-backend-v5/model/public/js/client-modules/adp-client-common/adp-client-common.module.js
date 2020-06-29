@@ -2,7 +2,7 @@
   angular.module('app.adpClientCommon', []).factory('AdpClientCommonHelper', AdpClientCommonFactory);
 
   /** @ngInject */
-  function AdpClientCommonFactory() {
+  function AdpClientCommonFactory(AdpIconsHelper) {
     function loadScript(src) {
       return $.getScript(src);
     }
@@ -16,17 +16,10 @@
     }
 
     function getMenuItemTemplate(options) {
-      var iconTypes = {
-        'font-awesome': 'fa fa-',
-        'font-awesome-brands': 'fab fa-',
-        dx: 'dx-icon-',
-      };
-
       return function (item, num, $elem) {
         if (options.icon) {
-          var iconClass = 'dx-icon ' + (iconTypes[options.icon.type || 'font-awesome'] || '') + options.icon.link;
-          var $icon = $('<i>').addClass(iconClass);
-          $elem.append($icon);
+          var iconHtml = AdpIconsHelper.getIconHtml(options.icon, { className: 'dx-icon' });
+          $elem.append(iconHtml);
         }
 
         if (options.title) {
@@ -46,10 +39,15 @@
       };
     }
 
+    function highlightToolbarButton(element, condition){
+      element.toggleClass('adp-toolbar-highlighted',!!condition);
+    }
+
     return {
       loadScript: loadScript,
       loadCss: loadCss,
       getMenuItemTemplate: getMenuItemTemplate,
+      highlightToolbarButton:highlightToolbarButton,
     };
   }
 })();

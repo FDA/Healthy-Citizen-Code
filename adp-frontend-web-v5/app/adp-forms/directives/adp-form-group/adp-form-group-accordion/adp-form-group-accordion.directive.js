@@ -7,16 +7,17 @@
 
     function adpFormGroupAccordion(
       AdpFieldsService,
-      AdpFormService
+      AdpFormService,
+      AdpUnifiedArgs
     ) {
     return {
       restrict: 'E',
       scope: {
-        fields: '=',
-        formData: '=',
-        formParams: '=',
-        schema: '=',
-        validationParams: '='
+        fields: '<',
+        formData: '<',
+        formParams: '<',
+        schema: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-group/adp-form-group-accordion/adp-form-group-accordion.html',
       require: '^^form',
@@ -26,13 +27,15 @@
         scope.form = form;
 
         scope.getHeader = function (group) {
-          var params = {
-            fieldData: getData(group),
+          var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+            path: group.fieldName,
+            action: scope.validationParams.formParams.action,
             formData: scope.formData,
-            fieldSchema: group,
-          };
+            schema: scope.schema,
+          });
+          args.data = getData(group);
 
-          return AdpFieldsService.getHeaderRenderer(params);
+          return AdpFieldsService.getHeaderRenderer(args);
         };
 
         scope.display = function(path) {

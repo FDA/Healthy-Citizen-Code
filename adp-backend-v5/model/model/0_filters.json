@@ -31,6 +31,16 @@
           "value": "list"
         }
       },
+      "dynamicListMultiple": {
+        "renderer": {
+          "type": "function",
+          "value": "dynamicList"
+        },
+        "where": {
+          "type": "function",
+          "value": "listMultiple"
+        }
+      },
       "string": {
         "renderer": {
           "type": "function",
@@ -219,6 +229,94 @@
         "where": {
           "type": "function",
           "value": "imperialWeightWithOz"
+        }
+      },
+      "currency": {
+        "renderer": {
+          "type": "function",
+          "value": "currency"
+        },
+        "where": {
+          "type": "function",
+          "value": "number"
+        }
+      },
+      "relativeDate": {
+        "renderer": {
+          "type": "function",
+          "value": "relativeDate"
+        },
+        "where": {
+          "type": "function",
+          "value": "relativeDate"
+        }
+      },
+      "mongoExpression": {
+        "renderer": {
+          "type": "function",
+          "value": "mongoExpression"
+        },
+        "where": {
+          "type": "function",
+          "value": "mongoExpression"
+        }
+      },
+      "databaseField": {
+        "renderer": {
+          "type": "function",
+          "value": "databaseField"
+        },
+        "where": {
+          "type": "function",
+          "value": "databaseField"
+        }
+      },
+      "decimal128ForSift": {
+        "where": {
+          "type": "function",
+          "value": "decimal128ForSift"
+        }
+      },
+      "imperialHeightForSift": {
+        "where": {
+          "type": "function",
+          "value": "imperialHeightForSift"
+        }
+      },
+      "imperialWeightForSift": {
+        "where": {
+          "type": "function",
+          "value": "imperialWeightForSift"
+        }
+      },
+      "imperialWeightWithOzForSift": {
+        "where": {
+          "type": "function",
+          "value": "imperialWeightWithOzForSift"
+        }
+      },
+      "objectIdForSift": {
+        "where": {
+          "type": "function",
+          "value": "objectIdForSift"
+        }
+      },
+      "lookupObjectIdForSift": {
+        "where": {
+          "type": "function",
+          "value": "lookupObjectIdForSift"
+        }
+      },
+      "lookupObjectIdMultipleForSift": {
+        "where": {
+          "type": "function",
+          "value": "lookupObjectIdMultipleForSift"
+        }
+      },
+      "treeSelectorForSift": {
+        "where": {
+          "type": "function",
+          "value": "treeSelectorForSift"
         }
       }
     }

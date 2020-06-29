@@ -43,8 +43,8 @@ module.exports = function (globalMongoose) {
       return res.json({ success: false, message: `Unable to create a pool` });
     }
 
-    const mongoConditions = filterParser.parse(participantsFilter, appModel.models.participants);
-    const participantsToAddPromise = mongoose.model('participants').find(mongoConditions, { _id: 0, guid: 1 }).lean();
+    const { conditions } = filterParser.parse(participantsFilter, appModel.models.participants);
+    const participantsToAddPromise = mongoose.model('participants').find(conditions, { _id: 0, guid: 1 }).lean();
     const existingParticipantsPromise = mongoose
       .model('poolParticipants')
       .find({ 'poolId._id': pool._id, ...dba.getConditionForActualRecord() }, { _id: 0, guid: 1 })

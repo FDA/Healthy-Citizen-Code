@@ -1,8 +1,38 @@
 const Promise = require('bluebird');
 const _ = require('lodash');
+const sanitizeHtml = require('sanitize-html');
 const YAML = require('yamljs');
+const moment = require('moment');
+
+function transformFile( file ){
+  return file.name;
+}
+
+function clearSomeTags(text) {
+  return sanitizeHtml(text,
+    {
+      allowedTags: ['b', 'strong', 'i', 'em', 'u', 'ul', 'ol', 'li', 'a', 'img', 'hr', 'table', 'tbody', 'thead', 'tr', 'td', 'th', 'sup', 'sub', 'span', 'br'],
+      allowedAttributes: {
+        span: ['style'],
+        img: ['src'],
+        a: ['href'],
+      }
+    });
+}
+
+function formatDateTime(value, type) {
+  var dateFormats = {
+    Date: 'M/D/YYYY',
+    Time: 'h:mm a',
+    DateTime: 'M/D/YYYY h:mm a',
+  };
+
+  return moment(value).format(dateFormats[type]);
+}
 
 module.exports = {
+  clearSomeTags,
+  formatDateTime,
   getDbData: async (appLib, req) => {
     const action = 'view';
     const inlineContext = appLib.accessUtil.getInlineContext(req);
@@ -188,17 +218,30 @@ module.exports = {
 
     return relationships;
   },
-  getVal: (obj, fieldName, model) => {
+  getVal: (obj, fieldName, schema) => {
     const val = obj[fieldName];
-    const modelPart = model.fields[fieldName];
+    const modelPart = schema.fields[fieldName];
     const type = _.get(modelPart, 'type', '');
 
+    if (type === 'File') {
+      return transformFile(val);
+    }
+    if (type === 'File[]') {
+      return '<ul>'+_.map(val, file=>'<li>'+transformFile(file)+'</li>').join('') + '</ul>';
+    }
     if (type.includes('String')) {
       return _.castArray(val).join(', ');
     }
     if (type.includes('ObjectID')) {
       return _.castArray(val).join(', ');
     }
+    if (type === 'Html') {
+      return clearSomeTags(val).replace(/\n/g, ' ');
+    }
+    if (type === 'Date' || type==='Time' || type==='DateTime') {
+      return formatDateTime(val, type);
+    }
+
     return YAML.stringify(val, 2);
   },
 };

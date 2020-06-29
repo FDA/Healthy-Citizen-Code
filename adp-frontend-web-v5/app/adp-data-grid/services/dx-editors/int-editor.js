@@ -7,7 +7,8 @@
 
   /** @ngInject */
   function IntEditor(
-    DxEditorMixin
+    DxEditorMixin,
+    AdpFieldsService
   ) {
     return function () {
       return DxEditorMixin({
@@ -23,14 +24,17 @@
     };
 
     function getOptions(init) {
-      return {
+      var defaults = {
         mode: 'number',
         onValueChanged: init.onValueChanged,
         value: init.args.data,
         valueChangeEvent: 'blur input',
         placeholder: init.placeholder,
         format: '#',
+        showSpinButtons: true,
       };
+
+      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
     }
   }
 })();

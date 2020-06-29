@@ -49,12 +49,12 @@
         "type": {
           "type": "String",
           "fullName": "Setting type",
-          "required": "1"
+          "required": true
         },
         "settings": {
           "type": "Mixed",
           "fullName": "Setting Value",
-          "required": "0"
+          "required": false
         }
       }
     }

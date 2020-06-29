@@ -2,8 +2,8 @@ const RJSON = require('relaxed-json');
 const Promise = require('bluebird');
 const _ = require('lodash');
 const fs = require('fs-extra');
-const glob = require('glob');
 const ejs = require('ejs');
+const { globSyncAsciiOrder } = require('./glob');
 const { CallStackError } = require('../errors');
 const { mergeFiles } = require('../public-files-controller');
 
@@ -93,9 +93,9 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
     log('Merging', modelSource);
     let jsonFiles;
     if (!modelSource.endsWith('json')) {
-      jsonFiles = glob.sync(`${modelSource}/**/*.json`);
+      jsonFiles = globSyncAsciiOrder(`${modelSource}/**/*.json`);
     } else {
-      jsonFiles = glob.sync(modelSource);
+      jsonFiles = globSyncAsciiOrder(modelSource);
     }
 
     const macrosFunctionContext = { ...appModelProcessors, macros };

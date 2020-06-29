@@ -1,4 +1,5 @@
 const puppeteer = require('puppeteer');
+const _ = require('lodash');
 
 const {
   getLaunchOptions,
@@ -15,6 +16,20 @@ const {
 } = require('../../utils');
 
 const PAGE_TO_TEST = 'formValidation';
+
+const isDate = fieldName => ['dateWithMinMax', 'timeWithMinMax', 'dateTimeWithMinMax'].includes(fieldName);
+
+const padDateStringWithZeros = dateStr => dateStr.split('/').map(p => _.padStart(p, 2, '0')).join('/')
+
+const getFieldValue = (testDef) => {
+  return isDate(testDef.fieldName) ?
+    padDateStringWithZeros(testDef.fieldValue) :
+    testDef.fieldValue;
+}
+
+const getFieldSelector = (testDef) => {
+  return `#${testDef.fieldName} .dx-texteditor-input`;
+}
 
 describe('form field validation', () => {
   beforeAll(async () => {
@@ -46,7 +61,6 @@ describe('form field validation', () => {
       validationRule: 'regex',
       errorMessage: 'Value 111 is not correct, should contain only latin letters without whitespaces',
       message: 'invalid value for regex',
-      type: 'String',
     },
 
     {
@@ -55,7 +69,6 @@ describe('form field validation', () => {
       validationRule: 'minLength',
       errorMessage: 'Value is too short, should be at least 5 characters long',
       message: 'left border for minLength',
-      type: 'String'
     },
 
     {
@@ -64,7 +77,6 @@ describe('form field validation', () => {
       validationRule: 'minLength',
       errorMessage: 'Value is too short, should be at least 5 characters long',
       message: 'less than left border minLength',
-      type: 'String',
     },
 
     {
@@ -73,7 +85,6 @@ describe('form field validation', () => {
       validationRule: 'maxLength',
       errorMessage: 'Value is too long, should be at most 10 characters long',
       message: 'right border for maxLength',
-      type: 'String',
     },
 
     {
@@ -82,7 +93,6 @@ describe('form field validation', () => {
       validationRule: 'maxLength',
       errorMessage: 'Value is too long, should be at most 10 characters long',
       message: 'more than right border for maxLength',
-      type: 'String',
     },
 
     {
@@ -91,6 +101,7 @@ describe('form field validation', () => {
       validationRule: 'min',
       errorMessage: 'Value 4 is too small, should be greater than or equal 5',
       message: 'left border for minNumber',
+      type: 'Number',
     },
     {
       fieldName: 'numberWithMinMax',
@@ -98,6 +109,7 @@ describe('form field validation', () => {
       validationRule: 'min',
       errorMessage: 'Value 1 is too small, should be greater than or equal 5',
       message: 'less than left border for minNumber',
+      type: 'Number',
     },
 
     {
@@ -106,6 +118,7 @@ describe('form field validation', () => {
       validationRule: 'max',
       errorMessage: 'Value 11 is too large, should be less than or equal 10',
       message: 'right border for maxNumber',
+      type: 'Number',
     },
 
     {
@@ -114,6 +127,7 @@ describe('form field validation', () => {
       validationRule: 'max',
       errorMessage: 'Value 16 is too large, should be less than or equal 10',
       message: 'more than right border for maxNumber',
+      type: 'Number',
     },
 
     {
@@ -219,12 +233,11 @@ describe('form field validation', () => {
       `Should display validation message for field "${testDef.fieldName}" with value ${testDef.fieldValue}
       for ${testDef.validationRule} validation rule and ${testDef.message}`,
       async () => {
-        // TEMP for dx fields condition
-        const selector = testDef.type === 'String' ?
-          `#${testDef.fieldName} input` :
-          `#${testDef.fieldName}`;
+        const selector = getFieldSelector(testDef);
+        const fieldValue = getFieldValue(testDef)
 
-        await this.page.type(selector, testDef.fieldValue);
+        await this.page.type(selector, fieldValue);
+        await this.page.$eval(selector, e => e.blur());
 
         const errorMessageSelector = `[ng-field-name="${testDef.fieldName}"] [ng-message="${testDef.validationRule}"]`;
         await this.page.waitForSelector(errorMessageSelector);
@@ -245,21 +258,18 @@ describe('form field validation', () => {
       fieldValue: 'abcdEFGH',
       validationRule: 'regex',
       message: 'correct input for regex(latin letters only)',
-      type: 'String',
     },
     {
       fieldName: 'stringWithMinMaxLength',
       fieldValue: '12345',
       validationRule: 'minLength',
       message: 'left border',
-      type: 'String',
     },
     {
       fieldName: 'stringWithMinMaxLength',
       fieldValue: '1234567890',
       validationRule: 'maxLength',
       message: 'right border',
-      type: 'String',
     },
 
     {
@@ -267,12 +277,14 @@ describe('form field validation', () => {
       fieldValue: '5',
       validationRule: 'min',
       message: 'left border',
+      type: 'Number',
     },
     {
       fieldName: 'numberWithMinMax',
       fieldValue: '10',
       validationRule: 'max',
       message: 'right border',
+      type: 'Number',
     },
 
     {
@@ -320,18 +332,16 @@ describe('form field validation', () => {
     test(
       `Should pass for field "${testDef.fieldName}" with ${testDef.message} for ${testDef.validationRule} validation rule`,
       async () => {
-        // TEMP for dx fields condition
-        const selector = testDef.type === 'String' ?
-          `#${testDef.fieldName} input` :
-          `#${testDef.fieldName}`;
+        const selector = getFieldSelector(testDef);
+        const fieldValue = getFieldValue(testDef)
 
-        await this.page.type(selector, testDef.fieldValue);
+        await this.page.type(selector, fieldValue);
+        await this.page.$eval(selector, e => e.blur());
 
         const validControl = await this.page.$(`#${testDef.fieldName}.ng-valid`);
         expect(validControl).toBeTruthy();
 
-
-        const [_submitsReult, message] = await Promise.all([
+        const [__, message] = await Promise.all([
           clickSubmit(this.page),
           getSubmitMsg(this.page),
         ]);

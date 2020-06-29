@@ -1,12 +1,12 @@
 <fieldset>
   <adp-form-field-factory
-    ng-repeat="field in fields.notGrouped track by $index"
-    adp-field="field"
-    adp-fields="fields"
-    adp-form-data="formData"
-    form-params="adpFormParams"
-    schema="schema"
-    validation-params="validationParams"
+    ng-repeat="field in ::fields.notGrouped track by $index"
+    adp-field="::field"
+    adp-fields="::fields"
+    adp-form-data="::formData"
+    form-params="::adpFormParams"
+    schema="::schema"
+    validation-params="::validationParams"
   >
   </adp-form-field-factory>
 </fieldset>
@@ -16,12 +16,12 @@
 <fiedlset
   adp-jarvis-widgets
   id="widget-grid"
-  options="formParams"
+  options="::formParams"
 >
   <div
     ng-show="display(groupName)"
     ng-class="{'has-errors': groupHasErrors(group.fields, form) }"
-    ng-repeat="(groupName, group) in fields.groups track by $index"
+    ng-repeat="(groupName, group) in ::fields.groups track by $index"
     ng-group-name="{{groupName}}"
     class="adp-widget jarviswidget adp-form-fieldset"
     ng-attr-id="{{ 'jarviswidget-' + $id }}"
@@ -33,13 +33,13 @@
 
     <div class="widget-body adp-form-group-body">
       <adp-form-field-factory
-        ng-repeat="field in group.fields track by $index"
-        adp-field="field"
-        adp-fields="fields"
-        adp-form-params="$parent.formParams"
-        adp-form-data="$parent.formData"
-        schema="$parent.schema"
-        validation-params="$parent.validationParams"
+        ng-repeat="field in ::group.fields track by $index"
+        adp-field="::field"
+        adp-fields="::fields"
+        adp-form-params="::$parent.formParams"
+        adp-form-data="::$parent.formData"
+        schema="::$parent.schema"
+        validation-params="::$parent.validationParams"
       >
       </adp-form-field-factory>
     </div>

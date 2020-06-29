@@ -6,26 +6,34 @@
     .factory('CustomFilterExpression', CustomFilterExpression);
 
   /** @ngInject */
-  function CustomFilterExpression() {
+  function CustomFilterExpression(AdpUnifiedArgs) {
     var expressions = {
       Boolean: calculateExprForBoolean,
       DateTime: transformBetweenToNonStrictRange,
       Date: transformBetweenToNonStrictRange,
       Time: transformBetweenToNonStrictRange,
+      Currency: transformBetweenToNonStrictRange,
+      'Int32[]': transformBetweenToNonStrictRange,
+      'Int64[]': transformBetweenToNonStrictRange,
       Number: transformBetweenToNonStrictRange,
       ImperialWeight: transformBetweenToNonStrictRange,
+
       ImperialWeightWithOz: imperialUnitMultipeExpr,
       ImperialHeight: imperialUnitMultipeExpr,
       LookupObjectID: transformLookup,
       'LookupObjectID[]': transformLookup,
     };
 
-    return function (field) {
+    return function (field, schema) {
+      if (hasCustomFilterExpr(field)) {
+        return getCustomFilterExpr(field, schema);
+      }
+
       return expressions[field.type] || defaultFilterExpression;
     };
 
     function defaultFilterExpression(filterValue, selectedFilterOperation) {
-      return [this.dataField, selectedFilterOperation || this.defaultSelectedFilterOperation, filterValue];
+      return [this.dataField, (selectedFilterOperation || this.defaultSelectedFilterOperation), filterValue];
     }
 
     function calculateExprForBoolean(filterValue, selectedFilterOperation) {
@@ -71,6 +79,33 @@
 
     function transformLookup(filterValue, selectedFilterOperation) {
       return [this.dataField, selectedFilterOperation, filterValue];
+    }
+
+    function getCustomFilterExpr(field, schema) {
+      return function (filterValue, selectedFilterOperation, target) {
+        var customDataSourceName = _.get(field, 'parameters.calculateFilterExpression', null);
+        var exprFn = _.get(window, 'appModelHelpers.DxCalculateFilterExpression.' + customDataSourceName, null);
+
+        var args = getUnifiedArgs(field, schema);
+        args.filterValue = filterValue;
+        args.selectedFilterOperation = selectedFilterOperation;
+        args.target = target;
+
+        return exprFn.call(args);
+      };
+    }
+
+    function hasCustomFilterExpr(field) {
+      return _.hasIn(field, 'parameters.calculateFilterExpression');
+    }
+
+    function getUnifiedArgs(field, schema) {
+      return AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: field.fieldName,
+        formData: null,
+        action: null,
+        schema: schema,
+      });
     }
   }
 })();

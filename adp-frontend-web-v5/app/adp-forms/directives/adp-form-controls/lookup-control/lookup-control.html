@@ -1,19 +1,22 @@
 <div
-  class="adp-lookup-control-container"
+  class="adp-inline-form-control"
   ng-class="[columnClass, fieldNameClass]"
 >
   <lookup-table-selector
+    class="adp-inline-form-control-left"
     props="props"
   >
   </lookup-table-selector>
 
   <lookup-selector-single
+    class="adp-inline-form-control-right"
     ng-if="!multiple"
     props="props"
   >
   </lookup-selector-single>
 
   <lookup-selector-multiple
+    class="adp-inline-form-control-right"
     ng-if="multiple"
     props="props"
   >

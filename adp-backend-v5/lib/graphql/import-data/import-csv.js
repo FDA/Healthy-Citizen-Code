@@ -71,7 +71,7 @@ async function parseCsvToJsonValue({ appLib, scheme, val, fieldName }) {
   const stringTypes = ['String', 'Email', 'Phone', 'Url', 'Text', 'Barcode', 'Decimal128'];
   const numberTypes = ['Number', 'Double', 'Int32', 'Int64'];
 
-  if (!val || val === '-') {
+  if (!val) {
     return null;
   }
 
@@ -115,6 +115,17 @@ async function parseCsvToJsonValue({ appLib, scheme, val, fieldName }) {
     return ObjectID(val);
   }
 
+  if (type === 'Currency') {
+    // negative value "-$125" is presented as "($125)"
+    const isNegativeCurrency = val.startsWith('(') && val.endsWith(')');
+    const trimmedVal = _.trim(val, '()$');
+    const number = Number(trimmedVal);
+    if (Number.isNaN(number)) {
+      throw new Error(`Invalid Currency value ${val}, cannot convert to number`);
+    }
+    return isNegativeCurrency ? number * -1 : number;
+  }
+
   if (type === 'LookupObjectID') {
     const tableSpecs = getTableSpecs(schemeSpec);
     return getLookupByLabel({ appLib, csvLabelValue: val, tableSpecs });
@@ -137,7 +148,7 @@ async function parseCsvToJsonValue({ appLib, scheme, val, fieldName }) {
   if (type === 'Password') {
     return null;
   }
-  throw new Error(`Unknown field type ('${type}')`);
+  throw new Error(`Type '${type}' is not supported for CSV export.`);
 }
 
 async function getItemsFromCsv({ filePath, context }) {

@@ -52,6 +52,10 @@
           "description": "Acronym",
           "showInViewDetails": false
         },
+        "files": {
+          "type": "File[]",
+          "fullName": "Files"
+        },
         "tags": {
           "type": "LookupObjectID[]",
           "fullName": "Tags",

@@ -8,24 +8,24 @@
   /** @ngInject */
   function ListEditorFactory(
     AdpFieldsService,
+    AdpListsService,
     DxEditorMixin
   ) {
     function getOptions(init) {
-      return {
+      var defaults = {
         value: init.args.data,
         valueExpr: 'value',
         displayExpr: 'label',
         elementAttr: {
           class: 'adp-select-box',
-          id: 'list_id_' + init.args.modelSchema.fieldName,
+          id: 'cell_list_id_' + init.args.modelSchema.fieldName,
         },
-        dataSource: getDataSource(init.args.modelSchema),
+        dataSource: AdpListsService.getDataSource(init.args),
         onValueChanged: init.onValueChanged,
+        showClearButton: true,
       };
-    }
 
-    function getDataSource(modelSchema) {
-      return AdpFieldsService.getListOfOptions(modelSchema.list);
+      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
     }
 
     function factory(multiple) {

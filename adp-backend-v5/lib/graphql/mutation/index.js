@@ -23,17 +23,16 @@ function addCreateOneResolver(model, modelName) {
     },
     type,
     resolve: async ({ args, context }) => {
+      const { req, appLib } = context;
       try {
-        const { req, appLib } = context;
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
         // no filtering for create record
         graphQlContext.mongoParams = { conditions: {} };
-        return appLib.dba.withTransaction(session =>
+        return await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.postItem(graphQlContext, args.record, session)
         );
       } catch (e) {
-        log.error(e.stack);
-        throw new Error(`Unable to create record`);
+        handleGraphQlError(e, `Unable to create record`, log, appLib);
       }
     },
   });
@@ -68,7 +67,7 @@ function addDeleteOneResolver(model, modelName) {
       try {
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
-        await appLib.dba.withTransaction(session => appLib.controllerUtil.deleteItem(graphQlContext, session));
+        await appLib.dba.withTransaction((session) => appLib.controllerUtil.deleteItem(graphQlContext, session));
         return { deletedCount: 1 };
       } catch (e) {
         handleGraphQlError(e, `Unable to delete record`, log, appLib);
@@ -94,7 +93,7 @@ function addUpdateOneResolver(model, modelName) {
       try {
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
-        return appLib.dba.withTransaction(session =>
+        return await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.putItem(graphQlContext, args.record, session)
         );
       } catch (e) {
@@ -122,7 +121,7 @@ function addUpsertOneResolver(model, modelName, filterType) {
       try {
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
-        return appLib.dba.withTransaction(session =>
+        return await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.upsertItem(graphQlContext, args.record, session)
         );
       } catch (e) {

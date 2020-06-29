@@ -3,6 +3,8 @@ const JSONStream = require('JSONStream');
 const Promise = require('bluebird');
 const fs = require('fs-extra');
 const { setUpdateAtIfRecordChanged } = require('../../util/mongo');
+const { getWgetProxyParams } = require('../../util/proxy');
+const { downloadUsingWget } = require('../../util/download');
 
 const PumpRawResourceOpenFda = require('../pump_raw_resources/open_fda_pump_raw_resources');
 
@@ -28,7 +30,7 @@ class PumpDeviceRecallsWithEnforcements extends PumpRawResourceOpenFda {
         const enforcementPartitions = this.downloadFilesInfo.device.enforcement.partitions;
         const fileInfos = this._getFileInfos(enforcementPartitions, enforcementsFileFilter, zipDestinationDir);
 
-        return this._downloadUsingWget(fileInfos);
+        return downloadUsingWget(fileInfos, false, getWgetProxyParams());
       })
       .then(zipPaths => {
         const getDocId = doc => doc.recall_number;

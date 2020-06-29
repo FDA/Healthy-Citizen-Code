@@ -84,6 +84,7 @@
         "devDependencies": true
       }
     ],
+    "no-return-await": "error",
 
     // Promise config
     // blubird catch can receive 2 params

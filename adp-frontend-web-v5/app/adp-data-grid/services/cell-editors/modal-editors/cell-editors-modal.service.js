@@ -77,7 +77,7 @@
     function isModalEditor(type) {
       var object = ['Object', 'Array', 'AssociativeArray'];
       var media = ['File', 'Image', 'Audio', 'Video', 'File[]', 'Image[]', 'Audio[]', 'Video[]'];
-      var other = ['Location', 'Code', 'Html', 'Password'];
+      var other = ['Location', 'Code', 'Html', 'Password', 'Mixed'];
 
       var modalEditors = object.concat(media, other);
       return _.includes(modalEditors, type);

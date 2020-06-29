@@ -44,5 +44,9 @@ module.exports = () => {
     return macro.func.call(this, macroParams);
   };
 
+  m.ENV = function (varName) {
+    return process.env[varName];
+  };
+
   return m;
 };

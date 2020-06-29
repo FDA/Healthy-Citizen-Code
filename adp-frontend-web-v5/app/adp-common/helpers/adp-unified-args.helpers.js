@@ -26,6 +26,7 @@
         data: _.get(options.formData, options.path, null),
         row: options.formData,
         modelSchema: _.get(options.schema.fields, schemaPath, options.schema),
+        appSchema: options.schema,
         action: options.action,
 
         parentData: _getParentData(options.path, options.formData),

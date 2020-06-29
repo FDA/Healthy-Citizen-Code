@@ -17,7 +17,7 @@ function onInterfaceUpdate(vm) {
     i++;
   }
 
-  renderInfobox(vm.selectedNodes);
+  renderInfobox(vm.selectedNodes, vm.tags);
 }
 
 function bindUiHandlers(context) {
@@ -42,23 +42,27 @@ function bindUiHandlers(context) {
       change: name => getLink.inputToModel(name),
     },
   };
-  const linkConfig = {
+  const biDirectionalLinkConfig = {
     showOptions: {
-      model: vm => $('#fg3d-config')
-        .toggleClass('open', vm.showOptions),
+      model: vm => {
+        $('.fg3d-left-panel-block.fg3d-config').toggleClass('open', vm.showOptions);
+        $('#fg3d-left-panel').toggleClass('both-open', vm.showOptions && vm.showLegend);
+      },
       events: {
-        '.fg3d-config-icon:click': vm => {
+        '#fg3d-config-icon,.fg3d-config .fg3d-close:click': vm => {
           vm.toggleConfig();
           onInterfaceUpdate(vm);
         },
       },
     },
     showLegend: {
-      model: vm => $('#fg3d-legend')
-        .toggleClass('open', vm.showLegend),
+      model: vm => {
+        $('.fg3d-left-panel-block.fg3d-legend').toggleClass('open', vm.showLegend);
+        $('#fg3d-left-panel').toggleClass('both-open', vm.showOptions && vm.showLegend);
+      },
       events: {
-        '#fg3d-legend:click': vm => {
-          vm.toggleLegend();
+        '#fg3d-legend-icon,.fg3d-legend .fg3d-close:click': (vm, e) => {
+          vm.toggleLegend(e);
           onInterfaceUpdate(vm);
         },
       },
@@ -101,8 +105,14 @@ function bindUiHandlers(context) {
     showParticles: 'Checkbox',
     particleSize: 'Input',
   };
+  const additionalClickHandlers = {
+    'fg3d-export-png': 'screenCapture',
+    'fg3d-zoomin-nav': 'navigationZoomIn',
+    'fg3d-zoomout-nav': 'navigationZoomOut',
+    'fg3d-zoomcenter-nav': 'navigationCenter',
+  }
 
-  _.each(linkConfig, (config, name) => {
+  _.each(biDirectionalLinkConfig, (config, name) => {
     let modelToControl;
     let controlToModel = {};
 
@@ -126,38 +136,49 @@ function bindUiHandlers(context) {
     })
   });
 
-  $("#fg3d-export-png")
-    .on('click', ()=>context.screenCapture());
+  _.each(additionalClickHandlers, (handler, id) => {
+    const cb = _.isString(handler) ? e => context[handler](e) : e => handler(e, context);
+    $('#' + id).on('click', cb);
+  })
 }
 
 function renderLegend(legend) {
-  $('#fg3d-legend')
-    .html(`<div class='fg3d-legend-icon'>Legend</div>` +
-      (legend.nodes.length ? `<div class='fg3d-legend-item fg3d-legend-title'>Entities</div>` : "") +
-      (legend.nodes || []).map(type =>
-        `<div class='fg3d-legend-item'>
+  let html = '';
+
+  if (legend.nodes && legend.nodes.length) {
+    html +=
+      `<div class='fg3d-fieldset'><div class='fg3d-fieldset-label'>Entities</div>` +
+    (legend.nodes || []).map(type =>
+      `<div class='fg3d-legend-item'>
     <div class='fg3d-leg-icon'>
-    <div class='fg3d-leg-icon-node shape_${type.shp.toLowerCase()}'
+        <div class='fg3d-leg-icon-node shape_${type.shp.toLowerCase()}'
   style='background-color:${type.col}'></div>
     </div>
     <div class='fg3d-leg-txt'>${type.text || '[no title]'}</div>
   </div>`)
-        .join('') +
-      (legend.links.length ? `<div class='fg3d-legend-item fg3d-legend-title fg3d-legend-title-links'>Relationships</div>` : "") +
+      .join('')
+    + '</div>'
+  }
+
+  if (legend.links && legend.links.length) {
+    html += `<div class='fg3d-fieldset'><div class='fg3d-fieldset-label'>Relationships</div>` +
       (legend.links || []).map(type =>
         `<div class='fg3d-legend-item'>
     <div class='fg3d-leg-icon'>
-    <div class='fg3d-leg-icon-link' style='border-bottom-width:${type.w || 1}px; border-color:${type.col}'></div>
+        <div class='fg3d-leg-icon-link' style='border-bottom-width:${type.w || 1}px; border-color:${type.col}'></div>
     </div>
     <div class='fg3d-leg-txt'>${type.text || '[no title]'}</div></div>`)
-        .join(''),
-    );
+        .join('')
+      + '</div>'
+  }
+
+  $('#fg3d-legend-box > .legend-body').html( html );
 }
 
-function renderInfobox(selectedNodes) {
-  const infoBox = $('#fg3d-infobox');
+function renderInfobox(selectedNodes, tags) {
+  const infoBox = $('#fg3d-info-box-content-container');
 
-  if (selectedNodes.length) {
+  if (selectedNodes && selectedNodes.length) {
     infoBox.html(
       selectedNodes.map(node =>
         `<div class='fg3d-entity-info'><div class='fg3d-info-icon'>`
@@ -166,6 +187,12 @@ function renderInfobox(selectedNodes) {
           `<div class='fg3d-leg-icon-link' style='border-bottom-width:${node.w ? node.w + 2 : 1}px; border-color:${node.col}'></div>`
         )
         + `</div><p class='fg3d-info-name-p'><b>Name: </b>${node.n}</p>`
+        + (!node.tags.length ? '' :
+        (`<p class='fg3d-info-name-p'><b>Tags: </b>`
+          + _.map(node.tags, tagId => `<span>${tags[tagId].text}</span>`)
+            .join(', ')
+          + '</p>'))
+        + (node.d ? `<p class='fg3d-info-name-p'><b>Description: </b>${node.d}</p>` : '')
         + _.map(node.obj, (value, key) => `<p><b>${key}: </b>${value}</p>`)
           .join('')
         + '</div>',
@@ -174,7 +201,7 @@ function renderInfobox(selectedNodes) {
     );
   }
 
-  infoBox.toggle(!!selectedNodes.length);
+  $('#fg3d-info-box').toggle(!!selectedNodes.length);
 }
 
 function objectEquals(x, y, _path = '') {

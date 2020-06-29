@@ -8,7 +8,7 @@
     AdpNotificationService,
     AdpModalService,
     AdpSchemaService,
-    AdpGridViewManager,
+    AdpGridViewManagerService,
     GraphqlCollectionMutator,
     ErrorHelpers
   ) {
@@ -29,10 +29,10 @@
     }
 
     function doSaveState() {
-      AdpGridViewManager.saveView(vm.options.grid, vm.options.customGridOptions, vm.savedList, vm.options.schema)
+      AdpGridViewManagerService.saveView(vm.options.grid, vm.options.customGridOptions, vm.savedList, vm.options.schema)
         .then(function () {
           AdpNotificationService.notifySuccess('Grid view is saved');
-          return AdpGridViewManager.loadViews(vm.options.schema);
+          return AdpGridViewManagerService.loadViews(vm.options.schema);
         })
         .then(function (list) {
           vm.savedList = list;

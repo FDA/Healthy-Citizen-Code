@@ -1,6 +1,7 @@
 <adp-form-field-container
-  adp-is-error="isError"
-  adp-field="adpField">
+  adp-is-error="::isError"
+  adp-form-data="::adpFormData"
+  adp-field="::adpField">
 
   <label
     class="label">
@@ -14,10 +15,10 @@
   </label>
 
   <date-control
-    field="adpField"
-    adp-form-data="adpFormData"
-    ui-props="adpFieldUiProps"
-    validation-params="validationParams"
+    field="::adpField"
+    adp-form-data="::adpFormData"
+    ui-props="::adpFieldUiProps"
+    validation-params="::validationParams"
   >
   </date-control>
 

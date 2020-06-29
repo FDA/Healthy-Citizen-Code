@@ -9,7 +9,7 @@ const { importJson } = require('./import-json');
 const { importCsv } = require('./import-csv');
 const { getOverallErrorResponse } = require('./util');
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {};
 
   async function getFile(fileId) {
@@ -18,10 +18,7 @@ module.exports = appLib => {
     }
 
     // TODO: check permissions for file creator?
-    const file = await appLib.db
-      .model('files')
-      .findById(ObjectId(fileId))
-      .lean();
+    const file = await appLib.db.model('files').findById(fileId).lean();
     if (!file) {
       return null;
     }
@@ -29,11 +26,11 @@ module.exports = appLib => {
   }
 
   function getImportFunc(file) {
-    const { mimeType } = file;
-    if (mimeType === 'text/csv') {
+    const { mimeType, originalName } = file;
+    if (originalName.endsWith('.csv') || mimeType === 'text/csv') {
       return importCsv;
     }
-    if (mimeType === 'application/json') {
+    if (originalName.endsWith('.json') || mimeType === 'application/json') {
       return importJson;
     }
 
@@ -78,7 +75,7 @@ module.exports = appLib => {
           const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
           graphQlContext.mongoParams = { conditions: {} };
 
-          return importFunc({ filePath, context: graphQlContext, log });
+          return await importFunc({ filePath, context: graphQlContext, log });
         } catch (e) {
           const errorMessage = e instanceof ValidationError ? e.message : `Unable to import file`;
           log.error(errorMessage, e.stack);

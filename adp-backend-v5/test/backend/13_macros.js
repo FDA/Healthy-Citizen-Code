@@ -1,17 +1,15 @@
 const should = require('should');
 const path = require('path');
 
-const reqlib = require('app-root-path').require;
+const { prepareEnv } = require('../test-util');
 
-const { prepareEnv } = reqlib('test/test-util');
-
-describe('Macros', () => {
+describe('Macros', function () {
   before(async function () {
     prepareEnv();
   });
 
   beforeEach(async function () {
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
   });
 
   afterEach(async function () {

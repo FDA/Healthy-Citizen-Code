@@ -22,6 +22,8 @@
       'Password': { directiveType: 'password' },
       'Text': { directiveType: 'text' },
 
+      Currency: { directiveType: 'currency' },
+
       'Number': { directiveType: 'number' },
       'Double': { directiveType: 'number' },
       'Int32': { directiveType: 'int-number' },
@@ -29,6 +31,8 @@
       'Decimal128': { directiveType: 'decimal' },
 
       'String[]': { directiveType: 'string-array' },
+      'Int32[]': { directiveType: 'number-array' },
+      'Int64[]': { directiveType: 'number-array' },
       'Recaptcha': { directiveType: 'recaptcha' },
 
       'Boolean': { directiveType: 'boolean' },
@@ -67,6 +71,8 @@
       'Html': { directiveType: 'html' },
       'Code': { directiveType: 'code' },
       'Grid': { directiveType: 'grid' },
+      'Mixed': { directiveType: 'code' },
+      'Blank': { directiveType: 'blank' },
     };
 
     // public
@@ -105,11 +111,6 @@
       form.notGrouped = _.chain(_.clone(fields))
         .map(prepareData)
         .filter(function (field) {
-          // field with type Mixed is only for backend usage
-          if (field.type === 'Mixed') {
-            return false;
-          }
-
           return AdpSchemaService.isField(field) &&
             !AdpSchemaService.isGroup(field) &&
             _isVisible(field);
@@ -149,32 +150,6 @@
       }
 
       return field;
-    }
-
-    function getListOfOptions(list) {
-      return _objectToList(list);
-    }
-
-    /**
-     * List is object of shape {key, value}
-     * @param {Object} list
-     * @return {*}
-     * @private
-     */
-    function _objectToList(list) {
-      return _.map(list, function (value, key) {
-        return {value: key, label: value}
-      });
-    }
-
-    function getListValueByLabel(values, list) {
-      var foundLabels = _.map(values, function (value) {
-        return _.findKey(list, function (item) {
-          return item === value;
-        })
-      });
-
-      return _.compact(foundLabels);
     }
 
     function getFormGroupFields(fields) {
@@ -274,6 +249,23 @@
       return groupedFields;
     }
 
+    function getUnitsList(field) {
+      var units = getUnits(field);
+
+      return units.map(function (unit) {
+        var begin = unit.range[0]
+        var end = unit.range[1]
+        var unitRange = _.range(begin, end);
+
+        return {
+          list: _.map(unitRange, function (i) {
+            return { value: i, label: i + unit.label }
+          }),
+          shortName: unit.shortName,
+        }
+      });
+    }
+
     function getUnits(field) {
       var type = field.type;
       var units = _.cloneDeep(IMPERIAL_UNITS_DEFAULTS[type]);
@@ -314,14 +306,21 @@
       }
     }
 
-    function getHeaderRenderer(params) {
-      var renderName = params.fieldSchema.headerRender;
+    function getHeaderRenderer(args) {
+      var renderName = args.modelSchema.headerRender;
       var renderFn = appModelHelpers.HeaderRenderers[renderName];
 
+      var oldParamsForCompatibility = {
+        fieldData: args.data,
+        formData: args.row,
+        fieldSchema: args.modelSchema,
+        index: args.index,
+      };
+
       if (renderFn) {
-        return renderFn(params);
+        return renderFn.call(args, oldParamsForCompatibility);
       } else {
-        return params.fieldSchema.fullName;
+        return args.modelSchema.fullName;
       }
     }
 
@@ -336,16 +335,22 @@
       return _.isNaN(val) ? undefined : val;
     }
 
+    function configFromParameters(field, defaults) {
+      var parameters = _.get(field, 'parameters', {});
+      _.unset(parameters, 'visible');
+      return _.merge({}, defaults, parameters);
+    }
+
     return {
       getUnits: getUnits,
+      getUnitsList: getUnitsList,
       getUiProps: getUiProps,
       getFormFields: getFormFields,
       getFormGroupFields: getFormGroupFields,
-      getListOfOptions: getListOfOptions,
-      getListValueByLabel: getListValueByLabel,
       autocompleteValue: autocompleteValue,
       getHeaderRenderer: getHeaderRenderer,
       hasHedearRenderer: hasHedearRenderer,
+      configFromParameters: configFromParameters,
     };
   }
 })();

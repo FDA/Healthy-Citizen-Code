@@ -2,7 +2,7 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {};
 
   m.preHook = (schemaModel, userContext) => m.getHookPromiseForStage('pre', schemaModel, userContext);
@@ -12,11 +12,11 @@ module.exports = appLib => {
   m.getHookPromiseForStage = async (stage, schemaModel, userContext) => {
     const hookNames = _.get(schemaModel, `hooks.${stage}`);
     const hookFns = _.castArray(hookNames)
-      .map(hookName => _.get(appLib.appModelHelpers.Hooks, hookName))
-      .filter(hookFn => _.isFunction(hookFn));
+      .map((hookName) => _.get(appLib.appModelHelpers.Hooks, hookName))
+      .filter((hookFn) => _.isFunction(hookFn));
 
     try {
-      await Promise.mapSeries(hookFns, hookFn => hookFn({ schemaModel, userContext }));
+      return await Promise.mapSeries(hookFns, (hookFn) => hookFn({ schemaModel, userContext }));
     } catch (e) {
       throw new Error(`Error occurred on ${stage} hook stage of ${schemaModel.schemaName}`);
     }

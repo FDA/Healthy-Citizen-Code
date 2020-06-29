@@ -7,7 +7,8 @@
 
   /** @ngInject */
   function NumberEditor(
-    DxEditorMixin
+    DxEditorMixin,
+    AdpFieldsService
   ) {
     return function () {
       return DxEditorMixin({
@@ -21,7 +22,7 @@
         getOptions: function (init) {
           var self = this;
 
-          return {
+          var defaults = {
             onKeyDown: function (e) {
               // WORKAROUND: to allow removing zero from input
               if (changedToNull(e.event)) {
@@ -32,10 +33,10 @@
             value: init.args.data,
             valueChangeEvent: 'blur input',
             placeholder: init.placeholder,
-            format: {
-              type: 'decimal'
-            },
+            showSpinButtons: true,
           }
+
+          return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
         },
       });
     };

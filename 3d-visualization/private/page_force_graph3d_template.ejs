@@ -4,216 +4,237 @@
         <div id='fg3d-container'
              ng-class="{ 'is-fullscreen': $root.isFullscreen }">
             <div id='fg3d-box' class="fg3d-type-3d"><h1 class='text-center'>{{ vm.error_message }}</h1></div>
-            <div ng-class="{'fg3d-config-box':1, open: vm.config.showOptions}">
-                <div class='fg3d-config-icon fa fa-bars'
-                     ng-click='vm.toggleConfig()'></div>
-                <div class="fg3d-config-form">
-                    <div>
-                        <button ng-click='vm.toggleFullscreen()'
-                                class='fg3d-fullscreen-button'>{{ !$root.isFullscreen ? 'Fullscreen mode': 'Quit
-                            fullscreen mode'}}
-                        </button>
-                        <div class="fg3d-fieldset">
-                            <div class="fg3d-fieldset-label">Filter</div>
+            <div ng-class="{'fg3d-left-panel':1, 'both-open': vm.config.showOptions && vm.config.showLegend}">
+                <div ng-class="{'fg3d-left-panel-block':1, 'fg3d-config':1, open: vm.config.showOptions}">
+                    <div id="fg3d-config-box" class='fg3d-panel-box'>
+                        <div id="fg3d-config-form">
+                            <div>
+                                <button ng-click='vm.toggleFullscreen()'
+                                        class='fg3d-fullscreen-button btn'>{{ !$root.isFullscreen ?
+                                    'Fullscreen mode': 'Quit
+                                    fullscreen mode'}}
+                                </button>
+                                <div class="fg3d-fieldset">
+                                    <div class="fg3d-fieldset-label">Filter</div>
 
-                            <div class="form-row">Entities
-                                <span><input ng-model="vm.config.nodeFilter"
-                                             ng-change='vm.doRefreshGraph()'
-                                             class="same-width"
-                                    /></span>
-                            </div>
-                            <div class="form-row">Relationships
-                                <span><input ng-model="vm.config.linkFilter"
-                                             ng-change='vm.doRefreshGraph()'
-                                             class="same-width"
-                                    /></span>
-                            </div>
-                            <div class="form-row">Tags
-                                <div class="fg3d-tags-container same-width"></div>
+                                    <div class="form-row">Entities
+                                        <span><input ng-model="vm.config.nodeFilter"
+                                                     ng-change='vm.doRefreshGraph()'
+                                                     class="same-width"
+                                            /></span>
+                                    </div>
+                                    <div class="form-row">Relationships
+                                        <span><input ng-model="vm.config.linkFilter"
+                                                     ng-change='vm.doRefreshGraph()'
+                                                     class="same-width"
+                                            /></span>
+                                    </div>
+                                    <div class="form-row">Tags
+                                        <div class="fg3d-tags-container same-width"></div>
+                                    </div>
+                                </div>
+                                <div class="fg3d-fieldset">
+                                    <div class="fg3d-fieldset-label">Show labels for</div>
+                                    <label class="form-row">
+                                        Highlighted entities
+                                        <span><input type='checkbox'
+                                                     ng-model='vm.config.hlLabelNodes'
+                                                     ng-checked="vm.config.highlight && vm.config.hlLabelNodes"
+                                                     ng-change='vm.doRefreshGraph()'
+                                            /></span>
+                                    </label>
+                                    <label class="form-row">
+                                        Highlighted relationships
+                                        <span><input type='checkbox'
+                                                     ng-model='vm.config.hlLabelLinks'
+                                                     ng-checked="vm.config.highlight && vm.config.hlLabelLinks"
+                                                     ng-change='vm.doRefreshGraph()'
+                                            /></span>
+                                    </label>
+                                    <label class="form-row">
+                                        All entities [E]
+                                        <span><input type='checkbox'
+                                                     ng-model='vm.config.labelNodes'
+                                                     ng-change='vm.doRefreshGraph()'
+                                            /></span>
+                                    </label>
+                                    <label class="form-row">
+                                        All relationships [R]
+                                        <span><input type='checkbox'
+                                                     ng-model='vm.config.labelLinks'
+                                                     ng-change='vm.doRefreshGraph()'
+                                            /></span>
+                                    </label>
+                                </div>
+                                <div class="fg3d-fieldset">
+                                    <div class="fg3d-fieldset-label">Selection</div>
+                                    <div class="form-row">Colorize
+                                    <span>%<input type="number"
+                                                  ng-model="vm.config.hlColorize"
+                                                      ng-change='vm.doRefreshGraph()'
+                                                      class="same-width"
+                                            /></span>
+                                    </div>
+                                    <div class="form-row">Highlight
+                                    <span>%<input type="number"
+                                                  ng-model="vm.config.hlBrightness"
+                                                      ng-change='vm.doRefreshGraph()'
+                                                      class="same-width"
+                                            /></span>
+                                    </div>
+                                    <div class="form-row">Dim not selected
+                                    <span>%<input type="number"
+                                                  ng-model="vm.config.hlDim"
+                                                      ng-change='vm.doRefreshGraph()'
+                                                      class="same-width"
+                                            /></span>
+                                    </div>
+                                </div>
+                                <div class="fg3d-fieldset">
+                                    <div class="fg3d-fieldset-label">Relationships</div>
+                                    <label class="form-row">
+                                        Show arrows
+                                        <span><input type='checkbox'
+                                                     ng-model='vm.config.showArrows'
+                                                     ng-change='vm.doRefreshGraph()'
+                                            /></span>
+                                    </label>
+                                    <label class="form-row">
+                                        Show particles
+                                        <span><input type='checkbox'
+                                                     ng-model='vm.config.showParticles'
+                                                     ng-change='vm.doRefreshGraph()'
+                                            /></span>
+                                    </label>
+                                    <div class="form-row">Arrows size
+                                    <span>x<input type="number"
+                                                  ng-model="vm.config.arrowSize"
+                                                      ng-change='vm.doRefreshGraph();'
+                                                      class="same-width"
+                                            /></span>
+                                    </div>
+                                    <div class="form-row">Particles size
+                                    <span>x<input type="number"
+                                                  ng-model="vm.config.particleSize"
+                                                      ng-change='vm.doRefreshGraph();'
+                                                      class="same-width"
+                                            /></span>
+                                    </div>
+                                    <div class="form-row">Curvature
+                                    <span>%<input type="number"
+                                                  ng-model="vm.config.linkCurvature"
+                                                      ng-change='vm.doRefreshGraph()'
+                                                      class="same-width"
+                                            /></span>
+                                    </div>
+                                    <div class="form-row">Length [+/-]
+                                    <span>%<input type="number"
+                                                  ng-model="vm.config.linkDistance"
+                                                      ng-change='vm.doRefreshGraph();vm.reheatSimulation()'
+                                                      class="same-width"
+                                            /></span>
+                                    </div>
+                                </div>
+                                <div class="fg3d-fieldset">
+                                    <div class="fg3d-fieldset-label">Other</div>
+                                    <label class="form-row">
+                                        Fix dragged entity [X]
+                                        <span><input type='checkbox'
+                                                     ng-model='vm.config.fixDragged'
+                                                     ng-change='vm.resetFixDragged()'
+                                            /></span>
+                                    </label>
+                                    <label class="form-row">
+                                        Camera orbiting [O]
+                                        <span><input type='checkbox'
+                                                     ng-model='vm.config.animCamera'
+                                                     ng-change='vm.toggleCameraOrbit()'
+                                            /></span>
+                                    </label>
+                                </div>
+                                <div class="justify-between">
+                                    <button ng-click='vm.screenCapture()'
+                                            ng-disabled="vm.exportingImage"
+                                            class="btn">
+                                        {{ vm.exportingImage ? 'Exporting....' : 'Export as PNG' }}
+                                    </button>
+                                    <button ng-click='vm.exportAsHtml()'
+                                            ng-disabled="vm.exportingHtml"
+                                            class="btn">
+                                        {{ vm.exportingHtml ? 'Exporting....' : 'Export as HTML' }}
+                                    </button>
+                                </div>
+                                <div class="justify-between">
+                                    <button ng-click='vm.saveConfig()'
+                                            class="btn">Save config [S]
+                                    </button>
+                                    <button ng-click='vm.loadConfig()'
+                                            ng-disabled='!vm.savedConfig'
+                                            class="btn">Load config [L]
+                                    </button>
+                                </div>
                             </div>
                         </div>
-                        <div class="fg3d-fieldset">
-                            <div class="fg3d-fieldset-label">Show labels for</div>
-                            <label class="form-row">
-                                Highlighted entities
-                                <span><input type='checkbox'
-                                             ng-model='vm.config.hlLabelNodes'
-                                             ng-checked="vm.config.highlight && vm.config.hlLabelNodes"
-                                             ng-change='vm.doRefreshGraph()'
-                                    /></span>
-                            </label>
-                            <label class="form-row">
-                                Highlighted relationships
-                                <span><input type='checkbox'
-                                             ng-model='vm.config.hlLabelLinks'
-                                             ng-checked="vm.config.highlight && vm.config.hlLabelLinks"
-                                             ng-change='vm.doRefreshGraph()'
-                                    /></span>
-                            </label>
-                            <label class="form-row">
-                                All entities [E]
-                                <span><input type='checkbox'
-                                             ng-model='vm.config.labelNodes'
-                                             ng-change='vm.doRefreshGraph()'
-                                    /></span>
-                            </label>
-                            <label class="form-row">
-                                All relationships [R]
-                                <span><input type='checkbox'
-                                             ng-model='vm.config.labelLinks'
-                                             ng-change='vm.doRefreshGraph()'
-                                    /></span>
-                            </label>
-                        </div>
-                        <div class="fg3d-fieldset">
-                            <div class="fg3d-fieldset-label">Selection</div>
-                            <div class="form-row">Colorize
-                                <span>%<input type="number"
-                                              ng-model="vm.config.hlColorize"
-                                              ng-change='vm.doRefreshGraph()'
-                                              class="same-width"
-                                    /></span>
-                            </div>
-                            <div class="form-row">Highlight
-                                <span>%<input type="number"
-                                              ng-model="vm.config.hlBrightness"
-                                              ng-change='vm.doRefreshGraph()'
-                                              class="same-width"
-                                    /></span>
-                            </div>
-                            <div class="form-row">Dim not selected
-                                <span>%<input type="number"
-                                              ng-model="vm.config.hlDim"
-                                              ng-change='vm.doRefreshGraph()'
-                                              class="same-width"
-                                    /></span>
+                    </div>
+                    <div id='fg3d-config-icon' class='fg3d-panel-icon fa fa-bars'
+                         ng-click='vm.toggleConfig()'></div>
+                    <div class="fg3d-close" ng-click='vm.toggleConfig()'>x close</div>
+                </div>
+                <div ng-class="{'fg3d-left-panel-block':1, 'fg3d-legend':1, open: vm.config.showLegend}">
+                    <div id="fg3d-legend-box" class='fg3d-panel-box'>
+                        <div class="fg3d-fieldset" ng-if="vm.legend.nodes.length">
+                            <div class="fg3d-fieldset-label">Entities</div>
+                            <div ng-repeat="type in vm.legend.nodes" class='fg3d-legend-item'>
+                                <div class='fg3d-leg-icon'>
+                                    <div ng-class='{ "fg3d-leg-icon-node":1,  ["shape_" + type.shp.toLowerCase()]:1 }'
+                                         ng-style='{ backgroundColor: type.col }'></div>
+                                </div>
+                                <div class='fg3d-leg-txt'>{{ type.text || '[no title]' }}</div>
                             </div>
                         </div>
-                        <div class="fg3d-fieldset">
+                        <div class="fg3d-fieldset" ng-if="vm.legend.links.length">
                             <div class="fg3d-fieldset-label">Relationships</div>
-                            <label class="form-row">
-                                Show arrows
-                                <span><input type='checkbox'
-                                             ng-model='vm.config.showArrows'
-                                             ng-change='vm.doRefreshGraph()'
-                                    /></span>
-                            </label>
-                            <label class="form-row">
-                                Show particles
-                                <span><input type='checkbox'
-                                             ng-model='vm.config.showParticles'
-                                             ng-change='vm.doRefreshGraph()'
-                                    /></span>
-                            </label>
-                            <div class="form-row">Arrows size
-                                <span>x<input type="number"
-                                              ng-model="vm.config.arrowSize"
-                                              ng-change='vm.doRefreshGraph();'
-                                              class="same-width"
-                                    /></span>
+                            <div ng-repeat="type in vm.legend.links" class='fg3d-legend-item'>
+                                <div class='fg3d-leg-icon'>
+                                    <div class='fg3d-leg-icon-link'
+                                         ng-style='{ borderBottomWidth: type.w + "px", borderColor: type.col }'></div>
+                                </div>
+                                <div class='fg3d-leg-txt'>{{ type.text || '[no title]' }}</div>
                             </div>
-                            <div class="form-row">Particles size
-                                <span>x<input type="number"
-                                              ng-model="vm.config.particleSize"
-                                              ng-change='vm.doRefreshGraph();'
-                                              class="same-width"
-                                    /></span>
-                            </div>
-                            <div class="form-row">Curvature
-                                <span>%<input type="number"
-                                              ng-model="vm.config.linkCurvature"
-                                              ng-change='vm.doRefreshGraph()'
-                                              class="same-width"
-                                    /></span>
-                            </div>
-                            <div class="form-row">Length [+/-]
-                                <span>%<input type="number"
-                                              ng-model="vm.config.linkDistance"
-                                              ng-change='vm.doRefreshGraph();vm.reheatSimulation()'
-                                              class="same-width"
-                                    /></span>
-                            </div>
-                        </div>
-                        <div class="fg3d-fieldset">
-                            <div class="fg3d-fieldset-label">Other</div>
-                            <label class="form-row">
-                                Fix dragged entity [X]
-                                <span><input type='checkbox'
-                                             ng-model='vm.config.fixDragged'
-                                             ng-change='vm.resetFixDragged()'
-                                    /></span>
-                            </label>
-                            <label class="form-row">
-                                Camera orbiting [O]
-                                <span><input type='checkbox'
-                                             ng-model='vm.config.animCamera'
-                                             ng-change='vm.toggleCameraOrbit()'
-                                    /></span>
-                            </label>
-                        </div>
-                        <div class="form-row">
-                            <button ng-click='vm.screenCapture()' ng-disabled="vm.exportingImage">
-                                {{ vm.exportingImage ? 'Exporting....' : 'Export as PNG' }}
-                            </button>
-                            <button ng-click='vm.exportAsHtml()' ng-disabled="vm.exportingHtml">
-                                {{ vm.exportingHtml ? 'Exporting....' : 'Export as HTML' }}
-                            </button>
-                        </div>
-                        <div class="form-row">
-                            <button ng-click='vm.saveConfig()'>Save config [S]</button>
-                            <button ng-click='vm.loadConfig()' ng-disabled='!vm.savedConfig'>Load config [L]</button>
                         </div>
                     </div>
+                    <div id='fg3d-legend-icon' class='fg3d-panel-icon' title="Show legend"
+                         ng-click='vm.toggleLegend($event)'>Legend</div>
+                    <div class="fg3d-close" ng-click='vm.toggleLegend($event)'>x close</div>
                 </div>
             </div>
-
-            <div ng-class="{'fg3d-legend-box':1, open: vm.config.showLegend}"
-                 ng-click='vm.toggleLegend()'>
-                <div class='fg3d-legend-icon'>Legend</div>
-                <div ng-if="vm.legend.nodes.length"
-                     class='fg3d-legend-item fg3d-legend-title'>Entities
-                </div>
-                <div ng-repeat="type in vm.legend.nodes" class='fg3d-legend-item'>
-                    <div class='fg3d-leg-icon'>
-                        <div class='fg3d-leg-icon-node shape_{{ type.shp.toLowerCase() }}'
-                             style='background-color:{{ type.col }}'></div>
-                    </div>
-                    <div class='fg3d-leg-txt'>{{ type.text || '[no title]' }}</div>
-                </div>
-                <div ng-if="vm.legend.links.length"
-                     class='fg3d-legend-item fg3d-legend-title fg3d-legend-title-links'>Relationships
-                </div>
-                <div ng-repeat="type in vm.legend.links" class='fg3d-legend-item'>
-                    <div class='fg3d-leg-icon'>
-                        <div class='fg3d-leg-icon-link'
-                             style='border-bottom-width:{{ type.w }}px; border-color:{{type.col}}'></div>
-                    </div>
-                    <div class='fg3d-leg-txt'>{{ type.text || '[no title]' }}</div>
-                </div>
-            </div>
-
-            <div ng-show='!!vm.selectedNodes.length' id='fg3d-infobox'>
+            <div id='fg3d-info-box' class='fg3d-panel-box' ng-show='!!vm.selectedNodes.length'>
                 <div ng-repeat="node in vm.selectedNodes" class='fg3d-entity-info'>
                     <div class='fg3d-info-icon'>
-                        <div class='fg3d-leg-icon-node shape_{{ node.shp.toLowerCase() }}'
-                             style='background-color:{{ node.col }}'
+                        <div ng-class='{ "fg3d-leg-icon-node":1, ["shape_" +  node.shp.toLowerCase()]:1 }'
+                             ng-style='{ backgroundColor:  node.col }'
                              ng-if='node.__type === "node"'
                         ></div>
                         <div class='fg3d-leg-icon-link'
-                             style='border-bottom-width:{{ node.w ? node.w + 2 : 1 }}px; border-color:{{node.col}}'
+                             ng-style='{"borderBottomWidth: (node.w ? (node.w + 2) : 1 ) + "px", borderColor: node.col }'
                              ng-if='node.__type === "link"'
                         ></div>
                     </div>
                     <p class='fg3d-info-name-p'><b>Name: </b>{{ node.n }}</p>
                     <p class='fg3d-info-name-p' ng-if="node.tags.length"><b>Tags: </b>
-                        <span ng-repeat="(key, value) in node.tags">{{ key > 0 ? ', ' : ''}}{{ vm.tags[value] }}</span>
+                        <span ng-repeat="(key, value) in node.tags">{{ key > 0 ? ', ' : ''}}{{ vm.tags[value].text }}</span>
                     </p>
                     <p class='fg3d-info-name-p' ng-if="node.d"><b>Description: </b><span ng-bind-html="node.d"></span>
                     </p>
-                    <p ng-repeat="(key, value) in node.obj"><b>{{ key }}: </b>{{ value }}</p>
+                    <p ng-repeat="(key, value) in node.obj"><b>{{ key }}: </b><span ng-bind-html="vm.trustedHtml(value)"></span></p>
                     <p class='fg3d-info-name-p'><b>Created at: </b>{{ node.createdAt }}</p>
                     <p class='fg3d-info-name-p'><b>Updated at: </b>{{ node.updatedAt }}</p>
                 </div>
+            </div>
+            <div id='fg3d-nav-controls'>
+                <button ng-click='vm.navigationZoomIn()' class="btn">+</button>
+                <button ng-click='vm.navigationZoomOut()' class="btn">-</button>
+                <button ng-click='vm.navigationCenter()' class="btn"><i class="fa fa-dot-circle-o"></i></button>
             </div>
         </div>
     </adp-section-container>

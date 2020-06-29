@@ -12,10 +12,9 @@ const {
     clickSubmit,
   }
 } = require('../../utils');
-const { waitForGridLoaded } = require('../../utils/grid.helpers');
 
 const PAGE_TO_TEST = 'customActions';
-
+const waitForGridLoaded = async (page) => page.waitFor(2000);
 const ensureAtLeastOneRecordExistToDisplayActions = async (page) => {
   const hasData = await page.$('.dx-data-row td');
   if (hasData) {
@@ -95,12 +94,12 @@ describe('Custom Actions', () => {
   const toolbarActionsSnapshot = [
     {
       "action": "customHelperAction",
-      "iconClass": "dx-icon fa fa-bolt",
+      "iconClass": "fa fa-fw fa-bolt dx-icon",
       "customItemClass": ""
     },
     {
       "action": "chooseColumns",
-      "iconClass": "dx-icon fa fa-columns",
+      "iconClass": "fa fa-fw fa-columns dx-icon",
       "customItemClass": ""
     },
     {
@@ -110,22 +109,22 @@ describe('Custom Actions', () => {
     },
     {
       "action": "manageViews",
-      "iconClass": "dx-icon dx-icon-detailslayout",
+      "iconClass": "dx-icon-detailslayout dx-icon",
       "customItemClass": ""
     },
     {
       "action": "syntheticGenerate",
-      "iconClass": "dx-icon fa fa-magic",
+      "iconClass": "fa fa-fw fa-magic dx-icon",
       "customItemClass": ""
     },
     {
       "action": "import",
-      "iconClass": "dx-icon fa fa-upload",
+      "iconClass": "fa fa-fw fa-upload dx-icon",
       "customItemClass": ""
     },
     {
       "action": "export",
-      "iconClass": "dx-icon fa fa-download",
+      "iconClass": "fa fa-fw fa-download dx-icon",
       "customItemClass": " table-top-custom-class-export"
     },
     {
@@ -140,23 +139,28 @@ describe('Custom Actions', () => {
     },
     {
       "action": "quickFilter",
-      "iconClass": "dx-icon fa fa-filter",
+      "iconClass": "fa fa-fw fa-filter dx-icon",
       "customItemClass": " table-top-custom-class-qfilter"
     },
     {
       "action": "print",
-      "iconClass": "dx-icon fa fa-print",
+      "iconClass": "fa fa-fw fa-print dx-icon",
       "customItemClass": ""
     },
     {
       "action": "customLink",
-      "iconClass": "dx-icon fa fa-fw fa-bolt",
+      "iconClass": "fa fa-fw fa-bolt dx-icon",
       "customItemClass": ""
     },
     {
       "action": "search",
       "iconClass": null,
       "customItemClass": null
+    },
+    {
+      "action": "filterBuilder",
+      "customItemClass": "",
+      "iconClass": "fa fa-fw fa-search-plus dx-icon"
     }
   ];
 

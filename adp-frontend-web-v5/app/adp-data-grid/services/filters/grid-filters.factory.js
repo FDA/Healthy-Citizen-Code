@@ -12,17 +12,21 @@
     NumberFilter,
     DateFilter,
     ListFilter,
-    StringEditor,
+    StringFilter,
     BooleanFilter,
-    ImperialUnitSingleEditor,
-    ImperialUnitMultipleEditor,
+    ImperialUnitSingleFilter,
+    ImperialUnitMultipleFilter,
     LookupFilter,
-    DecimalFilter
+    DecimalFilter,
+    CurrencyFilter,
+    RelativeDateFilter,
+    MongoExpressionFilter,
+    DatabaseFieldFilter
   ) {
     var filtersMap = {
       list: ListFilter,
       dynamicList: ListFilter,
-      string: StringEditor,
+      string: StringFilter,
       number: NumberFilter,
       double: NumberFilter,
       decimal128: DecimalFilter,
@@ -30,11 +34,15 @@
       time: DateFilter,
       dateTime: DateFilter,
       boolean: BooleanFilter,
-      imperialWeight: ImperialUnitSingleEditor,
-      imperialWeightWithOz: ImperialUnitMultipleEditor,
-      imperialHeight: ImperialUnitMultipleEditor,
+      imperialWeight: ImperialUnitSingleFilter,
+      imperialWeightWithOz: ImperialUnitMultipleFilter,
+      imperialHeight: ImperialUnitMultipleFilter,
       lookupObjectId: LookupFilter,
-      objectId: StringEditor,
+      objectId: StringFilter,
+      currency: CurrencyFilter,
+      relativeDate: RelativeDateFilter,
+      mongoExpression: MongoExpressionFilter,
+      databaseField: DatabaseFieldFilter,
     };
 
     function create(options) {
@@ -43,6 +51,22 @@
         return;
       }
       return createFilter(filterRenderer, options);
+    }
+
+    function formatValue(options) {
+      var filterRenderer = resolveFilterRenderer(options);
+
+      if (!filterRenderer) {
+        return options.args.data;
+      }
+
+      var filterComponent = filterRenderer();
+
+      if (!filterComponent.formatValue) {
+        return options.args.data;
+      }
+
+      return filterComponent.formatValue(options)
     }
 
     function createFilter(filterByType, options) {
@@ -105,6 +129,7 @@
 
     return {
       create: create,
+      formatValue: formatValue,
     }
   }
 })();

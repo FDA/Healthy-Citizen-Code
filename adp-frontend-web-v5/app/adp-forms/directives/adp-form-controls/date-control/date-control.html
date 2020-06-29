@@ -1,37 +1,9 @@
-<label
-  uib-dropdown
-  is-open="status.isOpen"
-  class="input datepicker-label">
-  <button
-    class="datepicker-toggle"
-    role="button"
-    uib-dropdown-toggle
-    aria-haspopup="true"
-    aria-expanded="false"
-    type="button">
-    <i class="fa fa-calendar"></i>
-  </button>
-
-  <input
-    class="form-control"
-    id="{{field.fieldName}}"
-    ng-model="adpFormData[field.fieldName]"
-    adp-validate="validationParams"
-    adp-date-formatter="field.type"
-    ng-required="isRequired()"
-    name="{{field.fieldName}}"
-    placeholder="{{placeholder}}" />
-
-  <div
-    uib-dropdown-menu
-    class="dropdown-menu"
-    role="menu">
-    <datetimepicker
-      ng-change="onDateChange()"
-      ng-model="adpFormData[field.fieldName]"
-      before-render="beforeRender($dates)"
-      on-set-time="closeDropDown()"
-      data-datetimepicker-config="datepickerOptions">
-    </datetimepicker>
-  </div>
-</label>
+<div
+  dx-date-box="config"
+  id="{{field.fieldName}}"
+  ng-model="adpFormData[field.fieldName]"
+  adp-validate="validationParams"
+  ng-required="isRequired()"
+  name="{{field.fieldName}}"
+  placeholder="{{placeholder}}"
+></div>

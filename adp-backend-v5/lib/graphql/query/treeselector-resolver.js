@@ -96,7 +96,7 @@ function addCountTreeselectorResolver(type, treeselectorFilter) {
       try {
         const { controllerUtil } = appLib;
         paginationContext.action = 'view';
-        return controllerUtil.getElementsCount({ context: paginationContext });
+        return await controllerUtil.getElementsCount({ context: paginationContext });
       } catch (e) {
         handleGraphQlError(e, `Unable to count requested elements`, log, appLib);
       }

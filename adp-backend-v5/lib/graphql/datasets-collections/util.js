@@ -38,8 +38,8 @@ async function addMongooseSchemaForDatasetsRecord(datasetsRecord, appLib, mongoo
 function removeMongooseSchemaForDatasetsRecord(db, modelName) {
   delete db.models[modelName];
 }
-function removeQueriesAndMutationsForDatasetsRecord(appLib, record, removeDefaultQueries, removeDefaultMutations) {
-  const mongooseModelName = getExternalDatasetsMongooseModelName(record._id);
+function removeQueriesAndMutationsForDatasetsRecord(appLib, recordId, removeDefaultQueries, removeDefaultMutations) {
+  const mongooseModelName = getExternalDatasetsMongooseModelName(recordId);
 
   removeDefaultQueries(mongooseModelName);
   removeDefaultMutations(mongooseModelName);
@@ -107,7 +107,7 @@ async function getCloneRecordsPipeline({
     inlineContext,
     'create'
   );
-  const filterConditions = appLib.filterParser.parse(filter.dxQuery, parentCollectionScheme);
+  const { conditions: filterConditions } = appLib.filterParser.parse(filter.dxQuery, parentCollectionScheme);
   const scopeConditions = scopeConditionsMeta.overallConditions;
   const cloneConditions = appLib.butil.MONGO.and(
     appLib.dba.getConditionForActualRecord(),

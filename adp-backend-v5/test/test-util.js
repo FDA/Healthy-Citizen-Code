@@ -3,12 +3,11 @@ const uuid = require('uuid');
 const _ = require('lodash');
 const request = require('supertest');
 const { ObjectID, MongoClient } = require('mongodb');
-const reqlib = require('app-root-path').require;
+
 const { prepareEnv: prepareAppEnv, getSchemaNestedPaths } = require('../lib/util/env');
+const { generateObjectId, stringifyObjectId } = require('../lib/util/util');
 
-const { generateObjectId, stringifyObjectId } = reqlib('/lib/util/util');
-
-const isDateString = str => !Number.isNaN(Date.parse(str));
+const isDateString = (str) => !Number.isNaN(Date.parse(str));
 
 const diffObjects = (a, b) => {
   const result = {
@@ -30,14 +29,14 @@ const diffObjects = (a, b) => {
           return res;
         }
         const deeper = diffObjects(a[key], b[key]);
-        res.different = res.different.concat(_.map(deeper.different, subPath => `${key}.${subPath}`));
+        res.different = res.different.concat(_.map(deeper.different, (subPath) => `${key}.${subPath}`));
 
         res.missing_from_second = res.missing_from_second.concat(
-          _.map(deeper.missing_from_second, subPath => `${key}.${subPath}`)
+          _.map(deeper.missing_from_second, (subPath) => `${key}.${subPath}`)
         );
 
         res.missing_from_first = res.missing_from_first.concat(
-          _.map(deeper.missing_from_first, subPath => `${key}.${subPath}`)
+          _.map(deeper.missing_from_first, (subPath) => `${key}.${subPath}`)
         );
         return res;
       }
@@ -64,10 +63,10 @@ const diffObjects = (a, b) => {
 
 const checkForEqualityConsideringInjectedFields = (data, sample) => {
   const objDiff = diffObjects(data, sample);
-  objDiff.missing_from_second.forEach(path => {
+  objDiff.missing_from_second.forEach((path) => {
     // check synthesized updatedAt and createdAt fields for every nested
     const syntesizedDateFields = ['createdAt', 'updatedAt', 'deletedAt'];
-    const isSyntesizedDateField = syntesizedDateFields.find(f => path.endsWith(f));
+    const isSyntesizedDateField = syntesizedDateFields.find((f) => path.endsWith(f));
     const isActionsFields = path === '_actions';
     assert(isSyntesizedDateField || isActionsFields, path);
     if (isSyntesizedDateField) {
@@ -96,7 +95,7 @@ const prepareEnv = (path = './test/backend/.env.test') => {
  * Converts all ObjectIDs in the object into strings and does that recursively
  * @param obj
  */
-const fixObjectId = obj => {
+const fixObjectId = (obj) => {
   _.each(obj, (val, key) => {
     if (key === '_id') {
       obj[key] += '';
@@ -106,7 +105,7 @@ const fixObjectId = obj => {
   });
 };
 
-const deleteObjectId = obj => {
+const deleteObjectId = (obj) => {
   _.each(obj, (val, key) => {
     if (key === '_id') {
       delete obj[key];
@@ -259,7 +258,7 @@ const sampleData0 = {
 const sampleDataToCompare0 = _.cloneDeep(sampleData0);
 fixObjectId(sampleDataToCompare0);
 
-const loginWithUser = async function(appLib, user) {
+const loginWithUser = async function (appLib, user) {
   const res = await request(appLib.app)
     .post('/login')
     .send({
@@ -302,12 +301,12 @@ const checkItemSoftDeleted = async (db, modelName, _id) => {
   }
 };
 
-const checkRestSuccessfulResponse = res => {
+const checkRestSuccessfulResponse = (res) => {
   res.statusCode.should.equal(200);
   res.body.success.should.equal(true);
 };
 
-const checkRestErrorResponse = res => {
+const checkRestErrorResponse = (res) => {
   res.statusCode.should.equal(400);
   res.body.success.should.equal(false);
 };
@@ -319,7 +318,7 @@ const setupAppAndGetToken = async (appLib, authOptions, user) => {
   return token;
 };
 
-const sortByIdDesc = arr => {
+const sortByIdDesc = (arr) => {
   return [...arr].sort((a, b) => (a._id.toString() <= b._id.toString() ? 1 : -1));
 };
 

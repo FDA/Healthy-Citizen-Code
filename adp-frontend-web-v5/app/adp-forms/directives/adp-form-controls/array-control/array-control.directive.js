@@ -10,15 +10,16 @@
     AdpFieldsService,
     AdpFormService,
     visibilityUtils,
-    Guid
+    Guid,
+    AdpUnifiedArgs
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/array-control/array-control.html',
       require: '^^form',
@@ -76,8 +77,7 @@
         }
 
         scope.onSorted = function updateOrder(event) {
-          reorder(event.newIndex, event.oldIndex);
-          scope.$apply();
+          swap(getData(), event.newIndex, event.oldIndex);
         };
 
         scope.hasVisibleItems = function () {
@@ -85,14 +85,15 @@
         };
 
         scope.getHeader = function (index) {
-          var params = {
-            fieldData: getData(),
-            formData: scope.adpFormData,
-            fieldSchema: scope.field,
-            index: index
-          };
+          var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+            path: formParams.path,
+            action: formParams.action,
+            formData: formParams.row,
+            schema: formParams.modelSchema,
+          });
+          args.index = index;
 
-          return AdpFieldsService.getHeaderRenderer(params);
+          return AdpFieldsService.getHeaderRenderer(args);
         };
 
         scope.getFields = getFields;
@@ -153,9 +154,7 @@
 
         function remove(event, index) {
           event.preventDefault();
-
-          var fieldData = getData();
-          fieldData.splice(index, 1);
+          getData().splice(index, 1);
           scope.visibilityStatus.splice(index, 1);
         }
 
@@ -206,12 +205,6 @@
           swap(scope.visibilityStatus, oldIndex, newIndex);
         }
 
-        function reorder(newIndex, oldIndex) {
-          var list = getData();
-          swap(list, newIndex, oldIndex);
-          setData(list);
-        }
-
         function swap(list, newIndex, oldIndex) {
           var tmp = list[oldIndex];
           list[oldIndex] = list[newIndex];
@@ -232,28 +225,9 @@
           moveToFirstPosition(getData());
           moveToFirstPosition(scope.visibilityStatus);
 
-          // WORKAROUND with setTimeout after angularjs changes dom,
-          // to ensure order of elements is correct
-          setTimeout(sortElements);
-
           function moveToFirstPosition(list) {
             var itemToMove = list.splice(index, 1)[0];
             list.unshift(itemToMove);
-          }
-
-          function sortElements() {
-            var parent = element[0].querySelector('[array-sortable]');
-
-            _.toArray(parent.children)
-              .sort(function (a,b) {
-                var orderA = Number(a.getAttribute('ng-order'));
-                var orderB = Number(b.getAttribute('ng-order'));
-
-                return orderA > orderB ? 1 : -1;
-              })
-              .forEach(function (node) {
-                parent.appendChild(node)
-              });
           }
         }
       }

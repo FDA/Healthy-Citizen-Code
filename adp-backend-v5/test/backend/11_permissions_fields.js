@@ -2,7 +2,6 @@ const request = require('supertest');
 const _ = require('lodash');
 const should = require('should');
 const { ObjectID } = require('mongodb');
-const reqlib = require('app-root-path').require;
 
 const {
   auth: { admin, user },
@@ -12,12 +11,15 @@ const {
   setupAppAndGetToken,
   checkRestSuccessfulResponse,
   conditionForActualRecord,
-} = reqlib('test/test-util');
-const { buildGraphQlCreate, buildGraphQlUpdateOne, buildGraphQlQuery, checkGraphQlSuccessfulResponse } = reqlib(
-  'test/graphql-util.js'
-);
+} = require('../test-util');
+const {
+  buildGraphQlCreate,
+  buildGraphQlUpdateOne,
+  buildGraphQlQuery,
+  checkGraphQlSuccessfulResponse,
+} = require('../graphql-util.js');
 
-describe('V5 Backend Field Permissions', () => {
+describe('V5 Backend Field Permissions', function () {
   const MODEL10_SAMPLE = {
     _id: ObjectID('587179f6ef4807704afd0daf'),
     rField1: 'rField1',
@@ -65,19 +67,19 @@ describe('V5 Backend Field Permissions', () => {
   const modelName = 'model10field_permissions';
   const docId = MODEL10_SAMPLE._id.toString();
 
-  before(async function() {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.collection('users').deleteMany({}),
       this.db.collection('mongoMigrateChangeLog').deleteMany({}),
@@ -90,27 +92,27 @@ describe('V5 Backend Field Permissions', () => {
     ]);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
-  describe('fields permissions', () => {
-    describe('read permissions', () => {
+  describe('fields permissions', function () {
+    describe('read permissions', function () {
       const restSettingsDef = {
-        makeRequest: r => r.get(`/${modelName}/${docId}`),
-        getData: res => res.body.data,
+        makeRequest: (r) => r.get(`/${modelName}/${docId}`),
+        getData: (res) => res.body.data,
         checkResponse: checkRestSuccessfulResponse,
       };
       const model10Fields =
         'rField1, rField2, rField3, wField1, wField2, wField3, rwField1, rwField2, object1 { string1, string2 } , object2 { string1, string2 }, array1 { _id, string1, string2 }, array2 { _id, string1, string2 }';
       const graphqlSettingsDef = {
-        makeRequest: r =>
+        makeRequest: (r) =>
           r.post('/graphql').send(buildGraphQlQuery(modelName, `{_id: '${docId}'}`, `items { ${model10Fields} }`)),
-        getData: res => res.body.data[modelName].items[0],
+        getData: (res) => res.body.data[modelName].items[0],
         checkResponse: checkGraphQlSuccessfulResponse,
       };
 
-      const getTestFunc = function(settings) {
+      const getTestFunc = function (settings) {
         return f;
 
         async function f() {
@@ -126,8 +128,8 @@ describe('V5 Backend Field Permissions', () => {
         }
       };
 
-      describe('read permissions for user', () => {
-        beforeEach(async function() {
+      describe('read permissions for user', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -138,7 +140,7 @@ describe('V5 Backend Field Permissions', () => {
           );
         });
 
-        const checkData = data => {
+        const checkData = (data) => {
           data.rField1.should.equal('rField1');
           data.rField2.should.equal('rField2');
           should.not.exist(data.rField3);
@@ -169,8 +171,8 @@ describe('V5 Backend Field Permissions', () => {
         it('GraphQl: check different fields on read permission as user', getTestFunc(graphqlSettings));
       });
 
-      describe('read permissions for admin', () => {
-        beforeEach(async function() {
+      describe('read permissions for admin', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -181,7 +183,7 @@ describe('V5 Backend Field Permissions', () => {
           );
         });
 
-        const checkData = data => {
+        const checkData = (data) => {
           data.rField1.should.equal('rField1');
           data.rField2.should.equal('rField2');
           data.rField3.should.equal('rField3');
@@ -213,8 +215,8 @@ describe('V5 Backend Field Permissions', () => {
         it('GraphQl: check different fields on read permission as admin', getTestFunc(graphqlSettings));
       });
 
-      describe('read permissions for guest', () => {
-        beforeEach(function() {
+      describe('read permissions for guest', function () {
+        beforeEach(function () {
           const { appLib } = this;
           setAppAuthOptions(this.appLib, {
             requireAuthentication: false,
@@ -223,7 +225,7 @@ describe('V5 Backend Field Permissions', () => {
           return appLib.setup();
         });
 
-        const checkData = data => {
+        const checkData = (data) => {
           data.rField1.should.equal('rField1');
           should.not.exist(data.rField2);
           should.not.exist(data.rField3);
@@ -239,9 +241,9 @@ describe('V5 Backend Field Permissions', () => {
       });
     });
 
-    describe('write permissions', () => {
-      describe('create document', () => {
-        beforeEach(async function() {
+    describe('write permissions', function () {
+      describe('create document', function () {
+        beforeEach(async function () {
           this.token = await setupAppAndGetToken(
             this.appLib,
             {
@@ -253,7 +255,7 @@ describe('V5 Backend Field Permissions', () => {
         });
 
         const record = _.omit(MODEL10_SAMPLE, '_id', 'deletedAt');
-        const checkDbData = dbData => {
+        const checkDbData = (dbData) => {
           dbData.wField1.should.equal('wField1');
           dbData.wField2.should.equal('wField2');
           should.not.exist(dbData.wField3);
@@ -269,19 +271,19 @@ describe('V5 Backend Field Permissions', () => {
           should(dbData.array2).be.deepEqual([]);
         };
         const restSettings = {
-          makeRequest: r => r.post(`/${modelName}`).send({ data: record }),
-          getCreatedDocId: res => res.body.id,
+          makeRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
+          getCreatedDocId: (res) => res.body.id,
           checkResponse: checkRestSuccessfulResponse,
           checkDbData,
         };
         const graphqlSettings = {
-          makeRequest: r => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
-          getCreatedDocId: res => res.body.data[`${modelName}Create`]._id,
+          makeRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
+          getCreatedDocId: (res) => res.body.data[`${modelName}Create`]._id,
           checkResponse: checkGraphQlSuccessfulResponse,
           checkDbData,
         };
 
-        const getTestFunc = function(settings) {
+        const getTestFunc = function (settings) {
           return f;
 
           async function f() {
@@ -302,8 +304,8 @@ describe('V5 Backend Field Permissions', () => {
         it('GraphQL: create document', getTestFunc(graphqlSettings));
       });
 
-      describe('update document', () => {
-        const getTestFunc = function(settings) {
+      describe('update document', function () {
+        const getTestFunc = function (settings) {
           return f;
 
           async function f() {
@@ -320,8 +322,8 @@ describe('V5 Backend Field Permissions', () => {
           }
         };
 
-        describe('as user', () => {
-          beforeEach(async function() {
+        describe('as user', function () {
+          beforeEach(async function () {
             this.token = await setupAppAndGetToken(
               this.appLib,
               {
@@ -332,7 +334,7 @@ describe('V5 Backend Field Permissions', () => {
             );
           });
 
-          describe('update document (fields without arrays)', () => {
+          describe('update document (fields without arrays)', function () {
             const record = {
               rField1: 'rField1Updated',
               rField2: 'rField2Updated',
@@ -351,7 +353,7 @@ describe('V5 Backend Field Permissions', () => {
                 string2: 'string2Updated',
               },
             };
-            const checkDbData = dbData => {
+            const checkDbData = (dbData) => {
               should(dbData.wField1).be.equal('wField1Updated');
               should(dbData.wField2).be.equal('wField2Updated');
               should(dbData.wField3).be.equal('wField3');
@@ -367,12 +369,12 @@ describe('V5 Backend Field Permissions', () => {
               });
             };
             const restSettings = {
-              makeRequest: r => r.put(`/${modelName}/${docId}`).send({ data: record }),
+              makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
               checkResponse: checkRestSuccessfulResponse,
               checkDbData,
             };
             const graphqlSettings = {
-              makeRequest: r => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
+              makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
               checkResponse: checkGraphQlSuccessfulResponse,
               checkDbData,
             };
@@ -381,7 +383,7 @@ describe('V5 Backend Field Permissions', () => {
             it('GraphQL: update document (fields without arrays)', getTestFunc(graphqlSettings));
           });
           // frontend should always send _id to merge items in array properly
-          describe('update document (array permissions without merging by _id)', () => {
+          describe('update document (array permissions without merging by _id)', function () {
             const record = {
               array1: [
                 {
@@ -404,7 +406,7 @@ describe('V5 Backend Field Permissions', () => {
                 },
               ],
             };
-            const checkDbData = dbData => {
+            const checkDbData = (dbData) => {
               should(dbData.array1[0]._id).not.be.empty();
               should(dbData.array1[0].string1).be.undefined();
               should(dbData.array1[0].string2).be.equal('string12Updated');
@@ -421,12 +423,12 @@ describe('V5 Backend Field Permissions', () => {
               should(dbData.array2[1].string2).be.equal('string22');
             };
             const restSettings = {
-              makeRequest: r => r.put(`/${modelName}/${docId}`).send({ data: record }),
+              makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
               checkResponse: checkRestSuccessfulResponse,
               checkDbData,
             };
             const graphqlSettings = {
-              makeRequest: r => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
+              makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
               checkResponse: checkGraphQlSuccessfulResponse,
               checkDbData,
             };
@@ -435,7 +437,7 @@ describe('V5 Backend Field Permissions', () => {
             it('GraphQL: update document (array permissions without merging by _id)', getTestFunc(graphqlSettings));
           });
 
-          describe('update document (array permissions with merging by _id)', () => {
+          describe('update document (array permissions with merging by _id)', function () {
             const record = {
               array1: [
                 {
@@ -455,7 +457,7 @@ describe('V5 Backend Field Permissions', () => {
               ],
             };
 
-            const checkDbData = dbData => {
+            const checkDbData = (dbData) => {
               // should not write second elem at all
               should(dbData.array1[0]._id).not.be.empty();
               should(dbData.array1[0].string1).be.undefined();
@@ -468,12 +470,12 @@ describe('V5 Backend Field Permissions', () => {
               should(dbData.array1[2].string2).be.equal('string22Updated');
             };
             const restSettings = {
-              makeRequest: r => r.put(`/${modelName}/${docId}`).send({ data: record }),
+              makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
               checkResponse: checkRestSuccessfulResponse,
               checkDbData,
             };
             const graphqlSettings = {
-              makeRequest: r => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
+              makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
               checkResponse: checkGraphQlSuccessfulResponse,
               checkDbData,
             };
@@ -482,9 +484,9 @@ describe('V5 Backend Field Permissions', () => {
             it('GraphQL: update document (array permissions with merging by _id)', getTestFunc(graphqlSettings));
           });
 
-          describe('update document with empty doc as user (should leave all the fields which cannot be written)', () => {
+          describe('update document with empty doc as user (should leave all the fields which cannot be written)', function () {
             const record = {};
-            const checkDbData = dbData => {
+            const checkDbData = (dbData) => {
               // should return only generated fields and empty arrays(due to the way mongoose handles arrays)
               should(dbData._id).not.be.undefined();
               should(dbData.rField1).be.undefined();
@@ -507,12 +509,12 @@ describe('V5 Backend Field Permissions', () => {
               should(dbData.array2[1].string2).be.equal('string22');
             };
             const restSettings = {
-              makeRequest: r => r.put(`/${modelName}/${docId}`).send({ data: record }),
+              makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
               checkResponse: checkRestSuccessfulResponse,
               checkDbData,
             };
             const graphqlSettings = {
-              makeRequest: r => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
+              makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
               checkResponse: checkGraphQlSuccessfulResponse,
               checkDbData,
             };
@@ -522,9 +524,9 @@ describe('V5 Backend Field Permissions', () => {
           });
         });
 
-        describe('as admin', () => {
-          describe('update document with empty doc as admin (should merge as empty doc)', () => {
-            beforeEach(async function() {
+        describe('as admin', function () {
+          describe('update document with empty doc as admin (should merge as empty doc)', function () {
+            beforeEach(async function () {
               this.token = await setupAppAndGetToken(
                 this.appLib,
                 {
@@ -536,7 +538,7 @@ describe('V5 Backend Field Permissions', () => {
             });
 
             const record = {};
-            const checkDbData = dbData => {
+            const checkDbData = (dbData) => {
               // should return only generated fields and empty arrays(due to the way mongoose handles arrays)
               should(_.keys(dbData).length).equal(7);
               should(dbData.array1).be.empty();
@@ -548,12 +550,12 @@ describe('V5 Backend Field Permissions', () => {
               should(+dbData.deletedAt).be.equal(+new Date(0));
             };
             const restSettings = {
-              makeRequest: r => r.put(`/${modelName}/${docId}`).send({ data: record }),
+              makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
               checkResponse: checkRestSuccessfulResponse,
               checkDbData,
             };
             const graphqlSettings = {
-              makeRequest: r => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
+              makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
               checkResponse: checkGraphQlSuccessfulResponse,
               checkDbData,
             };

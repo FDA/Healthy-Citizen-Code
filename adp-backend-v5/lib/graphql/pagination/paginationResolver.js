@@ -1,9 +1,23 @@
 const _ = require('lodash');
 const log = require('log4js').getLogger('graphql/pagination-resolver');
-const { preparePaginationTC } = require('./preparePaginationType');
+const { getOrCreatePaginationTC } = require('./preparePaginationType');
 const { ValidationError } = require('../../errors');
 
 const DEFAULT_PER_PAGE = 20;
+
+function getAdditionalArgsFromResolver(resolver, args) {
+  const additionalArgs = {};
+  _.each(args, (arg) => {
+    if (resolver.hasArg(arg)) {
+      const argValue = resolver.getArg(arg);
+      if (argValue) {
+        additionalArgs[arg] = argValue;
+      }
+    }
+  });
+
+  return additionalArgs;
+}
 
 function preparePaginationResolver(tc, opts) {
   if (!tc || tc.constructor.name !== 'ObjectTypeComposer') {
@@ -32,29 +46,15 @@ function preparePaginationResolver(tc, opts) {
       `${errorStartMsg} should have resolver with name '${opts.findResolverName}' due opts.findResolverName.`
     );
   }
-  const findManyResolve = findManyResolver.getResolve();
-
-  const additionalArgs = {};
-  if (findManyResolver.hasArg('filter')) {
-    const filter = findManyResolver.getArg('filter');
-    if (filter) {
-      additionalArgs.filter = filter;
-    }
-  }
-  if (findManyResolver.hasArg('sort')) {
-    const sort = findManyResolver.getArg('sort');
-    if (sort) {
-      additionalArgs.sort = sort;
-    }
-  }
-
   if (opts.getPaginationContext && !_.isFunction(opts.getPaginationContext)) {
     throw new Error(
       `${errorStartMsg} should have opts.getPaginationContext of 'function' type in case this option is specified.`
     );
   }
 
-  const paginationType = preparePaginationTC(tc);
+  const findManyResolve = findManyResolver.getResolve();
+  const additionalArgs = getAdditionalArgsFromResolver(findManyResolver, ['filter', 'sort', 'isGroupFilter']);
+  const paginationType = getOrCreatePaginationTC(tc);
   const paginationResolver = tc.schemaComposer.createResolver({
     type: paginationType,
     name: resolverName,
@@ -70,7 +70,7 @@ function preparePaginationResolver(tc, opts) {
       },
       ...additionalArgs,
     },
-    resolve: async params => {
+    resolve: async (params) => {
       let countPromise;
       let findManyPromise;
       const { projection = {}, args } = params;

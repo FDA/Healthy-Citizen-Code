@@ -5,31 +5,44 @@
     .module('app.adpForms')
     .directive('stringArrayControl', stringArrayControl);
 
-  function stringArrayControl(AdpValidationUtils) {
+  function stringArrayControl(
+    AdpValidationUtils,
+    AdpFieldsService
+  ) {
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/string-array-control/string-array-control.html',
       require: '^^form',
       link: function (scope) {
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
-        scope.config = {
-          elementAttr: {
-            class: 'adp-select-box',
-          },
-          value: scope.adpFormData[scope.field.fieldName],
-          acceptCustomValue: true,
-          placeholder: 'Type in new value and press Enter',
-          openOnFieldClick: false,
-          onValueChanged: function (e) {
-            if (e.value && e.value.length === 0) {
-              scope.adpFormData[scope.field.fieldName] = null;
-            }
+        scope.config = getConfig(scope.field);
+
+        function getConfig(field) {
+          var defaults = getDefaults();
+          return AdpFieldsService.configFromParameters(field, defaults);
+        }
+
+        function getDefaults() {
+          return {
+            elementAttr: {
+              class: 'adp-select-box',
+            },
+            acceptCustomValue: true,
+            placeholder: 'Type in new value and press Enter',
+            openOnFieldClick: false,
+            onValueChanged: onChange,
+          };
+        }
+
+        function onChange(e) {
+          if (_.isEmpty(e.value)) {
+            scope.adpFormData[scope.field.fieldName] = null;
           }
         }
       }

@@ -551,98 +551,123 @@ module.exports = (appLib) => {
     return filteringInfo;
   };
 
-  async function getListValues(list) {
+  async function getListValues(list, dynamicListRequestConfig) {
     if (list.isDynamicList) {
       const { name: endpoint } = list;
-      const response = await axios.get(endpoint);
+      const response = await axios.get(endpoint, dynamicListRequestConfig);
       return response.data.data || {};
     }
 
     const { name: listName, values: builtInList } = list;
-    const referencedList = appLib.appModelHelpers.Lists[listName];
-    return referencedList || builtInList;
+    const listValue = appLib.appModelHelpers.Lists[listName];
+    if (_.isFunction(listValue)) {
+      return listValue();
+    }
+    return listValue || builtInList;
   }
+
+  m.getListForUser = async (
+    userPermissions,
+    inlineContext,
+    listPath,
+    requestDynamicList = false,
+    dynamicListRequestConfig
+  ) => {
+    const listFieldScheme = _.get(appLib.appModel.models, listPath);
+    if (!listFieldScheme) {
+      return null;
+    }
+
+    const { type: fieldType, required: elemRequired, list } = listFieldScheme;
+    const required = elemRequired === true || elemRequired === 'true';
+
+    if (!requestDynamicList && list.isDynamicList && (fieldType === 'List' || fieldType === 'List[]')) {
+      // Do not request dynamic list values for /app-model, since the client will always request most recent list data
+      return { type: fieldType, required, dynamicList: { name: list.name, params: list.params } };
+    }
+
+    let listValues;
+    try {
+      listValues = await getListValues(list, dynamicListRequestConfig);
+    } catch (e) {
+      log.error(`Unable to get list values for '${listPath}', list name: '${list.name}'`);
+      listValues = {};
+    }
+
+    const isPermissionsEnabled = appLib.getAuthSettings().enablePermissions;
+    if (!isPermissionsEnabled) {
+      return {
+        type: fieldType,
+        required,
+        values: listValues,
+      };
+    }
+
+    // here we collect lists available for each scope for current listPath
+    // then merge these lists into one result list
+    const listsForScopes = [];
+    const { args, values } = getDefaultArgsAndValuesForInlineCode();
+    const listScopes = list.scopes;
+    _.each(listScopes, (listScope, listScopeName) => {
+      const scopePermission = _.get(listScope, `permissions.view`);
+      const isScopePermissionGranted = m.isPermissionGranted(scopePermission, userPermissions);
+
+      const whereList = {};
+      if (isScopePermissionGranted) {
+        const whereFunc = new Function(`val, key, ${args}`, listScope.where);
+        _.each(listValues, (val, key) => {
+          try {
+            const isWherePassed = whereFunc.apply(inlineContext, [val, key, ...values]);
+            if (isWherePassed === true) {
+              whereList[key] = val;
+            }
+          } catch (e) {
+            appLib.log.error(
+              `Error occurred while calculating where condition for listPath='${listPath}'. ` +
+                `Element: val='${val}', key='${key}'. ` +
+                `This element will not be included in result list for scope '${listScopeName}'.\n`,
+              e.stack
+            );
+          }
+        });
+      }
+
+      let returnedListForScope;
+      try {
+        const formListFunc = new Function(`$list, ${args}`, listScope.return);
+        returnedListForScope = formListFunc.apply(inlineContext, [whereList, ...values]);
+      } catch (e) {
+        returnedListForScope = {};
+        appLib.log.error(
+          `Error occurred during list generation for scope ${listScope} for path ${listPath}. ` +
+            `Applied empty object for this list.\n`,
+          e
+        );
+      }
+
+      listsForScopes.push(returnedListForScope);
+    });
+    const mergedListForScopes = listsForScopes.reduce((result, current) => _.merge(result, current), {});
+
+    return {
+      type: fieldType,
+      required,
+      values: mergedListForScopes,
+    };
+  };
+
   /**
    *
    * @param userPermissions - Set of permissions
    * @param inlineContext - used as argument in generated 'where' and 'return' functions
-   * @param listsFieldsToGet
+   * @param listPathsToGet
    */
-  m.getListsForUser = async (userPermissions, inlineContext, listsFieldsToGet) => {
+  m.getListsForUser = async (userPermissions, inlineContext, listPathsToGet) => {
     const allListsForUser = {};
-    const isPermissionsEnabled = appLib.getAuthSettings().enablePermissions;
 
-    await Promise.map(listsFieldsToGet, async (listField) => {
-      const { type: elemType, required: elemRequired, list } = _.get(appLib.appModel.models, listField);
-
-      const listScopes = list.scopes;
-      let listValues;
-      try {
-        listValues = await getListValues(list);
-      } catch (e) {
-        log.error(`Unable to get list values for '${listField}', list name: '${list.name}'`);
-        listValues = {};
-      }
-
-      if (!isPermissionsEnabled) {
-        allListsForUser[listField] = {
-          type: elemType,
-          required: elemRequired === true || elemRequired === 'true',
-          values: listValues,
-        };
-        return;
-      }
-
-      // here we collect lists available for each scope for current listPath
-      // then merge these lists into one result list
-      const listsForScopes = [];
-      const { args, values } = getDefaultArgsAndValuesForInlineCode();
-      _.each(listScopes, (listScope, listScopeName) => {
-        const scopePermission = _.get(listScope, `permissions.view`);
-        const isScopePermissionGranted = m.isPermissionGranted(scopePermission, userPermissions);
-
-        const whereList = {};
-        if (isScopePermissionGranted) {
-          const whereFunc = new Function(`val, key, ${args}`, listScope.where);
-          _.each(listValues, (val, key) => {
-            try {
-              const isWherePassed = whereFunc.apply(inlineContext, [val, key, ...values]);
-              if (isWherePassed === true) {
-                whereList[key] = val;
-              }
-            } catch (e) {
-              appLib.log.error(
-                `Error occurred while calculating where condition for listPath='${listField}'. ` +
-                  `Element: val='${val}', key='${key}'. ` +
-                  `This element will not be included in result list for scope '${listScopeName}'.\n`,
-                e.stack
-              );
-            }
-          });
-        }
-
-        let returnedListForScope;
-        try {
-          const formListFunc = new Function(`$list, ${args}`, listScope.return);
-          returnedListForScope = formListFunc.apply(inlineContext, [whereList, ...values]);
-        } catch (e) {
-          returnedListForScope = {};
-          appLib.log.error(
-            `Error occurred during list generation for scope ${listScope} for path ${listField}. ` +
-              `Applied empty object for this list.\n`,
-            e
-          );
-        }
-
-        listsForScopes.push(returnedListForScope);
-      });
-      const mergedListForScopes = listsForScopes.reduce((result, current) => _.merge(result, current), {});
-
-      allListsForUser[listField] = {
-        type: elemType,
-        required: elemRequired === true || elemRequired === 'true',
-        values: mergedListForScopes,
-      };
+    await Promise.map(listPathsToGet, async (listPath) => {
+      const list = await m.getListForUser(userPermissions, inlineContext, listPath);
+      allListsForUser[listPath] = list;
     });
 
     return allListsForUser;
@@ -738,12 +763,9 @@ module.exports = (appLib) => {
 
     async function validate(list, fieldPath) {
       const userVal = userData[fieldPath];
-
-      let listValues;
-      try {
-        listValues = await getListValues(list);
-      } catch (e) {
-        listsErrors.push(`Unable to get dynamic list values for ${fieldPath}'`);
+      if (list.dynamicList) {
+        // Dynamic values of type 'List' might differ depending on 'dynamicListRequestConfig' sent from client (see accessUtil.getListForUser)
+        // For now validation for this case is disabled.
         return;
       }
 
@@ -754,9 +776,10 @@ module.exports = (appLib) => {
         return;
       }
 
-      if (list.type.endsWith('[]')) {
-        // check array type
-        if (!Array.isArray(userVal)) {
+      const listValues = list.values;
+      const isArrayType = list.type.endsWith('[]');
+      if (isArrayType) {
+        if (!_.isArray(userVal)) {
           listsErrors.push(`Value '${userVal}' should be an array for '${fieldPath}'.`);
         } else {
           userVal.forEach((val) => {
@@ -896,6 +919,7 @@ module.exports = (appLib) => {
     const lists = await m.getListsForUser(userPermissions, inlineContext, appLib.ListsFields);
     _.each(lists, (list, listFieldPath) => {
       _.set(models, `${listFieldPath}.list`, list.values);
+      _.set(models, `${listFieldPath}.dynamicList`, list.dynamicList);
     });
   };
 

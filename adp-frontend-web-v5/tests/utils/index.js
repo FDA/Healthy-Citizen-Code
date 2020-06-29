@@ -11,6 +11,7 @@ function getLaunchOptions() {
     return {
       headless: false,
       defaultViewport: null,
+      slowMo: 200,
       args: [
         '--no-sandbox',
         '--disable-gpu',

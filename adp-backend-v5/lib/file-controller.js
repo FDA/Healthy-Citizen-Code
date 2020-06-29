@@ -5,7 +5,7 @@ const log = require('log4js').getLogger('lib/file-controller');
 const mongoose = require('mongoose');
 const { updateCrop, handleUpload, getCropParams } = require('./file-controller-util')();
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {};
   const mainController = require('./default-controller')(appLib);
 
@@ -17,12 +17,12 @@ module.exports = appLib => {
    * @param next
    */
   m.upload = async (req, res, next) => {
-    const onSuccess = files => {
+    const onSuccess = (files) => {
       res.json({ success: true, data: files });
       next();
     };
 
-    const onError = err => {
+    const onError = (err) => {
       log.error(err);
       res.status(401).json({ success: false, message: 'Error occurred while uploading files' });
     };
@@ -37,7 +37,7 @@ module.exports = appLib => {
     // image crop update
     if (_.isEmpty(req.files) && !_.isEmpty(cropParams)) {
       try {
-        const data = await updateCrop(req);
+        const data = await updateCrop(cropParams);
         onSuccess(data);
       } catch (e) {
         onError(e);
@@ -71,7 +71,7 @@ module.exports = appLib => {
 
     try {
       const File = mongoose.model('files');
-      const data = await File.findById(new ObjectId(id));
+      const data = await File.findById(id);
       if (!data) {
         const errMessage = 'File not found in the database';
         return mainController.error(req, res, next, new Error(errMessage), errMessage);
@@ -144,7 +144,7 @@ module.exports = appLib => {
 
     const File = mongoose.model('files');
 
-    File.findById(new ObjectId(id), (err, data) => {
+    File.findById(id, (err, data) => {
       if (err) {
         mainController.error(req, res, next, err, 'Error occurred while retrieving the file');
         return;

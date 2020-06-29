@@ -12,29 +12,31 @@
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        adpFormData: '=',
-        uiProps: '=',
-        validationParams: '='
+        field: '<',
+        adpFormData: '<',
+        uiProps: '<',
+        validationParams: '<'
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/string-control/string-control.html',
       require: '^^form',
       link: function (scope) {
-        function getData() {
-          return scope.adpFormData[scope.field.fieldName];
-        }
-
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
-        scope.config = {
-          value: getData(),
-          mode: getTextMode(),
-          inputAttr: {
-            autocomplete: AdpFieldsService.autocompleteValue(scope.field),
-          },
-          valueChangeEvent: 'input blur',
+        scope.config = getConfig(scope.field);
+
+        function getConfig(field) {
+          var defaults = {
+            mode: getInputType(),
+            inputAttr: {
+              autocomplete: AdpFieldsService.autocompleteValue(field),
+            },
+            valueChangeEvent: 'input blur',
+          };
+          addMask(defaults);
+
+          return AdpFieldsService.configFromParameters(field, defaults);
         }
 
-        function getTextMode() {
+        function getInputType() {
           var types = {
             'Email': 'email',
             'PasswordAuth': 'password',
@@ -42,6 +44,20 @@
           };
 
           return types[scope.field.type] || 'text';
+        }
+
+        function addMask(config) {
+          if (scope.field.type !== 'Phone') {
+            return;
+          }
+
+          _.assign(config, {
+            mask: 'X00-X00-0000',
+            maskRules: { X: /[02-9]/ },
+            maskChar: 'x',
+            maskInvalidMessage: false,
+            showMaskMode: 'onFocus',
+          });
         }
       }
     }

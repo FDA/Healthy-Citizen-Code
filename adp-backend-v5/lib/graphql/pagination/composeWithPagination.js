@@ -11,9 +11,10 @@ function composeWithPagination(typeComposer, opts) {
 
   const resolverName = opts.paginationResolverName;
 
-  if (typeComposer.hasResolver(resolverName)) {
-    return typeComposer;
-  }
+  // always create new resolver since it might be changed dynamically
+  // if (typeComposer.hasResolver(resolverName)) {
+  //   return typeComposer;
+  // }
 
   const resolver = preparePaginationResolver(typeComposer, opts);
 

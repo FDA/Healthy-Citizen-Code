@@ -24,7 +24,7 @@ const fieldNames = {
   listMultipleOnlyValue: 'listMultipleOnlyValue',
 };
 
-const PAGE_TO_TEST = 'listTypes';
+const PAGE_TO_TEST = 'listStringTypes';
 
 async function selectValueAndAssertForSingleList(expectedValue, fieldName, page) {
   await selectDxListValue(expectedValue, fieldName, page);

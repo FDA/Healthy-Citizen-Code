@@ -14,6 +14,7 @@
   var MAX_LABEL_LENGTH = 10; // Chars
   var CAMERA_ANIMATION_INTERVAL = 30; // Update camera pos every XXX mills, > 0 !!
   var TAP_SPEED = 500; // Max time for screen touch to be considered as 'tap'
+  var CAMERA_FLY_INTERVAL = 500; // Time to move camera on buttons navigation
 
   var geometryCreators = {
     Box: function (size) {
@@ -50,6 +51,7 @@
       $interval,
       $timeout,
       $http,
+      $sce,
       $document,
       AdpNotificationService,
       AdpClientCommonHelper,
@@ -72,15 +74,16 @@
       var tagsFilterInstance = null;
       var canvasInFocus = false;
       var touchData = {};
+      var scrollbars = {};
       var nothingIsMarked = true;
       var keysConf = [
-        { key: 'r', attr: 'labelLinks' },
-        { key: 'e', attr: 'labelNodes' },
-        { key: 'o', attr: 'animCamera', action: 'toggleCameraOrbit' },
-        { key: 'm', attr: 'showOptions' },
-        { key: 'd', attr: 'showLegend' },
-        { key: 'x', attr: 'fixDragged', action: 'resetFixDragged' },
-        { key: 'f', action: 'toggleFullscreen' },
+        {key: 'r', attr: 'labelLinks'},
+        {key: 'e', attr: 'labelNodes'},
+        {key: 'o', attr: 'animCamera', action: 'toggleCameraOrbit'},
+        {key: 'm', attr: 'showOptions'},
+        {key: 'd', attr: 'showLegend'},
+        {key: 'x', attr: 'fixDragged', action: 'resetFixDragged'},
+        {key: 'f', action: 'toggleFullscreen'},
         {
           key: '+',
           action: function () {
@@ -93,17 +96,17 @@
             changeLinksDistance(0.9);
           },
         },
-        { key: 's', action: 'saveConfig' },
-        { key: 'l', action: 'loadConfig' },
+        {key: 's', action: 'saveConfig'},
+        {key: 'l', action: 'loadConfig'},
       ];
       var configFieldsLimits = {
-        hlColorize: { min: 0, max: 100 },
-        hlBrightness: { min: 0, max: 100 },
-        hlDim: { min: 0, max: 100 },
-        linkCurvature: { min: 0, max: 100 },
-        linkDistance: { min: 1 },
-        particleSize: { min:1, max:10 },
-        arrowSize: { min:1, max:10 },
+        hlColorize: {min: 0, max: 100},
+        hlBrightness: {min: 0, max: 100},
+        hlDim: {min: 0, max: 100},
+        linkCurvature: {min: 0, max: 100},
+        linkDistance: {min: 1},
+        particleSize: {min: 1, max: 10},
+        arrowSize: {min: 1, max: 10},
       };
 
       vm.apiUrl = APP_CONFIG.apiUrl;
@@ -169,10 +172,10 @@
         .apply(this, proms)
         .done(function () {
           relData &&
-            $timeout(function () {
-              vm.isLoading = false;
-              doInitGraph();
-            }, 0);
+          $timeout(function () {
+            vm.isLoading = false;
+            doInitGraph();
+          }, 0);
           $document.on('keypress', function (e) {
             onKeyPress(e);
           });
@@ -191,8 +194,17 @@
         vm.config.showOptions = !vm.config.showOptions;
       };
 
-      vm.toggleLegend = function () {
-        vm.config.showLegend = !vm.config.showLegend;
+      vm.toggleLegend = function (event, force) {
+        if (_.isBoolean(force)) {
+          vm.config.showLegend = force;
+        } else {
+          vm.config.showLegend = !vm.config.showLegend;
+        }
+
+        scrollbars.config && scrollbars.config.recalculate();
+        scrollbars.legend && scrollbars.legend.recalculate();
+
+        event.stopPropagation();
       };
 
       vm.toggleFullscreen = function () {
@@ -214,52 +226,22 @@
       };
 
       vm.toggleCameraOrbit = function () {
-        var lookAtPoint;
-        var lookAtFlyTime = 1500;
-        var cam = forceGraph.camera();
+        var camera = forceGraph.camera();
 
         if (!camOrbiter) {
-          camOrbiter = new OrbitControls(cam, $box[0]);
+          camOrbiter = new OrbitControls(camera, $box[0]);
 
           camOrbiter.autoRotateSpeed = 5; // default is 2.0
         }
 
         if (vm.config.animCamera) {
-          lookAtPoint = new Three.Vector3(0, 0, 0);
+          var data = sightOnCenter();
 
-          if (vm.selectedNodes.length) {
-            _.each(vm.selectedNodes, function (obj) {
-              if (obj.__type === 'node') {
-                lookAtPoint.add(obj.__threeObj.position);
-              } else if (obj.__type === 'link') {
-                lookAtPoint.add(
-                  new Three.Vector3(
-                    (obj.source.x + obj.target.x) / 2,
-                    (obj.source.y + obj.target.y) / 2,
-                    (obj.source.z + obj.target.z) / 2
-                  )
-                );
-              }
-            });
-
-            lookAtPoint.divideScalar(vm.selectedNodes.length);
-          }
-
-          var camSight = new Three.Vector3(0, 0, -1);
-          var lookAtDir = new Three.Vector3(0, 0, 0);
-
-          lookAtDir.subVectors(lookAtPoint, cam.position);
-          camSight.applyEuler(cam.rotation, cam.rotation.order);
-
-          lookAtFlyTime = 3000 * camSight.angleTo(lookAtDir);
-
-          camOrbiter.target = lookAtPoint;
+          camOrbiter.target = data.lookAtPoint;
 
           $timeout(function () {
             camOrbiter.autoRotate = true;
-          }, lookAtFlyTime / 2);
-
-          forceGraph.cameraPosition(cam.position, lookAtPoint, lookAtFlyTime);
+          }, CAMERA_FLY_INTERVAL);
 
           if (!orbitInterval) {
             orbitInterval = $interval(cameraOrbitAnimation, CAMERA_ANIMATION_INTERVAL);
@@ -310,7 +292,7 @@
       vm.screenCapture = function () {
         vm.exportingImage = true;
 
-        var renderer = new Three.WebGLRenderer({ preserveDrawingBuffer: true });
+        var renderer = new Three.WebGLRenderer({preserveDrawingBuffer: true});
         var sx = forceGraph.width();
         var sy = forceGraph.height();
         var originalRatio = sx / sy;
@@ -342,7 +324,7 @@
 
         var getFile = function (blob) {
           if (blob) {
-            downloadFile({ blob: blob, fileName: genExportFileName('png'), mimeType: 'image/png' });
+            downloadFile({blob: blob, fileName: genExportFileName('png'), mimeType: 'image/png'});
           } else {
             AdpNotificationService.notifyError('Failed to export. Seems like not enough memory');
           }
@@ -376,7 +358,7 @@
               .replace(/(window[.\w\s=]+)['"]__fg_data__['"]/, '$1' + JSON.stringify(graphRawData))
               .replace(
                 /(window[.\w\s=]+)['"]__fg_config__['"]/,
-                '$1' + JSON.stringify(Object.assign({}, vm.config, { showOptions: false }))
+                '$1' + JSON.stringify(Object.assign({}, vm.config, {showOptions: false}))
               );
 
             downloadFile({
@@ -392,6 +374,134 @@
             vm.exportingHtml = false;
           });
       };
+
+      vm.trustedHtml = function (plainText) {
+        return $sce.trustAsHtml(plainText);
+      }
+
+      vm.navigationZoomIn = function () {
+        moveCameraAlongDirection(true);
+      };
+
+      vm.navigationZoomOut = function () {
+        moveCameraAlongDirection(false);
+      };
+
+      vm.navigationCenter = function () {
+        sightOnCenter();
+      };
+
+      function moveCameraAlongDirection(zoomIn) {
+        var camera = forceGraph.camera();
+        var controller = forceGraph.controls();
+        var orbitRadius = camera.position.clone().sub(controller.target).length();
+        var factor = Math.pow(0.75, controller.zoomSpeed)
+        var currentDirection = new Three.Vector3();
+        var moveDistance;
+
+        if (zoomIn) {
+          moveDistance = orbitRadius - orbitRadius * factor;
+        } else {
+          moveDistance = orbitRadius - orbitRadius / factor;
+        }
+
+        if (orbitRadius + moveDistance < controller.minDistance ||
+          orbitRadius + moveDistance > controller.maxDistance) {
+          return;
+        }
+
+        camera.getWorldDirection(currentDirection);
+        currentDirection.normalize();
+
+        var newPosition = camera.position.clone()
+          .addScaledVector(currentDirection, moveDistance);
+
+        forceGraph.cameraPosition(newPosition, controller.target, CAMERA_FLY_INTERVAL);
+      }
+
+      function sightOnCenter() {
+        var camera = forceGraph.camera();
+        var attention = getAttentionNodes();
+        var lookAtPoint = attention.lookAtPoint;
+        var boundingSphereRadius = attention.radius;
+        var lookAtNewDirection = new Three.Vector3()
+          .subVectors(lookAtPoint, camera.position)
+          .normalize();
+        var newCameraPosition = lookAtPoint.clone()
+          .addScaledVector(lookAtNewDirection, -3 * boundingSphereRadius);
+
+        forceGraph.cameraPosition(newCameraPosition, lookAtPoint, CAMERA_FLY_INTERVAL);
+
+        return {
+          lookAtPoint: lookAtPoint,
+          cameraPosition: newCameraPosition
+        }
+      }
+
+      function getAttentionNodes(){
+        var lookAtPoint = new Three.Vector3();
+        var nodes = relData.nodes ;
+        var radius = 0;
+
+        if (vm.selectedNodes.length || vm.config.nodeFilter || vm.config.linkFilter) {
+          var nodesToCheck = nodes;
+          nodes = [];
+
+          if (vm.selectedNodes.length){
+            nodesToCheck = vm.selectedNodes;
+          }
+
+          var counter = 0;
+
+          _.each(nodesToCheck, function (obj) {
+            if (
+              (isNode(obj) && (!vm.config.nodeFilter || isNodeFiltered(obj))) ||
+              (isLink(obj) && (!vm.config.linkFilter || isLinkFiltered(obj)))
+            ) {
+              nodes.push(obj);
+
+              _.each(pickNodePoints(obj), function (p) {
+                lookAtPoint.add(p);
+                counter++;
+              })
+            }
+          });
+
+          counter && lookAtPoint.divideScalar(counter);
+        }
+
+        _.each(nodes, function (obj) {
+          var distance = Math.max.apply(this, _.map(pickNodePoints(obj), function (p) {
+            return pointsDistance(p, lookAtPoint)
+          }))
+
+          if (distance > radius) {
+            radius = distance;
+          }
+        });
+
+        return {
+          radius:  Math.max(70, radius),
+          lookAtPoint: lookAtPoint
+        };
+      }
+
+      function pickNodePoints(obj) {
+        if (isNode(obj)) {
+          return obj.__threeObj ? [obj.__threeObj.position] : [];
+        } else if (isLink(obj)) {
+          return obj.source.__threeObj ? [
+            obj.source.__threeObj.position,
+            obj.target.__threeObj.position
+          ] : [];
+        } else {
+          return [];
+        }
+      }
+
+      function pointsDistance(a, b) {
+        return a.distanceTo(b);
+      }
 
       function doInitGraph() {
         var $tagBox = $('.fg3d-tags-container');
@@ -409,9 +519,8 @@
             onGraphClick(e, link);
           })
           .linkOpacity(LINK_OPACITY)
-          .linkDirectionalParticleColor(function (link) {
-            return link.pcol || DEFAULT_COLOR;
-          })
+          .linkDirectionalParticleColor(AdpForceGraphHelpers.linkParticleColor)
+          .linkDirectionalParticleResolution(8)
           .linkDirectionalArrowRelPos(0.5)
           .linkDirectionalParticleSpeed(AdpForceGraphHelpers.linkSpeed)
           .onBackgroundClick(function (e) {
@@ -434,6 +543,10 @@
         $box.on('touchend', onTouchEnd);
         $box.on('mouseenter', onCanvasMouseEnter);
         $box.on('mouseleave', onCanvasMouseLeave);
+
+        scrollbars.config = new SimpleBar($('#fg3d-config-form', $container)[0]);
+        scrollbars.legend = new SimpleBar($('#fg3d-legend-box', $container)[0]);
+        scrollbars.infobox = new SimpleBar($('#fg3d-info-box', $container)[0]);
 
         if ($scope) {
           // this code should work only in Angular version, not standalone (exported)
@@ -493,8 +606,6 @@
 
         doCheckConfigFields();
 
-        vm.config.linkCurvature = Math.min(100, Math.max(0, vm.config.linkCurvature));
-
         nothingIsMarked =
           !hlLinks.length &&
           !hlNodes.length &&
@@ -511,8 +622,8 @@
           .linkDirectionalParticleWidth(vm.config.showParticles ? linkParticleSize : 0)
           .linkDirectionalParticles(vm.config.showParticles ?
             function (link) {
-            return link.trf || 0;
-          } : 0)
+              return link.trf || 0;
+            } : 0)
           .nodeThreeObject(nodeGeometry)
           .onNodeDragEnd(vm.config.fixDragged ? onNodeDragEnd : undefined)
           .linkThreeObjectExtend(linkSprites)
@@ -563,7 +674,7 @@
         hlNodes = [];
 
         _.each(vm.selectedNodes, function (obj) {
-          if (obj.__type === 'node') {
+          if (isNode(obj)) {
             _.each(relData.links, function (link) {
               if (link.source === obj) {
                 hlLinks.push(link);
@@ -694,10 +805,10 @@
             var color = isSelected
               ? SELECTED_COLOR
               : isLit
-              ? mixColors(node.col, HIGHLIGHT_COLOR, vm.config.hlColorize / 100, vm.config.hlBrightness / 100)
-              : isFiltered
-              ? mixColors(node.col, FILTERED_COLOR, vm.config.hlColorize / 100, vm.config.hlBrightness / 100)
-              : (node.col || DEFAULT_COLOR).toLowerCase();
+                ? AdpForceGraphHelpers.mixColors(node.col, HIGHLIGHT_COLOR, vm.config.hlColorize / 100, vm.config.hlBrightness / 100)
+                : isFiltered
+                  ? AdpForceGraphHelpers.mixColors(node.col, FILTERED_COLOR, vm.config.hlColorize / 100, vm.config.hlBrightness / 100)
+                  : (node.col || DEFAULT_COLOR).toLowerCase();
 
             var opacity =
               isMarked || nothingIsMarked ? NODE_COMMON_OPACITY : NODE_COMMON_OPACITY * (1 - vm.config.hlDim / 100);
@@ -710,7 +821,7 @@
               var labelText = shortLabelText(node.l, MAX_LABEL_LENGTH);
               var sprite = new SpriteText(labelText);
 
-              sprite.color = mixColors(color, 'white');
+              sprite.color = AdpForceGraphHelpers.mixColors(color, 'white');
               sprite.textHeight = size;
               sprite.position.x = size;
               sprite.position.y = size;
@@ -730,7 +841,7 @@
           var labelText = shortLabelText(link.n, MAX_LABEL_LENGTH);
           var sprite = new SpriteText(labelText);
 
-          sprite.color = mixColors(link.col, 'white');
+          sprite.color = AdpForceGraphHelpers.mixColors(link.col, 'white');
           sprite.textHeight = link.fsize || DEFAULT_LINK_LABEL_SIZE;
 
           return sprite;
@@ -761,13 +872,20 @@
       }
 
       function linkColor(link) {
-        return link.isSelected
-          ? SELECTED_COLOR
-          : isLinkFiltered(link)
-          ? mixColors(link.col, FILTERED_COLOR, vm.config.hlColorize / 100, vm.config.hlBrightness / 100)
-          : isLinkLit(link)
-          ? mixColors(link.col, HIGHLIGHT_COLOR, vm.config.hlColorize / 100, vm.config.hlBrightness / 100)
-          : link.col;
+        var color = vm.config.hlColorize / 100;
+        var bright = vm.config.hlBrightness / 100;
+
+        if (link.isSelected) {
+          return SELECTED_COLOR;
+        } else if (isLinkFiltered(link)) {
+          return AdpForceGraphHelpers
+            .mixColors(link.col, FILTERED_COLOR, color, bright);
+        } else if (isLinkLit(link)) {
+          AdpForceGraphHelpers
+            .mixColors(link.col, HIGHLIGHT_COLOR, color, bright)
+        } else {
+          return link.col || DEFAULT_COLOR
+        }
       }
 
       function linkVisibility(link) {
@@ -778,7 +896,7 @@
       }
 
       function linkParticleSize(link) {
-          return (link.pw || 0) * vm.config.particleSize;
+        return (link.pw || 0) * vm.config.particleSize;
       }
 
       function onNodeDragEnd(node) {
@@ -831,12 +949,9 @@
 
       function pickNodesAndLinks(res) {
         var data = _.pick(res.data, ['nodes', 'links']);
-        var formatTime = function (sec) {
-          return moment.unix(sec).format('MM/DD/YY HH:mm');
-        };
         var doTimes = function (obj) {
-          obj.createdAt = formatTime(obj.crtd);
-          obj.updatedAt = formatTime(obj.uptd);
+          obj.createdAt = obj.crtd;
+          obj.updatedAt = obj.uptd;
           delete obj.crtd;
           delete obj.uptd;
         };
@@ -858,12 +973,12 @@
         return data;
       }
 
-      function doLoadConfig(){
+      function doLoadConfig() {
         return $http
           .post(APP_CONFIG.apiUrl + '/graphql', {
             query: 'query q( $filter: mongoQueryInput ) {userSettings( filter: $filter ) { items { settings } }}',
             variables: {
-              filter: { "mongoQuery": "{ type: { $eq: 'fg3d'} }" },
+              filter: {'mongoQuery': '{ type: { $eq: \'fg3d\'} }'},
             }
           })
           .then(function (resp) {
@@ -874,13 +989,13 @@
           });
       }
 
-      function doSaveConfig(){
+      function doSaveConfig() {
         return $http
           .post(APP_CONFIG.apiUrl + '/graphql', {
             query: 'mutation m( $filter: userSettingsInputWithoutId, $record: userSettingsInputWithoutId ){ userSettingsUpsertOne( filter: $filter, record: $record) { settings } }',
             variables: {
-              filter: { type: 'fg3d' },
-              record: { settings: vm.savedConfig, type:'fg3d' },
+              filter: {type: 'fg3d'},
+              record: {settings: vm.savedConfig, type: 'fg3d'},
             },
           })
           .then(function (resp) {
@@ -899,6 +1014,10 @@
             AdpNotificationService.notifyError('Error while saving settings: ' + e.message);
           });
       }
+
+      function isNode(obj) { return obj.__type === 'node'}
+
+      function isLink(obj) { return obj.__type === 'link'}
     };
 
     function geometryCreator(node) {
@@ -914,35 +1033,13 @@
       return text.length > max + 3 ? text.substring(0, max) + '\u2026' : text;
     }
 
-    function mixColors(col1, col2, mix, bright) {
-      var col = Color(col1);
-      var mixture = col.mix(Color(col2), _.isUndefined(mix) ? 0.5 : mix);
-      var res, coof;
-
-      if (_.isUndefined(bright) || bright === 0.5) {
-        res = mixture;
-      } else if (bright > 0.5) {
-        coof = Math.min(1, bright - 0.5) * 2;
-        res = mixture.hwb();
-        res.color[1] += (100 - res.color[1]) * coof;
-        res.color[2] -= res.color[2] * coof;
-      } else {
-        coof = Math.max(0, 0.5 - bright) * 2;
-        res = mixture.hwb();
-        res.color[1] -= res.color[1] * coof;
-        res.color[2] += (100 - res.color[2]) * coof;
-      }
-
-      return res.hex();
-    }
-
     function genExportFileName(ext) {
       return 'export3d-' + new Date().getTime() + '.' + ext;
     }
 
     function downloadFile(params) {
       var fileName = params.fileName || 'downloaded_' + new Date().getTime();
-      var blob = params.blob || new Blob([params.buffer], { type: params.mimeType || 'text/plain' });
+      var blob = params.blob || new Blob([params.buffer], {type: params.mimeType || 'text/plain'});
 
       if (window.navigator.msSaveOrOpenBlob) {
         // IE11

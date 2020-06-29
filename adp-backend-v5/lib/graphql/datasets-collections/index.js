@@ -1,5 +1,7 @@
 const log = require('log4js').getLogger('lib/graphql-datasets');
 const { ObjectID } = require('mongodb');
+const Promise = require('bluebird');
+const ms = require('ms');
 
 const { getOrCreateTypeByModel } = require('../type/model');
 const {
@@ -20,18 +22,33 @@ const {
 } = require('./util');
 const { handleGraphQlError } = require('../util');
 
+const datasetExpirationTime = process.env.DATASET_RESOLVERS_EXPIRATION_TIME || '24h';
+const datasetExpirationTimeMs = ms(datasetExpirationTime);
 const cloneResolverName = 'clone';
 
-module.exports = ({
-  appLib,
-  datasetsModel,
-  datasetsModelName,
-  addDefaultQueries,
-  addDefaultMutations,
-  removeDefaultQueries,
-  removeDefaultMutations,
-}) => {
+module.exports = ({ appLib, datasetsModelName }) => {
   const m = {};
+  m.datasetResolversInfo = {};
+  const datasetsModel = appLib.appModel.models[datasetsModelName];
+  const { addDefaultQueries, addDefaultMutations, removeDefaultQueries, removeDefaultMutations } = appLib.graphQl;
+
+  m.updateDatasetExpirationTimeout = (datasetId) => {
+    const now = new Date();
+    if (m.datasetResolversInfo[datasetId]) {
+      clearTimeout(m.datasetResolversInfo[datasetId].expirationTimeout);
+    } else {
+      m.datasetResolversInfo[datasetId] = { createdAt: now };
+    }
+    m.datasetResolversInfo[datasetId] = {
+      updatedAt: now,
+      expirationTimeout: setTimeout(
+        () =>
+          removeQueriesAndMutationsForDatasetsRecord(appLib, datasetId, removeDefaultQueries, removeDefaultMutations),
+        datasetExpirationTimeMs
+      ),
+    };
+    log.info(`Added a timeout(${datasetExpirationTime}) for removing resolvers for ${datasetId}`);
+  };
 
   m.transformDatasetsRecord = async (datasetsRecord, userPermissions, inlineContext) => {
     const { scheme } = datasetsRecord;
@@ -45,15 +62,27 @@ module.exports = ({
     return datasetsRecord;
   };
 
+  // This method is not in use anymore since it might be ten of thousands of datasets so it might take much time to create all the resolvers.
   m.addQueriesAndMutationsForDatasetsInDb = async () => {
     // create resolvers for the datasets collections "pretending" that they are normal collections
     const datasetsRecordsCursor = appLib.db
       .collection(datasetsModelName)
       .find({ scheme: { $ne: null }, ...appLib.dba.getConditionForActualRecord() });
 
+    let datasetRecords = [];
     for await (const record of datasetsRecordsCursor) {
-      await addQueriesAndMutationsForDatasetsRecord(record, appLib, addDefaultQueries, addDefaultMutations);
+      datasetRecords.push(record);
+      if (datasetRecords.length >= 50) {
+        await Promise.map(datasetRecords, (datasetRecord) =>
+          addQueriesAndMutationsForDatasetsRecord(datasetRecord, appLib, addDefaultQueries, addDefaultMutations)
+        );
+        datasetRecords = [];
+      }
     }
+    datasetRecords.length &&
+      (await Promise.map(datasetRecords, (record) =>
+        addQueriesAndMutationsForDatasetsRecord(record, appLib, addDefaultQueries, addDefaultMutations)
+      ));
 
     appLib.graphQl.connect.rebuildGraphQlSchema();
   };
@@ -84,7 +113,8 @@ module.exports = ({
         );
         await appLib.db.createCollection(datasetsRecord.collectionName);
 
-        return m.transformDatasetsRecord(createdDatasetsRecord, graphQlContext.userPermissions);
+        m.updateDatasetExpirationTimeout(datasetsId);
+        return await m.transformDatasetsRecord(createdDatasetsRecord, graphQlContext.userPermissions);
       } catch (e) {
         handleGraphQlError(e, `Unable to create record`, log, appLib);
       }
@@ -149,9 +179,10 @@ module.exports = ({
           addDefaultQueries,
           addDefaultMutations
         );
+        m.updateDatasetExpirationTimeout(datasetsId);
         appLib.graphQl.connect.rebuildGraphQlSchema();
 
-        return m.transformDatasetsRecord(createdDatasetsRecord, userPermissions);
+        return await m.transformDatasetsRecord(createdDatasetsRecord, userPermissions);
       } catch (e) {
         handleGraphQlError(e, `Unable to clone record`, log, appLib);
       }
@@ -175,7 +206,12 @@ module.exports = ({
           appLib.controllerUtil.deleteItem(graphQlContext, session)
         );
 
-        removeQueriesAndMutationsForDatasetsRecord(appLib, deletedDoc, removeDefaultQueries, removeDefaultMutations);
+        removeQueriesAndMutationsForDatasetsRecord(
+          appLib,
+          deletedDoc._id,
+          removeDefaultQueries,
+          removeDefaultMutations
+        );
         // dropping is done immediately with collection of any size
         await appLib.db.collection(deletedDoc.collectionName).drop();
 
@@ -211,10 +247,12 @@ module.exports = ({
         )[0];
         const { name, description } = args.record;
         const newRecord = { ...recordInDb, name, description };
-        const datasetRecord = appLib.dba.withTransaction((session) =>
+        const datasetRecord = await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.putItem(graphQlContext, newRecord, session)
         );
-        return m.transformDatasetsRecord(datasetRecord, userPermissions);
+        m.updateDatasetExpirationTimeout(datasetRecord._id);
+
+        return await m.transformDatasetsRecord(datasetRecord, userPermissions);
       } catch (e) {
         handleGraphQlError(e, `Unable to update record`, log, appLib);
       }

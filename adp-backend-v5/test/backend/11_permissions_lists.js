@@ -2,8 +2,6 @@ const request = require('supertest');
 const _ = require('lodash');
 require('should');
 
-const reqlib = require('app-root-path').require;
-
 const {
   auth: { admin, user, loginWithUser },
   getMongoConnection,
@@ -11,27 +9,30 @@ const {
   prepareEnv,
   checkRestSuccessfulResponse,
   checkRestErrorResponse,
-} = reqlib('test/test-util');
-const { buildGraphQlCreate, buildGraphQlUpdateOne, checkGraphQlSuccessfulResponse, checkGraphQlErrorResponse } = reqlib(
-  'test/graphql-util.js'
-);
+} = require('../test-util');
+const {
+  buildGraphQlCreate,
+  buildGraphQlUpdateOne,
+  checkGraphQlSuccessfulResponse,
+  checkGraphQlErrorResponse,
+} = require('../graphql-util.js');
 
-describe('V5 Backend List Permissions', () => {
+describe('V5 Backend List Permissions', function () {
   const modelName = 'model9list_permissions';
 
-  before(async function() {
+  before(async function () {
     prepareEnv();
-    this.appLib = reqlib('/lib/app')();
+    this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
   });
 
-  after(async function() {
+  after(async function () {
     await this.db.dropDatabase();
     await this.db.close();
   });
 
-  beforeEach(async function() {
+  beforeEach(async function () {
     await Promise.all([
       this.db.createCollection(modelName),
       this.db.collection('users').deleteMany({}),
@@ -40,13 +41,13 @@ describe('V5 Backend List Permissions', () => {
     await Promise.all([this.db.collection('users').insertOne(admin), this.db.collection('users').insertOne(user)]);
   });
 
-  afterEach(function() {
+  afterEach(function () {
     return this.appLib.shutdown();
   });
 
-  describe('lists permissions', () => {
-    describe('check lists in app-model-code', () => {
-      it('should allow admin to access all the lists', async function() {
+  describe('lists permissions', function () {
+    describe('check lists in app-model-code', function () {
+      it('should allow admin to access all the lists', async function () {
         const { appLib } = this;
         setAppAuthOptions(this.appLib, {
           requireAuthentication: true,
@@ -89,7 +90,7 @@ describe('V5 Backend List Permissions', () => {
         _.isEqual(objectValueList, expectedList).should.be.true();
       });
 
-      it('should allow user to access only lists with user scope', async function() {
+      it('should allow user to access only lists with user scope', async function () {
         const { appLib } = this;
         setAppAuthOptions(this.appLib, {
           requireAuthentication: true,
@@ -137,8 +138,8 @@ describe('V5 Backend List Permissions', () => {
         _.isEqual(objectValueList, expectedAvailableList).should.be.true();
       });
 
-      describe('check security for writing operations', () => {
-        const getCreateItemTestFunc = function(settings) {
+      describe('check security for writing operations', function () {
+        const getCreateItemTestFunc = function (settings) {
           return f;
 
           async function f() {
@@ -153,8 +154,8 @@ describe('V5 Backend List Permissions', () => {
           }
         };
 
-        describe('for admin', () => {
-          beforeEach(async function() {
+        describe('for admin', function () {
+          beforeEach(async function () {
             const { appLib } = this;
             setAppAuthOptions(this.appLib, {
               requireAuthentication: true,
@@ -164,7 +165,7 @@ describe('V5 Backend List Permissions', () => {
             this.token = await loginWithUser(appLib, admin);
           });
 
-          describe('should allow admin to create item with any valid list values', () => {
+          describe('should allow admin to create item with any valid list values', function () {
             const record = {
               objectValueList: 'val1',
               objectListWithObjectValueList: 'val2',
@@ -172,11 +173,11 @@ describe('V5 Backend List Permissions', () => {
               objectListWithReferenceAndCustomScopes: 'val4',
             };
             const restSettings = {
-              makeRequest: r => r.post(`/${modelName}`).send({ data: record }),
+              makeRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
               checkResponse: checkRestSuccessfulResponse,
             };
             const graphqlSettings = {
-              makeRequest: r => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
+              makeRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
               checkResponse: checkGraphQlSuccessfulResponse,
             };
 
@@ -190,7 +191,7 @@ describe('V5 Backend List Permissions', () => {
             );
           });
 
-          describe('should not allow admin to create item with invalid list values', () => {
+          describe('should not allow admin to create item with invalid list values', function () {
             const record = {
               objectValueList: 'invalid1',
               objectListWithObjectValueList: 'invalid2',
@@ -199,11 +200,11 @@ describe('V5 Backend List Permissions', () => {
             };
 
             const restSettings = {
-              makeRequest: r => r.post(`/${modelName}`).send({ data: record }),
+              makeRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
               checkResponse: checkRestErrorResponse,
             };
             const graphqlSettings = {
-              makeRequest: r => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
+              makeRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
               checkResponse: checkGraphQlErrorResponse,
             };
 
@@ -218,8 +219,8 @@ describe('V5 Backend List Permissions', () => {
           });
         });
 
-        describe('for user', () => {
-          beforeEach(async function() {
+        describe('for user', function () {
+          beforeEach(async function () {
             const { appLib } = this;
             setAppAuthOptions(this.appLib, {
               requireAuthentication: true,
@@ -230,7 +231,7 @@ describe('V5 Backend List Permissions', () => {
             this.token = token;
           });
 
-          it('should allow user to create and update item with list values available for that user', () => {
+          it('should allow user to create and update item with list values available for that user', function () {
             const record = {
               objectValueList: '',
               objectListWithObjectValueList: '',
@@ -238,8 +239,8 @@ describe('V5 Backend List Permissions', () => {
               objectListWithReferenceAndCustomScopes: 'val1',
             };
             const restSettings = {
-              createRequest: r => r.post(`/${modelName}`).send({ data: record }),
-              getCreatedDocId: res => {
+              createRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
+              getCreatedDocId: (res) => {
                 res.statusCode.should.equal(200);
                 res.body.success.should.equal(true);
                 const docId = res.body.id;
@@ -250,8 +251,8 @@ describe('V5 Backend List Permissions', () => {
               checkUpdate: checkRestSuccessfulResponse,
             };
             const graphqlSettings = {
-              createRequest: r => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
-              getCreatedDocId: res => {
+              createRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
+              getCreatedDocId: (res) => {
                 res.statusCode.should.equal(200);
                 const docId = res.body.data[`${modelName}Create`]._id;
                 docId.should.not.be.empty();
@@ -261,7 +262,7 @@ describe('V5 Backend List Permissions', () => {
               checkUpdate: checkGraphQlSuccessfulResponse,
             };
 
-            const getCreateAndUpdateItemTestFunc = function(settings) {
+            const getCreateAndUpdateItemTestFunc = function (settings) {
               return f;
 
               async function f() {
@@ -293,7 +294,7 @@ describe('V5 Backend List Permissions', () => {
             );
           });
 
-          it('should not allow user to create item with list values not available for that user', () => {
+          it('should not allow user to create item with list values not available for that user', function () {
             const record = {
               objectValueList: 'val1',
               objectListWithObjectValueList: 'val2',
@@ -301,11 +302,11 @@ describe('V5 Backend List Permissions', () => {
               objectListWithReferenceAndCustomScopes: 'val4',
             };
             const restSettings = {
-              makeRequest: r => r.post(`/${modelName}`).send({ data: record }),
+              makeRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
               checkResponse: checkRestSuccessfulResponse,
             };
             const graphqlSettings = {
-              makeRequest: r => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
+              makeRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
               checkResponse: checkGraphQlSuccessfulResponse,
             };
 

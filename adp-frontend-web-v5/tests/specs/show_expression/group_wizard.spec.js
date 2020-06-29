@@ -247,7 +247,8 @@ describe('show expression', () => {
         await this.page.click(selectors.m3);
         await this.page.waitForSelector(selectors.b3);
 
-        await this.page.click('[ng-field-name="b3"] .dx-checkbox-icon');
+        await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
+        await this.page.waitFor(200);
 
         const isVisible = s => {
           const e = document.querySelector(s);
@@ -267,7 +268,8 @@ describe('show expression', () => {
       async () => {
         await this.page.click(selectors.m3);
         await this.page.waitForSelector(selectors.b3);
-        await this.page.click('[ng-field-name="b3"] .dx-checkbox-icon');
+        await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
+        await this.page.waitFor(200);
         await selectDxListValue('Option2', selectName, this.page);
 
         await clickSubmit(this.page);
@@ -340,7 +342,8 @@ describe('show expression', () => {
         await this.page.waitFor(200);
 
         await this.page.click(selectors.m2);
-        await this.page.click('[ng-field-name="b2"] .dx-checkbox-icon');
+        await this.page.click('[ng-field-name="b2"] .dx-switch-handle');
+        await this.page.waitFor(200);
 
         let a2IsVisibleActual = await this.page.evaluate(
           s => document.querySelector(s) !== null,

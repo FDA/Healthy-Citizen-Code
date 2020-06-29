@@ -7,6 +7,14 @@
   function GridExportGenerators(ClientError) {
     var XML_INDENT = 2;
 
+    function xlsxGenerator(wb){
+      return wb.xlsx.writeBuffer();
+    }
+
+    function csvGenerator(wb){
+      return wb.csv.writeBuffer();
+    }
+
     function jsonGenerator(wb) {
       return Promise.resolve(JSON.stringify(workbookToJson(wb), null, 4));
     }
@@ -127,6 +135,8 @@
     }
 
     return {
+      xlsxGenerator: xlsxGenerator,
+      csvGenerator:csvGenerator,
       jsonGenerator: jsonGenerator,
       xmlGenerator: xmlGenerator,
     };

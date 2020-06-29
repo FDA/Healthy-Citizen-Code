@@ -1,21 +1,13 @@
-const { schemaComposer } = require('graphql-compose');
 const log = require('log4js').getLogger('graphql/mongo-query-resolver');
 const { composeWithPagination } = require('../pagination');
 const MongoQueryContext = require('../../request-context/graphql/MongoQueryContext');
 const { getOrCreateTypeByModel } = require('../type/model');
 const { handleGraphQlError } = require('../util');
-const { COMPOSER_TYPES } = require('../type/common');
+const { COMPOSER_TYPES, mongoQueryInput } = require('../type/common');
 
 const paginationFindByMongoQueryResolverName = 'paginationByMongoQuery';
 const findByMongoQueryResolverName = 'findManyMongoQuery';
 const countByMongoQueryResolverName = 'countMongoQuery';
-
-const mongoQueryInput = schemaComposer.createInputTC({
-  name: 'mongoQueryInput',
-  fields: {
-    mongoQuery: { type: 'String' },
-  },
-});
 
 function addFindManyMongoQueryResolver(type) {
   type.addResolver({

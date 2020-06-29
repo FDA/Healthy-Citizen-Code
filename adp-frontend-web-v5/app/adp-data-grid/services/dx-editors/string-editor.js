@@ -6,17 +6,10 @@
     .factory('StringEditor', StringEditor);
 
   /** @ngInject */
-  function StringEditor(DxEditorMixin) {
-    function getOptions(init) {
-      var INPUT_TIMEOUT = 300;
-      return {
-        mode: 'text',
-        onValueChanged: _.debounce(init.onValueChanged, INPUT_TIMEOUT),
-        value: init.args.data,
-        valueChangeEvent: 'change input',
-      };
-    }
-
+  function StringEditor(
+    DxEditorMixin,
+    AdpFieldsService
+  ) {
     return function () {
       return DxEditorMixin({
         editorName: 'dxTextBox',
@@ -27,6 +20,44 @@
 
           this.element[this.editorName](options);
         },
+      });
+    }
+
+    function getOptions(init) {
+      var type = init.args.modelSchema.type;
+      var opts = {
+        mode: getTextMode(type),
+        onValueChanged: init.onValueChanged,
+        value: init.args.data,
+        valueChangeEvent: 'change keyup blur',
+      };
+
+      enableMask(type, opts);
+
+      return AdpFieldsService.configFromParameters(init.args.modelSchema, opts);
+    }
+
+    function getTextMode(type) {
+      var types = {
+        'Email': 'email',
+        'PasswordAuth': 'password',
+        'Url': 'url',
+      };
+
+      return types[type] || 'text';
+    }
+
+    function enableMask(type, config) {
+      if (type !== 'Phone') {
+        return;
+      }
+
+      _.assign(config, {
+        mask: 'X00-X00-0000',
+        maskRules: { X: /[02-9]/ },
+        maskChar: 'x',
+        maskInvalidMessage: false,
+        showMaskMode: 'onFocus',
       });
     }
   }

@@ -15,7 +15,9 @@ module.exports = (context) => {
     const functions = await getFunctions({ generatorFiles, paramsForGeneratorFiles: _paramsForGeneratorFiles });
 
     let generatedDocs = 0;
-    const onDocInsert = function () {
+    const onDocInsert = function (_args) {
+      const { collectionName: colName, insertedDoc } = _args;
+      log.info(`Generated doc for collection ${colName}: ${JSON.stringify(insertedDoc)}`);
       generatedDocs += 1;
       if (generatedDocs % 10 === 0 || generatedDocs === count) {
         const percentage = getPercentage(generatedDocs, count);

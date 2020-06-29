@@ -1,5 +1,6 @@
 const nodePath = require('path');
-const appRoot = require('app-root-path').path;
+
+const appRoot = nodePath.resolve(__dirname, '../../');
 
 function setAbsoluteEnvPath(key, root) {
   if (process.env[key]) {
@@ -13,8 +14,8 @@ function getAbsolutePath(root, p) {
 function getAbsolutePathsFromCommaSeparated(root, paths) {
   return paths
     .split(',')
-    .map(p => getAbsolutePath(root, p))
-    .filter(p => p)
+    .map((p) => getAbsolutePath(root, p))
+    .filter((p) => p)
     .join(',');
 }
 
@@ -32,11 +33,11 @@ function prepareEnv(root = appRoot) {
 }
 
 function getSchemaPaths() {
-  return process.env.APP_SCHEMA.split(',').filter(p => p);
+  return process.env.APP_SCHEMA.split(',').filter((p) => p);
 }
 
 function getSchemaNestedPaths(nestedPath) {
-  return getSchemaPaths().map(p => `${p}/${nestedPath}`);
+  return getSchemaPaths().map((p) => `${p}/${nestedPath}`);
 }
 
 module.exports = {
@@ -45,4 +46,5 @@ module.exports = {
   getSchemaNestedPaths,
   getSchemaPaths,
   getAbsolutePathsFromCommaSeparated,
+  appRoot,
 };

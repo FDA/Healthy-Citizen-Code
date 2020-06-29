@@ -53,9 +53,14 @@
         $.when
           .apply(this, promises)
           .then(function () {
+            return AdpBpmHelper.getAdditionalData(diagramType, vm.record);
+          })
+          .then(function (additionalData) {
             vm.isLoading = false;
             $scope.$applyAsync();
-            $timeout(doStart);
+            $timeout(function () {
+              doStart(additionalData);
+            });
           })
           .catch(function (error) {
             ErrorHelpers.handleError(error, 'Unknown error while loading record rules & editor code');
@@ -63,8 +68,8 @@
           });
       }
 
-      function doStart() {
-        vm.instance = initModeller();
+      function doStart(additionalData) {
+        vm.instance = initModeller(additionalData);
 
         var diagram = AdpBpmHelper.getDiagram(diagramType, vm.record);
 
@@ -83,7 +88,7 @@
         return openDiagram(definition).then(AdpBpmHelper.getOnDiagramOpen(diagramType, vm));
       }
 
-      function initModeller() {
+      function initModeller(additionalData) {
         return diagram.getInstance({
           additionalModules: [window.BpmnPropertiesPanelModule, window.BpmnPropertiesProviderModule],
           container: '#bpm-canvas',
@@ -94,6 +99,7 @@
           keyboard: {
             bindTo: window,
           },
+          additionalData: additionalData,
         });
       }
 

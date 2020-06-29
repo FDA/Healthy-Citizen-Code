@@ -101,7 +101,7 @@
 
       var filterConfig = {
         elementAttr: {
-          'class': 'adp-select-box adp-lookup-selector adp-filter-lookup-selector'
+          'class': 'lookup_cell_editor adp-select-box adp-lookup-selector adp-filter-lookup-selector'
         },
         itemTemplate: function (lookupData) {
           return AdpLookupHelpers.lookupItemTemplate(lookupData, options.args);
@@ -117,6 +117,10 @@
             container: container,
             component: this,
           });
+
+          setTimeout(function () {
+            fixFocusForEditor(container);
+          })
         },
       };
 
@@ -133,7 +137,7 @@
           'class': hasSingleTable ? ' hidden' : '',
         },
         value: items[0].value,
-        dataSource: items,
+        items: items,
         valueExpr: 'value',
         displayExpr: 'label',
         onValueChanged: options.onTableChanged,
@@ -187,7 +191,7 @@
       var textBox = $('<div class="adp-text-box">')
         .dxTextBox({
           placeholder: placeholder,
-          value: _.isNil(data) ? '' : data.label,
+          value: _.isNil(data) ? '' : label,
         });
 
       container.append(tpl, textBox);
@@ -214,6 +218,13 @@
         multiline: true,
         wrapItemText: true
       }
+    }
+
+    // fixes focus for lookup editor, allow to use tab navigation while editing
+    function fixFocusForEditor(container) {
+      var gridCell = container.closest('.dx-editor-cell');
+      var gridInstance = container.closest('[dx-data-grid]').dxDataGrid('instance');
+      gridInstance && gridInstance.focus(gridCell);
     }
   }
 })();

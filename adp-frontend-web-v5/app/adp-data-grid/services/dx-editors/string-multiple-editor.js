@@ -6,9 +6,12 @@
     .factory('StringMultipleEditor', StringMultipleEditor);
 
   /** @ngInject */
-  function StringMultipleEditor(DxEditorMixin) {
+  function StringMultipleEditor(
+    DxEditorMixin,
+    AdpFieldsService
+  ) {
     function getOptions(init) {
-      return {
+      var defaults = {
         elementAttr: {
           class: 'adp-select-box',
         },
@@ -16,7 +19,10 @@
         acceptCustomValue: true,
         onValueChanged: init.onValueChanged,
         openOnFieldClick: false,
+        showClearButton: true,
       };
+
+      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
     }
 
     return function () {

@@ -7,7 +7,7 @@
 
   /** @ngInject */
   function ListFilter(
-    AdpFieldsService,
+    AdpListsService,
     DxEditorMixin
   ) {
     return function () {
@@ -31,14 +31,10 @@
           class: 'adp-select-box',
           id: 'list_id_filter' + init.args.modelSchema.fieldName,
         },
-        dataSource: getDataSource(init.args.modelSchema),
+        dataSource: AdpListsService.getDataSource(init.args),
         onValueChanged: init.onValueChanged,
         showSelectionControls: true,
       };
-    }
-
-    function getDataSource(modelSchema) {
-      return AdpFieldsService.getListOfOptions(modelSchema.list);
     }
   }
 })();

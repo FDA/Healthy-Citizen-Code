@@ -1,5 +1,6 @@
 <adp-form-field-container
-  adp-field="adpField">
+  adp-form-data="::adpFormData"
+  adp-field="::adpField">
 
   <div style="display: flex; width: 100%;">
     <div style="width: 140px; padding-right: 10px; display: flex;">
@@ -16,10 +17,10 @@
     <div style="width: calc(100% - 150px); display: flex;">
       <readonly-control
         style="width: 100%;"
-        field="adpField"
-        adp-form-data="adpFormData"
-        ui-props="adpFieldUiProps"
-        validation-params="validationParams"
+        field="::adpField"
+        adp-form-data="::adpFormData"
+        ui-props="::adpFieldUiProps"
+        validation-params="::validationParams"
       >
       </readonly-control>
 

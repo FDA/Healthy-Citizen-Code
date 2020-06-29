@@ -21,14 +21,15 @@
         $timeout(init);
 
         function init() {
-          if (scope.data) {
+          var chart = echarts.init(element[0]);
+          if (_.isEmpty(scope.data)) {
+            scope.options = setNoDataMessageOptions(scope.options.title.text);
+          } else {
             _.set(scope.options, 'dataset.source', scope.data);
           }
 
-          var chart = echarts.init(element[0]);
           chart.setOption(scope.options);
           chart.resize();
-
           bindEvents(chart);
         }
 
@@ -52,6 +53,25 @@
             chart.dispose();
             $(window).off('resize.echarts');
           });
+        }
+
+        function setNoDataMessageOptions(title) {
+          var title = title || '';
+
+          var opts = {
+            title: {
+              show: true,
+              textStyle: {
+                color: '#bcbcbc',
+                lineHeight: 32,
+              },
+              text: 'No Data Available for \n "' + title + '"',
+              left: 'center',
+              top: 'center'
+            }
+          };
+
+          return opts;
         }
       }
     };

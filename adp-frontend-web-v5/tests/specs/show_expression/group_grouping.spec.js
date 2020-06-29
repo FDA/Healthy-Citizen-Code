@@ -140,7 +140,8 @@ describe('show expression', () => {
     test(
       'should show/hide field inside Group',
       async () => {
-        await this.page.click('[ng-field-name="b3"] .dx-checkbox-icon');
+        await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
+        await this.page.waitFor(200);
 
         let s3IsVisibleActual = await this.page.evaluate(
           s => document.querySelector(s) !== null,
@@ -153,7 +154,9 @@ describe('show expression', () => {
     test(
       'should show correct fields for Group on edit action',
       async () => {
-        await this.page.click('[ng-field-name="b3"] .dx-checkbox-icon');
+        await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
+        await this.page.waitFor(200);
+
         await selectDxListValue('Option2', selectFieldName, this.page);
         await this.page.waitForSelector(selectors.b2);
 
@@ -201,7 +204,8 @@ describe('show expression', () => {
         await this.page.waitForSelector(selectors.b2);
         await this.page.waitFor(200);
 
-        await this.page.click('[ng-field-name="b2"] .dx-checkbox-icon');
+        await this.page.click('[ng-field-name="b2"] .dx-switch-handle');
+        await this.page.waitFor(200);
 
         let a2IsVisibleActual = await this.page.evaluate(
           s => document.querySelector(s) !== null,

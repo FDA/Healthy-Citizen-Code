@@ -53,12 +53,12 @@ function getPaginationTCName(tc) {
   return `${tc.getTypeName()}Pagination`;
 }
 
-function preparePaginationTC(tc) {
+function createPaginationTC(tc) {
   const { schemaComposer } = tc;
   const name = getPaginationTCName(tc);
 
   if (schemaComposer.has(name)) {
-    return schemaComposer.getOTC(name);
+    schemaComposer.delete(name);
   }
 
   const paginationTC = schemaComposer.createObjectTC({
@@ -83,8 +83,20 @@ function preparePaginationTC(tc) {
   return paginationTC;
 }
 
+function getOrCreatePaginationTC(tc) {
+  const { schemaComposer } = tc;
+  const name = getPaginationTCName(tc);
+
+  if (schemaComposer.has(name)) {
+    return schemaComposer.getOTC(name);
+  }
+
+  return createPaginationTC(tc);
+}
+
 module.exports = {
-  preparePaginationTC,
+  createPaginationTC,
+  getOrCreatePaginationTC,
   preparePaginationInfoTC,
   getPaginationTCName,
 };
