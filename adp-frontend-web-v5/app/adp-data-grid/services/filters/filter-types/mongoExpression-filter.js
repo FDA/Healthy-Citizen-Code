@@ -43,13 +43,20 @@
             .append($editorEl)
             .append($validationEl);
 
-          aceEditor.session.on("change", function () {
-            var value = aceEditor.getValue();
-            var fakeEvent = {value:value};
+          aceEditor.session.on("change", function(){
+              var value = aceEditor.getValue();
+              var fakeEvent = {value:value};
 
-            doValidation($validationEl, value);
+              doValidation($validationEl, value);
 
-            params.onValueChanged(fakeEvent);
+              params.onValueChanged(fakeEvent);
+            });
+
+          $editorEl.on('keyup', function(e) {
+            if (e.keyCode===13) {
+              e.stopPropagation();
+              e.preventDefault();
+            }
           });
 
           if (initialValue) {
@@ -60,7 +67,7 @@
             var rule = {message: ""};
 
             if (value) {
-              CustomFilterTypesValidatorService(params.schema.schemaName, "Mongo Expression", value, rule)
+              CustomFilterTypesValidatorService(params.args.modelSchema.schemaName, "Mongo Expression", value, rule)
                 .then(
                   function (isValid) {
                     $elem.text(rule.message)
@@ -71,6 +78,5 @@
         }
       });
     };
-
   }
 })();

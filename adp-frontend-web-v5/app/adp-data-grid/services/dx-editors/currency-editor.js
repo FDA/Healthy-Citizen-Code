@@ -34,13 +34,13 @@
             valueChangeEvent: 'blur input',
             placeholder: init.placeholder,
             inputAttr: {
-              autocomplete: AdpFieldsService.autocompleteValue(init.args.modelSchema),
+              autocomplete: AdpFieldsService.autocompleteValue(init.args.fieldSchema),
             },
             showSpinButtons: true,
             format: DX_ACCOUNTING_FORMAT,
           };
 
-          return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
+          return AdpFieldsService.configFromParameters(init.args.fieldSchema, defaults);
         },
       });
     };

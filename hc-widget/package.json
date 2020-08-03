@@ -37,6 +37,7 @@
     "lodash.reduce": "^4.6.0",
     "lodash.unescape": "^4.0.1",
     "lodash.unionby": "^4.8.0",
+    "print-js": "^1.0.63",
     "sanitize-html-x": "^1.7.3"
   },
   "devDependencies": {

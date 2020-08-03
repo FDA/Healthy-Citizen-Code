@@ -1,33 +1,33 @@
 ;(function() {
   'use strict';
-  
+
   angular
     .module('app.adpDashboard')
     .factory('adpTemplateEngineService', adpTemplateEngineService);
-  
-  
+
+
   function adpTemplateEngineService($rootScope, APP_CONFIG) {
-    
+
     function getAbsoluteUrl(url) {
-      return url.charAt(0) === '/' ? APP_CONFIG.apiUrl + url : url;
+      return url.charAt(0) === '/' ? APP_CONFIG.resourceUrl + url : url;
     }
-    
+
     function getImageUrl(src) {
       var imageSource = src;
-      
+
       if ($rootScope.isIE) {
         imageSource = imageSource.split('.').join('IE.');
       }
-      
+
       // return 'background-image:url(' + getAbsoluteUrl(imageSource) + ')';
       return getAbsoluteUrl(imageSource);
     }
-    
+
     function TemplateGenerator(template, color, data) {
       var re = /<%(.+?)%>/g;
       var reExp = /(^( )?(var|let|const|if|else|for|switch|case|break|{|}|;))(.*)?/g;
       var reElement = /(<([^>]+)>)/ig;
-      
+
       var components = {
         'no-data': function (children, args) {
           return {
@@ -44,7 +44,7 @@
           }
 
           var styles = [];
-          
+
           if (args.hasOwnProperty('border')) {
             styles.push('border-color: ' + color);
           }
@@ -104,11 +104,11 @@
         },
         'column': function (children, args) {
           var style = [];
-          
+
           if (typeof args.backgroundColor === 'string') {
             style.push('background-color: ' + args.backgroundColor + '');
           }
-          
+
           return {
             type: 'div',
             props: {
@@ -132,7 +132,7 @@
         },
         'fraction': function (children, args, params) {
           var fraction = children.split('/');
-          
+
           return {
             type: 'span',
             props: {
@@ -293,12 +293,12 @@
           };
         }
       };
-      
+
       function generateTemplate(template, data) {
         if (typeof data === 'undefined') {
           data = {};
         }
-        
+
         var cursor = 0;
         var code = 'with(obj) { var r=[];\n';
         var result = void 0;
@@ -311,13 +311,13 @@
           } else {
             code += line != '' ? 'r.push("' + line.replace(/"/g, '\\"') + '");\n' : '';
           }
-  
+
           return addLine;
         }
 
         while (match = re.exec(template)) {
           addLine(template.slice(cursor, match.index))(match[1], true);
-  
+
           cursor = match.index + match[0].length;
         }
 
@@ -336,7 +336,7 @@
 
         return result;
       }
-      
+
       function parseElement(offset) {
         var result = {
           type: null,
@@ -344,39 +344,39 @@
           isEnd: false,
           withEnd: false
         };
-        
+
         if (offset.slice(-1) === '/') {
           result.withEnd = true;
-          
+
           offset = offset.slice(0, -1);
         }
-        
+
         offset.split(' ').forEach(function (str, index) {
           if (index === 0) {
             if (str.charAt(0) === '/') {
               result.isEnd = true;
             }
-            
+
             result.type = str.replace(/^\//g, '');
           } else {
             var splitArg = str.split('=');
-            
+
             if (splitArg[0].trim().length) {
               result.args[splitArg[0]] = splitArg[1] ? splitArg[1].replace(/(^"|"$)/g, '') : '';
             }
           }
         });
-        
+
         return result;
       }
-      
+
       function parseTemplate(template) {
         var cursor = 0;
         var tree = [];
         var currentLink = tree;
         var paths = [currentLink];
         var match = void 0;
-        
+
         while (match = reElement.exec(template)) {
           if (template.slice(cursor, match.index).trim().length) {
             currentLink.push({
@@ -385,16 +385,16 @@
               children: template.slice(cursor, match.index)
             });
           }
-          
+
           var element = parseElement(match[2]);
-          
+
           if (!element.isEnd) {
             currentLink.push({
               type: element.type.toLowerCase(),
               args: element.args,
               children: []
             });
-            
+
             currentLink = currentLink[currentLink.length - 1].children;
             paths.push(currentLink);
           }
@@ -402,37 +402,37 @@
             paths.pop();
             currentLink = paths.slice(-1)[0];
           }
-          
+
           cursor = match.index + match[0].length;
         }
-        
+
         return tree;
       }
-      
+
       function jsonToDOM(json, doc, nodes) {
         if (typeof doc === 'undefined') {
           doc = document;
         }
-        
+
         if (typeof nodes === 'undefined') {
           nodes = {};
         }
-        
+
         var namespaces = {
           html: 'http://www.w3.org/1999/xhtml',
           xul: 'http://www.mozilla.org/keymaster/gatekeeper/there.is.only.xul'
         };
         var defaultNamespace = namespaces.html;
-        
+
         function namespace(name) {
           var m = /^(?:(.*):)?(.*)$/.exec(name);
           return [namespaces[m[1]], m[2]];
         }
-        
+
         function tag(name, attr) {
           if (_.isArray(name)) {
             var frag = doc.createDocumentFragment();
-            
+
             Array.prototype.forEach.call(arguments, function (arg) {
               if (!_.isArray(arg[0])) {
                 frag.appendChild(tag.apply(null, arg));
@@ -442,10 +442,10 @@
                 });
               }
             });
-            
+
             return frag;
           }
-          
+
           var args = Array.prototype.slice.call(arguments, 2);
           var vals = namespace(name);
           var elem = doc.createElementNS(vals[0] || defaultNamespace, vals[1]);
@@ -453,13 +453,13 @@
           for (var key in attr) {
             if (attr.hasOwnProperty(key)) {
               var val = attr[key];
-              
+
               if (nodes && key === 'key') {
                 nodes[val] = elem;
               }
-              
+
               vals = namespace(key);
-              
+
               if (typeof val === 'function') {
                 elem.addEventListener(key.replace(/^on/, ''), val, false);
               } else {
@@ -477,65 +477,65 @@
               elem.appendChild(doc.createTextNode(ex));
             }
           });
-          
+
           return elem;
         }
-        
+
         return tag.apply(null, json);
       }
-      
+
       function generateDomObject(schema, parent) {
         if (typeof parent === 'undefined') {
           parent = null;
         }
-        
+
         if (!schema || !schema.length) {
           return null;
         }
-        
+
         if (typeof schema === 'string') {
           return schema;
         }
-        
+
         var result = [];
-        
+
         for (var i = 0; i < schema.length; i++) {
           var _item = schema[i];
-          
+
           var currentComponent = components[_item.type];
-          
+
           if (!currentComponent) {
             continue;
           }
-          
+
           var childrenTemplate = generateDomObject(_item.children, _item);
           var renderedComponent = currentComponent(childrenTemplate, _item.args, {
             parent: parent
           });
-          
+
           if (!renderedComponent) {
             continue;
           }
-          
+
           result.push(renderedComponent);
         }
-        
+
         return result.length ? (result.length === 1 ? result[0] : result) : null;
       }
-      
+
       function generateJsonDom(DomObject) {
         if (!DomObject || (_.isArray(DomObject) && !DomObject.length)) {
           return [];
         }
-        
+
         if (typeof DomObject === 'string') {
           if (DomObject == 'NaN') {
             return '';
           }
-          
+
           return DomObject;
         }
-        
+
         if (!_.isArray(DomObject)) {
           return (
             [DomObject.type, DomObject.props]
@@ -548,20 +548,20 @@
               )
           );
         }
-        
+
         var result = [];
-        
+
         DomObject.forEach(function (item) {
           var jsonDom = generateJsonDom(item);
-          
+
           if (jsonDom && (!_.isArray(jsonDom) || jsonDom.length)) {
             result.push(jsonDom);
           }
         });
-        
+
         return result;
       }
-      
+
       return jsonToDOM(
         ['div', {
           class: 'dashboard',
@@ -575,8 +575,8 @@
         )]
       );
     }
-    
-    
+
+
     return {
       parseTemplate: TemplateGenerator
     }

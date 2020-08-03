@@ -39,7 +39,7 @@
       var separator = ' | ';
       var formattedValue = AdpLookupHelpers.formatLabel(value, args);
 
-      if (AdpLookupHelpers.tablesList(args.modelSchema).length > 1) {
+      if (AdpLookupHelpers.tablesList(args.fieldSchema).length > 1) {
         return [
           value.table,
           formattedValue + '\n',

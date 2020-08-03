@@ -4,7 +4,7 @@ module.exports = ({ random }) => {
   }
 
   function scgDeletedAt() {
-    const { ratio = 0.9 } = this.params;
+    const { ratio = 1.0 } = this.params;
     const isEpochDate = random.bool(ratio);
     return isEpochDate ? new Date(0) : scgDateTime();
   }

@@ -30,7 +30,7 @@
         }
       };
 
-      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
+      return AdpFieldsService.configFromParameters(init.args.fieldSchema, defaults);
     }
 
     return function () {

@@ -8,7 +8,8 @@
   function numberArrayControl(
     AdpValidationUtils,
     AdpValidationRules,
-    AdpFieldsService
+    AdpFieldsService,
+    NumberArrayEditorConfig
   ) {
     return {
       restrict: 'E',
@@ -23,68 +24,37 @@
       link: function (scope) {
         scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
         scope.config = getConfig(scope.field);
-        _.remove(scope.field.validate, function (v) {
-          return _.includes(['int32', 'int64'], v.validator);
-        });
 
         function getConfig(field) {
-          var defaults = getDefaults(field);
-          return AdpFieldsService.configFromParameters(field, defaults);
+          var fieldData = scope.adpFormData[scope.field.fieldName];
+          var baseConfig = NumberArrayEditorConfig(fieldData, updateModel);
+          baseConfig.fieldTemplate = fieldTemplate;
+
+          return AdpFieldsService.configFromParameters(field, baseConfig);
         }
 
-        function getDefaults(field) {
-          return {
-            elementAttr: {
-              class: 'adp-select-box',
-            },
-            acceptCustomValue: true,
-            openOnFieldClick: false,
-            onValueChanged: function (e) {
-              if (e.value && e.value.length === 0) {
-                scope.adpFormData[field.fieldName] = null;
-              }
-            },
-            valueExpr: _.toNumber,
-            fieldTemplate: fieldTemplate,
-          };
+        function updateModel(valueObj) {
+          scope.adpFormData[scope.field.fieldName] = (valueObj.value || []).map(_.toNumber);
         }
 
         function fieldTemplate(data, container) {
-          var isValid = true;
-
           var numberBox = $('<div class="adp-text-box">')
-            .dxNumberBox({
-              placeholder: 'Type in new value and press Enter',
-              mode: 'number',
-              valueChangeEvent: 'blur keyup change',
-              format: '#',
-              showSpinButtons: true,
-              onKeyDown: function(e) {
-                if(!isValid && e.event.key === 'Enter') {
-                  e.event.stopImmediatePropagation();
-                }
-              },
-              onValueChanged: setValidityToTabBox,
-            });
-
-          function setValidityToTabBox(e) {
-            var validationMethod = selectValidator(scope.field.type)
-            isValid = AdpValidationRules[validationMethod](e.value);
-            scope.form[scope.field.fieldName].$setValidity(validationMethod, isValid);
-
-            !isValid && scope.form[scope.field.fieldName].$setDirty(isValid);
-          }
-
-          function selectValidator(type) {
-            return ({
-              'Int32[]': 'int32',
-              'Int64[]': 'int64',
-            })[type];
-          }
+            .dxNumberBox(getNumberBoxConfig());
 
           container.append(numberBox);
         }
 
+        function getNumberBoxConfig() {
+          var isInt = _.includes(['Int32[]', 'Int64[]'], scope.field.type);
+
+          return {
+            value: null,
+            placeholder: 'Type in new value and press Enter',
+            mode: 'number',
+            format: isInt ? '#' : '',
+            valueChangeEvent: 'blur keyup change',
+          };
+        }
       }
     }
   }

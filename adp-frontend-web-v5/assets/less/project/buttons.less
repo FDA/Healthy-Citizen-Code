@@ -1,0 +1,53 @@
+@import '../smartadmin-skin/smartadmin-skins.less';
+
+.modal-footer .btn {
+  &:extend(.smart-form footer .btn);
+}
+
+.modal-footer,
+.adp-action-b-container {
+  display: flex;
+  justify-content: flex-start;
+
+  padding: 7px 14px 15px;
+  border-top: 1px solid rgba(0, 0, 0, 0.1);
+  background: rgba(248, 248, 248, 0.9);
+}
+
+.modal-header {
+  padding: 15px 13px;
+  margin: 0;
+  border-bottom-style: solid;
+  border-bottom-color: rgba(0, 0, 0, 0.1);
+  background: rgba(248, 248, 248, 0.9);
+}
+
+.adp-action-b-primary {
+  &:extend(.btn all);
+  &:extend(.btn-primary all);
+
+  &:first-child {
+    margin-left: auto !important;
+  }
+}
+
+.adp-action-b-secondary {
+  &:extend(.btn all);
+  &:extend(.btn-default all);
+
+  & + :not(&) {
+    margin-left: auto !important;
+  }
+}
+
+.adp-action-b-tertiary {
+
+  &:extend(.btn all);
+  &:extend(.btn-default all);
+
+  &:first-child {
+    margin-left: auto !important;
+  }
+}
+
+

@@ -1,4 +1,4 @@
-const RJSON = require('relaxed-json');
+const JSON5 = require('json5');
 const { ValidationError } = require('../../errors');
 
 async function getQuickFilterConditions(appLib, quickFilterId, userContext) {
@@ -16,7 +16,7 @@ async function getQuickFilterConditions(appLib, quickFilterId, userContext) {
     throw new ValidationError(`Unable to find quickFilter with id '${quickFilterId}'`);
   }
   // filter is already validated when stored in db
-  return RJSON.parse(quickFilter.filter);
+  return JSON5.parse(quickFilter.filter);
 }
 
 module.exports = {

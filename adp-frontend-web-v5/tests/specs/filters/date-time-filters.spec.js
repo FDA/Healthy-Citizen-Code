@@ -1,12 +1,14 @@
 const puppeteer = require("puppeteer");
 const _ = require("lodash");
-const appConfig = require("../../app_config")();
-const fetch = require("node-fetch");
 const moment = require("moment");
 const {
   getLaunchOptions,
   loginWithUser,
-  getUrlFor
+  getUrlFor,
+  getToken,
+  gql: {
+    gqlEmptyRecord, gqlCreateRecord
+  }
 } = require("../../utils");
 
 const PAGE_TO_TEST = "basicTypesDates";
@@ -53,48 +55,6 @@ const OPERATIONS_TO_TEST = [
     selector: "equals"
   },
 ];
-
-async function getToken(page) {
-  return await page.evaluate(() => localStorage.getItem("ls.token"));
-}
-
-async function fetchPost(token, post) {
-  return fetch(appConfig.apiUrl + "/graphql", {
-    method: "POST",
-    headers: {
-      Accept: "application/json",
-      "Content-Type": "application/json",
-      Authorization: "JWT " + token,
-    },
-    body: JSON.stringify(post)
-  })
-    .then(res => res.json());
-}
-
-async function gqlCreateRecord(token, collectionName, data) {
-  const post = {
-    query: "mutation m($record: basicTypesDatesInputWithoutId) {" + collectionName + "Create (record: $record) { _id }}",
-    variables: {
-      record: data
-    }
-  };
-  const json = await fetchPost(token, post);
-
-  return json.data[collectionName + "Create"];
-}
-
-async function gqlEmptyRecord(token, collectionName, id) {
-  const post = {
-    query: "mutation m($filter: MongoIdInput!) {" + collectionName + "DeleteOne (filter: $filter) { deletedCount } }",
-    variables: {
-      filter: {
-        _id: id
-      }
-    }
-  };
-
-  return fetchPost(token, post);
-}
 
 async function fillCollection(token, data) {
   const saved = {};

@@ -26,7 +26,7 @@
         scope.editorsConfig = _.get(scope, 'field.parameters.codeEditor', {});
 
         if (scope.field.type === 'Mixed') {
-          scope.editorsConfig.mode = 'ace/mode/json';
+          scope.editorsConfig.mode = 'ace/mode/json5';
         }
 
         function getData() {

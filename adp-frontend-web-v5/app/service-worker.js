@@ -27,49 +27,49 @@ workbox.precaching.precacheAndRoute([], {
     "ignoreUrlParametersMatching": [/./]
 });
 
-const matchRoute = (url, routeName) => {
-  var regex = new RegExp(`/${routeName}/`);
-  return url.origin === '<!-- apiUrl -->' && regex.test(url.pathname);
-};
-
-const matchPathname = (url, pathname) => {
-  return url.href === `<!-- apiUrl -->/${pathname}`;
-
-};
+// const matchRoute = (url, routeName) => {
+//   var regex = new RegExp(`/${routeName}/`);
+//   return url.origin === '<!-- apiUrl -->' && regex.test(url.pathname);
+// };
+//
+// const matchPathname = (url, pathname) => {
+//   return url.href === `<!-- apiUrl -->/${pathname}`;
+//
+// };
 
 // readonly data
-workbox.routing.registerRoute(
-  ({url}) => {
-    return matchPathname(url,'app-model');
-  },
-  workbox.strategies.networkFirst(),
-  'GET'
-);
-
-workbox.routing.registerRoute(
-  ({url}) => {
-    return matchPathname(url,'build-app-model');
-  },
-  workbox.strategies.networkFirst(),
-  'GET'
-);
-
-workbox.routing.registerRoute(
-  ({url}) => {
-    return matchRoute(url, 'lookups');
-  },
-  workbox.strategies.networkFirst({
-    matchOptions: {
-      ignoreSearch: false
-    }
-  }),
-  'GET'
-);
-
-workbox.routing.registerRoute(
-  ({url}) => {
-    return matchRoute(url, 'dashboards');
-  },
-  workbox.strategies.networkFirst(),
-  'GET'
-);
+// workbox.routing.registerRoute(
+//   ({url}) => {
+//     return matchPathname(url,'app-model');
+//   },
+//   workbox.strategies.networkFirst(),
+//   'GET'
+// );
+//
+// workbox.routing.registerRoute(
+//   ({url}) => {
+//     return matchPathname(url,'build-app-model');
+//   },
+//   workbox.strategies.networkFirst(),
+//   'GET'
+// );
+//
+// workbox.routing.registerRoute(
+//   ({url}) => {
+//     return matchRoute(url, 'lookups');
+//   },
+//   workbox.strategies.networkFirst({
+//     matchOptions: {
+//       ignoreSearch: false
+//     }
+//   }),
+//   'GET'
+// );
+//
+// workbox.routing.registerRoute(
+//   ({url}) => {
+//     return matchRoute(url, 'dashboards');
+//   },
+//   workbox.strategies.networkFirst(),
+//   'GET'
+// );

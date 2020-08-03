@@ -1,4 +1,3 @@
-const request = require('supertest');
 const _ = require('lodash');
 const should = require('should');
 const { ObjectID } = require('mongodb');
@@ -11,6 +10,7 @@ const {
   setupAppAndGetToken,
   checkRestSuccessfulResponse,
   conditionForActualRecord,
+  apiRequest,
 } = require('../test-util');
 const {
   buildGraphQlCreate,
@@ -117,7 +117,7 @@ describe('V5 Backend Field Permissions', function () {
 
         async function f() {
           const { makeRequest, checkData, checkResponse, getData } = settings;
-          const req = makeRequest(request(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib.app));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }
@@ -288,7 +288,7 @@ describe('V5 Backend Field Permissions', function () {
 
           async function f() {
             const { makeRequest, checkDbData: checkData, checkResponse, getCreatedDocId } = settings;
-            const req = makeRequest(request(this.appLib.app));
+            const req = makeRequest(apiRequest(this.appLib.app));
             if (this.token) {
               req.set('Authorization', `JWT ${this.token}`);
             }
@@ -310,7 +310,7 @@ describe('V5 Backend Field Permissions', function () {
 
           async function f() {
             const { makeRequest, checkDbData, checkResponse } = settings;
-            const req = makeRequest(request(this.appLib.app));
+            const req = makeRequest(apiRequest(this.appLib.app));
             if (this.token) {
               req.set('Authorization', `JWT ${this.token}`);
             }

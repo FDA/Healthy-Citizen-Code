@@ -22,7 +22,7 @@ const {
   getMultipleLookupValue,
 } = require('../../../utils/select.helpers');
 
-const lookupLabelFixture = require('./lookupTypes.fixture');
+const { lookupLabelFixture } = require('./lookupTypes.fixture');
 const lookupNames = {
   single: 'objectId',
   multiple: 'objectIds',

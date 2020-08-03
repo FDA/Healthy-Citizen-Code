@@ -1,16 +1,16 @@
-const _ = require("lodash");
-module.exports = function () {
+const _ = require('lodash');
 
-    return {
-        udid: function (path, appModelPart, userContext, next) {
-            const val = _.get(this, path);
-            let udid = _.get(userContext, "session.udid");
-            if (!udid) {
-                throw "UDID was not specified";
-            } else if (userContext.method === "POST") {
-                _.set(this, path, udid);
-            }
-            next();
-        }
-    };
+module.exports = function () {
+  return {
+    udid(next) {
+      const { row, path, userContext } = this;
+      const udid = _.get(userContext, 'session.udid');
+      if (!udid) {
+        throw 'UDID was not specified';
+      } else if (userContext.method === 'POST') {
+        _.set(row, path, udid);
+      }
+      next();
+    },
+  };
 };

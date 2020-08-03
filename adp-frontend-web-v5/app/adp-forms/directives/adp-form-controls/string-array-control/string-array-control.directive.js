@@ -6,6 +6,7 @@
     .directive('stringArrayControl', stringArrayControl);
 
   function stringArrayControl(
+    StringArrayEditorConfig,
     AdpValidationUtils,
     AdpFieldsService
   ) {
@@ -24,26 +25,13 @@
         scope.config = getConfig(scope.field);
 
         function getConfig(field) {
-          var defaults = getDefaults();
+          var fieldData = scope.adpFormData[scope.field.fieldName];
+          var defaults = StringArrayEditorConfig(fieldData, updateModel);
           return AdpFieldsService.configFromParameters(field, defaults);
         }
 
-        function getDefaults() {
-          return {
-            elementAttr: {
-              class: 'adp-select-box',
-            },
-            acceptCustomValue: true,
-            placeholder: 'Type in new value and press Enter',
-            openOnFieldClick: false,
-            onValueChanged: onChange,
-          };
-        }
-
-        function onChange(e) {
-          if (_.isEmpty(e.value)) {
-            scope.adpFormData[scope.field.fieldName] = null;
-          }
+        function updateModel(valueObj) {
+          scope.adpFormData[scope.field.fieldName] = valueObj.value;
         }
       }
     }

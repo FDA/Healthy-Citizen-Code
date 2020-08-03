@@ -57,7 +57,13 @@
         schema: params.schema,
       });
 
-      var evaluatedCondition = new Function('return ' + params.condition).call(args);
+      var evaluatedCondition;
+      try {
+        evaluatedCondition = new Function('return ' + params.condition).call(args);
+      } catch (e) {
+        console.error('Error while trying to evaluate condition "' + params.condition + '": ', e);
+        evaluatedCondition = {};
+      }
       return JSON.stringify(evaluatedCondition);
     }
   }

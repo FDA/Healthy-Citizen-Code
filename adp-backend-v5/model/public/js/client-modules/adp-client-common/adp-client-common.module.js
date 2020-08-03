@@ -39,8 +39,22 @@
       };
     }
 
-    function highlightToolbarButton(element, condition){
-      element.toggleClass('adp-toolbar-highlighted',!!condition);
+    function highlightToolbarButton(component, condition){
+      var SELECTED_TOOLBAR_MENU = 'adp-toolbar-highlighted';
+
+      if (!condition) {
+        component.resetOption('cssClass');
+      } else {
+        var css = component.option('cssClass');
+        css = css.replace(SELECTED_TOOLBAR_MENU, '') + ' ' + SELECTED_TOOLBAR_MENU;
+        component.option('cssClass', css);
+      }
+
+      component.element().toggleClass(SELECTED_TOOLBAR_MENU, !!condition);
+    }
+
+    function repaintToolbar(gridComponent){
+      gridComponent._views.headerPanel._toolbar.repaint();
     }
 
     return {
@@ -48,6 +62,7 @@
       loadCss: loadCss,
       getMenuItemTemplate: getMenuItemTemplate,
       highlightToolbarButton:highlightToolbarButton,
+      repaintToolbar:repaintToolbar,
     };
   }
 })();

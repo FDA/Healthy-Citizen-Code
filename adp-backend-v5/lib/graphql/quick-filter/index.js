@@ -1,4 +1,4 @@
-const RJSON = require('relaxed-json');
+const JSON5 = require('json5');
 const { schemaComposer } = require('graphql-compose');
 const { ValidationError } = require('../../errors');
 
@@ -11,7 +11,7 @@ async function testQuickFilter({ appLib, filterString, modelName, userContext, p
 
   let conditions;
   try {
-    conditions = RJSON.parse(filterString);
+    conditions = JSON5.parse(filterString);
   } catch (e) {
     throw new ValidationError(`Invalid filter string. ${e.message}`);
   }

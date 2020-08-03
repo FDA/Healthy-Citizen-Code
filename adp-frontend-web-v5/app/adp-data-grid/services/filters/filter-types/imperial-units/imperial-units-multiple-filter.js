@@ -13,7 +13,7 @@
 
         create: function (init) {
           this.options = init;
-          this.units = ImperialUnitsEditorsHelpers.getUnits(this.options.args.modelSchema);
+          this.units = ImperialUnitsEditorsHelpers.getUnits(this.options.args.fieldSchema);
 
           this.init();
         },

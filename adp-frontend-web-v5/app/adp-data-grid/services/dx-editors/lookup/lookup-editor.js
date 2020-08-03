@@ -31,7 +31,7 @@
         },
 
         init: function () {
-          this.setClassToContainer(this.lookupOptions.args.modelSchema.fieldName);
+          this.setClassToContainer(this.lookupOptions.args.fieldSchema.fieldName);
           this.createTableSelector();
           this.createLookupSelector();
         },

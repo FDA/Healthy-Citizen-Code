@@ -60,7 +60,6 @@ export default class NdcLookup {
   onScroll(e) {
     const bottomEdge = e.target.scrollHeight - e.target.scrollTop === e.target.clientHeight;
 
-    console.log(this.page, this.hasNextPage);
     if (this.loading || !bottomEdge || !this.hasNextPage) {
       return;
     }
@@ -129,13 +128,14 @@ export default class NdcLookup {
     if (err instanceof ResponseError) {
       this.showServerError(err.message);
     }
-    console.log(err);
+    this.showServerError(ResponseError.EMPTY);
+    console.error(err);
   }
 
   showServerError(message) {
     const messageNode = this.form.querySelector('.error-message.server');
     messageNode.innerText = message;
-    messageNode.style.display = 'block';
+    messageNode.classList.remove('hidden');
 
     this.$results.get(0).innerHTML = '';
 
@@ -144,7 +144,7 @@ export default class NdcLookup {
 
   hideErrorMessages() {
     let nodes = this.form.querySelectorAll('.error-message');
-    nodes.forEach(node => node.style.display = 'none');
+    nodes.forEach(node => node.classList.add('hidden'));
     updateIframeHeight();
   }
 

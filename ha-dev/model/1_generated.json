@@ -1050,20 +1050,9 @@
         }
       },
       scopes: {
-        superadmin: {
+        guest: {
           permissions: 'accessAsGuest',
           where: 'true'
-        }
-      },
-      indexes: {
-        primaryIndex: {
-          keys: {
-            productId: 1,
-            eventId: 1
-          },
-          options: {
-            unique: true
-          }
         }
       },
       fields: {
@@ -1411,17 +1400,6 @@
         guest: {
           permissions: 'accessAsGuest',
           where: 'true'
-        }
-      },
-      indexes: {
-        primaryIndex: {
-          keys: {
-            productId: 1,
-            eventId: 1
-          },
-          options: {
-            unique: true
-          }
         }
       },
       fields: {

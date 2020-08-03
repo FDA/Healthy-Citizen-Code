@@ -26,7 +26,7 @@
           scope.props = {
             args: scope.args,
             onValueChanged: function(e) {
-              scope.adpFormData[scope.args.modelSchema.fieldName] = e.value;
+              scope.adpFormData[scope.args.fieldSchema.fieldName] = e.value;
             },
             onTableChanged: function(e) {
               scope.props.selectedTableName = e.value;
@@ -34,7 +34,7 @@
             selectedTableName: initialTableName(),
           };
 
-          scope.multiple = scope.args.modelSchema.type.includes('[]');
+          scope.multiple = scope.args.fieldSchema.type.includes('[]');
           setContainerClasses();
         })();
 
@@ -46,12 +46,12 @@
         function setContainerClasses() {
           var hasSingleTable = Object.keys(getLookupTables()).length === 0;
 
-          scope.fieldNameClass = 'lookup-name-' + scope.args.modelSchema.fieldName;
+          scope.fieldNameClass = 'lookup-name-' + scope.args.fieldSchema.fieldName;
           scope.columnClass = hasSingleTable ? 'single-column' : '';
         }
 
         function getLookupTables() {
-          return _.get(scope, 'args.modelSchema.lookup.table');
+          return _.get(scope, 'args.fieldSchema.lookup.table');
         }
 
         function unifiedApproachArgs() {

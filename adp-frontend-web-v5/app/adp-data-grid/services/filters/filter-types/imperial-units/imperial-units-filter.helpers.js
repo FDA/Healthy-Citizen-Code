@@ -27,8 +27,8 @@
       return options.element[editorName](editorOptions);
     }
 
-    function getUnits(modelSchema) {
-      return AdpFieldsService.getUnitsList(modelSchema);
+    function getUnits(fieldSchema) {
+      return AdpFieldsService.getUnitsList(fieldSchema);
     }
 
     function createRangePlaceholderElement(placeholder) {

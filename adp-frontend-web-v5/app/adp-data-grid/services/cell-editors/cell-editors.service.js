@@ -39,15 +39,33 @@
         }
 
         var options = getOptions(event, schema);
-        if (GridModalEditors.isModalEditor(options.args.modelSchema.type)) {
+        if (GridModalEditors.isModalEditor(options.args.fieldSchema.type)) {
           enableModalEditor(event, options);
         } else {
           enableEditor(event.editorElement, options);
         }
       });
 
+      GridOptionsHelpers.onRowPrepared( options, function(event){
+        if (event.isNewRow) {
+          appendRowCancelBlock(event);
+        }
+      });
+
       return options;
     };
+
+    function appendRowCancelBlock(event) {
+      if (!event.rowElement.find(".adp-row-insert-cancel").length) {
+        event.rowElement
+             .append($("<div class='adp-row-insert-cancel'>")
+               .text("Cancel row insertion (Esc)")
+               .click(function () {
+                 event.component.cancelEditData();
+               })
+             )
+      }
+    }
 
     function editingEnabled(schema) {
       var editingEnabled = _.get(schema, 'parameters.enableInCellEditing');
@@ -123,7 +141,7 @@
 
       function afterSubmit(newValue) {
         var data = {};
-        data[options.args.modelSchema.fieldName] = newValue;
+        data[options.args.fieldSchema.fieldName] = newValue;
 
         saveData(data);
       }

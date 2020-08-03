@@ -1,5 +1,6 @@
 const config = require('../test_config')();
 const appConfig = require('../app_config')();
+const fetch = require("node-fetch");
 
 const SELECTOR_TIMEOUT = 15000;
 
@@ -11,7 +12,7 @@ function getLaunchOptions() {
     return {
       headless: false,
       defaultViewport: null,
-      slowMo: 200,
+      slowMo: 20,
       args: [
         '--no-sandbox',
         '--disable-gpu',
@@ -113,6 +114,7 @@ async function clickCreateNewButton(page) {
   const createBtnSelector = '.btn.page-action';
 
   await page.waitFor(createBtnSelector, { timeout: SELECTOR_TIMEOUT });
+  await page.waitFor(350);
   await page.click(createBtnSelector);
   await page.waitFor('form', { timeout: SELECTOR_TIMEOUT });
 }
@@ -142,7 +144,7 @@ async function clickEditButton(recordId, page) {
 }
 
 async function clickSubmit(page, parentSelector = '') {
-  await page.click(`${parentSelector} button[type=submit]`);
+  await page.click(`${parentSelector} [type=submit][data-actions-name="submit"]`);
 }
 
 async function getSubmitMsg(page) {
@@ -257,6 +259,48 @@ async function waitForContentRemovedFromDom(selector, page) {
   await page.waitForFunction(s => document.querySelector(s) === null, {}, selector);
 }
 
+async function getToken(page) {
+  return await page.evaluate(() => localStorage.getItem("ls.token"));
+}
+
+async function fetchPost(token, post) {
+  return fetch(appConfig.apiUrl + "/graphql", {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+      Authorization: "JWT " + token,
+    },
+    body: JSON.stringify(post)
+  })
+    .then(res => res.json());
+}
+
+async function gqlCreateRecord(token, collectionName, data) {
+  const post = {
+    query: "mutation m($record: basicTypesDatesInputWithoutId) {" + collectionName + "Create (record: $record) { _id }}",
+    variables: {
+      record: data
+    }
+  };
+  const json = await fetchPost(token, post);
+
+  return json.data[collectionName + "Create"];
+}
+
+async function gqlEmptyRecord(token, collectionName, id) {
+  const post = {
+    query: "mutation m($filter: MongoIdInput!) {" + collectionName + "DeleteOne (filter: $filter) { deletedCount } }",
+    variables: {
+      filter: {
+        _id: id
+      }
+    }
+  };
+
+  return fetchPost(token, post);
+}
+
 module.exports = {
   getLaunchOptions,
   getUrlFor,
@@ -266,6 +310,7 @@ module.exports = {
   removeSpaceChars,
   waitForContentRemovedFromDom,
   getTextForSelector,
+  getToken,
   SELECTOR_TIMEOUT,
   object: {
     clickObject,
@@ -303,5 +348,8 @@ module.exports = {
   interceptor: {
     getRequestForCreatedRecord,
     getResponseForCreatedRecord,
+  },
+  gql:{
+    fetchPost, gqlCreateRecord, gqlEmptyRecord
   }
 };

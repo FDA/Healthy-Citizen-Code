@@ -6,8 +6,8 @@
     return {
       diagramFieldName: 'definition',
       nativeName: 'BPMN Processes',
-      jsUrl: APP_CONFIG.apiUrl + '/public/js/lib/bpmn-js/index.js',
-      cssUrl: APP_CONFIG.apiUrl + '/public/js/lib/bpmn-js/css/style.css',
+      jsUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/bpmn-js/index.js',
+      cssUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/bpmn-js/css/style.css',
       libName: 'BpmnJS',
       collectionName: 'bpmnProcesses',
       emptyDiagram: [

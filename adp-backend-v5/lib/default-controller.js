@@ -5,7 +5,7 @@ const DatatablesContext = require('./request-context/datatables/DatatablesContex
 const LookupContext = require('./request-context/datatables/LookupContext');
 const TreeSelectorContext = require('./request-context/datatables/TreeSelectorContext');
 
-const { getMongoDuplicateErrorMessage } = require('./util/util');
+const { getMongoDuplicateErrorMessage, getUrlWithoutPrefix } = require('./util/util');
 const { ValidationError, AccessError, InvalidTokenError, ExpiredTokenError, LinkedRecordError } = require('./errors');
 
 /**
@@ -13,7 +13,7 @@ const { ValidationError, AccessError, InvalidTokenError, ExpiredTokenError, Link
  * You can override default behavior with "controller" schema property (see the metaschema)
  * @returns {{}}
  */
-module.exports = appLib => {
+module.exports = (appLib) => {
   const { sendJavascript, getAppModelCode } = appLib.helperUtil;
   const controllerUtil = require('./default-controller-util')(appLib);
   const { accessUtil } = appLib;
@@ -96,7 +96,7 @@ module.exports = appLib => {
         const unauthorizedModel = accessUtil.getUnauthorizedAppModel(req);
         res.json({ success: true, data: unauthorizedModel });
       })
-      .catch(err => {
+      .catch((err) => {
         log.error(err.stack);
         res.status(500).json({
           success: false,
@@ -192,7 +192,7 @@ module.exports = appLib => {
    * @param next
    */
   m.getSchema = (req, res, next) => {
-    const path = req.url
+    const path = getUrlWithoutPrefix(req.url, appLib.API_PREFIX)
       .replace(/^\/schema\//, '')
       .replace(/.json$/, '')
       .split('/');
@@ -208,7 +208,7 @@ module.exports = appLib => {
       .catch(InvalidTokenError, ExpiredTokenError, () => {
         res.status(401).json({ success: false, message: 'Not authorized to get schema' });
       })
-      .catch(err => {
+      .catch((err) => {
         log.error(err.stack);
         res.status(500).json({
           success: false,
@@ -341,7 +341,7 @@ module.exports = appLib => {
   m.deleteItem = async (req, res, next) => {
     try {
       const context = await new DatatablesContext(appLib, req).init();
-      await appLib.dba.withTransaction(session => controllerUtil.deleteItem(context, session));
+      await appLib.dba.withTransaction((session) => controllerUtil.deleteItem(context, session));
       res.json({ success: true, id: req.params.id });
     } catch (e) {
       if (e instanceof ValidationError || e instanceof AccessError) {
@@ -351,8 +351,8 @@ module.exports = appLib => {
         return res.status(409).json({
           success: false,
           info: e.data
-            .filter(info => !info.isValidDelete)
-            .map(info => _.pick(info, ['linkedCollection', 'linkedLabel', 'linkedRecords'])),
+            .filter((info) => !info.isValidDelete)
+            .map((info) => _.pick(info, ['linkedCollection', 'linkedLabel', 'linkedRecords'])),
           message: e.message,
         });
       }
@@ -376,7 +376,7 @@ module.exports = appLib => {
       }
 
       const context = await new DatatablesContext(appLib, req).init();
-      await appLib.dba.withTransaction(session => controllerUtil.putItem(context, reqData, session));
+      await appLib.dba.withTransaction((session) => controllerUtil.putItem(context, reqData, session));
       res.json({ success: true, id: req.params.id });
     } catch (e) {
       if (e instanceof ValidationError) {
@@ -401,7 +401,7 @@ module.exports = appLib => {
         throw new ValidationError(`Incorrect request. Must have 'data' field in request body`);
       }
       const context = await new DatatablesContext(appLib, req).init();
-      const item = await appLib.dba.withTransaction(session => controllerUtil.postItem(context, reqBody, session));
+      const item = await appLib.dba.withTransaction((session) => controllerUtil.postItem(context, reqBody, session));
       res.json({ success: true, id: item._id });
     } catch (e) {
       if (e instanceof AccessError || e instanceof ValidationError) {

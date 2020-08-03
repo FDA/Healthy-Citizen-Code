@@ -1,6 +1,6 @@
 const { schemaComposer } = require('graphql-compose');
 const log = require('log4js').getLogger('graphql/treeselector-resolver');
-const RJSON = require('relaxed-json');
+const JSON5 = require('json5');
 const { handleGraphQlError, filterReviver } = require('../util');
 
 const validateFilterResolverName = 'validateFilter';
@@ -51,7 +51,7 @@ function getValidateFilterResolver() {
       let conditions;
       try {
         if (mongoQuery) {
-          conditions = RJSON.parse(mongoQuery, filterReviver);
+          conditions = JSON5.parse(mongoQuery, filterReviver);
         } else if (dxQuery) {
           const scheme = appLib.appModel.models[modelName];
           conditions = filterParser.parse(dxQuery, scheme).conditions;

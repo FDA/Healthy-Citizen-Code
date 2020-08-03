@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const mongoose = require('mongoose');
-const { getUrlParts, MONGO, updateSearchConditions } = require('../../util/util');
+const { getUrlParts, getUrlWithoutPrefix, MONGO, updateSearchConditions } = require('../../util/util');
 const { getLimit, getSkip } = require('../util');
 const BaseContext = require('../BaseContext');
 const ValidationError = require('../../errors/validation-error');
@@ -26,7 +26,7 @@ module.exports = class LookupContext extends BaseContext {
   }
 
   _getTableSpec() {
-    const urlParts = getUrlParts(this.req);
+    const urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.API_PREFIX));
     const [lookupId, tableName] = urlParts.slice(-2);
     if (!lookupId) {
       throw new ValidationError(`No lookup ID in the URL: ${this.req.url}`);

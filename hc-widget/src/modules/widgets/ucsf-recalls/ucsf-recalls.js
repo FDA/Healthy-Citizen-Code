@@ -23,8 +23,9 @@ export default class UcsfRecalls {
       })
       .catch((err) => {
         if (err instanceof ResponseError) {
-          showErrorToUser(err.message);
+          showErrorToUser(this.$el.get(0), err.message);
         }
+        showErrorToUser(this.$el.get(0), ResponseError.RECALLS_EMPTY);
         console.error(err);
       });
   }

@@ -3,31 +3,27 @@
 
   angular.module('app.adpDataExport').component('adpExportConfigModal', {
     template:
-      '<adp-form' +
-      '        class="login-form auth-form"' +
-      '        enable-selector="false"' +
-      '        adp-submit="vm.submit"' +
-      '        adp-fields="vm.fields"' +
-      '        adp-data="vm.data"' +
-      '        schema="vm.schema"' +
-      '        disable-fullscreen="true"' +
-      '>' +
+      '<adp-form ' +
+      '  args="vm.args"' +
+      '  form-options="vm.formOptions">' +
       '    <form-header>' +
       '        <h2 class="semi-bold">{{vm.data.name}}</h2>' +
       '    </form-header>' +
-      '' +
+
       '    <form-footer>' +
+            '<footer class="adp-action-b-container">' +
       '        <button' +
-      '                type="submit"' +
-      '                class="btn btn-primary">' +
-      '            Export' +
-      '        </button>' +
-      '        <button' +
-      '                class="btn btn-default"' +
+      '                class="adp-action-b-secondary"' +
       '                type="button"' +
       '                ng-click="vm.cancel()">' +
       '            Cancel' +
       '        </button>' +
+      '        <button' +
+      '                type="submit"' +
+      '                class="adp-action-b-primary">' +
+      '            Export' +
+      '        </button>' +
+            '</footer>' +
       '    </form-footer>' +
       '</adp-form>',
     bindings: {

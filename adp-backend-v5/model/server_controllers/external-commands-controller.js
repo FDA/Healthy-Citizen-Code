@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const log = require('log4js').getLogger('external-commands-controller');
 
-const { runExternalCommand, createExternalCommandQueue } = require('../../lib/queue/jobs/external-commands');
-const { getCreator } = require('../../lib/queue/jobs/util');
+const { runExternalCommand, createExternalCommandQueue } = require('../../lib/queue/background-jobs/external-commands');
+const { getCreator } = require('../../lib/queue/background-jobs/util');
 
 module.exports = () => {
   const m = {};

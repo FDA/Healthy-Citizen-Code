@@ -163,7 +163,9 @@
 
                   return  GridFiltersFactory.formatValue({args: args});
                 } else {
-                  return "[" + valueTypeEditors[typedValue.type].title + "] " + typedValue.value;
+                  return "[" + valueTypeEditors[typedValue.type].title + "] "
+                    + (typedValue.type === 'mongoExpression' ? '\n' : '')
+                    + typedValue.value;
                 }
              }
 
@@ -193,12 +195,12 @@
         } else {
           var options = {
             args: GridFilters.unifiedApproachArgs(event, schema),
-            schema: schema,
             dataField: event.dataField,
             filterOperation: event.filterOperation,
             onValueChanged: function (filterOptions) {
               event.setValue(filterOptions.value);
             },
+            closeEditor: event.closeEditor,
             //  placeholder: getPlaceholder(event, schema),
             parentType: event.parentType,
           };

@@ -6,8 +6,7 @@
 require('should');
 const assert = require('assert');
 const mongoose = require('mongoose');
-const request = require('supertest');
-const { prepareEnv, getMongoConnection } = require('../test-util');
+const { prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
 describe('V5 Backend Routes Functionality', function () {
   before(async function () {
@@ -28,7 +27,7 @@ describe('V5 Backend Routes Functionality', function () {
 
   describe('GET /lists', function () {
     it('responds with list of lists', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get('/lists')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)

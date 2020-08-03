@@ -5,7 +5,11 @@
     .module('app.adpForms')
     .directive('adpAce', adpAce);
 
-  function adpAce(PythonEditorMode) {
+  function adpAce(
+    PythonEditorMode,
+    Json5onEditorMode,
+    adpAceJshintOptions
+  ) {
     return {
       restrict: 'E',
       scope: {
@@ -29,15 +33,15 @@
           }
 
           editorsInstance = enableEditor();
-          setMode(config.mode);
           setOptions(editorsInstance, config);
           bindEvents(config.mode);
+          setMode(config.mode);
 
-          var initialValue = isJsonMode(config.mode) ?
-            JSON.stringify(ngModel.$viewValue, null, 4) :
-            ngModel.$viewValue;
-
-          editorsInstance.session.setValue(initialValue);
+          if (isJsonMode(config.mode)) {
+            (ngModel.$viewValue !== '') && editorsInstance.session.setValue(JSON5.stringify(ngModel.$viewValue, null, 4));
+          } else {
+            editorsInstance.session.setValue(ngModel.$viewValue);
+          }
         }
 
         function setHtmlForEditor() {
@@ -67,11 +71,17 @@
 
         function setMode(editorsMode) {
           var mode = editorsMode || 'ace/mode/python';
-          if (mode === 'ace/mode/python') {
-            mode = new PythonEditorMode();
-          }
 
-          editorsInstance.session.setMode(mode);
+          var modes = {
+            'ace/mode/python': PythonEditorMode,
+            'ace/mode/json5': Json5onEditorMode,
+          };
+          // ace caches session, { path, v } allows to force set mode
+          // details: https://stackoverflow.com/a/22175976/4575370
+          var defaultMode = { path: mode, v: Date.now() };
+
+          var selectedMode = !!modes[mode] ? (new modes[mode]()) : defaultMode;
+          editorsInstance.session.setMode(selectedMode);
         }
 
         function bindEvents(mode) {
@@ -88,14 +98,14 @@
               !scope.$$phase && !scope.$root.$$phase) {
               scope.$evalAsync(function () {
                 isJsonMode(mode) ?
-                  setJsonValue(ngModel, newValue) :
+                  setJsonValue(newValue) :
                   ngModel.$setViewValue(newValue);
               });
             }
           });
 
           // https://stackoverflow.com/a/10667290/4575370
-          session.on('changeAnnotation', function (){
+          session.on('changeAnnotation', function () {
             var valid = editor.getSession().getAnnotations().length === 0;
             ngModel.$setValidity('syntaxCodeEditorError', valid);
           });
@@ -103,16 +113,27 @@
           scope.$on('$destroy', function () {
             editor.destroy();
           });
+
+          session.on('changeMode', function () {
+            if ('ace/mode/javascript' !== session.getMode().$id) {
+              return;
+            }
+
+            session.$worker && session.$worker.send('setOptions', [adpAceJshintOptions]);
+          });
         }
 
         function isJsonMode(mode) {
-          return mode === 'ace/mode/json';
+          return mode === 'ace/mode/json5';
         }
-        function setJsonValue(mode, value) {
-          var parsed = _.attempt(function(jsonString) {
-            return JSON.parse(jsonString);
-          }, value);
 
+        function setJsonValue(value) {
+          if (!value) {
+            ngModel.$setViewValue(null);
+            return;
+          }
+
+          var parsed = _.attempt(JSON5.parse, value);
           if (_.isError(parsed)) {
             return;
           }

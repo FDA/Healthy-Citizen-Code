@@ -287,10 +287,15 @@ body.smart-style-5 .select2-choices .select2-search-field input {
 .auth-form .note { margin-top: 15px; }
 .auth-form .btn { margin: 10px 0 0 0; }
 
-.auth-form footer .btn {
-  float: none;
-  width: 60%;
-  max-width: 180px;
+.auth-form footer {
+  display: block;
+  padding: 7px 14px 15px;
+
+  .btn {
+    float: none;
+    width: 60%;
+    max-width: 180px;
+  }
 }
 
 .smart-style-5 .auth-form {
@@ -332,38 +337,44 @@ body.smart-style-5 .select2-choices .select2-search-field input {
 #auth-page  .separator-text:before { left: 100%; }
 #auth-page  .separator-text:after { right: 100%; }
 
-.auth-intro h1 {
-  font-weight: bold;
-  color: #0C506C;
+.auth-intro-well {
+  background-color: transparent;
+  border: 0;
+  box-shadow: none;
 }
 
-#auth-page .hero { background-position: 0 240px; }
+.auth-intro {
+  display: flex;
+
+  .adp-app-logo-container {
+    flex:0 0 auto;
+    padding-right: 20px;
+
+    .adp-app-logo {
+      max-height: 70px;
+    }
+  }
+
+  .adp-app-title-container {
+    flex: 1 1 auto;
+
+    .adp-app-title {
+      font-weight: bold;
+      color: #0C506C;
+    }
+
+    .adp-app-slogan {
+    }
+  }
+}
+
 #auth-page .login-desc-box-l { box-sizing: border-box; }
-#auth-page .display-image {
-  width: 50%;
-  box-sizing: border-box;
-  margin-right: 0;
-}
-
-#auth-page .auth-intro .paragraph-header {
-  width: auto;
-  margin: 15px 0;
-}
 
 .generator-loader { position: absolute; top: 50px; left: 10px; }
 .geo-loader {
   position: absolute; top: 0; left: 0;
   .fa { font-size: 20px; }
   &-text { font-size: 20px; }
-}
-
-.smart-form .smart-form-controls { padding: 0; }
-.smart-form-controls .btn {
-  float: left;
-  height: 31px;
-  margin: 10px;
-  padding: 0 22px;
-  font: 300 15px/29px 'Open Sans',Helvetica,Arial,sans-serif;
 }
 
 .single-record-form header { padding: 0; }
@@ -1190,6 +1201,12 @@ tree-selector[data-child] > div { margin-top: 10px; padding-left: 2%; }
     padding: 5px;
   }
 
+  .dx-datagrid-filter-row td {
+    padding-right: 5px;
+    padding-left: 10px;
+    vertical-align: middle;
+  }
+
   .dx-data-row > td {
     padding: 10px 5px 9px 5px;
     vertical-align: top;
@@ -1199,7 +1216,6 @@ tree-selector[data-child] > div { margin-top: 10px; padding-left: 2%; }
     }
   }
 }
-
 .dx-datagrid-content .dx-datagrid-table .dx-row .dx-editor-cell {
   padding: 0;
   overflow:hidden;
@@ -1544,10 +1560,15 @@ overflow: scroll;
     margin-left: -9px;
   }
 
-  .adp-number-array {
-    &.ng-not-empty .dx-placeholder { display: none!important; }
-    .dx-dropdowneditor-field-template-wrapper { padding: 0; }
+  footer .form-footer-link {
+    box-shadow: none;
+    padding: 0 8px;
   }
+}
+
+.adp-number-array {
+  &.not-empty .dx-placeholder { display: none!important; }
+  .dx-dropdowneditor-field-template-wrapper { padding: 0; }
 }
 
 .dx-toolbar .dx-toolbar-items-container > div {
@@ -1641,6 +1662,8 @@ overflow: scroll;
 .adp-session-expired-modal {
   pointer-events: none;
 
+  .adp-action-b-primary:first-child { margin: auto !important; }
+
   .modal-dialog {
     pointer-events: auto;
     width: 250px !important;
@@ -1653,6 +1676,10 @@ overflow: scroll;
     .modal-content {
       background-color: rgb(196, 106, 105);
       color: white;
+    }
+
+    .modal-header, .modal-footer {
+      background-color: transparent;
     }
 
     .btn-primary {
@@ -1703,9 +1730,22 @@ overflow: scroll;
     display: none !important;
   }
 
-  .dx-filterbuilder-item-value > div {
-    display: flex;
-    align-items: flex-start;
+  .dx-filterbuilder-item-value {
+    max-width: calc(100% - 39px);
+
+    > div {
+      display: flex;
+      align-items: flex-start;
+      flex-wrap: wrap;
+    }
+  }
+
+  .dx-filterbuilder-text {
+    flex: 1 0 auto;
+  }
+
+  .dx-filterbuilder-item-value-text {
+    word-break: break-word;
   }
 }
 
@@ -1713,7 +1753,7 @@ overflow: scroll;
   display: inline-block !important;
 }
 
-.adp-toolbar-highlighted .dx-menu-item-content {
+.adp-toolbar-highlighted:not(.dx-overlay-content) .dx-menu-item-content {
   background-color: #2196F3;
   border-radius: 7px;
 
@@ -1722,49 +1762,33 @@ overflow: scroll;
   }
 }
 
+.dx-filterbuilder .dx-filterbuilder-group .dx-filterbuilder-group-item .dx-filterbuilder-item-field,
+.dx-filterbuilder .dx-filterbuilder-group .dx-filterbuilder-group-item .dx-filterbuilder-item-operation {
+  flex-shrink: 0;
+}
+
 .adp-mongo-expression-box {
-  position:relative;
+  position: relative;
   min-height: 50px;
-  width: 500px;
+  margin: 5px 0;
+  flex: 1 0 auto;
+  width: 100%;
 
   .adp-mongo-editor {
-    width:100%;
-    height:100%;
+    width: 100%;
+    height: 100%;
+    border-radius: 5px;
   }
 
   .adp-mongo-validation {
-    position:absolute;
-    top:100%;
-    right:0;
+    position: absolute;
+    top: 100%;
+    left: 0;
 
     color: #f44336;
-    font-size:11px;
-    padding:3px;
-    border-radius:3px;
-
-    &.adp-is-invalid {
-      &:after {
-        background-color: #f44336;
-        color:white;
-
-        pointer-events: none;
-        position: absolute;
-
-        bottom: 100%;
-        right:0;
-        margin:3px;
-
-        width: 16px;
-        height: 16px;
-        text-align: center;
-        line-height: 17px;
-        font-size: 13px;
-        font-weight: 500;
-
-        content: '!';
-        border-radius: 50%;
-      }
-    }
+    font-size: 11px;
+    padding: 0 3px 3px 3px;
+    border-radius: 3px;
   }
 }
 
@@ -1787,6 +1811,7 @@ overflow: scroll;
       top: 2px;
       border: 1px solid #9e9e9e;
     }
+
     .dx-switch-handle {
       border: 1px solid #9e9e9e;
     }
@@ -1804,7 +1829,7 @@ overflow: scroll;
 
   .dx-switch-off {
     opacity: 1;
-    padding-left:3px;
+    padding-left: 3px;
   }
 
   &.dx-switch-on-value {
@@ -1826,7 +1851,79 @@ overflow: scroll;
   }
 }
 
-.adp-blank-field-container{
+.adp-blank-field-container {
   min-height: 57px;
   display: block;
+}
+
+.adp-toolbar-action-create {
+  margin-left: 10px;
+}
+
+.dx-datagrid-search-panel {
+  margin: 0;
+}
+
+.dx-toolbar-after, .dx-toolbar-before, .dx-toolbar-center {
+  display: flex;
+  align-items: center;
+  padding: 0 !important;
+}
+
+.dx-toolbar-after {
+  padding-right: 5px;
+}
+
+.dx-toolbar-before {
+  max-width: 45% !important;
+}
+
+.dx-datagrid-header-panel {
+  padding: 0 !important;
+}
+
+.dx-datagrid-search-panel {
+  width: 100% !important;
+  min-width: 100px;
+}
+
+.dx-toolbar-item {
+  flex: 0 1 auto;
+
+  &.adp-toolbar-action-create {
+    flex: 0 0;
+  }
+
+  &.adp-toolbar-action-group {
+    overflow: hidden;
+  }
+}
+
+.adp-row-insert-cancel {
+  background-color: pink;
+  cursor: pointer;
+  position: fixed;
+  bottom: 50px;
+  right: 50px;
+  padding: 10px;
+  border-radius: 5px;
+  box-shadow: 2px 2px 4px gray;
+}
+
+@grid-control-table-border: 1px solid #e5e5e5;
+
+table.adp-grid-control-table {
+  border: @grid-control-table-border;
+  border-collapse: collapse;
+  width: 100%;
+
+  & th, & td {
+    border: @grid-control-table-border;
+    padding: 2px 4px;
+    text-align: center;
+  }
+
+  & th {
+    background-color: #f0f0f0;
+  }
 }

@@ -14,8 +14,19 @@
     .service('AdpAuthSchemas', AdpAuthSchemas);
 
   /** @ngInject */
-  function AdpAuthSchemas() {
-    function login() {
+  function AdpAuthSchemas(AdpUnifiedArgs) {
+    var AUTH_ACTIONS = {
+      LOGIN: 'login',
+      REGISTER: 'register',
+      FORGOT_PASSWORD: 'forgotPassword',
+      RESET_PASSWORD: 'resetPassword',
+      UPDATE_PASSWORD: 'updatePassword',
+    }
+    function loginArgs() {
+      return getArgs(AUTH_ACTIONS.LOGIN, loginSchema());
+    }
+
+    function loginSchema() {
       var password = getPasswordModelField();
       removeRegexValidator(password);
       var loginField = getModelField('login');
@@ -32,7 +43,11 @@
       }
     }
 
-    function register() {
+    function registrationArgs() {
+      return getArgs(AUTH_ACTIONS.REGISTER, registrationSchema());
+    }
+
+    function registrationSchema() {
       return {
         type: 'Schema',
         fields: {
@@ -45,7 +60,11 @@
       }
     }
 
-    function forgot() {
+    function forgotPasswordArgs() {
+      return getArgs(AUTH_ACTIONS.FORGOT_PASSWORD, forgotPasswordSchema());
+    }
+
+    function forgotPasswordSchema() {
       return {
         type: 'Schema',
         fields: {
@@ -55,7 +74,11 @@
       }
     }
 
-    function reset() {
+    function resetPasswordArgs() {
+      return getArgs(AUTH_ACTIONS.RESET_PASSWORD, resetPasswordSchema());
+    }
+
+    function resetPasswordSchema() {
       return {
         type: 'Schema',
         fields: {
@@ -65,7 +88,11 @@
       }
     }
 
-    function password() {
+    function passwordUpdateArgs() {
+      return getArgs(AUTH_ACTIONS.UPDATE_PASSWORD, passwordUpdateSchema());
+    }
+
+    function passwordUpdateSchema() {
       var password = getPasswordModelField();
       removeRegexValidator(password);
 
@@ -76,6 +103,15 @@
           passwordConfirmation: getPasswordConfirmation(),
         }
       }
+    }
+
+    function getArgs(action, schema) {
+      return AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: '',
+        action: action,
+        schema: schema,
+        formData: null,
+      });
     }
 
     function getModelField(fieldName) {
@@ -128,6 +164,7 @@
       var field = {
         type: 'Recaptcha',
         fullName: 'Recaptcha',
+        fieldName: 'recaptcha',
         showInForm: true,
         required: true,
       };
@@ -145,11 +182,12 @@
     }
 
     return {
-      login: login,
-      register: register,
-      password: password,
-      forgot: forgot,
-      reset:reset
+      loginArgs: loginArgs,
+      registrationArgs: registrationArgs,
+      resetPasswordArgs: resetPasswordArgs,
+      forgotPasswordArgs: forgotPasswordArgs,
+      passwordUpdateArgs: passwordUpdateArgs,
+      actions: AUTH_ACTIONS,
     }
   }
 })();

@@ -2,7 +2,7 @@
   angular
     .module('app.adpForms')
     .constant('GRID_CONTROL_ACTIONS', {
-      'view': {
+  /*    'view': {
         'showInTable': false
       },
       'group': {
@@ -24,20 +24,6 @@
         },
         '__name': 'search'
       },
-      'export': {
-        'position': 'grid.top.right',
-        'showInTable': false,
-        'description': 'Export collection',
-        'icon': {
-          'type': 'font-awesome',
-          'link': 'download'
-        },
-        'action': {
-          'type': 'module',
-          'link': 'AdpDataExport'
-        },
-        '__name': 'export'
-      },
       'syntheticGenerate': {
         'position': 'grid.top.right',
         'showInTable': false,
@@ -51,6 +37,20 @@
           'link': 'AdpSyntheticGenerate'
         },
         '__name': 'syntheticGenerate'
+      },*/
+      'export': {
+        'position': 'grid.top.right',
+        'showInTable': false,
+        'description': 'Export collection',
+        'icon': {
+          'type': 'font-awesome',
+          'link': 'download'
+        },
+        'action': {
+          'type': 'module',
+          'link': 'AdpDataExport'
+        },
+        '__name': 'export'
       },
       'chooseColumns': {
         'position': 'grid.top.right',

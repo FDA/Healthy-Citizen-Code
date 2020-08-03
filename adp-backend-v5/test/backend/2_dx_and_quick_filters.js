@@ -1,8 +1,13 @@
-const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
-const { getMongoConnection, setAppAuthOptions, prepareEnv, conditionForActualRecord } = require('../test-util');
+const {
+  getMongoConnection,
+  setAppAuthOptions,
+  prepareEnv,
+  conditionForActualRecord,
+  apiRequest,
+} = require('../test-util');
 const { buildGraphQlDxQuery } = require('../graphql-util.js');
 
 describe('V5 Backend DevExtreme and Quick Filter Support', function () {
@@ -64,7 +69,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', function () {
 
   describe('Filtering', function () {
     it('should filter with Quick Filter', async function () {
-      const res = await request(this.appLib.app)
+      const res = await apiRequest(this.appLib.app)
         .post('/graphql')
         .send(buildGraphQlDxQuery(modelName, undefined, quickFilterId, `items { _id, n, d }`))
         .set('Accept', 'application/json')
@@ -93,7 +98,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', function () {
     });
 
     it('should filter with DevExtreme filter', async function () {
-      const res = await request(this.appLib.app)
+      const res = await apiRequest(this.appLib.app)
         .post('/graphql')
         .send(buildGraphQlDxQuery(modelName, dxQuery, undefined, `items { _id, n, d }`))
         .set('Accept', 'application/json')
@@ -122,7 +127,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', function () {
     });
 
     it('should filter with DevExtreme and Quick Filters combined', async function () {
-      const res = await request(this.appLib.app)
+      const res = await apiRequest(this.appLib.app)
         .post('/graphql')
         .send(buildGraphQlDxQuery(modelName, dxQuery, quickFilterId, `items { _id, n, d }`))
         .set('Accept', 'application/json')
@@ -150,7 +155,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', function () {
   // describe('Quick Filter record saving', function () {
   //   it('should not create a quick filter record on invalid filter field', async function() {
   //     const newQuickFilter = { name: '1', model: modelName, filter: '{ "n": { "$ft": 1 }}' };
-  //     const res = await request(this.appLib.app)
+  //     const res = await apiRequest(this.appLib.app)
   //       .post('/graphql')
   //       .send(buildGraphQlCreate(quickFiltersModelName, newQuickFilter))
   //       .set('Accept', 'application/json')
@@ -168,7 +173,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', function () {
   //
   //   it('should not create a quick filter record on invalid model field', async function() {
   //     const newQuickFilter = { name: '1', model: 'not_existing_model', filter: '{ "n": { "$gt": 1 }}' };
-  //     const res = await request(this.appLib.app)
+  //     const res = await apiRequest(this.appLib.app)
   //       .post('/graphql')
   //       .send(buildGraphQlCreate(quickFiltersModelName, newQuickFilter))
   //       .set('Accept', 'application/json')
@@ -186,7 +191,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', function () {
   //
   //   it('should create a quick filter record with correct data', async function() {
   //     const newQuickFilter = { name: '1', model: modelName, filter: '{ "n": { "$gt": 1 }}' };
-  //     const res = await request(this.appLib.app)
+  //     const res = await apiRequest(this.appLib.app)
   //       .post('/graphql')
   //       .send(buildGraphQlCreate(quickFiltersModelName, newQuickFilter))
   //       .set('Accept', 'application/json')
@@ -208,7 +213,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', function () {
     });
 
     it('should get items and count', async function () {
-      const res = await request(this.appLib.app)
+      const res = await apiRequest(this.appLib.app)
         .post('/graphql')
         .send(query('items count'))
         .set('Accept', 'application/json')

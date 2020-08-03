@@ -1,0 +1,30 @@
+<footer class="adp-action-b-container">
+    <button
+            ng-repeat-start="(name, action) in actions"
+            ng-if="visibleGetter(action) && ['module', 'action'].includes(action.action.type)"
+            ng-class="[action.className]"
+            data-actions-name="{{name}}"
+            ng-click="execFormAction(action, name)"
+            ng-attr-style="{{action.htmlAttributes.style}}"
+            ng-attr-type="{{action.htmlAttributes.type}}"
+            ng-attr-title="{{action.description}}"
+    >
+        <span ng-if="hasIcon(action)" ng-bind-html="getIcon(action.icon)"></span>
+        <span ng-if="hasFullName(action)">{{ fullNameGetter(action) }}</span>
+    </button>
+
+    <a
+            ng-repeat-end
+            ng-if="action.action.type === 'link' && visibleGetter(action)"
+            ng-href="{{action.action.link}}"
+            target="_blank"
+            ng-class="[action.className]"
+            data-actions-name="{{name}}"
+            ng-attr-style="{{action.htmlAttributes.style}}"
+            ng-attr-type="{{action.htmlAttributes.type}}"
+            ng-attr-title="{{action.description}}"
+    >
+        <span ng-if="hasIcon(action)" ng-bind-html="getIcon(action.icon)"></span>
+        <span ng-if="hasFullName(action)">{{ fullNameGetter(action) }}</span>
+    </a>
+</footer>

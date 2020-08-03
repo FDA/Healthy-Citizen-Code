@@ -2,7 +2,7 @@ const _ = require('lodash');
 const { createFilter } = require('../../../lib/filter/util');
 
 function number() {
-  const type = _.get(this.modelSchema, `${this.path}.type`, '');
+  const type = _.get(this.fieldSchema, 'type', '');
   const { fieldPath, value } = this.data;
   let eqCondition;
   if (type.endsWith('[]') && value === null) {

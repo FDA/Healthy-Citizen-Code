@@ -114,13 +114,21 @@ module.exports = function () {
         if (ignoredFields.includes(fieldName.toLowerCase()) || !fieldSchema || val === undefined || val == null) {
           return;
         }
-        const label = val.fullName || _.startCase(fieldName);
+        let value;
 
         if (fieldName === 'type') {
-          annotations[label] = val.name;
+          value = val.name;
         } else {
-          annotations[label] = commons.getVal(obj, fieldName, schema);
+          value = commons.getVal(obj, fieldName, schema);
         }
+
+        if (!value && value !== 0) {
+          return;
+        }
+
+        const label = fieldSchema.fullName || _.startCase(fieldName);
+
+        annotations[label] = value;
       });
 
       return annotations;

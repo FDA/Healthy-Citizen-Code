@@ -24,7 +24,7 @@
         apply: doApply,
       };
       var menuComponent = null;
-      var savedList = [];
+      var cachedList = null;
 
       return {
         dataSource: getMenuDataSource(),
@@ -38,11 +38,10 @@
       function onInit(e) {
         menuComponent = e.component;
         customGridOptions.setHandler('change', 'quickFilterId', onFilterIdChange);
-        doLoadList();
       }
 
-      function onFilterIdChange() {
-        updateMenu(savedList);
+      function onFilterIdChange(newId) {
+        updateMenu(cachedList);
       }
 
       function doApply(itemData) {
@@ -56,15 +55,15 @@
       function setUserData(val) {
         var store = gridComponent.getDataSource();
 
+        updateMenu(cachedList);
         customGridOptions.value('quickFilterId', val || '');
-        updateMenu(savedList);
 
         store.reload();
       }
 
       function doLoadList() {
-        loadFilters(schema).then(function (list) {
-          savedList = list;
+        return loadFilters(schema).then(function (list) {
+          cachedList = list;
           updateMenu(list);
         });
       }
@@ -74,7 +73,7 @@
           dataSource: getMenuDataSource(list),
         });
 
-        AdpClientCommonHelper.highlightToolbarButton(menuComponent.element(), customGridOptions.value('quickFilterId'))
+        AdpClientCommonHelper.highlightToolbarButton(menuComponent, customGridOptions.value('quickFilterId'))
       }
 
       function onItemClick(e) {
@@ -82,14 +81,23 @@
 
         if (action && menuActions[action]) {
           menuActions[action](e.itemData);
+        } else {
+          if (!cachedList) {
+            doLoadList().then(function(){
+            $(e.element)
+              .find('.dx-menu-item')
+              .eq(0)
+              .trigger('dxclick');
+            });
+          }
         }
 
         return true;
       }
 
-      function getMenuDataSource(savedList) {
-        var menuItems = savedList
-          ? _.map(savedList, function (item) {
+      function getMenuDataSource(cachedList) {
+        var menuItems = cachedList
+          ? _.map(cachedList, function (item) {
               return {
                 name: item.name,
                 _id: item._id,

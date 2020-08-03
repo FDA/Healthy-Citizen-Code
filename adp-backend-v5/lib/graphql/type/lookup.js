@@ -18,57 +18,90 @@ const baseLookupFields = {
   label: 'String', // it's not required since backend will set correct label automatically
 };
 
-function getInputLookupType(lookupId, tablesSpec) {
-  const enumName = `${lookupId}_Enum`;
-  const tableNames = Object.keys(tablesSpec);
+function getLookupDataType(tableSpec, typeName) {
+  if (_.isEmpty(tableSpec.data)) {
+    return null;
+  }
+  // since we cannot determine type by js expression - set it to Anything
+  const dataFields = {};
+  _.each(tableSpec.data, (val, key) => {
+    dataFields[key] = AnythingType;
+  });
+  return schemaComposer.createObjectTC({ name: typeName, fields: dataFields });
+}
+
+function getInputLookupType(lookupId, tablesSpec, isTreeSelector) {
   const typeName = `Input${lookupId}`;
-  return schemaComposer.has(typeName)
-    ? schemaComposer.get(typeName)
-    : schemaComposer.createInputTC({
-        name: typeName,
-        fields: { ...baseLookupFields, table: getOrCreateEnum(enumName, tableNames).getTypeNonNull() },
-      });
+  if (schemaComposer.has(typeName)) {
+    return schemaComposer.get(typeName);
+  }
+
+  const enumName = `${lookupId}_Enum`;
+  const tableNames = _.keys(tablesSpec);
+  const config = {
+    name: typeName,
+    fields: {
+      ...baseLookupFields,
+      table: getOrCreateEnum(enumName, tableNames).getTypeNonNull(),
+    },
+  };
+
+  // Input Union is not implemented but is supported by RFC - https://github.com/graphql/graphql-spec/issues/488
+  // This is why Input type 'data' field contains all 'data' fields among all tables
+  const dataFields = {};
+  _.each(tablesSpec, (tableSpec) => {
+    _.each(_.keys(tableSpec.data), (key) => {
+      dataFields[key] = AnythingType;
+    });
+  });
+  if (!_.isEmpty(dataFields)) {
+    const dataCombinedTypeName = `${lookupId}_input_data`;
+    config.fields.data = schemaComposer.createInputTC({ name: dataCombinedTypeName, fields: dataFields });
+  }
+
+  if (isTreeSelector) {
+    config.fields.isLeaf = 'Boolean';
+  }
+  return schemaComposer.createInputTC(config);
 }
 
 function getOutputLookupType(lookupId, tablesSpec, modelName, fieldPath, isTreeSelector) {
-  const modelWithPath = `${modelName}_${fieldPath.join('_')}`;
-  if (schemaComposer.has(modelWithPath)) {
-    return schemaComposer.get(modelWithPath);
+  const fieldTypeName = `${modelName}_${fieldPath.join('_')}`;
+  if (schemaComposer.has(fieldTypeName)) {
+    return schemaComposer.get(fieldTypeName);
   }
 
   const tableLookupTypes = [];
   _.each(tablesSpec, (tableSpec, tableName) => {
-    const typeName = isTreeSelector
+    const tableTypeName = isTreeSelector
       ? getTreeselectorTypeName(lookupId, tableName)
       : getLookupTypeName(lookupId, tableName);
-    if (schemaComposer.has(typeName)) {
-      return tableLookupTypes.push(schemaComposer.get(typeName));
+    if (schemaComposer.has(tableTypeName)) {
+      return tableLookupTypes.push(schemaComposer.get(tableTypeName));
     }
 
     const config = {
-      name: typeName,
+      name: tableTypeName,
       fields: { ...baseLookupFields, table: 'String' },
     };
     if (isTreeSelector) {
       config.fields.isLeaf = 'Boolean';
     }
-    if (!_.isEmpty(tableSpec.data)) {
-      // since we cannot determine type by js expression - set it to Anything
-      const dataFields = {};
-      _.each(tableSpec.data, (val, key) => {
-        dataFields[key] = AnythingType;
-      });
-      const lookupWithTable = `${lookupId}_${tableName}`;
-      config.fields.data = schemaComposer.createObjectTC({ name: `${lookupWithTable}_data`, fields: dataFields });
+
+    const dataTypeName = `${lookupId}_${tableName}_data`;
+    const dataType = getLookupDataType(tableSpec, dataTypeName);
+    if (dataType) {
+      config.fields.data = dataType;
     }
+
     tableLookupTypes.push(schemaComposer.createObjectTC(config));
   });
 
   if (tableLookupTypes.length === 1) {
-    return tableLookupTypes[0].clone(modelWithPath);
+    return tableLookupTypes[0].clone(fieldTypeName);
   }
   return schemaComposer.createUnionTC({
-    name: modelWithPath,
+    name: fieldTypeName,
     types: tableLookupTypes,
     resolveType(value) {
       return getLookupTypeName(lookupId, value.table);
@@ -78,17 +111,19 @@ function getOutputLookupType(lookupId, tablesSpec, modelName, fieldPath, isTreeS
 
 function getLookupType(lookupSpec, modelName, fieldPath, composerType) {
   const { id: lookupId, table: tablesSpec } = lookupSpec.lookup;
+  const isTreeSelector = false;
   return isInputType(composerType)
-    ? getInputLookupType(lookupId, tablesSpec)
-    : getOutputLookupType(lookupId, tablesSpec, modelName, fieldPath, false);
+    ? getInputLookupType(lookupId, tablesSpec, isTreeSelector)
+    : getOutputLookupType(lookupId, tablesSpec, modelName, fieldPath, isTreeSelector);
 }
 
 function getTreeSelectorType(treeselectorSpec, modelName, fieldPath, composerType) {
   const lookupId = treeselectorSpec.table.id;
   const tablesSpec = _.omit(treeselectorSpec.table, ['id']);
+  const isTreeSelector = true;
   return isInputType(composerType)
-    ? getInputLookupType(lookupId, tablesSpec).getTypePlural()
-    : getOutputLookupType(lookupId, tablesSpec, modelName, fieldPath, true).getTypePlural();
+    ? getInputLookupType(lookupId, tablesSpec, isTreeSelector).getTypePlural()
+    : getOutputLookupType(lookupId, tablesSpec, modelName, fieldPath, isTreeSelector).getTypePlural();
 }
 
 module.exports = {

@@ -1,7 +1,6 @@
 // TODO: add tests for multiple tables
 // TODO: add tests for default foreignKey
 
-const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
@@ -12,6 +11,7 @@ const {
   checkRestSuccessfulResponse,
   conditionForActualRecord,
   sortByIdDesc,
+  apiRequest,
 } = require('../test-util');
 const {
   buildGraphQlCreate,
@@ -100,7 +100,7 @@ describe('V5 TreeSelectors', function () {
 
       async function f() {
         const { makeRequest, checkResponse, checkData, getData } = settings;
-        const req = makeRequest(request(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib.app));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -327,7 +327,7 @@ describe('V5 TreeSelectors', function () {
 
         async function f() {
           const { makeRequest, checkResponse, getCreatedDocId } = settings;
-          const req = makeRequest(request(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib.app));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }
@@ -380,7 +380,7 @@ describe('V5 TreeSelectors', function () {
 
         async function f() {
           const { makeRequest, checkResponse } = settings;
-          const req = makeRequest(request(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib.app));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }

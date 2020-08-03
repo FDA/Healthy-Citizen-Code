@@ -5,6 +5,7 @@
     "backgroundJobs": {
       "type": "Schema",
       "fullName": "Background Jobs",
+      "singleRecordName": "Background Job",
       "actions": {
         // Specified permissions are accessAsAnyone just to make it appear in app-model
         // These actions are necessary for frontend to correctly show actions (custom actions included)
@@ -26,7 +27,8 @@
           },
           "view": {
             "permissions": "accessAsAnyone"
-          }
+          },
+          "group": false,
         }
       },
       "scopes": {

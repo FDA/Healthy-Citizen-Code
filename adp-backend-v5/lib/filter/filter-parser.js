@@ -1,20 +1,25 @@
 const _ = require('lodash');
-const RJSON = require('relaxed-json');
+const JSON5 = require('json5');
 const ejs = require('ejs');
 const { ObjectID } = require('mongodb');
 const log = require('log4js').getLogger('filter/filter-parser');
 const { ValidationError } = require('../errors');
+const { getSchemaPathByFieldPath } = require('../util/unified-approach');
 
 module.exports = (appLib) => {
   const m = {};
 
   function getFilterForField(fieldPath, operation, value, scheme, wholeFilter, meta) {
-    const schemePath = getSchemePathByFieldPath(fieldPath);
-    const fieldType = _.get(scheme, `${schemePath}.type`);
+    const schemaPath = getSchemaPathByFieldPath(fieldPath);
+    const fieldSchema = _.get(scheme, schemaPath);
+    if (!fieldSchema) {
+      throw new ValidationError(`Unable to find field by path '${fieldPath}'.`);
+    }
+    const fieldType = fieldSchema.type;
     if (fieldType.endsWith('[]')) {
       meta.hasArrayFieldInFilter = true;
     }
-    const filterName = getFieldFilter(scheme, schemePath);
+    const filterName = getFieldFilter(scheme, schemaPath);
     if (!filterName) {
       throw new ValidationError(`Unable to find filter for field by path '${fieldPath}'.`);
     }
@@ -23,13 +28,15 @@ module.exports = (appLib) => {
       appLib,
       row: wholeFilter,
       modelSchema: scheme,
+      fieldSchema,
       data: {
         fieldPath,
         operation,
         value,
       },
       action: 'view',
-      path: schemePath,
+      path: fieldPath,
+      schemaPath,
     };
 
     return getFilterFromMetaschema(filterName, context);
@@ -39,27 +46,6 @@ module.exports = (appLib) => {
         return 'objectId';
       }
       return _.get(_scheme, `${_schemePath}.filter`);
-    }
-
-    /**
-     * Get full path in app scheme including '.fields.'
-     * @param _fieldPath - does not include '.fields.' in path
-     * @returns {string}
-     */
-    function getSchemePathByFieldPath(_fieldPath) {
-      const parts = _fieldPath.split('.');
-      const _schemePath = ['fields'];
-      _.each(parts, (part) => {
-        const isArrIndexPart = /^\d+$/.test(part);
-        if (!isArrIndexPart) {
-          _schemePath.push(part);
-          _schemePath.push('fields');
-        }
-      });
-      // pop last 'fields' elem
-      _schemePath.pop();
-
-      return _schemePath.join('.');
     }
   }
 
@@ -107,14 +93,11 @@ module.exports = (appLib) => {
     }
     if (_.isString(expression)) {
       try {
-        expression = RJSON.parse(expression);
+        expression = JSON5.parse(expression);
       } catch (e) {
         log.error(`Invalid expression string, must be parsable as object. ${e.message}`);
         throw new ValidationError(`Invalid expression string.`);
       }
-    }
-    if (!_.isPlainObject(expression)) {
-      throw new ValidationError(`Invalid expression type.`);
     }
 
     const typeToFilter = {
@@ -130,6 +113,10 @@ module.exports = (appLib) => {
   }
 
   function getFilterForMongoExpression(expression) {
+    if (!_.isPlainObject(expression)) {
+      throw new ValidationError(`Invalid expression.`);
+    }
+
     return expression;
   }
 
@@ -218,7 +205,7 @@ module.exports = (appLib) => {
       let expression;
       try {
         // string expr as array
-        expression = RJSON.parse(expr);
+        expression = JSON5.parse(expr);
       } catch (e) {
         // simple string or Array type
         expression = expr;

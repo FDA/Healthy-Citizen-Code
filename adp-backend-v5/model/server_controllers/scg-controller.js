@@ -1,8 +1,8 @@
 const _ = require('lodash');
 const log = require('log4js').getLogger('scg-controller');
 
-const { createScgQueue, runScg } = require('../../lib/queue/jobs/scg');
-const { getCreator } = require('../../lib/queue/jobs/util');
+const { createScgQueue, runScg } = require('../../lib/queue/background-jobs/scg');
+const { getCreator } = require('../../lib/queue/background-jobs/util');
 
 module.exports = () => {
   const m = {};

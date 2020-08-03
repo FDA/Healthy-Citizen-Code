@@ -16,7 +16,7 @@ export default class drugsVisualization {
       .then(linkDrugs)
       .then(linkedData => this.createWidget(linkedData))
       .catch(err => {
-        showErrorToUser(ResponseError.RESPONSE_EMPTY);
+        showErrorToUser(node, ResponseError.RESPONSE_EMPTY);
         console.error(err);
       });
   }

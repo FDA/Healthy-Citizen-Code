@@ -1,4 +1,3 @@
-const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
@@ -8,6 +7,7 @@ const {
   prepareEnv,
   checkRestSuccessfulResponse,
   conditionForActualRecord,
+  apiRequest,
 } = require('../test-util');
 const {
   buildGraphQlUpdateOne,
@@ -124,7 +124,7 @@ describe('V5 Backend Lookups Backpropagation (nested)', function () {
 
         async function f() {
           const { makeRequest, checkResponse, checkLookupPropagation } = settings;
-          const req = makeRequest(request(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib.app));
 
           const res = await req.set('Accept', 'application/json').expect('Content-Type', /json/);
           checkResponse(res);
@@ -196,7 +196,7 @@ describe('V5 Backend Lookups Backpropagation (nested)', function () {
 
         async function f() {
           const { makeRequest, checkResponse } = settings;
-          const req = makeRequest(request(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib.app));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }
@@ -253,11 +253,11 @@ describe('V5 Backend Lookups Backpropagation (nested)', function () {
         async function f() {
           const { putRequest, checkPutResponse, delRequest, checkDelResponse } = settings;
 
-          const putRes = await putRequest(request(this.appLib.app))
+          const putRes = await putRequest(apiRequest(this.appLib.app))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkPutResponse(putRes);
-          const delRes = await delRequest(request(this.appLib.app))
+          const delRes = await delRequest(apiRequest(this.appLib.app))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkDelResponse(delRes);
@@ -312,12 +312,12 @@ describe('V5 Backend Lookups Backpropagation (nested)', function () {
         async function f() {
           const { delDocRequest, checkDelDocResponse, delLookupRequest, checkDelLookupResponse } = settings;
 
-          const delRes = await delDocRequest(request(this.appLib.app))
+          const delRes = await delDocRequest(apiRequest(this.appLib.app))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkDelDocResponse(delRes);
 
-          const delLookupRes = await delLookupRequest(request(this.appLib.app))
+          const delLookupRes = await delLookupRequest(apiRequest(this.appLib.app))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkDelLookupResponse(delLookupRes);

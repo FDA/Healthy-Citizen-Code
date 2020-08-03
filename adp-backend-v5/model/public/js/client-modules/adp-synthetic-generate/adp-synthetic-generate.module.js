@@ -23,6 +23,7 @@
             cssClass: 'adp-toolbar-menu grid-view-menu',
             onItemClick: function () {
               doOpenGenerator(schema, gridComponent);
+              AdpClientCommonHelper.repaintToolbar(gridComponent);
             },
           },
         };

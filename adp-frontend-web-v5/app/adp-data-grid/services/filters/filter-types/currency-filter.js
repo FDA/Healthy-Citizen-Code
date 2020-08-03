@@ -36,10 +36,10 @@
             valueChangeEvent: 'blur input',
             placeholder: init.placeholder,
             inputAttr: {
-              autocomplete: AdpFieldsService.autocompleteValue(init.args.modelSchema),
+              autocomplete: AdpFieldsService.autocompleteValue(init.args.fieldSchema),
             },
             showSpinButtons: true,
-            format: _.get(init, 'args.modelSchema.parameters.format', DX_ACCOUNTING_FORMAT),
+            format: _.get(init, 'args.fieldSchema.parameters.format', DX_ACCOUNTING_FORMAT),
           }
         },
       });

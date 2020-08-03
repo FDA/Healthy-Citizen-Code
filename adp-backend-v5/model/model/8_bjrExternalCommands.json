@@ -50,12 +50,14 @@
         },
         "description": {
           "type": "String",
-          "description": "What this command is used for"
+          "description": "What this command is used for",
+          "width": null
         },
         "command": {
           "type": "String",
           "description": "Command itself",
-          "required": true
+          "required": true,
+          "width": null
         },
         "progressRegex": {
           "type": "String"

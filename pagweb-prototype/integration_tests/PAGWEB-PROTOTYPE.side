@@ -1,0 +1,1603 @@
+{
+  "id": "7d597465-ef24-4539-880a-de568b7db0f2",
+  "version": "2.0",
+  "name": "PAGWEB-PROTOTYPE",
+  "url": "https://pagweb-prototype-demo.conceptant.com/",
+  "tests": [{
+    "id": "55d5bf2d-4522-43d5-9b1e-32c4da77f669",
+    "name": "Login with valid credentials",
+    "commands": [{
+      "id": "8e89ca06-8448-440a-ab0f-3ee57aba72b8",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "6fc3436e-4512-4137-a5ee-47ad6ac6f757",
+      "comment": "",
+      "command": "//open",
+      "target": "http://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "6973af4f-a34a-4232-ae2d-6d44dbaf99a1",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "1bfadc7b-db23-4c70-bfc6-e1e746c460ed",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "100000"
+    }, {
+      "id": "684ae7dd-d8e6-4157-a230-7748025f06ba",
+      "comment": "",
+      "command": "type",
+      "target": "id=login",
+      "targets": [
+        ["id=login", "id"],
+        ["name=login", "name"],
+        ["css=#login", "css:finder"],
+        ["xpath=//input[@id='login']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/div/fieldset/adp-form-field-string/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "test2"
+    }, {
+      "id": "d30ec2a7-80c7-4f20-a08e-660769cf7394",
+      "comment": "",
+      "command": "type",
+      "target": "id=password",
+      "targets": [
+        ["id=password", "id"],
+        ["name=password", "name"],
+        ["css=#password", "css:finder"],
+        ["xpath=//input[@id='password']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/div/fieldset/adp-form-field-string[2]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-string[2]/adp-form-field-container/section/string-control/input", "xpath:position"]
+      ],
+      "value": "NJje@Vf6w"
+    }, {
+      "id": "ef34af8d-fb30-4ace-a216-3c04296d5bac",
+      "comment": "",
+      "command": "click",
+      "target": "css=div:nth-child(3) > .ng-scope",
+      "targets": [
+        ["css=div:nth-child(3) > .ng-scope", "css:finder"],
+        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/div/fieldset", "xpath:idRelative"],
+        ["xpath=//div/fieldset", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "947ee51b-6511-4e17-a52f-89de97b27509",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn",
+      "targets": [
+        ["css=.btn", "css:finder"],
+        ["xpath=//button[@type='submit']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/footer/form-footer/div/button", "xpath:idRelative"],
+        ["xpath=//button", "xpath:position"],
+        ["xpath=//button[contains(.,'Sign In')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "a127f62b-3c62-417c-97f9-9348075b15c7",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "100000"
+    }, {
+      "id": "21d31199-01c5-4d86-a6f8-45b4b0f172f5",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "My Profile | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "5ce44b48-65c0-46d3-afc9-1f7d1fc063ff",
+    "name": "Open My FHIR Connections page",
+    "commands": [{
+      "id": "32ad7e5a-fc68-4664-873c-a52b0f7de386",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "256c5780-dcd8-45c7-b2f2-97576c665de3",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "db7ac04e-714f-4bbf-9d77-968d211782fd",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "e642abf5-e6dd-487f-a11f-c4127481d8c2",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'My FHIR Connections')]",
+      "targets": [
+        ["css=li:nth-child(2) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[2]/a/span", "xpath:idRelative"],
+        ["xpath=//li[2]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "f8355e14-0dc4-493c-b479-66c8ae3bf020",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "d3a938ff-8858-41a5-81d7-5b7b45c61303",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "FHIR Connections | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "2c4a8ff0-5af3-45cd-bcbf-2c7ea8f9ea7c",
+    "name": "Open Questionnaire page",
+    "commands": [{
+      "id": "521d736d-de09-4788-8175-0ff7e74c68fb",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "8bf6789d-7a02-46db-a516-cf2495ec1d96",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "91e7815c-c551-4dfc-b885-ff181376b3df",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "9a45a994-5cfb-461d-bbbd-a02bdc204a65",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[@class='menu-item-parent'][contains(text(),'Questionnaire')]",
+      "targets": [
+        ["css=li:nth-child(3) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[3]/a/span", "xpath:idRelative"],
+        ["xpath=//li[3]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "d7a592ff-d5c7-409e-9d72-d778330f9ff3",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "eff8d8ab-1053-4083-aad7-e7257781dd16",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Questionnaire | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "9b0369c7-2083-4dd3-8fd7-5d19ff627d9f",
+    "name": "Open Adverse Events page",
+    "commands": [{
+      "id": "c39bde39-d4f5-49a5-9bf0-6e46460271e7",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c1b4f5d8-111e-4e8d-b61f-e9d21a082f33",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e634e178-65ac-46a0-a6af-690e849bb35e",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "487e14f6-6e06-433b-987c-d2dacc378c2a",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'Adverse Events')]",
+      "targets": [
+        ["css=li:nth-child(4) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[4]/a/span", "xpath:idRelative"],
+        ["xpath=//li[4]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "be32f2e5-db3b-43b9-965d-7a86724cb695",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "9f1fba80-4446-48d6-ba26-14fb2c217ae5",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "drugInteractions | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "c5c6304d-b531-4a57-8dfc-e874d5649589",
+    "name": "Open UCSF Recalls Widgets page",
+    "commands": [{
+      "id": "13ecafd8-e455-418b-abc9-edf5aab4ce18",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "cf9dd781-df5e-4445-8e03-b868df1a4479",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "badd32d7-94fc-4041-9a59-a96da0b14ac7",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "37bb8584-b00f-448f-97f6-959337f8ef3a",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'UCSF Recalls Widgets')]",
+      "targets": [
+        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
+        ["xpath=//li[5]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "10194cd7-f8da-4c8c-b39e-4ea84d40d4fc",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "c4d62bce-64ab-4e40-b96c-172934c89dd1",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "drugInteractions | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "ec2a83ba-78e6-4e0f-928a-943ab52995c4",
+    "name": "Open Recalls page",
+    "commands": [{
+      "id": "1c8bc124-2037-4066-98f6-e19b86c599fd",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ac2ebd16-a223-4b70-8c0a-c4609c56a20a",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ba26509a-c6bb-4163-a8c9-13fe36d4fd91",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "2a874ae5-37ae-4592-8bdb-28dfdec977d2",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//li[6]//a[1]//span[1]",
+      "targets": [
+        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
+        ["xpath=//li[5]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "adc8b6af-706f-4b46-8ae2-d4c7953ef96a",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "ba356879-10a9-4f39-b8a2-0776b99e06a9",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "drugInteractions | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "6fec170d-d77c-4ee6-94f5-7a8b77a6ec12",
+    "name": "Open Drugs Visualization page",
+    "commands": [{
+      "id": "c183d46a-db1e-4280-a5ef-3148e6dac348",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "3fa1df5e-9042-44da-9520-b81b165dea41",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "d9f7fe5e-4920-4d86-a913-8527cae5f9ae",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "c0da22f4-f874-4132-8d88-a3e24061ffe0",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'Drugs Visualization')]",
+      "targets": [
+        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
+        ["xpath=//li[5]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c63271c7-2911-4ab2-90ef-c064704f1b58",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "d6f9b0f9-e078-4d76-8319-5a12841c1299",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "drugsVisualization | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "e5df2257-1439-4b48-9986-ee72ce91d9de",
+    "name": "Open Drugs Interactions page",
+    "commands": [{
+      "id": "ada6cc7d-8a4b-4d02-8782-6713c5abadd7",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "bcb492d0-f41c-4f1f-9324-a40f7360de8f",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "1047aa1f-323a-46ed-9e1e-97eb4ce2e0e3",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "2f4f49e5-b792-48c1-a79d-573f2947032d",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'Drug Interactions')]",
+      "targets": [
+        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
+        ["xpath=//li[5]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e45df73c-012b-4b35-bc5f-26dbe95a4c41",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "001b980c-38be-45e2-8f3b-fbb85f949ece",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "drugInteractions | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "509d834d-e2ae-443e-bfec-7f3349924ee2",
+    "name": "Open NDC Lookup page",
+    "commands": [{
+      "id": "e6869e83-f076-4eea-83c7-58ad16b9292f",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "4fc8685b-f010-44a0-8dc9-afc0d8552d27",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "678c8fb8-633e-4363-925b-ffd34ae3be25",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "6380fd8c-da65-4c0b-848a-a7a4005e5bce",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'NDC Lookup')]",
+      "targets": [
+        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
+        ["xpath=//li[5]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "81f6ebb4-a356-4a23-be5f-a1d8c1804ce9",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "b9ffc183-d884-44d3-9928-ebdcf4fcb6d3",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "ndcLookup | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "6ac85c99-daa8-4e0b-8185-f6b162a43c7b",
+    "name": "Open Graph View Widget page",
+    "commands": [{
+      "id": "ece8573d-ca23-48f8-b7a7-679f04091351",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ea26f6e3-75e5-4109-be0f-10f317016e5a",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "92e95f32-1ef5-495e-a6c0-316a6ad33172",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "9c43187b-d0f7-4c06-a804-10b0add72761",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'Graph View Widget Example')]",
+      "targets": [
+        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
+        ["xpath=//li[5]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c4c3228c-70c5-4d9e-9400-16071a0fe88b",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "50cd2c30-5782-40f9-8c1d-266a99d4c7eb",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "graphViewWidget | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "6d458003-1a3a-4d46-89b1-0bb473a7ac7a",
+    "name": "Open Multiple Widget page",
+    "commands": [{
+      "id": "b2e0892b-8413-43c4-b972-534532f3fce0",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "d0336006-3315-42a4-be81-fbc1f59c93f7",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "b2a5247c-f775-497b-ae36-792ca32b5a26",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "28712425-b344-48f6-a9d1-763933b8381e",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'Multiple Widgets Example')]",
+      "targets": [
+        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
+        ["xpath=//li[5]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "d7f10e8b-8993-4534-b41c-e7dbc7523970",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "06665f10-7edc-4e30-aee5-79ee945c3209",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "multipleWidgets | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "5a232424-33b0-4b6a-99ff-d8cfa49d6ade",
+    "name": "Open Preferences Widget page",
+    "commands": [{
+      "id": "56e35d9e-c4c8-473f-b393-db5b0f04d27f",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "f6c4f55e-d359-4d8a-bcfc-2429c3bc8b62",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e3cd4797-6df8-43b7-a208-d8f8e8ce6b63",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "cc31732b-135e-4b4a-8459-b2b88172df98",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'Preferences Widget Example')]",
+      "targets": [
+        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
+        ["xpath=//li[5]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "301aa531-3d9d-4d28-8b86-85fb0efeb4b0",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "e72f655b-0049-4bb8-8b0a-4984ef889c1c",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "User preferences | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "548380d1-bc25-4eaf-a234-cdbff902ff4b",
+    "name": "Open Health Advocate Widget page - NOT COMPLETED",
+    "commands": [{
+      "id": "f3a0aa67-f880-4f00-9691-313cba938f9c",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ec24cb83-cdf7-4884-986e-3c3e12b37abc",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "db372cd3-bcc6-4ff4-a0d1-1060a68f35d1",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "ee62d132-d28b-4e57-a881-1f8f1dd9c394",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//span[contains(text(),'Health Advocate Widget')]",
+      "targets": [
+        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
+        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
+        ["xpath=//li[5]/a/span", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c0ae1c7d-188e-4225-aade-1d4e5fb2a948",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='ribbon']",
+      "targets": [],
+      "value": "150000"
+    }, {
+      "id": "6dd283e5-f673-4222-81fe-8d8559ada9be",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Health Advocate | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "e19acb29-2bad-469e-be8e-3b2cfb480838",
+    "name": "Create new account",
+    "commands": [{
+      "id": "d2dede30-34d0-4733-a545-160568af2876",
+      "comment": "",
+      "command": "//open",
+      "target": "http://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "22623d03-95e9-4bb6-883e-ea772dc5f4df",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "7353ee48-c339-4351-82ee-6dbe6a45e539",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e8584ccc-baa3-4836-9ee8-76a175f8605e",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "100000"
+    }, {
+      "id": "49541d78-d80d-40c3-b440-24e90ce69357",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//a[@class='ng-binding']",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "54103b7b-3120-4aa8-ace5-6a124d93079b",
+      "comment": "",
+      "command": "assertText",
+      "target": "//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "Enter Account Information"
+    }, {
+      "id": "6a54a894-8098-44f4-b673-c9627995a135",
+      "comment": "",
+      "command": "run",
+      "target": "Get current date and time",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "beebb1fd-6da0-4219-95a7-1b432d267430",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentDate}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "7e9abc3d-33d1-4e26-b2d3-425cb562272a",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentTime}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "7ebd6794-1b87-4eb2-bb2d-22d04077f0bc",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='login']",
+      "targets": [],
+      "value": "ATUser${currentDate}${currentTime}"
+    }, {
+      "id": "bdc280cd-d7a5-4a5e-82e7-111b4d8a61ea",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='password']",
+      "targets": [],
+      "value": "Qwer1234!"
+    }, {
+      "id": "9022ea16-c02d-46cf-b406-b73b1b264eae",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='passwordConfirmation']",
+      "targets": [],
+      "value": "Qwer1234!"
+    }, {
+      "id": "e4733482-5f24-4e5f-a94e-077697621945",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ec319301-0ecd-4640-8755-c1fd28521550",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "css=.textoFull > span",
+      "targets": [],
+      "value": "Account has been successfully created"
+    }, {
+      "id": "cdab571d-c112-4fbb-96f5-2ae6ed83e61e",
+      "comment": "",
+      "command": "assertText",
+      "target": "//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "Sign In"
+    }, {
+      "id": "b1a3454b-5523-467a-930a-2c75df2291e0",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='login']",
+      "targets": [],
+      "value": "ATUser${currentDate}${currentTime}"
+    }, {
+      "id": "ce51f93e-1e56-4d21-8302-0f2077010ed2",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='password']",
+      "targets": [],
+      "value": "Qwer1234!"
+    }, {
+      "id": "fe54c396-bcc6-41a1-b221-7bdd1e942b38",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "d5007ab4-6e9b-4f07-b04a-c310247c58f8",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "100000"
+    }, {
+      "id": "4e8212a7-ad76-4d53-9a03-326c88f02e51",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "My Profile | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "63e0196e-0a76-44d7-8205-38196c519f14",
+    "name": "Get current date and time",
+    "commands": [{
+      "id": "b621bbf8-4208-45de-b34f-29b8485ad0ed",
+      "comment": "",
+      "command": "executeScript",
+      "target": "return new Date().getDate()+\"/\"+new Date().getMonth()+\"/\"+new Date().getFullYear()",
+      "targets": [],
+      "value": "currentDate"
+    }, {
+      "id": "4674d994-bb8a-415d-9b7a-5115ea203798",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentDate}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "aabb6601-8c7b-4e4f-9b6e-c4b6293f9266",
+      "comment": "",
+      "command": "executeScript",
+      "target": "return new Date().getHours()+\":\"+new Date().getMinutes()+\":\"+new Date().getSeconds()",
+      "targets": [],
+      "value": "currentTime"
+    }, {
+      "id": "a4d5c07f-935a-4d3a-9d13-5b09ddb03eaa",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentTime}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "2815d842-ce3a-4054-b84f-9dfa6c851909",
+      "comment": "",
+      "command": "if",
+      "target": "(new Date().getHours()>12)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "85b3ccde-1753-4819-8f12-1bd819931808",
+      "comment": "",
+      "command": "executeScript",
+      "target": "return new Date().getHours()+\":\"+new Date().getMinutes()+\":\"+new Date().getSeconds()+\"pm\"",
+      "targets": [],
+      "value": "currentTime"
+    }, {
+      "id": "4d2b7f21-2f5c-45a3-a52c-a4ae727d6841",
+      "comment": "",
+      "command": "elseIf",
+      "target": "(new Date().getHours()<12)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "b0f27db7-89c8-4357-930c-868471fa7044",
+      "comment": "",
+      "command": "executeScript",
+      "target": "return new Date().getHours()+\":\"+new Date().getMinutes()+\":\"+new Date().getSeconds()+\"am\"",
+      "targets": [],
+      "value": "currentTime"
+    }, {
+      "id": "a4c49cd1-f103-4953-9de5-7b2f616fbd5b",
+      "comment": "",
+      "command": "end",
+      "target": "",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "102b45a3-4249-4ad8-b809-c2cde8a954a3",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentTime}",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "87a418ac-41db-479c-a9f2-8addd6a3e944",
+    "name": "Edit profile of new created account - NOT COMPLETED email",
+    "commands": [{
+      "id": "e0a3d71c-a4e7-48d1-921e-07bef54be28e",
+      "comment": "",
+      "command": "//open",
+      "target": "http://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "22d2d384-bd16-476f-b603-c3654a7df927",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "77723968-c3ab-4c66-968d-fdd28b66ba8a",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "382af796-cc95-4ef9-a787-5e1f8d08edc4",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "100000"
+    }, {
+      "id": "e7de47f5-37ae-4e77-96d6-b64dc6a98f38",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//a[@class='ng-binding']",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e51762d9-f484-4e58-800e-e6087a1f988f",
+      "comment": "",
+      "command": "assertText",
+      "target": "//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "Enter Account Information"
+    }, {
+      "id": "6ecd81d4-ec25-4dd0-9e8a-601a6985db61",
+      "comment": "",
+      "command": "run",
+      "target": "Get current date and time",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "8805afef-7771-41d6-9818-ed79770ec064",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentDate}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "f5a5193f-4242-4508-b1da-049bb48e11e6",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentTime}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "7c513b0f-86f7-47fc-884d-873888586dfd",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='login']",
+      "targets": [],
+      "value": "ATUser${currentDate}${currentTime}"
+    }, {
+      "id": "e7d02554-312e-4a60-8bb2-e86bc56f788a",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='password']",
+      "targets": [],
+      "value": "Qwer1234!"
+    }, {
+      "id": "558d5dac-4261-42cb-a67e-5f8bda78ca32",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='passwordConfirmation']",
+      "targets": [],
+      "value": "Qwer1234!"
+    }, {
+      "id": "d39fb24f-9cfb-42ce-8bef-11fd44639056",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "0852555a-dc0e-47fb-8099-3244ccef2f5e",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "css=.textoFull > span",
+      "targets": [],
+      "value": "Account has been successfully created"
+    }, {
+      "id": "366f32da-1a91-41d9-9edf-68a008f45ae7",
+      "comment": "",
+      "command": "assertText",
+      "target": "//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "Sign In"
+    }, {
+      "id": "1bdb7b2f-85d9-4f52-9c26-09135389adf8",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='login']",
+      "targets": [],
+      "value": "ATUser${currentDate}${currentTime}"
+    }, {
+      "id": "1d4e84e8-d919-42da-a968-158a220eb964",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='password']",
+      "targets": [],
+      "value": "Qwer1234!"
+    }, {
+      "id": "ccc32a8f-25d4-4eed-b2a3-f44dd247c153",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "2eb53c28-6c34-419b-b7ec-1bdc786c0992",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "100000"
+    }, {
+      "id": "127c892d-1082-44ed-91f6-70c3ec1fd8f2",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "My Profile | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ad700abf-b482-44ed-bc88-6ad9ac4e897f",
+      "comment": "",
+      "command": "storeText",
+      "target": "css=td:nth-child(1) .col-md-8",
+      "targets": [
+        ["css=td:nth-child(1) .col-md-8", "css:finder"],
+        ["xpath=//table[@id='DataTables_Table_0']/tbody/tr/td/dl/dd", "xpath:idRelative"],
+        ["xpath=//dd", "xpath:position"],
+        ["xpath=//dd[contains(.,'ATUser14/6/20200:31:44am')]", "xpath:innerText"]
+      ],
+      "value": "Login"
+    }, {
+      "id": "a566a304-664d-420e-bf45-63c6af3e570c",
+      "comment": "",
+      "command": "echo",
+      "target": "${Login}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "8666a4ca-fc2f-4301-b110-d450a2a973f3",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn",
+      "targets": [
+        ["css=.btn", "css:finder"],
+        ["xpath=//button[@type='button']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-section-container/div/button", "xpath:idRelative"],
+        ["xpath=//button", "xpath:position"],
+        ["xpath=//button[contains(.,'Edit')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "0f9b53b3-ca70-40c8-b746-35026c583e45",
+      "comment": "",
+      "command": "waitForElementEditable",
+      "target": "id=login",
+      "targets": [
+        ["id=login", "id"],
+        ["name=login", "name"],
+        ["css=#login", "css:finder"],
+        ["xpath=//input[@id='login']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "30000"
+    }, {
+      "id": "322fb00b-5493-4270-b222-a964daba5e87",
+      "comment": "",
+      "command": "type",
+      "target": "id=login",
+      "targets": [],
+      "value": "${Login} edited"
+    }, {
+      "id": "a53f06af-bcbe-4440-bf2c-626dd3f45a27",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn-primary",
+      "targets": [
+        ["css=.btn-primary", "css:finder"],
+        ["xpath=//button[@type='submit']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/footer/form-footer/button", "xpath:idRelative"],
+        ["xpath=//form-footer/button", "xpath:position"],
+        ["xpath=//button[contains(.,'Update')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "768c31d9-bb38-4926-870c-1a3c22643104",
+    "name": "test edit acc ",
+    "commands": [{
+      "id": "39fbc967-0081-4874-836e-6e21c5a0f722",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "5ed3b6ba-23bc-43f7-9360-6d30f4659be2",
+      "comment": "",
+      "command": "storeValue",
+      "target": "xpath=//td[10]//dl[1]//dd[1]//span[1]",
+      "targets": [],
+      "value": "true"
+    }, {
+      "id": "60b1fa13-4595-4d17-bb02-105e7b195b75",
+      "comment": "",
+      "command": "echo",
+      "target": "true",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "6d32637d-abbb-484a-839c-1af3f5f3d4a4",
+    "name": "Edit profile of new created account - fill all params - NOT COMPLETED checkboxes",
+    "commands": [{
+      "id": "c2f5e6de-3efc-41c8-ba34-0b3097640f97",
+      "comment": "",
+      "command": "//open",
+      "target": "http://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "9bf9030b-c8da-42cb-95a3-2999dd47c4b3",
+      "comment": "",
+      "command": "open",
+      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "11c38270-9e79-48ce-979f-7dd7cff19369",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e02b2fe3-f42e-4066-bab0-960070c95ba6",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "100000"
+    }, {
+      "id": "72f78926-4b91-42b7-868b-b625388279ea",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//a[@class='ng-binding']",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c28a7bd9-ecc0-4547-a6cf-5da620ae5d73",
+      "comment": "",
+      "command": "assertText",
+      "target": "//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "Enter Account Information"
+    }, {
+      "id": "5c8dc948-cbcc-43fd-82a4-ac38a41f37d2",
+      "comment": "",
+      "command": "run",
+      "target": "Get current date and time",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "2de38c19-a39f-4454-922a-c1e98dcea0a4",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentDate}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c3faeddd-d05e-4de1-a802-b800f56fc876",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentTime}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e0fffcd3-f61b-4564-9594-b426556e265d",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='login']",
+      "targets": [],
+      "value": "ATUser${currentDate}${currentTime}"
+    }, {
+      "id": "9c732094-1eda-4955-9f3a-4daa5d677084",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='password']",
+      "targets": [],
+      "value": "Qwer1234!"
+    }, {
+      "id": "f3dd5e64-79f3-40be-b5a0-a1e2e1e13951",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='passwordConfirmation']",
+      "targets": [],
+      "value": "Qwer1234!"
+    }, {
+      "id": "0a43268d-3b3a-486a-80d4-7058115a74d6",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "5ff3f73b-e1c3-42dd-bfe9-4618a6665ab2",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "css=.textoFull > span",
+      "targets": [],
+      "value": "Account has been successfully created"
+    }, {
+      "id": "abad8c6a-8892-4ea8-babb-e946b2fe1570",
+      "comment": "",
+      "command": "assertText",
+      "target": "//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "Sign In"
+    }, {
+      "id": "a3ce7179-dcb3-49d4-86df-536080b59aff",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='login']",
+      "targets": [],
+      "value": "ATUser${currentDate}${currentTime}"
+    }, {
+      "id": "44035104-bddd-43e5-b80d-f7abb94f9c5a",
+      "comment": "",
+      "command": "type",
+      "target": "xpath=//input[@id='password']",
+      "targets": [],
+      "value": "Qwer1234!"
+    }, {
+      "id": "2f736f35-a685-48e3-864f-4490e9a0c3e0",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "4bbde0af-f7f7-4dd4-9599-e54dcebbd3f5",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//span[@id='logo']",
+      "targets": [],
+      "value": "100000"
+    }, {
+      "id": "9d53d486-a868-4e67-8600-6afbae4f1fde",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "My Profile | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "acd46d78-54e6-495c-9869-ec20692a2fb9",
+      "comment": "",
+      "command": "storeText",
+      "target": "css=td:nth-child(1) .col-md-8",
+      "targets": [
+        ["css=td:nth-child(1) .col-md-8", "css:finder"],
+        ["xpath=//table[@id='DataTables_Table_0']/tbody/tr/td/dl/dd", "xpath:idRelative"],
+        ["xpath=//dd", "xpath:position"],
+        ["xpath=//dd[contains(.,'ATUser14/6/20200:31:44am')]", "xpath:innerText"]
+      ],
+      "value": "Login"
+    }, {
+      "id": "9e924407-2ca6-4261-ba20-9acdfa015b9e",
+      "comment": "",
+      "command": "echo",
+      "target": "${Login}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e2187e46-8503-456e-b8d8-8fd01ca82edc",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn",
+      "targets": [
+        ["css=.btn", "css:finder"],
+        ["xpath=//button[@type='button']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-section-container/div/button", "xpath:idRelative"],
+        ["xpath=//button", "xpath:position"],
+        ["xpath=//button[contains(.,'Edit')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "b40f7ad7-2272-496e-b2c4-3f44519bfd43",
+      "comment": "",
+      "command": "waitForElementEditable",
+      "target": "id=login",
+      "targets": [
+        ["id=login", "id"],
+        ["name=login", "name"],
+        ["css=#login", "css:finder"],
+        ["xpath=//input[@id='login']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "30000"
+    }, {
+      "id": "efffa708-2e16-4e4a-935e-d6056f2b4ca8",
+      "comment": "",
+      "command": "type",
+      "target": "id=login",
+      "targets": [],
+      "value": "${Login}Edited"
+    }, {
+      "id": "d57e3b1a-8e97-4e91-a2ca-15077c49bb97",
+      "comment": "",
+      "command": "type",
+      "target": "id=email",
+      "targets": [
+        ["id=email", "id"],
+        ["name=email", "name"],
+        ["css=#email", "css:finder"],
+        ["xpath=//input[@id='email']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[2]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-string[2]/adp-form-field-container/section/string-control/input", "xpath:position"]
+      ],
+      "value": "ATemail@conceptant.com"
+    }, {
+      "id": "1c8bbfaa-b2af-4a69-8d98-fbcf9b1c975d",
+      "comment": "",
+      "command": "type",
+      "target": "id=firstName",
+      "targets": [
+        ["id=firstName", "id"],
+        ["name=firstName", "name"],
+        ["css=#firstName", "css:finder"],
+        ["xpath=//input[@id='firstName']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[3]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-string[3]/adp-form-field-container/section/string-control/input", "xpath:position"]
+      ],
+      "value": "ATFirstName"
+    }, {
+      "id": "d237ba08-34bd-4624-b024-39418f267879",
+      "comment": "",
+      "command": "type",
+      "target": "id=lastName",
+      "targets": [
+        ["id=lastName", "id"],
+        ["name=lastName", "name"],
+        ["css=#lastName", "css:finder"],
+        ["xpath=//input[@id='lastName']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[4]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-string[4]/adp-form-field-container/section/string-control/input", "xpath:position"]
+      ],
+      "value": "ATLastName"
+    }, {
+      "id": "0537a79d-4d4b-44d0-9815-1f1bb801f63d",
+      "comment": "",
+      "command": "type",
+      "target": "id=displayName",
+      "targets": [
+        ["id=displayName", "id"],
+        ["name=displayName", "name"],
+        ["css=#displayName", "css:finder"],
+        ["xpath=//input[@id='displayName']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[5]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-string[5]/adp-form-field-container/section/string-control/input", "xpath:position"]
+      ],
+      "value": "ATDisplayName"
+    }, {
+      "id": "8a52f0e3-7637-4d21-b312-ab2832d6cf9a",
+      "comment": "",
+      "command": "type",
+      "target": "id=fhirId",
+      "targets": [
+        ["id=fhirId", "id"],
+        ["name=fhirId", "name"],
+        ["css=#fhirId", "css:finder"],
+        ["xpath=//input[@id='fhirId']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[6]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-string[6]/adp-form-field-container/section/string-control/input", "xpath:position"]
+      ],
+      "value": "AT-id-123456789"
+    }, {
+      "id": "13818ad9-5aff-4244-8677-eed78dc54fdf",
+      "comment": "",
+      "command": "type",
+      "target": "id=fhirServerUrl",
+      "targets": [
+        ["id=fhirServerUrl", "id"],
+        ["name=fhirServerUrl", "name"],
+        ["css=#fhirServerUrl", "css:finder"],
+        ["xpath=//input[@id='fhirServerUrl']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[7]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-string[7]/adp-form-field-container/section/string-control/input", "xpath:position"]
+      ],
+      "value": "https://AThospitalurl.com"
+    }, {
+      "id": "bc4031af-ca7f-4b2b-ab08-7ec9cd0a3d5d",
+      "comment": "",
+      "command": "click",
+      "target": "css=#checkbox-label-shareData > i",
+      "targets": [
+        ["css=#checkbox-label-shareData > i", "css:finder"],
+        ["xpath=//label[@id='checkbox-label-shareData']/i", "xpath:idRelative"],
+        ["xpath=//label/i", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "22caac59-b437-4ee4-b23d-4fcdcf106cd9",
+      "comment": "",
+      "command": "click",
+      "target": "css=#checkbox-label-studyData > i",
+      "targets": [
+        ["css=#checkbox-label-studyData > i", "css:finder"],
+        ["xpath=//label[@id='checkbox-label-studyData']/i", "xpath:idRelative"],
+        ["xpath=//adp-form-field-checkbox[2]/adp-form-field-container/section/div/checkbox-control/label/i", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "02f49e3c-4fc7-4de6-8fb5-ac26206b1385",
+      "comment": "",
+      "command": "click",
+      "target": "css=#checkbox-label-studyParticipate > i",
+      "targets": [
+        ["css=#checkbox-label-studyParticipate > i", "css:finder"],
+        ["xpath=//label[@id='checkbox-label-studyParticipate']/i", "xpath:idRelative"],
+        ["xpath=//adp-form-field-checkbox[3]/adp-form-field-container/section/div/checkbox-control/label/i", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "f56a0088-6b75-49ce-8e6e-0b952e472977",
+      "comment": "",
+      "command": "click",
+      "target": "css=.btn-primary",
+      "targets": [
+        ["css=.btn-primary", "css:finder"],
+        ["xpath=//button[@type='submit']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/footer/form-footer/button", "xpath:idRelative"],
+        ["xpath=//form-footer/button", "xpath:position"],
+        ["xpath=//button[contains(.,'Update')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "bbe0b2bf-82c3-4a87-9b17-11948852c095",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "css=.textoFull > span",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "111c25d3-72ab-4357-8d90-027cc105e50f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.textoFull > span",
+      "targets": [],
+      "value": "My Profile successfully updated."
+    }, {
+      "id": "bc1eb666-167a-4a1d-9292-20fa184c41d3",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=td:nth-child(1) .col-md-8",
+      "targets": [
+        ["css=td:nth-child(1) .col-md-8", "css:finder"],
+        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td/dl/dd", "xpath:idRelative"],
+        ["xpath=//dd", "xpath:position"],
+        ["xpath=//dd[contains(.,'ATUser14/6/20201:38:42amEdited')]", "xpath:innerText"]
+      ],
+      "value": "${Login}Edited"
+    }, {
+      "id": "b3c765aa-189e-48e3-b5a0-461cf59c92a5",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=td:nth-child(2) .col-md-8",
+      "targets": [
+        ["css=td:nth-child(2) .col-md-8", "css:finder"],
+        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[2]/dl/dd", "xpath:idRelative"],
+        ["xpath=//td[2]/dl/dd", "xpath:position"],
+        ["xpath=//dd[contains(.,'ATemail@conceptant.com')]", "xpath:innerText"]
+      ],
+      "value": "ATemail@conceptant.com"
+    }, {
+      "id": "e23097e4-3ffa-4054-916c-0562011df486",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=td:nth-child(5) .col-md-8",
+      "targets": [
+        ["css=td:nth-child(5) .col-md-8", "css:finder"],
+        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[5]/dl/dd", "xpath:idRelative"],
+        ["xpath=//td[5]/dl/dd", "xpath:position"],
+        ["xpath=//dd[contains(.,'ATFirstName')]", "xpath:innerText"]
+      ],
+      "value": "ATFirstName"
+    }, {
+      "id": "a691e5d8-4418-4c29-ab95-6cf80cdd3c69",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=td:nth-child(6) .col-md-8",
+      "targets": [
+        ["css=td:nth-child(6) .col-md-8", "css:finder"],
+        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[6]/dl/dd", "xpath:idRelative"],
+        ["xpath=//td[6]/dl/dd", "xpath:position"],
+        ["xpath=//dd[contains(.,'ATLastName')]", "xpath:innerText"]
+      ],
+      "value": "ATLastName"
+    }, {
+      "id": "7ecb1c0d-cf22-490c-a97e-e93a8e19e210",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=td:nth-child(7) .col-md-8",
+      "targets": [
+        ["css=td:nth-child(7) .col-md-8", "css:finder"],
+        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[7]/dl/dd", "xpath:idRelative"],
+        ["xpath=//td[7]/dl/dd", "xpath:position"],
+        ["xpath=//dd[contains(.,'ATDisplayName')]", "xpath:innerText"]
+      ],
+      "value": "ATDisplayName"
+    }, {
+      "id": "8ec81802-aa8b-473a-b062-8544da74213c",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=td:nth-child(8) .col-md-8",
+      "targets": [
+        ["css=td:nth-child(8) .col-md-8", "css:finder"],
+        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[8]/dl/dd", "xpath:idRelative"],
+        ["xpath=//td[8]/dl/dd", "xpath:position"],
+        ["xpath=//dd[contains(.,'AT-id-123456789')]", "xpath:innerText"]
+      ],
+      "value": "AT-id-123456789"
+    }, {
+      "id": "85f835c5-b005-40b2-9639-2da05d78b7b1",
+      "comment": "",
+      "command": "assertText",
+      "target": "linkText=https://AThospitalurl.com",
+      "targets": [
+        ["linkText=https://AThospitalurl.com", "linkText"],
+        ["css=.col-md-8 > a", "css:finder"],
+        ["xpath=//a[contains(text(),'https://AThospitalurl.com')]", "xpath:link"],
+        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[9]/dl/dd/a", "xpath:idRelative"],
+        ["xpath=//a[contains(@href, 'https://AThospitalurl.com')]", "xpath:href"],
+        ["xpath=//dd/a", "xpath:position"],
+        ["xpath=//a[contains(.,'https://AThospitalurl.com')]", "xpath:innerText"]
+      ],
+      "value": "https://AThospitalurl.com"
+    }, {
+      "id": "b5230fd6-8db8-402c-841c-9ab45d4e79e1",
+      "comment": "",
+      "command": "//assertText",
+      "target": "xpath=//td[10]//dl[1]//dd[1]//span[1]",
+      "targets": [],
+      "value": "true"
+    }]
+  }],
+  "suites": [{
+    "id": "e2e9bead-f016-4805-8c85-d97f843b0c16",
+    "name": "Opening SideBar pages",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["55d5bf2d-4522-43d5-9b1e-32c4da77f669", "5ce44b48-65c0-46d3-afc9-1f7d1fc063ff", "2c4a8ff0-5af3-45cd-bcbf-2c7ea8f9ea7c", "9b0369c7-2083-4dd3-8fd7-5d19ff627d9f", "c5c6304d-b531-4a57-8dfc-e874d5649589", "ec2a83ba-78e6-4e0f-928a-943ab52995c4", "6fec170d-d77c-4ee6-94f5-7a8b77a6ec12", "e5df2257-1439-4b48-9986-ee72ce91d9de", "509d834d-e2ae-443e-bfec-7f3349924ee2", "6ac85c99-daa8-4e0b-8185-f6b162a43c7b", "6d458003-1a3a-4d46-89b1-0bb473a7ac7a", "5a232424-33b0-4b6a-99ff-d8cfa49d6ade", "548380d1-bc25-4eaf-a234-cdbff902ff4b"]
+  }],
+  "urls": ["https://pagweb-prototype-demo.conceptant.com/"],
+  "plugins": []
+}

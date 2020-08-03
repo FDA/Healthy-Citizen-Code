@@ -1,8 +1,7 @@
-const request = require('supertest');
 require('should');
 const assert = require('assert');
 
-const { setAppAuthOptions, prepareEnv, getMongoConnection } = require('../test-util');
+const { setAppAuthOptions, prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
 describe('V5 Backend Authentication', function () {
   before(function () {
@@ -27,7 +26,7 @@ describe('V5 Backend Authentication', function () {
     });
 
     await this.appLib.setup();
-    const res = await request(this.appLib.app)
+    const res = await apiRequest(this.appLib.app)
       .get('/routes')
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/);
@@ -36,11 +35,11 @@ describe('V5 Backend Authentication', function () {
     res.body.data.should.have.property('brief');
     // test requireAuthentication
     const { brief } = res.body.data;
-    assert(!brief.includes('POST /login'));
-    assert(!brief.includes('GET /logout'));
-    assert(!brief.includes('POST /signup'));
-    assert(!brief.includes('POST /account/password AUTH'));
-    // res.body.data.brief.should.containEql('GET /forgot');
+    const { getFullRoute, API_PREFIX } = this.appLib;
+    assert(!brief.includes(`POST ${getFullRoute(API_PREFIX, '/login')}`));
+    assert(!brief.includes(`GET ${getFullRoute(API_PREFIX, '/logout')}`));
+    assert(!brief.includes(`POST ${getFullRoute(API_PREFIX, '/signup')}`));
+    assert(!brief.includes(`POST ${getFullRoute(API_PREFIX, '/account/password')} AUTH`));
   });
 
   it('routes should contain /signup, /account/password, /login, /logout when enableAuthentication!=false', async function () {
@@ -49,7 +48,7 @@ describe('V5 Backend Authentication', function () {
     });
 
     await this.appLib.setup();
-    const res = await request(this.appLib.app)
+    const res = await apiRequest(this.appLib.app)
       .get('/routes')
       .set('Accept', 'application/json')
       .expect('Content-Type', /json/);
@@ -57,10 +56,12 @@ describe('V5 Backend Authentication', function () {
     res.body.success.should.equal(true, res.body.message);
     res.body.data.should.have.property('brief');
     const { brief } = res.body.data;
-    assert(brief.includes('POST /login'));
-    assert(brief.includes('GET /logout'));
-    assert(brief.includes('POST /signup'));
-    assert(brief.includes('POST /account/password AUTH'));
+
+    const { getFullRoute, API_PREFIX } = this.appLib;
+    assert(brief.includes(`POST ${getFullRoute(API_PREFIX, '/login')}`));
+    assert(brief.includes(`GET ${getFullRoute(API_PREFIX, '/logout')}`));
+    assert(brief.includes(`POST ${getFullRoute(API_PREFIX, '/signup')}`));
+    assert(brief.includes(`POST ${getFullRoute(API_PREFIX, '/account/password')} AUTH`));
     // res.body.data.brief.should.containEql('GET /forgot');
   });
 
@@ -70,7 +71,7 @@ describe('V5 Backend Authentication', function () {
     });
 
     await this.appLib.setup();
-    const res = await request(this.appLib.app)
+    const res = await apiRequest(this.appLib.app)
       .get('/app-model')
       .set('Accept', 'application/json')
       // .set("Authorization", `JWT ${token}`)
@@ -86,7 +87,7 @@ describe('V5 Backend Authentication', function () {
     });
 
     await this.appLib.setup();
-    const res = await request(this.appLib.app)
+    const res = await apiRequest(this.appLib.app)
       .get('/build-app-model')
       .set('Accept', 'application/json')
       // .set("Authorization", `JWT ${token}`)
@@ -114,7 +115,7 @@ describe('V5 Backend Authentication', function () {
     });
 
     await this.appLib.setup();
-    const res = await request(this.appLib.app)
+    const res = await apiRequest(this.appLib.app)
       .get('/app-model')
       .set('Accept', 'application/json')
       // .set("Authorization", `JWT ${token}`)

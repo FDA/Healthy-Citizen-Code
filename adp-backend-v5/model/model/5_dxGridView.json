@@ -3,6 +3,7 @@
     "dxGridViews": {
       "type": "Schema",
       "fullName": "Data Grid views",
+      "singleRecordName": "Grid view",
       "scopes": {
         "ownRecordScope": {
           "permissions": "accessAsUser",

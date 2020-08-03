@@ -1,10 +1,7 @@
 <adp-form
   class="login-form auth-form"
-  enable-selector="false"
-  adp-submit="vm.submit"
-  adp-fields="vm.fields"
-  schema="vm.schema"
-  disable-fullscreen="true"
+  args="::vm.args"
+  form-options="::vm.formOptions"
 >
 
   <form-header>
@@ -12,21 +9,22 @@
   </form-header>
 
   <form-footer>
-    <div class="text-center">
-      <button
-        type="submit"
-        class="btn btn-primary">
-        {{vm.authParams.emailResetLinkText || "Email reset link"}}
-      </button>
-    </div>
+    <footer>
+      <div class="text-center">
+        <button
+          type="submit"
+          class="btn btn-primary">
+          {{vm.authParams.emailResetLinkText || "Email reset link"}}
+        </button>
+      </div>
 
-    <div class="text-center">
-      Back to
-      <a ui-sref="auth.login">
-        {{vm.authParams.signInText}}
-      </a>
+      <div class="text-center">
+        Back to
+        <a ui-sref="auth.login">
+          {{vm.authParams.signInText}}
+        </a>
 
-    </div>
+      </div>
+    </footer>
   </form-footer>
-
 </adp-form>

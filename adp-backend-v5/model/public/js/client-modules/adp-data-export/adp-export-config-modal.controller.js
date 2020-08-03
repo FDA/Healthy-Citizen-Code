@@ -4,7 +4,11 @@
   angular.module('app.adpDataExport').controller('AdpExportConfigModalController', AdpExportConfigModalController);
 
   /** @ngInject */
-  function AdpExportConfigModalController(GridExportHelpers) {
+  function AdpExportConfigModalController(
+    GridExportHelpers,
+    AdpUnifiedArgs,
+    $q
+  ) {
     var vm = this;
 
     vm.$onInit = function () {
@@ -78,17 +82,29 @@
           },
         },
       };
-      vm.fields = vm.schema.fields;
-    };
 
-    vm.submit = function (formData) {
-      vm.close({
-        $value: formData,
+      vm.args = AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: '',
+        action: 'export',
+        schema: vm.schema,
+        formData: vm.data,
       });
-    };
 
-    vm.cancel = function () {
-      vm.dismiss({ confirmed: false });
+      vm.cancel = function () {
+        return vm.dismiss({ confirmed: false });
+      };
+
+      vm.formOptions = {
+        localActionsStrategy: {
+          submit: function (args) {
+            return $q.resolve()
+              .then(function () {
+                vm.close({ $value: args.row });
+              });
+          },
+        },
+        disableFullscreen: true,
+      };
     };
   }
 })();

@@ -5,8 +5,53 @@
     .module('app.adpForms')
     .directive('adpForm', adpForm);
 
+  /**
+   * @typedef {Object} CloneParams
+   * Special params for cloning DataSets
+   * @property {String} parentCollectionName - name of collection to clone
+   * @property {String[]} projections - list of fieldNames to clone from parent collection
+   */
+
+  /**
+   * @typedef {Object} schemaActionsStrategy
+   * adpForm directive provides different types of providing Submit and other actions.
+   * schemaActionsStrategy allows to specify these action from Schema.
+   * However sometimes outer form environment requires some action to call to
+   * close modal, for example, or cancel editing and rollback data.
+   *
+   * Such actions are optional and should be provided in formOptions.
+   *
+   * If such options provided, than actions template is built inside form based on schema.
+   *
+   * @property {Function} [onComplete] - called after form successfully submitted
+   * @property {Function} [onCancel] - called if data editing was canceled
+   */
+
+  /**
+   * @typedef {Object} localActionsStrategy
+   * adpForm directive provides different types of providing Submit and other actions.
+   * localActionsStrategy allows to specify these action from formOptions.
+   * Any outer actions are handled outside adpForm.
+   *
+   * If such options provided, than actions template is built based outside of form.
+
+   * @property {Function} submit - async function for api request
+   */
+
+  /**
+   * @ngdoc directive
+   * @module app.adpForms
+   * @name app.adpForms:adpForm
+   *
+   * @param {Object} args - Unified args
+   * @param {Object} formOptions
+   * @param {Boolean} formOptions.disableFullscreen - allows to disable fullScreen
+   * @param {CloneParams} formOptions.cloneParams
+   * @param {Object} formOptions.schemaActionsStrategy
+   * @param {Object} formOptions.localActionsStrategy
+   * @param {Object} formOptions.cloneParams
+   */
   function adpForm(
-    AdpNotificationService,
     AdpFieldsService,
     AdpFormService,
     AdpFormDataUtils,
@@ -15,92 +60,90 @@
     $timeout,
     UploadError,
     ErrorHelpers,
-    $q
+    $q,
+    AdpFormActionHandler
   ) {
+    // todo: add comments about formOptions and action strats
     return {
       restrict: 'E',
       scope: {
-        adpFields: '<',
-        adpData: '<',
-        adpSubmit: '<',
-        adpFormParams: '<?',
-        disableFullscreen: '<',
-        schema: '<'
+        args: '<',
+        formOptions: '<',
       },
       transclude: {
         'header': '?formHeader',
         'body': '?formBody',
-        'footer': 'formFooter'
+        'footer': '?formFooter',
       },
       templateUrl: 'app/adp-forms/directives/adp-form/adp-form.html',
       link: function (scope, element) {
-        var visibilityMap = {};
-        scope.visibilityMap = visibilityMap;
+        init();
 
         function init() {
-          scope.formData = _.cloneDeep(scope.adpData) || {};
-          scope.adpFormParams = scope.adpFormParams || {};
+          scope.args.row = _.cloneDeep(scope.args.row) || {};
+          scope.formData = scope.args.row;
 
-          scope.groupingType = AdpFormService.getGroupingType(scope.adpFormParams);
-
-          scope.fields = scope.groupingType ?
-            AdpFieldsService.getFormGroupFields(scope.adpFields, scope.groupingType) :
-            AdpFieldsService.getFormFields(scope.adpFields);
+          scope.groupingType = AdpFormService.getGroupingType(scope.args);
+          scope.topScopeFields = scope.groupingType ?
+            AdpFieldsService.getFormGroupFields(scope.args.fieldSchema.fields, scope.groupingType) :
+            AdpFieldsService.getFormFields(scope.args.fieldSchema.fields);
 
           scope.errorCount = 0;
 
           scope.loading = false;
           scope.uploaderCnt = 0;
+          scope.hasFooter = _.hasIn(scope, 'formOptions.submitCb');
+          scope.cloneParams = scope.formOptions.cloneParams;
 
           bindEvents();
 
-          // todo: refactor as abstraction with methods, like path(), child(), parent() and etc
+          // todo: refactor to args
           var formParams = {
             path: null,
-            row: scope.formData,
-            modelSchema: scope.schema,
-            action: scope.adpFormParams && scope.adpFormParams.actionType,
-            visibilityMap: visibilityMap,
+            row: scope.args.row,
+            fieldSchema: scope.args.fieldSchema,
+            modelSchema: scope.args.modelSchema,
+            action: scope.args.action,
+            visibilityMap: {},
             requiredMap: {},
           };
 
-          _.each(scope.fields.groups, function (group, name) {
-            visibilityMap[name] = true;
+          _.each(scope.topScopeFields.groups, function (group, name) {
+            formParams.visibilityMap[name] = true;
           });
 
           // DEPRECATED: will be replaced with formParams
           // validationParams fields naming is wrong, use formParams instead
-          // modelSchema - grouped fields
+          // fieldSchema - grouped fields
           // schema - original ungrouped schema
           scope.validationParams = {
-            field: scope.adpField,
-            fields: scope.adpFields,
-            formData: scope.adpFormData,
-            modelSchema: scope.adpFields,
-            schema: scope.schema,
-            $action: scope.adpFormParams && scope.adpFormParams.actionType,
+            field: scope.args.fieldSchema,
+            fields: scope.args.fieldSchema.fields,
+            formData: scope.args.row,
+            fieldSchema: scope.args.fieldSchema,
+            modelSchema: scope.args.modelSchema,
+            schema: scope.args.fieldSchema,
+            $action: scope.args.action,
 
-            formParams: formParams
+            formParams: formParams,
           };
 
           $timeout(function () {
-            applyActionClass(formParams.action);
+            applyActionClass(scope.args.action);
             bindFormEvents();
 
             RequiredExpression.eval(scope.validationParams.formParams, scope.form);
 
-            // initial run to setup fields visibility
+            // todo: replace with args
             ShowExpression.eval({
-              formData: scope.formData,
-              schema: scope.schema,
-              groups: scope.fields.groups,
-              visibilityMap: visibilityMap,
-              actionType: scope.adpFormParams.actionType
+              formData: scope.args.row,
+              schema: scope.args.modelSchema,
+              actionType: scope.args.action,
+              groups: scope.topScopeFields.groups,
+              visibilityMap: scope.validationParams.formParams.visibilityMap,
             });
           });
         }
-
-        init();
 
         function applyActionClass(action) {
           if (!action) {
@@ -117,30 +160,54 @@
           scope.$on('adpFileUploaderInit', function () {
             scope.uploaderCnt++;
           });
+
           scope.submit = submit;
+          initActionsStrategy();
+        }
+
+        function initActionsStrategy() {
+          var schemaStrategy = _.hasIn(scope, 'formOptions.schemaActionsStrategy');
+          if (schemaStrategy) {
+            setSchemaActionsStrategy();
+          } else {
+            scope.submitAction = _.get(scope, 'formOptions.localActionsStrategy.submit');
+          }
+        }
+
+        function setSchemaActionsStrategy() {
+          scope.formHooks = {
+            onCancel: _.get(scope, 'formOptions.schemaActionsStrategy.onCancel', null),
+            onComplete: _.get(scope, 'formOptions.schemaActionsStrategy.onComplete', null),
+          };
+
+          scope.execFormAction = function (action, name) {
+            var actionCb = AdpFormActionHandler(action, name);
+
+            var type = _.get(action, 'htmlAttributes.type', 'button');
+            if (type === 'submit') {
+              scope.submitAction = actionCb;
+            } else {
+              actionCb.apply(scope.args, [scope.args, scope.formHooks]);
+            }
+          }
         }
 
         function bindFormEvents() {
           scope.$watch('[loading]', updateDisabledState);
-          scope.$watch(
-            function () {
-              return angular.toJson(scope.form);
-            },
-            onFormUpdate
-          )
+          scope.$watch(function () { return angular.toJson(scope.form) }, onFormUpdate);
         }
 
-        function submit() {
+        function submit(args, cloneParams) {
           if (scope.form.$invalid) {
             scrollToError();
             return;
           }
+
           scope.loading = true;
 
-          handleUploaders(scope.formData)
+          return handleFileUpload()
             .then(function () {
-              var formData = AdpFormDataUtils.transformDataBeforeSending(scope.formData, scope.schema);
-              return scope.adpSubmit(formData);
+              return scope.submitAction.apply(args, [args, scope.formHooks, cloneParams]);
             })
             .catch(function (error) {
               ErrorHelpers.handleError(error, 'Unknown error in form');
@@ -150,9 +217,9 @@
             });
         }
 
-        function handleUploaders(formData) {
+        function handleFileUpload() {
           if (scope.uploaderCnt === 0) {
-            return $q.when(scope.formData);
+            return $q.when();
           }
 
           var uploadersFinished = 0;
@@ -167,7 +234,7 @@
 
               if (uploadersFinished >= scope.uploaderCnt) {
                 removeListeners();
-                resolve(formData);
+                resolve();
               }
             }
 
@@ -201,11 +268,11 @@
           AdpFormService.forceValidation(scope.form);
 
           ShowExpression.eval({
-            formData: scope.formData,
-            schema: scope.schema,
-            groups: scope.fields.groups,
-            visibilityMap: visibilityMap,
-            actionType: scope.adpFormParams.actionType
+            formData: scope.args.row,
+            schema: scope.args.modelSchema,
+            actionType: scope.args.action,
+            groups: scope.topScopeFields.groups,
+            visibilityMap: scope.validationParams.formParams.visibilityMap,
           });
 
           RequiredExpression.eval(scope.validationParams.formParams, scope.form);

@@ -1,4 +1,3 @@
-const request = require('supertest');
 const _ = require('lodash');
 require('should');
 
@@ -8,6 +7,7 @@ const {
   auth: { user, loginWithUser },
   getMongoConnection,
   prepareEnv,
+  apiRequest,
 } = require('../test-util');
 
 const menuPart = {
@@ -241,7 +241,7 @@ describe('V5 Backend Menu Permissions', function () {
     await this.appLib.setup();
     const token = await loginWithUser(appLib, user);
 
-    const res = await request(appLib.app)
+    const res = await apiRequest(appLib.app)
       .get('/app-model')
       .set('Accept', 'application/json')
       .set('Authorization', `JWT ${token}`)

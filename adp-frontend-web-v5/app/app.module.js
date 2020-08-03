@@ -27,5 +27,6 @@
     'app.adpUi',
     'app.adpUploader',
     'app.adpRecorders',
+    'app.adpFormActions',
   ]);
 })();

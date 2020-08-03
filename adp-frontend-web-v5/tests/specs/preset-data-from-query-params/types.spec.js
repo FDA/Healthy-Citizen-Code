@@ -57,7 +57,7 @@ describe('data presetting', () => {
 
         await presetDataAndWaitForSelector(dataToPreset, this.page);
         const actualValue = await this.page.$$eval(
-          '[name="stringMultiple"] .dx-tag span',
+          '[field-name="stringMultiple"] .dx-tag span',
             els => els.map(el => el.innerText)
         );
 
@@ -70,12 +70,16 @@ describe('data presetting', () => {
         const dataToPreset = {
           action: 'create',
           list: 'val1',
+          listType: 'val2',
         };
 
         await presetDataAndWaitForSelector(dataToPreset, this.page);
-        const actualValue = await getDxSingleListValue('list', this.page);
-        const expectedValue = 'val1';
-        expect(actualValue).toBe(expectedValue);
+
+        const actualListValue = await getDxSingleListValue('list', this.page);
+        expect(actualListValue).toBe('val1');
+
+        const actualListTypeValue = await getDxSingleListValue('listType', this.page);
+        expect(actualListTypeValue).toBe('val2');
       });
 
     test(
@@ -84,12 +88,16 @@ describe('data presetting', () => {
         const dataToPreset = {
           action: 'create',
           listMultiple: ['val1', 'val2', 'val3'],
+          listArrayType: ['val2', 'val4'],
         };
 
         await presetDataAndWaitForSelector(dataToPreset, this.page);
-        const actualValue = await getDxMultipleListValue('listMultiple', this.page);
 
-        expect(actualValue).toStrictEqual(dataToPreset.listMultiple);
+        const actualListMultipleValue = await getDxMultipleListValue('listMultiple', this.page);
+        expect(actualListMultipleValue).toStrictEqual(dataToPreset.listMultiple);
+
+        const actualListArrayTypeValue = await getDxMultipleListValue('listArrayType', this.page);
+        expect(actualListArrayTypeValue).toStrictEqual(dataToPreset.listArrayType);
       });
 
     test(

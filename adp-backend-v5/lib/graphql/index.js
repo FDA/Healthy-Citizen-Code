@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const RJSON = require('relaxed-json');
+const JSON5 = require('json5');
 const Promise = require('bluebird');
 const log = require('log4js').getLogger('lib/graphql');
 const { ValidationError } = require('../errors');
@@ -48,7 +48,7 @@ const {
   upsertOneResolverName,
 } = require('./mutation');
 
-module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') => {
+module.exports = (appLib, graphQlRoute, altairRoute) => {
   const m = {};
   m.graphqlCompose = require('graphql-compose');
   const { schemaComposer } = m.graphqlCompose;
@@ -407,7 +407,7 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
     const testQuickFilterWrapper = (next) => async (rp) => {
       let conditions;
       try {
-        conditions = RJSON.parse(rp.args.record.filter);
+        conditions = JSON5.parse(rp.args.record.filter);
       } catch (e) {
         throw new ValidationError(`Invalid filter string. ${e.message}`);
       }
@@ -426,6 +426,8 @@ module.exports = (appLib, graphQlRoute = '/graphql', altairRoute = '/altair') =>
 
   m.datasetsModelName = 'datasets';
   m.backgroundJobsModelName = 'backgroundJobs';
+  m.datasetUtil = require('./datasets-collections/util');
+
   m.addAll = async () => {
     const { models } = appLib.appModel;
     const { appLookups, appTreeSelectors } = appLib;

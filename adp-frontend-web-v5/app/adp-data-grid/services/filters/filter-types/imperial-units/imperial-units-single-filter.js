@@ -21,7 +21,7 @@
         },
 
         createEditor: function(init) {
-          var units = ImperialUnitsEditorsHelpers.getUnits(init.args.modelSchema);
+          var units = ImperialUnitsEditorsHelpers.getUnits(init.args.fieldSchema);
 
           ImperialUnitsEditorsHelpers.createFilterComponent({
             unit: units[0],

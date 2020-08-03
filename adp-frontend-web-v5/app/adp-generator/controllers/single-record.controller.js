@@ -7,55 +7,43 @@
 
   /** @ngInject */
   function SingleRecordController(
-    AdpNotificationService,
     AdpSchemaService,
     ACTIONS,
     $state,
     $location,
     AdpQueryParams,
     GraphqlCollectionQuery,
-    GraphqlCollectionMutator,
-    ResponseError
+    ErrorHelpers,
+    AdpUnifiedArgs
   ) {
     var vm = this;
     (function init() {
-      vm.schema = AdpSchemaService.getCurrentSchema();
-      vm.formParams = _.get(vm.schema, 'parameters', {});
       vm.ACTIONS = ACTIONS;
 
       vm.editing = false;
       vm.loading = true;
 
-      setSubmitAction();
       setTemplateMethods();
-      getPageData()
+
+      getPageData(AdpSchemaService.getCurrentSchema())
         .then(callActionFromQuery)
     })();
 
-    function setSubmitAction() {
-      vm.submit = function (formData) {
-        return GraphqlCollectionMutator[vm.currentAction](vm.schema, formData)
-          .then(showUpdateNotification)
-          .then(getPageData)
-          .then(vm.cancelEditMode);
-      };
+    vm.formOptions = {
+      schemaActionsStrategy: {
+        onComplete: afterFormUpdate,
+        onCancel: afterFormUpdate,
+      },
+      disableFullscreen: true,
+    };
+
+    function afterFormUpdate() {
+      getPageData(vm.args.modelSchema)
+        .then(vm.cancelEditMode);
     }
 
-    function showUpdateNotification() {
-      var message = getUpdateMessage(vm.schema.fullName, vm.currentAction);
-      AdpNotificationService.notifySuccess(message);
-    }
-
-    function getUpdateMessage(fullName, actionName) {
-      var messages = {};
-      messages[ACTIONS.CREATE] = ' successfully added.';
-      messages[ACTIONS.UPDATE] = ' successfully updated.';
-
-      return fullName + messages[actionName];
-    }
-
-    function getPageData() {
-      return GraphqlCollectionQuery(vm.schema)
+    function getPageData(schema) {
+      return GraphqlCollectionQuery(schema)
         .then(function (data) {
           return data.items[0] || {};
         })
@@ -66,45 +54,51 @@
     }
 
     function updatePageParams(data) {
-      updateFormParams(data);
-      vm.pageData = data;
+      vm.formParams = _.get(vm.schema, 'parameters', {});
+
+      var action = _.isEmpty(data) ? ACTIONS.CREATE : ACTIONS.UPDATE;
+      vm.args = getArgs(data, action);
+
       vm.loading = false;
     }
 
-    function updateFormParams(data) {
-      vm.currentAction = _.isEmpty(data) ? ACTIONS.CREATE : ACTIONS.UPDATE;
-      vm.formParams.actionType = vm.currentAction;
+    function getArgs(data, action) {
+      return AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: '',
+        action: action,
+        formData: data || {},
+        schema: _.cloneDeep(AdpSchemaService.getCurrentSchema()),
+      });
     }
 
     function setTemplateMethods() {
       vm.enterEditMode = function () {
-        vm.editData = _.cloneDeep(vm.pageData);
+        vm.editArgs = _.cloneDeep(vm.args);
         vm.editing = true;
       };
 
       vm.cancelEditMode = function () {
-        vm.editData = null;
+        vm.editArgs = null;
         vm.editing = false;
       };
 
       vm.showButton = function(actionToShow) {
-        var hasPermission = _.hasIn(vm.schema, 'actions.fields.' + actionToShow);
-
-        if (!hasPermission || vm.editing) {
+        var hasPermission = _.hasIn(vm.args.modelSchema, 'actions.fields.' + actionToShow);
+        if (!hasPermission) {
           return false;
         }
 
-        return vm.currentAction === actionToShow;
+        return vm.args.action === actionToShow;
       };
     }
 
     function callActionFromQuery() {
       var actionFromQuery = $state.params.action;
-      if (!actionPermitted(actionFromQuery, vm.schema)) {
+      if (!actionPermitted(actionFromQuery, vm.args.modelSchema)) {
         return;
       }
 
-      callAction(actionFromQuery, vm.schema);
+      callAction(actionFromQuery, vm.args.modelSchema);
     }
 
     function actionPermitted(name, schema) {
@@ -116,7 +110,7 @@
 
     function callAction(name, schema) {
       var dataFromQuery = AdpQueryParams.getDataFromQueryParams(schema, $location.search());
-      vm.editData = _.merge({}, vm.pageData, dataFromQuery);
+      vm.editArgs = _.merge({}, vm.args, { row: dataFromQuery });
       vm.editing = true;
     }
   }

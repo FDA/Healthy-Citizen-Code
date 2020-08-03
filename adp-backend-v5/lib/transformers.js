@@ -1,5 +1,6 @@
 const Promise = require('bluebird');
 const { ValidationError } = require('./errors');
+const { getParentInfo } = require('./util/unified-approach');
 
 /**
  * @module transformers
@@ -33,6 +34,7 @@ module.exports = (appLib) => {
     userContext,
     handler,
     appModelPart,
+    wholeModel,
     data,
     lodashPath,
     path,
@@ -43,26 +45,43 @@ module.exports = (appLib) => {
     if (lodashPath[0] === '.') {
       lodashPath = lodashPath.substr(1);
     }
+
     if (path.length === 0) {
       // time to call handler
+      const { indexes, index, parentData } = getParentInfo(appLib.appModel.models[modelName], data, lodashPath);
+      const context = {
+        path: lodashPath,
+        data: _.get(data, lodashPath),
+        row: data,
+        userContext,
+        action: userContext.action,
+        fieldSchema: appModelPart,
+        modelSchema: wholeModel,
+        indexes,
+        index,
+        parentData,
+        handlerSpec: handler,
+      };
+
       // log.trace(`>> Calling "${type}" hook "${JSON.stringify(handler)}" for "${lodashPath}" equal "${_.get(data, lodashPath)}", data: ${JSON.stringify(data)}`);
       if (type === 'transform') {
         if (m.appLib.appModelHelpers.Transformers[handler]) {
-          const boundHandler = m.appLib.appModelHelpers.Transformers[handler].bind(data);
-          boundHandler(lodashPath, appModelPart, userContext, cb);
+          const boundHandler = m.appLib.appModelHelpers.Transformers[handler].bind(context);
+          boundHandler(cb);
         } else {
           cb(`Unknown transform function "${handler}" in "${path.join('.')}"`);
         }
       } else if (type === 'synthesize') {
         const synthesizerCode = _.get(handler, 'code');
         if (synthesizerCode) {
-          const synthesizerFunc = new Function('data, row, modelSchema, $action', `return ${synthesizerCode}`);
+          const synthesizerFunc = new Function(`return ${synthesizerCode}`);
           // TODO: transformers should not depend on ValidatorUtils, as option move out 'getValue' from ValidatorsUtils
           // const val = appLib.appModelHelpers.ValidatorUtils.getValue(data, appModelPart, lodashPath);
-          const val = data;
-          const { action } = userContext;
+          // const val = data;
+          // const { action } = userContext;
           try {
-            const synthesizedValue = synthesizerFunc.call(data, val, data, appModelPart, action);
+            // const synthesizedValue = synthesizerFunc.call(data, val, data, appModelPart, action);
+            const synthesizedValue = synthesizerFunc.call(context);
             _.set(data, lodashPath, synthesizedValue);
             return cb();
           } catch (e) {
@@ -72,16 +91,17 @@ module.exports = (appLib) => {
 
         const handlerName = _.get(handler, 'synthesizer', handler);
         if (m.appLib.appModelHelpers.Synthesizers[handlerName]) {
-          const boundHandler = m.appLib.appModelHelpers.Synthesizers[handlerName].bind(data);
-          boundHandler(lodashPath, appModelPart, userContext, cb);
+          const boundHandler = m.appLib.appModelHelpers.Synthesizers[handlerName].bind(context);
+          boundHandler(cb);
         } else {
           cb(`Unknown synthesizer function "${handlerName}" in "${path.join('.')}"`);
         }
       } else if (type === 'validate') {
-        if (m.appLib.appModelHelpers.Validators[handler.validator]) {
-          const boundHandler = m.appLib.appModelHelpers.Validators[handler.validator].bind(data);
+        const validatorFunc = m.appLib.appModelHelpers.Validators[handler.validator];
+        if (validatorFunc) {
+          const boundHandler = validatorFunc.bind(context);
           process.nextTick(() => {
-            boundHandler(modelName, lodashPath, appModelPart, userContext, handler, (err) => {
+            boundHandler((err) => {
               if (err) {
                 cb(`${appModelPart.fullName}: ${err}`);
               } else {
@@ -110,6 +130,7 @@ module.exports = (appLib) => {
                 userContext,
                 handler,
                 appModelPart[head],
+                wholeModel,
                 data,
                 `${lodashPath}.${key}`,
                 path.slice(1),
@@ -132,6 +153,7 @@ module.exports = (appLib) => {
                   userContext,
                   handler,
                   appModelPart[head],
+                  wholeModel,
                   data,
                   `${lodashPath}.${idx}`,
                   path.slice(1),
@@ -151,6 +173,7 @@ module.exports = (appLib) => {
             userContext,
             handler,
             appModelPart[head],
+            wholeModel,
             data,
             lodashPath,
             path.slice(1),
@@ -164,6 +187,7 @@ module.exports = (appLib) => {
             userContext,
             handler,
             appModelPart[head],
+            wholeModel,
             data,
             lodashPath,
             path.slice(1),
@@ -182,6 +206,7 @@ module.exports = (appLib) => {
           userContext,
           handler,
           appModelPart[head],
+          wholeModel,
           data,
           `${lodashPath}.${head}`,
           path.slice(1),
@@ -342,12 +367,15 @@ module.exports = (appLib) => {
         // NOTE: first element is always the model name, the last one is "transform
         // NOTE: It's up to traverseDocAndCallProcessor method to narrow down the validation to specific element of the subschema array
         // Model traversing can't filter this part.
+        const wholeModel = m.appLib.appModel.models[path[0]];
+        const appModelPart = wholeModel;
         return m.traverseDocAndCallProcessorPromisified(
           type,
           modelName,
           userContext,
           name,
-          m.appLib.appModel.models[path[0]],
+          appModelPart,
+          wholeModel,
           data,
           '',
           path.slice(1, path.length - 1),
@@ -371,6 +399,8 @@ module.exports = (appLib) => {
       // heightImperialToMetric - input handler, called before saving into db
       // heightMetricToImperial - output handler, called before sending response to client
       const isOutputHandler = Array.isArray(handler) && handler.length > 1;
+      const wholeModel = m.appLib.appModel.models[path[0]];
+      const appModelPart = wholeModel;
       if (type === 'transform' && isOutputHandler) {
         const name = handler[1];
         if (name) {
@@ -379,7 +409,8 @@ module.exports = (appLib) => {
             modelName,
             userContext,
             name,
-            m.appLib.appModel.models[path[0]],
+            appModelPart,
+            wholeModel,
             data,
             '',
             path.slice(1, path.length - 1),
@@ -396,7 +427,8 @@ module.exports = (appLib) => {
           modelName,
           userContext,
           handler,
-          m.appLib.appModel.models[path[0]],
+          appModelPart,
+          wholeModel,
           data,
           '',
           path.slice(1, path.length - 1),

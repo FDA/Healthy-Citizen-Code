@@ -5,8 +5,10 @@ export default function $(selector, context) {
 };
 
 $.isHTML = function (string) {
-  return (string[0] === '<' && string[string.length - 1] === '>') ||
-    htmlTagRex.test(string);
+  const testString = string.trim().replace(/\r?\n|\r/g, '');
+
+  return (testString[0] === '<' && testString[testString.length - 1] === '>') ||
+    htmlTagRex.test(testString);
 };
 
 $.isRoot = function (node) {

@@ -10,12 +10,13 @@ module.exports = () => {
   const alphabet = '2345679ACDEFGHJKMNOPQRSTUVWXYZ';
 
   const m = {
-    id24(path, appModelPart, userContext, next) {
-      if (_.get(this, path)) {
+    id24(next) {
+      const { row, path } = this;
+      if (_.get(row, path)) {
         return next();
       }
       return generate(alphabet, 24).then(id => {
-        _.set(this, path, id);
+        _.set(row, path, id);
         next();
       });
     },

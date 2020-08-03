@@ -18,8 +18,12 @@
     function stringArray(args) {
       var value = args.data;
 
-      if (!_.isArray(value) || _.isEmpty(value)) {
+      const isEmptyArray = _.isArray(value) && value.length === 0;
+      if (value === null || isEmptyArray)  {
         return GRID_FORMAT.EMPTY_VALUE;
+      }
+      if (!_.isArray(value)) {
+        return _.escape(value);
       }
       return value.map(_.escape).join(', ');
     }
@@ -64,8 +68,12 @@
     function phone(args) {
       var value = args.data;
 
-      return (_.isNil(value) || value === '') ?
-        GRID_FORMAT.EMPTY_VALUE :
+      if (_.isNil(value) || value === '') {
+        return GRID_FORMAT.EMPTY_VALUE;
+      }
+
+      return FormattersHelper.asText(args) ?
+        value :
         [value.slice(0, 3), value.slice(3,6), value.slice(6, 10)].join('-');
     }
 
@@ -73,7 +81,7 @@
       if (_.isNil(args.data)) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
-      var format = _.get(args, 'modelSchema.parameters.format', DX_ACCOUNTING_FORMAT)
+      var format = _.get(args, 'fieldSchema.parameters.format', DX_ACCOUNTING_FORMAT)
       var formattedValue = DevExpress.localization.formatNumber(args.data, format);
 
       if (FormattersHelper.asText(args) || args.data >= 0) {
@@ -92,7 +100,7 @@
       if (FormattersHelper.asText(args)) {
         return rawValue;
       } else {
-        var renderAsHtml = _.get(args, 'modelSchema.parameters.renderAsHtml', false);
+        var renderAsHtml = _.get(args, 'fieldSchema.parameters.renderAsHtml', false);
         return renderAsHtml ? rawValue : _.escape(rawValue);
       }
     }
@@ -106,13 +114,13 @@
       if (FormattersHelper.asText(args)) {
         return rawValue;
       } else {
-        var renderAsHtml = _.get(args, 'modelSchema.parameters.renderAsHtml', false);
+        var renderAsHtml = _.get(args, 'fieldSchema.parameters.renderAsHtml', false);
         return renderAsHtml ? htmlCellContent(args) : stripHtml(rawValue);
       }
     }
 
     function htmlCellContent(args) {
-      var maxHeight = _.get(args, 'modelSchema.parameters.maxDatagridCellHeight');
+      var maxHeight = _.get(args, 'fieldSchema.parameters.maxDatagridCellHeight');
       var tpl = '<div style="height: auto; max-height: ' + maxHeight + 'px; overflow-y: scroll;"></div>';
 
       var container = $(tpl);

@@ -109,7 +109,7 @@
       return AdpUnifiedArgs.getHelperParamsWithConfig({
         path: fieldName,
         formData: formData,
-        action: null,
+        action: 'filter',
         schema: schema,
       });
     }

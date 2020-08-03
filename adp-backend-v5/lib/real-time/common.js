@@ -31,7 +31,7 @@ function addAuthentication({ appLib, io, log }) {
   });
 }
 
-function getSocketIoServer(server) {
+function getSocketIoServer(server, opts = {}) {
   return socketIo(server, {
     handlePreflightRequest(req, res) {
       // check whether req.headers.origin is passed cors
@@ -42,6 +42,7 @@ function getSocketIoServer(server) {
       });
       res.end();
     },
+    ...opts,
   });
 }
 module.exports = {

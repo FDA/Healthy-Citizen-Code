@@ -20,7 +20,7 @@
       link: function (scope, element) {
         (function init() {
           scope.config = AdpFieldsService.configFromParameters(
-            scope.props.args.modelSchema,
+            scope.props.args.fieldSchema,
             LookupDxConfig.multiple(scope.props)
           );
           addTableWatcher(scope.props);

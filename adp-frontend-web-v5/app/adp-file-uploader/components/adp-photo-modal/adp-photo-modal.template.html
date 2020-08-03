@@ -18,7 +18,14 @@
 
 <div class="modal-footer">
   <button
-    class="btn btn-primary"
+    class="adp-action-b-secondary"
+    type="button"
+    ng-click="vm.cancel()">
+    Cancel
+  </button>
+
+  <button
+    class="adp-action-b-tertiary"
     type="button"
     ng-if="vm.isEmpty() && vm.player.record().isRecording()"
     ng-click="vm.capturePhoto()">
@@ -26,7 +33,7 @@
   </button>
 
   <button
-    class="btn btn-primary"
+    class="adp-action-b-tertiary"
     type="button"
     ng-if="!vm.isEmpty()"
     ng-click="vm.retryPhoto()">
@@ -34,17 +41,10 @@
   </button>
 
   <button
-    class="btn btn-primary"
+    class="adp-action-b-primary"
     type="button"
     ng-disabled="vm.isEmpty()"
     ng-click="vm.save()">
     Save
-  </button>
-
-  <button
-    class="btn btn-default"
-    type="button"
-    ng-click="vm.cancel()">
-    Cancel
   </button>
 </div>

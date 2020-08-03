@@ -6,12 +6,27 @@ const concat = require('gulp-concat');
 
 const conf = require('../config');
 
-gulp.task('editorWorker', buildWorker);
+const workers = {
+  python: {
+    parserPath: 'node_modules/filbert/filbert.js',
+    workerPath: 'editors-workers/python-worker/*',
+    destName: 'worker-python.js',
+  },
+  relaxedJson: {
+    parserPath: 'node_modules/json5/dist/index.js',
+    workerPath: 'editors-workers/json5-worker/*',
+    destName: 'worker-json5.js',
+  },
+}
 
-function buildWorker() {
+gulp.task('pythonEditorWorker', () => buildWorker(workers.python));
+gulp.task('relaxedJsonEditorWorker', () => buildWorker(workers.relaxedJson));
+
+function buildWorker({ parserPath, workerPath, destName }) {
   const sourcePath = [
-    'node_modules/filbert/filbert.js',
-    'editors-workers/python-worker/*'
+    parserPath,
+    'editors-workers/ace-lib.js',
+    workerPath,
   ];
   const destPath = path.join(conf.paths.tmp, conf.paths.acePath);
 
@@ -23,7 +38,7 @@ function buildWorker() {
   return pipeline(
     gulp.src(sourcePath),
     uglify(uglifyConfig),
-    concat('worker-python.js'),
-    gulp.dest(destPath)
+    concat(destName),
+    gulp.dest(destPath),
   );
 }

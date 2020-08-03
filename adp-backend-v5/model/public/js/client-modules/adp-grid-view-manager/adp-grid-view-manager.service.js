@@ -32,7 +32,7 @@
         manage: doOpenManager,
       };
       var menuComponent = null;
-      var savedList = [];
+      var cachedList = null;
 
       return {
         dataSource: getMenuDataSource(),
@@ -44,11 +44,10 @@
 
       function onInit(e) {
         menuComponent = e.component;
-        doLoadList();
       }
 
       function doSave() {
-        saveView(gridComponent, customGridOptions, savedList, schema).then(function () {
+        saveView(gridComponent, customGridOptions, cachedList, schema).then(function () {
           AdpNotificationService.notifySuccess('Grid view is saved');
           return doLoadList();
         });
@@ -58,12 +57,11 @@
         var id = itemData._id;
 
         if (id) {
-          var record = getSavedItemById(savedList, id);
-
-          customGridOptions.value(record.state._customOptions || {});
+          var record = getSavedItemById(cachedList, id);
 
           setStateToGrid(gridComponent, record.state);
           AdpNotificationService.notifySuccess('Grid view is restored');
+          customGridOptions.value(record.state._customOptions || {});
 
           filterUrlMapper(gridComponent, schema);
         }
@@ -88,19 +86,19 @@
 
       function doOpenManager() {
         AdpModalService.createModal('adpGridViewManager', {
-          list: savedList,
+          list: cachedList,
           grid: gridComponent,
           customGridOptions: customGridOptions,
           schema: schema,
         }).result.then(function (res) {
-          savedList = res.newList;
-          updateMenu(savedList);
+          cachedList = res.newList;
+          updateMenu(cachedList);
         });
       }
 
       function doLoadList() {
-        loadViews(schema).then(function (list) {
-          savedList = list;
+        return loadViews(schema).then(function (list) {
+          cachedList = list;
           updateMenu(list);
         });
       }
@@ -109,7 +107,7 @@
         menuComponent.option('dataSource', getMenuDataSource(list));
       }
 
-      function getMenuDataSource(savedList) {
+      function getMenuDataSource(cachedList) {
         var functionalItems = [
           {
             name: 'Reset View ...',
@@ -124,7 +122,7 @@
           {
             name: 'Manage Grid Views ...',
             icon: 'detailslayout',
-            disabled: !savedList || !savedList.length,
+            disabled: !cachedList || !cachedList.length,
             action: 'manage',
           },
           {
@@ -134,8 +132,8 @@
             disabled: true,
           },
         ];
-        var savedItems = savedList
-          ? _.map(savedList, function (item) {
+        var savedItems = cachedList
+          ? _.map(cachedList, function (item) {
               return {
                 name: item.name,
                 _id: item._id,
@@ -157,6 +155,15 @@
 
         if (action && menuActions[action]) {
           menuActions[action](e.itemData);
+        } else {
+          if (!cachedList) {
+            doLoadList().then(function(){
+              $(e.element)
+                .find('.dx-menu-item')
+                .eq(0)
+                .trigger('dxclick');
+            });
+          }
         }
 
         return true;
@@ -180,7 +187,7 @@
         });
     }
 
-    function saveView(grid, customGridOptions, savedList, schema) {
+    function saveView(grid, customGridOptions, cachedList, schema) {
       var state = getStateFromGrid(grid);
 
       state._customOptions = customGridOptions.value();
@@ -190,7 +197,7 @@
         sizeSmall: true,
         validate: function (value) {
           if (
-            _.find(savedList, function (item) {
+            _.find(cachedList, function (item) {
               return item.name === value;
             })
           ) {

@@ -3,7 +3,7 @@ const Promise = require('bluebird');
 const fs = require('fs-extra');
 const path = require('path');
 const dotenv = require('dotenv');
-const RJSON = require('relaxed-json');
+const JSON5 = require('json5');
 const mongoose = require('mongoose');
 
 const { combineModels } = require('../util/model');
@@ -129,7 +129,7 @@ function validateArgs(args) {
   if (includeCollections) {
     const includeCollectionsErrMsg = `Argument includeCollections=${includeCollections} must be an array of collection names if specified`;
     try {
-      const parsed = RJSON.parse(includeCollections);
+      const parsed = JSON5.parse(includeCollections);
       if (!_.isArray(parsed)) {
         errors.push(includeCollectionsErrMsg);
       } else {
@@ -142,7 +142,7 @@ function validateArgs(args) {
     const excludeCollectionsErrMsg = `Argument excludeCollections=${excludeCollections} must be an array of collection names if specified`;
     excludeCollections = excludeCollections || defaultExcludeCollections;
     try {
-      const parsed = RJSON.parse(excludeCollections);
+      const parsed = JSON5.parse(excludeCollections);
       if (!_.isArray(parsed)) {
         errors.push(excludeCollectionsErrMsg);
       } else {

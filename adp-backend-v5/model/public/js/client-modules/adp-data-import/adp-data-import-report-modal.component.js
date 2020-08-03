@@ -20,7 +20,7 @@
       '    </div>' +
       '</div>' +
       '<div class="modal-footer">' +
-      '    <button class="btn btn-primary" ng-click="vm.onClose()">Close</button>' +
+      '    <button class="adp-action-b-primary" ng-click="vm.onClose()">Close</button>' +
       '</div>',
     bindings: {
       resolve: '<',

@@ -1,4 +1,3 @@
-const request = require('supertest');
 const path = require('path');
 const Promise = require('bluebird');
 const should = require('should');
@@ -11,6 +10,8 @@ const {
   setAppAuthOptions,
   prepareEnv,
   auth: { admin },
+  resourceRequest,
+  apiRequest,
 } = require('../test-util');
 
 describe('File Controller', function () {
@@ -93,11 +94,12 @@ describe('File Controller', function () {
     { name: 'adp-filter-builder/adp-filter-builder.controller.js' },
     { name: 'adp-filter-builder/adp-filter-builder.module.js' },
     { name: 'adp-filter-builder/adp-filter-builder.service.js' },
+    { name: 'adp-form-actions/adp-form-actions.module.js' },
   ];
 
   describe('Serving public files', function () {
     it('Should show merged files for dir "/public/js/client-modules" from core and app model', async function () {
-      const res = await request(this.appLib.app).get('/public/js/client-modules');
+      const res = await resourceRequest(this.appLib.app).get('/public/js/client-modules');
       const { success, data } = res.body;
       should(success).equal(true);
       should(data.length).equal(filesList.length);
@@ -107,7 +109,7 @@ describe('File Controller', function () {
 
     it('Should not show any files in directories out of "/public/js/client-modules"', async function () {
       const dirs = ['/public', '/public/default-thumbnails', '/public/css', '/public/img', '/public/logo'];
-      const responses = await Promise.map(dirs, (dir) => request(this.appLib.app).get(dir));
+      const responses = await Promise.map(dirs, (dir) => resourceRequest(this.appLib.app).get(dir));
       responses.forEach((res) => {
         const { success, message } = res.body;
         should(success).equal(false);
@@ -116,7 +118,7 @@ describe('File Controller', function () {
     });
 
     it('Should show single files in /public directory', async function () {
-      const res = await request(this.appLib.app).get('/public/manifest.json');
+      const res = await resourceRequest(this.appLib.app).get('/public/manifest.json');
       should(res.statusCode).equal(200);
       should(res.type).equal('application/json');
     });
@@ -140,7 +142,7 @@ describe('File Controller', function () {
         cropImageTop: 0,
         cropImageLeft: 60,
       };
-      const uploadRes = await request(this.appLib.app)
+      const uploadRes = await apiRequest(this.appLib.app)
         .post('/upload')
         .field('cropParams', JSON.stringify(cropParams))
         .attach('file', testFilePath)
@@ -159,11 +161,11 @@ describe('File Controller', function () {
         // image urls
         const urls = [`/file/${id}`, `/file-thumbnail/${id}`, `/file-cropped/${id}`, `/download/${id}`];
         const [file, thumb, crop, download] = await Promise.map(urls, async (url) => {
-          const res = await request(this.appLib.app).get(url).buffer().parse(binaryParser);
+          const res = await apiRequest(this.appLib.app).get(url).buffer().parse(binaryParser);
           return { image: await jimp.read(res.body), bufSize: res.body.byteLength };
         });
         // file url
-        const fileRes = await request(this.appLib.app)
+        const fileRes = await apiRequest(this.appLib.app)
           .get(`/files/${id}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
@@ -209,7 +211,7 @@ describe('File Controller', function () {
       const testFilePath = path.resolve(__dirname, `../files/${fileName}`);
       const testFileBytesSize = (await fs.stat(testFilePath)).size;
 
-      const uploadRes = await request(this.appLib.app)
+      const uploadRes = await apiRequest(this.appLib.app)
         .post('/upload')
         .attach('file', testFilePath)
         .set('Accept', 'application/json')
@@ -222,10 +224,10 @@ describe('File Controller', function () {
         should(ObjectID.isValid(id)).be.equal(true);
         should(hash).be.equal('EaY3VMzIaEma9gNmRHyRV4Vnzvk=');
 
-        const { body } = await request(this.appLib.app).get(`/download/${id}`).buffer().parse(binaryParser);
+        const { body } = await apiRequest(this.appLib.app).get(`/download/${id}`).buffer().parse(binaryParser);
         should(body.byteLength).be.equal(testFileBytesSize);
 
-        const fileRes = await request(this.appLib.app)
+        const fileRes = await apiRequest(this.appLib.app)
           .get(`/files/${id}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
@@ -245,7 +247,7 @@ describe('File Controller', function () {
       const testFilePath = path.resolve(__dirname, `../files/${fileName}`);
       const testFileBytesSize = (await fs.stat(testFilePath)).size;
 
-      const uploadRes = await request(this.appLib.app)
+      const uploadRes = await apiRequest(this.appLib.app)
         .post('/upload')
         .attach('file', testFilePath)
         .set('Accept', 'application/json')
@@ -259,10 +261,10 @@ describe('File Controller', function () {
         should(ObjectID.isValid(id)).be.equal(true);
         should(hash).be.equal('0nrSVZOsNRVIbbF2XgWj1VywuXk=');
 
-        const { body } = await request(this.appLib.app).get(`/download/${id}`).buffer().parse(binaryParser);
+        const { body } = await apiRequest(this.appLib.app).get(`/download/${id}`).buffer().parse(binaryParser);
         should(body.byteLength).be.equal(testFileBytesSize);
 
-        const fileRes = await request(this.appLib.app)
+        const fileRes = await apiRequest(this.appLib.app)
           .get(`/files/${id}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);

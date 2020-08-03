@@ -36,7 +36,7 @@ export default class Questionnaire {
       .then(data => this.init(data))
       .catch((err) => {
         console.error(err);
-        showErrorToUser('No questionnaire found');
+        showErrorToUser(node, 'No questionnaire found');
       });
   }
 
@@ -89,6 +89,7 @@ export default class Questionnaire {
         let cnt = 5;
         const timeoutFn = () => {
           showErrorToUser(
+            this.el,
             `Thank you for your participation. Next questionnaire will be displayed in ${cnt} seconds...`
           );
 
@@ -108,7 +109,7 @@ export default class Questionnaire {
       })
       .catch(err => {
         console.error(err);
-        showErrorToUser(this.options.thankYouText);
+        showErrorToUser(this.el, this.options.thankYouText);
       });
   }
 }

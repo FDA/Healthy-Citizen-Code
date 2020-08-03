@@ -21,15 +21,15 @@
         },
 
         createEditor: function(init) {
-          var units = ImperialUnitsEditorsHelpers.getUnits(init.args.modelSchema);
+          var units = ImperialUnitsEditorsHelpers.getUnits(init.args.fieldSchema);
 
           ImperialUnitsEditorsHelpers.createFilterComponent({
-            modelSchema: init.args.modelSchema,
+            fieldSchema: init.args.fieldSchema,
             unit: units[0],
             element: this.element,
             onValueChanged: init.onValueChanged,
             value: init.args.data,
-            attrId: 'cell_list_id_' + init.args.modelSchema.fieldName,
+            attrId: 'cell_list_id_' + init.args.fieldSchema.fieldName,
           });
         },
 

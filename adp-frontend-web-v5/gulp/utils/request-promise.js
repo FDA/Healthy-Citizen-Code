@@ -1,4 +1,3 @@
-const Promise = require('promise');
 const request = require('request');
 const APP_CONFIG = require('../config').APP_CONFIG();
 
@@ -7,8 +6,8 @@ function requestPromise(options) {
     request(options, (error, response, body) => {
       if (APP_CONFIG.debug) {
         console.log('----------------- START LOG -----------------');
-        console.log('Request params', JSON.stringify(options, 0, 2));
-        console.log('Response params', JSON.stringify(response, 0, 2));
+        console.log('Request params', JSON.stringify(options, null, 2));
+        console.log('Response params', JSON.stringify(response, null, 2));
         console.log('----------------- END LOG  -----------------');
       }
 

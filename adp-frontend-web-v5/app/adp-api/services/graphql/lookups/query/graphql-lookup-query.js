@@ -12,8 +12,8 @@
     GraphqlRequest
   ) {
     return function (args, params) {
-      var queryName = lookupQueryName(args.modelSchema, params.selectedTable);
-      var lookupId = args.modelSchema.lookup.id;
+      var queryName = lookupQueryName(args.fieldSchema, params.selectedTable);
+      var lookupId = args.fieldSchema.lookup.id;
 
       return GraphqlRequest({
         name: queryName,

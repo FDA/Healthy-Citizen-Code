@@ -50,6 +50,7 @@
             className: action.className,
             locateInMenu: action.locateInMenu || "auto",
             table: action.table,
+            params: action.params,
           };
           var context = {
             schema: schema,
@@ -231,27 +232,26 @@
     }
 
     function getToolbarActions(schema) {
-      var actions = _.get(schema, "actions.fields", {});
-      actions = _.map(
-        actions,
-        function (item, name) {
-          if (item.position &&
-            item.position.substr(0, TOOLBAR_POSITION_SIGNATURE.length) === TOOLBAR_POSITION_SIGNATURE) {
-            item.__name = name;
-            return item;
-          } else {
-            return null;
-          }
-        });
+      var actions = _.chain(schema)
+        .get('actions.fields', {})
+        .pickBy(function (action) {
+          var position = _.get(action, 'position', '');
+          return _.startsWith(position, TOOLBAR_POSITION_SIGNATURE);
+        })
+        .map(function (action, name) {
+          action.__name = name;
+          return action;
+        })
+        .value();
 
-      actions = _.compact(actions);
-      actions.sort(AdpSchemaService.getSorter("actionOrder"));
-
-      return actions;
+      return actions.sort(AdpSchemaService.getSorter('actionOrder'));
     }
 
     function getLocalPosition(position) {
-      return position.substr(TOOLBAR_POSITION_SIGNATURE.length + 1) === "left" ? "before" : "after";
+      var setting = position.substr(TOOLBAR_POSITION_SIGNATURE.length + 1);
+      var location = {left: "before", center: "center"}[setting];
+
+      return location || "after";
     }
 
     function removeUnnecessary(e) {

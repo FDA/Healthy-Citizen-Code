@@ -1,4 +1,4 @@
-const RJSON = require('relaxed-json');
+const JSON5 = require('json5');
 const GraphQlContext = require('./GraphQlContext');
 
 module.exports = class FilterContext extends GraphQlContext {
@@ -7,7 +7,7 @@ module.exports = class FilterContext extends GraphQlContext {
     const { limit, limitPlusOne, skip } = this._getLimitSkipForPagination(perPage, page);
     this.mongoParams = {
       conditions: filter,
-      sort: RJSON.parse(sort),
+      sort: JSON5.parse(sort),
       perPage: limit,
       limit: limitPlusOne,
       skip,

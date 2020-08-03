@@ -1,7 +1,7 @@
 <button
   type="button"
   class="smart-form-fullscreen fa"
-  ng-if="!disableFullscreen || isFullscreenSupported()"
+  ng-if="!formOptions.disableFullscreen || isFullscreenSupported()"
   ng-click="toggleFullScreen()"
   ng-class="{ 'fa-expand': !$root.isFullscreen, 'fa-compress': $root.isFullscreen }"
 >

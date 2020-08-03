@@ -46,7 +46,7 @@
         validationCallback: function (event) {
           var valueToValidate = [params.dataField, params.filterOperation, event.value];
 
-          return CustomFilterTypesValidatorService(params.schema.schemaName, "Relative Date", valueToValidate, event.rule);
+          return CustomFilterTypesValidatorService(params.args.modelSchema.schemaName, "Relative Date", valueToValidate, event.rule);
         }
       }]
     }

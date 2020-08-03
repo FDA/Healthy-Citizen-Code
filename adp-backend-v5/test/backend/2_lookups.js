@@ -1,4 +1,3 @@
-const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
@@ -9,6 +8,7 @@ const {
   auth: { admin },
   setupAppAndGetToken,
   conditionForActualRecord,
+  apiRequest,
 } = require('../test-util');
 const {
   buildGraphQlCreate,
@@ -85,7 +85,7 @@ describe('V5 Backend Lookups', function () {
 
     async function f() {
       const { makeRequest, checkResponse, checkData } = settings;
-      const req = makeRequest(request(this.appLib.app));
+      const req = makeRequest(apiRequest(this.appLib.app));
       if (this.token) {
         req.set('Authorization', `JWT ${this.token}`);
       }
@@ -100,13 +100,15 @@ describe('V5 Backend Lookups', function () {
   describe('lookups in /routes', function () {
     it('GET /routes contains endpoint', async function () {
       await this.appLib.setup();
-      const res = await request(this.appLib.app)
+      const res = await apiRequest(this.appLib.app)
         .get('/routes')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
       res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
       res.body.success.should.equal(true, res.body.message);
-      res.body.data.brief.should.containEql('GET /lookups/model4Id/model4s AUTH');
+
+      const { getFullRoute, API_PREFIX } = this.appLib;
+      res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/lookups/model4Id/model4s')} AUTH`);
     });
   });
 
@@ -134,7 +136,7 @@ describe('V5 Backend Lookups', function () {
           },
         };
         const checkData = async function (id) {
-          const res2 = await request(this.appLib.app)
+          const res2 = await apiRequest(this.appLib.app)
             .get(`/${modelName}/${id}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
@@ -189,7 +191,7 @@ describe('V5 Backend Lookups', function () {
         };
         const docId = sampleDataModel3._id.toString();
         const checkData = async function (id) {
-          const res2 = await request(this.appLib.app)
+          const res2 = await apiRequest(this.appLib.app)
             .get(`/${modelName}/${id}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)

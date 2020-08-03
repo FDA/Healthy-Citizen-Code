@@ -7,22 +7,14 @@
 
   /** @ngInject */
   function StringMultipleEditor(
+    StringArrayEditorConfig,
     DxEditorMixin,
     AdpFieldsService
   ) {
     function getOptions(init) {
-      var defaults = {
-        elementAttr: {
-          class: 'adp-select-box',
-        },
-        value: init.args.data,
-        acceptCustomValue: true,
-        onValueChanged: init.onValueChanged,
-        openOnFieldClick: false,
-        showClearButton: true,
-      };
-
-      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
+      var fieldData = init.args.data;
+      var defaults = StringArrayEditorConfig(fieldData, init.onValueChanged);
+      return AdpFieldsService.configFromParameters(init.args.fieldSchema, defaults);
     }
 
     return function () {

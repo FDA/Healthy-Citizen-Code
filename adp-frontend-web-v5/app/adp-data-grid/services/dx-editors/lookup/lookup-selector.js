@@ -46,7 +46,7 @@
             LookupDxConfig.gridEditorSingle(parentOptions);
 
           this.editorOptions = AdpFieldsService.configFromParameters(
-            parentOptions.args.modelSchema,
+            parentOptions.args.fieldSchema,
             defaults
           );
 

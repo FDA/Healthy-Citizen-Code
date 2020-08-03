@@ -1,4 +1,3 @@
-const request = require('supertest');
 require('should');
 
 const {
@@ -6,11 +5,12 @@ const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
+  apiRequest,
 } = require('../test-util');
 
 const modelName = 'model9_dynamic_list_permissions';
 
-describe('V5 Backend List Permissions', function () {
+describe('V5 Backend Dynamic List Permissions', function () {
   before(async function () {
     prepareEnv();
     this.appLib = require('../../lib/app')();
@@ -53,7 +53,7 @@ describe('V5 Backend List Permissions', function () {
         await this.appLib.setup();
         await this.appLib.start();
         const token = await loginWithUser(appLib, admin);
-        const res = await request(appLib.app)
+        const res = await apiRequest(appLib.app)
           .post(`/${modelName}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')
@@ -77,7 +77,7 @@ describe('V5 Backend List Permissions', function () {
         await this.appLib.setup();
         await this.appLib.start();
         const token = await loginWithUser(appLib, admin);
-        const res = await request(appLib.app)
+        const res = await apiRequest(appLib.app)
           .post(`/${modelName}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')
@@ -85,8 +85,8 @@ describe('V5 Backend List Permissions', function () {
           .expect('Content-Type', /json/);
         res.statusCode.should.equal(400, JSON.stringify(res, null, 2));
         res.body.success.should.equal(false);
-        const errMessageDynamicList = `Value 'invalidVal' is not allowed for list field 'model9_dynamic_list_permissions.fields.dynamicList'.`;
-        const errMessageArrayDynamicList = `Value 'invalidVal' is not allowed for list field 'model9_dynamic_list_permissions.fields.arrayDynamicList'.`;
+        const errMessageDynamicList = `Value 'invalidVal' is not allowed for list field 'model9_dynamic_list_permissions.dynamicList'.`;
+        const errMessageArrayDynamicList = `Value 'invalidVal' is not allowed for list field 'model9_dynamic_list_permissions.arrayDynamicList'.`;
         const { message } = res.body;
         message.should.startWith('Incorrect request: ');
         message.should.containEql(errMessageDynamicList);
@@ -109,7 +109,7 @@ describe('V5 Backend List Permissions', function () {
         await this.appLib.start();
         const token = await loginWithUser(appLib, user);
 
-        const res = await request(appLib.app)
+        const res = await apiRequest(appLib.app)
           .post(`/${modelName}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')
@@ -120,7 +120,7 @@ describe('V5 Backend List Permissions', function () {
         const savedId = res.body.id;
         savedId.should.not.be.empty();
 
-        const res2 = await request(appLib.app)
+        const res2 = await apiRequest(appLib.app)
           .put(`/${modelName}/${savedId}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')
@@ -144,7 +144,7 @@ describe('V5 Backend List Permissions', function () {
         await this.appLib.setup();
         await this.appLib.start();
         const token = await loginWithUser(appLib, user);
-        const res = await request(appLib.app)
+        const res = await apiRequest(appLib.app)
           .post(`/${modelName}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')
@@ -153,10 +153,10 @@ describe('V5 Backend List Permissions', function () {
         res.statusCode.should.equal(400, JSON.stringify(res, null, 2));
         res.body.success.should.equal(false);
 
-        const errMessageDynamicList = `Value 'val3' is not allowed for list field 'model9_dynamic_list_permissions.fields.dynamicList'.`;
+        const errMessageDynamicList = `Value 'val3' is not allowed for list field 'model9_dynamic_list_permissions.dynamicList'.`;
         const errMessageArrayDynamicList = [
-          `Value 'val3' is not allowed for list field 'model9_dynamic_list_permissions.fields.arrayDynamicList'.`,
-          `Value 'val4' is not allowed for list field 'model9_dynamic_list_permissions.fields.arrayDynamicList'.`,
+          `Value 'val3' is not allowed for list field 'model9_dynamic_list_permissions.arrayDynamicList'.`,
+          `Value 'val4' is not allowed for list field 'model9_dynamic_list_permissions.arrayDynamicList'.`,
         ];
         const { message } = res.body;
         message.should.startWith('Incorrect request: ');

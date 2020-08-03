@@ -13,7 +13,7 @@
       var actionOptions = this.actionOptions;
       var customOptions = this.customGridOptions;
 
-      return toolbarWidgetRegister(function () {
+      return toolbarWidgetRegister(function (gridComponent) {
         return {
           widget: "dxMenu",
           options: {
@@ -29,13 +29,16 @@
                 if (res) {
                   customOptions.value('filterBuilder', res.length ? res : null);
                 }
-                highlightButton(event);
-                customOptions.gridComponent.refresh();
+                gridComponent.refresh();
               });
+
+              AdpClientCommonHelper.repaintToolbar(gridComponent);
               return true;
             },
             onInitialized: function(event){
-              customOptions.setHandler('change', 'filterBuilder', function(){
+              highlightButton(event);
+
+              customOptions.setOrReplaceHandler('change:filterBuilder', 'filterBuilder', function(){
                 highlightButton(event);
               })
             }
@@ -46,7 +49,7 @@
           var filterBuilder = customOptions.value('filterBuilder');
           var isHl = filterBuilder && filterBuilder.length;
 
-          AdpClientCommonHelper.highlightToolbarButton(event.element, isHl);
+          AdpClientCommonHelper.highlightToolbarButton(event.component, isHl);
         }
       })
     };

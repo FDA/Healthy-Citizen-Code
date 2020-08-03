@@ -18,14 +18,14 @@
         displayExpr: 'label',
         elementAttr: {
           class: 'adp-select-box',
-          id: 'cell_list_id_' + init.args.modelSchema.fieldName,
+          id: 'cell_list_id_' + init.args.fieldSchema.fieldName,
         },
         dataSource: AdpListsService.getDataSource(init.args),
         onValueChanged: init.onValueChanged,
         showClearButton: true,
       };
 
-      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
+      return AdpFieldsService.configFromParameters(init.args.fieldSchema, defaults);
     }
 
     function factory(multiple) {

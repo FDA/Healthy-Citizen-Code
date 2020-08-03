@@ -6,8 +6,11 @@
     .directive('gridControl', gridControl);
 
   function gridControl(
+    AdpUnifiedArgs,
     GraphqlMultipleSchemasQuery,
-    GRID_CONTROL_ACTIONS
+    GridControlHelper,
+    GRID_CONTROL_ACTIONS,
+    ACTIONS
   ) {
     return {
       restrict: 'E',
@@ -20,70 +23,23 @@
       templateUrl: 'app/adp-forms/directives/adp-form-controls/grid-control/grid-control.html',
       require: '^^form',
       link: function (scope) {
-        scope.schema = mergeSchema(scope.field.table);
+        var newRecordsAllowed = scope.validationParams.formParams.action === 'update';
+
+        scope.schema = GridControlHelper.mergeSchema(scope.field.table, scope.validationParams.schema);
         setParametersToSchema(scope.field, scope.schema);
-        addActions(scope.schema, scope.field.table);
+        addActions(scope.schema, scope.field.table, newRecordsAllowed);
         showHideHeader(scope.field.showHeader, scope.schema);
 
         scope.options = {
           dataSource: {
             store: new DevExpress.data.CustomStore({
               load: function () {
-                return GraphqlMultipleSchemasQuery(scope.field.table, {
-                  row: _.cloneDeep(scope.adpFormData),
-                  action: scope.validationParams.formParams.action,
-                })
-                  .then(function (data) {
-                    return mergeGridData(data, scope.field.table);
-                  })
-                  .then(function (mergeData) {
-                    return {
-                      data: mergeData,
-                      totalCount: mergeData.length,
-                    };
-                  })
+                return GridControlHelper.getMergedData(
+                  scope.field.table, scope.adpFormData, scope.validationParams.formParams.action)
               }
             })
           }
         };
-
-        function mergeSchema(tableDefinition) {
-          var resultedSchema = _.cloneDeep(scope.validationParams.schema);
-          resultedSchema.fields = {
-            $meta_table: {
-              type: 'String',
-              description: 'Service column. Holds original schema name.',
-              showInDatatable: false,
-              fieldName: '$meta_table',
-            }
-          };
-
-          var tablesList = getUniqueTablesList(tableDefinition);
-
-          if (_.includes(tablesList, '_tableLabel')) {
-            resultedSchema.fields._tableLabel = { type: 'String', fullName: '_tableLabel', fieldName: '_tableLabel' };
-          }
-
-          if (_.includes(tablesList, '_table')) {
-            resultedSchema.fields._table =  { type: 'String', fullName: '_table', fieldName: '_table' };
-          }
-
-          _.keys(tableDefinition).forEach(function (tableName) {
-            var schema = getSchemaByName(tableName);
-            _.merge(resultedSchema.fields, schema.fields);
-          });
-
-          _.each(resultedSchema.fields, function (field, fieldName) {
-            field.showInDatatable = _.includes(tablesList, fieldName);
-          });
-
-          return resultedSchema;
-        }
-
-        function getSchemaByName(name) {
-          var APP_MODEL = window.adpAppStore.appModel();
-          return _.cloneDeep(APP_MODEL[name]);
-        }
 
         function setParametersToSchema(field, schema) {
           var defaults = {
@@ -112,37 +68,42 @@
           });
         }
 
-        function addActions(schema, tables) {
+        function addActions(schema, tables, newRecordsAllowed) {
           schema.actions.fields = _.cloneDeep(GRID_CONTROL_ACTIONS);
           schema.actions.fields.gridCreateControl.table = tables;
+
+          var createDataGetter = function (schemaName) {
+            return preparePresetData(tables[schemaName].create || {});
+          }
+
+          if (schema.actions.fields.gridCreateControl) {
+            schema.actions.fields.gridCreateControl.params = {
+              createDataGetter: createDataGetter,
+              disabled: !newRecordsAllowed,
+            }
+          }
         }
 
-        function mergeGridData(data, tables) {
-          _.each(tables, function (table, schemaName) {
-            var hasTable = _.includes(table.fields, '_table');
-            var hasTableLabel = _.includes(table.fields, '_tableLabel');
-
-            data[schemaName].forEach(function (item) {
-              hasTableLabel && (item._tableLabel = table.tableLabel || _.startCase(schemaName));
-              hasTable && (item._table = schemaName);
-              item.$meta_table = schemaName;
-              item._actions = _.assign(data._actions, { gridControlEdit: true });
-            });
+        function preparePresetData(fields) {
+          var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+            path: scope.field.fieldName,
+            formData: scope.adpFormData,
+            action: ACTIONS.CREATE,
+            schema: scope.schema
           });
 
-          return _.flow(_.toArray, _.flatten)(data);
+          return _.mapValues(fields, function(field){
+            return getPresetFieldValue(field, args);
+          })
         }
 
-        function getUniqueTablesList(tableDef) {
-          return _.flow(
-            function (defObj) {
-              return _.map(defObj, function (item) {
-                return item.fields;
-              });
-            },
-            _.flatten,
-            _.uniq
-          )(tableDef);
+        function getPresetFieldValue(expression, args) {
+          try {
+            return new Function("return " + expression).call(args);
+          } catch(e){
+            console.error('Error while trying to evaluate create preset expression "' + expression + '": ', e);
+            return expression;
+          }
         }
       }
     }

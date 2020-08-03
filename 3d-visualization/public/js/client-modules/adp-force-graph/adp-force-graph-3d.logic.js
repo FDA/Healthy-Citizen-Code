@@ -146,15 +146,15 @@
             return new $.Deferred().resolve(null);
           };
         }
-        proms.push(AdpClientCommonHelper.loadScript(APP_CONFIG.apiUrl + '/public/js/lib/force-graph/index.js'));
+        proms.push(AdpClientCommonHelper.loadScript(APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/force-graph/index.js'));
 
-        AdpClientCommonHelper.loadCss(APP_CONFIG.apiUrl + '/public/js/lib/force-graph/css/style.css?v1');
+        AdpClientCommonHelper.loadCss(APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/force-graph/css/style.css?v1');
       }
 
       if (!relData) {
         proms.push(
           $http
-            .get(APP_CONFIG.apiUrl + '/getFdaVipFgData')
+            .get(APP_CONFIG.serverBaseUrl + APP_CONFIG.apiPrefix + '/getFdaVipFgData')
             .then(function (res) {
               relData = pickNodesAndLinks(res);
               vm.legend = res.data.legend;

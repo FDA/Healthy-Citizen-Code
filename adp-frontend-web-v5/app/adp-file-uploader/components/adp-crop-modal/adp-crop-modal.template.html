@@ -21,24 +21,24 @@
 
 <div class="modal-footer">
   <button
-    class="btn btn-primary"
+          class="adp-action-b-secondary"
+          type="button"
+          ng-click="vm.cancel()">
+    Cancel
+  </button>
+
+  <button
+    class="adp-action-b-primary"
     type="button"
     ng-click="vm.save()">
     Save
   </button>
 
   <button
-    class="btn btn-primary"
+    class="adp-action-b-primary"
     type="button"
     ng-if="vm.items.length > 0"
     ng-click="vm.next()">
     Crop next image
-  </button>
-
-  <button
-    class="btn btn-default"
-    type="button"
-    ng-click="vm.cancel()">
-    Cancel
   </button>
 </div>

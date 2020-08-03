@@ -15,22 +15,23 @@ const {
 
 const {
   selectLookupValue,
+  selectLookupTable,
   getSingleLookupValue,
   clickLookupAction,
 } = require('../../../utils/select.helpers');
 
-const LOOKUP_NAME = 'objectId';
+const lookups = {
+  singleTable: 'objectId',
+  multipleTables: 'objectIdsWithMultipleTables',
+};
 
-async function execActionForLookup(actionName, lookupName, page) {
-  const PARENT_FORM_SELECTOR = '.basicTypes';
-  await clickLookupAction(lookupName, actionName, PARENT_FORM_SELECTOR, page);
-
-  const LABEL_FIELD_SELECTOR = '[name="string"] input';
+async function fillForm(fieldName, formSelector, page) {
+  const LABEL_FIELD_SELECTOR = `[name="${fieldName}"] input`;
   const labelValue =  uuidv4();
-  await typeIntoLabelField(LABEL_FIELD_SELECTOR,  labelValue, page);
+  await typeIntoLabelField(LABEL_FIELD_SELECTOR, labelValue, page);
 
-  await clickSubmit(page, PARENT_FORM_SELECTOR);
-  await waitForContentRemovedFromDom(PARENT_FORM_SELECTOR, page);
+  await clickSubmit(page, formSelector);
+  await waitForContentRemovedFromDom(formSelector, page);
 
   return labelValue;
 }
@@ -70,10 +71,13 @@ describe('lookup types', () => {
     test(
       'Should create new record for lookup and select it after',
       async () => {
-        const labelValue = await execActionForLookup('create', LOOKUP_NAME, this.page);
+        const formSelector = '.basicTypes';
+        await clickLookupAction(lookups.singleTable, 'create', this.page);
+        await this.page.waitForSelector(formSelector);
+        const labelValue = await fillForm('string', formSelector, this.page);
 
-        await selectLookupValue(labelValue, LOOKUP_NAME, this.page);
-        const actualLookupValue = await getSingleLookupValue(LOOKUP_NAME, this.page);
+        await selectLookupValue(labelValue, lookups.singleTable, this.page);
+        const actualLookupValue = await getSingleLookupValue(lookups.singleTable, this.page);
 
         expect(actualLookupValue).toBe(labelValue);
       });
@@ -81,12 +85,36 @@ describe('lookup types', () => {
     test(
       'Should edit new record for lookup and select it after',
       async () => {
-        const labelValue = await execActionForLookup('edit', LOOKUP_NAME, this.page);
+        const formSelector = '.basicTypes';
+        await clickLookupAction(lookups.singleTable, 'edit', this.page);
+        await this.page.waitForSelector(formSelector);
+        const labelValue = await fillForm('string', formSelector, this.page);
 
-        await selectLookupValue(labelValue, LOOKUP_NAME, this.page);
-        const actualLookupValue = await getSingleLookupValue(LOOKUP_NAME, this.page);
+        await selectLookupValue(labelValue, lookups.singleTable, this.page);
+        const actualLookupValue = await getSingleLookupValue(lookups.singleTable, this.page);
 
         expect(actualLookupValue).toBe(labelValue);
       });
+
+    test(
+      'Should open BasicTypes and then BasicDateTypes form modals fom lookup',
+      async () => {
+        const basicTypesFormSelector = '.basicTypes';
+        await clickLookupAction(lookups.multipleTables, 'create', this.page);
+        const basicTypesForm = await this.page.waitForSelector(basicTypesFormSelector);
+
+        expect(basicTypesForm).toBeTruthy();
+
+        await this.page.click(`${basicTypesFormSelector} [data-actions-name="cancelSubmit"]`);
+        await this.page.waitForSelector(basicTypesFormSelector, { hidden: true });
+
+        const basicTypesDateFormSelector = '.basicTypesDates';
+        await selectLookupTable('Basic Types Dates', lookups.multipleTables, this.page);
+        await clickLookupAction(lookups.multipleTables, 'create', this.page);
+        const basicTypesDateForm = await this.page.waitForSelector(basicTypesDateFormSelector);
+
+        expect(basicTypesDateForm).toBeTruthy();
+      }
+    )
   });
 });

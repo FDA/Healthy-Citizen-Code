@@ -1,4 +1,3 @@
-const request = require('supertest');
 const should = require('should');
 const assert = require('assert');
 const _ = require('lodash');
@@ -11,6 +10,7 @@ const {
   prepareEnv,
   checkItemSoftDeleted,
   conditionForActualRecord,
+  apiRequest,
 } = require('../test-util');
 
 // NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
@@ -49,7 +49,7 @@ describe('V5 Backend CRUD', function () {
   describe('Create Item', function () {
     describe('1st level', function () {
       it('posts and stores 1st level data', async function () {
-        const res = await request(this.appLib.app)
+        const res = await apiRequest(this.appLib.app)
           .post('/model1s')
           .send({ data: sampleData0 })
           .set('Accept', 'application/json')
@@ -58,7 +58,7 @@ describe('V5 Backend CRUD', function () {
         res.body.success.should.equal(true, res.body.message);
         res.body.should.have.property('id');
         const savedId = res.body.id;
-        const res2 = await request(this.appLib.app)
+        const res2 = await apiRequest(this.appLib.app)
           .get(`/model1s/${sampleData0._id}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
@@ -73,15 +73,16 @@ describe('V5 Backend CRUD', function () {
 
     describe('1st level, wrong path', function () {
       it('show error message', async function () {
-        const res = await request(this.appLib.app)
+        const res = await apiRequest(this.appLib.app)
           .post(`/model1s1/`)
           .send({ data: sampleData0.encounters[1].vitalSigns[1] })
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .expect(404);
         const { message, success } = res.body;
+        const { getFullRoute, API_PREFIX } = this.appLib;
         success.should.equal(false);
-        message.should.equal('/model1s1/ does not exist');
+        message.should.equal(`${getFullRoute(API_PREFIX, '/model1s1/')} does not exist`);
       });
     });
 
@@ -89,7 +90,7 @@ describe('V5 Backend CRUD', function () {
     describe('Get Items', function () {
       describe('1st level', function () {
         it('returns correct 1st level data', async function () {
-          const res = await request(this.appLib.app)
+          const res = await apiRequest(this.appLib.app)
             .get('/model1s')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
@@ -102,7 +103,7 @@ describe('V5 Backend CRUD', function () {
 
       describe('from model 2 capped to 3 items in return', function () {
         it('returns 3 items', async function () {
-          const res = await request(this.appLib.app)
+          const res = await apiRequest(this.appLib.app)
             .get(`/model2s`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
@@ -114,7 +115,7 @@ describe('V5 Backend CRUD', function () {
 
       describe('1st level with extra query parameter', function () {
         it('returns 3 items', async function () {
-          const res = await request(this.appLib.app)
+          const res = await apiRequest(this.appLib.app)
             .get(`/model2s?_=1489752996234`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
@@ -129,7 +130,7 @@ describe('V5 Backend CRUD', function () {
     describe('Get item', function () {
       describe('1st level', function () {
         it('returns correct 1st level data', async function () {
-          const res = await request(this.appLib.app)
+          const res = await apiRequest(this.appLib.app)
             .get('/model1s/587179f6ef4807703afd0dff')
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
@@ -144,7 +145,7 @@ describe('V5 Backend CRUD', function () {
     describe('Update Item', function () {
       describe('1st level', function () {
         it('puts and stores 1st level data', async function () {
-          const putRes = await request(this.appLib.app)
+          const putRes = await apiRequest(this.appLib.app)
             .put(`/model1s/${sampleData1._id}`)
             .send({ data: sampleData0 })
             .set('Accept', 'application/json')
@@ -152,7 +153,7 @@ describe('V5 Backend CRUD', function () {
           putRes.statusCode.should.equal(200, JSON.stringify(putRes, null, 4));
           putRes.body.success.should.equal(true, putRes.body.message);
 
-          const getRes = await request(this.appLib.app)
+          const getRes = await apiRequest(this.appLib.app)
             .get(`/model1s/${sampleData1._id}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
@@ -166,7 +167,7 @@ describe('V5 Backend CRUD', function () {
         });
 
         it('puts empty object', async function () {
-          const putRes = await request(this.appLib.app)
+          const putRes = await apiRequest(this.appLib.app)
             .put(`/model1s/${sampleData1._id}`)
             .send({ data: {} })
             .set('Accept', 'application/json')
@@ -174,7 +175,7 @@ describe('V5 Backend CRUD', function () {
           putRes.statusCode.should.equal(200, JSON.stringify(putRes, null, 4));
           putRes.body.success.should.equal(true, putRes.body.message);
 
-          const getRes = await request(this.appLib.app)
+          const getRes = await apiRequest(this.appLib.app)
             .get(`/model1s/${sampleData1._id}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
@@ -188,14 +189,14 @@ describe('V5 Backend CRUD', function () {
     describe('Delete Item', function () {
       describe('1st level', function () {
         it('soft deletes 1st level data', async function () {
-          const delRes = await request(this.appLib.app)
+          const delRes = await apiRequest(this.appLib.app)
             .del(`/model1s/${sampleData1._id}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           delRes.statusCode.should.equal(200, JSON.stringify(delRes, null, 4));
           delRes.body.success.should.equal(true, delRes.body.message);
 
-          const getRes = await request(this.appLib.app)
+          const getRes = await apiRequest(this.appLib.app)
             .get(`/model1s/${sampleData1._id}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);

@@ -1,4 +1,3 @@
-const request = require('supertest');
 const _ = require('lodash');
 require('should');
 
@@ -9,6 +8,7 @@ const {
   prepareEnv,
   checkRestSuccessfulResponse,
   checkRestErrorResponse,
+  apiRequest,
 } = require('../test-util');
 const {
   buildGraphQlCreate,
@@ -56,7 +56,7 @@ describe('V5 Backend List Permissions', function () {
         await this.appLib.setup();
         const token = await loginWithUser(appLib, admin);
 
-        const res = await request(appLib.app)
+        const res = await apiRequest(appLib.app)
           .get('/app-model')
           .set('Accept', 'application/json')
           .set('Authorization', `JWT ${token}`)
@@ -99,7 +99,7 @@ describe('V5 Backend List Permissions', function () {
         await this.appLib.setup();
         const token = await loginWithUser(appLib, user);
 
-        const res = await request(appLib.app)
+        const res = await apiRequest(appLib.app)
           .get('/app-model')
           .set('Accept', 'application/json')
           .set('Authorization', `JWT ${token}`)
@@ -144,7 +144,7 @@ describe('V5 Backend List Permissions', function () {
 
           async function f() {
             const { makeRequest, checkResponse } = settings;
-            const req = makeRequest(request(this.appLib.app));
+            const req = makeRequest(apiRequest(this.appLib.app));
             if (this.token) {
               req.set('Authorization', `JWT ${this.token}`);
             }
@@ -267,14 +267,14 @@ describe('V5 Backend List Permissions', function () {
 
               async function f() {
                 const { createRequest, getCreatedDocId, updateRequest, checkUpdate } = settings;
-                const createReq = createRequest(request(this.appLib.app));
+                const createReq = createRequest(apiRequest(this.appLib.app));
                 if (this.token) {
                   createReq.set('Authorization', `JWT ${this.token}`);
                 }
 
                 const res = await createReq.set('Accept', 'application/json').expect('Content-Type', /json/);
                 const createdDocId = getCreatedDocId(res);
-                const updateReq = updateRequest(request(this.appLib.app), createdDocId);
+                const updateReq = updateRequest(apiRequest(this.appLib.app), createdDocId);
                 if (this.token) {
                   updateReq.set('Authorization', `JWT ${this.token}`);
                 }

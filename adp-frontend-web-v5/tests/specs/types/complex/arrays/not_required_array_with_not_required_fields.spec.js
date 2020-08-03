@@ -63,7 +63,7 @@ describe('complex arrays', () => {
         ]);
 
         expect(data.array.length).toBe(0);
-        expect(submitMsg).toBe('Not Required Array With Not Required Fields successfully added.');
+        expect(submitMsg).toBe('Not Required Array With Not Required Field has been added.');
         const isPostRequestSent = !!data;
         expect(isPostRequestSent).toBe(true);
       });
@@ -92,7 +92,7 @@ describe('complex arrays', () => {
         await clickSubmit(this.page);
 
         const submitMsg = await getSubmitMsg(this.page);
-        expect(submitMsg).toBe('Not Required Array With Not Required Fields successfully added.');
+        expect(submitMsg).toBe('Not Required Array With Not Required Field has been added.');
       });
   });
 });

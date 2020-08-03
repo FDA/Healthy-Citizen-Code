@@ -29,7 +29,12 @@
           validate: [{
             validator: 'associativeArrayKeyUnique',
             errorMessages: {
-              default: 'The "key" must be unique.',
+              default: 'The "key" must be unique',
+            }
+          }, {
+            validator: 'schemaKeyRegExp',
+            errorMessages: {
+              default: 'Key must start from latin letter or underscore. Other Key characters must contain latin letters, numbers and underscores only.',
             }
           }],
         };

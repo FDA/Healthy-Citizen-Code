@@ -1,14 +1,14 @@
 const { addAuthentication, getSocketIoServer } = require('./common');
 const { getEventManager } = require('./event-manager');
 
-module.exports = ({ appLib, namespace, log }) => {
+module.exports = ({ appLib, socketIoOpts, namespace, log }) => {
   const m = {};
 
   let ioServer = null;
   let eventManager = null;
 
   m.build = async (server) => {
-    ioServer = getSocketIoServer(server);
+    ioServer = getSocketIoServer(server, socketIoOpts);
     addAuthentication({ appLib, io: ioServer, log });
 
     eventManager = getEventManager(appLib);

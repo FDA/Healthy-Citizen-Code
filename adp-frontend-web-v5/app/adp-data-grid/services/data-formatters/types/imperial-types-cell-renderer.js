@@ -21,7 +21,7 @@
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
-      var unit = AdpFieldsService.getUnits(args.modelSchema)[0];
+      var unit = AdpFieldsService.getUnits(args.fieldSchema)[0];
       return value + unit.label
     }
 
@@ -32,7 +32,7 @@
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
-      var units = AdpFieldsService.getUnits(args.modelSchema);
+      var units = AdpFieldsService.getUnits(args.fieldSchema);
 
       var valueWithUnits = _.map(units, function(unit, index) {
         return value[index] + unit.label

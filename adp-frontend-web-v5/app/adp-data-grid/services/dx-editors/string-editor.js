@@ -24,7 +24,7 @@
     }
 
     function getOptions(init) {
-      var type = init.args.modelSchema.type;
+      var type = init.args.fieldSchema.type;
       var opts = {
         mode: getTextMode(type),
         onValueChanged: init.onValueChanged,
@@ -34,7 +34,7 @@
 
       enableMask(type, opts);
 
-      return AdpFieldsService.configFromParameters(init.args.modelSchema, opts);
+      return AdpFieldsService.configFromParameters(init.args.fieldSchema, opts);
     }
 
     function getTextMode(type) {

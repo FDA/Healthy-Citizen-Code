@@ -6,9 +6,15 @@
     .factory('GridColumnsHelpers', GridColumnsHelpers);
 
   /** @ngInject */
-  function GridColumnsHelpers() {
+  function GridColumnsHelpers(
+    HtmlCellRenderer,
+    AdpUnifiedArgs,
+    ACTIONS
+  ) {
     return {
       setWidthToColumns: setWidthToColumns,
+      getTemplateForField: getTemplateForField,
+      getTextTemplateForField: getTextTemplateForField,
     };
 
     function setWidthToColumns(options, schema) {
@@ -50,6 +56,30 @@
       if (!_.isNaN(minWidth) && (typeof minWidth === 'number')) {
         column.minWidth = minWidth;
       }
+    }
+
+    function getTemplateForField(field, schema, rowData) {
+      var args = getTemplateArguments(field, schema, rowData);
+      var templateFn = HtmlCellRenderer(args);
+
+      return templateFn(args);
+    }
+
+    function getTextTemplateForField(field, schema, rowData) {
+      var args = getTemplateArguments(field, schema, rowData);
+      args.params = { asText: true };
+      var templateFn = HtmlCellRenderer(args);
+
+      return templateFn(args);
+    }
+
+    function getTemplateArguments(field, schema, recordData) {
+      return AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: field.fieldName,
+        formData: recordData,
+        action: ACTIONS.VIEW,
+        schema: schema,
+      });
     }
   }
 })();

@@ -74,13 +74,13 @@
 
 
       var data = _.get(args.row, args.path, args.row);
-      var showExpression = args.modelSchema.show;
+      var showExpression = args.fieldSchema.show;
 
       // DEPRECATION NOTICE
       // args provided to ShowExpression as context params available as this.argName
       // other arguments provided for compatibility reasons, DO NOT USE THEM: will obsolete soon
-      return new Function('data, row, modelSchema, $action', 'return ' + showExpression)
-        .bind(args, data, args.row, args.modelSchema, args.action);
+      return new Function('data, row, fieldSchema, $action', 'return ' + showExpression)
+        .bind(args, data, args.row, args.fieldSchema, args.action);
     }
 
     function _updateVisibilityForFieldsInGroups(params) {

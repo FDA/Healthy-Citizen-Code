@@ -3,12 +3,17 @@
 // check that return contains draw, total, filtered counts
 // sort ordering - default from model or multiple orders in query or wrong query or nonexisting attribute in collection
 
-const request = require('supertest');
 require('should');
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
 
-const { getMongoConnection, setAppAuthOptions, prepareEnv, conditionForActualRecord } = require('../test-util');
+const {
+  getMongoConnection,
+  setAppAuthOptions,
+  prepareEnv,
+  conditionForActualRecord,
+  apiRequest,
+} = require('../test-util');
 
 describe('V5 Backend Datatables Support', function () {
   const sampleDataModel5 = [
@@ -191,7 +196,7 @@ describe('V5 Backend Datatables Support', function () {
 
   describe('1st level', function () {
     it('returns correct 1st level data without any parameters', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get('/model5s')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -206,7 +211,7 @@ describe('V5 Backend Datatables Support', function () {
         });
     });
     it('returns correct 1st level data with draw parameters', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get('/model5s?draw=1')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -223,7 +228,7 @@ describe('V5 Backend Datatables Support', function () {
         });
     });
     it('returns correct 1st level data with number sort asc parameters in datatables format with all visible columns', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get(
           '/model5s?order[0][column]=1&order[0][dir]=asc&visible_columns[_id]=true&visible_columns[n]=true&visible_columns[s]=true&visible_columns[d]=true&visible_columns[as]=true'
         )
@@ -240,7 +245,7 @@ describe('V5 Backend Datatables Support', function () {
         });
     });
     it('returns correct 1st level data with number sort asc parameters in datatables format with some visible columns', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get(
           '/model5s?order[0][column]=0&order[0][dir]=asc&visible_columns[_id]=false&visible_columns[n]=true&visible_columns[s]=true&visible_columns[d]=true&visible_columns[as]=true'
         )
@@ -257,7 +262,7 @@ describe('V5 Backend Datatables Support', function () {
         });
     });
     it('returns correct 1st level data with string sort desc parameters', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get(
           '/model5s?order[0][column]=1&order[0][dir]=desc&visible_columns[_id]=false&visible_columns[n]=true&visible_columns[s]=true&visible_columns[d]=true&visible_columns[as]=true'
         )
@@ -274,7 +279,7 @@ describe('V5 Backend Datatables Support', function () {
         });
     });
     it('returns correct 1st level data with date sort desc parameters', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get(
           '/model5s?order[0][column]=2&order[0][dir]=desc&visible_columns[_id]=false&visible_columns[n]=true&visible_columns[s]=true&visible_columns[d]=true&visible_columns[as]=true'
         )
@@ -291,7 +296,7 @@ describe('V5 Backend Datatables Support', function () {
         });
     });
     it('returns correct 1st level data with all datatables parameters', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get(
           '/model5s?draw=1&order[0][column]=0&order[0][dir]=asc&length=2&start=1&visible_columns[_id]=false&visible_columns[n]=true&visible_columns[s]=true&visible_columns[d]=true&visible_columns[as]=true'
         )
@@ -309,7 +314,7 @@ describe('V5 Backend Datatables Support', function () {
         });
     });
     it('returns correct 1st level data with all datatables parameters and search in searchable field', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get(
           '/model5s?draw=1&order[0][column]=0&order[0][dir]=desc&length=2&start=1&search[value]=456&visible_columns[_id]=false&visible_columns[n]=true&visible_columns[s]=true&visible_columns[d]=true&visible_columns[as]=true'
         )
@@ -327,7 +332,7 @@ describe('V5 Backend Datatables Support', function () {
         });
     });
     it('returns correct 1st level data with all datatables parameters and search in searchable field for angular datatables directive', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get(
           `/model5s?draw=1&order[0][column]=1&order[0][dir]=desc&length=2&start=1&search[value]=aaa&search[regex]=true&${columnsDatatablesSpec}`
         )

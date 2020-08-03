@@ -2,6 +2,7 @@ const Promise = require('bluebird');
 
 const express = require('express');
 const http = require('http');
+const fs = require('fs-extra');
 const session = require('express-session');
 const MongoStore = require('connect-mongo')(session); // TODO: switch to redis before going to high-performance production
 const bodyParser = require('body-parser');
@@ -31,7 +32,7 @@ const { comparePassword } = require('./util/password');
 const { prepareEnv, getSchemaNestedPaths } = require('./util/env');
 const { globSyncAsciiOrder } = require('./util/glob');
 const connectSwagger = require('./swagger');
-const { appRoot } = require('./util/env');
+const { appRoot, getSchemaPaths } = require('./util/env');
 
 module.exports = () => {
   const m = {};
@@ -50,6 +51,9 @@ module.exports = () => {
     redisUrl: process.env.BULL_REDIS_URL || process.env.REDIS_URL,
     keyPrefix: process.env.BULL_KEY_PREFIX || process.env.REDIS_KEY_PREFIX,
   });
+
+  m.API_PREFIX = process.env.API_PREFIX || '';
+  m.RESOURCE_PREFIX = process.env.RESOURCE_PREFIX || '';
 
   m.getAuthSettings = () => m.appModel.interface.app.auth;
 
@@ -204,13 +208,19 @@ module.exports = () => {
     m.log.info('Generated Mongoose models');
   };
 
+  m.getFullRoute = (routePrefix, route) => {
+    return routePrefix ? `${routePrefix}${route}` : route;
+  };
+
   /**
    * Adds routes to the application router
    * @param verb i.e. get, post, put etc
    * @param route the route to add (as a string)
    * @param args array of controller functions to handle route
    */
-  m.addRoute = (verb, route, args) => {
+  function addRoute(verb, routePrefix, route, args) {
+    const fullRoute = m.getFullRoute(routePrefix, route);
+
     const methodNames = {
       get: 'get',
       put: 'put',
@@ -219,14 +229,22 @@ module.exports = () => {
       use: 'use',
     };
     const method = methodNames[verb];
-    const removedRoutes = m.expressUtil.removeRoutes(m.app, route, method);
+    const removedRoutes = m.expressUtil.removeRoutes(m.app, fullRoute, method);
     // args.unshift(m.isAuthenticated);
-    args.unshift(route);
+    args.unshift(fullRoute);
     m.app[method](...args, m.errorLogger);
 
     const action = _.isEmpty(removedRoutes) ? 'Added' : 'Replaced';
     const authRouteNote = _.includes(args, m.isAuthenticated) ? 'AUTH' : '';
-    m.log.trace(` ∟ ${action} route: ${method.toUpperCase()} ${route} ${authRouteNote}`);
+    m.log.trace(` ∟ ${action} route: ${method.toUpperCase()} ${fullRoute} ${authRouteNote}`);
+  }
+
+  m.addRoute = (verb, route, args) => {
+    return addRoute(verb, m.API_PREFIX, route, args);
+  };
+
+  m.addResourceRoute = (verb, route, args) => {
+    return addRoute(verb, m.RESOURCE_PREFIX, route, args);
   };
 
   /**
@@ -326,10 +344,11 @@ module.exports = () => {
           const isFilteringLookup = tableLookup.where;
           const tableName = tableLookup.table;
           const lookupPath = `/lookups/${lookupId}/${tableName}`;
-          if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, lookupPath, 'get'))) {
+          const fullLookupPath = m.getFullRoute(m.API_PREFIX, lookupPath);
+          if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullLookupPath, 'get'))) {
             m.addRoute('get', lookupPath, [m.isAuthenticated, mainController.getLookupTable]);
           }
-          if (isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, lookupPath, 'post'))) {
+          if (isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullLookupPath, 'post'))) {
             m.addRoute('post', lookupPath, [m.isAuthenticated, mainController.getLookupTable]);
           }
         });
@@ -342,10 +361,11 @@ module.exports = () => {
           }
           const isFilteringLookup = tableSpec.where;
           const treeSelectorPath = `/treeselectors/${treeSelectorId}/${tableName}`;
-          if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, treeSelectorPath, 'get'))) {
+          const fullTreeSelectorPath = m.getFullRoute(m.API_PREFIX, `/treeselectors/${treeSelectorId}/${tableName}`);
+          if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullTreeSelectorPath, 'get'))) {
             m.addRoute('get', treeSelectorPath, [m.isAuthenticated, mainController.getTreeSelector]);
           }
-          if (isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, treeSelectorPath, 'post'))) {
+          if (isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullTreeSelectorPath, 'post'))) {
             m.addRoute('post', treeSelectorPath, [m.isAuthenticated, mainController.getTreeSelector]);
           }
         });
@@ -703,7 +723,7 @@ module.exports = () => {
      *         description: Server error occurred during authentication process
      */
 
-    m.addRoute('use', '/public', [
+    m.addResourceRoute('use', '/public', [
       serveDirs([...getSchemaNestedPaths('/public'), './model/public'], {
         fileMatcher: ({ accessType, relativePath }) => {
           if (accessType === 'directory') {
@@ -902,23 +922,16 @@ module.exports = () => {
     m.mutil = require('./model')(m);
 
     m.graphQl = require('./graphql')(m, '/graphql', '/altair');
+    m.requestContexts = require('./request-context');
 
     m.googleMapsClient = require('./google-maps');
 
-    /**
-     * Reference to the express application
-     */
+    m.backgroundJobs = require('./queue/background-jobs');
+
+    /** Reference to the express application */
     m.app = null;
 
-    /**
-     * Need to make sure that users understand that we will keep link to all their current connections to send proper notifications
-     * @type {{}}
-     */
-    m.userConnections = {};
-
-    /**
-     * Mongoose db connection
-     */
+    /** Mongoose db connection */
     m.db = null;
   }
 
@@ -939,6 +952,13 @@ module.exports = () => {
     prepareEnv(appRoot);
     m.log = require('log4js').getLogger('lib/app');
     m.log.info('Using logger settings from', process.env.LOG4JS_CONFIG);
+
+    const nonExistingSchemaPaths = getSchemaPaths()
+      .map((p) => (fs.existsSync(p) ? null : p))
+      .filter((p) => p);
+    if (!_.isEmpty(nonExistingSchemaPaths)) {
+      m.log.warn(`Found non-existing schema paths: ${nonExistingSchemaPaths.join(', ')}. Check your .env file.`);
+    }
 
     setInitProperties();
     m.db = await m.connectAppDb();

@@ -17,17 +17,17 @@
 </div>
 <div class="modal-footer">
     <button
-            class="btn btn-primary"
+            class="adp-action-b-secondary"
+            type="button"
+            ng-click="vm.cancel()">
+        Cancel
+    </button>
+    <button
+            class="adp-action-b-primary"
             type="submit"
             ng-click="vm.onReadFile()"
             ng-disabled="vm.error"
     >
         {{ vm.options.uploadButtonText }}
-    </button>
-    <button
-            class="btn btn-default"
-            type="button"
-            ng-click="vm.cancel()">
-        Cancel
     </button>
 </div>

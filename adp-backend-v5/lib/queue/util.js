@@ -29,7 +29,3 @@ class PatchedQueue extends Queue {
 module.exports = {
   Queue: PatchedQueue,
 };
-
-module.exports = {
-  Queue: PatchedQueue,
-};

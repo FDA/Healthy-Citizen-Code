@@ -17,9 +17,7 @@
         adpField: '<',
         adpFields: '<',
         adpFormData: '<',
-        fieldSelection: '<',
         schema: '<',
-        adpFormParams: '<?',
         validationParams: '<'
       },
       link: function (scope, element) {
@@ -31,6 +29,7 @@
         var formParams = {
           path: AdpPath.next(scope.validationParams.formParams.path, scope.adpField.fieldName),
           row: scope.validationParams.formParams.row,
+          fieldSchema: scope.validationParams.formParams.fieldSchema,
           modelSchema: scope.validationParams.formParams.modelSchema,
           action: scope.validationParams.formParams.action,
           visibilityMap: scope.validationParams.formParams.visibilityMap,
@@ -51,9 +50,9 @@
           field: scope.adpField,
           fields: scope.adpFields,
           formData: scope.adpFormData,
-          modelSchema: scope.adpFields,
+          fieldSchema: scope.adpFields,
           schema: scope.schema,
-          $action: scope.adpFormParams && scope.adpFormParams.actionType,
+          $action: formParams.action,
 
           formParams: formParams
         };

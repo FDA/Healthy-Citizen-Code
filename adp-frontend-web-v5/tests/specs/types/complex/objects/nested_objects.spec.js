@@ -44,7 +44,7 @@ describe('complex objects', () => {
       async () => {
         await clickSubmit(this.page);
         const submitMsg = await getSubmitMsg(this.page);
-        expect(submitMsg).toBe('Nested Objects successfully added.');
+        expect(submitMsg).toBe('Nested Object has been added.');
       });
 
     test(
@@ -74,7 +74,7 @@ describe('complex objects', () => {
 
         await clickSubmit(this.page);
         const submitMsg = await getSubmitMsg(this.page);
-        expect(submitMsg).toBe('Nested Objects successfully added.');
+        expect(submitMsg).toBe('Nested Object has been added.');
       });
 
     test(

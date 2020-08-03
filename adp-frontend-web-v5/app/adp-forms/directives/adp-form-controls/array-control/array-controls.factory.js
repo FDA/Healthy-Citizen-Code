@@ -36,7 +36,7 @@
 
         // DEPRECATED: will be replaced with formParams
         // validationParams fields naming is wrong, use formParams instead
-        // modelSchema - grouped fields
+        // fieldSchema - grouped fields
         // schema - original ungrouped schema
         scope.nextValidationParams = {
           field: scope.field,

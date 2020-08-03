@@ -41,7 +41,7 @@ module.exports = function(globalMongoose) {
   const m = {};
 
   function getLogInfo() {
-    if (process.env.DEVELOPMENT) {
+    if (process.env.DEVELOPMENT === 'true') {
       return msg => log.info(msg);
     }
     return () => {};

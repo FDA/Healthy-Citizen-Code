@@ -15,18 +15,23 @@ gulpInject.transform.html.js = function (path) {
 
 const conf = require('../config');
 
+function polyfillsStream() {
+  return gulp.src([
+    path.join(conf.paths.tmp, conf.paths.polyfillsScripts),
+  ], { read: false });
+}
+
 function scriptsStream() {
   const clientModulesPath = path.join(conf.paths.tmp, conf.paths.clientModulesFolder);
   return gulp.src([
     //  file is strictly hardcoded, because of specific SmartAdmin app structure
     path.join(conf.paths.tmp, 'api_config.js'),
     path.join(conf.paths.tmp, 'sw-manager.js'),
-    path.join(conf.paths.tmp, conf.paths.serverScripts),
+    path.join(conf.paths.tmp, conf.paths.appModelCodePath),
     path.join(conf.paths.src, 'app-core.config.js'),
     path.join(conf.paths.src, 'adp-render.lib.js'),
     path.join(conf.paths.src, 'app.ls.js'),
     path.join(conf.paths.src, 'app.db.js'),
-    path.join(conf.paths.src, 'polyfills.js'),
     path.join(conf.paths.src, 'main.js'),
     // moving module definition to the top
     path.join(clientModulesPath, '/**/*.module.js'),
@@ -52,6 +57,12 @@ function inject() {
   const source = path.join(conf.paths.src, conf.paths.index);
 
   return gulp.src(source)
+    .pipe(gulpInject(
+      polyfillsStream(), {
+        starttag: "<!-- inject:polyfills -->",
+        endtag: "<!-- endinject -->",
+        ...injectOptions
+      }))
     .pipe(gulpInject(
       scriptsStream(), {
         starttag: '<!-- inject:js -->',
@@ -240,6 +251,18 @@ function getMainBowerFiles() {
       },
       "echarts": {
         "main": ['./dist/echarts.common.min.js']
+      },
+      "js-yaml": {
+        "main": ['./dist/js-yaml.js']
+      },
+      "pluralize": {
+        "main": ['./pluralize.js']
+      },
+      "json5": {
+        "main": ['./dist/index.js']
+      },
+      "minimist": {
+        "ignore": true,
       },
     }
   });

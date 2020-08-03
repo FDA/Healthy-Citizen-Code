@@ -56,7 +56,7 @@ describe('complex objects', () => {
         await clickSubmit(this.page);
 
         const submitMsg = await getSubmitMsg(this.page);
-        expect(submitMsg).toBe('Required Array With Not Required Fields successfully added.');
+        expect(submitMsg).toBe('Required Array With Not Required Field has been added.');
       });
 
     test(
@@ -83,7 +83,7 @@ describe('complex objects', () => {
         await clickSubmit(this.page);
 
         const submitMsg = await getSubmitMsg(this.page);
-        expect(submitMsg).toBe('Required Array With Not Required Fields successfully added.');
+        expect(submitMsg).toBe('Required Array With Not Required Field has been added.');
       });
 
   });

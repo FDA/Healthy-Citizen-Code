@@ -4,7 +4,7 @@
  */
 module.exports = function (globalMongoose) {
   const Promise = require('bluebird');
-  const RJSON = require('relaxed-json');
+  const JSON5 = require('json5');
   const _ = require('lodash');
   const crypto = require('crypto');
   const exec = Promise.promisify(require('child_process').exec);
@@ -45,7 +45,7 @@ module.exports = function (globalMongoose) {
         const stdout = await exec(cmd);
 
         const questionsDefinition = stdout.replace(/[\s\S]*-----------CUTLINE---------/m, '');
-        const questionnaireDefinition = RJSON.parse(questionsDefinition);
+        const questionnaireDefinition = JSON5.parse(questionsDefinition);
         const questionnaire = _.reduce(
           questionnaireDefinition,
           (acc, sheetData) => {

@@ -3,15 +3,17 @@ const _ = require('lodash');
 const { random } = require('../util/random');
 const ScgError = require('./errors/scg-error');
 
-async function generateDataByModel({ functions, model, env, log }) {
+async function generateDataByModel({ appLib, functions, model, env, log }) {
   const unifiedContext = {
     row: {},
     modelSchema: model,
+    fieldSchema: model,
     path: [],
+    schemaPath: [],
     config: env,
     generators: functions,
   };
-  await generateObjectField(functions, unifiedContext, log);
+  await generateObjectField({ appLib, functions, unifiedContext, log });
 
   const generatorSpecifications = _.castArray(model.generatorSpecification);
   for (const generatorSpecification of generatorSpecifications) {
@@ -33,32 +35,32 @@ async function generateFieldsForRecord(functions, generatorSpecification, unifie
   return generatorFunc.call(contextWithParams);
 }
 
-function generateDataByField(functions, unifiedContext, log) {
-  const { modelSchema } = unifiedContext;
-  const { type } = modelSchema;
+async function generateDataByField({ appLib, functions, unifiedContext, log }) {
+  const { fieldSchema } = unifiedContext;
+  const { type } = fieldSchema;
 
   if (type === 'Group') {
     return;
   }
   if (type === 'Array') {
-    return generateArrayField(functions, unifiedContext, log);
+    return generateArrayField({ appLib, functions, unifiedContext, log });
   }
   if (type === 'Object') {
-    return generateObjectField(functions, unifiedContext, log);
+    return generateObjectField({ appLib, functions, unifiedContext, log });
   }
   if (type === 'Mixed') {
-    return generateMixedField(functions, unifiedContext, log);
+    return generateMixedField({ functions, unifiedContext, log });
   }
 
-  const generatorName = getGeneratorName(modelSchema);
+  const generatorName = getGeneratorName(fieldSchema);
   const generatorFunc = functions[generatorName];
   if (!generatorFunc) {
     const { path } = unifiedContext;
     throw new Error(`Unable to find generator function '${generatorName}' for path '${path.join('.')}'`);
   }
 
-  const isMultiple = isMultipleType(modelSchema);
-  const params = getGeneratorParams(modelSchema);
+  const isMultiple = isMultipleType(fieldSchema);
+  const params = await getGeneratorParams({ fieldSchema, unifiedContext, appLib });
   const contextWithParams = { ...unifiedContext, params };
   if (isMultiple) {
     return generateMultipleFieldData(generatorFunc, contextWithParams);
@@ -66,19 +68,27 @@ function generateDataByField(functions, unifiedContext, log) {
   return generatorFunc.call(contextWithParams);
 }
 
-function getGeneratorParams(fieldSpec) {
-  const { type, generatorSpecification = {}, list } = fieldSpec;
+async function getGeneratorParams({ fieldSchema, unifiedContext, appLib }) {
+  const { type, generatorSpecification = {}, list } = fieldSchema;
   const fieldParams = {};
   if (['LookupObjectID', 'LookupObjectID[]'].includes(type)) {
-    fieldParams.lookup = fieldSpec.lookup;
+    fieldParams.lookup = fieldSchema.lookup;
   }
   if (type === 'TreeSelector') {
-    const treeSelectorTableName = _.keys(fieldSpec.table).filter((key) => key !== 'id')[0];
-    fieldParams.tableSpec = fieldSpec.table[treeSelectorTableName];
+    const treeSelectorTableName = _.keys(fieldSchema.table).filter((key) => key !== 'id')[0];
+    fieldParams.tableSpec = fieldSchema.table[treeSelectorTableName];
   }
 
   if (list) {
-    fieldParams.listKeys = _.keys(list);
+    const { modelSchema, schemaPath } = unifiedContext;
+    const listPath = `${modelSchema.schemaName}.${schemaPath.join('.')}`;
+    const requestDynamicList = true;
+    const { getListForUser, getAllAppPermissionsSet } = appLib.accessUtil;
+    // give all permissions to retrieve all list values
+    const userPermissions = getAllAppPermissionsSet();
+    const inlineContext = {};
+    const listSpec = await getListForUser(userPermissions, inlineContext, listPath, requestDynamicList);
+    fieldParams.listKeys = _.keys(listSpec.values);
     fieldParams.isArrayList = type.endsWith('[]');
   }
 
@@ -121,11 +131,11 @@ async function generateMultipleFieldData(generatorFunc, unifiedContext) {
   return compactArrayResult(result);
 }
 
-async function generateArrayField(functions, unifiedContext, log) {
+async function generateArrayField({ appLib, functions, unifiedContext, log }) {
   const elemNumber = random.integer(0, 10);
   await Promise.map([...Array(elemNumber).keys()], (i) => {
     const nestedContext = { ...unifiedContext, path: unifiedContext.path.concat(i) };
-    return generateObjectField(functions, nestedContext, log);
+    return generateObjectField({ appLib, functions, unifiedContext: nestedContext, log });
   });
 }
 
@@ -136,19 +146,20 @@ function compactArrayResult(result) {
   }
 }
 
-async function generateObjectField(functions, unifiedContext, log) {
-  const objSpec = unifiedContext.modelSchema;
-  for (const [fieldName, fieldSpec] of Object.entries(objSpec.fields)) {
+async function generateObjectField({ appLib, functions, unifiedContext, log }) {
+  const objSpec = unifiedContext.fieldSchema;
+  for (const [fieldName, fieldSchema] of Object.entries(objSpec.fields)) {
     const nestedPath = unifiedContext.path.concat(fieldName);
     const nestedContext = {
       ...unifiedContext,
-      modelSchema: fieldSpec,
+      fieldSchema,
       path: nestedPath,
-      // add index, indexes, parentData once it necessary in generator functions
+      schemaPath: unifiedContext.schemaPath.concat('fields', fieldName),
+      // add index, indexes, parentData once it's necessary in generator functions
     };
 
     try {
-      const fieldData = await generateDataByField(functions, nestedContext, log);
+      const fieldData = await generateDataByField({ appLib, functions, unifiedContext: nestedContext, log });
       if (fieldData !== undefined) {
         _.set(unifiedContext.row, nestedPath, fieldData);
       }
@@ -174,7 +185,7 @@ async function generateDocs({ appLib, env, functions, collectionName, count, log
   const model = models[collectionName];
 
   for (let i = 0; i < count; i++) {
-    const record = await generateDataByModel({ functions, model, env, log });
+    const record = await generateDataByModel({ appLib, functions, model, env, log });
 
     try {
       await transformers.preSaveTransformData(collectionName, {}, record, []);

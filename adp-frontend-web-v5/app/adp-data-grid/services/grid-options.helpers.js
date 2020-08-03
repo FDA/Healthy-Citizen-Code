@@ -7,19 +7,11 @@
 
   /** @ngInject */
   function GridOptionsHelpers() {
-    function addToolbarHandler(options, cb) {
-      var args = ['onToolbarPreparing', options, cb];
-      registerDxEvent.apply(null, args);
-    }
-
-    function onEditorPreparing(options, cb) {
-      var args = ['onEditorPreparing', options, cb];
-      registerDxEvent.apply(null, args);
-    }
-
-    function onOptionChanged(options, cb) {
-      var args = ['onOptionChanged', options, cb];
-      registerDxEvent.apply(null, args);
+    function getDxEventHandler(handlerName){
+      return function(options, cb) {
+        var args = [handlerName, options, cb];
+        registerDxEvent.apply(null, args);
+      }
     }
 
     function registerDxEvent(name, options, cb) {
@@ -78,11 +70,12 @@
     }
 
     return {
-      addToolbarHandler: addToolbarHandler,
+      addToolbarHandler: getDxEventHandler('onToolbarPreparing'),
+      onEditorPreparing: getDxEventHandler('onEditorPreparing'),
+      onRowPrepared: getDxEventHandler('onRowPrepared'),
+      onOptionChanged: getDxEventHandler('onOptionChanged'),
       refreshGrid: refreshGrid,
       generateGridLsKey: generateGridLsKey,
-      onEditorPreparing: onEditorPreparing,
-      onOptionChanged: onOptionChanged,
       getVisibleColumnNames: getVisibleColumnNames,
       getLoadOptions: getLoadOptions,
     };

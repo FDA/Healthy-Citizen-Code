@@ -130,6 +130,11 @@ function addPaginationResolver(type, backgroundJobsModelName) {
         sort: { type: 'String', defaultValue: '{}' },
         perPage: { type: 'Int' },
         page: { type: 'Int', defaultValue: 0 },
+        // isGroupFilter is not used for now, added to unify args between custom and collection resolvers
+        isGroupFilter: {
+          type: 'Boolean',
+          defaultValue: false,
+        },
       },
       resolve: async ({ paginationContext }) => paginationContext.jobs,
     });

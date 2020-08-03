@@ -17,7 +17,9 @@
     }
 
     function schemaPath(dataPath) {
-      return dataPath.replace(/\[\d+\]/g, '')
+      var path = _.isArray(dataPath) ? dataPath.join('.') : dataPath;
+
+      return path.replace(/\[\d+\]/g, '')
         .split('.')
         .filter(function (v) {
           return !!v;
@@ -55,11 +57,11 @@
 
       return parentPath.join('.');
     }
-    
+
     return {
       next: next,
       parent: parent,
-      schemaPath: schemaPath
+      schemaPath: schemaPath,
     };
   }
 })();

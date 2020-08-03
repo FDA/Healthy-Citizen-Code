@@ -46,7 +46,7 @@ export default class DrugInteractions {
     this.fetchData()
       .catch((err) => {
         console.error(err);
-        showErrorToUser(ResponseError.DRUG_INTERACTIONS_EMPTY);
+        showErrorToUser(node, ResponseError.DRUG_INTERACTIONS_EMPTY);
       });
   }
 

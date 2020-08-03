@@ -31,7 +31,7 @@ export function adverseEventsQuery(userPreferences, algorithm ='openfda') {
   return client.request(query)
     .then((data) => mapToAdverseEventsListing(data, userPreferences.medications))
     .catch(err => {
-      if (err.response.data) {
+      if (err.response && err.response.data) {
         return mapToAdverseEventsListing(err.response.data, userPreferences.medications);
       } else {
         throw new ResponseError(ResponseError.ADVERSE_EVENTS_EMPTY);

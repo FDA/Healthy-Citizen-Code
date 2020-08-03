@@ -2,21 +2,25 @@ const _ = require('lodash');
 
 module.exports = () => {
   const m = {
-    addOne(path, appModelPart, userContext, next) {
-      _.set(this, path, _.get(this, path) + 1);
+    addOne(next) {
+      const { row, path, data } = this;
+      _.set(row, path, data + 1);
       next();
     },
-    appendQ(path, appModelPart, userContext, next) {
-      _.set(this, path, `${_.get(this, path)}Q`);
+    appendQ(next) {
+      const { row, path, data } = this;
+      _.set(row, path, `${data}Q`);
       next();
     },
-    appendW(path, appModelPart, userContext, next) {
-      _.set(this, path, `${_.get(this, path)}W`);
+    appendW(next) {
+      const { row, path, data } = this;
+      _.set(row, path, `${data}W`);
       next();
     },
-    assignD(path, appModelPart, userContext, next) {
+    assignD(next) {
+      const { row, path } = this;
       path.should.equal('');
-      _.set(this, 'd', new Date('2017-01-01'));
+      _.set(row, 'd', new Date('2017-01-01'));
       next();
     },
   };

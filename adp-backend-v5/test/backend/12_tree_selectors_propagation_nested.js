@@ -1,6 +1,5 @@
 // NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
 
-const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
@@ -10,6 +9,7 @@ const {
   prepareEnv,
   checkRestSuccessfulResponse,
   conditionForActualRecord,
+  apiRequest,
 } = require('../test-util');
 const {
   buildGraphQlUpdateOne,
@@ -128,7 +128,7 @@ describe('V5 TreeSelectors propagation (nested)', function () {
 
       async function f() {
         const { makeRequest, checkResponse, checkTreeselectorPropagation } = settings;
-        const req = makeRequest(request(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib.app));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -208,14 +208,14 @@ describe('V5 TreeSelectors propagation (nested)', function () {
 
       async function f() {
         const { delRequest, getRequest, putRequest, checkGetResponse, checkPutResponse } = settings;
-        await delRequest(request(this.appLib.app)).set('Accept', 'application/json').expect('Content-Type', /json/);
+        await delRequest(apiRequest(this.appLib.app)).set('Accept', 'application/json').expect('Content-Type', /json/);
 
-        const getRes = await getRequest(request(this.appLib.app))
+        const getRes = await getRequest(apiRequest(this.appLib.app))
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
         checkGetResponse(getRes);
 
-        const putRes = await putRequest(request(this.appLib.app))
+        const putRes = await putRequest(apiRequest(this.appLib.app))
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
         checkPutResponse(putRes);

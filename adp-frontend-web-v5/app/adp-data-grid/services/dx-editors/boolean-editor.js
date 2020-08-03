@@ -14,7 +14,7 @@
       var defaults = {
         elementAttr: {
           class: 'adp-select-box',
-          id: 'cell_list_id_' + init.args.modelSchema.fieldName,
+          id: 'cell_list_id_' + init.args.fieldSchema.fieldName,
         },
         value: init.args.data,
         displayExpr: 'label',
@@ -25,7 +25,7 @@
         valueChangeEvent: 'change',
       };
 
-      return AdpFieldsService.configFromParameters(init.args.modelSchema, defaults);
+      return AdpFieldsService.configFromParameters(init.args.fieldSchema, defaults);
     }
 
     function getDataSource() {

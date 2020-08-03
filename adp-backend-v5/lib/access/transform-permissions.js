@@ -1,4 +1,4 @@
-const RJSON = require('relaxed-json');
+const JSON5 = require('json5');
 const _ = require('lodash');
 
 /**
@@ -14,7 +14,7 @@ function getTransformedInterfaceAppPermissions(permissions, errors) {
       if (_.isString(permission)) {
         appPermissions[permission] = { description: permission };
       } else {
-        errors.push(`Found not string app permission ${RJSON.stringify(permission)} in interface.app.permissions`);
+        errors.push(`Found not string app permission ${JSON5.stringify(permission)} in interface.app.permissions`);
       }
     });
     return appPermissions;
@@ -22,15 +22,19 @@ function getTransformedInterfaceAppPermissions(permissions, errors) {
   return undefined;
 }
 
+function expandPermissionsForScope(scope, actions) {
+  const permissionName = scope.permissions;
+  if (_.isString(permissionName) || _.isArray(permissionName)) {
+    scope.permissions = {};
+    _.each(actions, (action) => {
+      scope.permissions[action] = permissionName;
+    });
+  }
+}
+
 function expandPermissionsForScopes(scopes, actions) {
   _.each(scopes, (scope) => {
-    const permissionName = scope.permissions;
-    if (_.isString(permissionName) || _.isArray(permissionName)) {
-      scope.permissions = {};
-      _.each(actions, (action) => {
-        scope.permissions[action] = permissionName;
-      });
-    }
+    expandPermissionsForScope(scope, actions);
   });
 }
 
@@ -43,11 +47,11 @@ function getAppModelWithTransformedPermissions(appModel) {
   return appModelCopy;
 }
 
-function transformListPermissions(listsFields, appModel) {
+function transformListPermissions(listsFields, appModel, actions) {
   _.each(listsFields, (listField) => {
     const listPath = `${listField}.list`;
     const { scopes } = _.get(appModel, listPath);
-    expandPermissionsForScopes(scopes, ['view']);
+    expandPermissionsForScopes(scopes, actions);
   });
 }
 
@@ -80,4 +84,5 @@ module.exports = {
   transformMenuPermissions,
   transformPagesPermissions,
   expandPermissionsForScopes,
+  expandPermissionsForScope,
 };
