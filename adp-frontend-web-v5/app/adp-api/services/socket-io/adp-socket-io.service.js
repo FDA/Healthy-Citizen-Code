@@ -15,7 +15,7 @@
     AdpModalService
   ) {
     var socket = null;
-    var messageProcessors = [defaultMessageProcessor];
+    var messageProcessors = [{processor:defaultMessageProcessor}];
     var socketMessagesTypes = {
       backgroundJobs: "Background Jobs",
     };
@@ -32,7 +32,8 @@
         return;
       }
 
-      socket = io.connect(APP_CONFIG.apiUrl, {
+      socket = io.connect(APP_CONFIG.serverBaseUrl, {
+        path: APP_CONFIG.apiPrefix + "/socket.io",
         forceNew: true,
         extraHeaders: {Authorization: authHeader},
         reconnectionDelayMax: 64000,
@@ -133,22 +134,28 @@
       var i = 0;
 
       while (i < messageProcessors.length) {
-        var processor = messageProcessors[i];
+        var item = messageProcessors[i];
+        var processor = item.processor;
 
-        if (!processor(data)) {
-          break;
-        } else {
-          i++;
+        if (processor) {
+          var processorResult = processor(data, item.params);
+
+          if (processorResult === false) {
+            break;
+          } else {
+            i++;
+          }
         }
       }
     }
 
-    function registerMessageProcessor(processor) {
-      messageProcessors.unshift(processor);
+    function registerMessageProcessor(processor, params) {
+      messageProcessors.unshift({processor: processor, params: params});
     }
 
     function unRegisterMessageProcessor(processor) {
-      var index = messageProcessors.indexOf(processor);
+      var index = _.findIndex(messageProcessors, function(item){ return item.processor===processor});
+
       if (index >= 0) {
         messageProcessors.splice(index, 1);
       }

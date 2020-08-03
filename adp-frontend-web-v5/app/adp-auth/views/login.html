@@ -1,10 +1,7 @@
 <adp-form
   class="login-form auth-form"
-  enable-selector="false"
-  adp-submit="vm.submit"
-  adp-fields="vm.fields"
-  schema="vm.schema"
-  disable-fullscreen="true"
+  args="::vm.args"
+  form-options="::vm.formOptions"
 >
 
   <form-header>
@@ -12,38 +9,42 @@
   </form-header>
 
   <form-footer>
-    <div class="text-center">
-      <button
-        type="submit"
-        class="btn btn-primary">
-        {{vm.authParams.signInText}}
-      </button>
-    </div>
+    <footer>
+      <div class="text-center">
+        <button
+          type="submit"
+          data-actions-name="submit"
+          class="btn btn-primary"
+        >
+          {{vm.authParams.signInText}}
+        </button>
+      </div>
 
-    <div
-      ng-if="vm.showSignUp"
-      class="separator text-center">
-      <span class="separator-text">OR</span>
-    </div>
+      <div
+        ng-if="vm.showSignUp"
+        class="separator text-center"
+      >
+        <span class="separator-text">OR</span>
+      </div>
 
-    <div
-      ng-if="vm.showSignUp"
-      class="text-center">
-      Need an account?
+      <div
+        ng-if="vm.showSignUp"
+        class="text-center">
+        Need an account?
 
-      <a ui-sref="auth.register">
-        {{vm.authParams.signUpText}}
-      </a>
-    </div>
+        <a ui-sref="auth.register">
+          {{vm.authParams.signUpText}}
+        </a>
+      </div>
 
-    <div ng-if="vm.showReset"
-         class="text-center">
-      Forgot password?
+      <div ng-if="vm.showReset"
+        class="text-center">
+        Forgot password?
 
-      <a ui-sref="auth.forgot">
-        {{vm.authParams.resetPasswordText || "Reset password"}}
-      </a>
-    </div>
+        <a ui-sref="auth.forgot">
+          {{vm.authParams.resetPasswordText || "Reset password"}}
+        </a>
+      </div>
+    </footer>
   </form-footer>
-
 </adp-form>

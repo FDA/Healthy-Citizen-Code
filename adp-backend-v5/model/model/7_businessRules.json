@@ -1,0 +1,164 @@
+{
+  "models": {
+    "businessRules": {
+      "type": "Schema",
+      "fullName": "Business Rules",
+      "parameters": {
+        "enableInCellEditing": false
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          },
+          "rulesEditor": {
+            "fullName": "Rules editor",
+            "description": "View/Edit DMN diagram",
+            "backgroundColor": "#333300",
+            "borderColor": "#666600",
+            "textColor": "yellow",
+            "icon": {
+              "link": "sitemap"
+            },
+            "action": {
+              "type": "link",
+              "link": "/#/dmnRulesEditor/:_id"
+            },
+            "permissions": "accessAsUser"
+          },
+          // standalone launch is not supported for now
+//          "runRules": {
+//            "permissions": "accessAsUser",
+//            "showInTable": true,
+//            "icon": {
+//              "link": "play"
+//            },
+//            "backgroundColor": "#660",
+//            "borderColor": "#330",
+//            "textColor": "yellow",
+//            "fullName": "Rules Runner",
+//            "description": "Run this ruleset",
+//            "action": {
+//              "type": "action",
+//              "link": "redirectToBpmRunner",
+//              "redirectUrl": "/rulesRun"
+//            }
+//          }
+        }
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        }
+      },
+      "fields": {
+        "name": {
+          "required": true,
+          "parameters": {
+            "enableInCellEditing": true
+          },
+          "unique": true,
+          "width": "200"
+        },
+        "description": {
+          "type": "Text",
+          "fullName": "Description",
+          "parameters": {
+            "enableInCellEditing": true
+          },
+          "width": "null"
+        },
+        "definition": {
+          "type": "Mixed",
+          "fullName": "Definition",
+          "showInDatatable": false,
+          "showInForm": false
+        },
+        "target": {
+          "type": "LookupObjectID",
+          "fullName": "Target",
+          "required": false,
+          "lookup": {
+            "table": {
+              "datasets": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsUser"
+                    },
+                    "where": true
+                  }
+                }
+              }
+            }
+          },
+          "parameters": {
+            "enableInCellEditing": true
+          },
+          "visible": false
+        },
+        "locked": {
+          "type": "Boolean",
+          "fullName": "Locked"
+        },
+        "outputDataMapping": {
+          "type": "LookupObjectID",
+          "fullName": "Output Data Mapping",
+          "lookup": {
+            "table": {
+              "dataMappings": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {
+                  "name": 1
+                },
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "outputs": {
+          "type": "LookupObjectID",
+          "fullName": "Outputs",
+          "lookup": {
+            "table": {
+              "outputs": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {
+                  "name": 1
+                },
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

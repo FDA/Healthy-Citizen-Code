@@ -13,17 +13,35 @@ const colors = require('ansi-colors');
 
 exports.APP_CONFIG = function() {
   const configDefaults = {
-    "apiUrl": "http://localhost:5000",
-    "captchaDisabled": false,
-    "debug": false
+    captchaDisabled: false,
+    debug: false,
+    apiPrefix: '',
+    resourcePrefix: '',
   };
 
-  var envConfig = {
-    "apiUrl": process.env.API_URL,
-    "captchaDisabled": process.env.CAPTCHA_DISABLED === 'true',
-    "debug": process.env.DEBUG === 'true',
-    "reCaptchaKey": process.env.RECAPTCHA_KEY,
-    "googleApiKey": process.env.GOOGLE_API_KEY
+  const {
+    SERVER_BASE_URL,
+    API_URL,
+    API_PREFIX,
+    RESOURCE_PREFIX,
+  } = process.env;
+
+  const apiPrefix = API_PREFIX || configDefaults.apiPrefix;
+  const resourcePrefix = RESOURCE_PREFIX || configDefaults.resourcePrefix;
+  const serverBaseUrl = SERVER_BASE_URL || API_URL;
+
+  const apiUrl = `${serverBaseUrl}${apiPrefix}`;
+  const resourceUrl = `${serverBaseUrl}${resourcePrefix}`;
+  const envConfig = {
+    resourceUrl,
+    apiUrl,
+    apiPrefix,
+    resourcePrefix,
+    serverBaseUrl,
+    captchaDisabled: process.env.CAPTCHA_DISABLED === 'true',
+    debug: process.env.DEBUG === 'true',
+    reCaptchaKey: process.env.RECAPTCHA_KEY,
+    googleApiKey: process.env.GOOGLE_API_KEY
   };
 
   return Object.assign(configDefaults, envConfig);
@@ -42,7 +60,8 @@ exports.paths = {
   assets: 'assets',
   tmp: '.tmp',
   serverCss: 'model-style.less',
-  serverScripts: 'app-model-code.js',
+  appModelCodePath: 'app-model-code.js',
+  polyfillsScripts: 'polyfills-generated.js',
   clientModulesFolder: 'client-modules',
   index: 'index.html',
   tasks: 'gulp/tasks',
@@ -51,7 +70,7 @@ exports.paths = {
 
 exports.endpoints = {
   model: 'app-model',
-  scripts: 'app-model-code.js',
+  appModelCode: 'app-model-code.js',
   clientModules: 'public/js/client-modules',
   serverCss: 'public/css/style.css',
 };

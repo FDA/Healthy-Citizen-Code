@@ -6,7 +6,7 @@ const {
   getUrlFor,
 } = require('../../utils');
 
-const lookupLabelFixture = require('../types/lookups/lookupTypes.fixture');
+const { lookupLabelFixture } = require('../types/lookups/lookupTypes.fixture');
 
 const {
   fillLookupEditors,

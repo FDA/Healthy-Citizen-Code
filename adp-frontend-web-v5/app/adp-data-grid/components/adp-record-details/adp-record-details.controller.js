@@ -39,7 +39,7 @@
 
     function template(args) {
       var wrapper = $('<div>', {
-        'class': 'name-' + args.modelSchema.fieldName,
+        'class': 'name-' + args.fieldSchema.fieldName,
       });
 
       var template = HtmlCellRenderer(args)(args);

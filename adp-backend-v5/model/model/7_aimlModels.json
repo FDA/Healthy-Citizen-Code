@@ -1,0 +1,93 @@
+{
+  "models": {
+    "aimlModels": {
+      "type": "Schema",
+      "fullName": "Aiml Models",
+      "parameters": {
+        "enableInCellEditing": false
+      },
+      "fields": {
+        "name": {
+          "required": true,
+          "parameters": {
+            "enableInCellEditing": true
+          },
+          "unique": true
+        },
+        "description": {
+          "type": "Text",
+          "fullName": "Description",
+          "width": "null"
+        },
+        "endpoint": {
+          "type": "Url",
+          "fullName": "Service URL",
+          "description": "The URL of the AI/ML algorithm service endpoint"
+        },
+        "requestType": {
+          "list": {
+            "values": {
+              "get": "GET",
+              "post": "POST"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "locked": {
+          "type": "Boolean",
+          "fullName": "Locked"
+        },
+        "outputDataMapping": {
+          "type": "LookupObjectID",
+          "fullName": "Output Data Mapping",
+          "lookup": {
+            "table": {
+              "dataMappings": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {
+                  "name": 1
+                },
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "outputs": {
+          "type": "LookupObjectID",
+          "fullName": "Outputs",
+          "lookup": {
+            "table": {
+              "outputs": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {
+                  "name": 1
+                },
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

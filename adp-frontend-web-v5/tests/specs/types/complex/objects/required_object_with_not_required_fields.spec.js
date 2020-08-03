@@ -39,7 +39,7 @@ describe('complex objects', () => {
       async () => {
         await clickSubmit(this.page);
         const submitMsg = await getSubmitMsg(this.page);
-        expect(submitMsg).toBe('Required Object With Not Required Fields successfully added.');
+        expect(submitMsg).toBe('Required Object With Not Required Field has been added.');
       });
   });
 });

@@ -78,7 +78,7 @@
 
     function getRequiredFn(formParams) {
       var schemaPath = AdpPath.schemaPath(formParams.path);
-      var field = _.get(formParams.modelSchema.fields, schemaPath);
+      var field = _.get(formParams.fieldSchema.fields, schemaPath);
 
       if (_.isString(field.required)) {
         return _createConditionalRequiredFn(formParams);

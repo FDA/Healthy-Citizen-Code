@@ -227,7 +227,7 @@ module.exports = {
       return transformFile(val);
     }
     if (type === 'File[]') {
-      return '<ul>'+_.map(val, file=>'<li>'+transformFile(file)+'</li>').join('') + '</ul>';
+      return val && val.length ? ('<ul>'+_.map(val, file=>'<li>'+transformFile(file)+'</li>').join('') + '</ul>') : '';
     }
     if (type.includes('String')) {
       return _.castArray(val).join(', ');

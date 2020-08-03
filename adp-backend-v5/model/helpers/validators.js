@@ -34,8 +34,10 @@
 
 module.exports = (appLib) => {
   const _ = require('lodash');
+  const { getParentInfo } = require('../../lib/util/unified-approach');
   const Decimal128 = require('bson/lib/decimal128.js');
   const decimalFromString = Decimal128.fromString;
+  const { schemaKeyRegExp } = require('../../lib/util/model');
   const isValidDecimal128 = (value) => {
     try {
       if (value instanceof Decimal128) {
@@ -50,58 +52,13 @@ module.exports = (appLib) => {
   };
   const vutil = appLib.appModelHelpers.ValidatorUtils;
 
-  /**
-   * Retrieves data necessary for context used in 'required' validator.
-   * Examples:
-   * - for path 'a1.1.a2.2.a3.3.s3' parentPath='a1.1.a2.2.a3', index=3, indexes=[1,2,3]
-   * - for path 'a1.1.a2.2.a3.3.a4' parentPath='a1.1.a2.2.a3', index=3., indexes=[1,2,3]
-   * More info: https://confluence.conceptant.com/display/DEV/Unified+Approach+to+Helper+Methods
-   * @param modelName
-   * @param lodashPath
-   * @returns {{indexes: Array, index: number, parentPath: *}}
-   */
-  function getRequiredData(modelName, lodashPath) {
-    const arrIndexes = [];
-    let lastArrPath;
-    const curPath = [];
-    let curAppModelPart = appLib.appModel.models[modelName];
-    const lodashPathArr = lodashPath.split('.');
-
-    let index;
-    for (let i = 0; i < lodashPathArr.length; i++) {
-      const field = lodashPathArr[i];
-      curPath.push(field);
-      curAppModelPart = curAppModelPart.fields[field];
-      if (curAppModelPart.type === 'Array') {
-        if (i !== lodashPathArr.length - 1) {
-          // if last elem is array then lastArrPath for it is penultimate array in the whole sequence
-          lastArrPath = curPath.slice(0);
-        }
-
-        i++;
-        index = lodashPathArr[i];
-        if (index) {
-          curPath.push(index);
-          arrIndexes.push(index);
-        }
-      }
-    }
-    index = lastArrPath ? +lodashPathArr[lastArrPath.length] : null;
-    return { indexes: arrIndexes, index, parentPath: lastArrPath };
-  }
-
   const m = {
-    minLength(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = vutil.getValue(this, appModelPart, lodashPath);
+    minLength(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = vutil.getValue(row, appModelPart, lodashPath);
       const castToType = 'Number';
-      const length = vutil.getArgumentValue(
-        handlerSpec.arguments,
-        'length',
-        this,
-        lodashPath,
-        appModelPart,
-        castToType
-      );
+      const length = vutil.getArgumentValue(handlerSpec.arguments, 'length', row, lodashPath, appModelPart, castToType);
 
       if (val && length) {
         const argType = typeof length;
@@ -117,23 +74,18 @@ module.exports = (appLib) => {
 
         if (val.length < length) {
           return cb(
-            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart)
+            vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart)
           );
         }
       }
       cb();
     },
-    maxLength(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = vutil.getValue(this, appModelPart, lodashPath);
+    maxLength(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = vutil.getValue(row, appModelPart, lodashPath);
       const castToType = 'Number';
-      const length = vutil.getArgumentValue(
-        handlerSpec.arguments,
-        'length',
-        this,
-        lodashPath,
-        appModelPart,
-        castToType
-      );
+      const length = vutil.getArgumentValue(handlerSpec.arguments, 'length', row, lodashPath, appModelPart, castToType);
 
       if (val && length) {
         const argType = typeof length;
@@ -149,65 +101,71 @@ module.exports = (appLib) => {
 
         if (val.length > length) {
           return cb(
-            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart)
+            vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart)
           );
         }
       }
       cb();
     },
-    notEqual(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = vutil.getValue(this, appModelPart, lodashPath);
-      const argVal = vutil.getArgumentValue(handlerSpec.arguments, 'value', this, lodashPath, appModelPart);
+    notEqual(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = vutil.getValue(row, appModelPart, lodashPath);
+      const argVal = vutil.getArgumentValue(handlerSpec.arguments, 'value', row, lodashPath, appModelPart);
 
       if (val && argVal && val === argVal) {
-        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
       }
       cb();
     },
-    equal(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = vutil.getValue(this, appModelPart, lodashPath);
-      const argVal = vutil.getArgumentValue(handlerSpec.arguments, 'value', this, lodashPath, appModelPart);
+    equal(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = vutil.getValue(row, appModelPart, lodashPath);
+      const argVal = vutil.getArgumentValue(handlerSpec.arguments, 'value', row, lodashPath, appModelPart);
       if (val && argVal && val === argVal) {
         return cb();
       }
-      cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+      cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
     },
-    regex(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = vutil.getValue(this, appModelPart, lodashPath, true);
-      const regex = vutil.getArgumentValue(handlerSpec.arguments, 'regex', this, lodashPath, appModelPart);
-      const regexOptions = vutil.getArgumentValue(
-        handlerSpec.arguments,
-        'regexOptions',
-        this,
-        lodashPath,
-        appModelPart
-      );
+    regex(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = vutil.getValue(row, appModelPart, lodashPath, true);
+      const regex = vutil.getArgumentValue(handlerSpec.arguments, 'regex', row, lodashPath, appModelPart);
+      const regexOptions = vutil.getArgumentValue(handlerSpec.arguments, 'regexOptions', row, lodashPath, appModelPart);
       if (val && regex !== undefined && regexOptions !== undefined && !new RegExp(regex, regexOptions).test(val)) {
-        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
       }
       cb();
     },
-    notInFuture(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+    notInFuture(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
       // TODO: replace with max(date) and $now/@now?
-      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const val = vutil.getValue(row, appModelPart, lodashPath);
       const limit = vutil.getDatePartValue(new Date());
       if (val instanceof Date && !Number.isNaN(val.valueOf()) && val > limit) {
-        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
       }
       cb();
     },
-    notInPast(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
+    notInPast(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
       // TODO: replace with max(date) and $now/@now?
-      const val = vutil.getValue(this, appModelPart, lodashPath);
+      const val = vutil.getValue(row, appModelPart, lodashPath);
       const limit = vutil.getDatePartValue(new Date());
       if (val instanceof Date && !Number.isNaN(val.valueOf()) && val < limit) {
-        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
       }
       cb();
     },
-    min(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = vutil.getValue(this, appModelPart, lodashPath);
-      const limit = vutil.getArgumentValue(handlerSpec.arguments, 'limit', this, lodashPath, appModelPart);
+    min(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = vutil.getValue(row, appModelPart, lodashPath);
+      const limit = vutil.getArgumentValue(handlerSpec.arguments, 'limit', row, lodashPath, appModelPart);
       if (val && limit) {
         const isValidTypes = typeof limit === typeof val;
         if (!isValidTypes) {
@@ -216,15 +174,17 @@ module.exports = (appLib) => {
 
         if (val < limit) {
           return cb(
-            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart)
+            vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart)
           );
         }
       }
       cb();
     },
-    max(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = vutil.getValue(this, appModelPart, lodashPath);
-      const limit = vutil.getArgumentValue(handlerSpec.arguments, 'limit', this, lodashPath, appModelPart);
+    max(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = vutil.getValue(row, appModelPart, lodashPath);
+      const limit = vutil.getArgumentValue(handlerSpec.arguments, 'limit', row, lodashPath, appModelPart);
       if (val && limit) {
         const isValidTypes = typeof limit === typeof val;
         if (!isValidTypes) {
@@ -233,14 +193,16 @@ module.exports = (appLib) => {
 
         if (val > limit) {
           return cb(
-            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart)
+            vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart)
           );
         }
       }
       cb();
     },
-    imperialHeightRange(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = _.get(this, lodashPath);
+    imperialHeightRange(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = _.get(row, lodashPath);
       const limit = _.get(handlerSpec, 'arguments');
       if (
         Array.isArray(val) &&
@@ -257,7 +219,7 @@ module.exports = (appLib) => {
         if (valInIn >= fromInIn && valInIn <= toInIn) {
           cb();
         } else {
-          cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+          cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
         }
       } else {
         cb();
@@ -270,15 +232,12 @@ module.exports = (appLib) => {
      * - no context and 'data, row, modelSchema, $action' as params.
      * - context with properties 'data, row, modelSchema, action, arrIndexes, parentData, index, path'
      * and 'moment, _, ObjectID, and, or' as params
-     * @param modelName
-     * @param lodashPath
-     * @param appModelPart
-     * @param userContext
-     * @param handlerSpec
      * @param cb
      */
-    required(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = vutil.getValue(this, appModelPart, lodashPath);
+    required(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, userContext, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = vutil.getValue(row, appModelPart, lodashPath);
       const { type } = appModelPart;
       const isMultipleType = type.endsWith('[]');
       const isAssociativeArray = type === 'AssociativeArray';
@@ -289,31 +248,32 @@ module.exports = (appLib) => {
       const isEmptyVal =
         _.isNil(val) ||
         (isString && val === '') ||
-        ((isArray || isAssociativeArray || isMixedType || isMultipleType) && _.isEmpty(val)) ||
-        (isBoolean && val === false); // this is not supposed to be
+        ((isArray || isAssociativeArray || isMultipleType) && _.isEmpty(val)) ||
+        (isMixedType && _.isNil(val)) ||
+        (isBoolean && val === false); // this is not supposed (agreement)
 
       let isRequired;
 
       if (_.isBoolean(appModelPart.required)) {
         const pathToParent = lodashPath.split('.').slice(-1);
         // if lodashPath is of 1 length, i.e. in root then count as parent presented
-        const isParentPresented = _.isEmpty(pathToParent) ? true : _.get(this, pathToParent);
+        const isParentPresented = _.isEmpty(pathToParent) ? true : _.get(row, pathToParent);
         isRequired = isParentPresented && appModelPart.required;
       } else if (_.isString(appModelPart.required)) {
         try {
           const { action } = userContext;
 
           if (appModelPart.required.includes('this.')) {
-            const requiredData = getRequiredData(modelName, lodashPath);
+            const { indexes, index, parentData } = getParentInfo(appLib.appModel.models[schemaName], row, lodashPath);
             const context = {
-              data: val,
-              row: this,
-              modelSchema: appModelPart,
-              action,
-              indexes: requiredData.indexes,
-              parentData: _.get(this, requiredData.parentPath),
-              index: requiredData.index,
               path: lodashPath,
+              data: val,
+              row,
+              fieldSchema: appModelPart,
+              action,
+              indexes,
+              index,
+              parentData,
             };
             const inlineCode = appLib.butil.getDefaultArgsAndValuesForInlineCode();
             isRequired = new Function(inlineCode.args, `return ${appModelPart.required}`).apply(
@@ -322,7 +282,7 @@ module.exports = (appLib) => {
             );
           } else {
             const requiredFunc = new Function('data, row, modelSchema, $action', `return ${appModelPart.required}`);
-            isRequired = requiredFunc(val, this, appModelPart, action);
+            isRequired = requiredFunc(val, row, appModelPart, action);
           }
         } catch (e) {
           return cb(
@@ -332,14 +292,16 @@ module.exports = (appLib) => {
       }
 
       if (isRequired && isEmptyVal) {
-        cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
       } else {
         cb();
       }
     },
-    int32(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = _.get(this, lodashPath);
-      if (val === undefined) {
+    int32(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = _.get(row, lodashPath);
+      if (_.isNil(val)) {
         return cb();
       }
 
@@ -347,7 +309,7 @@ module.exports = (appLib) => {
       const INT32_MIN = -0x80000000;
 
       const getErrorForValue = (value) =>
-        vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, value, this, lodashPath, appModelPart);
+        vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, value, row, lodashPath, appModelPart);
 
       const isMultiple = appModelPart.type.endsWith('[]');
       if (isMultiple) {
@@ -373,13 +335,15 @@ module.exports = (appLib) => {
 
       cb();
     },
-    int64(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = _.get(this, lodashPath);
-      if (val === undefined) {
+    int64(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = _.get(row, lodashPath);
+      if (_.isNil(val)) {
         return cb();
       }
       const getErrorForValue = (value) =>
-        vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, value, this, lodashPath, appModelPart);
+        vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, value, row, lodashPath, appModelPart);
 
       const isMultiple = appModelPart.type.endsWith('[]');
       if (isMultiple) {
@@ -404,28 +368,47 @@ module.exports = (appLib) => {
       }
       cb();
     },
-    decimal128(modelName, lodashPath, appModelPart, userContext, handlerSpec, cb) {
-      const val = _.get(this, lodashPath);
-      if (val === undefined) {
+    decimal128(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = _.get(row, lodashPath);
+      if (_.isNil(val)) {
         return cb();
       }
 
       const isMultiple = appModelPart.type.endsWith('[]');
       if (isMultiple) {
+        if (!_.isArray(val)) {
+          return cb(
+            vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart)
+          );
+        }
         const invalidIndex = val.findIndex((elem) => !isValidDecimal128(elem));
         if (invalidIndex !== -1) {
           const invalidElem = val[invalidIndex];
           return cb(
-            vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, invalidElem, this, lodashPath, appModelPart)
+            vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, invalidElem, row, lodashPath, appModelPart)
           );
         }
         return cb();
       }
 
       if (!isValidDecimal128(val)) {
-        return cb(vutil.replaceErrorTemplatePlaceholders(modelName, handlerSpec, val, this, lodashPath, appModelPart));
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
       }
       cb();
+    },
+    validateAssociativeArrayKeys(cb) {
+      const { path: lodashPath, row } = this;
+      const assocArray = _.get(row, lodashPath);
+      const invalidKeys = _.keys(assocArray).filter((key) => !schemaKeyRegExp.test(key));
+      if (!_.isEmpty(invalidKeys)) {
+        const formattedKeys = invalidKeys.map((k) => `'${k}'`).join(', ');
+        const keyMsg =
+          invalidKeys.length === 1 ? `Key '${formattedKeys}' is invalid` : `Keys ${formattedKeys} are invalid`;
+        return cb(`${keyMsg}. Every key must start with _a-zA-Z and contain only _a-zA-Z0-9 characters`);
+      }
+      return cb();
     },
   };
 

@@ -12,18 +12,12 @@
   ) {
     var typeResolvers = {
       'String': _string,
+      'String[]': _string,
       'Text': _string,
       'Email': _string,
       'Phone': _string,
-      'String[]': function (items, field) {
-        var hasList = !_.isUndefined(field.list);
-        if (hasList) {
-          var values = AdpListsService.getListValueByLabel(items, field.list);
-          return _.isEmpty(values) ? null : values;
-        }
-
-        return items;
-      },
+      'List[]': _list,
+      'List': _list,
       'Number': function (item) {
         var parsed = Number(item);
 
@@ -50,13 +44,16 @@
     };
 
     function _string(item, field) {
-      var hasList = !_.isUndefined(field.list);
-      if (hasList) {
-        var values = AdpListsService.getListValueByLabel([item], field.list);
-        return values[0];
+      return field.list ? _list(item, field) : item;
+    }
+
+    function _list(item, field) {
+      var values = AdpListsService.getListValueByLabel(item, field.list);
+      if (_.isEmpty(values)) {
+        return null;
       }
 
-      return item;
+      return _.endsWith(field.type, '[]') ? values : values[0];
     }
 
     function _date(item, field) {
@@ -113,6 +110,8 @@
         'Text',
         'Email',
         'Phone',
+        'List',
+        'List[]'
       ];
 
       var skip = function (field, key) {

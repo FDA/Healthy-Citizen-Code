@@ -1,29 +1,10 @@
 <adp-form
-  adp-submit="::vm.submit"
-  adp-data="::vm.data"
+  args="::vm.args"
+  form-options="::vm.formOptions"
   adp-form-params="::vm.formParams"
-  adp-fields="::vm.fields"
-  schema="::vm.schema"
 >
   <form-header>
-    <h2 class="semi-bold">{{ vm.formParams.btnText }}</h2>
+    <h2 class="semi-bold">{{ vm.headerText }} "{{ vm.args.modelSchema.fullName }}"</h2>
   </form-header>
-
-  <form-footer>
-
-    <button
-      type="submit"
-      class="btn btn-primary">
-      {{ vm.formParams.btnText }}
-    </button>
-
-    <button
-      type="button"
-      ng-click="vm.cancel()"
-      class="btn btn-default">
-      Cancel
-    </button>
-
-  </form-footer>
 
 </adp-form>

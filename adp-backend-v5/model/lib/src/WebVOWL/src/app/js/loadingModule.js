@@ -431,8 +431,8 @@ module.exports =  function (graph) {
             ontologyContent=ontologyMenu.cachedOntology(ontology);
             loadingWasSuccessFul=true; // cached Ontology should be true;
             parseOntologyContent(ontologyContent);
-        }else {
-          var endpoint = '/getFdaVipWebVOWLConfig';
+        } else {
+          var endpoint = process.env.API_PREFIX + '/getFdaVipWebVOWLConfig';
             d3.xhr(endpoint)
               .header('Authorization', 'JWT ' + graph.options().token())
               .header('Content-Type', 'application/json')

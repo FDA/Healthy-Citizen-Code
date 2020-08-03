@@ -10,11 +10,13 @@
     GridColumns,
     GridDataSource,
     GridToolbarActions,
+    GridLifecycleActions,
     GridOptionsHelpers,
     AdpGridCustomOptionsService,
     GridFilters,
     CellEditorsService,
-    GridHeaderFilters
+    GridHeaderFilters,
+    AdpListsService
   ) {
     function create(schema) {
       var presentation = {
@@ -27,9 +29,9 @@
         remoteOperations: true,
         twoWayBindingEnabled: false,
         errorRowEnabled: false,
-        onInitialized: function (e) {
-          customGridOptions.setGridComponent(e.component);
-        },
+        // onInitialized: function (e) {
+        //   customGridOptions.setGridComponent(e.component);
+        // },
         onDataErrorOccurred: function () {
           this.dataErrorMessage = 'Data Loading Error';
         },
@@ -68,6 +70,7 @@
       CellEditorsService(options, schema);
       GridFilters.setFiltersFromUrl(options, schema);
       GridToolbarActions(options, schema, customGridOptions);
+      GridLifecycleActions(options, schema, customGridOptions);
 
       if (options.stateStoring &&
         options.stateStoring.enabled &&
@@ -97,10 +100,16 @@
           customGridOptions.value(state._customOptions || {});
           delete state._customOptions;
 
+          setTimeout(function () {
+            customGridOptions.gridComponent && customGridOptions.gridComponent._views.headerPanel._toolbar.repaint();
+          }, 300);
+
+          delete state.selectedRowKeys;
+
           return state;
         };
 
-        customGridOptions.setHandler("change", "$$$", function () {
+       customGridOptions.setHandler("change", "$$$", function () {
           if (this.gridComponent) {
             var gridComponent = this.gridComponent;
             // deferring save is required since 'change' handler invoked by customLoad() synchronously and 'normal' state of the grid still empty at that point
@@ -117,6 +126,10 @@
       if (scrollMode === 'virtual' || scrollMode === 'infinite') {
         options.paging.pageSize = Math.max(100, options.paging.pageSize);
       }
+
+      options.onDisposing = function () {
+        AdpListsService.dropCache();
+      };
 
       return options;
     }

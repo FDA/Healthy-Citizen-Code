@@ -81,13 +81,16 @@ export function find(array, cb) {
 export function updateIframeHeight() {
   let iframeName = window.name;
   let iframe = window.parent.document.querySelector(`iframe[name="${iframeName}"]`);
+  if (!iframe) {
+    return;
+  }
   iframe.style.height = document.body.offsetHeight + 'px';
 }
 
-export function showErrorToUser(message) {
-  const div = document.createElement('div');
-  div.innerText = message;
-  document.body.innerHTML = div.outerHTML;
+export function showErrorToUser(el, message) {
+  const errorNode = document.createElement('div');
+  errorNode.innerText = message;
+  el.innerHTML = errorNode.outerHTML;
 }
 
 export function forEachInObject(obj, cb) {

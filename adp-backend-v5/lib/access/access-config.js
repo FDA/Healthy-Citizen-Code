@@ -47,5 +47,6 @@ module.exports = {
     'import',
     'syntheticGenerate',
     'chooseColumns',
+    'listFilter',
   ],
 };

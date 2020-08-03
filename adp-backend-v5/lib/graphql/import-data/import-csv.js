@@ -68,8 +68,10 @@ async function parseCsvToJsonValue({ appLib, scheme, val, fieldName }) {
   const schemeSpec = scheme.fields[fieldName];
   const { type } = schemeSpec;
 
-  const stringTypes = ['String', 'Email', 'Phone', 'Url', 'Text', 'Barcode', 'Decimal128'];
+  const stringTypes = ['String', 'List', 'Email', 'Phone', 'Url', 'Text', 'Barcode', 'Decimal128'];
+  const stringArrayTypes = ['String[]', 'List[]', 'Decimal128[]'];
   const numberTypes = ['Number', 'Double', 'Int32', 'Int64'];
+  const numberArrayTypes = ['Number[]', 'Double[]', 'Int32[]', 'Int64[]'];
 
   if (!val) {
     return null;
@@ -79,19 +81,38 @@ async function parseCsvToJsonValue({ appLib, scheme, val, fieldName }) {
     return _.unescape(val);
   }
 
-  if (type === 'String[]') {
+  if (stringArrayTypes.includes(type)) {
     return _.unescape(val).split(', ');
   }
 
   if (numberTypes.includes(type)) {
-    return Number(val);
+    const number = Number(val);
+    if (Number.isNaN(number)) {
+      throw new Error(`Invalid ${type} value ${val}`);
+    }
+    return number;
+  }
+
+  if (numberArrayTypes.includes(type)) {
+    const numberStrings = val.split(', ');
+    const resultNumbers = [];
+    for (let i = 0; i < numberStrings.length; i++) {
+      const numberString = numberStrings[i];
+      const number = Number(numberString);
+      if (Number.isNaN(number)) {
+        throw new Error(`Invalid ${type} value '${numberString}'`);
+      }
+      resultNumbers.push(number);
+    }
+    return resultNumbers;
   }
 
   if (type === 'Boolean') {
-    if (val === 'true') {
+    const lowerCasedVal = val.toLowerCase();
+    if (lowerCasedVal === 'true') {
       return true;
     }
-    if (val === 'false') {
+    if (lowerCasedVal === 'false') {
       return false;
     }
     throw new Error(`Invalid Boolean value ${val}`);

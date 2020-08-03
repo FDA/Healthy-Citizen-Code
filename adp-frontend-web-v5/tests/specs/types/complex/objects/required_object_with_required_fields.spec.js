@@ -75,7 +75,7 @@ describe('complex objects', () => {
 
         await clickSubmit(this.page);
         const submitMsg = await getSubmitMsg(this.page);
-        expect(submitMsg).toBe('Required Object With Required Fields successfully added.');
+        expect(submitMsg).toBe('Required Object With Required Field has been added.');
       });
   });
 });

@@ -40,7 +40,7 @@ export default class Recalls {
     this.fetchData()
       .catch((err) => {
         console.error(err);
-        showErrorToUser(ResponseError.RECALLS_EMPTY);
+        showErrorToUser(node, ResponseError.RECALLS_EMPTY);
       });
   }
 

@@ -33,7 +33,7 @@
 
         function getConfig(args) {
           var defaults = getDefaults(args);
-          return AdpFieldsService.configFromParameters(args.modelSchema, defaults);
+          return AdpFieldsService.configFromParameters(args.fieldSchema, defaults);
         }
 
         function getDefaults(args) {
@@ -42,7 +42,7 @@
             displayExpr: 'label',
             elementAttr: {
               class: 'adp-select-box',
-              id: 'list_id_' + args.modelSchema.fieldName,
+              id: 'list_id_' + args.fieldSchema.fieldName,
             },
             showClearButton: true,
             dataSource: AdpListsService.getDataSource(args),

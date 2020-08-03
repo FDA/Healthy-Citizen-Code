@@ -3,6 +3,7 @@
     "tags": {
       "type": "Schema",
       "fullName": "Tags",
+      "singleRecordName": "Tag",
       "actions": {
         "fields": {
           "update": {

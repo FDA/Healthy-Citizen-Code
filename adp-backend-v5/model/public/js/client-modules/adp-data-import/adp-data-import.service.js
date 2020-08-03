@@ -70,6 +70,8 @@
           .catch(function (err) {
             ErrorHelpers.handleError(err, 'Error while importing.');
           });
+
+        AdpClientCommonHelper.repaintToolbar(gridComponent);
       };
     }
   }

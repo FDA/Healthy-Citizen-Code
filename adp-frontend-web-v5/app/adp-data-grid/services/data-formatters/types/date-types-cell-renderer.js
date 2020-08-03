@@ -25,7 +25,7 @@
         DateTime: DATE_TIME_FORMAT
       };
 
-      var type = _.get(args, 'modelSchema.type');
+      var type = _.get(args, 'fieldSchema.type');
 
       return dateFormats[type];
     }

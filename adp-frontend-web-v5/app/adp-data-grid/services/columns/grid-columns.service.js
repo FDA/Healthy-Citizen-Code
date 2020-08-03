@@ -9,14 +9,10 @@
   function GridColumns(
     AdpSchemaService,
     GridSchema,
-    AdpUnifiedArgs,
-    ACTIONS,
     GridFilterHelpers,
     CustomFilterExpression,
     FilterOperation,
-    FilterUrlParser,
     GRID_FORMAT,
-    HtmlCellRenderer,
     GridTableActions,
     GridColumnsHelpers,
     GridSorting
@@ -62,7 +58,7 @@
         calculateFilterExpression: CustomFilterExpression(field, schema),
         selectedFilterOperation:  FilterOperation.getSelected(field),
         cellTemplate: function (container, cellInfo) {
-          container.append(getTemplateForField(field, schema, cellInfo.data));
+          container.append(GridColumnsHelpers.getTemplateForField(field, schema, cellInfo.data));
         },
         groupCellTemplate: function (container, cellInfo) {
           // refactor: it's too complex, better to keep inside some service
@@ -76,18 +72,20 @@
           };
 
           var formatValue = function (val, columnName) {
-            var modelSchema = schema.fields[columnName];
+            var fieldSchema = schema.fields[columnName];
             var format = findFormat(columnName) || 'currency';
 
-            if (modelSchema.type === 'Currency') {
+            if (fieldSchema.type === 'Currency') {
               var formatted = DevExpress.localization.formatNumber(val, format);
               return _.isNil(formatted) ? GRID_FORMAT.EMPTY_VALUE : formatted;
             }
 
             var rowData = {};
-            rowData[modelSchema.fieldName] = val;
-            var argsArray = [modelSchema, schema, rowData];
-            var templateFn = modelSchema.type === 'TreeSelector' ? getTextTemplateForField : getTemplateForField;
+            rowData[fieldSchema.fieldName] = val;
+            var argsArray = [fieldSchema, schema, rowData];
+            var templateFn = fieldSchema.type === 'TreeSelector' ?
+              GridColumnsHelpers.getTextTemplateForField :
+              GridColumnsHelpers.getTemplateForField;
 
             return templateFn.apply(null, argsArray);
           };
@@ -121,7 +119,7 @@
           ) {
             var rowData = {};
             rowData[field.fieldName] = event.value;
-            var filterContent = getTextTemplateForField(field, schema, rowData);
+            var filterContent = GridColumnsHelpers.getTextTemplateForField(field, schema, rowData);
 
             return filterContent === GRID_FORMAT.EMPTY_VALUE ?
               GRID_FORMAT.NOT_SET_FILTER_VALUE :
@@ -133,30 +131,6 @@
       };
 
       return column;
-    }
-
-    function getTemplateForField(field, schema, rowData) {
-      var args = getTemplateArguments(field, schema, rowData);
-      var templateFn = HtmlCellRenderer(args);
-
-      return templateFn(args);
-    }
-
-    function getTextTemplateForField(field, schema, rowData) {
-      var args = getTemplateArguments(field, schema, rowData);
-      args.params = { asText: true };
-      var templateFn = HtmlCellRenderer(args);
-
-      return templateFn(args);
-    }
-
-    function getTemplateArguments(field, schema, recordData) {
-      return AdpUnifiedArgs.getHelperParamsWithConfig({
-        path: field.fieldName,
-        formData: recordData,
-        action: ACTIONS.VIEW,
-        schema: schema,
-      });
     }
   }
 })();

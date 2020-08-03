@@ -1,5 +1,6 @@
 module.exports = {
   selectLookupValue,
+  selectLookupTable,
   clickLookupAction,
   getMultipleLookupValue,
   getSingleLookupValue,
@@ -28,6 +29,13 @@ async function selectLookupValue(value, lookupName, page, parentSelector) {
   await clickDxOptionByText(value, lookupSelector, page);
 }
 
+async function selectLookupTable(tableName, lookupName, page) {
+  let selector = `.lookup-name-${lookupName} [table-selector="true"]`;
+  await page.click(selector);
+
+  await clickDxOptionByText(tableName, selector, page);
+}
+
 async function getSingleLookupValue(lookupName, page) {
   const lookupSelector = `.lookup-name-${lookupName} .adp-lookup-selector .adp-text-box-label`;
   return page.$eval(lookupSelector, el => el.innerText);
@@ -42,7 +50,7 @@ async function getMultipleLookupValue(lookupName, page) {
   );
 }
 
-async function clickLookupAction(lookupName, actionName, parentSelector, page) {
+async function clickLookupAction(lookupName, actionName, page) {
   const actionStrategies = {
     async create() {
       const actionSelector = `.lookup-name-${lookupName} [lookup-action="${actionName}"]`;
@@ -58,7 +66,6 @@ async function clickLookupAction(lookupName, actionName, parentSelector, page) {
   const clickFn = actionStrategies[actionName];
 
   await clickFn(lookupName);
-  await page.waitForSelector(parentSelector);
 }
 
 async function selectImperialUnitMultipleValue(values, fieldName, page, idPrefix) {
@@ -126,7 +133,7 @@ async function clickDxOptionByText(value, listSelector, page) {
     els => els.map(el => el.innerText)
   );
 
-  const indexToClick = texts.indexOf(value) + 1;
-  const selectorToClick = `#${selectorId} .dx-item.dx-list-item:nth-child(${indexToClick}) .dx-item-content`;
+  const indexToClick = texts.findIndex(t => t.indexOf(value) > -1);
+  const selectorToClick = `#${selectorId} .dx-item.dx-list-item:nth-child(${indexToClick + 1}) .dx-item-content`;
   await page.click(selectorToClick);
 }

@@ -15,16 +15,16 @@
     return function (toolbarWidgetRegister) {
       var schema = this.schema;
       var actionOptions = this.actionOptions;
-      var customOptions = this.customGridOptions;
 
-      return toolbarWidgetRegister(function () {
+      return toolbarWidgetRegister(function (gridComponent) {
         return {
           widget: 'dxMenu',
           options: {
             dataSource: [{ template: AdpClientCommonHelper.getMenuItemTemplate(actionOptions) }],
             cssClass: 'adp-toolbar-menu grid-view-menu',
             onItemClick: function () {
-              printAction(schema, GridOptionsHelpers.getLoadOptions(customOptions.gridComponent));
+              printAction(schema, GridOptionsHelpers.getLoadOptions(gridComponent));
+              AdpClientCommonHelper.repaintToolbar(gridComponent);
             },
           },
         };

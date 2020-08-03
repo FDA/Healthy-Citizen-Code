@@ -1,6 +1,7 @@
 const puppeteer = require('puppeteer');
 const {
   getLaunchOptions,
+  form: { clickCreateNewButton },
   loginWithUser,
   getUrlFor,
 } = require('../../utils');
@@ -21,6 +22,7 @@ describe('synthetic types', () => {
     'synthetic types',
     async () => {
       await this.page.goto(getUrlFor('syntheticTypes'));
+      await clickCreateNewButton(this.page)
       const createButtonSelector = '.btn.page-action';
       await this.page.waitFor(createButtonSelector);
       await this.page.click(createButtonSelector);

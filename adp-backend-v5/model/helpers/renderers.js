@@ -9,7 +9,7 @@
  */
 
 // eslint-disable-next-line no-unused-vars
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {
     asIs(data) {
       return data;
@@ -20,11 +20,13 @@ module.exports = appLib => {
 
       return adpRenderLib.getTemplate(template, templateData);
     },
-    link(data, type, row, meta) {
-      const template = '<a href="<%= data %>"><%= data %></a>';
-      const templateData = { data, row, type, meta };
-
-      return adpRenderLib.getTemplate(template, templateData);
+    link() {
+      const asText = _.get(this, 'params.asText', false);
+      const { data } = this;
+      if (asText) {
+        return data;
+      }
+      return adpRenderLib.getTemplate('<a href="<%= data %>"><%= data %></a>', this);
     },
     percent(data) {
       let value;

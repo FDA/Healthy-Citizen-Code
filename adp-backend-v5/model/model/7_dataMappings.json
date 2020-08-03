@@ -1,0 +1,77 @@
+{
+  "models": {
+    "dataMappings": {
+      "type": "Schema",
+      "fullName": "Data Mappings",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          }
+        }
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        },
+        "admin": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "{$eq:[1,1]}"
+        }
+      },
+      "fields": {
+        "name": {
+          "required": true,
+          "unique": true,
+          "width": "200"
+        },
+        "description": {
+          "type": "Text",
+          "fullName": "Description",
+          "width": "null"
+        },
+        "fieldsMapping": {
+          "type": "Array",
+          "fullName": "Fields Mapping",
+          "width": "300",
+          "headerRender": "dataMapping",
+          "fields": {
+            "inputFieldName": {
+              "required": true
+            },
+            "outputFieldName": {
+              "required": true
+            }
+          }
+        },
+        "postProcessingCode": {
+          "type": "Code",
+          "fullName": "Post Processing Code",
+          "parameters": {
+            "codeEditor": {
+              "mode": "ace/mode/javascript",
+              "theme": "ace/theme/dracula"
+            }
+          },
+          "showInDatatable": false
+        }
+      }
+    }
+  }
+}

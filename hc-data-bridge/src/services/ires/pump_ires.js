@@ -110,10 +110,14 @@ function transformIresDoc(doc) {
 }
 
 function upsertRecall(dbCon, doc) {
-  if (doc.productId && doc.eventId) {
-    return insertOrReplaceDocByCondition(doc, dbCon.collection(resCollectionName), { productId: doc.productId, eventId: doc.eventId });
+  if (doc.productId && doc.eventId && doc.recallNumber) {
+    console.warn(`Found a doc with one of fields (productId, eventId, recallNumber) is empty`, JSON.stringify(doc, null, 2));
   }
-  console.warn(`Both productId and eventId should be defined in doc`, JSON.stringify(doc, null, 2));
+  return insertOrReplaceDocByCondition(doc, dbCon.collection(resCollectionName), {
+    productId: doc.productId,
+    eventId: doc.eventId,
+    recallNumber: doc.recallNumber,
+  });
 }
 
 async function pumpIresRecalls(dbCon) {
@@ -129,7 +133,7 @@ async function pumpIresRecalls(dbCon) {
     docsCount = RESULTCOUNT;
     console.log(`Retrieved data, ${start + RESULT.length - 1}/${docsCount}. Transforming and upserting recalls...`);
     start += BATCH_SIZE;
-    await Promise.map(RESULT, iresDoc => {
+    await Promise.map(RESULT, (iresDoc) => {
       const recallDoc = transformIresDoc(iresDoc);
       return upsertRecall(dbCon, recallDoc);
     });

@@ -9,12 +9,16 @@ const crypto = require('crypto');
 const { ObjectID } = require('mongodb');
 const hash = require('object-hash');
 
-function getUrlParts(req) {
-  return encodeURI(req.url)
+function getUrlParts(url) {
+  return encodeURI(url)
     .replace(/^\//, '')
     .replace(/\.json.*$/, '')
     .replace(/\?.*$/, '')
     .split('/'); // TODO: .toLocaleLowerCase()
+}
+
+function getUrlWithoutPrefix(url, prefix) {
+  return url.startsWith(prefix) ? url.substring(prefix.length) : url;
 }
 
 function generateId(base) {
@@ -356,6 +360,7 @@ function showMemoryUsage(logger = console) {
 
 module.exports = {
   getUrlParts,
+  getUrlWithoutPrefix,
   generateId,
   generateObjectId,
   camelCase2CamelText,

@@ -14,7 +14,7 @@
           "type": "Number",
           "description": "Conditional synthesize",
           "synthesize": {
-            "code": "$action === 'view' ? this.n + 10 : 0"
+            "code": "this.action === 'view' ? row.n + 10 : 0"
           }
         },
         "virtualStringWithInlineSynthesizer": {
@@ -22,7 +22,7 @@
           "description": "Conditional synthesize",
           "virtual": true,
           "synthesize": {
-            "code": "$action === 'view' ? 'virtualValueForViewAction' : 'val'"
+            "code": "this.action === 'view' ? 'virtualValueForViewAction' : 'val'"
           }
         },
         "n": {

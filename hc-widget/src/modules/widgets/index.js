@@ -1,5 +1,5 @@
 import { validateOptionsBySchema } from '../widget-options/validate-options';
-import { setStylesFromOptionsToBody } from './utils';
+import { setStylesFromOptionsToWidgetElement } from './utils';
 import globalWidgetsOptionsSchema from '../widget-options/global-widgets-parameters-schema';
 import { ConfigurationError } from '../../lib/exceptions';
 
@@ -16,17 +16,18 @@ const WIDGETS_MAP = {
 };
 
 /**
+ * @param {HTMLElement} el
  * @param {Object} options
  * @return {Object} Widget
  */
-export function createWidget(options) {
+export function createWidget(el, options) {
   const { type } = options;
   const widgetSchema = getWidgetSchema(type);
   const validatedOptions = validateOptionsBySchema(options, widgetSchema);
 
-  setStylesFromOptionsToBody(validatedOptions);
+  setStylesFromOptionsToWidgetElement(el, validatedOptions);
 
-  return new WIDGETS_MAP[type](document.body, validatedOptions);
+  return new WIDGETS_MAP[type](el, validatedOptions);
 }
 
 function getWidgetSchema(type) {

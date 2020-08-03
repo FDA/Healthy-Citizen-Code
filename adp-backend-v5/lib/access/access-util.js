@@ -4,6 +4,7 @@ const log = require('log4js').getLogger('lib/access-util');
 const Promise = require('bluebird');
 const { default: sift } = require('sift');
 const { getDefaultArgsAndValuesForInlineCode, MONGO } = require('../util/util');
+const { expandPermissionsForScope } = require('./transform-permissions');
 
 module.exports = (appLib) => {
   const m = {};
@@ -571,7 +572,8 @@ module.exports = (appLib) => {
     inlineContext,
     listPath,
     requestDynamicList = false,
-    dynamicListRequestConfig
+    dynamicListRequestConfig,
+    action = 'view'
   ) => {
     const listFieldScheme = _.get(appLib.appModel.models, listPath);
     if (!listFieldScheme) {
@@ -609,7 +611,7 @@ module.exports = (appLib) => {
     const { args, values } = getDefaultArgsAndValuesForInlineCode();
     const listScopes = list.scopes;
     _.each(listScopes, (listScope, listScopeName) => {
-      const scopePermission = _.get(listScope, `permissions.view`);
+      const scopePermission = _.get(listScope, `permissions.${action}`);
       const isScopePermissionGranted = m.isPermissionGranted(scopePermission, userPermissions);
 
       const whereList = {};
@@ -769,9 +771,10 @@ module.exports = (appLib) => {
         return;
       }
 
+      const fieldPathWithoutFields = fieldPath.split('.fields.').join('.');
       if (_.isEmpty(userVal)) {
         if (list.required) {
-          listsErrors.push(`Required value must be set for '${fieldPath}'.`);
+          listsErrors.push(`Required value must be set for '${fieldPathWithoutFields}'.`);
         }
         return;
       }
@@ -780,16 +783,16 @@ module.exports = (appLib) => {
       const isArrayType = list.type.endsWith('[]');
       if (isArrayType) {
         if (!_.isArray(userVal)) {
-          listsErrors.push(`Value '${userVal}' should be an array for '${fieldPath}'.`);
+          listsErrors.push(`Value '${userVal}' should be an array for '${fieldPathWithoutFields}'.`);
         } else {
           userVal.forEach((val) => {
             if (!listValues[val]) {
-              listsErrors.push(`Value '${val}' is not allowed for list field '${fieldPath}'.`);
+              listsErrors.push(`Value '${val}' is not allowed for list field '${fieldPathWithoutFields}'.`);
             }
           });
         }
       } else if (userVal && !listValues[userVal]) {
-        listsErrors.push(`Value '${userVal}' is not allowed for list field '${fieldPath}'.`);
+        listsErrors.push(`Value '${userVal}' is not allowed for list field '${fieldPathWithoutFields}'.`);
       }
     }
   };
@@ -982,25 +985,31 @@ module.exports = (appLib) => {
     },
   });
 
-  m.getAnyoneListScopeForViewAction = () => ({
-    anyoneScope: {
-      permissions: {
-        view: appPermissions.accessAsAnyone,
+  m.getAnyoneListScope = (actions) => {
+    const anyoneScope = {
+      anyoneScope: {
+        permissions: appPermissions.accessAsAnyone,
+        where: 'return true',
+        return: 'return $list',
       },
-      where: 'return true',
-      return: 'return $list',
-    },
-  });
+    };
 
-  m.getAdminListScopeForViewAction = () => ({
-    superAdminScope: {
-      permissions: {
-        view: appPermissions.accessAsSuperAdmin,
+    expandPermissionsForScope(anyoneScope, actions);
+    return anyoneScope;
+  };
+
+  m.getAdminListScope = (actions) => {
+    const adminScope = {
+      superAdminScope: {
+        permissions: appPermissions.accessAsSuperAdmin,
+        where: 'return true',
+        return: 'return $list',
       },
-      where: 'return true',
-      return: 'return $list',
-    },
-  });
+    };
+
+    expandPermissionsForScope(adminScope, actions);
+    return adminScope;
+  };
 
   m.getFieldActionByModelAction = (action) => {
     if (action === 'view') {

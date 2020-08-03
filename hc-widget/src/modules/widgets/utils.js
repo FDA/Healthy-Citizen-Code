@@ -1,7 +1,7 @@
 import lodashMap from 'lodash.map';
 import lodashReduce from 'lodash.reduce';
 
-export function setStylesFromOptionsToBody(widgetOptions) {
+export function setStylesFromOptionsToWidgetElement(el, widgetOptions) {
   const rules = {
     'fontFace': v => `font-family: ${v}, Sans-Serif;`,
     'fontSize': v => {
@@ -28,5 +28,5 @@ export function setStylesFromOptionsToBody(widgetOptions) {
     return result;
   }, '');
 
-  document.body.setAttribute('style', styles);
+  el.setAttribute('style', styles);
 }

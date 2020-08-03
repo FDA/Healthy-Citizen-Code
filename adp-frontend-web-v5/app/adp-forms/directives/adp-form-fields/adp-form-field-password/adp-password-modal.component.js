@@ -11,28 +11,32 @@
         dismiss: '&'
       },
       controller: function AdpRecordModalController(
+        AdpUnifiedArgs,
         AdpAuthSchemas,
         $q
       ) {
         var vm = this;
 
         vm.$onInit = function () {
-          vm.field = vm.resolve.options.field;
-          vm.schema = AdpAuthSchemas.reset(vm.field);
-          vm.fields = vm.schema.fields;
-
-          vm.data = {};
+          vm.passwordField = vm.resolve.options.field;
+          vm.args = AdpAuthSchemas.passwordUpdateArgs();
         };
 
-        vm.cancel = function () {
-          vm.dismiss({$value: 'cancel'});
+        vm.onCancel = function () {
+          return vm.dismiss({ $value: 'cancel' });
         };
 
-        vm.submit = function (formData) {
-          return $q.resolve()
-            .then(function () {
-              vm.close({ $value: formData[vm.field.fieldName] });
-            });
+        vm.formOptions = {
+          localActionsStrategy: {
+            submit: function (args) {
+              return $q.resolve()
+                .then(function () {
+                  vm.close({ $value: args.row[vm.passwordField.fieldName] });
+                  return args.row;
+                });
+            },
+          },
+          disableFullscreen: true,
         };
       },
       controllerAs: 'vm'

@@ -28,7 +28,7 @@
     };
 
     function getOptions(params) {
-      var items = params.schema.fields;
+      var items = params.args.modelSchema.fields;
 
       items = _.filter(items, function (item) {
         return item.showInDatatable && item.fieldName !== params.dataField
@@ -61,7 +61,7 @@
         validationCallback: function (event) {
           var valueToValidate = [params.dataField, params.filterOperation, event.value];
 
-          return CustomFilterTypesValidatorService(params.schema.schemaName, "Database Field", valueToValidate, event.rule);
+          return CustomFilterTypesValidatorService(params.args.modelSchema.schemaName, "Database Field", valueToValidate, event.rule);
         }
       }]
     }

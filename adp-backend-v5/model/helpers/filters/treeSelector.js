@@ -17,7 +17,7 @@ function treeSelector(castObjectId = true) {
   const { fieldPath, value } = this.data;
 
   const pathForLookupId = `${fieldPath}._id`;
-  const tableSpec = _.get(this.modelSchema, `${this.path}.table`);
+  const tableSpec = _.get(this.fieldSchema, 'table');
   const foreignKeyType = getForeignKeyType(tableSpec, this.appLib.appModel);
   const treeSelectorObjects = value ? _.castArray(value) : [];
   if (foreignKeyType === 'ObjectID') {

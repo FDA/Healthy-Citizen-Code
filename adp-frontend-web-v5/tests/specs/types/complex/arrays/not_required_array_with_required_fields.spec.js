@@ -72,7 +72,7 @@ describe('complex arrays', () => {
         ]);
 
         expect(data.array.length).toBe(0);
-        expect(submitMsg).toBe('Not Required Array With Required Fields successfully added.');
+        expect(submitMsg).toBe('Not Required Array With Required Field has been added.');
 
         const isPostRequestSent = !!data;
         expect(isPostRequestSent).toBe(true);
@@ -105,7 +105,7 @@ describe('complex arrays', () => {
         expect(data.array.length).toBe(2);
         expect(data.array[0].string1).toBe('123');
         expect(data.array[1].boolean1).toBe(true);
-        expect(submitMsg).toBe('Not Required Array With Required Fields successfully added.');
+        expect(submitMsg).toBe('Not Required Array With Required Field has been added.');
 
         const isPostRequestSent = !!data;
         expect(isPostRequestSent).toBe(true);

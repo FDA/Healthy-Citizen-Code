@@ -55,7 +55,7 @@
           }).join(';');
         }
 
-        scope.src = APP_CONFIG.apiUrl + '/public/js/lib/web-vowl/index.html';
+        scope.src = APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/web-vowl/index.html';
         scope.src += '#opts=[' + getOptions(options) + ']';
         scope.src = $sce.trustAsResourceUrl(scope.src);
       },

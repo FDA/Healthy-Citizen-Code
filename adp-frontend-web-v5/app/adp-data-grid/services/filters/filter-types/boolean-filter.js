@@ -15,7 +15,7 @@
       return {
         elementAttr: {
           class: 'adp-select-box',
-          id: 'list_id_' + init.args.modelSchema.fieldName,
+          id: 'list_id_' + init.args.fieldSchema.fieldName,
         },
         value: init.args.data,
         displayExpr: 'label',

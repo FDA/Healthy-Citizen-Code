@@ -1,0 +1,7 @@
+{
+  "macros": {
+    "personFields": {
+      "inline": "fields: {\"firstName\":{\"required\":true,\"description\":\"First Name\"},\"lastName\":{\"required\":true,\"description\":\"Last Name\"},\"phone\":{\"type\":\"Phone\",\"fullName\":\"Phone Number\",\"description\":\"Contact phone number\"},\"address\":{\"type\":\"Location\",\"description\":\"Address\"}}"
+    }
+  }
+}

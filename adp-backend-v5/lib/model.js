@@ -28,7 +28,7 @@ const {
   transformPagesPermissions,
   expandPermissionsForScopes,
 } = require('./access/transform-permissions');
-const { combineModels } = require('./util/model');
+const { combineModels, schemaKeyRegExp } = require('./util/model');
 const { getSchemaPaths, getSchemaNestedPaths } = require('./util/env');
 
 module.exports = (appLib) => {
@@ -344,6 +344,7 @@ module.exports = (appLib) => {
     const warnings = [];
     const allowedAttributes = _.keys(appLib.appModel.metaschema);
 
+    expandOtherFieldPart(appLib.appModel);
     setAppAuthSettings();
     initLookupAndTreeSelectorMeta();
     validateModelParts(models, []);
@@ -387,6 +388,17 @@ module.exports = (appLib) => {
       if (part.showInGraphQL) {
         part.showInGraphql = part.showInGraphQL;
         delete part.showInGraphQL;
+      }
+    }
+
+    function validateSchemaKey(part, path) {
+      const key = path[path.length - 1];
+      if (!schemaKeyRegExp.test(key)) {
+        errors.push(
+          `Found invalid key '${key}' by path ${path.join(
+            '.'
+          )}. Every key must match pattern ${schemaKeyRegExp.toString()}`
+        );
       }
     }
 
@@ -1403,7 +1415,7 @@ module.exports = (appLib) => {
       const transformedAppModel = getAppModelWithTransformedPermissions(appLib.appModel.models);
       _.set(appLib.appModel, 'models', transformedAppModel);
 
-      transformListPermissions(appLib.ListsFields, appLib.appModel.models);
+      transformListPermissions(appLib.ListsFields, appLib.appModel.models, appLib.allActionsNames);
 
       const mainMenuItems = _.get(appLib, 'appModel.interface.mainMenu.fields');
       transformMenuPermissions(mainMenuItems, appLib.allActionsNames);
@@ -1479,8 +1491,8 @@ module.exports = (appLib) => {
       }
 
       const { enablePermissions } = appLib.getAuthSettings();
-      const anyoneListScopeForViewAction = enablePermissions ? appLib.accessUtil.getAnyoneListScopeForViewAction() : {};
-      const adminListScopeForViewAction = enablePermissions ? appLib.accessUtil.getAdminListScopeForViewAction() : {};
+      const anyoneListScopeForViewAction = enablePermissions ? appLib.accessUtil.getAnyoneListScope() : {};
+      const adminListScopeForViewAction = enablePermissions ? appLib.accessUtil.getAdminListScope() : {};
 
       const listVal = part.list;
       if (_.isString(listVal)) {
@@ -1556,7 +1568,7 @@ module.exports = (appLib) => {
               `Param 'APP_URL' must be valid (startsWith 'http://' or 'https://') to build a full url for dynamic list with a short url '${url}'`
             );
           }
-          return `${appUrl}${url}`;
+          return `${appUrl}${appLib.getFullRoute(appLib.API_PREFIX, url)}`;
         }
       }
 
@@ -1570,6 +1582,7 @@ module.exports = (appLib) => {
 
     function validateModelPart(part, path) {
       transformForBackwardCompatibility(part, path);
+      validateSchemaKey(part, path);
       addSchemeNameOrFieldName(part, path);
       mergeTypeDefaults(part, path);
       convertTransformersToArrays(part, path);
@@ -1633,6 +1646,63 @@ module.exports = (appLib) => {
       _.each(parts, (val, key) => {
         validateModelPart(val, _.concat(path, key));
       });
+    }
+
+    /**
+     * Expands 'other' field retrieved from data-bridge.
+     * Example:
+     * 1. Scalar value { title: {  other: 'App title' } } transforms to { title: 'App title' }
+     * 2. Object value
+     *   {
+     *     modelName: {
+     *       scopes: { scope1: {...} },
+     *       other: { scopes: { scope2: {...} } }
+     *     }
+     *   }
+     *   expands with merge to following object
+     *   {
+     *     modelName: {
+     *       scopes: { scope1: {...}, scope2: {...} }
+     *     }
+     *   }
+     * @param wholeObj
+     * @param path
+     */
+    function expandOtherFieldPart(wholeObj, path = []) {
+      const part = _.isEmpty(path) ? wholeObj : _.get(wholeObj, path);
+      processOtherValue(wholeObj, part, path);
+
+      _.each(part, (val, key) => {
+        if (_.isPlainObject(val)) {
+          expandOtherFieldPart(wholeObj, _.concat(path, key));
+        }
+      });
+
+      function processOtherValue(_wholeObj, _part, _path) {
+        if (!_.has(_part, 'other')) {
+          return;
+        }
+        const otherValue = part.other;
+        if (_.isPlainObject(otherValue)) {
+          delete _part.other;
+          _.merge(_part, otherValue);
+          log.info(`Merged other object for path '${_path.join('.')}'`);
+          return;
+        }
+
+        let parsedValue = otherValue;
+
+        if (_.isString(otherValue)) {
+          const numberVal = +otherValue;
+          const isStringParsedNumber = !Number.isNaN(numberVal);
+          if (isStringParsedNumber) {
+            parsedValue = numberVal;
+          }
+        }
+
+        _.set(_wholeObj, _path, parsedValue);
+        log.info(`Set other value (${parsedValue}) for path '${_path.join('.')}'`);
+      }
     }
   };
 

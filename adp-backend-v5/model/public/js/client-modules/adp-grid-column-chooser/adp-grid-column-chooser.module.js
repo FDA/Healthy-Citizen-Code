@@ -83,6 +83,8 @@
 
         if (action && menuActions[action]) {
           menuActions[action](e.itemData);
+
+          AdpClientCommonHelper.repaintToolbar(gridComponent);
         }
 
         return true;

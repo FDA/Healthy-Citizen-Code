@@ -55,16 +55,19 @@ describe('Cell Editors: Number types', () => {
 
 function generateTestRecord() {
   let record = {
-    number: `${randomInt32()}.${randomInt32Positive()}`.replace(/0+$/, ''),
-    double: `${randomInt32()}.${randomInt32Positive()}`.replace(/0+$/, ''),
+    number: `${randomInt32()}.${randomInt32Positive()}`,
+    double: `${randomInt32()}.${randomInt32Positive()}`,
     int32: `${randomInt32()}`,
     int64: `${randomInt64()}`,
-    decimal128: `${randomInt64()}.${randomInt64Positive()}`.replace(/0+$/, ''),
+    decimal128: `${randomInt64()}.${randomInt64Positive()}`,
   };
 
   return Object.entries(record).reduce((acc, [key, val]) => {
     const MAX_LENGTH_OF_DX_NUMBER = 15;
     acc[key] = val.slice(0, MAX_LENGTH_OF_DX_NUMBER);
+    if (['number', 'double', 'decimal128'].includes(key)) {
+      acc[key] = acc[key].replace(/0+$/, '');
+    }
     return acc;
   }, {});
 }

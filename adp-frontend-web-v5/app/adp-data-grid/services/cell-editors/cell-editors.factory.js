@@ -19,7 +19,9 @@
     StringMultipleEditor,
     IntEditor,
     DecimalEditor,
-    CurrencyEditor
+    CurrencyEditor,
+    NumberMultipleEditor,
+    DecimalMultipleEditor
   ) {
     var editorsByType = {
       String: StringEditor,
@@ -29,7 +31,6 @@
       Number: NumberEditor,
       Double: NumberEditor,
       Text: TextEditor,
-      'String[]': StringMultipleEditor,
       Boolean: BooleanEditor,
 
       List: ListEditorFactory.single,
@@ -49,11 +50,18 @@
       Int64: IntEditor,
       Decimal128: DecimalEditor,
       Currency: CurrencyEditor,
+
+      'String[]': StringMultipleEditor,
+      'Decimal128[]': DecimalMultipleEditor,
+      'Number[]': NumberMultipleEditor,
+      'Double[]': NumberMultipleEditor,
+      'Int32[]': NumberMultipleEditor,
+      'Int64[]': NumberMultipleEditor,
     };
 
     return function (options) {
-      var field = _.get(options, 'args.modelSchema')
-      var type = _.get(options, 'args.modelSchema.type');
+      var field = _.get(options, 'args.fieldSchema')
+      var type = _.get(options, 'args.fieldSchema.type');
 
       var newEditorComponent;
       if (field.list) {

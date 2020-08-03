@@ -22,7 +22,7 @@
 
     function getOptions(init) {
       var INPUT_TIMEOUT = 300;
-      var type = init.args.modelSchema.type;
+      var type = init.args.fieldSchema.type;
       var opts = {
         mode: getTextMode(type),
         onValueChanged: _.debounce(init.onValueChanged, INPUT_TIMEOUT),

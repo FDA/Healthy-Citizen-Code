@@ -14,18 +14,33 @@ var elementHelper = require('bpmn-js-properties-panel/lib//helper/ElementHelper'
 var relaxedJson = require('relaxed-json');
 
 const servicePropsCache = {};
-let prevServiceSelected = '';
-const SERVICE_TASK = 'serviceTask';
+const SERVICE_TASK_PROPERTY = 'implementation';
+const numberRegExp = /^-?\d+(.\d+)?$/;
+const quotedStringRegExp = /^(["']).*?\1$/;
+const arrayValidator = (val, regExp) => !_.compact(_.map(val.split(','), x=>!x.trim().match(regExp))).length;
 const propTypesConfig = {
   'String': {
-    control: 'textField'
+    control: 'textField',
+  },
+  'Number': {
+    control: 'textField',
+    validate: val => !val || val.trim().match(numberRegExp) ? '' : 'Incorrect number',
+    toJSON: val => parseFloat(val)
   },
   'Number[]': {
     control: 'textField',
-    validate: val => !val || val.match(/^[\d,\s]+$/) ? '' : 'Comma-separated numbers is required'
+    validate: val => !val || arrayValidator (val, numberRegExp) ? '' : 'Comma-separated numbers are expected',
+    toJSON: val => _.map(val.split(','), x=>parseFloat(x)),
+    fromJSON: val=>val && val.join ? val.join(', ') : val
+  },
+  'String[]': {
+    control: 'textField',
+    validate: val => !val || arrayValidator (val, quotedStringRegExp)  ? '' : 'Comma-separated quoted strings are expected',
+    toJSON: val => _.map(val.split(','), x=>x.trim().substring(1, x.trim().length-1)),
+    fromJSON: val=>val && val.join ? val.map(x=>`"${x}"`).join(', ') : val
   },
   'AssociativeArray': {
-    control: 'textBox', //overided by template
+    control: 'textBox', //overrided by template
     validate: val => {
       try {
         JSON.parse(relaxedJson.transform(val));
@@ -42,7 +57,9 @@ const propTypesConfig = {
         <div class="bpp-field-wrapper" >
         <textarea id="${id}" type="text" name="${propName}"></textarea>
         </div></div>`;
-    }
+    },
+    toJSON: val =>{ try{ return JSON.parse(relaxedJson.transform(val))} catch(e){ return val;}},
+    fromJSON: val=>{ try{ return JSON.stringify(val)} catch(e){ return val;}}
   }
 }
 
@@ -118,10 +135,11 @@ function createGeneralTabGroups(element, canvas, bpmnFactory, elementRegistry, t
   }
 
   function serviceTaskControls() {
-    const serviceTask = serviceTaskFromPropVal(bo.get('serviceTask'));
+    const {taskName:currentServiceTaskName, taskParams:currentServiceTaskParams} =
+      serviceTaskFromPropVal(bo.get(SERVICE_TASK_PROPERTY));
     const controls = [];
     const options = _.map(config.additionalData.serviceTaskSchemas, (val, name) => ({
-      value: serviceTaskToPropVal(name),
+      value: name,
       name: name + '()'
     }))
 
@@ -131,51 +149,47 @@ function createGeneralTabGroups(element, canvas, bpmnFactory, elementRegistry, t
       entryFactory.selectBox({
         id: boType + 'Node',
         label: 'Service',
-        modelProperty: SERVICE_TASK,
+        modelProperty: SERVICE_TASK_PROPERTY,
         selectOptions: options,
-        get: element => {
-          prevServiceSelected = bo.get(SERVICE_TASK);
-          return {[SERVICE_TASK]: prevServiceSelected};
+        get: () => {
+          const {taskName} = serviceTaskFromPropVal(bo.get(SERVICE_TASK_PROPERTY));
+
+          return {[SERVICE_TASK_PROPERTY]: taskName};
         },
         set: (element, values) => {
           const props = {};
-          const prev = serviceTaskFromPropVal(prevServiceSelected);
 
-          props[SERVICE_TASK] = values[SERVICE_TASK];
-
-          if (prev) {
-            _.each(getServiceTaskFields(prev),
-              (opt, name) => props[getAdpProp(name)] = undefined)
-          }
+          props[SERVICE_TASK_PROPERTY] = serviceTaskToPropVal(values[SERVICE_TASK_PROPERTY], {});
 
           return cmdHelper.updateProperties(element, props);
         }
-      }))
+      })
+    );
 
-    _.each(getServiceTaskFields(serviceTask),
+    _.each(getServiceTaskFields(currentServiceTaskName),
       (opt, name) => {
-        const propName = getAdpProp(name);
+        const propName = name;
         const propConfig = propTypesConfig[opt.type];
         const params = {
           id: boType + '_prop_' + name,
           label: opt.description,
           modelProperty: propName,
-          get: element => {
-            let val = bo.get(propName);
+          get: () => {
+            let val = currentServiceTaskParams[propName];
             if (!val) {
               val = servicePropsCache[propName];
-              bo.set(propName, val);
             }
             servicePropsCache[propName] = val;
             return {[propName]: servicePropsCache[propName]}
           },
           set: (elem, val) => {
-            servicePropsCache[propName] = val[propName];
-            return cmdHelper.updateProperties(elem, val)
+            currentServiceTaskParams[propName] = servicePropsCache[propName] = val[propName];
+
+            return cmdHelper.updateProperties(elem, {[SERVICE_TASK_PROPERTY]: serviceTaskToPropVal(currentServiceTaskName, currentServiceTaskParams)})
           },
           validate: (element, values) => {
-            var validationResult = {};
-            var res = propConfig.validate ? propConfig.validate(values[propName]) : null;
+            const validationResult = {};
+            const res = propConfig.validate ? propConfig.validate(values[propName]) : null;
 
             if (res) {
               validationResult[propName] = res;
@@ -210,18 +224,58 @@ function createGeneralTabGroups(element, canvas, bpmnFactory, elementRegistry, t
     ];
   }
 
-  function serviceTaskToPropVal(name) {
-    return '\\${environment.services.' + name + '}';
+  function serviceTaskToPropVal(name, params) {
+    const taskFields = getServiceTaskFields(name);
+
+    const transformedParams = _.mapValues(params, (value, key)=>{
+      if (taskFields[key]) {
+        const propConfig = propTypesConfig[taskFields[key].type];
+
+        if (propConfig.toJSON) {
+          return propConfig.toJSON(value);
+        }
+      }
+       return value;
+    })
+
+    const escape = encodeURIComponent(JSON.stringify(transformedParams));
+
+    return `$\{environment.services.${name}('${escape}')}`;
   }
 
   function serviceTaskFromPropVal(val) {
-    const match = val && val.match(/^\\\${environment\.services\.(\w+)}$/);
+    const match = val && val.match(/^\$\{environment\.services\.(\w+)(.*?)}$/);
 
-    return match ? match[1] : '';
-  }
+    if (!match) {
+      return {};
+    }
 
-  function getAdpProp(name) {
-    return 'adp_' + name;
+    const taskName = match[1];
+    let taskParams = {};
+
+    if (match[2]) {
+      const escaped = match[2].substr(2, match[2].length-4);
+
+      try {
+        taskParams = JSON.parse(decodeURIComponent(escaped));
+      } catch(e) {
+      }
+
+      const taskFields = getServiceTaskFields(taskName);
+
+      taskParams = _.mapValues(taskParams, (value, key)=>{
+        if (taskFields[key]) {
+          const propConfig = propTypesConfig[taskFields[key].type];
+
+          if (propConfig.fromJSON) {
+            return propConfig.fromJSON(value);
+          }
+        }
+        return value;
+      })
+    }
+
+    return {taskName, taskParams};
   }
 
   function getServiceTaskFields(name) {
@@ -243,7 +297,7 @@ function createGeneralTabGroups(element, canvas, bpmnFactory, elementRegistry, t
       label: translate('Condition'),
       html: script.template('adp-sequence-flow', 'Condition'),
 
-      get: function (element, propertyName) {
+      get: function (element) {
         var conditionalEventDefinition = eventDefinitionHelper.getConditionalEventDefinition(element);
 
         var conditionExpression = conditionalEventDefinition

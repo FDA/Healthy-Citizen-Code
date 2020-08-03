@@ -15,7 +15,7 @@ gulp.task('create:config', () => {
 });
 
 gulp.task('load:script', () => {
-  var endpoint = `${APP_CONFIG.apiUrl}/${conf.endpoints.scripts}`;
+  var endpoint = `${APP_CONFIG.apiUrl}/${conf.endpoints.appModelCode}`;
 
   var options = {
     url: endpoint,
@@ -24,7 +24,7 @@ gulp.task('load:script', () => {
   };
 
   return requestPromise(options)
-    .then(createScripts.bind(this, conf.paths.serverScripts));
+    .then(createScripts.bind(this, conf.paths.appModelCodePath));
 });
 
 gulp.task('load:modules', uploadClientModules);
@@ -42,7 +42,7 @@ async function uploadClientModules() {
 
 function requestModulesFiles() {
   const opts = {
-    url: `${APP_CONFIG.apiUrl}/${conf.endpoints.clientModules}`,
+    url: `${APP_CONFIG.resourceUrl}/${conf.endpoints.clientModules}`,
     method: 'GET',
     json: true
   }
@@ -53,7 +53,7 @@ function requestModulesFiles() {
 function uploadFile(serverPath, distPath) {
   if (!APP_CONFIG) throw new Error('Application config not found.');
 
-  var endpoint = `${APP_CONFIG.apiUrl}/${serverPath}`;
+  var endpoint = `${APP_CONFIG.resourceUrl}/${serverPath}`;
 
   var options = {
     url: endpoint,
@@ -83,7 +83,7 @@ function createScripts(fileName, body) {
 gulp.task('load:manifest', () => {
   if (!APP_CONFIG) throw new Error('Application config not found.');
 
-  var endpoint = `${APP_CONFIG.apiUrl}/public/manifest.json`;
+  var endpoint = `${APP_CONFIG.resourceUrl}/public/manifest.json`;
 
   var options = {
     url: endpoint,

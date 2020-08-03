@@ -8,55 +8,25 @@
   /** @ngInject */
   function ListTypesCellRenderer(
     GRID_FORMAT,
-    AdpListsService,
-    FormattersHelper
+    AdpListsService
   ) {
-    function single(args) {
-      return cellRenderer(args, 'single');
-    }
-
-    function multiple(args) {
-      return cellRenderer(args, 'multiple');
-    }
-
-    function cellRenderer(args, type) {
-      var value = args.data;
-      if (_.isNil(value) || _.isEmpty(value)) {
+    return function cellRenderer(args) {
+      if (_.isNil(args.data) || _.isEmpty(args.data)) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
-      if (FormattersHelper.asText(args)) {
-        return _.isArray(value) ? value.join(',') : value;
-      }
-
-      var content = $('<div>');
-      getList(args)
-        .then(function (list) {
-          var contentGetter = getContentGetterFn(type);
-          var labels = contentGetter(list, value);
-          content.append(labels);
-        });
-
-      return content;
+      var list = getList(args);
+      return args.fieldSchema.type.includes('[]') ?
+        getMultipleValues(list, args.data) :
+        getSingleValueForList(list, args.data);
     }
 
     function getList(args) {
-      if (args.modelSchema.dynamicList) {
-        return AdpListsService.requestDynamicList(args)
-          .catch(function (error) {
-            console.error('Error while try fetch List with: ', args, error);
-            return {};
-          });
+      if (args.fieldSchema.dynamicList) {
+        return AdpListsService.getListFromCache(args.modelSchema.schemaName, args.schemaPath);
       } else {
-        return Promise.resolve(args.modelSchema.list);
+        return args.fieldSchema.list;
       }
-    }
-
-    function getContentGetterFn(type) {
-      return ({
-        single: getSingleValueForList,
-        multiple: getMultipleValues,
-      })[type];
     }
 
     function getSingleValueForList(list, value) {
@@ -66,11 +36,6 @@
 
     function getMultipleValues(list, value) {
       return _.map(value, _.partial(getSingleValueForList, list)).join(', ')
-    }
-
-    return {
-      single: single,
-      multiple: multiple,
     }
   }
 })();

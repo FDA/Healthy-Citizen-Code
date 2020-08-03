@@ -22,18 +22,16 @@
       '            <i ng-if="!vm.savedList || !vm.savedList.length">No saved states for this grid.</i>' +
       '        </div>' +
       '    </fieldset>' +
-      '' +
-      '    <footer>' +
-      '        <button' +
-      '                class="btn btn-default float-left"' +
-      '                type="button"' +
-      '                ng-click="vm.save()">' +
-      '            Save Current Grid View' +
-      '        <button' +
-      '                class="btn btn-primary"' +
+      '    <footer class="adp-action-b-container">' +
+      '        <button class="adp-action-b-secondary"' +
       '                type="button"' +
       '                ng-click="vm.exit()">' +
       '            Close' +
+      '        </button>' +
+      '        <button class="adp-action-b-primary"' +
+      '                type="button"' +
+      '                ng-click="vm.save()">' +
+      '            Save Current Grid View' +
       '        </button>' +
       '    </footer>' +
       '</form>',

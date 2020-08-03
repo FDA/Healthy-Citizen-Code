@@ -50,6 +50,7 @@
       if (!filterRenderer) {
         return;
       }
+
       return createFilter(filterRenderer, options);
     }
 
@@ -66,7 +67,7 @@
         return options.args.data;
       }
 
-      return filterComponent.formatValue(options)
+      return filterComponent.formatValue(options);
     }
 
     function createFilter(filterByType, options) {
@@ -80,7 +81,7 @@
     }
 
     var shouldImplement = ['create', 'getElement', 'reset'];
-    function assertFilterHasRequiredFields(filterComponent) {
+    function assertFilterHasRequiredFields(filterComponent, options) {
       if (hasNotImplementedMethods(filterComponent)) {
         throw new Error(assertionMessage(options.args.modelSchema.fieldName));
       }
@@ -117,7 +118,7 @@
     }
 
     function resolveFilterRenderer(options) {
-      var field = options.args.modelSchema;
+      var field = options.args.fieldSchema;
       var filterRenderer = GridFilterHelpers.getFilterRenderer(field);
 
       if (!filterRenderer) {

@@ -1,4 +1,4 @@
-const RJSON = require('relaxed-json');
+const JSON5 = require('json5');
 const Promise = require('bluebird');
 const _ = require('lodash');
 const fs = require('fs-extra');
@@ -6,8 +6,10 @@ const ejs = require('ejs');
 const { globSyncAsciiOrder } = require('./glob');
 const { CallStackError } = require('../errors');
 const { mergeFiles } = require('../public-files-controller');
-
 const { getTransformedInterfaceAppPermissions } = require('../access/transform-permissions');
+
+// GraphQL pattern for keys is /^[_a-zA-Z][_a-zA-Z0-9]*$/. Spec discussion - https://github.com/graphql/graphql-spec/issues/256
+const schemaKeyRegExp = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
 // We need to distinguish backend and frontend delimiters used in app schema to leave frontend ejs code as is and let frontend evaluate it
 const EJS_BACKEND_APP_SCHEMA_DELIMETER = '@';
@@ -70,9 +72,9 @@ async function updateMacros({ macrosSchemeChange, macros, macrosDirPaths, functi
 
 function parseModel(modelContent) {
   try {
-    return RJSON.parse(modelContent);
+    return { part: JSON5.parse(modelContent) };
   } catch (e) {
-    return null;
+    return { error: e };
   }
 }
 
@@ -106,7 +108,7 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
     return Promise.mapSeries(jsonFiles, async (jsonFile) => {
       try {
         const modelContent = await fs.readFile(jsonFile, 'utf8');
-        const modelPart = parseModel(modelContent);
+        const { part: modelPart } = parseModel(modelContent);
         const hasMacros = _.get(modelPart, 'macros');
         if (hasMacros) {
           // merge macros to model to build macros specification (it must not include macros) before processing other model parts
@@ -127,11 +129,14 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
         const ejsOptions = { async: true, context: macrosFunctionContext, delimiter: EJS_BACKEND_APP_SCHEMA_DELIMETER };
         const expandedModel = await ejs.render(modelContent, {}, ejsOptions);
 
-        const expandedModelPart = parseModel(expandedModel);
+        const { part: expandedModelPart, error: modelError } = parseModel(expandedModel);
         if (expandedModelPart) {
           return mergePartToModel(model, expandedModelPart);
         }
-        errors.push(`Invalid model is expanded with macros for file "${jsonFile}". Invalid model: ${expandedModel}`);
+
+        const { lineNumber, columnNumber } = modelError;
+        const errorDescription = getErrorDescription(expandedModel, lineNumber, columnNumber);
+        errors.push(`Invalid model is expanded with macros for file "${jsonFile}". ${modelError}\n${errorDescription}`);
       } catch (e) {
         if (e instanceof CallStackError) {
           return errors.push(`Unable to parse model for file "${jsonFile}". ${e.message}`);
@@ -146,6 +151,41 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
   }
 
   return model;
+
+  function getErrorDescription(source, lineNumber, columnNumber) {
+    const errorRow = getStringRow(source, lineNumber);
+    if (!errorRow) {
+      return '';
+    }
+    const errorRowWithNum = `${lineNumber} | ${errorRow}`;
+    const rowNumPrefixWhitespaces = errorRowWithNum.length - errorRow.length;
+    const whitespaces = ' '.repeat(rowNumPrefixWhitespaces + columnNumber - 1);
+    const caretRow = `${whitespaces}^`;
+    return [errorRowWithNum, caretRow].join('\n');
+  }
+
+  function getStringRow(source, rowNum) {
+    let currentRow = 1;
+    if (currentRow === rowNum) {
+      return getRow(source, 0);
+    }
+
+    for (let offset = 0; offset < source.length; offset++) {
+      const char = source[offset];
+      if (char === '\n') {
+        currentRow++;
+        if (currentRow === rowNum) {
+          return getRow(source, offset);
+        }
+      }
+    }
+
+    function getRow(_source, _offset) {
+      const rowStartOffset = _offset + 1;
+      const rowEndOffset = _source.indexOf('\n', rowStartOffset);
+      return source.substring(rowStartOffset, rowEndOffset);
+    }
+  }
 
   function transformPermissionsInPart(part, _errors) {
     const appPermissions = _.get(part, 'interface.app.permissions');
@@ -165,4 +205,5 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
 
 module.exports = {
   combineModels,
+  schemaKeyRegExp,
 };

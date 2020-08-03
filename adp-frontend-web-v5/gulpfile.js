@@ -29,6 +29,7 @@ gulp.task('default', gulp.series('serve'));
 gulp.task('inject:main', gulp.series('sw:replace', 'clientModules:replace', 'inject', 'html:replace'));
 gulp.task('load:resources', gulp.parallel(
   'create:config',
+  'prepare:polyfills',
   'load:script',
   'load:modules',
   'load:css',
@@ -45,15 +46,22 @@ gulp.task(
   )
 );
 
-gulp.task('other:serve', gulp.parallel(
-  'cp:assets:serve',
-  'cp:json:serve',
-  'cp:img:serve',
-  'cp:fonts:serve',
-  'cp:ckeditor:serve',
-  'cp:aceEditor:serve',
-  'editorWorker'
-));
+gulp.task('other:serve',
+  gulp.series(
+    gulp.parallel(
+      'cp:assets:serve',
+      'cp:json:serve',
+      'cp:img:serve',
+      'cp:fonts:serve',
+      'cp:ckeditor:serve',
+      'cp:aceEditor:serve',
+    ),
+    gulp.parallel(
+      'pythonEditorWorker',
+      'relaxedJsonEditorWorker'
+    )
+  )
+);
 
 gulp.task('other:dist', gulp.parallel(
   'cp:assets:dist',

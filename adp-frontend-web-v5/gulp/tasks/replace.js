@@ -41,7 +41,7 @@ gulp.task('sw:replace', function () {
 
 gulp.task('clientModules:replace', async () => {
   const opts = {
-    url: `${APP_CONFIG.apiUrl}/${conf.endpoints.clientModules}`,
+    url: `${APP_CONFIG.resourceUrl}/${conf.endpoints.clientModules}`,
     method: 'GET',
     json: true
   }
@@ -80,7 +80,7 @@ function replaceCb(data, match, path) {
   let value = _.get(data, path, null);
 
   if (path.indexOf('favicon') > -1) {
-    value = APP_CONFIG.apiUrl + value;
+    value = APP_CONFIG.resourceUrl + value;
   } else if (path === 'interface.app.offlineModeSupport') {
     value = value === null ? false : value;
   }

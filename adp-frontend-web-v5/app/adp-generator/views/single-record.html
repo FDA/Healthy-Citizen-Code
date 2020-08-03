@@ -7,46 +7,34 @@
   ng-if="!vm.loading">
 
   <adp-section-container>
-    <adp-page-title>{{vm.schema.fullName}}</adp-page-title>
+    <adp-page-title>{{vm.args.modelSchema.fullName}}</adp-page-title>
 
-    <adp-page-description schema="vm.schema"></adp-page-description>
+    <adp-page-description schema="vm.args.modelSchema"></adp-page-description>
 
     <button
       type="button"
-      ng-if="vm.showButton(vm.ACTIONS.CREATE)"
+      ng-if="!vm.editing && vm.showButton(vm.ACTIONS.CREATE)"
       ng-click="vm.enterEditMode()"
-      class="btn btn-primary page-action">
+      class="btn btn-primary page-action"
+    >
       Create
     </button>
 
     <button
       type="button"
-      ng-if="vm.showButton(vm.ACTIONS.UPDATE)"
+      ng-if="!vm.editing && vm.showButton(vm.ACTIONS.UPDATE)"
       ng-click="vm.enterEditMode()"
       class="btn btn-primary page-action">
       Edit
     </button>
-
-    <button
-      ng-click="vm.cancelEditMode()"
-      ng-if="vm.editing"
-      type="button"
-      class="btn btn-default page-action">
-      Cancel
-    </button>
   </adp-section-container>
 
   <adp-section-container
-     ng-if="vm.isEmpty && !vm.editing">
-    <adp-section-title>No data to show.</adp-section-title>
-  </adp-section-container>
-
-  <adp-section-container
-    ng-if="!vm.isEmpty && !vm.editing">
+    ng-if="!vm.editing">
 
     <adp-record-details
-      schema="vm.schema"
-      data="vm.pageData">
+      schema="vm.args.modelSchema"
+      data="vm.args.row">
     </adp-record-details>
 
   </adp-section-container>
@@ -54,35 +42,8 @@
   <adp-form
     class="single-record-form"
     ng-if="vm.editing"
-    adp-submit="vm.submit"
-    adp-data="vm.editData"
-    adp-form-params="vm.formParams"
-    adp-fields="vm.schema.fields"
-    schema="vm.schema"
-    disable-fullscreen="true"
+    args="::vm.editArgs"
+    form-options="::vm.formOptions"
   >
-    <form-footer>
-      <button
-        ng-if="vm.isEmpty"
-        type="submit"
-        class="btn btn-primary">
-        Add
-      </button>
-
-      <button
-        type="submit"
-        ng-if="!vm.isEmpty"
-        class="btn btn-primary">
-        Update
-      </button>
-
-      <button
-        ng-click="vm.cancelEditMode()"
-        type="button"
-        class="btn btn-default">
-        Cancel
-      </button>
-    </form-footer>
-
   </adp-form>
 </adp-content-container>

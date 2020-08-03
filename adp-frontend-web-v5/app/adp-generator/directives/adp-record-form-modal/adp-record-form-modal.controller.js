@@ -6,28 +6,36 @@
     .controller('AdpRecordModalController', AdpRecordModalController);
 
   /** @ngInject */
-  function AdpRecordModalController() {
+  function AdpRecordModalController(ACTIONS) {
     var vm = this;
 
     vm.$onInit = function () {
-      vm.schema = vm.resolve.options.schema;
-      vm.fields = vm.schema.fields;
-      vm.formParams = vm.resolve.options.formParams;
-      vm.cloneParams = vm.resolve.options.cloneParams;
-      vm.data = vm.resolve.options.data;
-      vm.actionCb = vm.resolve.options.actionCb;
-    };
+      vm.args = vm.resolve.options.args;
 
-    vm.cancel = function () {
-      vm.dismiss({$value: 'cancel'});
-    };
+      vm.formOptions = {
+        schemaActionsStrategy: {
+          onComplete: function () {
+            vm.close();
+          },
+          onCancel: function () {
+            vm.close();
+          },
+        },
+        cloneParams: vm.resolve.options.cloneParams,
+      };
 
-    vm.submit = function (formData) {
-      return vm.actionCb(vm.schema, formData, vm.cloneParams)
-        .then(function () {
-          // must explicitly return
-          return vm.close();
-        });
+      vm.headerText = selectHeaderText(vm.args.action);
+
+      function selectHeaderText(action) {
+        var actionName = action.replace('cell-editing-', '');
+        var texts = {};
+        texts[ACTIONS.CREATE] = 'Add';
+        texts[ACTIONS.CLONE] = 'Add';
+        texts[ACTIONS.CLONE_DATASET] = 'Add';
+        texts[ACTIONS.UPDATE] = 'Update';
+
+        return texts[actionName];
+      }
     };
   }
 })();

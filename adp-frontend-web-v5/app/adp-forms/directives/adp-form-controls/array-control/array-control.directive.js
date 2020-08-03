@@ -30,7 +30,14 @@
         scope.rootForm = AdpFormService.getRootForm(scope.form);
         scope.errorCount = [];
 
-        var formParams = scope.validationParams.formParams;
+        var formParams = {
+          path: scope.validationParams.formParams.path,
+          row: scope.validationParams.formParams.row,
+          modelSchema: scope.validationParams.formParams.modelSchema,
+          action: scope.validationParams.formParams.action,
+          visibilityMap: scope.validationParams.formParams.visibilityMap,
+          requiredMap: scope.validationParams.formParams.requiredMap,
+        };
 
         // DEPRECATED: will be replaced with formParams
         // validationParams fields naming is wrong, use formParams instead

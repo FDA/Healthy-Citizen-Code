@@ -4,16 +4,14 @@
   angular.module('app.adpSyntheticGenerate').component('adpGenModal', {
     template:
       '<adp-form ' +
-      '        adp-submit="vm.onSubmit"' +
-      '        adp-data="vm.data"' +
-      '        adp-form-params="vm.formParams"' +
-      '        adp-fields="vm.fields"' +
-      '        schema="vm.schema"' +
-      '        disable-fullscreen="true">' +
+      '        args="vm.args"' +
+      '        form-options="vm.formOptions">' +
       '    <form-header><h2 class="semi-bold">{{ vm.formParams.title }}</h2></form-header>' +
       '    <form-footer>' +
-      '        <button type="submit" class="btn btn-primary">{{ vm.formParams.btnText }}</button>' +
-      '        <button type="button" ng-click="vm.onCancel()" class="btn btn-default">Cancel</button>' +
+      '      <footer class="adp-action-b-container">' +
+      '        <button type="button" ng-click="vm.onCancel()" class="adp-action-b-secondary">Cancel</button>' +
+      '        <button type="submit" class="adp-action-b-primary">{{ vm.formParams.btnText }}</button>' +
+      '      </footer>' +
       '    </form-footer>' +
       '</adp-form>',
     bindings: {

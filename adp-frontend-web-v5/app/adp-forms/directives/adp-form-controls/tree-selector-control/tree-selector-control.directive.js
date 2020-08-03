@@ -34,7 +34,7 @@
             path: formParams.path,
             formData: formParams.row,
             action: formParams.action,
-            schema: formParams.modelSchema,
+            schema: formParams.fieldSchema,
           });
         }
       }

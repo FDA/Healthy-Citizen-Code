@@ -24,6 +24,8 @@
           _cleanObjectInPlace(args.formData);
         },
         'TreeSelector': _cleanTreeSelector,
+        'LookupObjectID': _cleanLookup,
+        'LookupObjectID[]': _cleanLookup,
         'default': _cleanPrimitiveValue,
       };
 
@@ -225,6 +227,16 @@
 
       var valueToSet = value.length ? value : null;
       args.parentFormData && _.set(args.parentFormData, args.field.fieldName, valueToSet);
+    }
+
+    function _cleanLookup(args) {
+      var value = args.value;
+      _.isArray(value) && value.forEach(cleanSingle);
+      _.isPlainObject(value) && cleanSingle(value)
+
+      function cleanSingle(val) {
+        _.unset(val, 'data');
+      }
     }
 
     function _cleanPrimitiveValue(args) {

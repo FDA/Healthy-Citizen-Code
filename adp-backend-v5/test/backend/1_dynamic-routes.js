@@ -1,7 +1,6 @@
-const request = require('supertest');
 require('should');
 
-const { prepareEnv, getMongoConnection } = require('../test-util');
+const { prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
 describe('V5 Backend Dynamic Routes', function () {
   before(function () {
@@ -19,19 +18,21 @@ describe('V5 Backend Dynamic Routes', function () {
 
   describe('GET /routes', function () {
     it('responds with list of 1st level dynamic routes', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get('/routes')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, res) => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
-          res.body.data.brief.should.containEql('GET /schema/model1s');
-          res.body.data.brief.should.containEql('GET /model1s AUTH');
-          res.body.data.brief.should.containEql('POST /model1s AUTH');
-          res.body.data.brief.should.containEql('GET /model1s/:id AUTH');
-          res.body.data.brief.should.containEql('PUT /model1s/:id AUTH');
-          res.body.data.brief.should.containEql('DELETE /model1s/:id AUTH');
+
+          const { getFullRoute, API_PREFIX } = this.appLib;
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/schema/model1s')}`);
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/model1s')} AUTH`);
+          res.body.data.brief.should.containEql(`POST ${getFullRoute(API_PREFIX, '/model1s')} AUTH`);
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/model1s/:id')} AUTH`);
+          res.body.data.brief.should.containEql(`PUT ${getFullRoute(API_PREFIX, '/model1s/:id')} AUTH`);
+          res.body.data.brief.should.containEql(`DELETE ${getFullRoute(API_PREFIX, '/model1s/:id')} AUTH`);
           done();
         });
     });

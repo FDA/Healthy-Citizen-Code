@@ -4,17 +4,17 @@
 
 <div class="modal-footer">
   <button
-    class="btn btn-primary"
-    type="button"
-    ng-click="vm.confirm()">
-    {{vm.options.okButtonText || 'Yes'}}
+          class="adp-action-b-secondary"
+          type="button"
+          ng-click="vm.cancel()"
+          ng-if="!vm.options.hideCancelButton">
+    Cancel
   </button>
 
   <button
-    class="btn btn-default"
+    class="adp-action-b-primary"
     type="button"
-    ng-click="vm.cancel()"
-    ng-if="!vm.options.hideCancelButton">
-    Cancel
+    ng-click="vm.confirm()">
+    {{vm.options.okButtonText || 'Yes'}}
   </button>
 </div>

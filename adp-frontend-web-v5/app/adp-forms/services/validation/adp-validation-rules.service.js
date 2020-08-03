@@ -97,6 +97,35 @@
       maxImperialWeight: noopValidator,
     };
 
+    function validateNumberRange(value, field, validationRule) {
+      var isMultiple = field.type.includes('[]');
+      var range = selectRange(validationRule);
+
+      return isMultiple ?
+        validateNumberRangeMultiple(value, range) :
+        validateNumberRangeSingle(value, range);
+    }
+
+    function selectRange(validationRule) {
+      return ({
+        int32: { begin: 0x7fffffff, end: -0x80000000 },
+        int64: { begin: Number.MIN_SAFE_INTEGER, end: Number.MAX_SAFE_INTEGER },
+      })[validationRule.validator];
+    }
+
+    function validateNumberRangeSingle(value, range) {
+      var num = Number(value);
+      return _.inRange(num, range.begin, range.end);
+    }
+
+    function validateNumberRangeMultiple(value, range) {
+      var inRangeValues = value.filter(function (v) {
+        return validateNumberRangeSingle(v, range);
+      });
+
+      return value.length === inRangeValues.length;
+    }
+
     return {
       regex: function (value, field, validationRule) {
         var regexPart = validationRule.arguments.regex;
@@ -151,19 +180,8 @@
         return moment(dates.value).isSameOrAfter(dates.comparisionDate);
       },
       imperialHeightRange: noopValidator,
-      int32: function (value) {
-        var INT32_MAX = 0x7fffffff;
-        var INT32_MIN = -0x80000000;
-
-        var num = Number(value);
-        var isOutsideOfRange = num < INT32_MIN || num > INT32_MAX;
-        return isOutsideOfRange ? false : true;
-      },
-      int64: function (value) {
-        var num = Number(value);
-        var isOutsideOfRange = num < Number.MIN_SAFE_INTEGER || num > Number.MAX_SAFE_INTEGER;
-        return isOutsideOfRange ? false : true;
-      },
+      int32: validateNumberRange,
+      int64: validateNumberRange,
       decimal128: noopValidator,
     };
 

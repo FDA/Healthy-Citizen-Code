@@ -169,6 +169,10 @@
       "fullName": "Description",
       "description": "Description of the field meaning. This will be sent to the front-end"
     },
+    "singleRecordName": {
+      "fullName": "Single Record Name",
+      "description": "Singular form of one record in the collection"
+    },
     "permissions": {
       "fullName": "Permissions",
       "description": "Field permissions"

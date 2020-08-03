@@ -6,19 +6,23 @@
       "fields": {
         "name": {
           "type": "String",
-          "description": "The name of the dataset"
+          "description": "The name of the dataset",
+          "width": 200
         },
         "description": {
-          "type": "String",
-          "description": "Detailed description of the dataset"
+          "type": "Text",
+          "description": "Detailed description of the dataset",
+          "width": null
         },
         "scheme": {
           "type": "Mixed",
-          "description": "App-schema-compatible JSON specification of the exported collection."
+          "description": "App-schema-compatible JSON specification of the exported collection.",
+          "showInDatatable": false
         },
         "collectionName": {
           "type": "String",
           "description": "The name of the dataset collection",
+          "showInDatatable": false,
           "unique": true
         }
       },
@@ -44,11 +48,11 @@
           },
           "manageDataset": {
             "fullName": "Manage Dataset",
-            "backgroundColor": "#333300",
-            "borderColor": "#666600",
-            "textColor": "yellow",
+            "backgroundColor": "#2196F3",
+            "borderColor": "#0c7cd5",
+            "textColor": "white",
             "icon": {
-              "link": "link"
+              "link": "table"
             },
             "action": {
               "type": "link",

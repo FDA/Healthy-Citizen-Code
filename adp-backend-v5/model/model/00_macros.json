@@ -2,6 +2,9 @@
   "macros": {
     "allListValues": {
       "inline": "{\n  \"userScope\": {\n    \"permissions\": {\n      \"view\": \"accessAsUser\"\n    },\n    \"where\": \"return true\",\n    \"return\": \"return $list\"\n  }\n}"
+    },
+    "tagsLookup": {
+      "inline": "{\n            \"table\": {\n              \"tags\": {\n                \"foreignKey\": \"_id\",\n                \"label\": \"name\",\n                \"sortBy\": {\"name\": 1},\n                \"scopes\": {\n                  \"specialScope\": {\n                    \"permissions\": {\n                      \"view\": \"accessAsUser\"\n                    }\n                  }\n                }\n              }\n            }\n          }"
     }
   }
 }

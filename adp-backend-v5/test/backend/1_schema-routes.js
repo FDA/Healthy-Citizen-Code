@@ -1,4 +1,3 @@
-const request = require('supertest');
 require('should');
 const assert = require('assert');
 const _ = require('lodash');
@@ -9,6 +8,7 @@ const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
+  apiRequest,
 } = require('../test-util');
 
 describe('V5 Backend Schema Routes', function () {
@@ -104,6 +104,7 @@ describe('V5 Backend Schema Routes', function () {
                   allowGrouping: false,
                 },
                 allowSearch: false,
+                maxDatagridCellHeight: 200,
               },
               responsivePriority: 100,
               showInDatatable: true,
@@ -195,6 +196,7 @@ describe('V5 Backend Schema Routes', function () {
                   allowGrouping: false,
                 },
                 allowSearch: false,
+                maxDatagridCellHeight: 200,
               },
               responsivePriority: 100,
               showInDatatable: true,
@@ -216,6 +218,7 @@ describe('V5 Backend Schema Routes', function () {
               allowGrouping: false,
             },
             allowSearch: false,
+            maxDatagridCellHeight: 200,
           },
           responsivePriority: 100,
           showInDatatable: true,
@@ -588,6 +591,57 @@ describe('V5 Backend Schema Routes', function () {
               link: 'AdpFilterBuilder',
             },
           },
+          submit: {
+            fullName: {
+              code: "({ create: 'Add', clone: 'Add', cloneDataSet: 'Add', update: 'Update' })[this.action]",
+              type: 'function',
+            },
+            position: 'form.bottom',
+            description: 'Submit form data',
+            action: {
+              type: 'module',
+              link: 'AdpFormActions',
+              method: 'submit',
+            },
+            actionOrder: 3,
+            htmlAttributes: {
+              type: 'submit',
+              className: 'adp-action-b-primary',
+            },
+            showInTable: false,
+          },
+          apply: {
+            fullName: 'Apply',
+            position: 'form.bottom',
+            description: 'Apply',
+            action: {
+              type: 'module',
+              link: 'AdpFormActions',
+              method: 'apply',
+            },
+            actionOrder: 2,
+            htmlAttributes: {
+              type: 'submit',
+              className: 'adp-action-b-tertiary',
+            },
+            showInTable: false,
+          },
+          cancelSubmit: {
+            fullName: 'Cancel',
+            position: 'form.bottom',
+            description: 'Cancel record edit',
+            action: {
+              type: 'module',
+              link: 'AdpFormActions',
+              method: 'cancel',
+            },
+            showInTable: false,
+            actionOrder: 1,
+            htmlAttributes: {
+              className: 'adp-action-b-secondary',
+            },
+          },
+          listFilter: {},
         },
       },
       parameters: {
@@ -684,7 +738,7 @@ describe('V5 Backend Schema Routes', function () {
     const additionalData = { fields: this.batchNumberField };
     this.expectedData = _.merge({}, this.expected, additionalData);
     const token = await loginWithUser(this.appLib, admin);
-    const res = await request(this.appLib.app)
+    const res = await apiRequest(this.appLib.app)
       .get('/schema/model1s')
       .set('Accept', 'application/json')
       .set('Authorization', `JWT ${token}`)
@@ -706,7 +760,7 @@ describe('V5 Backend Schema Routes', function () {
     const additionalData = { fields: this.batchNumberField };
     this.expectedData = _.merge({}, this.expected, additionalData);
     const token = await loginWithUser(this.appLib, admin);
-    const res = await request(this.appLib.app)
+    const res = await apiRequest(this.appLib.app)
       .get('/schema/model1s')
       .set('Accept', 'application/json')
       .set('Authorization', `JWT ${token}`)

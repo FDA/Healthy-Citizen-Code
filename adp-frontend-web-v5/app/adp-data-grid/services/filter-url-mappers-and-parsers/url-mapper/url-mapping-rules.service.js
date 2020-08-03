@@ -43,6 +43,10 @@
 
     function listMapper(filter) {
       var list = filter.field.list;
+      // TEMP: until solution to set async values found
+      if (_.isNil(list)) {
+        return null;
+      }
 
       return _.map(filter.value, function (listKey) {
         var listLabel = list[listKey];

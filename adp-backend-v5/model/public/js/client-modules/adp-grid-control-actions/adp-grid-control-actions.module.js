@@ -23,10 +23,12 @@
     function createAction() {
       return function (toolbarWidgetRegister) {
         var actionOptions = this.actionOptions;
+        var isDisabled = _.get(actionOptions, 'params.disabled', false);
 
         return toolbarWidgetRegister(function (gridComponent) {
           return {
             widget: 'dxMenu',
+            disabled: isDisabled,
             options: {
               cssClass: 'create-grid-control',
               dataSource: createDataSourceForCreateActionMenu(actionOptions),
@@ -40,10 +42,14 @@
                   return;
                 }
                 var schema = getSchemaByName(schemaName);
+                var createDataGetter = _.get(actionOptions, 'params.createDataGetter');
+                var createData = _.isFunction(createDataGetter)? createDataGetter(schemaName) : {}
 
-                ActionsHandlers.create(schema).then(function () {
+                ActionsHandlers.create(schema, createData).then(function () {
                   gridComponent.refresh();
                 });
+
+                AdpClientCommonHelper.repaintToolbar(gridComponent);
               },
             },
           };
@@ -55,10 +61,12 @@
       var className = 'btn page-action btn-primary';
       var tableNames = _.keys(actionOptions.table);
       var buttonText = tableNames.length === 1 ? 'Create "' + _.startCase(tableNames[0]) + '"' : 'Create record';
+      var isDisabled = _.get(actionOptions, 'params.disabled', false);
 
       var dataSource = [
         {
           template: '<button type="button" class="' + className + '">' + buttonText + '</button>',
+          disabled: isDisabled,
         },
       ];
 

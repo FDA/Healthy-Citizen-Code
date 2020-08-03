@@ -6,20 +6,8 @@
     .factory('AdpFormService', AdpFormService);
 
   function AdpFormService() {
-    function getGroupingType(formParams) {
-      var types = _getTypeMap();
-      var type = _.get(formParams, 'groupingType');
-      type = type && type.toLowerCase();
-
-      return types[type];
-    }
-
-    function _getTypeMap() {
-      return {
-        'accordion': 'accordion',
-        'wizard': 'wizard',
-        'grouping': 'grouping'
-      }
+    function getGroupingType(args) {
+      return _.get(args, 'modelSchema.parameters.groupingType', '').toLowerCase();
     }
 
     function _forEachAngularFormField(form, callback) {

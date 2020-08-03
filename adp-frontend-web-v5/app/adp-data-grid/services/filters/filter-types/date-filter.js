@@ -34,7 +34,7 @@
     }
 
     function getOptions(init) {
-      var fieldType = init.args.modelSchema.type;
+      var fieldType = init.args.fieldSchema.type;
       var momentFormat = AdpValidationUtils.getDateFormat(fieldType);
       var INPUT_TIMEOUT = 1500; //Have to be long enough to let user enter full date/time w/o onValueChanged called
 

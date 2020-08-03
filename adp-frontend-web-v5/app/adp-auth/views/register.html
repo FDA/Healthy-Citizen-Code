@@ -1,10 +1,7 @@
 <adp-form
   class="auth-form"
-  enable-selector="false"
-  adp-submit="vm.submit"
-  adp-fields="vm.fields"
-  schema="vm.schema"
-  disable-fullscreen="true"
+  args="::vm.args"
+  form-options="::vm.formOptions"
 >
 
   <form-header>
@@ -12,29 +9,30 @@
   </form-header>
 
   <form-footer>
-    <div class="text-center">
-      <button
-        type="submit"
-        class="btn btn-primary">
-        {{vm.authParams.signUpText}}
-      </button>
-    </div>
+    <footer>
+      <div class="text-center">
+        <button
+          type="submit"
+          class="btn btn-primary">
+          {{vm.authParams.signUpText}}
+        </button>
+      </div>
 
-    <div
-      ng-if="vm.showLogin"
-      class="separator text-center">
-      <span class="separator-text">OR</span>
-    </div>
+      <div
+        ng-if="vm.showLogin"
+        class="separator text-center">
+        <span class="separator-text">OR</span>
+      </div>
 
-    <div
-      ng-if="vm.showLogin"
-      class="text-center">
-      Already registered?
+      <div
+        ng-if="vm.showLogin"
+        class="text-center">
+        Already registered?
 
-      <a ui-sref="auth.login">
-        {{vm.authParams.signInText}}
-      </a>
-    </div>
+        <a ui-sref="auth.login">
+          {{vm.authParams.signInText}}
+        </a>
+      </div>
+    </footer>
   </form-footer>
-
 </adp-form>

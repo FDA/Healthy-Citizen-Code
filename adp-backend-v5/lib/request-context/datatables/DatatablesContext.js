@@ -1,13 +1,14 @@
 const _ = require('lodash');
 const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
-const { getUrlParts, MONGO, updateSearchConditions } = require('../../util/util');
+const { getUrlParts, getUrlWithoutPrefix, MONGO, updateSearchConditions } = require('../../util/util');
 const BaseContext = require('../BaseContext');
 const { getLimit } = require('../util');
 const ValidationError = require('../../errors/validation-error');
 
 module.exports = class DatatablesContext extends BaseContext {
   init() {
+    this.urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.API_PREFIX));
     this.modelName = this._getModelName();
     if (!this.modelName) {
       throw new ValidationError('No schema name');
@@ -16,7 +17,6 @@ module.exports = class DatatablesContext extends BaseContext {
     if (!this.model) {
       throw new ValidationError('Invalid model name');
     }
-    this.urlParts = getUrlParts(this.req);
     this.appModel = this._getAppModel();
     this.mongoParams = this._getMongoParams();
     return this;
@@ -53,7 +53,7 @@ module.exports = class DatatablesContext extends BaseContext {
         shownColumns = _.map(columns, 'data');
       }
       if (Array.isArray(order)) {
-        _.forEach(order, val => {
+        _.forEach(order, (val) => {
           if (val.column) {
             sort[shownColumns[val.column]] = val.dir === 'asc' ? 1 : -1;
           } else {
@@ -95,8 +95,7 @@ module.exports = class DatatablesContext extends BaseContext {
   }
 
   _getModelName() {
-    const urlParts = getUrlParts(this.req);
-    return _.get(urlParts, 0);
+    return _.get(this.urlParts, 0);
   }
 
   _getAppModel() {

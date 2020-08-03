@@ -48,7 +48,7 @@ export default class GraphViewWidget {
     this.fetchData()
       .catch((err) => {
         console.error(err);
-        showErrorToUser(ResponseError.ADVERSE_EVENTS_EMPTY);
+        showErrorToUser(node, ResponseError.ADVERSE_EVENTS_EMPTY);
       });
   }
 

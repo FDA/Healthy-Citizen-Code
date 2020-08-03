@@ -44,6 +44,7 @@
         } else {
           AdpNotificationService.notifyError('There is no records to export');
         }
+        AdpClientCommonHelper.repaintToolbar(gridComponent);
       };
     }
 

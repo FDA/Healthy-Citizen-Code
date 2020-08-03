@@ -16,7 +16,7 @@ export default class AdverseEvents {
 
     this.fetchData()
       .catch((err) => {
-        showErrorToUser(ResponseError.ADVERSE_EVENTS_EMPTY);
+        showErrorToUser(node, ResponseError.ADVERSE_EVENTS_EMPTY);
         console.log(err);
       });
   }

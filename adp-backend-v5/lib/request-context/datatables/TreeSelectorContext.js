@@ -1,16 +1,16 @@
 const _ = require('lodash');
-const { getUrlParts } = require('../../util/util');
+const { getUrlParts, getUrlWithoutPrefix } = require('../../util/util');
 const LookupContext = require('./LookupContext');
 const ValidationError = require('../../errors/validation-error');
 
-module.exports = class TreeSelectorContextContext extends LookupContext {
+module.exports = class TreeSelectorContext extends LookupContext {
   constructor(appLib, req) {
     super(appLib, req);
     this.foreignKeyVal = req.query.foreignKeyVal;
   }
 
   _getTableSpec() {
-    const urlParts = getUrlParts(this.req);
+    const urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.API_PREFIX));
     const [treeSelectorId, tableName] = urlParts.slice(-2);
     if (!treeSelectorId) {
       throw new ValidationError(`No TreeSelector ID in the URL: ${this.req.url}`);

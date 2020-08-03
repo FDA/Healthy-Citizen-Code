@@ -31,8 +31,11 @@
       'Decimal128': { directiveType: 'decimal' },
 
       'String[]': { directiveType: 'string-array' },
+      'Number[]': { directiveType: 'number-array' },
+      'Double[]': { directiveType: 'number-array' },
       'Int32[]': { directiveType: 'number-array' },
       'Int64[]': { directiveType: 'number-array' },
+      'Decimal128[]': { directiveType: 'decimal-array' },
       'Recaptcha': { directiveType: 'recaptcha' },
 
       'Boolean': { directiveType: 'boolean' },
@@ -307,20 +310,20 @@
     }
 
     function getHeaderRenderer(args) {
-      var renderName = args.modelSchema.headerRender;
+      var renderName = args.fieldSchema.headerRender;
       var renderFn = appModelHelpers.HeaderRenderers[renderName];
 
       var oldParamsForCompatibility = {
         fieldData: args.data,
         formData: args.row,
-        fieldSchema: args.modelSchema,
+        fieldSchema: args.fieldSchema,
         index: args.index,
       };
 
       if (renderFn) {
         return renderFn.call(args, oldParamsForCompatibility);
       } else {
-        return args.modelSchema.fullName;
+        return args.fieldSchema.fullName;
       }
     }
 

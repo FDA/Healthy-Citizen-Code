@@ -25,12 +25,14 @@
       return {
         data: _.get(options.formData, options.path, null),
         row: options.formData,
-        modelSchema: _.get(options.schema.fields, schemaPath, options.schema),
-        appSchema: options.schema,
+        fieldSchema: _.get(options.schema.fields, schemaPath, options.schema),
+        modelSchema: options.schema,
+        appSchema: window.adpAppStore.appModel(),
         action: options.action,
 
         parentData: _getParentData(options.path, options.formData),
         path: options.path,
+        schemaPath: schemaPath,
         index: _getItemIndex(options.path),
         indexes: _getItemIndexes(options.path),
       };

@@ -13,7 +13,7 @@
 
         create: function (init) {
           this.options = init;
-          this.units = ImperialUnitsEditorsHelpers.getUnits(this.options.args.modelSchema);
+          this.units = ImperialUnitsEditorsHelpers.getUnits(this.options.args.fieldSchema);
 
           this.init();
         },
@@ -50,7 +50,7 @@
               self.options.onValueChanged({ value: self.getValue() });
             },
             value: value,
-            attrId: 'cell_list_id_' + this.options.args.modelSchema.fieldName + '_' + position,
+            attrId: 'cell_list_id_' + this.options.args.fieldSchema.fieldName + '_' + position,
           });
         },
 

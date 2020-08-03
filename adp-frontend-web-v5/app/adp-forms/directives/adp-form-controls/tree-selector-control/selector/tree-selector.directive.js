@@ -26,7 +26,7 @@
       link: function (scope, element) {
         var childScope;
         (function init() {
-          scope.rootData = scope.formData[scope.args.modelSchema.fieldName];
+          scope.rootData = scope.formData[scope.args.fieldSchema.fieldName];
           scope.currentData = scope.rootData[scope.indexOfLevel];
 
           if (_.isNil(scope.currentData)) {
@@ -85,7 +85,7 @@
             wrapItemText: true
           };
 
-          scope.config = AdpFieldsService.configFromParameters(scope.args.modelSchema, defaults);
+          scope.config = AdpFieldsService.configFromParameters(scope.args.fieldSchema, defaults);
         }
 
         function onChange(e) {

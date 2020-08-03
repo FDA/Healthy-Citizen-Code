@@ -15,7 +15,7 @@ function parseDecimal(value, fieldPath) {
 
 function decimal128() {
   const { fieldPath } = this.data;
-  const type = _.get(this.modelSchema, `${this.path}.type`);
+  const type = _.get(this.fieldSchema, 'type');
   if (this.data.value !== null) {
     const decimals = _.castArray(this.data.value).map((v) => parseDecimal(v, fieldPath));
     const isMultipleType = type.endsWith('[]');
@@ -31,7 +31,7 @@ function decimal128ForSift() {
     throw new Error(`Only '=' operation is supported`);
   }
 
-  const type = _.get(this.modelSchema, `${this.path}.type`);
+  const type = _.get(this.fieldSchema, 'type');
   const isMultipleType = type.endsWith('[]');
   if (this.data.value === null) {
     if (isMultipleType) {

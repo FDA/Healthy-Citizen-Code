@@ -32,7 +32,7 @@ export default class Preferences {
       })
       .catch((err) => {
         console.log(err);
-        showErrorToUser(ResponseError.EMPTY);
+        showErrorToUser(node, ResponseError.EMPTY);
       });
   }
 

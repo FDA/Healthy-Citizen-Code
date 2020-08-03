@@ -24,7 +24,7 @@
     };
 
     function getOptions(init) {
-      var field = init.args.modelSchema;
+      var field = init.args.fieldSchema;
       var fieldType = field.type;
       var momentFormat = AdpValidationUtils.getDateFormat(fieldType);
 

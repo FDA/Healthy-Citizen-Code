@@ -22,10 +22,7 @@
     //   link: link
     // }
     function formModal(options) {
-      var modalInstance = AdpModalService.createModal(
-        'adpRecordFormModal',
-        _.extend({actionType: 'form'}, options)
-      );
+      var modalInstance = AdpModalService.createModal('adpRecordFormModal', options);
 
       return modalInstance.result;
     }

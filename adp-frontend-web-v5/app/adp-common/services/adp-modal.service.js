@@ -6,13 +6,14 @@
     .factory("AdpModalService", AdpModalService);
 
   /** @ngInject */
-  function AdpModalService($uibModal, AdpFullscreenService) {
+  function AdpModalService($uibModal) {
     return {
       confirm: confirm,
       prompt: prompt,
       readFile: readFile,
       createModal: createModal,
       passwordUpdate: passwordUpdate,
+      alert: alert,
     };
 
     // Available options
@@ -23,7 +24,7 @@
     function confirm(options) {
       return createModal(
         "adpConfirmDialogModal",
-        _.extend({actionType: "confirm"}, options)
+        _.extend({ actionType: "confirm" }, options)
       ).result;
     }
 
@@ -66,6 +67,17 @@
 
       return createModal("adpPasswordModal", modalOptions)
         .result;
+    }
+
+    // Available options
+    // options = {
+    //   message: 'string',
+    // }
+    function alert(options) {
+      return createModal(
+        "adpAlertModal",
+        _.extend({ actionType: "alert" }, options)
+      ).result;
     }
 
     function createModal(componentName, options) {

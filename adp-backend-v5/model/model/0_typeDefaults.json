@@ -9,7 +9,8 @@
           "grouping": {
             "allowGrouping": false
           },
-          "allowSearch": false
+          "allowSearch": false,
+          "maxDatagridCellHeight": 200
         }
       },
       "AssociativeArray": {
@@ -19,8 +20,10 @@
           "grouping": {
             "allowGrouping": false
           },
-          "allowSearch": false
-        }
+          "allowSearch": false,
+          "maxDatagridCellHeight": 200
+        },
+        "validate": [{ "validator": "validateAssociativeArrayKeys" }]
       },
       "Object": {
         "width": 200,
@@ -29,7 +32,8 @@
           "grouping": {
             "allowGrouping": false
           },
-          "allowSearch": false
+          "allowSearch": false,
+          "maxDatagridCellHeight": 200
         }
       },
       "Mixed": {
@@ -39,7 +43,8 @@
           "grouping": {
             "allowGrouping": false
           },
-          "allowSearch": false
+          "allowSearch": false,
+          "maxDatagridCellHeight": 200
         }
       },
       "BloodPressure": {
@@ -137,7 +142,7 @@
           "filterType": "include",
           "allowSearch": true
         },
-        "transform": [["null", "stringifyLookupObjectId"]]
+        "transform": [["lookupObjectId", "stringifyLookupObjectId"]]
       },
       "LookupObjectID[]": {
         "autocomplete": "enable",
@@ -151,7 +156,7 @@
           "filterType": "include",
           "allowSearch": true
         },
-        "transform": [["null", "stringifyLookupObjectId"]]
+        "transform": [["lookupObjectId", "stringifyLookupObjectId"]]
       },
       "TreeSelector": {
         "autocomplete": "enable",
@@ -166,9 +171,10 @@
           "grouping": {
             "allowGrouping": false,
             "allowExpandGroup": false
-          }
+          },
+          "maxDatagridCellHeight": 200
         },
-        "transform": [["null", "stringifyTreeSelector"]]
+        "transform": [["objectIdTreeSelector", "stringifyTreeSelector"]]
       },
       "DateTime": {
         "width": 150,
@@ -314,6 +320,36 @@
           }
         ],
         "transform": [["null", "decimalToString"]]
+      },
+      "Number[]": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "Double[]": {
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
       },
       "Int32[]": {
         "autocomplete": "enable",
@@ -733,6 +769,59 @@
                 "type": "module",
                 "link": "AdpFilterBuilder"
               }
+            },
+            "submit" : {
+              "fullName": {
+                "code": "({ create: 'Add', clone: 'Add', cloneDataSet: 'Add', update: 'Update' })[this.action]",
+                "type": "function"
+              },
+              "permissions": "accessAsUser",
+              "position": "form.bottom",
+              "description": "Submit form data",
+              "action": {
+                "type": "module",
+                "link": "AdpFormActions",
+                "method": "submit"
+              },
+              "actionOrder": 3,
+              "htmlAttributes": {
+                "type": "submit",
+                "className": "adp-action-b-primary"
+              },
+              "showInTable": false,
+            },
+            "apply" : {
+              "fullName": "Apply",
+              "permissions": "accessAsUser",
+              "position": "form.bottom",
+              "description": "Apply",
+              "action": {
+                "type": "module",
+                "link": "AdpFormActions",
+                "method": "apply"
+              },
+              "actionOrder": 2,
+              "htmlAttributes": {
+                "type": "submit",
+                "className": "adp-action-b-tertiary"
+              },
+              "showInTable": false
+            },
+            "cancelSubmit": {
+              "fullName": "Cancel",
+              "permissions": "accessAsUser",
+              "position": "form.bottom",
+              "description": "Cancel record edit",
+              "action": {
+                "type": "module",
+                "link": "AdpFormActions",
+                "method": "cancel"
+              },
+              "showInTable": false,
+              "actionOrder": 1,
+              "htmlAttributes": {
+                "className": "adp-action-b-secondary"
+              }
             }
           }
         },
@@ -844,7 +933,7 @@
           {
             "validator": "regex",
             "arguments": {
-              "regex": "^(https?:\\/\\/)?([\\da-z\\.-]+)\\.([a-z\\.]{2,6})([\\/\\w \\.-]*)*\\/?$",
+              "regex": "^(?:http(s)?:\\/\\/)?[\\w.-]+(?:\\.[\\w\\.-]+)+[\\w\\-\\._~:/?#[\\]@!\\$&'\\(\\)\\*\\+,;=.]+$",
               "regexOptions": "i"
             },
             "errorMessages": {
@@ -1271,7 +1360,7 @@
               "where": "return true",
               "return": "return $list"
             }
-          },
+          }
         },
         "parameters": {
           "enableInCellEditing": false,

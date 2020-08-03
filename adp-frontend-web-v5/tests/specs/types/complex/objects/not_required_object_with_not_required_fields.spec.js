@@ -34,7 +34,7 @@ describe('complex objects', () => {
       await clickSubmit(this.page);
       const submitMsg = await getSubmitMsg(this.page);
       // TODO: change 'updated' to 'created' when its fixed
-      expect(submitMsg).toBe('Not Required Object With Not Required Fields successfully added.');
+      expect(submitMsg).toBe('Not Required Object With Not Required Field has been added.');
     });
 
     test(

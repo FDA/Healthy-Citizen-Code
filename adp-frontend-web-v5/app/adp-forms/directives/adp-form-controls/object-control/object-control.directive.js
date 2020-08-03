@@ -49,7 +49,7 @@
           formData: scope.adpFormData,
           modelSchema: scope.adpFields,
           schema: scope.schema,
-          $action: scope.adpFormParams && scope.adpFormParams.actionType,
+          $action: formParams.action,
 
           formParams: formParams
         };

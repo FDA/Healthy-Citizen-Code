@@ -18,6 +18,7 @@ const {
 // eslint-disable-next-line no-unused-vars
 module.exports = (appLib) => {
   const _ = require('lodash');
+  const { ObjectId } = require('mongodb');
   const { hashPassword, bcryptHashRegex } = require('../../lib/util/password');
   const { getTime } = require('../../lib/util/date');
 
@@ -25,133 +26,162 @@ module.exports = (appLib) => {
     return appLib.butil.isValidObjectId(value) ? value.toString() : value;
   }
 
+  function objectId(value) {
+    return appLib.butil.isValidObjectId(value) ? ObjectId(value) : value;
+  }
+
   const m = {
     /** Special transformer doing nothing, allows to specify 'null' in transformer array ['null', 'postTransformer'].
      * Value null is not appropriate since .xls transformer has null values cast to 'null'.
      */
-    null(path, appModelPart, userContext, next) {
+    null(next) {
       // do nothing
       next();
     },
-    toString(path, appModelPart, userContext, next) {
-      const value = _.get(this, path);
+    toString(next) {
+      const { path, row } = this;
+      const value = _.get(row, path);
       if (value) {
-        _.set(this, path, value.toString());
+        _.set(row, path, value.toString());
       }
       next();
     },
-    decimalToString(path, appModelPart, userContext, next) {
-      const value = _.get(this, path);
-      if (value) {
-        if (_.isArray(value)) {
+    decimalToString(next) {
+      const { path, row, data } = this;
+      if (data) {
+        if (_.isArray(data)) {
           _.set(
-            this,
+            row,
             path,
-            value.map((elem) => elem.toString())
+            data.map((elem) => elem.toString())
           );
         } else {
-          _.set(this, path, value.toString());
+          _.set(row, path, data.toString());
         }
       }
       next();
     },
-    trim(path, appModelPart, userContext, next) {
-      const val = _.get(this, path);
-      if (val && typeof val.trim === 'function') {
-        _.set(this, path, val.trim());
+    trim(next) {
+      const { path, row, data } = this;
+      if (data && typeof data.trim === 'function') {
+        _.set(row, path, data.trim());
       }
       next();
     },
-    heightImperialToMetric(path, appModelPart, userContext, next) {
-      const imperialHeight = _.get(this, path);
-      const metricHeight = heightImperialToMetric(imperialHeight);
+    heightImperialToMetric(next) {
+      const { path, row, data } = this;
+      const metricHeight = heightImperialToMetric(data);
       if (metricHeight !== undefined) {
-        _.set(this, path, metricHeight);
+        _.set(row, path, metricHeight);
       }
       next();
     },
-    heightMetricToImperial(path, appModelPart, userContext, next) {
-      const metricHeight = _.get(this, path);
-      const imperialHeight = heightMetricToImperial(metricHeight);
+    heightMetricToImperial(next) {
+      const { path, row, data } = this;
+      const imperialHeight = heightMetricToImperial(data);
       if (imperialHeight !== undefined) {
-        _.set(this, path, imperialHeight);
+        _.set(row, path, imperialHeight);
       }
       next();
     },
-    weightImperialWithOzToMetric(path, appModelPart, userContext, next) {
-      const imperialWeight = _.get(this, path);
-      const metricWeight = weightImperialWithOzToMetric(imperialWeight);
+    weightImperialWithOzToMetric(next) {
+      const { path, row, data } = this;
+      const metricWeight = weightImperialWithOzToMetric(data);
       if (metricWeight !== undefined) {
-        _.set(this, path, metricWeight);
+        _.set(row, path, metricWeight);
       }
       next();
     },
-    weightMetricToImperialWithOz(path, appModelPart, userContext, next) {
-      const metricWeight = _.get(this, path);
-      const imperialWeight = weightMetricToImperialWithOz(metricWeight);
+    weightMetricToImperialWithOz(next) {
+      const { path, row, data } = this;
+      const imperialWeight = weightMetricToImperialWithOz(data);
       if (imperialWeight !== undefined) {
-        _.set(this, path, imperialWeight);
+        _.set(row, path, imperialWeight);
       }
       next();
     },
-    weightImperialToMetric(path, appModelPart, userContext, next) {
-      const imperialWeight = _.get(this, path);
-      const metricWeight = weightImperialToMetric(imperialWeight);
+    weightImperialToMetric(next) {
+      const { path, row, data } = this;
+      const metricWeight = weightImperialToMetric(data);
       if (metricWeight !== undefined) {
-        _.set(this, path, metricWeight);
+        _.set(row, path, metricWeight);
       }
       next();
     },
-    weightMetricToImperial(path, appModelPart, userContext, next) {
-      const metricWeight = _.get(this, path);
-      const imperialWeight = weightMetricToImperial(metricWeight);
+    weightMetricToImperial(next) {
+      const { path, row, data } = this;
+      const imperialWeight = weightMetricToImperial(data);
       if (imperialWeight !== undefined) {
-        _.set(this, path, imperialWeight);
+        _.set(row, path, imperialWeight);
       }
       next();
     },
-    async hashPassword(path, appModelPart, userContext, next) {
-      const password = _.get(this, path);
-      const isBcryptHash = bcryptHashRegex.test(password);
-      if (!password || isBcryptHash) {
+    async hashPassword(next) {
+      const { path, row, data } = this;
+      const isBcryptHash = bcryptHashRegex.test(data);
+      if (!data || isBcryptHash) {
         return next();
       }
 
-      const hash = await hashPassword(password);
-      _.set(this, path, hash);
+      const hash = await hashPassword(data);
+      _.set(row, path, hash);
       next();
     },
-    cleanupPassword(path, appModelPart, userContext, next) {
-      if (['view', 'viewDetails'].includes(userContext.action)) {
-        _.unset(this, path);
+    cleanupPassword(next) {
+      const { action, row, path } = this;
+      if (['view', 'viewDetails'].includes(action)) {
+        _.unset(row, path);
       }
       next();
     },
-    time(path, appModelPart, userContext, next) {
-      const value = _.get(this, path);
-      _.set(this, path, getTime(value));
+    time(next) {
+      const { path, row, data } = this;
+      _.set(row, path, getTime(data));
       next();
     },
-    stringifyLookupObjectId(path, appModelPart, userContext, next) {
-      const value = _.get(this, path);
-      if (!_.isNil(value) || !_.isEmpty(value)) {
-        const isArrayVal = _.isArray(value);
-        let formatted = _.castArray(value).map((obj) => {
+    stringifyLookupObjectId(next) {
+      const { data, path, row } = this;
+      if (!_.isNil(data) || !_.isEmpty(data)) {
+        const isArrayVal = _.isArray(data);
+        let formatted = _.castArray(data).map((obj) => {
           if (obj._id) {
             return { ...obj, _id: stringifyObjId(obj._id) };
           }
           return obj;
         });
         formatted = isArrayVal ? formatted : formatted[0];
-        _.set(this, path, formatted);
+        _.set(row, path, formatted);
       }
       next();
     },
-    stringifyTreeSelector(path, appModelPart, userContext, next) {
-      const value = _.get(this, path);
-      if (!_.isEmpty(value)) {
-        _.each(value, (obj) => stringifyObjId(obj._id));
-        _.set(this, path, value);
+    lookupObjectId(next) {
+      const { data, path, row } = this;
+      if (!_.isNil(data) || !_.isEmpty(data)) {
+        const isArrayVal = _.isArray(data);
+        let formatted = _.castArray(data).map((obj) => {
+          if (obj._id) {
+            return { ...obj, _id: objectId(obj._id) };
+          }
+          return obj;
+        });
+        formatted = isArrayVal ? formatted : formatted[0];
+        _.set(row, path, formatted);
+      }
+      next();
+    },
+    stringifyTreeSelector(next) {
+      const { data, path, row } = this;
+      if (!_.isEmpty(data)) {
+        _.each(data, (obj) => stringifyObjId(obj._id));
+        _.set(row, path, data);
+      }
+      next();
+    },
+    objectIdTreeSelector(next) {
+      const { data, path, row } = this;
+      if (!_.isEmpty(data)) {
+        _.each(data, (obj) => objectId(obj._id));
+        _.set(row, path, data);
       }
       next();
     },

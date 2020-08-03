@@ -15,7 +15,8 @@
     ErrorHelpers,
     ServerError,
     GridOptionsHelpers,
-    GridSchema
+    GridSchema,
+    AdpListsService
   ) {
     return function (options, schema, customOptions) {
       options.dataSource = { store: createStore(schema, customOptions) };
@@ -35,7 +36,10 @@
           loadOptions.customOptions = customOptions.value();
           loadOptions.isGroupFilter = groupingEnabled(customOptions.gridComponent);
 
-          return GraphqlCollectionQuery(requestSchema, loadOptions)
+          return AdpListsService.requestListsForSchemaAndCache(schema, 'listFilter')
+            .then(function () {
+              return GraphqlCollectionQuery(requestSchema, loadOptions);
+            })
             .then(!!loadOptions.group ? getGroupedData : getData)
             .catch(function (err) {
               ErrorHelpers.handleError(err);
@@ -52,7 +56,7 @@
             });
         },
         update: function (keys, values) {
-          var data = _.merge({}, keys, values);
+          var data = _.assign({}, keys, values);
           var cleanedData = cleanupData(data, schema);
 
           return GraphqlCollectionMutator.update(schema, cleanedData)

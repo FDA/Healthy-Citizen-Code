@@ -1,3 +1,5 @@
+import classNames from 'classnames';
+import printJS from 'print-js';
 import $ from '../../lib/utils/dom';
 // TODO: make it single tpl
 import tpl from './table.hbs';
@@ -5,7 +7,6 @@ import tplBody from './partials/tbody.hbs';
 import tplGroupRow from './partials/group-rows.hbs';
 
 import {updateIframeHeight} from '../../lib/utils/utils';
-import classNames from 'classnames';
 
 const SORT = {
   ASC: 'asc',
@@ -54,7 +55,7 @@ export default class Table {
       accordion,
       hasGrouping,
       groupTitle,
-      print
+      print,
     };
 
     // define dataTypes
@@ -88,7 +89,19 @@ export default class Table {
       }
 
       if ($(e.target).matches('.js-print')) {
-        window.print();
+        printJS({
+          printable: this.data.map(row => {
+            let result = {};
+            for (const [key, val] of Object.entries(row)) {
+              result[key] = val.view;
+            }
+            return result;
+          }),
+          properties: Object.keys(this.data[0]),
+          type: 'json',
+          gridHeaderStyle: 'color: red;  border: 2px solid #3971A5;',
+          gridStyle: 'border: 2px solid #3971A5; padding: 5px;'
+        });
         return;
       }
     });
@@ -221,10 +234,11 @@ export default class Table {
   }
 
   changeHeadClass() {
-    const head = this.tableEl.querySelectorAll('th')[this.sorted];
+    const heads = this.tableEl.querySelectorAll('th');
+    const sortHead = heads[this.sorted];
 
-    head.classList.remove('sorted_asc', 'sorted_desc');
-    head.classList.add('sorted_' + this.order);
+    heads.forEach(el => el.classList.remove('sorted_asc', 'sorted_desc'));
+    sortHead.classList.add('sorted_' + this.order);
   }
 
   // TODO: move to options

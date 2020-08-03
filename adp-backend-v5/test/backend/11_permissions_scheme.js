@@ -1,4 +1,3 @@
-const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
@@ -12,6 +11,7 @@ const {
   checkRestSuccessfulResponse,
   checkRestErrorResponse,
   conditionForActualRecord,
+  apiRequest,
 } = require('../test-util');
 const {
   buildGraphQlQuery,
@@ -85,7 +85,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
         async function f() {
           const { makeRequest, checkData, checkResponse, getData } = settings;
-          const req = makeRequest(request(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib.app));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }
@@ -444,7 +444,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
       async function f() {
         const { makeRequest, checkResponse } = settings;
-        const req = makeRequest(request(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib.app));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -561,7 +561,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
       async function f() {
         const { makeRequest, checkResponse } = settings;
-        const req = makeRequest(request(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib.app));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -673,7 +673,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
       async function f() {
         const { makeRequest, checkResponse } = settings;
-        const req = makeRequest(request(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib.app));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -688,7 +688,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
       async function f() {
         const { makeRequest, checkResponse, modelName, docId } = settings;
-        const req = makeRequest(request(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib.app));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }

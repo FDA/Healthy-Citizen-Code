@@ -5,7 +5,7 @@ const { getRedisConnection } = require('../util/redis');
 const { addAuthentication, getSocketIoServer } = require('./common');
 const { getEventManager } = require('./event-manager');
 
-module.exports = ({ appLib, namespace, redisUrl, keyPrefix, log }) => {
+module.exports = ({ appLib, socketIoOpts, namespace, redisUrl, keyPrefix, log }) => {
   const m = {};
 
   let ioServer = null;
@@ -17,7 +17,7 @@ module.exports = ({ appLib, namespace, redisUrl, keyPrefix, log }) => {
         getRedisConnection({ redisUrl, log, redisConnectionName: 'Socket.io_Redis_Pub' }),
         getRedisConnection({ redisUrl, log, redisConnectionName: 'Socket.io_Redis_Sub' }),
       ]);
-      ioServer = getSocketIoServer(server);
+      ioServer = getSocketIoServer(server, socketIoOpts);
       ioServer.adapter(redisAdapter({ pubClient, subClient, key: keyPrefix }));
     } catch (e) {
       throw new Error(`Unable to connect Socket.io_Redis by url '${redisUrl}'.`);

@@ -7,20 +7,25 @@
 
   /** @ngInject */
   function LoginController(
-    AdpSessionService,
-    AdpAuthSchemas
+    AdpAuthSchemas,
+    AdpSessionService
   ) {
     var INTERFACE = window.adpAppStore.appInterface();
     var vm = this;
-    vm.schema = AdpAuthSchemas.login();
-    vm.fields = vm.schema.fields;
-    vm.authParams = INTERFACE.loginPage.parameters;
+    vm.args = AdpAuthSchemas.loginArgs();
 
+    vm.authParams = INTERFACE.loginPage.parameters;
     vm.showSignUp = INTERFACE.app.auth.enableRegistration;
     vm.showReset = INTERFACE.app.auth.enableUserPasswordReset;
 
-    vm.submit = function (formData) {
-      return AdpSessionService.login(formData);
+
+    vm.formOptions = {
+      disableFullscreen: true,
+      localActionsStrategy: {
+        submit: function (args) {
+          return AdpSessionService.login(args.row);
+        },
+      }
     };
   }
 })();

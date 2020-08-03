@@ -8,17 +8,21 @@
 
   /** @ngInject */
   function ForgotController(
-    AdpSessionService,
-    AdpAuthSchemas
+    AdpAuthSchemas,
+    AdpSessionService
   ) {
-    var INTERFACE = window.adpAppStore.appInterface();
     var vm = this;
-    vm.schema = AdpAuthSchemas.forgot();
-    vm.fields = vm.schema.fields;
+    var INTERFACE = window.adpAppStore.appInterface();
     vm.authParams = INTERFACE.loginPage.parameters;
 
-    vm.submit = function (formData) {
-      return AdpSessionService.forgot(formData);
+    vm.args = AdpAuthSchemas.forgotPasswordArgs();
+    vm.formOptions = {
+      disableFullscreen: true,
+      localActionsStrategy: {
+        submit: function (args) {
+          return AdpSessionService.forgot(args.row);
+        },
+      },
     };
   }
 
@@ -27,29 +31,31 @@
     AdpSessionService,
     AdpAuthSchemas,
     AdpNotificationService,
-    $state,
-    ResponseError
+    $state
 ) {
-    var INTERFACE = window.adpAppStore.appInterface();
     var vm = this;
-    vm.schema = AdpAuthSchemas.reset();
-    vm.fields = vm.schema.fields;
-    vm.isReset = false;
+    var INTERFACE = window.adpAppStore.appInterface();
     vm.authParams = INTERFACE.loginPage.parameters;
-    vm.login = $state.params.login;
+    vm.args = AdpAuthSchemas.resetPasswordArgs();
+    vm.isReset = false;
 
-    vm.submit = function (formData) {
-      return AdpSessionService
-        .reset(formData)
-        .then(function (res) {
-          if (!res.data.success) {
-            throw new ResponseError(res.data.message);
-          }
+    vm.formOptions = {
+      disableFullscreen: true,
+      localActionsStrategy: {
+        submit: function(args) {
+          return AdpSessionService
+            .reset(args.row)
+            .then(function (res) {
+              if (!res.data.success) {
+                throw new ResponseError(res.data.message);
+              }
 
-          vm.isReset = true;
-          AdpNotificationService.notifySuccess("Password has been reset, please sign in using your new password", true);
-          return res;
-        });
+              vm.isReset = true;
+              AdpNotificationService.notifySuccess("Password has been reset, please sign in using your new password", true);
+              return res;
+            });
+        }
+      },
     };
 
     vm.goLogin = function(){

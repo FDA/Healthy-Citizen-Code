@@ -12,7 +12,7 @@
     GraphqlRequest
   ) {
     return function (args, params) {
-      var queryName = getQueryName(args.modelSchema);
+      var queryName = getQueryName(args.fieldSchema);
 
       return GraphqlRequest({
         name: queryName,

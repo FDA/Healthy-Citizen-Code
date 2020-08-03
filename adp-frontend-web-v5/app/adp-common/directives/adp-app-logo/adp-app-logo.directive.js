@@ -13,8 +13,9 @@
       link: function(scope) {
         var INTERFACE = window.adpAppStore.appInterface();
 
-        scope.apiUrl = APP_CONFIG.apiUrl;
         scope.logoSrc = INTERFACE.app.header.components.logo ? INTERFACE.app.logo.small : '';
+        scope.logoUrl = APP_CONFIG.resourceUrl + scope.logoSrc;
+
         scope.title = INTERFACE.app.title;
       }
     }

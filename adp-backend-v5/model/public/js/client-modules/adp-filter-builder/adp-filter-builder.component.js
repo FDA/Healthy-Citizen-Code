@@ -15,16 +15,16 @@
                "            <div class=\"filter-builder-container\"></div>" +
                "        </div>" +
                "    </fieldset>" +
-               "    <footer>" +
-               "        <button class=\"btn btn-default float-left\"" +
-               "                type=\"button\"" +
-               "                ng-click=\"vm.clear()\">Clear</button>" +
-               "        <button class=\"btn btn-default\"" +
+               "    <footer class=\"adp-action-b-container\">" +
+               "        <button class=\"adp-action-b-secondary\"" +
                "                type=\"button\"" +
                "                ng-click=\"vm.exit()\">Close</button>" +
-               "        <button class=\"btn btn-primary\"" +
+               "        <button class=\"adp-action-b-tertiary\"" +
                "                type=\"button\"" +
-               "                ng-click=\"vm.save()\">Ok</button>" +
+               "                ng-click=\"vm.clear()\">Clear filter</button>" +
+               "        <button class=\"adp-action-b-primary\"" +
+               "                type=\"button\"" +
+               "                ng-click=\"vm.save()\">Apply filter</button>" +
                "    </footer>" +
                "</form>",
              bindings: {

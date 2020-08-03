@@ -1,4 +1,3 @@
-const request = require('supertest');
 require('should');
 const sinon = require('sinon');
 const RedisMock = require('ioredis-mock');
@@ -11,6 +10,7 @@ const {
   setAppAuthOptions,
   stringifyObjectId,
   prepareEnv,
+  apiRequest,
 } = require('../test-util');
 
 function getAppLibWithAuthDisabled() {
@@ -62,7 +62,7 @@ describe('V5 Backend Cache', function () {
       this.getPreparedItemsSpy = sinon.spy(dba, 'getPreparedItems');
       this.setCacheSpy = sinon.spy(cache, 'setCache');
 
-      const res = await request(this.appLib.app)
+      const res = await apiRequest(this.appLib.app)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -92,7 +92,7 @@ describe('V5 Backend Cache', function () {
       checkForEqualityConsideringInjectedFields(data, stringifiedCachedRecord);
 
       // request with same params to get value from cache
-      const res2 = await request(this.appLib.app)
+      const res2 = await apiRequest(this.appLib.app)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -120,7 +120,7 @@ describe('V5 Backend Cache', function () {
       this.getPreparedItemsSpy = sinon.spy(dba, 'getPreparedItems');
       this.setCacheSpy = sinon.spy(cache, 'setCache');
 
-      const res = await request(this.appLib.app)
+      const res = await apiRequest(this.appLib.app)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -136,7 +136,7 @@ describe('V5 Backend Cache', function () {
       this.setCacheSpy.callCount.should.equal(2);
 
       // request with same params to get value from cache
-      const res2 = await request(this.appLib.app)
+      const res2 = await apiRequest(this.appLib.app)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -178,7 +178,7 @@ describe('V5 Backend Cache', function () {
     });
 
     const step0 = async function () {
-      const res1 = await request(this.appLib.app)
+      const res1 = await apiRequest(this.appLib.app)
         .post('/model1s')
         .send({ data: sampleData0 })
         .set('Accept', 'application/json')
@@ -189,7 +189,7 @@ describe('V5 Backend Cache', function () {
       const savedId1 = res1.body.id;
       this.getCacheSpy.callCount.should.equal(1);
 
-      const res2 = await request(this.appLib.app)
+      const res2 = await apiRequest(this.appLib.app)
         .post('/model1s')
         .send({ data: sampleData1 })
         .set('Accept', 'application/json')
@@ -204,7 +204,7 @@ describe('V5 Backend Cache', function () {
     };
 
     const step1 = async function () {
-      const res = await request(this.appLib.app)
+      const res = await apiRequest(this.appLib.app)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -220,7 +220,7 @@ describe('V5 Backend Cache', function () {
     };
 
     const step2 = async function () {
-      const res = await request(this.appLib.app)
+      const res = await apiRequest(this.appLib.app)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -242,7 +242,7 @@ describe('V5 Backend Cache', function () {
       const beforeAggregateItemsSpy = this.getPreparedItemsSpy.callCount;
       const beforeSetCacheSpy = this.setCacheSpy.callCount;
 
-      await request(this.appLib.app)
+      await apiRequest(this.appLib.app)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -270,7 +270,7 @@ describe('V5 Backend Cache', function () {
     it('clear cache by creating new item', function () {
       const step3 = async function () {
         this.clearCacheForModel = sinon.spy(this.appLib.cache, 'clearCacheForModel');
-        const res = await request(this.appLib.app)
+        const res = await apiRequest(this.appLib.app)
           .post(`/model1s`)
           .send({ data: sampleData2 })
           .set('Accept', 'application/json')
@@ -285,7 +285,7 @@ describe('V5 Backend Cache', function () {
     it('clear cache by deleting old item', function () {
       const step3 = async function () {
         this.clearCacheForModel = sinon.spy(this.appLib.cache, 'clearCacheForModel');
-        const res = await request(this.appLib.app)
+        const res = await apiRequest(this.appLib.app)
           .del(`/model1s/${sampleData0._id.toString()}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
@@ -299,7 +299,7 @@ describe('V5 Backend Cache', function () {
     it('clear cache by updating old item', function () {
       const step3 = async function () {
         this.clearCacheForModel = sinon.spy(this.appLib.cache, 'clearCacheForModel');
-        const res = await request(this.appLib.app)
+        const res = await apiRequest(this.appLib.app)
           .put(`/model1s/${sampleData0._id.toString()}`)
           .send({ data: sampleData0 }) // update with the same object
           .set('Accept', 'application/json')

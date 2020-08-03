@@ -28,7 +28,7 @@
       vm.diskLoad = loadRulesFromDisk;
       vm.diskSave = saveRulesToDisk;
       vm.nativeName = diagram.nativeName;
-      vm.extraCSS = APP_CONFIG.apiUrl + '/public/js/client-modules/adp-bpm-diagrams/adp-bpm-editor.css';
+      vm.extraCSS = APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/client-modules/adp-bpm-diagrams/adp-bpm-editor.css';
       vm.diagramType = diagramType;
 
       initialise();
@@ -119,9 +119,15 @@
       }
 
       function saveRulesRecord() {
-        return prepareDefinition().then(function (definition) {
+        return prepareDefinition(true)
+          .then(replaceServiceTaskSingleQuotes)
+          .then(function (definition) {
           return AdpBpmHelper.putRulesRecord(diagramType, vm, definition);
         });
+      }
+
+      function replaceServiceTaskSingleQuotes(def){
+         return def.replace(/(\{environment.services.\w+\()&#39;(.*?)&#39;(\)\})/, "$1'$2'$3");
       }
 
       function loadRulesFromDisk() {
@@ -147,7 +153,9 @@
       }
 
       function saveRulesToDisk() {
-        return prepareDefinition().then(function (definition) {
+        return prepareDefinition()
+          .then(replaceServiceTaskSingleQuotes)
+          .then(function (definition) {
           return AdpFileDownloader({
             buffer: definition,
             mimeType: 'text/xml',
@@ -157,19 +165,17 @@
       }
 
       function prepareDefinition() {
-        var deferred = new $.Deferred();
-
         if (diagramType === 'bpmn') {
           _.each(vm.instance._definitions.rootElements, function (root) {
             root.isExecutable = true;
           });
         }
 
-        vm.instance.saveXML({ format: true }, function (err, definition) {
-          return err ? deferred.reject(err) : deferred.resolve(definition);
-        });
-
-        return deferred.promise();
+        return new Promise(function(resolve, reject){
+          vm.instance.saveXML({ format: true }, function (err, definition) {
+            err ? reject(err) : resolve(definition);
+          });
+        })
       }
     };
   }

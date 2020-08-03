@@ -7,31 +7,34 @@ const nanoid = require('nanoid/async');
 const { getDocValueForExpression } = require('../../lib/util/util');
 
 // eslint-disable-next-line no-unused-vars
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {
-    randomString(path, appModelPart, userContext, next) {
+    randomString(next) {
+      const { fieldSchema, path, row } = this;
       const charset = _.get(
-        appModelPart,
+        fieldSchema,
         'synthesize.arguments.charset',
         'abcdefghijkmnopqrstuvwxyzABCDEFGHJKLMNPQRSTUVWXYZ'
       ); // WARNING: excludes certain letters that look like other characters
-      const length = _.get(appModelPart, 'synthesize.arguments.length', 8);
+      const length = _.get(fieldSchema, 'synthesize.arguments.length', 8);
       let val = '';
       for (let i = 0; i < length; ++i) {
         val += charset[Math.floor(Math.random() * charset.length)];
       }
-      _.set(this, path, val);
+      _.set(row, path, val);
       next();
     },
-    now(path, appModelPart, userContext, next) {
-      _.set(this, path, new Date());
+    now(next) {
+      const { path, row } = this;
+      _.set(row, path, new Date());
       next();
     },
-    creator(path, appModelPart, userContext, next) {
+    creator(next) {
+      const { fieldSchema, path, row, userContext } = this;
       const { user } = userContext;
-      const label = _.get(appModelPart, 'lookup.table.users.label');
-      if (!_.get(this, path) && user && label) {
-        _.set(this, path, {
+      const label = _.get(fieldSchema, 'lookup.table.users.label');
+      if (!_.get(row, path) && user && label) {
+        _.set(row, path, {
           _id: user._id,
           table: 'users',
           label: getDocValueForExpression(user, label),
@@ -39,22 +42,25 @@ module.exports = appLib => {
       }
       next();
     },
-    createdAt(path, appModelPart, userContext, next) {
-      if (!_.get(this, path)) {
-        _.set(this, path, new Date());
+    createdAt(next) {
+      const { path, row, data } = this;
+      if (!data) {
+        _.set(row, path, new Date());
       }
       next();
     },
-    updatedAt(path, appModelPart, userContext, next) {
-      _.set(this, path, new Date());
+    updatedAt(next) {
+      const { path, row } = this;
+      _.set(row, path, new Date());
       next();
     },
-    shortId7(path, appModelPart, userContext, next) {
-      if (_.get(this, path)) {
+    shortId7(next) {
+      const { path, row, data } = this;
+      if (data) {
         return next();
       }
-      return nanoid(7).then(id => {
-        _.set(this, path, id);
+      return nanoid(7).then((id) => {
+        _.set(row, path, id);
         next();
       });
     },

@@ -16,8 +16,7 @@
     ImperialTypesCellRenderer,
     ListTypesCellRenderer,
     ComplexTypesCellRenderer,
-    MixedTypeCellRenderer,
-    TreeSelectorCellRenderer,
+    GridTypeCellRenderer,
     GRID_FORMAT
   ) {
     var htmlCellRenderers = {
@@ -26,6 +25,9 @@
       'String[]': BasicTypesCellRenderer.stringArray,
       'Int32[]': BasicTypesCellRenderer.stringArray,
       'Int64[]': BasicTypesCellRenderer.stringArray,
+      'Number[]': BasicTypesCellRenderer.stringArray,
+      'Double[]': BasicTypesCellRenderer.stringArray,
+      'Decimal128[]': BasicTypesCellRenderer.stringArray,
       'Number': BasicTypesCellRenderer.number,
       'Currency': BasicTypesCellRenderer.currency,
       'Boolean': BasicTypesCellRenderer.boolean,
@@ -54,26 +56,27 @@
       'ImperialWeight': ImperialTypesCellRenderer.single,
 
       // lists
-      'List': ListTypesCellRenderer.single,
-      'List[]': ListTypesCellRenderer.multiple,
+      'List': ListTypesCellRenderer,
+      'List[]': ListTypesCellRenderer,
 
       'Object': complexType,
       'Array': complexType,
       'AssociativeArray': complexType,
 
-      'Mixed': MixedTypeCellRenderer.treeView,
-      'TreeSelector': TreeSelectorCellRenderer.treeView,
+      'Mixed': mixedType,
+      'TreeSelector': complexType,
       'Html': BasicTypesCellRenderer.escapedHtmlOrRawHtml,
-      String: BasicTypesCellRenderer.stringOrHtml,
-      custom: CustomRender,
+      'String': BasicTypesCellRenderer.stringOrHtml,
+      'Grid': GridTypeCellRenderer.render,
+      'custom': CustomRender,
     };
 
     function CellRenderer(args) {
-      if (hasCustomRenderer(args.modelSchema)) {
+      if (hasCustomRenderer(args.fieldSchema)) {
         return htmlCellRenderers.custom;
       }
 
-      var fieldType = AdpSchemaService.getFieldType(args.modelSchema);
+      var fieldType = AdpSchemaService.getFieldType(args.fieldSchema);
       var fallbackCellRenderer = BasicTypesCellRenderer.string;
 
       return htmlCellRenderers[fieldType] || fallbackCellRenderer;
@@ -87,10 +90,22 @@
       return ComplexTypesCellRenderer(args, CellRenderer);
     }
 
-    function CustomRender(args) {
-      var renderFn = _.get(appModelHelpers, customRendererPath(args.modelSchema));
+    function mixedType(args) {
+      if (_.isObject(args.data)) {
+        return complexType(args);
+      }
 
-      var argsForBackwardCompatibility = [args.data, args.modelSchema.type, args.row];
+      return _.isNil(args.data) ? GRID_FORMAT.EMPTY_VALUE : args.data;
+    }
+
+    function CustomRender(args) {
+      if (_.isNil(args.data) || _.isEmpty(args.data)) {
+        return GRID_FORMAT.EMPTY_VALUE;
+      }
+
+      var renderFn = _.get(appModelHelpers, customRendererPath(args.fieldSchema));
+
+      var argsForBackwardCompatibility = [args.data, args.fieldSchema.type, args.row];
       return renderFn.apply(args, argsForBackwardCompatibility);
     }
 

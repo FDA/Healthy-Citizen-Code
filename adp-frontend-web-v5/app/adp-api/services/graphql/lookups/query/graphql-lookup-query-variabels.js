@@ -44,8 +44,9 @@
 
     function setFormDataToFilter(filter, formData) {
       filter.form = _.cloneDeep(formData);
-      _.unset(formData, '_id');
-      _.unset(formData, '_actions');
+
+      _.unset(filter.form, '_id');
+      _.unset(filter.form, '_actions');
     }
   }
 })();

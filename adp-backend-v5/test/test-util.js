@@ -259,7 +259,7 @@ const sampleDataToCompare0 = _.cloneDeep(sampleData0);
 fixObjectId(sampleDataToCompare0);
 
 const loginWithUser = async function (appLib, user) {
-  const res = await request(appLib.app)
+  const res = await apiRequest(appLib.app)
     .post('/login')
     .send({
       login: user.login,
@@ -322,6 +322,29 @@ const sortByIdDesc = (arr) => {
   return [...arr].sort((a, b) => (a._id.toString() <= b._id.toString() ? 1 : -1));
 };
 
+function getAgentWithEnvPrefix(envPrefix, app, envFilePath) {
+  if (!process.env[envPrefix]) {
+    require('dotenv').load({ path: envFilePath });
+  }
+  const prefix = process.env[envPrefix] || '';
+
+  const agent = request.agent(app);
+  const methods = ['get', 'post', 'put', 'head', 'del', 'options'];
+  methods.forEach((method) => {
+    const defaultFunc = agent[method];
+    agent[method] = (url) => defaultFunc.call(agent, `${prefix}${url}`);
+  });
+  return agent;
+}
+
+function apiRequest(app, envFilePath = './test/backend/.env.test') {
+  return getAgentWithEnvPrefix('API_PREFIX', app, envFilePath);
+}
+
+function resourceRequest(app, envFilePath = './test/backend/.env.test') {
+  return getAgentWithEnvPrefix('RESOURCE_PREFIX', app, envFilePath);
+}
+
 module.exports = {
   // reReadModelsAndMongoose,
   isDateString,
@@ -374,4 +397,6 @@ module.exports = {
   setupAppAndGetToken,
   conditionForActualRecord,
   sortByIdDesc,
+  apiRequest,
+  resourceRequest,
 };

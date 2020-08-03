@@ -6,8 +6,8 @@
     return {
       diagramFieldName: 'definition',
       nativeName: 'DMN Rules',
-      jsUrl: APP_CONFIG.apiUrl + '/public/js/lib/dmn-js/index.js',
-      cssUrl: APP_CONFIG.apiUrl + '/public/js/lib/dmn-js/css/style.css',
+      jsUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/dmn-js/index.js',
+      cssUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/dmn-js/css/style.css',
       libName: 'DmnJS',
       collectionName: 'businessRules',
       emptyDiagram: [

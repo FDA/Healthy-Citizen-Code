@@ -13,11 +13,11 @@
     ACTIONS,
     ActionMessages,
     GraphqlCollectionMutator,
-    ErrorHelpers
+    ErrorHelpers,
+    AdpUnifiedArgs
   ) {
     return {
       create: createAction,
-      print: printAction,
       update: updateAction,
       viewDetails: viewDetails,
       delete: deleteRecord,
@@ -27,10 +27,6 @@
     function createAction(schema, data) {
       var modalOptions = getActionsOptions(ACTIONS.CREATE, schema, data);
       return showFormModal(modalOptions);
-    }
-
-    function printAction(schema) {
-      // doing noop, not ready
     }
 
     function updateAction(schema, data) {
@@ -63,7 +59,7 @@
       var modalOptions = {
         message: 'Are you sure that you want to delete this record?',
         schema: schema,
-        formParams: { actionType: ACTIONS.DELETE },
+        actionType: ACTIONS.DELETE,
       };
 
       return AdpModalService.confirm(modalOptions)
@@ -71,7 +67,7 @@
           return GraphqlCollectionMutator.delete(schema, data);
         })
         .then(function () {
-          showMessage(modalOptions);
+          AdpNotificationService.notifySuccess(ActionMessages[ACTIONS.DELETE](schema));
         })
         .catch(function (error) {
           ErrorHelpers.handleError(error, 'Unknown error, while trying to delete record.');
@@ -88,49 +84,22 @@
     }
 
     function getActionsOptions($action, schema, data) {
-      var formParams = _.assign(
-        {
-          actionType: $action,
-          btnText: selectBtnText($action),
-        },
-        schema.parameters
-      );
-
+      var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: '',
+        action: $action,
+        formData: data || {},
+        schema: schema,
+      });
 
       if ($action === ACTIONS.CLONE && schema.schemaName === 'datasets') {
-        $action = 'cloneDataSet';
+        args.action = ACTIONS.CLONE_DATASET;
       }
 
-      return {
-        actionCb: GraphqlCollectionMutator[$action],
-        schema: schema,
-        formParams: formParams,
-        data: _.isNil(data) ? {} : data,
-      };
-    }
-
-    function selectBtnText(action) {
-      var texts = {};
-      texts[ACTIONS.CREATE] = 'Add';
-      texts[ACTIONS.CLONE] = 'Add';
-      texts[ACTIONS.UPDATE] = 'Update';
-
-      return texts[action];
+      return { args: args };
     }
 
     function showFormModal(modalOptions) {
-      return AdpGeneratorModalService.formModal(modalOptions)
-        .then(function () {
-          showMessage(modalOptions);
-        });
-    }
-
-    function showMessage(options) {
-      var actionName = options.formParams.actionType;
-      var schema = options.schema;
-      var message = ActionMessages[actionName](schema);
-
-      AdpNotificationService.notifySuccess(message);
+      return AdpGeneratorModalService.formModal(modalOptions);
     }
   }
 })();

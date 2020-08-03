@@ -78,7 +78,8 @@ module.exports = (appLib, graphQlRoute, altairRoute, adpGraphQl) => {
 
     appLib.addRoute('get', m.graphQlRoute, [graphqlMiddleware]);
     appLib.addRoute('post', m.graphQlRoute, [appLib.isAuthenticated, graphqlMiddleware]);
-    appLib.addRoute('use', m.altairRoute, [altairExpress({ endpointURL: m.graphQlRoute })]);
+    const fullGraphqlRoute = appLib.getFullRoute(appLib.API_PREFIX, m.graphQlRoute);
+    appLib.addRoute('use', m.altairRoute, [altairExpress({ endpointURL: fullGraphqlRoute })]);
   };
 
   m.rebuildGraphQlSchema = () => {

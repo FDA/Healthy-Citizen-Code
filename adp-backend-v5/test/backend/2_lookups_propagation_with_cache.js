@@ -1,4 +1,3 @@
-const request = require('supertest');
 const should = require('should');
 const { ObjectID } = require('mongodb');
 
@@ -9,6 +8,7 @@ const {
   checkRestSuccessfulResponse,
   conditionForActualRecord,
   checkForEqualityConsideringInjectedFields,
+  apiRequest,
 } = require('../test-util');
 const { buildGraphQlUpdateOne, buildGraphQlQuery, checkGraphQlSuccessfulResponse } = require('../graphql-util.js');
 
@@ -113,7 +113,7 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
           } = settings;
 
           await warmupCache(this.appLib, propagationModelRequest, checkResponse);
-          const res = await changeLookupRequest(request(this.appLib.app))
+          const res = await changeLookupRequest(apiRequest(this.appLib.app))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkResponse(res);
@@ -122,7 +122,7 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
         }
       };
       const warmupCache = async (appLib, propagationModelRequest, checkResponse) => {
-        const res = await propagationModelRequest(request(appLib.app))
+        const res = await propagationModelRequest(apiRequest(appLib.app))
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
         checkResponse(res);
@@ -154,7 +154,7 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
         };
         should(dbDoc).be.deepEqual(expectedDbDoc);
 
-        const responseDoc = await propagationModelRequest(request(appLib.app))
+        const responseDoc = await propagationModelRequest(apiRequest(appLib.app))
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .expect(200);

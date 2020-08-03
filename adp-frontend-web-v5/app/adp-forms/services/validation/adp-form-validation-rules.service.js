@@ -18,6 +18,10 @@
         });
 
         return sameKeys.length <= 1;
+      },
+      schemaKeyRegExp: function (value) {
+        var keyRegex = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
+        return keyRegex.test(value);
       }
     }
 

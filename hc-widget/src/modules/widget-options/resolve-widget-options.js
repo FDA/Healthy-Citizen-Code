@@ -13,10 +13,10 @@ import { checkWidgetTypeSupported } from '../widgets';
  * Algorithm assumes wm source of options **as trusted -- valid**, however data-attributes
  * source requires to be validated.
  *
- * @return {Promise<{ wmOptions: {Object}, attributeOptions: {DOMStringMap} }>}
+ * @return {Promise<{ widgetOptions: {Object} }>}
  */
-export function resolveWidgetOptions() {
-  const attributeOptions = getOptionsFromDataset();
+export function resolveWidgetOptions(el) {
+  const attributeOptions = el.dataset;
   const wmMode = useWidgetManager(attributeOptions);
   let optionsPromise;
 
@@ -29,16 +29,6 @@ export function resolveWidgetOptions() {
 
   return optionsPromise
     .then((wmOptions = {}) => ({ ...wmOptions, ...attributeOptions }));
-}
-
-/**
- * @return {DOMStringMap}
- */
-function getOptionsFromDataset() {
-  const widgetBodyId = 'hc-widget-body';
-  const widgetNode = document.querySelector(`#${widgetBodyId}`);
-
-  return widgetNode.dataset;
 }
 
 function useWidgetManager(attributeOptions) {

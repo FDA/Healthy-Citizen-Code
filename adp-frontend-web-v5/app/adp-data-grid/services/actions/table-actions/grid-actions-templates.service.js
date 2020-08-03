@@ -11,6 +11,9 @@
     AdpSchemaService
   ) {
     return function (actions, cellInfo) {
+      // HOTFIX: until  UNI-892 completed
+      delete actions.listFilter;
+
       var actionElementsWithOrder = _.map(actions, function (action, name) {
         var button = $(getActionTemplate(action, name, cellInfo));
         button.append(tooltip(action, name, cellInfo));
@@ -32,9 +35,11 @@
         module: buttonTemplate,
       };
 
-      var templateFn = types[actionItem.action.type];
+      var actionType = _.get(actionItem, 'action.type');
+      var templateFn = types[actionType];
+
       if (_.isUndefined(templateFn)) {
-        throw new Error('Unknown action type in ' + actionItem);
+        throw new Error('Unknown action type in ' + actionType);
       }
 
       return templateFn(actionItem, name, cellInfo);

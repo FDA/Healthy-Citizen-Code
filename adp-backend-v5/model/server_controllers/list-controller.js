@@ -15,7 +15,7 @@ module.exports = () => {
       const inlineContext = getInlineContext(req);
       const userPermissions = getReqPermissions(req);
 
-      const { listFieldPath, listParams } = req.query;
+      const { listFieldPath, listParams, action } = req.query;
       if (!listFieldPath) {
         return res.json({
           success: false,
@@ -35,7 +35,8 @@ module.exports = () => {
         inlineContext,
         fullListPath,
         requestDynamicList,
-        dynamicListRequestConfig
+        dynamicListRequestConfig,
+        action
       );
       if (!list) {
         return res.json({ success: false, data: null });

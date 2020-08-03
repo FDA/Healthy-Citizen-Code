@@ -8,67 +8,51 @@
   /** @ngInject */
   function ComplexTypesCellRenderer(
     FormattersHelper,
-    ComplexTypesMapper,
-    MixedTypeCellRenderer,
-    TreeSelectorCellRenderer,
-    TreeView
+    ComplexTypesDataTransformer
   ) {
     return function (args, CellRenderer) {
-      var data = mapDataToTreeView(args, CellRenderer);
+      var data = ComplexTypesDataTransformer(args, CellRenderer);
 
-      return TreeView.create(data, {asText: FormattersHelper.asText(args)});
+      return FormattersHelper.asText(args) ?
+        getComplexTypeAsText(data, _.get(args, 'fieldSchema.fieldName')) :
+        getComplexTypeAsYaml(data, _.get(args, 'fieldSchema.parameters', {}));
     }
 
-    function mapDataToTreeView(args, CellRenderer) {
-      var builder = {
-        object: function (args) {
-          return treeViewNode(args.modelSchema.fieldName, args.data);
-        },
+    function getComplexTypeAsText(data, name) {
+      var textValues = _.isObject(data) ? _.map(data, getComplexTypeAsText).join('; ') : '';
+      var finalValue = _.isObject(data) && !textValues ? '{}' : data;
 
-        array: function (args) {
-          return treeViewNode(args.modelSchema.fieldName, args.data);
-        },
-
-        arrayItem: function (itemValue, index) {
-          return {
-            text: index,
-            items: itemValue.items,
-          };
-        },
-
-        leaf: function (args) {
-          if (args.modelSchema.type === 'Mixed') {
-            return {
-              text: args.modelSchema.fullName,
-              items: MixedTypeCellRenderer.treeViewData(args).items,
-            }
-          } else if (args.modelSchema.type === 'TreeSelector') {
-            return {
-              text: args.modelSchema.fullName,
-              items: TreeSelectorCellRenderer.treeViewData(args.data).items,
-            }
-          } else {
-            var formatter = CellRenderer(args);
-            var asText = FormattersHelper.asText(args);
-
-            var val = [
-              asText ? args.modelSchema.fullName : '<strong>' + args.modelSchema.fullName + '</strong>',
-              formatter(args),
-            ].join(': ');
-
-            return { text: val };
-          }
-        },
-      };
-
-      return ComplexTypesMapper(args, builder);
+      return name + ': ' + (textValues ? '{ ' + textValues + ' }' : finalValue);
     }
 
-    function treeViewNode(name, items) {
-      return {
-        text: name,
-        items: items,
+    function getComplexTypeAsYaml(data, parameters) {
+      var yaml = null;
+      try {
+        yaml = window.jsyaml.safeDump(data);
+      } catch (e) {
+        if (e instanceof window.jsyaml.YAMLException) {
+          console.error('Error trying to format data to yaml: ', data, e);
+        } else {
+          throw e;
+        }
       }
+
+      return htmlContent(yaml, parameters);
+    }
+
+    function htmlContent(yaml, parameters) {
+      var container = $('<div>');
+
+      var maxHeight = parameters.maxDatagridCellHeight;
+
+      container.css({
+        'white-space': 'pre',
+        'overflow': 'auto',
+        'max-height': maxHeight ? maxHeight + 'px' : 'auto',
+      });
+      container.append(yaml);
+
+      return container;
     }
   }
 })();

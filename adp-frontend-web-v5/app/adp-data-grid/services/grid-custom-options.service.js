@@ -31,7 +31,7 @@
         _.each(param1, function (v, k) {
           if (self.val[k] !== v) {
             self.val[k] = v;
-            self._trigger("change", k, v);
+            setTimeout(function(){self._trigger("change", k, v);} ,0);
           }
         });
       } else if (typeof param1 === "string") {
@@ -40,27 +40,43 @@
         } else {
           if (this.val[param1] !== param2) {
             this.val[param1] = param2;
-            this._trigger("change", param1, param2);
+            setTimeout(function(){self._trigger("change", param1, param2);}, 0);
           }
         }
       }
     };
 
     AdpGridCustomOptions.prototype.setHandler = function (eventName, attr, cb) {
+      if (!this.handlers[eventName]) {
+        this.handlers[eventName] = [];
+      }
+
       if (!this.handlers[eventName][attr]) {
         this.handlers[eventName][attr] = [];
       }
+
       this.handlers[eventName][attr].push(cb);
+    };
+
+    AdpGridCustomOptions.prototype.setOrReplaceHandler = function (eventName, attr, cb) {
+      if (this.handlers[eventName] && this.handlers[eventName][attr]) {
+        delete this.handlers[eventName][attr];
+      }
+      this.setHandler(eventName, attr, cb);
     };
 
     AdpGridCustomOptions.prototype._trigger = function (eventName, _attr, newval) {
       var self = this;
       _.each([_attr, "$$$"], function (attr) {
-        if (self.handlers[eventName] && self.handlers[eventName][attr] && self.handlers[eventName][attr].length) {
-          _.each(self.handlers[eventName][attr], function (cb) {
-            cb.call(self, newval);
-          })
-        }
+        _.each(_.keys(self.handlers), function (handlerKey) {
+          if (handlerKey.startsWith(eventName)) {
+            if (self.handlers[handlerKey][attr] && self.handlers[handlerKey][attr].length) {
+              _.each(self.handlers[handlerKey][attr], function (cb) {
+                setTimeout(function(){cb.call(self, newval) }, 0);
+              })
+            }
+          }
+        })
       });
 
       mapToUrl.call(self);

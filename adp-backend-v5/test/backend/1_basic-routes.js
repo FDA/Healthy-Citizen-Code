@@ -2,10 +2,9 @@
 /**
  * Tests basic static routes in V5
  */
-const request = require('supertest');
 require('should');
 
-const { prepareEnv, getMongoConnection } = require('../test-util');
+const { prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
 describe('V5 Backend Basic Routes', function () {
   before(function () {
@@ -23,7 +22,7 @@ describe('V5 Backend Basic Routes', function () {
 
   describe('GET /', function () {
     it('responds with backend status', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get('/')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -36,7 +35,7 @@ describe('V5 Backend Basic Routes', function () {
   });
   describe('GET /schemas', function () {
     it('responds with list of schemas', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get('/schemas')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -55,7 +54,7 @@ describe('V5 Backend Basic Routes', function () {
   });
   describe('GET /routes', function () {
     it('responds with list of basic routes', function (done) {
-      request(this.appLib.app)
+      apiRequest(this.appLib.app)
         .get('/routes')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -63,13 +62,15 @@ describe('V5 Backend Basic Routes', function () {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
           res.body.success.should.equal(true, res.body.message);
           res.body.data.should.have.property('brief');
-          res.body.data.brief.should.containEql('GET /');
-          res.body.data.brief.should.containEql('GET /schemas');
-          res.body.data.brief.should.containEql('GET /metaschema');
-          res.body.data.brief.should.containEql('GET /routes');
-          res.body.data.brief.should.containEql('GET /lists');
-          res.body.data.brief.should.containEql('GET /interface');
-          res.body.data.brief.should.containEql('GET /typeDefaults');
+
+          const { getFullRoute, API_PREFIX } = this.appLib;
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/')}`);
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/schemas')}`);
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/metaschema')}`);
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/routes')}`);
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/lists')}`);
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/interface')}`);
+          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/typeDefaults')}`);
           done();
         });
     });
