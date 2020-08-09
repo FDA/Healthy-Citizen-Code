@@ -1,0 +1,123 @@
+<md-dialog aria-label="{{action | capitalize}}">
+  <form name="addForm" novalidate>
+    <md-toolbar>
+      <div class="md-toolbar-tools">
+        <h2>{{action | capitalize}}</h2>
+        <span flex></span>
+      </div>
+    </md-toolbar>
+
+
+    <md-dialog-content style="max-width:800px;max-height:810px;">
+
+      <div ng-if="(!isChild || action == 'update') || (isChild && action =='add')">
+
+        <!-- Change parent record -->
+        <div ng-if="(isChild && action == 'update') || (isChild && action =='add')">
+
+          <div class="hc-layout" ng-if="!addParentMenu">
+              <div class="form-wrapper">
+                <div>
+                  <div class="field-wrapper">
+                    <md-input-container
+                      id="parent-selector"
+                      layout="row"
+                      layout-wrap>
+                      <div class="label-wrapper" flex="100">
+                        <label
+                          class="md-container-ignore"
+                          for="selectedParentId">
+                            <span ng-if="action == 'update'">Change</span>
+                            <span ng-if="action == 'add'">Select</span>
+                            parent {{parentSchema.labelRenderer}}
+                            <span ng-if="action == 'add'">&nbsp;*</span>
+                        </label>
+                      </div>
+
+                      <ui-select
+                        flex="100"
+                        id="selectedParentId"
+                        name="selectedParentId"
+                        aria-label="selectedParentId"
+                        class="md-no-float md-container-ignore"
+                        ng-model="wizardForm.selectedParentId"
+                        theme="selectize"
+                        ng-required="true"
+                        append-to-body="true">
+
+                        <ui-select-match placeholder="Select parent record">
+                          {{ LabelRenderers[parentSchema.labelRenderer]($select.selected) }}
+                        </ui-select-match>
+
+                        <ui-select-choices
+                          repeat="parent._id as parent in parentsList track by $index">
+                          <span data-value="{{ parent._id }}">
+                            {{ LabelRenderers[parentSchema.labelRenderer](parent) }}
+                          </span>
+                        </ui-select-choices>
+                      </ui-select>
+                    </md-input-container>
+                  </div>
+                </div>
+              </div>
+
+              <md-button md-raised md-accent ng-click="toggleAddParent()">Create new {{parentSchema.labelRenderer}}</md-button>
+
+            </div>
+
+          <ng-form name="createParentForm" ng-if="addParentMenu">
+            <hc-scheme-form
+              title="Add new {{parentSchema.labelRenderer}}"
+              data="parentSchema"
+              ng-model="parentFormData"
+              hide-subforms="true">
+            </hc-scheme-form>
+          </ng-form>
+
+        </div>
+
+        <div ng-if="!addParentMenu">
+          <hc-scheme-form
+            data="Schema"
+            ng-model="formData"
+            hide-subforms="true">
+          </hc-scheme-form>
+        </div>
+      </div>
+    </md-dialog-content>
+
+    <!-- Actions -->
+    <md-dialog-actions layout="row">
+      <div ng-if="addParentMenu">
+        <md-button ng-click="toggleAddParent()" class="cancel-button">
+          Cancel
+        </md-button>
+
+        <md-button
+          class="add-button"
+          style="margin-right:20px;"
+          ng-disabled="createParentForm.$invalid"
+          ng-click="createParent()">
+            Add {{parentSchema.labelRenderer}}
+        </md-button>
+      </div>
+
+      <div ng-if="!addParentMenu">
+        <span flex></span>
+        <md-button ng-click="cancel()" class="cancel-button">
+          Cancel
+        </md-button>
+
+        <md-button
+          ng-click="updateRecord()"
+          class="add-button"
+          style="margin-right:20px;"
+          ng-disabled="(addForm.$invalid || addForm.$pristine || isChild && action =='add' && !wizardForm.selectedParentId) || (isChild && action == 'add' && addForm.wizardStep2.$invalid || addForm.wizardStep2.$prostine)">
+          {{action | capitalize}}
+        </md-button>
+      </div>
+
+
+    </md-dialog-actions>
+  </form>
+</md-dialog>

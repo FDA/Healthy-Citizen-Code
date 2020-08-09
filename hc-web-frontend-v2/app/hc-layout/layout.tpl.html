@@ -1,0 +1,47 @@
+<!-- HEADER -->
+<div
+  ng-if="vm.header.visible"
+  data-smart-include="app/hc-layout/partials/header.tpl.html"
+  class="placeholder-header">
+</div>
+<!-- END HEADER -->
+
+<!-- Left panel : Navigation area -->
+<!-- Note: This width of the aside area can be adjusted through LESS variables -->
+<div data-smart-include="app/hc-layout/partials/navigation.tpl.html"
+     class="placeholder-left-panel">
+</div>
+<!-- END NAVIGATION -->
+
+<!-- MAIN PANEL -->
+<div id="main" role="main">
+  <demo-controls
+    ng-if="vm.interface.layout.showDemoControls">
+  </demo-controls>
+
+  <!-- RIBBON -->
+  <div id="ribbon">
+    <!-- breadcrumb -->
+    <!-- <state-breadcrumbs></state-breadcrumbs> -->
+    <!-- end breadcrumb -->
+  </div>
+  <!-- END RIBBON -->
+
+  <div
+    data-smart-router-animation-wrap="content content@app"
+    data-wrap-for="#content">
+    <div data-ui-view="content" data-autoscroll="false"></div>
+  </div>
+
+</div>
+<!-- END MAIN PANEL -->
+
+<!-- PAGE FOOTER -->
+<div
+  ng-if="vm.footer.visible"
+  data-smart-include="app/hc-layout/partials/footer.tpl.html">
+</div>
+
+<hc-user-menu></hc-user-menu>
+
+<!-- END PAGE FOOTER -->

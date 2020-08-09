@@ -1,0 +1,33 @@
+<div class="modal-header text-center">
+  <h3 class="modal-title">
+    Record audio.
+  </h3>
+
+  <adp-uploader-errors
+    uploader="vm.uploader">
+  </adp-uploader-errors>
+</div>
+
+<div class="modal-body">
+  <adp-audio-recorder
+    result-file="vm.resultFile"
+    options="vm.options">
+  </adp-audio-recorder>
+</div>
+
+<div class="modal-footer">
+  <button
+    class="btn btn-primary"
+    type="button"
+    ng-disabled="vm.isEmpty()"
+    ng-click="vm.save()">
+    Save
+  </button>
+
+  <button
+    class="btn btn-default"
+    type="button"
+    ng-click="vm.cancel()">
+    Cancel
+  </button>
+</div>

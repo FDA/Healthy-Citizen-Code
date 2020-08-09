@@ -1,0 +1,54 @@
+{
+  "name": "healthy_citizen",
+  "description": "Conceptant Healthy Citizen",
+  "version": "0.3.0",
+  "repository": {
+    "type": "git",
+    "url": "https://git@bitbucket.conceptant.com/scm/hc/hc-backend-v3.git"
+  },
+  "scripts": {
+    "start": "node --stack-size=8192 app.js",
+    "test": "mocha --reporter spec --timeout 5000"
+  },
+  "dependencies": {
+    "async": "^2.2.0",
+    "bcrypt-nodejs": "0.0.3",
+    "crypto": "0.0.3",
+    "dotenv": "^4.0.0",
+    "fs-extra": "^4.0.2",
+    "jsonwebtoken": "^7.3.0",
+    "lodash": "^4.17.4",
+    "log4js": "^1.1.0",
+    "merge": "^1.2.0",
+    "moment": "^2.17.1",
+    "mongodb": "^2.2.22",
+    "mongoose": "^4.9.1",
+    "nodemailer": "^3.1.8",
+    "nodemon": "^1.11.0",
+    "passport": "^0.3.2",
+    "passport-jwt": "^2.2.1",
+    "passport-local": "^1.0.0",
+    "passport-local-mongoose": "^4.0.0",
+    "pluralize": "^3.1.0",
+    "pm2": "^2.7.1",
+    "require.js": "^1.0.0",
+    "restify": "^4.3.0",
+    "restify-errors": "^4.3.0",
+    "uglify-js": "^3.0.16",
+    "ws": "^2.3.1"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "chai-http": "^3.0.0",
+    "mocha": "^3.2.0",
+    "nodemon": "^1.11.0",
+    "pow-mongodb-fixtures": "^0.14.0",
+    "should": "^11.2.0",
+    "supertest": "^2.0.0"
+  },
+  "engines": {
+    "node": "6.10.2"
+  },
+  "license": "UNLICENSED",
+  "private": true
+}

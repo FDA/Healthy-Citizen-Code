@@ -1,0 +1,120 @@
+{
+  "models": {
+    "productsSupplements": {
+      "type": "Schema",
+      "fullName": "Supplement Products",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "requiresAuthentication": true,
+      "description": "Global catalog of supplements supported by the system",
+      "fields": {
+        "rawData": {
+          "type": "Mixed",
+          "visible": false,
+          "fullName": "Raw Data",
+          "description": "Contains the pulled data as-is for future reparsing"
+        },
+        "processed": {
+          "type": "Boolean",
+          "visible": false,
+          "index": true,
+          "fullName": "Processed",
+          "description": "If true then the record was already processed, otherwise rawData needs to be processed to produce the rest of the records fields"
+        },
+        "key": {
+          "type": "String",
+          "visible": false,
+          "unique": true,
+          "fullName": "Key",
+          "description": "Unique key identifying each record to prevent duplicates. This is different from _id as it is based on the record contents"
+        },
+        "source": {
+          "type": "String",
+          "visible": false,
+          "index": true,
+          "list": "dataSources",
+          "fullName": "Source",
+          "description": "Data source as specified in dataPulls or (in the future) in 0_data_sources.json"
+        },
+
+        "name": {
+          "type": "String",
+          "searchable": true,
+          "index": true,
+          "fullName": "Product Name",
+          "description": "supplement labelled as name"
+        },
+        "firmName": {
+          "type": "String",
+          "searchable": true,
+          "index": true,
+          "fullName": "Firm Name",
+          "description": "Manufacturing firm"
+        },
+        "dsldId": {
+          "type": "String",
+          "searchable": true,
+          "index": true,
+          "fullName": "DSLD ID",
+          "description": "Supplement ID"
+        },
+        "contentAmount": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Container Amount",
+          "description": "Amount of product in container"
+        },
+        "contentUnits": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Units of amount",
+          "description": "Units for amount in container"
+        },
+        "servingAmount": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Serving Size",
+          "description": "Single serving amount"
+        },
+        "servingUnits": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Serving Units",
+          "description": "Units for serving"
+        },
+        "type": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Supplement Type",
+          "description": "Type of supplement"
+        },
+        "form": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Form of Product",
+          "description": "The form the product is delivered in."
+        },
+        "uses": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Claims and Uses",
+          "description": "What the manufacturer claims as uses"
+        },
+        "targetGroups": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Target Groups",
+          "description": "Recommended groups for this supplement"
+        }
+      }
+    }
+  }
+}

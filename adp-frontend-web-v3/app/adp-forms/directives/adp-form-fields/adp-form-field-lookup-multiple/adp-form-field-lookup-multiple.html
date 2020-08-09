@@ -1,0 +1,43 @@
+<adp-form-field-container
+  adp-data="data"
+  adp-field="field">
+
+  <label
+    for="{{field.keyName}}"
+    class="label">
+    {{field.fullName}}
+    <span ng-show="field.required">&nbsp;*</span>
+
+    <adp-tooltip
+      adp-field="field">
+    </adp-tooltip>
+  </label>
+
+  <label class="select select-mutiple">
+    <span
+      ng-if="loading"
+      ng-style="!loading && {'animation-play-state': 'paused'}"
+      class="form-field-loader fa fa-gear fa-2x fa-spin">
+    </span>
+
+    <input
+      type="text"
+      adp-select2
+      style="width:100%"
+      aria-label="{{field.keyName}}"
+      class="select2 form-control"
+      ng-required="field.required"
+      adp-validate="field"
+      adp-list-formatter
+      data-options="options"
+      name="{{field.keyName}}"
+      ng-model="adpFormData[field.keyName]"
+      id="{{field.keyName}}">
+
+    <span class="select2-arrow" role="presentation"><b role="presentation"></b></span>
+  </label>
+
+  <adp-messages
+    adp-field="field">
+  </adp-messages>
+</adp-form-field-container>

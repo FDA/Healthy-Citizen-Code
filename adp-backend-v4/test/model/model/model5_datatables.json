@@ -1,0 +1,58 @@
+{
+  "models": {
+    "model5s": {
+      "type": "Schema",
+      "fullName": "model5s",
+      "limitReturnedRecords": 3,
+      "defaultSortBy": {"n": -1},
+      "description": "Used for testing Datatables and sorting support testing",
+      "fields": {
+        "n": {
+          "type": "Number",
+          "fullName": "Number",
+          "description": "Number"
+        },
+        "s": {
+          "type": "String",
+          "fullName": "String",
+          "description": "String"
+        },
+        "d": {
+          "type": "Date",
+          "fullName": "Date",
+          "description": "Date"
+        },
+        "q": {
+          "type": "String",
+          "fullName": "Query Test",
+          "searchable": true,
+          "description": "Query Test"
+        },
+        "as": {
+          "type": "Subschema",
+          "defaultSortBy": {"_id": 1},
+          "fullName": "Subschema",
+          "limitReturnedRecords": 4,
+          "description": "Subschema",
+          "fields": {
+            "sn": {
+              "type": "Number",
+              "fullName": "Subschema Number",
+              "description": "Subschema Number"
+            },
+            "ss": {
+              "type": "String",
+              "fullName": "Subschema String",
+              "description": "Subschema String"
+            },
+            "sd": {
+              "type": "Date",
+              "fullName": "Subschema Date",
+              "description": "Subschema Date"
+            }
+          }
+        }
+      }
+    }
+  }
+}

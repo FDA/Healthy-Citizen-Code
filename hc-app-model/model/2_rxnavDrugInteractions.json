@@ -1,0 +1,25 @@
+{
+  "models": {
+    "rxnavDrugInteractions": {
+      "type": "Schema",
+      "fullName": "Rxnav Drug Interactions",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "description": "Rxnav Drug Interactions",
+      "fields": {
+        "interactionTypeGroup": {
+          "type": "Mixed",
+          "visible": false,
+          "fullName": "Interaction Type Group",
+          "description": "Root of the data."
+        },
+        "rxcui": {
+          "type": "String",
+          "visible": false,
+          "fullName": "Rxcui",
+          "description": "Rxcui is the group to which medication with current ndc11 is attached"
+        }
+      }
+    }
+  }
+}

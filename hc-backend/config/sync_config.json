@@ -1,0 +1,4 @@
+{
+  "defaultHospitalServerUrl": "http://52.72.172.54:8080/fhir/baseDstu2 ",
+  "defaultPatientId": 12128
+}

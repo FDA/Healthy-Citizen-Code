@@ -1,0 +1,98 @@
+{
+  "models": {
+    "eligibilities": {
+      "type": "Schema",
+      "fullName": "Study Eligibility",
+      "requiresAuthentication": true,
+      "fields": {
+        "studyName": {
+          "fullName": "Study Name",
+          "type": "ObjectID",
+          "required": false,
+          "description": "Arm Name",
+          "lookup": {
+            "table": "studies",
+            "foreignKey": "_id",
+            "label": "studyName",
+            "scopes": {
+              "ownRecordScope": {
+                "permissions": "accessAsUser",
+                "where": "{$eq: ['$creator', this.req.user._id]}"
+              }
+            },
+            "id": "studyName"
+          }
+        },
+        "ageRange": {
+          "fullName": "Age Range",
+          "list": "ageRanges",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "colspan": 2,
+          "description": "Required age range for study"
+        },
+        "gender": {
+          "fullName": "Gender",
+          "list": "genders",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "colspan": 2,
+          "description": "Gender requirements for study"
+        },
+        "geographicRegion": {
+          "fullName": "Geographic Region",
+          "type": "String",
+          "list": "geographicRegions",
+          "default": "",
+          "required": false,
+          "colspan": 2,
+          "description": "Study locations"
+        },
+        "conditions": {
+          "fullName": "Medical Conditions",
+          "type": "String[]",
+          "list": "medicalConditions",
+          "default": "",
+          "required": false,
+          "colspan": 2,
+          "description": "Specific conditions potential participants must have"
+        },
+        "procedures": {
+          "fullName": "Medical Procedures",
+          "type": "String[]",
+          "list": "procedures",
+          "default": "",
+          "required": false,
+          "colspan": 2,
+          "description": "Specific procedures potential participants must have"
+        },
+        "medicationTypes": {
+          "fullName": "Medications",
+          "type": "String[]",
+          "list": "diabetesMedicationTypes",
+          "default": "",
+          "required": false,
+          "colspan": 2,
+          "description": "Specific medications potential participants must be taking"
+        },
+        "sideEffects": {
+          "fullName": "Side Effects/Adverse Events",
+          "type": "String[]",
+          "list": "sideEffects",
+          "default": "",
+          "required": false,
+          "colspan": 2,
+          "description": "Specific side effects potential participants must have"
+        },
+        "studyDetails": {
+          "type": "String",
+          "visible": true,
+          "fullName": "Other Study Eligibility Data Here",
+          "description": "Further details on eligability requirements"
+        }
+      }
+    }
+  }
+}

@@ -2,7 +2,7 @@
   "id": "7d597465-ef24-4539-880a-de568b7db0f2",
   "version": "2.0",
   "name": "PAGWEB-PROTOTYPE",
-  "url": "https://pagweb-prototype-demo.conceptant.com/",
+  "url": "https://pagweb:pagwebpass@pagweb-prototype.conceptant.com/",
   "tests": [{
     "id": "55d5bf2d-4522-43d5-9b1e-32c4da77f669",
     "name": "Login with valid credentials",
@@ -10,14 +10,14 @@
       "id": "8e89ca06-8448-440a-ab0f-3ee57aba72b8",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
+      "target": "/#/login",
       "targets": [],
       "value": ""
     }, {
       "id": "6fc3436e-4512-4137-a5ee-47ad6ac6f757",
       "comment": "",
       "command": "//open",
-      "target": "http://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login",
+      "target": "https://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login",
       "targets": [],
       "value": ""
     }, {
@@ -33,7 +33,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//form-header[@class='ng-scope']",
       "targets": [],
-      "value": "100000"
+      "value": "150000"
     }, {
       "id": "684ae7dd-d8e6-4157-a230-7748025f06ba",
       "comment": "",
@@ -61,16 +61,18 @@
         ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/div/fieldset/adp-form-field-string[2]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
         ["xpath=//adp-form-field-string[2]/adp-form-field-container/section/string-control/input", "xpath:position"]
       ],
-      "value": "NJje@Vf6w"
+      "value": "Test123!"
     }, {
       "id": "ef34af8d-fb30-4ace-a216-3c04296d5bac",
       "comment": "",
       "command": "click",
-      "target": "css=div:nth-child(3) > .ng-scope",
+      "target": "xpath=//button[contains(.,'Sign In')]",
       "targets": [
-        ["css=div:nth-child(3) > .ng-scope", "css:finder"],
-        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/div/fieldset", "xpath:idRelative"],
-        ["xpath=//div/fieldset", "xpath:position"]
+        ["css=.btn", "css:finder"],
+        ["xpath=//button[@type='submit']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/form-footer/footer/div/button", "xpath:idRelative"],
+        ["xpath=//button", "xpath:position"],
+        ["xpath=//button[contains(.,'Sign In')]", "xpath:innerText"]
       ],
       "value": ""
     }, {
@@ -92,7 +94,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "100000"
+      "value": "150000"
     }, {
       "id": "21d31199-01c5-4d86-a6f8-45b4b0f172f5",
       "comment": "",
@@ -108,7 +110,7 @@
       "id": "32ad7e5a-fc68-4664-873c-a52b0f7de386",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -124,7 +126,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "e642abf5-e6dd-487f-a11f-c4127481d8c2",
       "comment": "",
@@ -158,7 +160,7 @@
       "id": "521d736d-de09-4788-8175-0ff7e74c68fb",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -174,7 +176,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "9a45a994-5cfb-461d-bbbd-a02bdc204a65",
       "comment": "",
@@ -208,7 +210,7 @@
       "id": "c39bde39-d4f5-49a5-9bf0-6e46460271e7",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -224,7 +226,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "487e14f6-6e06-433b-987c-d2dacc378c2a",
       "comment": "",
@@ -258,7 +260,7 @@
       "id": "13ecafd8-e455-418b-abc9-edf5aab4ce18",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -274,7 +276,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "37bb8584-b00f-448f-97f6-959337f8ef3a",
       "comment": "",
@@ -308,7 +310,7 @@
       "id": "1c8bc124-2037-4066-98f6-e19b86c599fd",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -324,7 +326,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "2a874ae5-37ae-4592-8bdb-28dfdec977d2",
       "comment": "",
@@ -358,7 +360,7 @@
       "id": "c183d46a-db1e-4280-a5ef-3148e6dac348",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -374,7 +376,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "c0da22f4-f874-4132-8d88-a3e24061ffe0",
       "comment": "",
@@ -408,7 +410,7 @@
       "id": "ada6cc7d-8a4b-4d02-8782-6713c5abadd7",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -424,7 +426,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "2f4f49e5-b792-48c1-a79d-573f2947032d",
       "comment": "",
@@ -458,7 +460,7 @@
       "id": "e6869e83-f076-4eea-83c7-58ad16b9292f",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -474,7 +476,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "6380fd8c-da65-4c0b-848a-a7a4005e5bce",
       "comment": "",
@@ -508,7 +510,7 @@
       "id": "ece8573d-ca23-48f8-b7a7-679f04091351",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -524,7 +526,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "9c43187b-d0f7-4c06-a804-10b0add72761",
       "comment": "",
@@ -558,7 +560,7 @@
       "id": "b2e0892b-8413-43c4-b972-534532f3fce0",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -574,7 +576,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "28712425-b344-48f6-a9d1-763933b8381e",
       "comment": "",
@@ -608,7 +610,7 @@
       "id": "56e35d9e-c4c8-473f-b393-db5b0f04d27f",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
+      "target": "/users",
       "targets": [],
       "value": ""
     }, {
@@ -624,7 +626,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//span[@id='logo']",
       "targets": [],
-      "value": "30000"
+      "value": "150000"
     }, {
       "id": "cc31732b-135e-4b4a-8459-b2b88172df98",
       "comment": "",
@@ -652,70 +654,13 @@
       "value": ""
     }]
   }, {
-    "id": "548380d1-bc25-4eaf-a234-cdbff902ff4b",
-    "name": "Open Health Advocate Widget page - NOT COMPLETED",
-    "commands": [{
-      "id": "f3a0aa67-f880-4f00-9691-313cba938f9c",
-      "comment": "",
-      "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/users",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "ec24cb83-cdf7-4884-986e-3c3e12b37abc",
-      "comment": "",
-      "command": "setWindowSize",
-      "target": "1552x840",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "db372cd3-bcc6-4ff4-a0d1-1060a68f35d1",
-      "comment": "",
-      "command": "waitForElementPresent",
-      "target": "xpath=//span[@id='logo']",
-      "targets": [],
-      "value": "30000"
-    }, {
-      "id": "ee62d132-d28b-4e57-a881-1f8f1dd9c394",
-      "comment": "",
-      "command": "click",
-      "target": "xpath=//span[contains(text(),'Health Advocate Widget')]",
-      "targets": [
-        ["css=li:nth-child(5) .menu-item-parent", "css:finder"],
-        ["xpath=//aside[@id='left-panel']/nav/ul/li[5]/a/span", "xpath:idRelative"],
-        ["xpath=//li[5]/a/span", "xpath:position"]
-      ],
-      "value": ""
-    }, {
-      "id": "c0ae1c7d-188e-4225-aade-1d4e5fb2a948",
-      "comment": "",
-      "command": "waitForElementPresent",
-      "target": "xpath=//div[@id='ribbon']",
-      "targets": [],
-      "value": "150000"
-    }, {
-      "id": "6dd283e5-f673-4222-81fe-8d8559ada9be",
-      "comment": "",
-      "command": "assertTitle",
-      "target": "Health Advocate | PAG Simulated Portal",
-      "targets": [],
-      "value": ""
-    }]
-  }, {
     "id": "e19acb29-2bad-469e-be8e-3b2cfb480838",
     "name": "Create new account",
     "commands": [{
-      "id": "d2dede30-34d0-4733-a545-160568af2876",
-      "comment": "",
-      "command": "//open",
-      "target": "http://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login",
-      "targets": [],
-      "value": ""
-    }, {
       "id": "22623d03-95e9-4bb6-883e-ea772dc5f4df",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
+      "target": "/#/login",
       "targets": [],
       "value": ""
     }, {
@@ -731,7 +676,7 @@
       "command": "waitForElementPresent",
       "target": "xpath=//form-header[@class='ng-scope']",
       "targets": [],
-      "value": "100000"
+      "value": "150000"
     }, {
       "id": "49541d78-d80d-40c3-b440-24e90ce69357",
       "comment": "",
@@ -743,7 +688,7 @@
       "id": "54103b7b-3120-4aa8-ace5-6a124d93079b",
       "comment": "",
       "command": "assertText",
-      "target": "//form-header[@class='ng-scope']",
+      "target": "xpath=//form-header[@class='ng-scope']",
       "targets": [],
       "value": "Enter Account Information"
     }, {
@@ -920,172 +865,2856 @@
       "value": ""
     }]
   }, {
-    "id": "87a418ac-41db-479c-a9f2-8addd6a3e944",
-    "name": "Edit profile of new created account - NOT COMPLETED email",
+    "id": "8bc715c6-7ca2-4080-95fc-fe7f71c257df",
+    "name": "Adverse Events",
     "commands": [{
-      "id": "e0a3d71c-a4e7-48d1-921e-07bef54be28e",
-      "comment": "",
-      "command": "//open",
-      "target": "http://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "22d2d384-bd16-476f-b603-c3654a7df927",
+      "id": "d5d5dac4-233c-4960-aeb5-e06c69233e1e",
       "comment": "",
       "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
+      "target": "/adverseEvents",
       "targets": [],
       "value": ""
     }, {
-      "id": "77723968-c3ab-4c66-968d-fdd28b66ba8a",
+      "id": "d0ec3925-784f-4b45-9888-e813bceec106",
       "comment": "",
       "command": "setWindowSize",
       "target": "1552x840",
       "targets": [],
       "value": ""
     }, {
-      "id": "382af796-cc95-4ef9-a787-5e1f8d08edc4",
+      "id": "95a1edac-ccf5-4705-8c54-e93143c29f96",
       "comment": "",
-      "command": "waitForElementPresent",
-      "target": "xpath=//form-header[@class='ng-scope']",
-      "targets": [],
-      "value": "100000"
-    }, {
-      "id": "e7de47f5-37ae-4e77-96d6-b64dc6a98f38",
-      "comment": "",
-      "command": "click",
-      "target": "xpath=//a[@class='ng-binding']",
+      "command": "assertTitle",
+      "target": "drugInteractions | PAG Simulated Portal",
       "targets": [],
       "value": ""
     }, {
-      "id": "e51762d9-f484-4e58-800e-e6087a1f988f",
+      "id": "9ae971bd-d5e7-4734-9e32-6524ba08c022",
+      "comment": "",
+      "command": "selectFrame",
+      "target": "index=0",
+      "targets": [
+        ["index=0"]
+      ],
+      "value": ""
+    }, {
+      "id": "0b632027-a3a7-4291-84c4-131bfc391395",
       "comment": "",
       "command": "assertText",
-      "target": "//form-header[@class='ng-scope']",
+      "target": "css=.content-box > .content-title:nth-child(1)",
       "targets": [],
-      "value": "Enter Account Information"
+      "value": "Potential Adverse Events For My Current Medications"
     }, {
-      "id": "6ecd81d4-ec25-4dd0-9e8a-601a6985db61",
-      "comment": "",
-      "command": "run",
-      "target": "Get current date and time",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "8805afef-7771-41d6-9818-ed79770ec064",
-      "comment": "",
-      "command": "echo",
-      "target": "${currentDate}",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "f5a5193f-4242-4508-b1da-049bb48e11e6",
-      "comment": "",
-      "command": "echo",
-      "target": "${currentTime}",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "7c513b0f-86f7-47fc-884d-873888586dfd",
-      "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='login']",
-      "targets": [],
-      "value": "ATUser${currentDate}${currentTime}"
-    }, {
-      "id": "e7d02554-312e-4a60-8bb2-e86bc56f788a",
-      "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='password']",
-      "targets": [],
-      "value": "Qwer1234!"
-    }, {
-      "id": "558d5dac-4261-42cb-a67e-5f8bda78ca32",
-      "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='passwordConfirmation']",
-      "targets": [],
-      "value": "Qwer1234!"
-    }, {
-      "id": "d39fb24f-9cfb-42ce-8bef-11fd44639056",
-      "comment": "",
-      "command": "click",
-      "target": "css=.btn",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "0852555a-dc0e-47fb-8099-3244ccef2f5e",
-      "comment": "",
-      "command": "waitForElementPresent",
-      "target": "css=.textoFull > span",
-      "targets": [],
-      "value": "Account has been successfully created"
-    }, {
-      "id": "366f32da-1a91-41d9-9edf-68a008f45ae7",
+      "id": "5bc13350-05e3-472c-852f-5ead23b11014",
       "comment": "",
       "command": "assertText",
-      "target": "//form-header[@class='ng-scope']",
+      "target": "css=.content-title:nth-child(2)",
       "targets": [],
-      "value": "Sign In"
+      "value": "The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s) "
     }, {
-      "id": "1bdb7b2f-85d9-4f52-9c26-09135389adf8",
+      "id": "05423ece-dffb-4026-ac5d-dec749456489",
       "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='login']",
-      "targets": [],
-      "value": "ATUser${currentDate}${currentTime}"
-    }, {
-      "id": "1d4e84e8-d919-42da-a968-158a220eb964",
-      "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='password']",
-      "targets": [],
-      "value": "Qwer1234!"
-    }, {
-      "id": "ccc32a8f-25d4-4eed-b2a3-f44dd247c153",
-      "comment": "",
-      "command": "click",
-      "target": "css=.btn",
+      "command": "assertElementPresent",
+      "target": "css=.date-of-receipt",
       "targets": [],
       "value": ""
     }, {
-      "id": "2eb53c28-6c34-419b-b7ec-1bdc786c0992",
+      "id": "59cc0f3d-db31-4aa0-9f27-b593e550dbbc",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.gender",
+      "targets": [
+        ["css=.gender", "css:finder"],
+        ["xpath=//th[2]", "xpath:position"],
+        ["xpath=//th[contains(.,'Gender')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "40fc0d6a-72b6-408d-8d3e-64270aae1dd3",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.age",
+      "targets": [
+        ["css=.age", "css:finder"],
+        ["xpath=//th[3]", "xpath:position"],
+        ["xpath=//th[contains(.,'Age')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "3db481c4-2ed5-4c72-ad13-ebde537f47ee",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.severity",
+      "targets": [
+        ["css=.severity", "css:finder"],
+        ["xpath=//th[4]", "xpath:position"],
+        ["xpath=//th[contains(.,'Severity')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "044702ae-33f7-4b63-85cf-1427bcd0f152",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.reactions",
+      "targets": [
+        ["css=.reactions", "css:finder"],
+        ["xpath=//th[5]", "xpath:position"],
+        ["xpath=//th[contains(.,'Reactions')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "630a0649-e936-4d82-8ff6-13cdd4b67512",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(2) .group-head-content",
+      "targets": [],
+      "value": "Prozac\\nTotal number of adverse events: 16 "
+    }, {
+      "id": "81b44e98-ea64-451f-a0c6-6712da43a054",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(2) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(2) .group-head-content", "css:finder"],
+        ["xpath=//td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "2390cc53-18a5-4f73-bbb4-d73e81260e47",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-parent:nth-child(1) > td:nth-child(5)",
+      "targets": [
+        ["css=.group-body:nth-child(3) > .td-accordion-parent:nth-child(1) > td:nth-child(5)", "css:finder"],
+        ["xpath=//td[5]", "xpath:position"],
+        ["xpath=//td[contains(.,'Toxicity to various agents, Completed suicide')]", "xpath:innerText"]
+      ],
+      "value": "Toxicity to various agents, Completed suicide "
+    }, {
+      "id": "e6cac6cf-1b6f-4a7e-8a9d-ff53d4042c9c",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-parent:nth-child(1) .accordion-control",
+      "targets": [
+        ["css=.group-body:nth-child(3) > .td-accordion-parent:nth-child(1) .accordion-control", "css:finder"],
+        ["xpath=//td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "5427d461-ca9f-430a-ad09-9724d6585d21",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(1)",
+      "targets": [
+        ["css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(1)", "css:finder"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'Safety Report ID: 14527027')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "f0a6417f-303d-447f-bafa-4089e6d8002d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(1)",
+      "targets": [],
+      "value": "Safety Report ID: 14527027"
+    }, {
+      "id": "7ed2f0b4-e7d7-4b7d-a0d5-dea6675aa2f7",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(2)",
+      "targets": [
+        ["css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(2)", "css:finder"],
+        ["xpath=//p[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "6565fca0-9899-4401-8390-9c72a7e7a85e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(2)",
+      "targets": [],
+      "value": "Medications Involved: FLUOXETINE HYDROCHLORIDE. - Suspect\\nATORVASTATIN CALCIUM. - Suspect\\nLEVOTHYROXINE SODIUM. - Suspect\\nDIPHENHYDRAMINE HCL - Suspect\\nGABAPENTIN. - Suspect\\nACETAMINOPHEN AND DIPHENHYDRAMINE HYDROCHLORIDE - Suspect\\nCYCLOBENZAPRINE. - Suspect\\nLORAZEPAM. - Suspect"
+    }, {
+      "id": "43c4b6b5-0cd5-429b-97e5-28d8c819ef6e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(4) .group-head-content",
+      "targets": [],
+      "value": "Losartan Potassium\\nTotal number of adverse events: 11 "
+    }, {
+      "id": "c25d79f8-d796-43fa-bd18-e2d2adcb6f28",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(4) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(4) .group-head-content", "css:finder"],
+        ["xpath=//tbody[3]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "84e3c86c-8486-4aa6-b46e-1e93a3de0b82",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(6) .group-head-content",
+      "targets": [],
+      "value": "Robaxin\\nTotal number of adverse events: 1 "
+    }, {
+      "id": "1920fbdf-6644-4e22-87e6-ba9944b39b14",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(6) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(6) .group-head-content", "css:finder"],
+        ["xpath=//tbody[5]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "579e007e-1f27-4ee5-837c-0b4912bdf810",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(8) .group-head-content",
+      "targets": [],
+      "value": "LEVOLEUCOVORIN CALCIUM\\nTotal number of adverse events: 0 "
+    }, {
+      "id": "68b32661-dd40-47c8-b2f5-23a45537da8f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(8) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(8) .group-head-content", "css:finder"],
+        ["xpath=//tbody[7]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "da9157e5-a0fc-4028-a913-3c32769ad209",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(10) .group-head-content",
+      "targets": [],
+      "value": "acyclovir\\nTotal number of adverse events: 6 "
+    }, {
+      "id": "416726da-d8af-43e2-87a3-729a74f97281",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(10) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(10) .group-head-content", "css:finder"],
+        ["xpath=//tbody[9]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "f8d13897-7b74-4725-b54b-687266a2c04d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(12) .group-head-content",
+      "targets": [],
+      "value": "Carvedilol\\nTotal number of adverse events: 10 "
+    }, {
+      "id": "b9851d25-eb04-4b54-9d9b-d85b420f2932",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(12) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(12) .group-head-content", "css:finder"],
+        ["xpath=//tbody[11]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "1e65d0fd-54bd-43b8-8b1e-cece58eacfde",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(14) .group-head-content",
+      "targets": [],
+      "value": "Hydrochlorothiazide\\nTotal number of adverse events: 27 "
+    }, {
+      "id": "54bbd34d-4b9a-4205-b334-e09c676e91bb",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(14) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(14) .group-head-content", "css:finder"],
+        ["xpath=//tbody[13]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "afdd90f6-ee60-41cd-a741-ffc03e667ce4",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(16) .group-head-content",
+      "targets": [],
+      "value": "Fentanyl System\\nTotal number of adverse events: 132 "
+    }, {
+      "id": "0416e1c8-f85c-4b9a-8c17-a5b45ad48c61",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(16) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(16) .group-head-content", "css:finder"],
+        ["xpath=//tbody[15]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "705f8a57-10c5-40dd-abd9-acace5d66c51",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(18) .group-head-content",
+      "targets": [],
+      "value": "Amitiza\\nTotal number of adverse events: 0 "
+    }, {
+      "id": "8311c20f-2080-46f1-a7f6-e68462c4b97d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(18) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(18) .group-head-content", "css:finder"],
+        ["xpath=//tbody[17]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "3479f05a-302c-4b49-ab3e-6de8be117d40",
+    "name": "Recalls",
+    "commands": [{
+      "id": "ca7cabbc-c3cd-4aa7-9ff6-2cfee0129a75",
+      "comment": "",
+      "command": "open",
+      "target": "/recalls",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "58567381-d461-4aa6-be45-ccb8645e949e",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "f00cf1b0-a411-418a-9713-cbee479dca4f",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "drugInteractions | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "67bf2b82-66c3-415f-bf59-5022e271a6a4",
+      "comment": "",
+      "command": "selectFrame",
+      "target": "index=0",
+      "targets": [
+        ["index=0"]
+      ],
+      "value": ""
+    }, {
+      "id": "d7fb6d73-06de-48b1-932f-0a9bdd419739",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-box > .content-title:nth-child(1)",
+      "targets": [],
+      "value": "My Medications Potential Recalls"
+    }, {
+      "id": "11770bef-fcc8-42bc-8b99-88070458cc7e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(2)",
+      "targets": [],
+      "value": "The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s)"
+    }, {
+      "id": "720b06cd-07fd-4aec-aac5-5a5c9a0d3253",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.start-date",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ca3e4b43-943b-44ba-8fd6-d220c6397f13",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.status",
+      "targets": [
+        ["css=.status", "css:finder"],
+        ["xpath=//th[2]", "xpath:position"],
+        ["xpath=//th[contains(.,'Status')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "c2cc7d9d-703e-498c-9096-bf156fd36a02",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.classification",
+      "targets": [
+        ["css=.classification", "css:finder"],
+        ["xpath=//th[3]", "xpath:position"],
+        ["xpath=//th[contains(.,'Classification')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "68819687-3250-4c93-a0c8-5fd1196a1163",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.firm",
+      "targets": [
+        ["css=.firm", "css:finder"],
+        ["xpath=//th[4]", "xpath:position"],
+        ["xpath=//th[contains(.,'Firm')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "dba69ab0-1307-4e1d-aac2-bb4486fd5323",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.coverage-area",
+      "targets": [
+        ["css=.coverage-area", "css:finder"],
+        ["xpath=//th[5]", "xpath:position"],
+        ["xpath=//th[contains(.,'Coverage Area')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "84f4b79a-755c-42ef-bb6b-e361a3f00868",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(2) .group-head-content",
+      "targets": [],
+      "value": "Losartan Potassium\\nTotal number of recalls: 33 "
+    }, {
+      "id": "3b41b648-1f1e-4299-9589-01bde47cb21b",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(2) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(2) .group-head-content", "css:finder"],
+        ["xpath=//td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "aff06a94-db13-4ee3-a224-3293a8287757",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(4) .group-head-content",
+      "targets": [],
+      "value": "Robaxin\\nTotal number of recalls: 2 "
+    }, {
+      "id": "4d4bc7f6-c631-445d-ba80-4069de403864",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(4) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(4) .group-head-content", "css:finder"],
+        ["xpath=//tbody[3]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b45e1228-5e8a-4e71-8f59-64ca0c25be29",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(5) > .td-accordion-parent:nth-child(1) > td:nth-child(5)",
+      "targets": [
+        ["css=.group-body:nth-child(5) > .td-accordion-parent:nth-child(1) > td:nth-child(5)", "css:finder"],
+        ["xpath=//tbody[4]/tr/td[5]", "xpath:position"],
+        ["xpath=//td[contains(.,'Nationwide in the USA.')]", "xpath:innerText"]
+      ],
+      "value": "Nationwide in the USA. "
+    }, {
+      "id": "f2abe0c5-6c8a-4d7b-a66c-105773662b74",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(5) > .td-accordion-parent:nth-child(1) > td:nth-child(4)",
+      "targets": [
+        ["css=.group-body:nth-child(5) > .td-accordion-parent:nth-child(1) > td:nth-child(4)", "css:finder"],
+        ["xpath=//tbody[4]/tr/td[4]", "xpath:position"],
+        ["xpath=//td[contains(.,'Endo Pharmaceuticals, Inc.')]", "xpath:innerText"]
+      ],
+      "value": "Endo Pharmaceuticals, Inc."
+    }, {
+      "id": "85865241-a5d4-4fdb-9f65-42bd967335ce",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-body:nth-child(5) > .td-accordion-parent:nth-child(1) .accordion-control",
+      "targets": [
+        ["css=.group-body:nth-child(5) > .td-accordion-parent:nth-child(1) .accordion-control", "css:finder"],
+        ["xpath=//tbody[4]/tr/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "383dcc0f-0484-4269-b104-2c8a79370e69",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(5) > .td-accordion-child:nth-child(2) p:nth-child(1)",
+      "targets": [
+        ["css=.group-body:nth-child(5) > .td-accordion-child:nth-child(2) p:nth-child(1)", "css:finder"],
+        ["xpath=//tbody[4]/tr[2]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Reason for Recall: Labeling: Incorrect Instructions: Dosage information on the immediate container label incorrectly states \"Two to four tablets four times daily.\" rather than the correct dosage of \"Two tablets three times daily.\"')]", "xpath:innerText"]
+      ],
+      "value": "Reason for Recall: Labeling: Incorrect Instructions: Dosage information on the immediate container label incorrectly states \"Two to four tablets four times daily.\" rather than the correct dosage of \"Two tablets three times daily.\""
+    }, {
+      "id": "dbcc8f1b-1ec1-4fd3-a82b-ae2b8491e1cb",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(5) > .td-accordion-child:nth-child(2) p:nth-child(2)",
+      "targets": [
+        ["css=.group-body:nth-child(5) > .td-accordion-child:nth-child(2) p:nth-child(2)", "css:finder"],
+        ["xpath=//tbody[4]/tr[2]/td/p[2]", "xpath:position"],
+        ["xpath=//p[contains(.,'Product Information: Lot #: 216702P1, Exp 09/20; 220409P1, Exp 01/21')]", "xpath:innerText"]
+      ],
+      "value": "Product Information: Lot #: 216702P1, Exp 09/20; 220409P1, Exp 01/21"
+    }, {
+      "id": "2df1a5c9-565d-4f61-9470-5028fd2ccafd",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(6) .group-head-content",
+      "targets": [],
+      "value": "LEVOLEUCOVORIN CALCIUM\\nTotal number of recalls: 2 "
+    }, {
+      "id": "046a910a-7569-4a3e-ba7d-468bea538501",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(6) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(6) .group-head-content", "css:finder"],
+        ["xpath=//tbody[5]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "e647a414-1085-426d-9f40-5485d07970fd",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(8) .group-head-content",
+      "targets": [],
+      "value": "acyclovir\\nTotal number of recalls: 3 "
+    }, {
+      "id": "dd60e092-727f-4a93-a84d-4971f125a961",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(8) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(8) .group-head-content", "css:finder"],
+        ["xpath=//tbody[7]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "3da3e8eb-7f85-4a1f-9d09-500bcf70501f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(10) .group-head-content",
+      "targets": [],
+      "value": "Carvedilol\\nTotal number of recalls: 3 "
+    }, {
+      "id": "3bee76a1-05bf-4ec2-94e7-71b8ffc8635e",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(10) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(10) .group-head-content", "css:finder"],
+        ["xpath=//tbody[9]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "ca5f77d1-e1cb-4482-8f0f-a77b5ba008f0",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(12) .group-head-content",
+      "targets": [],
+      "value": "Hydrochlorothiazide\\nTotal number of recalls: 2 "
+    }, {
+      "id": "af9b3f6d-b448-43f5-a576-8e5d38c22322",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(12) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(12) .group-head-content", "css:finder"],
+        ["xpath=//tbody[11]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "6fd3540d-0550-45bc-bda1-987f6ad130c6",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(14) .group-head-content",
+      "targets": [],
+      "value": "Fentanyl System\\nTotal number of recalls: 2 "
+    }, {
+      "id": "42da0538-217a-49e7-9683-19056339f67d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(14) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(14) .group-head-content", "css:finder"],
+        ["xpath=//tbody[13]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "7a4095ba-e558-43ec-a4ac-2a073e8696ac",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(16) .group-head-content",
+      "targets": [],
+      "value": "Amitiza\\nTotal number of recalls: 3 "
+    }, {
+      "id": "b2ecfc81-104d-46d6-b6b4-9ae311995b96",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(16) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(16) .group-head-content", "css:finder"],
+        ["xpath=//tbody[15]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "6251c6ec-9078-42ce-a0c0-52f42ebe35d6",
+    "name": "Drugs Visualization",
+    "commands": [{
+      "id": "3658bdf3-04f8-4993-a6ec-82a731d8fd01",
+      "comment": "",
+      "command": "open",
+      "target": "/#/drugsVisualization",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "a55ea4ed-01bc-4ad5-95fd-6fffd5969367",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e7d8a614-8a97-4135-885d-3c7487926ec9",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "drugsVisualization | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "d2eae394-a73f-491f-aa29-6ff60b8ecbeb",
+      "comment": "",
+      "command": "selectFrame",
+      "target": "index=0",
+      "targets": [
+        ["index=0"]
+      ],
+      "value": ""
+    }, {
+      "id": "90dc5d50-5b24-4eb4-95b0-a7101f695dd7",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(1)",
+      "targets": [
+        ["css=.content-title:nth-child(1)", "css:finder"],
+        ["xpath=//h1", "xpath:position"],
+        ["xpath=//h1[contains(.,'Drugs Interactions Visual Map')]", "xpath:innerText"]
+      ],
+      "value": "Drugs Interactions Visual Map"
+    }, {
+      "id": "066d022a-8242-4fd0-b366-9a0a9130cca4",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(3)",
+      "targets": [
+        ["css=.content-title:nth-child(3)", "css:finder"],
+        ["xpath=//h4", "xpath:position"],
+        ["xpath=//h4[contains(.,'The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s)')]", "xpath:innerText"]
+      ],
+      "value": "The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s)"
+    }, {
+      "id": "bb7a00dc-708c-4466-83b9-d851fe1d6c9f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-1010654 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-1010654 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Robaxin"
+    }, {
+      "id": "411a7724-97dc-4192-8340-af63288b2230",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-200031",
+      "targets": [
+        ["css=.group-200031", "css:finder"]
+      ],
+      "value": "Carvedilol"
+    }, {
+      "id": "dbd6e932-d0fa-416b-b731-0322c20e637b",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-617768 tspan:nth-child(2)",
+      "targets": [],
+      "value": "Amitiza"
+    }, {
+      "id": "fab98c4d-b086-4f21-a93c-6bdbd70cc826",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-577057 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-577057 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Fentanyl"
+    }, {
+      "id": "8b6a1ec3-b4a3-4210-86ca-633145d131ef",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-577057 tspan:nth-child(3)",
+      "targets": [
+        ["css=.group-577057 tspan:nth-child(3)", "css:finder"]
+      ],
+      "value": "System"
+    }, {
+      "id": "20110e6d-76f4-45c8-8353-0cc7dce79bd3",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-104849 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-104849 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Prozac"
+    }, {
+      "id": "4a99c80a-a76c-4974-97e1-a7698e8da5d4",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.group-429503 tspan:nth-child(2)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "0b45e892-a58f-4d64-bf09-f3ffb487aa31",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-429503 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-429503 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Hydrochlorothia..."
+    }, {
+      "id": "8a3aa713-47bc-4a2b-b72b-2e68861e5675",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-979492 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-979492 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Losartan"
+    }, {
+      "id": "8e23c5d9-bcf5-43ce-8fa7-1d04af7b4db4",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.group-979492 tspan:nth-child(3)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "5e239c49-e371-45e6-8b99-ac40737066d5",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-979492 tspan:nth-child(3)",
+      "targets": [
+        ["css=.group-979492 tspan:nth-child(3)", "css:finder"]
+      ],
+      "value": "Potass..."
+    }, {
+      "id": "7b6f2ee3-1c80-4f19-8654-f4c60422d7ed",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-197311 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-197311 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "acyclovir"
+    }, {
+      "id": "96e81623-1dfd-4de9-83cc-cd97c831c3b2",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.group-1720773 tspan:nth-child(2)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ef192c27-a8b0-45d7-aa44-050f610ea9f7",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-1720773 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-1720773 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "LEVOLEUCOVORIN..."
+    }]
+  }, {
+    "id": "7e94988c-6344-4dcd-a2dc-88757df9cf1d",
+    "name": "Drugs Interactions",
+    "commands": [{
+      "id": "4b901387-95e8-45c9-9ae3-a1624a007b67",
+      "comment": "",
+      "command": "open",
+      "target": "/#/drugInteractions",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "686f39ac-5e17-429d-bc95-e92358c4ae89",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "07a9c57b-2646-41f2-99dd-6ac8123e33ea",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "drugInteractions | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "b97f29d4-923c-4d4d-9b7d-104c968d7e00",
+      "comment": "",
+      "command": "selectFrame",
+      "target": "index=0",
+      "targets": [
+        ["index=0"]
+      ],
+      "value": ""
+    }, {
+      "id": "51d0bb7e-e74a-4026-9c5f-e5f116df5962",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(1)",
+      "targets": [],
+      "value": "My Medications Potential Interactions"
+    }, {
+      "id": "9a9c9d07-dc88-498c-81c8-2f428823f2c5",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-box > .content-title:nth-child(2)",
+      "targets": [],
+      "value": "The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s)"
+    }, {
+      "id": "057cfe57-43ca-4e01-87b8-6b6d2a3df484",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.interaction-drugs",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "2eba99a3-00bc-4c60-96ce-86b1012e6ab7",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.severity",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "2293b5f4-6aeb-452c-bc23-f3fc9c9494ef",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(1) > .td-inner",
+      "targets": [],
+      "value": "hydrochlorothiazide, carvedilol "
+    }, {
+      "id": "ed7b31bc-17ca-4cc2-b2c9-93b95a144bba",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(1) > td:nth-child(2)",
+      "targets": [],
+      "value": "N/A"
+    }, {
+      "id": "4f581908-eafa-43e8-b2ed-d36e8f2ce263",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(1) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(1) .accordion-control", "css:finder"],
+        ["xpath=//td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "04eec6b5-3cda-45af-8430-afee07b56396",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(2) p",
+      "targets": [],
+      "value": "Description: The therapeutic efficacy of Carvedilol can be increased when used in combination with Hydrochlorothiazide."
+    }, {
+      "id": "756d5716-d052-4131-926c-e4a0fa893919",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(3) > .td-inner",
+      "targets": [],
+      "value": "carvedilol, lubiprostone"
+    }, {
+      "id": "7926e2be-11a9-4070-a613-60336866b830",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(3) > td:nth-child(2)",
+      "targets": [],
+      "value": "N/A"
+    }, {
+      "id": "7695d167-de2f-4f44-b8cf-714caeaaa1d7",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(3) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(3) .accordion-control", "css:finder"],
+        ["xpath=//tr[3]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "d4557e30-863f-422f-b834-a4bcb289b038",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(4) p",
+      "targets": [],
+      "value": "Description: The therapeutic efficacy of Lubiprostone can be decreased when used in combination with Carvedilol."
+    }, {
+      "id": "8d95f69a-48dc-46b8-bd20-30b2031805b3",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(5) > .td-inner",
+      "targets": [],
+      "value": "fluoxetine, methocarbamol "
+    }, {
+      "id": "139730a5-fa2b-4091-a623-7093677effb8",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(5) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(5) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[5]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "76d60cc5-1002-4cdf-9474-ab68cd176c27",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(5) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(5) .accordion-control", "css:finder"],
+        ["xpath=//tr[5]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0f894f5d-5771-4160-afc9-335cd1f2bb57",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(6) p",
+      "targets": [],
+      "value": "Description: Methocarbamol may increase the central nervous system depressant (CNS depressant) activities of Fluoxetine."
+    }, {
+      "id": "991e4aab-19eb-48e5-b705-a23dbdcb3c5f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(7) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(7) > .td-inner", "css:finder"],
+        ["xpath=//tr[7]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fentanyl, carvedilol')]", "xpath:innerText"]
+      ],
+      "value": "fentanyl, carvedilol "
+    }, {
+      "id": "ba0b6591-62ff-4fe8-b611-df626d8bfa3d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(7) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(7) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[7]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "fce6c2ab-8692-4c64-96b1-e32af26fc5b8",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(7) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(7) .accordion-control", "css:finder"],
+        ["xpath=//tr[7]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "7673f101-dd7e-4337-a596-37bdc27916f9",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(8) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(8) p", "css:finder"],
+        ["xpath=//tr[8]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: Fentanyl may decrease the antihypertensive activities of Carvedilol.')]", "xpath:innerText"]
+      ],
+      "value": "Description: Fentanyl may decrease the antihypertensive activities of Carvedilol."
+    }, {
+      "id": "167f52fd-382b-420a-9a8c-75fc3c2e2160",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(9) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(9) > .td-inner", "css:finder"],
+        ["xpath=//tr[9]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fentanyl, fluoxetine')]", "xpath:innerText"]
+      ],
+      "value": "fentanyl, fluoxetine "
+    }, {
+      "id": "d4663649-4253-4af1-9c70-6b49be92738c",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(9) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(9) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[9]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "c683ccd2-cbc8-4d98-953b-79790542dd2f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(9) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(9) .accordion-control", "css:finder"],
+        ["xpath=//tr[9]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "eff4a2b0-29ea-474a-b443-807bc9c0e695",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(10) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(10) p", "css:finder"],
+        ["xpath=//tr[10]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The risk or severity of serotonin syndrome can be increased when Fentanyl is combined with Fluoxetine.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The risk or severity of serotonin syndrome can be increased when Fentanyl is combined with Fluoxetine."
+    }, {
+      "id": "762d91c7-2bfe-4aa3-9e83-90185bf25c2d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(11) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(11) > .td-inner", "css:finder"],
+        ["xpath=//tr[11]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fluoxetine, lubiprostone')]", "xpath:innerText"]
+      ],
+      "value": "fluoxetine, lubiprostone"
+    }, {
+      "id": "d5b2519d-2bb2-4ea2-84ae-ca9ffe485d70",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(11) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(11) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[11]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "453e7c34-9e47-44ea-b597-dda24404f0ff",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(11) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(11) .accordion-control", "css:finder"],
+        ["xpath=//tr[11]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "c1528983-0aad-433c-ab8f-f732911ad455",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(12) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(12) p", "css:finder"],
+        ["xpath=//tr[12]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The therapeutic efficacy of Lubiprostone can be decreased when used in combination with Fluoxetine.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The therapeutic efficacy of Lubiprostone can be decreased when used in combination with Fluoxetine."
+    }, {
+      "id": "0e853fe6-9fa7-4013-be5b-480e03a9a2a5",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(13) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(13) > .td-inner", "css:finder"],
+        ["xpath=//tr[13]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fentanyl, losartan')]", "xpath:innerText"]
+      ],
+      "value": "fentanyl, losartan"
+    }, {
+      "id": "89682263-2965-4a9a-9b7e-cc3a6eed8bb5",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(13) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(13) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[13]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "a559fc39-270b-4b51-bdc8-5f46e13826e9",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(13) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(13) .accordion-control", "css:finder"],
+        ["xpath=//tr[13]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "86108a8c-ba34-47c9-b9ae-f5d7b3d68ad5",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(14) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(14) p", "css:finder"],
+        ["xpath=//tr[14]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The metabolism of Fentanyl can be decreased when combined with Losartan.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The metabolism of Fentanyl can be decreased when combined with Losartan."
+    }, {
+      "id": "d22eae40-deab-44bf-8747-44f6f24bd0a0",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(15) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(15) > .td-inner", "css:finder"],
+        ["xpath=//tr[15]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'acyclovir, carvedilol')]", "xpath:innerText"]
+      ],
+      "value": "acyclovir, carvedilol"
+    }, {
+      "id": "b74d9365-ec9d-4f03-b327-f1a550435d6b",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(15) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(15) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[15]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "e842723c-56f9-44bb-833e-f010a108476e",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(15) .accordion-control",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "0208c3b0-eb96-4f12-92a1-68b0e5095cb6",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-child:nth-child(16) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(16) p", "css:finder"],
+        ["xpath=//tr[16]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The metabolism of Carvedilol can be decreased when combined with Acyclovir.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The metabolism of Carvedilol can be decreased when combined with Acyclovir."
+    }, {
+      "id": "a2ccf5b8-1048-464b-a52c-aa750c71e239",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(17) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(17) > .td-inner", "css:finder"],
+        ["xpath=//tr[17]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'acyclovir, fentanyl')]", "xpath:innerText"]
+      ],
+      "value": "acyclovir, fentanyl"
+    }, {
+      "id": "18411913-b23f-4dc8-8234-dd073daeffd6",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(17) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(17) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[17]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "476de0f1-362d-4a95-99ca-6101d3539447",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(17) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(17) .accordion-control", "css:finder"],
+        ["xpath=//tr[17]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "0e39056c-5ae4-4857-a6cb-814117d11873",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(18) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(18) p", "css:finder"],
+        ["xpath=//tr[18]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: Acyclovir may decrease the excretion rate of Fentanyl which could result in a higher serum level.')]", "xpath:innerText"]
+      ],
+      "value": "Description: Acyclovir may decrease the excretion rate of Fentanyl which could result in a higher serum level."
+    }, {
+      "id": "48fa9fc9-5e9c-4aef-b0d4-6f610064e62e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(19) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(19) > .td-inner", "css:finder"],
+        ["xpath=//tr[19]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fentanyl, methocarbamol')]", "xpath:innerText"]
+      ],
+      "value": "fentanyl, methocarbamol"
+    }, {
+      "id": "1853b88d-3962-46c9-8566-25893324257a",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(19) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(19) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[19]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "1f245681-f5aa-4612-8d43-4a42e5084fc1",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(19) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(19) .accordion-control", "css:finder"],
+        ["xpath=//tr[19]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "4853fd79-9ba5-4af6-a011-15c8e4771c5d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(20) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(20) p", "css:finder"],
+        ["xpath=//tr[20]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The risk or severity of adverse effects can be increased when Methocarbamol is combined with Fentanyl.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The risk or severity of adverse effects can be increased when Methocarbamol is combined with Fentanyl."
+    }, {
+      "id": "732aef5b-c06a-4bf0-8c47-0141a46d0ec1",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(21) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(21) > .td-inner", "css:finder"],
+        ["xpath=//tr[21]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'acyclovir, lubiprostone')]", "xpath:innerText"]
+      ],
+      "value": "acyclovir, lubiprostone"
+    }, {
+      "id": "a23640c2-75fd-4ed9-bd68-62447be9b830",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(21) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(21) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[21]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "72feb40c-aa94-4760-b8e6-4ed85cee8646",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(21) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(21) .accordion-control", "css:finder"],
+        ["xpath=//tr[21]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "35cb5563-4b55-43c3-a9e4-ff758667fdaa",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(22) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(22) p", "css:finder"],
+        ["xpath=//tr[22]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: Acyclovir may decrease the excretion rate of Lubiprostone which could result in a higher serum level.')]", "xpath:innerText"]
+      ],
+      "value": "Description: Acyclovir may decrease the excretion rate of Lubiprostone which could result in a higher serum level."
+    }, {
+      "id": "4e39e8c3-3f88-40cc-b274-0fee74737b06",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(23) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(23) > .td-inner", "css:finder"],
+        ["xpath=//tr[23]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'acyclovir, losartan')]", "xpath:innerText"]
+      ],
+      "value": "acyclovir, losartan"
+    }, {
+      "id": "8f078c4a-69ba-489b-a65c-b5c0dabff25c",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(23) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(23) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[23]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "9f7ed5e2-9911-4546-9fbd-21593de300c7",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(23) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(23) .accordion-control", "css:finder"],
+        ["xpath=//tr[23]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "f55a57d2-cc83-44fb-b99c-9cbc5ded8128",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(24) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(24) p", "css:finder"],
+        ["xpath=//tr[24]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The excretion of Acyclovir can be decreased when combined with Losartan.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The excretion of Acyclovir can be decreased when combined with Losartan."
+    }, {
+      "id": "b00e64ab-07f0-439c-ae50-9ef0987b019e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(25) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(25) > .td-inner", "css:finder"],
+        ["xpath=//tr[25]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fluoxetine, carvedilol')]", "xpath:innerText"]
+      ],
+      "value": "fluoxetine, carvedilol"
+    }, {
+      "id": "6aa95593-d6f4-49db-9c02-a05779a32e08",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(25) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(25) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[25]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "a917b56e-ac94-4b08-886a-1df4a68cd880",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(25) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(25) .accordion-control", "css:finder"],
+        ["xpath=//tr[25]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "952a4ad5-0094-498c-9695-c3a2690efd7e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(26) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(26) p", "css:finder"],
+        ["xpath=//tr[26]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The serum concentration of Carvedilol can be increased when it is combined with Fluoxetine.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The serum concentration of Carvedilol can be increased when it is combined with Fluoxetine."
+    }, {
+      "id": "d4037904-a841-4599-97a7-96fa520cf027",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(27) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(27) > .td-inner", "css:finder"],
+        ["xpath=//tr[27]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'hydrochlorothiazide, lubiprostone')]", "xpath:innerText"]
+      ],
+      "value": "hydrochlorothiazide, lubiprostone"
+    }, {
+      "id": "6bddc3c7-7fec-4b26-965f-ec5e7dc56a9f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(27) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(27) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[27]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "f755b6ca-b22c-46e9-afef-1b0210b1371f",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(27) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(27) .accordion-control", "css:finder"],
+        ["xpath=//tr[27]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "b0e7aca0-a375-495f-bcd0-830a60dc7c85",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(28) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(28) p", "css:finder"],
+        ["xpath=//tr[28]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: Hydrochlorothiazide may decrease the excretion rate of Lubiprostone which could result in a higher serum level.')]", "xpath:innerText"]
+      ],
+      "value": "Description: Hydrochlorothiazide may decrease the excretion rate of Lubiprostone which could result in a higher serum level."
+    }, {
+      "id": "587a00ed-3f41-468f-8406-701cf3e695c3",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(29) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(29) > .td-inner", "css:finder"],
+        ["xpath=//tr[29]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fentanyl, hydrochlorothiazide')]", "xpath:innerText"]
+      ],
+      "value": "fentanyl, hydrochlorothiazide"
+    }, {
+      "id": "92db36f2-974c-418d-9bb8-fc74dd651e10",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(29) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(29) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[29]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "b86d39f8-1e27-47f2-96ab-657b45511feb",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(29) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(29) .accordion-control", "css:finder"],
+        ["xpath=//tr[29]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "98c0f3e3-dfc7-4978-a076-4c2e129bc502",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(30) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(30) p", "css:finder"],
+        ["xpath=//tr[30]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: Fentanyl may decrease the excretion rate of Hydrochlorothiazide which could result in a higher serum level.')]", "xpath:innerText"]
+      ],
+      "value": "Description: Fentanyl may decrease the excretion rate of Hydrochlorothiazide which could result in a higher serum level."
+    }, {
+      "id": "2368b6e7-87c5-427a-b688-bfc5476c7ac5",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(31) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(31) > .td-inner", "css:finder"],
+        ["xpath=//tr[31]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fluoxetine, hydrochlorothiazide')]", "xpath:innerText"]
+      ],
+      "value": "fluoxetine, hydrochlorothiazide"
+    }, {
+      "id": "0ab3797e-ca20-412a-b504-96633136322d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(31) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(31) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[31]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "5f25e664-eb60-45e6-acfc-be96d5634cf3",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(31) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(31) .accordion-control", "css:finder"],
+        ["xpath=//tr[31]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "6fd3a07f-92e3-4f19-be67-08eb3726959e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(32) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(32) p", "css:finder"],
+        ["xpath=//tr[32]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The risk or severity of QTc prolongation can be increased when Fluoxetine is combined with Hydrochlorothiazide.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The risk or severity of QTc prolongation can be increased when Fluoxetine is combined with Hydrochlorothiazide."
+    }, {
+      "id": "ca394932-9616-4f95-9238-15fe0ca52618",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(33) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(33) > .td-inner", "css:finder"],
+        ["xpath=//tr[33]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fluoxetine, losartan')]", "xpath:innerText"]
+      ],
+      "value": "fluoxetine, losartan "
+    }, {
+      "id": "49b79b28-daef-4f91-b279-1be6529f9fb9",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(33) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(33) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[33]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "bc3b5453-b154-4557-8ca9-20af42aeace7",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(33) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(33) .accordion-control", "css:finder"],
+        ["xpath=//tr[33]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "85c1512c-c318-453e-b3d1-eb6617c1a53a",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(34) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(34) p", "css:finder"],
+        ["xpath=//tr[34]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The risk or severity of QTc prolongation can be increased when Fluoxetine is combined with Losartan.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The risk or severity of QTc prolongation can be increased when Fluoxetine is combined with Losartan."
+    }, {
+      "id": "501e8e71-eafa-428b-a4f0-4ecb0383e986",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(35) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(35) > .td-inner", "css:finder"],
+        ["xpath=//tr[35]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'fentanyl, lubiprostone')]", "xpath:innerText"]
+      ],
+      "value": "fentanyl, lubiprostone "
+    }, {
+      "id": "1bfbc2d4-5fd6-4211-9716-1559928bc526",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(35) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(35) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[35]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "1fadaf75-50f1-418c-bcd1-94a036361f6c",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(35) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(35) .accordion-control", "css:finder"],
+        ["xpath=//tr[35]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "4a57d226-c6bb-416d-8d9a-26472e32396c",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(36) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(36) p", "css:finder"],
+        ["xpath=//tr[36]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The therapeutic efficacy of Lubiprostone can be decreased when used in combination with Fentanyl.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The therapeutic efficacy of Lubiprostone can be decreased when used in combination with Fentanyl."
+    }, {
+      "id": "e85f5b11-faf0-495a-bcfc-ba5ce77d8a12",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(37) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(37) > .td-inner", "css:finder"],
+        ["xpath=//tr[37]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'acyclovir, hydrochlorothiazide')]", "xpath:innerText"]
+      ],
+      "value": "acyclovir, hydrochlorothiazide"
+    }, {
+      "id": "53779c5d-3821-4596-b0a2-75559cf34487",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(37) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(37) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[37]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "fa134147-27b0-4aaa-ab25-4c4b258d368d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(37) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(37) .accordion-control", "css:finder"],
+        ["xpath=//tr[37]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "f13f641d-e30e-4e63-8f52-9e6df37d53bf",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(38) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(38) p", "css:finder"],
+        ["xpath=//tr[38]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The risk or severity of nephrotoxicity can be increased when Acyclovir is combined with Hydrochlorothiazide.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The risk or severity of nephrotoxicity can be increased when Acyclovir is combined with Hydrochlorothiazide."
+    }, {
+      "id": "073eecd9-03fb-4620-ab45-0bf9f3867efb",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(39) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(39) > .td-inner", "css:finder"],
+        ["xpath=//tr[39]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'carvedilol, losartan')]", "xpath:innerText"]
+      ],
+      "value": "carvedilol, losartan"
+    }, {
+      "id": "ca4cc3fa-2c62-4f10-8bf7-070c9261240d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(39) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(39) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[39]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "4171d57b-b88c-485c-986d-05cae410b1a7",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(39) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(39) .accordion-control", "css:finder"],
+        ["xpath=//tr[39]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "74d7f238-9f20-419d-a8de-74fab8d06ebf",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(40) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(40) p", "css:finder"],
+        ["xpath=//tr[40]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: Carvedilol may increase the arrhythmogenic activities of Losartan.')]", "xpath:innerText"]
+      ],
+      "value": "Description: Carvedilol may increase the arrhythmogenic activities of Losartan."
+    }, {
+      "id": "c24901d2-1847-413d-949c-d0c22b46b8c0",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(41) > .td-inner",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(41) > .td-inner", "css:finder"],
+        ["xpath=//tr[41]/td", "xpath:position"],
+        ["xpath=//td[contains(.,'acyclovir, fluoxetine')]", "xpath:innerText"]
+      ],
+      "value": "acyclovir, fluoxetine"
+    }, {
+      "id": "2a50081f-fe41-4be1-996a-4735a9cdc183",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-parent:nth-child(41) > td:nth-child(2)",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(41) > td:nth-child(2)", "css:finder"],
+        ["xpath=//tr[41]/td[2]", "xpath:position"]
+      ],
+      "value": "N/A"
+    }, {
+      "id": "96d0f9b8-b087-4bfa-a09c-f9be990b7713",
+      "comment": "",
+      "command": "click",
+      "target": "css=.td-accordion-parent:nth-child(41) .accordion-control",
+      "targets": [
+        ["css=.td-accordion-parent:nth-child(41) .accordion-control", "css:finder"],
+        ["xpath=//tr[41]/td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "87829cdb-75a8-4a69-a51b-78f9e84bc7a0",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.td-accordion-child:nth-child(42) p",
+      "targets": [
+        ["css=.td-accordion-child:nth-child(42) p", "css:finder"],
+        ["xpath=//tr[42]/td/p", "xpath:position"],
+        ["xpath=//p[contains(.,'Description: The metabolism of Acyclovir can be decreased when combined with Fluoxetine.')]", "xpath:innerText"]
+      ],
+      "value": "Description: The metabolism of Acyclovir can be decreased when combined with Fluoxetine."
+    }]
+  }, {
+    "id": "6ef9db3a-4cf8-40d3-be72-838c735a5b82",
+    "name": "Graph View Widget Example",
+    "commands": [{
+      "id": "e82bf64e-7832-4fec-b839-80e0f3422838",
+      "comment": "",
+      "command": "open",
+      "target": "/graphViewWidget",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "1861adc2-75fe-4381-9b61-eabf8fa9a091",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "53e722a0-a81c-4f29-84b0-968e968f1af6",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "graphViewWidget | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "714fe5bb-ce7a-4c97-a437-148f517df403",
+      "comment": "",
+      "command": "selectFrame",
+      "target": "index=0",
+      "targets": [
+        ["index=0"]
+      ],
+      "value": ""
+    }, {
+      "id": "68c3d5f9-d3b6-483f-b04d-2cc1ca679362",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.hc-chart-widget__list-title",
+      "targets": [],
+      "value": "Potential Side Effects For My Current Medications"
+    }, {
+      "id": "5aec2946-4d5f-4136-a85f-865477cd4592",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "linkText=Prozac",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c007c31b-8f99-4017-af85-53454a9dd45b",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "linkText=Losartan Potassium",
+      "targets": [
+        ["linkText=Losartan Potassium", "linkText"],
+        ["css=li:nth-child(2) > .hc-chart-widget__link", "css:finder"],
+        ["xpath=//a[contains(text(),'Losartan Potassium')]", "xpath:link"],
+        ["xpath=(//a[contains(@href, '')])[2]", "xpath:href"],
+        ["xpath=//li[2]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Losartan Potassium')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "7fcfac8c-d080-483c-9b36-fa1fc8880cb5",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "linkText=Robaxin",
+      "targets": [
+        ["linkText=Robaxin", "linkText"],
+        ["css=li:nth-child(3) > .hc-chart-widget__link", "css:finder"],
+        ["xpath=//a[contains(text(),'Robaxin')]", "xpath:link"],
+        ["xpath=(//a[contains(@href, '')])[3]", "xpath:href"],
+        ["xpath=//li[3]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Robaxin')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "33e2814e-c0a4-4fa3-afeb-124244c1258b",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "linkText=LEVOLEUCOVORIN CALCIUM",
+      "targets": [
+        ["linkText=LEVOLEUCOVORIN CALCIUM", "linkText"],
+        ["css=li:nth-child(4) > .hc-chart-widget__link", "css:finder"],
+        ["xpath=//a[contains(text(),'LEVOLEUCOVORIN CALCIUM')]", "xpath:link"],
+        ["xpath=(//a[contains(@href, '')])[4]", "xpath:href"],
+        ["xpath=//li[4]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'LEVOLEUCOVORIN CALCIUM')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "99454b7f-96ad-4a40-89a6-4fe9818a2b54",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "linkText=acyclovir",
+      "targets": [
+        ["linkText=acyclovir", "linkText"],
+        ["css=li:nth-child(5) > .hc-chart-widget__link", "css:finder"],
+        ["xpath=//a[contains(text(),'acyclovir')]", "xpath:link"],
+        ["xpath=(//a[contains(@href, '')])[5]", "xpath:href"],
+        ["xpath=//li[5]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'acyclovir')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "0d1e40b1-7fc9-4819-b588-53f23780fd00",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "linkText=Carvedilol",
+      "targets": [
+        ["linkText=Carvedilol", "linkText"],
+        ["css=li:nth-child(6) > .hc-chart-widget__link", "css:finder"],
+        ["xpath=//a[contains(text(),'Carvedilol')]", "xpath:link"],
+        ["xpath=(//a[contains(@href, '')])[6]", "xpath:href"],
+        ["xpath=//li[6]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Carvedilol')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "6bf20a3e-7e95-4b1c-9bdd-b5ae360ffce2",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "linkText=Hydrochlorothiazide",
+      "targets": [
+        ["linkText=Hydrochlorothiazide", "linkText"],
+        ["css=li:nth-child(7) > .hc-chart-widget__link", "css:finder"],
+        ["xpath=//a[contains(text(),'Hydrochlorothiazide')]", "xpath:link"],
+        ["xpath=(//a[contains(@href, '')])[7]", "xpath:href"],
+        ["xpath=//li[7]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Hydrochlorothiazide')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "71d417d8-8780-45b1-b4dd-6a89942ba04e",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "linkText=Fentanyl System",
+      "targets": [
+        ["linkText=Fentanyl System", "linkText"],
+        ["css=li:nth-child(8) > .hc-chart-widget__link", "css:finder"],
+        ["xpath=//a[contains(text(),'Fentanyl System')]", "xpath:link"],
+        ["xpath=(//a[contains(@href, '')])[8]", "xpath:href"],
+        ["xpath=//li[8]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Fentanyl System')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "a99a933e-14e5-4c25-81f3-f0beaed63f93",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "linkText=Amitiza",
+      "targets": [
+        ["linkText=Amitiza", "linkText"],
+        ["css=li:nth-child(9) > .hc-chart-widget__link", "css:finder"],
+        ["xpath=//a[contains(text(),'Amitiza')]", "xpath:link"],
+        ["xpath=(//a[contains(@href, '')])[9]", "xpath:href"],
+        ["xpath=//li[9]/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Amitiza')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "92f5adf1-0e2b-45b5-823f-63de2302be23",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "id=chart",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "7df06936-4f53-4b62-9f6f-eaab127ce278",
+    "name": "NDC Lookup",
+    "commands": [{
+      "id": "4a37b0f2-195d-4aaf-9051-f974a12fb4ba",
+      "comment": "",
+      "command": "open",
+      "target": "/ndcLookup",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c7deb3d3-588d-480a-8736-6a08bfb163de",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "067093f0-2ec0-4999-bf0f-a8b0913cd174",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "ndcLookup | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ad9f5262-badc-4d9a-a02c-2fc55e414497",
+      "comment": "",
+      "command": "selectFrame",
+      "target": "index=0",
+      "targets": [
+        ["index=0"]
+      ],
+      "value": ""
+    }, {
+      "id": "1a301de2-533b-4622-a8b5-a17cb459422e",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(1)",
+      "targets": [],
+      "value": "NDC Lookup"
+    }, {
+      "id": "e9e265d9-b7d1-4249-a9ce-2119cb2b3b79",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(2)",
+      "targets": [],
+      "value": "The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s)"
+    }, {
+      "id": "fa586717-4903-4906-9cdb-921c12e09c4a",
+      "comment": "",
+      "command": "click",
+      "target": "css=.ndc-lookup__input",
+      "targets": [
+        ["css=.ndc-lookup__input", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "2246f30e-c4e8-44a4-a466-9f21707ab125",
+      "comment": "",
+      "command": "type",
+      "target": "css=.ndc-lookup__input",
+      "targets": [
+        ["css=.ndc-lookup__input", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "ASPIRIN"
+    }, {
+      "id": "88ecf3e9-014a-4a7f-a90b-3055f040e8eb",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.ndc-lookup__suggestions-item:nth-child(1)",
+      "targets": [
+        ["css=.ndc-lookup__suggestions-item:nth-child(1)", "css:finder"],
+        ["xpath=//li", "xpath:position"],
+        ["xpath=//li[contains(.,'ASPIRIN (00440113090)')]", "xpath:innerText"]
+      ],
+      "value": "ASPIRIN (00440113090)"
+    }, {
+      "id": "5fad5524-c416-4a4a-b96a-4da870107fcd",
+      "comment": "",
+      "command": "click",
+      "target": "css=.ndc-lookup__suggestions-item:nth-child(1)",
+      "targets": [
+        ["css=.ndc-lookup__suggestions-item:nth-child(1)", "css:finder"],
+        ["xpath=//li", "xpath:position"],
+        ["xpath=//li[contains(.,'ASPIRIN (00440113090)')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "70caf113-1a67-47eb-a6e7-f1d84050e86f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=p:nth-child(1)",
+      "targets": [
+        ["css=p:nth-child(1)", "css:finder"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'NDC: 00440113090')]", "xpath:innerText"]
+      ],
+      "value": "NDC: 00440113090"
+    }, {
+      "id": "b37e57ab-f87e-4730-ae39-055040cebff1",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=p:nth-child(2)",
+      "targets": [
+        ["css=p:nth-child(2)", "css:finder"],
+        ["xpath=//p[2]", "xpath:position"],
+        ["xpath=//p[contains(.,'Brand Name: ASPIRIN')]", "xpath:innerText"]
+      ],
+      "value": "Brand Name: ASPIRIN"
+    }]
+  }, {
+    "id": "efc23710-a89f-4663-a42e-c25d122e565e",
+    "name": "Multiple Widgets Examples / Drugs Visualization",
+    "commands": [{
+      "id": "474cd612-93c3-4cc1-a9ac-2f04e0760c3f",
+      "comment": "",
+      "command": "open",
+      "target": "/multipleWidgets",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "a62b2657-17d3-403e-9d9c-a3ded86cfdbf",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "1fae61d8-019f-4cda-90e4-7bf9375091e0",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "multipleWidgets | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "f110a162-1062-4826-b9c9-e37e31f3c17b",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Drug Interactions Visual lMap",
+      "targets": [
+        ["linkText=Drug Interactions Visual lMap", "linkText"],
+        ["css=.active > .nav-link", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container/div/div/ul/li/a", "xpath:idRelative"],
+        ["xpath=(//a[contains(@href, '')])[33]", "xpath:href"],
+        ["xpath=//adp-section-container/div/div/ul/li/a", "xpath:position"],
+        ["xpath=//a[contains(.,' Drug Interactions Visual lMap')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "a890e464-4514-4eb9-a55a-bfa5a42ec9f0",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.semi-bold",
+      "targets": [
+        ["css=.semi-bold", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/div/adp-section-title/h2", "xpath:idRelative"],
+        ["xpath=//h2", "xpath:position"],
+        ["xpath=//h2[contains(.,'Multiple widgets initialization.')]", "xpath:innerText"]
+      ],
+      "value": "Multiple widgets initialization."
+    }, {
+      "id": "c48e6a62-bd18-4839-bc89-5d2e12392635",
+      "comment": "",
+      "command": "assertText",
+      "target": "xpath=//div[@id='content']/adp-section-container[2]/div/div/p",
+      "targets": [
+        ["css=p", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/div/p", "xpath:idRelative"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'To embed multiple widget add following code to your page:')]", "xpath:innerText"]
+      ],
+      "value": "To embed multiple widget add following code to your page:"
+    }, {
+      "id": "004ebdcd-1814-409b-b668-e248908f56bb",
+      "comment": "",
+      "command": "assertText",
+      "target": "xpath=//div[@id='content']/adp-section-container[2]/div/div/pre",
+      "targets": [
+        ["css=pre", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/div/pre", "xpath:idRelative"],
+        ["xpath=//pre", "xpath:position"]
+      ],
+      "value": "<script>\\n  (function(d, s, id){\\n      var js, fjs = d.getElementsByTagName(s)[0];\\n      if (d.getElementById(id)) {return;}\\n      js = d.createElement(s); js.id = id;\\n      js.src = \"https://widget-manager-backend.conceptant.com/widget-server/hc-widget.js\";\\n      fjs.parentNode.insertBefore(js, fjs);\\n  }(document, 'script', 'hc-widget'))\\n</script>\\n\\n// Drug visualization\\n<div\\n    data-fhir-id=\"your FHIR id\"\\n    data-fhir-data-url=\"FHIR server url\"\\n    data-widget-id=\"widget id\"\\n</div>\\n\\n// Adverse events\\n<div\\n    data-fhir-id=\"your FHIR id\"\\n    data-fhir-data-url=\"FHIR server url\"\\n    data-widget-id=\"widget id\"\\n    data-age=\"35-44\"\\n    data-gender=\"M\"\\n</div>\\n\\n// NDC lookup\\n<div\\n    data-fhir-id=\"your FHIR id\"\\n    data-fhir-data-url=\"FHIR server url\"\\n    data-widget-id=\"widget id\"\\n</div>"
+    }, {
+      "id": "469045eb-f98a-48dc-9f66-613f6d2961d7",
+      "comment": "",
+      "command": "selectFrame",
+      "target": "index=0",
+      "targets": [
+        ["index=0"]
+      ],
+      "value": ""
+    }, {
+      "id": "33071147-a3db-4176-8399-f0ec2cd59ea4",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(1)",
+      "targets": [
+        ["css=.content-title:nth-child(1)", "css:finder"],
+        ["xpath=//h1", "xpath:position"],
+        ["xpath=//h1[contains(.,'Drugs Interactions Visual Map')]", "xpath:innerText"]
+      ],
+      "value": "Drugs Interactions Visual Map"
+    }, {
+      "id": "86909c14-85f5-4f34-ba5f-f696c305bbf0",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(3)",
+      "targets": [
+        ["css=.content-title:nth-child(3)", "css:finder"],
+        ["xpath=//h4", "xpath:position"],
+        ["xpath=//h4[contains(.,'The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s)')]", "xpath:innerText"]
+      ],
+      "value": "The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s)"
+    }, {
+      "id": "3649adf3-7a4f-4fb7-9e9b-c8007b8c29a7",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-1010654 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-1010654 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Robaxin"
+    }, {
+      "id": "2c737344-5679-4bd3-89a0-e05cf6220ba2",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-200031",
+      "targets": [
+        ["css=.group-200031", "css:finder"]
+      ],
+      "value": "Carvedilol"
+    }, {
+      "id": "9ac2f937-d83f-4306-877b-0a2c3dd7b646",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-617768 tspan:nth-child(2)",
+      "targets": [],
+      "value": "Amitiza"
+    }, {
+      "id": "a9b06a57-0a8a-4ce5-af69-a94b36cb150a",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-577057 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-577057 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Fentanyl"
+    }, {
+      "id": "952eb080-854d-4f3d-af07-9d08facae11b",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-577057 tspan:nth-child(3)",
+      "targets": [
+        ["css=.group-577057 tspan:nth-child(3)", "css:finder"]
+      ],
+      "value": "System"
+    }, {
+      "id": "3273eafd-1320-49be-9b78-44c24b82043c",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-104849 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-104849 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Prozac"
+    }, {
+      "id": "9486bb83-42f2-4eeb-8c4a-3a17d79f8cdc",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.group-429503 tspan:nth-child(2)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "81f94143-35d0-49ed-9d0b-0911f0198ea9",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-429503 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-429503 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Hydrochlorothia..."
+    }, {
+      "id": "fc1e0a87-0512-4721-8f11-e0042c91737b",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-979492 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-979492 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "Losartan"
+    }, {
+      "id": "8b605530-7df2-4498-8634-e22ea8d02cc2",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.group-979492 tspan:nth-child(3)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "ec1504ac-a96f-4fed-82d3-1671591a1218",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-979492 tspan:nth-child(3)",
+      "targets": [
+        ["css=.group-979492 tspan:nth-child(3)", "css:finder"]
+      ],
+      "value": "Potass..."
+    }, {
+      "id": "f90db665-41ed-4090-82ff-1882fc355714",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-197311 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-197311 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "acyclovir"
+    }, {
+      "id": "88d35d37-90c4-4266-8103-6e8dc81f6e08",
+      "comment": "",
+      "command": "mouseOver",
+      "target": "css=.group-1720773 tspan:nth-child(2)",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "35135348-b7eb-4c2e-a3dc-e453eba1c922",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-1720773 tspan:nth-child(2)",
+      "targets": [
+        ["css=.group-1720773 tspan:nth-child(2)", "css:finder"]
+      ],
+      "value": "LEVOLEUCOVORIN..."
+    }]
+  }, {
+    "id": "cbf9e70e-bd50-4b0d-a19a-8944d0a2f24e",
+    "name": "Multiple Widgets Example / Adverse Events",
+    "commands": [{
+      "id": "1feeed09-edb3-41d3-9727-5727271453b6",
+      "comment": "",
+      "command": "open",
+      "target": "/multipleWidgets",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "29dbee2c-3809-4a77-a308-5d56fd07d27f",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "809c0d2a-1d93-435a-864b-beb2cb69438d",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "multipleWidgets | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "445f0970-8832-4747-bf33-a4e51f2aa3c6",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=Adverse Events",
+      "targets": [
+        ["linkText=Adverse Events", "linkText"],
+        ["css=.active > .nav-link", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container/div/div/ul/li[2]/a", "xpath:idRelative"],
+        ["xpath=(//a[contains(@href, '')])[34]", "xpath:href"],
+        ["xpath=//div/ul/li[2]/a", "xpath:position"],
+        ["xpath=//a[contains(.,' Adverse Events')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "8d81125f-f268-48aa-b551-d409323810f7",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.semi-bold",
+      "targets": [
+        ["css=.semi-bold", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/div/adp-section-title/h2", "xpath:idRelative"],
+        ["xpath=//h2", "xpath:position"],
+        ["xpath=//h2[contains(.,'Multiple widgets initialization.')]", "xpath:innerText"]
+      ],
+      "value": "Multiple widgets initialization."
+    }, {
+      "id": "b2a7ac83-1801-4ad9-a7f5-1952a6d5f93e",
+      "comment": "",
+      "command": "assertText",
+      "target": "xpath=//div[@id='content']/adp-section-container[2]/div/div/p",
+      "targets": [
+        ["css=p", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/div/p", "xpath:idRelative"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'To embed multiple widget add following code to your page:')]", "xpath:innerText"]
+      ],
+      "value": "To embed multiple widget add following code to your page:"
+    }, {
+      "id": "b70f1ff3-533d-4145-9581-6ac73ae08476",
+      "comment": "",
+      "command": "assertText",
+      "target": "xpath=//div[@id='content']/adp-section-container[2]/div/div/pre",
+      "targets": [
+        ["css=pre", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/div/pre", "xpath:idRelative"],
+        ["xpath=//pre", "xpath:position"]
+      ],
+      "value": "<script>\\n  (function(d, s, id){\\n      var js, fjs = d.getElementsByTagName(s)[0];\\n      if (d.getElementById(id)) {return;}\\n      js = d.createElement(s); js.id = id;\\n      js.src = \"https://widget-manager-backend.conceptant.com/widget-server/hc-widget.js\";\\n      fjs.parentNode.insertBefore(js, fjs);\\n  }(document, 'script', 'hc-widget'))\\n</script>\\n\\n// Drug visualization\\n<div\\n    data-fhir-id=\"your FHIR id\"\\n    data-fhir-data-url=\"FHIR server url\"\\n    data-widget-id=\"widget id\"\\n</div>\\n\\n// Adverse events\\n<div\\n    data-fhir-id=\"your FHIR id\"\\n    data-fhir-data-url=\"FHIR server url\"\\n    data-widget-id=\"widget id\"\\n    data-age=\"35-44\"\\n    data-gender=\"M\"\\n</div>\\n\\n// NDC lookup\\n<div\\n    data-fhir-id=\"your FHIR id\"\\n    data-fhir-data-url=\"FHIR server url\"\\n    data-widget-id=\"widget id\"\\n</div>"
+    }, {
+      "id": "e4fc3780-b9ed-4f52-91b3-a77c89f481f9",
+      "comment": "",
+      "command": "pause",
+      "target": "5000",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "5e221421-12b2-4fe8-90df-61c32e798935",
+      "comment": "",
+      "command": "selectFrame",
+      "target": "index=1",
+      "targets": [
+        ["css=.content-box > .content-title:nth-child(1)", "css:finder"],
+        ["xpath=//h1", "xpath:position"],
+        ["xpath=//h1[contains(.,'Potential Adverse Events For My Current Medications')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "e4e76127-fd0a-4587-b1af-c6d01b2ddd20",
+      "comment": "",
+      "command": "//click",
+      "target": "xpath=//div[@id='content']/adp-section-container/div/div/ul/li[2]/a/uib-tab-heading",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "8dcd0ddf-07d6-48af-911c-0ac475df7e18",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-box > .content-title:nth-child(1)",
+      "targets": [
+        ["css=.content-box > .content-title:nth-child(1)", "css:finder"],
+        ["xpath=//h1", "xpath:position"],
+        ["xpath=//h1[contains(.,'Potential Adverse Events For My Current Medications')]", "xpath:innerText"]
+      ],
+      "value": "Potential Adverse Events For My Current Medications"
+    }, {
+      "id": "d6f6cf11-1190-4138-b13f-51b883505506",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(2)",
+      "targets": [
+        ["css=.content-title:nth-child(2)", "css:finder"],
+        ["xpath=//h4", "xpath:position"],
+        ["xpath=//h4[contains(.,'The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s)')]", "xpath:innerText"]
+      ],
+      "value": "The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s) "
+    }, {
+      "id": "b6ad58e4-2856-4feb-b318-b0cf9445e7ce",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.date-of-receipt",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "9073057a-e5d3-4c85-9a9a-ad4526e9d12c",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.gender",
+      "targets": [
+        ["css=.gender", "css:finder"],
+        ["xpath=//th[2]", "xpath:position"],
+        ["xpath=//th[contains(.,'Gender')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "b846c107-0011-4663-b1bf-3d616e7a1226",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.age",
+      "targets": [
+        ["css=.age", "css:finder"],
+        ["xpath=//th[3]", "xpath:position"],
+        ["xpath=//th[contains(.,'Age')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "32409e0c-76b4-4bb1-a17a-b79652eab0c3",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.severity",
+      "targets": [
+        ["css=.severity", "css:finder"],
+        ["xpath=//th[4]", "xpath:position"],
+        ["xpath=//th[contains(.,'Severity')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "bd79dbb1-a46a-4841-8654-0ab861950ba7",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.reactions",
+      "targets": [
+        ["css=.reactions", "css:finder"],
+        ["xpath=//th[5]", "xpath:position"],
+        ["xpath=//th[contains(.,'Reactions')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "a690fc68-2f84-42ea-86b9-f2a85790bcec",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(2) .group-head-content",
+      "targets": [],
+      "value": "Prozac\\nTotal number of adverse events: 16 "
+    }, {
+      "id": "3ffcd448-d78f-404b-811c-d149405d0903",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(2) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(2) .group-head-content", "css:finder"],
+        ["xpath=//td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "6c8a028e-3373-4ca7-b3b6-a0c99d599a2f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-parent:nth-child(1) > td:nth-child(5)",
+      "targets": [
+        ["css=.group-body:nth-child(3) > .td-accordion-parent:nth-child(1) > td:nth-child(5)", "css:finder"],
+        ["xpath=//td[5]", "xpath:position"],
+        ["xpath=//td[contains(.,'Toxicity to various agents, Completed suicide')]", "xpath:innerText"]
+      ],
+      "value": "Toxicity to various agents, Completed suicide "
+    }, {
+      "id": "20a2707d-d108-4992-a862-dc07a3c86c92",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-parent:nth-child(1) .accordion-control",
+      "targets": [
+        ["css=.group-body:nth-child(3) > .td-accordion-parent:nth-child(1) .accordion-control", "css:finder"],
+        ["xpath=//td/button", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "5c841820-a7b0-49a8-ac56-39efc37220ef",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(1)",
+      "targets": [
+        ["css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(1)", "css:finder"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'Safety Report ID: 14527027')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "49a515c8-13fc-461d-a0f5-72450282ec50",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(1)",
+      "targets": [],
+      "value": "Safety Report ID: 14527027"
+    }, {
+      "id": "2ec3621e-2fde-44d9-9b1a-7a2bca242cb1",
+      "comment": "",
+      "command": "assertElementPresent",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(2)",
+      "targets": [
+        ["css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(2)", "css:finder"],
+        ["xpath=//p[2]", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "2c3b15d4-d74c-44dc-a326-7b51e2203afd",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-body:nth-child(3) > .td-accordion-child:nth-child(2) p:nth-child(2)",
+      "targets": [],
+      "value": "Medications Involved: FLUOXETINE HYDROCHLORIDE. - Suspect\\nATORVASTATIN CALCIUM. - Suspect\\nLEVOTHYROXINE SODIUM. - Suspect\\nDIPHENHYDRAMINE HCL - Suspect\\nGABAPENTIN. - Suspect\\nACETAMINOPHEN AND DIPHENHYDRAMINE HYDROCHLORIDE - Suspect\\nCYCLOBENZAPRINE. - Suspect\\nLORAZEPAM. - Suspect"
+    }, {
+      "id": "cbcf3066-a41c-4d29-a2e9-5fda75958cf5",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(4) .group-head-content",
+      "targets": [],
+      "value": "Losartan Potassium\\nTotal number of adverse events: 11 "
+    }, {
+      "id": "9865c862-62dd-4f20-b082-dafb1707519b",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(4) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(4) .group-head-content", "css:finder"],
+        ["xpath=//tbody[3]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "271a8977-0a10-46a6-afc8-b7ceb502073f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(6) .group-head-content",
+      "targets": [],
+      "value": "Robaxin\\nTotal number of adverse events: 1 "
+    }, {
+      "id": "16b0c620-8673-47d0-82f9-5270f3354ce3",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(6) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(6) .group-head-content", "css:finder"],
+        ["xpath=//tbody[5]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "77675cd5-03ed-44ce-a631-300dd58ae388",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(8) .group-head-content",
+      "targets": [],
+      "value": "LEVOLEUCOVORIN CALCIUM\\nTotal number of adverse events: 0 "
+    }, {
+      "id": "034a0534-e693-449f-bdc9-494351d8013b",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(8) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(8) .group-head-content", "css:finder"],
+        ["xpath=//tbody[7]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "209a5b7b-a50a-48b1-aa5c-e6c4dabb0b71",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(10) .group-head-content",
+      "targets": [],
+      "value": "acyclovir\\nTotal number of adverse events: 6 "
+    }, {
+      "id": "0c6b4701-f26f-446a-8daa-ce209d8ee38d",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(10) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(10) .group-head-content", "css:finder"],
+        ["xpath=//tbody[9]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "074bea6f-7076-46f2-8deb-2e944b3c17df",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(12) .group-head-content",
+      "targets": [],
+      "value": "Carvedilol\\nTotal number of adverse events: 10 "
+    }, {
+      "id": "191484d4-2047-420d-a687-a74165637e9c",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(12) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(12) .group-head-content", "css:finder"],
+        ["xpath=//tbody[11]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "d7585f04-a8b0-4b4d-94f0-1bcaa4df8d0d",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(14) .group-head-content",
+      "targets": [],
+      "value": "Hydrochlorothiazide\\nTotal number of adverse events: 27 "
+    }, {
+      "id": "c60e62cb-f26a-4cdb-8f2e-36683968c8a2",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(14) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(14) .group-head-content", "css:finder"],
+        ["xpath=//tbody[13]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "ed2b398a-fb85-4427-bf46-0159877abdc7",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(16) .group-head-content",
+      "targets": [],
+      "value": "Fentanyl System\\nTotal number of adverse events: 132 "
+    }, {
+      "id": "6277042b-f8fc-452c-b40f-96da4d9aafd6",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(16) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(16) .group-head-content", "css:finder"],
+        ["xpath=//tbody[15]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "9940d35f-b908-426c-9503-73328241d1dc",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.group-head:nth-child(18) .group-head-content",
+      "targets": [],
+      "value": "Amitiza\\nTotal number of adverse events: 0 "
+    }, {
+      "id": "b1ab6476-a0b3-4a08-830d-cc7282483b18",
+      "comment": "",
+      "command": "click",
+      "target": "css=.group-head:nth-child(18) .group-head-content",
+      "targets": [
+        ["css=.group-head:nth-child(18) .group-head-content", "css:finder"],
+        ["xpath=//tbody[17]/tr/td/div", "xpath:position"]
+      ],
+      "value": ""
+    }]
+  }, {
+    "id": "97e86851-3812-47f3-a2d4-df6c7744aad7",
+    "name": "Multiple Widgets Example / NDC Lookup",
+    "commands": [{
+      "id": "b803bae9-924a-4a81-8088-9cd2d787ef38",
+      "comment": "",
+      "command": "open",
+      "target": "/multipleWidgets",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "4e32b1bd-6c24-457b-a2d4-446660ee0aa0",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "d2a3ab98-14f3-4169-bb45-94a86cffefae",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "multipleWidgets | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "e4c37c87-7bcd-48f5-82da-0e98e225d34c",
+      "comment": "",
+      "command": "click",
+      "target": "linkText=NDC lookup",
+      "targets": [
+        ["linkText=NDC lookup", "linkText"],
+        ["css=.uib-tab:nth-child(3) > .nav-link", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container/div/div/ul/li[3]/a", "xpath:idRelative"],
+        ["xpath=(//a[contains(@href, '')])[35]", "xpath:href"],
+        ["xpath=//adp-section-container/div/div/ul/li[3]/a", "xpath:position"],
+        ["xpath=//a[contains(.,' NDC lookup')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "1cd7b747-5740-48a8-9593-6a93f90d2c7a",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.semi-bold",
+      "targets": [
+        ["css=.semi-bold", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/div/adp-section-title/h2", "xpath:idRelative"],
+        ["xpath=//h2", "xpath:position"],
+        ["xpath=//h2[contains(.,'Multiple widgets initialization.')]", "xpath:innerText"]
+      ],
+      "value": "Multiple widgets initialization."
+    }, {
+      "id": "eeefcff8-4dc5-41f4-ab4f-f3bfa44cad39",
+      "comment": "",
+      "command": "assertText",
+      "target": "xpath=//div[@id='content']/adp-section-container[2]/div/div/p",
+      "targets": [
+        ["css=p", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/div/p", "xpath:idRelative"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'To embed multiple widget add following code to your page:')]", "xpath:innerText"]
+      ],
+      "value": "To embed multiple widget add following code to your page:"
+    }, {
+      "id": "de17314b-c869-46e9-b733-247b3a391253",
+      "comment": "",
+      "command": "assertText",
+      "target": "xpath=//div[@id='content']/adp-section-container[2]/div/div/pre",
+      "targets": [
+        ["css=pre", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/div/pre", "xpath:idRelative"],
+        ["xpath=//pre", "xpath:position"]
+      ],
+      "value": "<script>\\n  (function(d, s, id){\\n      var js, fjs = d.getElementsByTagName(s)[0];\\n      if (d.getElementById(id)) {return;}\\n      js = d.createElement(s); js.id = id;\\n      js.src = \"https://widget-manager-backend.conceptant.com/widget-server/hc-widget.js\";\\n      fjs.parentNode.insertBefore(js, fjs);\\n  }(document, 'script', 'hc-widget'))\\n</script>\\n\\n// Drug visualization\\n<div\\n    data-fhir-id=\"your FHIR id\"\\n    data-fhir-data-url=\"FHIR server url\"\\n    data-widget-id=\"widget id\"\\n</div>\\n\\n// Adverse events\\n<div\\n    data-fhir-id=\"your FHIR id\"\\n    data-fhir-data-url=\"FHIR server url\"\\n    data-widget-id=\"widget id\"\\n    data-age=\"35-44\"\\n    data-gender=\"M\"\\n</div>\\n\\n// NDC lookup\\n<div\\n    data-fhir-id=\"your FHIR id\"\\n    data-fhir-data-url=\"FHIR server url\"\\n    data-widget-id=\"widget id\"\\n</div>"
+    }, {
+      "id": "645763dd-faaf-470a-9b39-f19d597ca1b5",
+      "comment": "",
+      "command": "selectFrame",
+      "target": "index=2",
+      "targets": [
+        ["index=0"]
+      ],
+      "value": ""
+    }, {
+      "id": "05a3d424-83de-499d-b3c2-dee0979497bb",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(1)",
+      "targets": [],
+      "value": "NDC Lookup"
+    }, {
+      "id": "692c22e4-eb31-4f6e-b39e-72fa67f3fb4a",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.content-title:nth-child(2)",
+      "targets": [],
+      "value": "The data presented here is for informational purposes only. Please discuss this information with your healthcare practitioner(s)"
+    }, {
+      "id": "025dd560-5f8f-4e05-841d-c567c64791ac",
+      "comment": "",
+      "command": "click",
+      "target": "css=.ndc-lookup__input",
+      "targets": [
+        ["css=.ndc-lookup__input", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "3eb5c43b-d51b-422b-9fe1-de74290e1ba0",
+      "comment": "",
+      "command": "type",
+      "target": "css=.ndc-lookup__input",
+      "targets": [
+        ["css=.ndc-lookup__input", "css:finder"],
+        ["xpath=//input[@type='text']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "ASPIRIN"
+    }, {
+      "id": "3216ab53-e297-4e46-889d-60accaa324fd",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.ndc-lookup__suggestions-item:nth-child(1)",
+      "targets": [
+        ["css=.ndc-lookup__suggestions-item:nth-child(1)", "css:finder"],
+        ["xpath=//li", "xpath:position"],
+        ["xpath=//li[contains(.,'ASPIRIN (00440113090)')]", "xpath:innerText"]
+      ],
+      "value": "ASPIRIN (00440113090)"
+    }, {
+      "id": "61543c8f-59aa-4a52-bcf3-377cf71c8da8",
+      "comment": "",
+      "command": "click",
+      "target": "css=.ndc-lookup__suggestions-item:nth-child(1)",
+      "targets": [
+        ["css=.ndc-lookup__suggestions-item:nth-child(1)", "css:finder"],
+        ["xpath=//li", "xpath:position"],
+        ["xpath=//li[contains(.,'ASPIRIN (00440113090)')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "0afdf416-9b26-43df-b0c2-d04994ac945f",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=p:nth-child(1)",
+      "targets": [
+        ["css=p:nth-child(1)", "css:finder"],
+        ["xpath=//p", "xpath:position"],
+        ["xpath=//p[contains(.,'NDC: 00440113090')]", "xpath:innerText"]
+      ],
+      "value": "NDC: 00440113090"
+    }, {
+      "id": "76713f6a-46e4-4c5a-a8b8-86471ca868b7",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=p:nth-child(2)",
+      "targets": [
+        ["css=p:nth-child(2)", "css:finder"],
+        ["xpath=//p[2]", "xpath:position"],
+        ["xpath=//p[contains(.,'Brand Name: ASPIRIN')]", "xpath:innerText"]
+      ],
+      "value": "Brand Name: ASPIRIN"
+    }]
+  }, {
+    "id": "66c2c220-dfa8-4965-b2a4-a7a424894a6f",
+    "name": "Logout",
+    "commands": [{
+      "id": "1ada68ff-ca8b-4254-9d16-0c77e156c2c8",
+      "comment": "",
+      "command": "open",
+      "target": "/#/users",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "f603eca8-6695-4884-8ad2-3b0ba2ff29fb",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "7158422c-7c72-40e7-b90e-b6b676eba3d5",
       "comment": "",
       "command": "waitForElementPresent",
-      "target": "xpath=//span[@id='logo']",
-      "targets": [],
-      "value": "100000"
+      "target": "css=.header-avatar",
+      "targets": [
+        ["css=.header-avatar", "css:finder"],
+        ["xpath=//img[@alt='me']", "xpath:img"],
+        ["xpath=//header[@id='header']/div[3]/adp-user-dropdown/div/div/a/img", "xpath:idRelative"],
+        ["xpath=//a/img", "xpath:position"]
+      ],
+      "value": "30000"
     }, {
-      "id": "127c892d-1082-44ed-91f6-70c3ec1fd8f2",
+      "id": "a8e93163-cd99-462e-b908-8f6b441a6476",
       "comment": "",
       "command": "assertTitle",
       "target": "My Profile | PAG Simulated Portal",
       "targets": [],
       "value": ""
     }, {
-      "id": "ad700abf-b482-44ed-bc88-6ad9ac4e897f",
+      "id": "65dddc02-d5d2-4005-8164-765b6eeebffc",
       "comment": "",
-      "command": "storeText",
-      "target": "css=td:nth-child(1) .col-md-8",
+      "command": "click",
+      "target": "css=.header-avatar",
       "targets": [
-        ["css=td:nth-child(1) .col-md-8", "css:finder"],
-        ["xpath=//table[@id='DataTables_Table_0']/tbody/tr/td/dl/dd", "xpath:idRelative"],
-        ["xpath=//dd", "xpath:position"],
-        ["xpath=//dd[contains(.,'ATUser14/6/20200:31:44am')]", "xpath:innerText"]
+        ["css=.header-avatar", "css:finder"],
+        ["xpath=//img[@alt='me']", "xpath:img"],
+        ["xpath=//header[@id='header']/div[3]/adp-user-dropdown/div/div/a/img", "xpath:idRelative"],
+        ["xpath=//a/img", "xpath:position"]
       ],
-      "value": "Login"
+      "value": ""
     }, {
-      "id": "a566a304-664d-420e-bf45-63c6af3e570c",
+      "id": "ee60a9ff-1d86-4812-b651-59202c5b6aa4",
       "comment": "",
-      "command": "echo",
-      "target": "${Login}",
+      "command": "click",
+      "target": "css=strong",
+      "targets": [
+        ["css=strong", "css:finder"],
+        ["xpath=//header[@id='header']/div[3]/adp-user-dropdown/div/div/ul/li[3]/a/strong", "xpath:idRelative"],
+        ["xpath=//strong", "xpath:position"],
+        ["xpath=//strong[contains(.,'Logout')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "bc51d86e-f15e-4019-b4df-f66d16537494",
+      "comment": "",
+      "command": "click",
+      "target": "css=.adp-action-b-primary",
+      "targets": [
+        ["css=.adp-action-b-primary", "css:finder"],
+        ["xpath=(//button[@type='button'])[2]", "xpath:attributes"],
+        ["xpath=//button[2]", "xpath:position"],
+        ["xpath=//button[contains(.,'Yes')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "719b3468-261a-4bea-aa5c-30bea9ee4efb",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "css=.smart-form-header > .ng-scope",
+      "targets": [],
+      "value": "30000"
+    }, {
+      "id": "4d91d0c9-ac46-4a85-8368-ca6a5534fc78",
+      "comment": "",
+      "command": "assertTitle",
+      "target": "Login | PAG Simulated Portal",
+      "targets": [],
+      "value": ""
+    }]
+  }, {
+    "id": "1c978395-c7fa-47bb-91fa-fb6093b59dee",
+    "name": "Edit Profile",
+    "commands": [{
+      "id": "316c738f-097a-4429-8ab0-64f7db3acc24",
+      "comment": "",
+      "command": "open",
+      "target": "/#/login",
       "targets": [],
       "value": ""
     }, {
-      "id": "8666a4ca-fc2f-4301-b110-d450a2a973f3",
+      "id": "fcc8323e-02c9-46a3-8007-86755652e89e",
+      "comment": "",
+      "command": "setWindowSize",
+      "target": "1552x840",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "bee31bcb-8393-410f-bfa5-40901b5881c5",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//h1[contains(.,'My Profile')]",
+      "targets": [
+        ["css=.semi-bold", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container/div/adp-page-title/h1", "xpath:idRelative"],
+        ["xpath=//h1", "xpath:position"],
+        ["xpath=//h1[contains(.,'My Profile')]", "xpath:innerText"]
+      ],
+      "value": "150000"
+    }, {
+      "id": "f35370e4-f170-4a1b-9905-0f6bc6a062e0",
       "comment": "",
       "command": "click",
-      "target": "css=.btn",
+      "target": "xpath=//button[contains(.,'Edit')]",
       "targets": [
         ["css=.btn", "css:finder"],
         ["xpath=//button[@type='button']", "xpath:attributes"],
@@ -1095,232 +3724,234 @@
       ],
       "value": ""
     }, {
-      "id": "0f9b53b3-ca70-40c8-b746-35026c583e45",
+      "id": "2908557e-3fb5-45a9-b692-5074a988d348",
       "comment": "",
-      "command": "waitForElementEditable",
-      "target": "id=login",
-      "targets": [
-        ["id=login", "id"],
-        ["name=login", "name"],
-        ["css=#login", "css:finder"],
-        ["xpath=//input[@id='login']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
-        ["xpath=//input", "xpath:position"]
-      ],
-      "value": "30000"
+      "command": "//assertText",
+      "target": "//form-header[@class='ng-scope']",
+      "targets": [],
+      "value": "Enter Account Information"
     }, {
-      "id": "322fb00b-5493-4270-b222-a964daba5e87",
+      "id": "734f98a8-e091-4d2a-954f-9bf1787396d5",
+      "comment": "",
+      "command": "run",
+      "target": "Get current date and time",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "7da042b0-a729-44da-b900-2056158c29ae",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentDate}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "c649371e-51c3-4bec-865d-ea4b8dc03caa",
+      "comment": "",
+      "command": "echo",
+      "target": "${currentTime}",
+      "targets": [],
+      "value": ""
+    }, {
+      "id": "3cc060e7-e8c9-413b-9d8a-691fc17c6d58",
       "comment": "",
       "command": "type",
-      "target": "id=login",
-      "targets": [],
-      "value": "${Login} edited"
+      "target": "xpath=//input[@id='login']",
+      "targets": [
+        ["id=login", "id"],
+        ["css=#login", "css:finder"],
+        ["xpath=//input[@id='login']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-dx-field/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "ATUser${currentDate}${currentTime}"
     }, {
-      "id": "a53f06af-bcbe-4440-bf2c-626dd3f45a27",
+      "id": "a41baa76-2b98-4e19-a14a-af4f3a1ad762",
       "comment": "",
       "command": "click",
-      "target": "css=.btn-primary",
+      "target": "linkText=Update password",
       "targets": [
-        ["css=.btn-primary", "css:finder"],
+        ["linkText=Update password", "linkText"],
+        ["css=a:nth-child(2)", "css:finder"],
+        ["xpath=//a[contains(text(),'Update password')]", "xpath:link"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-password/section/a", "xpath:idRelative"],
+        ["xpath=(//a[contains(@href, '')])[33]", "xpath:href"],
+        ["xpath=//section/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Update password')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "91cb6a12-06db-48ca-a414-076ee82a0150",
+      "comment": "",
+      "command": "type",
+      "target": "id=password",
+      "targets": [
+        ["id=password", "id"],
+        ["css=#password", "css:finder"],
+        ["xpath=//input[@id='password']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "Qwer1234!"
+    }, {
+      "id": "b3be8e7b-5422-4d5e-b131-c1ddae57c96a",
+      "comment": "",
+      "command": "type",
+      "target": "css=#passwordConfirmation",
+      "targets": [
+        ["id=passwordConfirmation", "id"],
+        ["css=#passwordConfirmation", "css:finder"],
+        ["xpath=//input[@id='passwordConfirmation']", "xpath:attributes"],
+        ["xpath=//adp-form-field-dx-field[2]/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:position"]
+      ],
+      "value": "Qwer1234!"
+    }, {
+      "id": "352e7701-28f0-4d92-a3cd-408c4f295544",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//button[contains(.,'Update')]",
+      "targets": [
+        ["css=.adp-action-b-primary:nth-child(2)", "css:finder"],
         ["xpath=//button[@type='submit']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/footer/form-footer/button", "xpath:idRelative"],
-        ["xpath=//form-footer/button", "xpath:position"],
+        ["xpath=//button[2]", "xpath:position"],
         ["xpath=//button[contains(.,'Update')]", "xpath:innerText"]
       ],
       "value": ""
-    }]
-  }, {
-    "id": "768c31d9-bb38-4926-870c-1a3c22643104",
-    "name": "test edit acc ",
-    "commands": [{
-      "id": "39fbc967-0081-4874-836e-6e21c5a0f722",
-      "comment": "",
-      "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
-      "targets": [],
-      "value": ""
     }, {
-      "id": "5ed3b6ba-23bc-43f7-9360-6d30f4659be2",
-      "comment": "",
-      "command": "storeValue",
-      "target": "xpath=//td[10]//dl[1]//dd[1]//span[1]",
-      "targets": [],
-      "value": "true"
-    }, {
-      "id": "60b1fa13-4595-4d17-bb02-105e7b195b75",
-      "comment": "",
-      "command": "echo",
-      "target": "true",
-      "targets": [],
-      "value": ""
-    }]
-  }, {
-    "id": "6d32637d-abbb-484a-839c-1af3f5f3d4a4",
-    "name": "Edit profile of new created account - fill all params - NOT COMPLETED checkboxes",
-    "commands": [{
-      "id": "c2f5e6de-3efc-41c8-ba34-0b3097640f97",
-      "comment": "",
-      "command": "//open",
-      "target": "http://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "9bf9030b-c8da-42cb-95a3-2999dd47c4b3",
-      "comment": "",
-      "command": "open",
-      "target": "https://pagweb-prototype-demo.conceptant.com/#/login",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "11c38270-9e79-48ce-979f-7dd7cff19369",
-      "comment": "",
-      "command": "setWindowSize",
-      "target": "1552x840",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "e02b2fe3-f42e-4066-bab0-960070c95ba6",
-      "comment": "",
-      "command": "waitForElementPresent",
-      "target": "xpath=//form-header[@class='ng-scope']",
-      "targets": [],
-      "value": "100000"
-    }, {
-      "id": "72f78926-4b91-42b7-868b-b625388279ea",
+      "id": "4d415af7-6353-4683-a0e0-f52130438b4d",
       "comment": "",
       "command": "click",
-      "target": "xpath=//a[@class='ng-binding']",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "c28a7bd9-ecc0-4547-a6cf-5da620ae5d73",
-      "comment": "",
-      "command": "assertText",
-      "target": "//form-header[@class='ng-scope']",
-      "targets": [],
-      "value": "Enter Account Information"
-    }, {
-      "id": "5c8dc948-cbcc-43fd-82a4-ac38a41f37d2",
-      "comment": "",
-      "command": "run",
-      "target": "Get current date and time",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "2de38c19-a39f-4454-922a-c1e98dcea0a4",
-      "comment": "",
-      "command": "echo",
-      "target": "${currentDate}",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "c3faeddd-d05e-4de1-a802-b800f56fc876",
-      "comment": "",
-      "command": "echo",
-      "target": "${currentTime}",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "e0fffcd3-f61b-4564-9594-b426556e265d",
-      "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='login']",
-      "targets": [],
-      "value": "ATUser${currentDate}${currentTime}"
-    }, {
-      "id": "9c732094-1eda-4955-9f3a-4daa5d677084",
-      "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='password']",
-      "targets": [],
-      "value": "Qwer1234!"
-    }, {
-      "id": "f3dd5e64-79f3-40be-b5a0-a1e2e1e13951",
-      "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='passwordConfirmation']",
-      "targets": [],
-      "value": "Qwer1234!"
-    }, {
-      "id": "0a43268d-3b3a-486a-80d4-7058115a74d6",
-      "comment": "",
-      "command": "click",
-      "target": "css=.btn",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "5ff3f73b-e1c3-42dd-bfe9-4618a6665ab2",
-      "comment": "",
-      "command": "waitForElementPresent",
-      "target": "css=.textoFull > span",
-      "targets": [],
-      "value": "Account has been successfully created"
-    }, {
-      "id": "abad8c6a-8892-4ea8-babb-e946b2fe1570",
-      "comment": "",
-      "command": "assertText",
-      "target": "//form-header[@class='ng-scope']",
-      "targets": [],
-      "value": "Sign In"
-    }, {
-      "id": "a3ce7179-dcb3-49d4-86df-536080b59aff",
-      "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='login']",
-      "targets": [],
-      "value": "ATUser${currentDate}${currentTime}"
-    }, {
-      "id": "44035104-bddd-43e5-b80d-f7abb94f9c5a",
-      "comment": "",
-      "command": "type",
-      "target": "xpath=//input[@id='password']",
-      "targets": [],
-      "value": "Qwer1234!"
-    }, {
-      "id": "2f736f35-a685-48e3-864f-4490e9a0c3e0",
-      "comment": "",
-      "command": "click",
-      "target": "css=.btn",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "4bbde0af-f7f7-4dd4-9599-e54dcebbd3f5",
-      "comment": "",
-      "command": "waitForElementPresent",
-      "target": "xpath=//span[@id='logo']",
-      "targets": [],
-      "value": "100000"
-    }, {
-      "id": "9d53d486-a868-4e67-8600-6afbae4f1fde",
-      "comment": "",
-      "command": "assertTitle",
-      "target": "My Profile | PAG Simulated Portal",
-      "targets": [],
-      "value": ""
-    }, {
-      "id": "acd46d78-54e6-495c-9869-ec20692a2fb9",
-      "comment": "",
-      "command": "storeText",
-      "target": "css=td:nth-child(1) .col-md-8",
+      "target": "xpath=//span[contains(.,'Update')]",
       "targets": [
-        ["css=td:nth-child(1) .col-md-8", "css:finder"],
-        ["xpath=//table[@id='DataTables_Table_0']/tbody/tr/td/dl/dd", "xpath:idRelative"],
-        ["xpath=//dd", "xpath:position"],
-        ["xpath=//dd[contains(.,'ATUser14/6/20200:31:44am')]", "xpath:innerText"]
+        ["css=.adp-action-b-primary > .ng-binding", "css:finder"],
+        ["xpath=//div[@id='content']/adp-form/form/adp-form-actions/footer/button[3]/span", "xpath:idRelative"],
+        ["xpath=//button[3]/span", "xpath:position"],
+        ["xpath=//span[contains(.,'Update')]", "xpath:innerText"]
       ],
-      "value": "Login"
-    }, {
-      "id": "9e924407-2ca6-4261-ba20-9acdfa015b9e",
-      "comment": "",
-      "command": "echo",
-      "target": "${Login}",
-      "targets": [],
       "value": ""
     }, {
-      "id": "e2187e46-8503-456e-b8d8-8fd01ca82edc",
+      "id": "1cab848b-cadc-4c96-98e5-b13de5ba6c8b",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//div[@id='toast-container-success']/div/div",
+      "targets": [
+        ["css=.toast-message", "css:finder"],
+        ["xpath=//div[@id='toast-container-success']/div/div", "xpath:idRelative"],
+        ["xpath=//div[6]/div/div", "xpath:position"]
+      ],
+      "value": "5000"
+    }, {
+      "id": "2184ff38-22dc-4146-b2d6-20d1534071f6",
       "comment": "",
       "command": "click",
-      "target": "css=.btn",
+      "target": "xpath=//img[@alt='me']",
+      "targets": [
+        ["css=.header-avatar", "css:finder"],
+        ["xpath=//img[@alt='me']", "xpath:img"],
+        ["xpath=//header[@id='header']/div[3]/adp-user-dropdown/div/div/a/img", "xpath:idRelative"],
+        ["xpath=//a/img", "xpath:position"]
+      ],
+      "value": ""
+    }, {
+      "id": "faaedd05-24b4-4371-8da1-793f6f732bc7",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//strong[contains(.,'Logout')]",
+      "targets": [
+        ["css=strong", "css:finder"],
+        ["xpath=//header[@id='header']/div[3]/adp-user-dropdown/div/div/ul/li[3]/a/strong", "xpath:idRelative"],
+        ["xpath=//strong", "xpath:position"],
+        ["xpath=//strong[contains(.,'Logout')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "7626a98e-6cd2-407f-998d-fff302271d39",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.modal-title",
+      "targets": [
+        ["css=.modal-title", "css:finder"],
+        ["xpath=//h3", "xpath:position"],
+        ["xpath=//h3[contains(.,'Are you sure you want to logout?')]", "xpath:innerText"]
+      ],
+      "value": "Are you sure you want to logout?"
+    }, {
+      "id": "3cf113fb-7801-42b7-9271-682084a7bb71",
+      "comment": "",
+      "command": "click",
+      "target": "css=.adp-action-b-primary",
+      "targets": [
+        ["css=.adp-action-b-primary", "css:finder"],
+        ["xpath=(//button[@type='button'])[2]", "xpath:attributes"],
+        ["xpath=//button[2]", "xpath:position"],
+        ["xpath=//button[contains(.,'Yes')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "caef5bce-7e78-481a-9fd7-e55fcfc623b1",
+      "comment": "",
+      "command": "assertText",
+      "target": "css=.col:nth-child(1) .label",
+      "targets": [
+        ["css=.col:nth-child(1) .label", "css:finder"],
+        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/div/fieldset/adp-form-field-dx-field/adp-form-field-container/section/label", "xpath:idRelative"],
+        ["xpath=//label", "xpath:position"]
+      ],
+      "value": "Login or Email  *"
+    }, {
+      "id": "88120b8f-11eb-439b-88b4-011fd575b51e",
+      "comment": "",
+      "command": "type",
+      "target": "id=login",
+      "targets": [
+        ["id=login", "id"],
+        ["css=#login", "css:finder"],
+        ["xpath=//input[@id='login']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/div/fieldset/adp-form-field-dx-field/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:idRelative"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "ATUser${currentDate}${currentTime}"
+    }, {
+      "id": "440fe759-36b5-4774-a2f0-976b364c33f2",
+      "comment": "",
+      "command": "type",
+      "target": "id=password",
+      "targets": [
+        ["id=password", "id"],
+        ["css=#password", "css:finder"],
+        ["xpath=//input[@id='password']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/div/fieldset/adp-form-field-dx-field[2]/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-dx-field[2]/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:position"]
+      ],
+      "value": "Qwer1234!"
+    }, {
+      "id": "69612492-267a-41b8-9572-4f0887f1f21a",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//button[contains(.,'Sign In')]",
+      "targets": [
+        ["css=.btn", "css:finder"],
+        ["xpath=//button[@type='submit']", "xpath:attributes"],
+        ["xpath=//div[@id='content']/div/div[2]/div/adp-form/form/form-footer/footer/div/button", "xpath:idRelative"],
+        ["xpath=//button", "xpath:position"],
+        ["xpath=//button[contains(.,'Sign In')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "822a9af9-ac84-416a-85bb-205f049bec2a",
+      "comment": "",
+      "command": "waitForElementPresent",
+      "target": "xpath=//h1[contains(.,'My Profile')]",
+      "targets": [
+        ["css=.semi-bold", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container/div/adp-page-title/h1", "xpath:idRelative"],
+        ["xpath=//h1", "xpath:position"],
+        ["xpath=//h1[contains(.,'My Profile')]", "xpath:innerText"]
+      ],
+      "value": "30000"
+    }, {
+      "id": "013fdd0d-87d6-427a-bbbb-e9b884b77ba2",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//button[contains(.,'Edit')]",
       "targets": [
         ["css=.btn", "css:finder"],
         ["xpath=//button[@type='button']", "xpath:attributes"],
@@ -1330,264 +3961,136 @@
       ],
       "value": ""
     }, {
-      "id": "b40f7ad7-2272-496e-b2c4-3f44519bfd43",
+      "id": "31e15346-9182-4797-aa6a-d5bc36b43cbf",
       "comment": "",
-      "command": "waitForElementEditable",
+      "command": "type",
       "target": "id=login",
       "targets": [
         ["id=login", "id"],
-        ["name=login", "name"],
         ["css=#login", "css:finder"],
         ["xpath=//input[@id='login']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-dx-field/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:idRelative"],
         ["xpath=//input", "xpath:position"]
       ],
-      "value": "30000"
+      "value": "test2"
     }, {
-      "id": "efffa708-2e16-4e4a-935e-d6056f2b4ca8",
+      "id": "4af0724b-88e0-4a3c-b89a-ed660de3073d",
       "comment": "",
-      "command": "type",
-      "target": "id=login",
-      "targets": [],
-      "value": "${Login}Edited"
-    }, {
-      "id": "d57e3b1a-8e97-4e91-a2ca-15077c49bb97",
-      "comment": "",
-      "command": "type",
-      "target": "id=email",
+      "command": "click",
+      "target": "linkText=Update password",
       "targets": [
-        ["id=email", "id"],
-        ["name=email", "name"],
-        ["css=#email", "css:finder"],
-        ["xpath=//input[@id='email']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[2]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
-        ["xpath=//adp-form-field-string[2]/adp-form-field-container/section/string-control/input", "xpath:position"]
+        ["linkText=Update password", "linkText"],
+        ["css=a:nth-child(2)", "css:finder"],
+        ["xpath=//a[contains(text(),'Update password')]", "xpath:link"],
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-password/section/a", "xpath:idRelative"],
+        ["xpath=(//a[contains(@href, '')])[33]", "xpath:href"],
+        ["xpath=//section/a", "xpath:position"],
+        ["xpath=//a[contains(.,'Update password')]", "xpath:innerText"]
       ],
-      "value": "ATemail@conceptant.com"
+      "value": ""
     }, {
-      "id": "1c8bbfaa-b2af-4a69-8d98-fbcf9b1c975d",
+      "id": "19f099c2-07d2-4442-89d8-9cbf0f5afaf9",
+      "comment": "",
+      "command": "type",
+      "target": "id=password",
+      "targets": [
+        ["id=password", "id"],
+        ["css=#password", "css:finder"],
+        ["xpath=//input[@id='password']", "xpath:attributes"],
+        ["xpath=//input", "xpath:position"]
+      ],
+      "value": "Test123!"
+    }, {
+      "id": "814cbd2f-2de9-48bb-a0db-8bd35a56e1ec",
+      "comment": "",
+      "command": "type",
+      "target": "id=passwordConfirmation",
+      "targets": [
+        ["id=passwordConfirmation", "id"],
+        ["css=#passwordConfirmation", "css:finder"],
+        ["xpath=//input[@id='passwordConfirmation']", "xpath:attributes"],
+        ["xpath=//adp-form-field-dx-field[2]/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:position"]
+      ],
+      "value": "Test123!"
+    }, {
+      "id": "8982f061-e239-41c4-bd3f-f4cfce02cfdc",
+      "comment": "",
+      "command": "click",
+      "target": "xpath=//button[contains(.,'Update')]",
+      "targets": [
+        ["css=.adp-action-b-primary:nth-child(2)", "css:finder"],
+        ["xpath=//button[@type='submit']", "xpath:attributes"],
+        ["xpath=//button[2]", "xpath:position"],
+        ["xpath=//button[contains(.,'Update')]", "xpath:innerText"]
+      ],
+      "value": ""
+    }, {
+      "id": "b5128e5c-c740-45bf-a6a8-10fa4c9bbc58",
       "comment": "",
       "command": "type",
       "target": "id=firstName",
       "targets": [
         ["id=firstName", "id"],
-        ["name=firstName", "name"],
         ["css=#firstName", "css:finder"],
         ["xpath=//input[@id='firstName']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[3]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
-        ["xpath=//adp-form-field-string[3]/adp-form-field-container/section/string-control/input", "xpath:position"]
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-dx-field[4]/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-dx-field[4]/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:position"]
       ],
-      "value": "ATFirstName"
+      "value": "User${currentDate}"
     }, {
-      "id": "d237ba08-34bd-4624-b024-39418f267879",
+      "id": "b27cb32e-ae01-407a-bbbd-62e4ea153f0a",
       "comment": "",
       "command": "type",
       "target": "id=lastName",
       "targets": [
         ["id=lastName", "id"],
-        ["name=lastName", "name"],
         ["css=#lastName", "css:finder"],
         ["xpath=//input[@id='lastName']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[4]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
-        ["xpath=//adp-form-field-string[4]/adp-form-field-container/section/string-control/input", "xpath:position"]
+        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-dx-field[5]/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:idRelative"],
+        ["xpath=//adp-form-field-dx-field[5]/adp-form-field-container/section/dx-field-control/div/div/div/input", "xpath:position"]
       ],
-      "value": "ATLastName"
+      "value": "User${currentTime}"
     }, {
-      "id": "0537a79d-4d4b-44d0-9815-1f1bb801f63d",
-      "comment": "",
-      "command": "type",
-      "target": "id=displayName",
-      "targets": [
-        ["id=displayName", "id"],
-        ["name=displayName", "name"],
-        ["css=#displayName", "css:finder"],
-        ["xpath=//input[@id='displayName']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[5]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
-        ["xpath=//adp-form-field-string[5]/adp-form-field-container/section/string-control/input", "xpath:position"]
-      ],
-      "value": "ATDisplayName"
-    }, {
-      "id": "8a52f0e3-7637-4d21-b312-ab2832d6cf9a",
-      "comment": "",
-      "command": "type",
-      "target": "id=fhirId",
-      "targets": [
-        ["id=fhirId", "id"],
-        ["name=fhirId", "name"],
-        ["css=#fhirId", "css:finder"],
-        ["xpath=//input[@id='fhirId']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[6]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
-        ["xpath=//adp-form-field-string[6]/adp-form-field-container/section/string-control/input", "xpath:position"]
-      ],
-      "value": "AT-id-123456789"
-    }, {
-      "id": "13818ad9-5aff-4244-8677-eed78dc54fdf",
-      "comment": "",
-      "command": "type",
-      "target": "id=fhirServerUrl",
-      "targets": [
-        ["id=fhirServerUrl", "id"],
-        ["name=fhirServerUrl", "name"],
-        ["css=#fhirServerUrl", "css:finder"],
-        ["xpath=//input[@id='fhirServerUrl']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/div/fieldset/adp-form-field-string[7]/adp-form-field-container/section/string-control/input", "xpath:idRelative"],
-        ["xpath=//adp-form-field-string[7]/adp-form-field-container/section/string-control/input", "xpath:position"]
-      ],
-      "value": "https://AThospitalurl.com"
-    }, {
-      "id": "bc4031af-ca7f-4b2b-ab08-7ec9cd0a3d5d",
+      "id": "d0832031-eea8-412c-ba40-726587b87fd3",
       "comment": "",
       "command": "click",
-      "target": "css=#checkbox-label-shareData > i",
+      "target": "css=.adp-action-b-primary > .ng-binding",
       "targets": [
-        ["css=#checkbox-label-shareData > i", "css:finder"],
-        ["xpath=//label[@id='checkbox-label-shareData']/i", "xpath:idRelative"],
-        ["xpath=//label/i", "xpath:position"]
+        ["css=.adp-action-b-primary > .ng-binding", "css:finder"],
+        ["xpath=//div[@id='content']/adp-form/form/adp-form-actions/footer/button[3]/span", "xpath:idRelative"],
+        ["xpath=//button[3]/span", "xpath:position"],
+        ["xpath=//span[contains(.,'Update')]", "xpath:innerText"]
       ],
       "value": ""
     }, {
-      "id": "22caac59-b437-4ee4-b23d-4fcdcf106cd9",
-      "comment": "",
-      "command": "click",
-      "target": "css=#checkbox-label-studyData > i",
-      "targets": [
-        ["css=#checkbox-label-studyData > i", "css:finder"],
-        ["xpath=//label[@id='checkbox-label-studyData']/i", "xpath:idRelative"],
-        ["xpath=//adp-form-field-checkbox[2]/adp-form-field-container/section/div/checkbox-control/label/i", "xpath:position"]
-      ],
-      "value": ""
-    }, {
-      "id": "02f49e3c-4fc7-4de6-8fb5-ac26206b1385",
-      "comment": "",
-      "command": "click",
-      "target": "css=#checkbox-label-studyParticipate > i",
-      "targets": [
-        ["css=#checkbox-label-studyParticipate > i", "css:finder"],
-        ["xpath=//label[@id='checkbox-label-studyParticipate']/i", "xpath:idRelative"],
-        ["xpath=//adp-form-field-checkbox[3]/adp-form-field-container/section/div/checkbox-control/label/i", "xpath:position"]
-      ],
-      "value": ""
-    }, {
-      "id": "f56a0088-6b75-49ce-8e6e-0b952e472977",
-      "comment": "",
-      "command": "click",
-      "target": "css=.btn-primary",
-      "targets": [
-        ["css=.btn-primary", "css:finder"],
-        ["xpath=//button[@type='submit']", "xpath:attributes"],
-        ["xpath=//div[@id='content']/adp-form/form/footer/form-footer/button", "xpath:idRelative"],
-        ["xpath=//form-footer/button", "xpath:position"],
-        ["xpath=//button[contains(.,'Update')]", "xpath:innerText"]
-      ],
-      "value": ""
-    }, {
-      "id": "bbe0b2bf-82c3-4a87-9b17-11948852c095",
+      "id": "d7a5e97b-b477-483d-bded-5c26581fc19c",
       "comment": "",
       "command": "waitForElementPresent",
-      "target": "css=.textoFull > span",
+      "target": "xpath=//div[@id='toast-container-success']/div/div",
       "targets": [],
       "value": "30000"
     }, {
-      "id": "111c25d3-72ab-4357-8d90-027cc105e50f",
+      "id": "e133ccc2-038e-40bb-b44f-44e135614123",
       "comment": "",
       "command": "assertText",
-      "target": "css=.textoFull > span",
-      "targets": [],
-      "value": "My Profile successfully updated."
-    }, {
-      "id": "bc1eb666-167a-4a1d-9292-20fa184c41d3",
-      "comment": "",
-      "command": "assertText",
-      "target": "css=td:nth-child(1) .col-md-8",
+      "target": "css=.name-firstName",
       "targets": [
-        ["css=td:nth-child(1) .col-md-8", "css:finder"],
-        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td/dl/dd", "xpath:idRelative"],
-        ["xpath=//dd", "xpath:position"],
-        ["xpath=//dd[contains(.,'ATUser14/6/20201:38:42amEdited')]", "xpath:innerText"]
+        ["css=.name-firstName", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/adp-record-details/div[6]/dl/dd/adp-record-details-cell/div", "xpath:idRelative"],
+        ["xpath=//div[6]/dl/dd/adp-record-details-cell/div", "xpath:position"]
       ],
-      "value": "${Login}Edited"
+      "value": "User${currentDate}"
     }, {
-      "id": "b3c765aa-189e-48e3-b5a0-461cf59c92a5",
+      "id": "33c44e76-4ebb-41a4-ab38-a277ad68984e",
       "comment": "",
       "command": "assertText",
-      "target": "css=td:nth-child(2) .col-md-8",
+      "target": "css=.name-lastName",
       "targets": [
-        ["css=td:nth-child(2) .col-md-8", "css:finder"],
-        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[2]/dl/dd", "xpath:idRelative"],
-        ["xpath=//td[2]/dl/dd", "xpath:position"],
-        ["xpath=//dd[contains(.,'ATemail@conceptant.com')]", "xpath:innerText"]
+        ["css=.name-lastName", "css:finder"],
+        ["xpath=//div[@id='content']/adp-section-container[2]/div/adp-record-details/div[7]/dl/dd/adp-record-details-cell/div", "xpath:idRelative"],
+        ["xpath=//div[7]/dl/dd/adp-record-details-cell/div", "xpath:position"]
       ],
-      "value": "ATemail@conceptant.com"
-    }, {
-      "id": "e23097e4-3ffa-4054-916c-0562011df486",
-      "comment": "",
-      "command": "assertText",
-      "target": "css=td:nth-child(5) .col-md-8",
-      "targets": [
-        ["css=td:nth-child(5) .col-md-8", "css:finder"],
-        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[5]/dl/dd", "xpath:idRelative"],
-        ["xpath=//td[5]/dl/dd", "xpath:position"],
-        ["xpath=//dd[contains(.,'ATFirstName')]", "xpath:innerText"]
-      ],
-      "value": "ATFirstName"
-    }, {
-      "id": "a691e5d8-4418-4c29-ab95-6cf80cdd3c69",
-      "comment": "",
-      "command": "assertText",
-      "target": "css=td:nth-child(6) .col-md-8",
-      "targets": [
-        ["css=td:nth-child(6) .col-md-8", "css:finder"],
-        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[6]/dl/dd", "xpath:idRelative"],
-        ["xpath=//td[6]/dl/dd", "xpath:position"],
-        ["xpath=//dd[contains(.,'ATLastName')]", "xpath:innerText"]
-      ],
-      "value": "ATLastName"
-    }, {
-      "id": "7ecb1c0d-cf22-490c-a97e-e93a8e19e210",
-      "comment": "",
-      "command": "assertText",
-      "target": "css=td:nth-child(7) .col-md-8",
-      "targets": [
-        ["css=td:nth-child(7) .col-md-8", "css:finder"],
-        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[7]/dl/dd", "xpath:idRelative"],
-        ["xpath=//td[7]/dl/dd", "xpath:position"],
-        ["xpath=//dd[contains(.,'ATDisplayName')]", "xpath:innerText"]
-      ],
-      "value": "ATDisplayName"
-    }, {
-      "id": "8ec81802-aa8b-473a-b062-8544da74213c",
-      "comment": "",
-      "command": "assertText",
-      "target": "css=td:nth-child(8) .col-md-8",
-      "targets": [
-        ["css=td:nth-child(8) .col-md-8", "css:finder"],
-        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[8]/dl/dd", "xpath:idRelative"],
-        ["xpath=//td[8]/dl/dd", "xpath:position"],
-        ["xpath=//dd[contains(.,'AT-id-123456789')]", "xpath:innerText"]
-      ],
-      "value": "AT-id-123456789"
-    }, {
-      "id": "85f835c5-b005-40b2-9639-2da05d78b7b1",
-      "comment": "",
-      "command": "assertText",
-      "target": "linkText=https://AThospitalurl.com",
-      "targets": [
-        ["linkText=https://AThospitalurl.com", "linkText"],
-        ["css=.col-md-8 > a", "css:finder"],
-        ["xpath=//a[contains(text(),'https://AThospitalurl.com')]", "xpath:link"],
-        ["xpath=//table[@id='DataTables_Table_2']/tbody/tr/td[9]/dl/dd/a", "xpath:idRelative"],
-        ["xpath=//a[contains(@href, 'https://AThospitalurl.com')]", "xpath:href"],
-        ["xpath=//dd/a", "xpath:position"],
-        ["xpath=//a[contains(.,'https://AThospitalurl.com')]", "xpath:innerText"]
-      ],
-      "value": "https://AThospitalurl.com"
-    }, {
-      "id": "b5230fd6-8db8-402c-841c-9ab45d4e79e1",
-      "comment": "",
-      "command": "//assertText",
-      "target": "xpath=//td[10]//dl[1]//dd[1]//span[1]",
-      "targets": [],
-      "value": "true"
+      "value": "User${currentTime}"
     }]
   }],
   "suites": [{
@@ -1596,8 +4099,22 @@
     "persistSession": false,
     "parallel": false,
     "timeout": 300,
-    "tests": ["55d5bf2d-4522-43d5-9b1e-32c4da77f669", "5ce44b48-65c0-46d3-afc9-1f7d1fc063ff", "2c4a8ff0-5af3-45cd-bcbf-2c7ea8f9ea7c", "9b0369c7-2083-4dd3-8fd7-5d19ff627d9f", "c5c6304d-b531-4a57-8dfc-e874d5649589", "ec2a83ba-78e6-4e0f-928a-943ab52995c4", "6fec170d-d77c-4ee6-94f5-7a8b77a6ec12", "e5df2257-1439-4b48-9986-ee72ce91d9de", "509d834d-e2ae-443e-bfec-7f3349924ee2", "6ac85c99-daa8-4e0b-8185-f6b162a43c7b", "6d458003-1a3a-4d46-89b1-0bb473a7ac7a", "5a232424-33b0-4b6a-99ff-d8cfa49d6ade", "548380d1-bc25-4eaf-a234-cdbff902ff4b"]
+    "tests": ["55d5bf2d-4522-43d5-9b1e-32c4da77f669", "5ce44b48-65c0-46d3-afc9-1f7d1fc063ff", "2c4a8ff0-5af3-45cd-bcbf-2c7ea8f9ea7c", "9b0369c7-2083-4dd3-8fd7-5d19ff627d9f", "c5c6304d-b531-4a57-8dfc-e874d5649589", "ec2a83ba-78e6-4e0f-928a-943ab52995c4", "6fec170d-d77c-4ee6-94f5-7a8b77a6ec12", "e5df2257-1439-4b48-9986-ee72ce91d9de", "509d834d-e2ae-443e-bfec-7f3349924ee2", "6ac85c99-daa8-4e0b-8185-f6b162a43c7b", "6d458003-1a3a-4d46-89b1-0bb473a7ac7a", "5a232424-33b0-4b6a-99ff-d8cfa49d6ade", "66c2c220-dfa8-4965-b2a4-a7a424894a6f"]
+  }, {
+    "id": "cc41740e-1326-4404-a2ef-4b88ca9dbce0",
+    "name": "Basic pages checking",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["55d5bf2d-4522-43d5-9b1e-32c4da77f669", "8bc715c6-7ca2-4080-95fc-fe7f71c257df", "3479f05a-302c-4b49-ab3e-6de8be117d40", "6251c6ec-9078-42ce-a0c0-52f42ebe35d6", "7e94988c-6344-4dcd-a2dc-88757df9cf1d", "7df06936-4f53-4b62-9f6f-eaab127ce278", "6ef9db3a-4cf8-40d3-be72-838c735a5b82", "cbf9e70e-bd50-4b0d-a19a-8944d0a2f24e", "efc23710-a89f-4663-a42e-c25d122e565e", "97e86851-3812-47f3-a2d4-df6c7744aad7", "66c2c220-dfa8-4965-b2a4-a7a424894a6f"]
+  }, {
+    "id": "cc43f11c-81b8-44a5-9495-d7902b2ff002",
+    "name": "Create new account",
+    "persistSession": false,
+    "parallel": false,
+    "timeout": 300,
+    "tests": ["66c2c220-dfa8-4965-b2a4-a7a424894a6f", "e19acb29-2bad-469e-be8e-3b2cfb480838"]
   }],
-  "urls": ["https://pagweb-prototype-demo.conceptant.com/"],
+  "urls": ["https://pagweb-prototype-demo.conceptant.com/", "https://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/#/login", "https://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/login", "https://pagweb:pagwebpass@pagweb-prototype-demo.conceptant.com/", "https://pagweb-prototype-demo.conceptant.com/#/login", "https://pagweb-prototype-demo.conceptant.com/#", "https://pagweb-prototype-demo.conceptant.com/#/", "https://pagweb:pagwebpass@pagweb-prototype.conceptant.com/#/login", "https://pagweb:pagwebpass@pagweb-prototype.conceptant.com/login", "https://pagweb:pagwebpass@pagweb-prototype.conceptant.com/"],
   "plugins": []
 }

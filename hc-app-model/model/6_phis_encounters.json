@@ -1,0 +1,121 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "encounters": {
+          "type": "Subschema",
+          "fullName": "Encounters",
+          "requiresAuthentication": true,
+          "labelRenderer": "encounter",
+          "defaultSortBy": { "admissionDate": -1 },
+          "fields": {
+            "encounterId": {
+              "type": "String",
+              "visible": false,
+              "fullName": "Encounter ID",
+              "description": "System generated number to uniquely identify a patients encounter with a medical professional."
+            },
+            "sourceType": {
+              "type": "String",
+              "visibilityPriority": 4,
+              "list": "sourceTypes",
+              "fullName": "Source of Record",
+              "required": false,
+              "visible": false,
+              "description": "The source of the patient data (e.g., hospital, clinic, etc.,)."
+            },
+            "admissionDate": {
+              "type": "Date",
+              "visibilityPriority": 1,
+              "fullName": "Visit Start Date",
+              "required": true,
+              "description": "The date the patient was admitted to a health care facility.",
+              "validate": ["notInFuture()","notAfterEncounterDischargeDate()"]
+            },
+            "dischargeDate": {
+              "type": "Date",
+              "visibilityPriority": 3,
+              "fullName": "Visit End Date",
+              "description": "The date the patient was discharged from a health care facility.",
+              "validate": ["min($admissionDate)","notInFuture()"]
+            },
+            "providerId": {
+              "type": "String",
+              "fullName": "Provider ID",
+              "visible": false,
+              "description": "The identification code of the healthcare provider that treated the patient."
+            },
+            "providerName": {
+              "type": "String",
+              "visibilityPriority": 2,
+              "width": 80,
+              "fullName": "Healthcare Provider Name",
+              "required": true,
+              "description": "The name of the healthcare provider that treated the patient.",
+              "validate": ["minLength(3)", "maxLength(200)"]
+            },
+
+            "encounterType": {
+              "type": "String",
+              "visibilityPriority": 5,
+              "list": "encounterTypes",
+              "required": true,
+              "fullName": "Encounter Type",
+              "description": "Type of encounter with the patient (e.g., hospital, walkin clinic, etc.)."
+            },
+            "facilityLocation": {
+              "type": "String",
+              "visibilityPriority": 6,
+              "fullName": "Facility Name/Location",
+              "description": "The location of the healthcare facility that the patient received treament.",
+              "validate": ["maxLength(200)"]
+            },
+            "facilityCode": {
+              "type": "String",
+              "fullName": "Facility Code",
+              "visible": false,
+              "description": "The unique code that identifies the healthcare facility.",
+              "validate": ["maxLength(30)"]
+            },
+            "dischargeDisposition": {
+              "type": "String",
+              "list": "dischargeDispositions",
+              "visible": false,
+              "fullName": "Discharge Disposition",
+              "description": "The final disposition of the patient at the time of discharge."
+            },
+            "dischargeStatus": {
+              "type": "String",
+              "visibilityPriority": 7,
+              "list": "encounterDischargeAndAdmittingSources",
+              "fullName": "Discharge Status",
+              "description": "Indicates the patient's status of discharge (e.g., discharged, in-process, etc.).",
+              "validate": ["dischargeDispositionAndStatusExpired()"]
+            },
+            "diagnosisRelatedGroup": {
+              "type": "String",
+              "validate": ["maxLength(3)"],
+              "fullName": "Diagnosis Related Group",
+              "visible": false,
+              "description": "ICD10"
+            },
+            "diagnosisRelatedGroupType": {
+              "type": "String",
+              "list": "diagnosisRelatedGroupTypes",
+              "fullName": "Diagnosis Related Group Type",
+              "visible": false,
+              "description": "CMS MS-DRG "
+            },
+            "admittingSource": {
+              "type": "String",
+              "list": "encountersAdmittingSource",
+              "fullName": "Admitting Source",
+              "visible": false,
+              "description": "The source of the encounter and admission information."
+            }
+          }
+        }
+      }
+    }
+  }
+}

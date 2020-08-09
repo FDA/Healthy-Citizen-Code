@@ -49,12 +49,12 @@ describe('login', () => {
     async () => {
       const login = '12345';
       const password = '12345';
-      await this.page.type('#login input', login);
-      await this.page.type('#password input', password);
+      await this.page.type('#login', login);
+      await this.page.type('#password', password);
       const errorBoxSelector = '.toast-error .toast-message';
       const formWithErrorSelector = 'form.ng-submitted';
 
-      const [_action, errorNode, formWithError] = await Promise.all([
+      const [, errorNode, formWithError] = await Promise.all([
         this.page.click('button[type="submit"]'),
         this.page.waitForSelector(errorBoxSelector),
         this.page.waitForSelector(formWithErrorSelector),

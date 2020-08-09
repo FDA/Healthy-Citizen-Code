@@ -1,0 +1,73 @@
+{
+  "models": {
+    "recalls": {
+      "type": "Schema",
+      "fullName": "Recalls",
+      "limitReturnedRecords": 50,
+      "serverSide": true,
+      "description": "Contains recalls pulled from various sources",
+      "comment": "Defined in https://api.fda.gov/device/recall.json, https://api.fda.gov/drug/enforcement.json",
+      "fields": {
+        "rawData": {
+          "type": "Mixed",
+          "visible": false,
+          "fullName": "Raw Data",
+          "description": "Contains the pulled data as-is for future reparsing"
+        },
+        "processed": {
+          "type": "Boolean",
+          "visible": false,
+          "index": true,
+          "fullName": "Processed",
+          "description": "If true then the record was already processed, otherwise rawData needs to be processed to produce the rest of the records fields"
+        },
+        "key": {
+          "type": "String",
+          "visible": true,
+          "unique": true,
+          "fullName": "FDA ID",
+          "description": "Unique key identifying each record to prevent duplicates. This is different from _id as it is based on the record contents"
+        },
+        "source": {
+          "type": "String",
+          "visible": false,
+          "index": true,
+          "list": "dataSources",
+          "fullName": "Source",
+          "description": "Data source as specified in dataPulls or (in the future) in 0_data_sources.json"
+        },
+
+        "subject": {
+          "type": "String",
+          "index": true,
+          "fullName": "Subject",
+          "description": "Short description of the recall event."
+        },
+        "details": {
+          "type": "String",
+          "index": true,
+          "fullName": "Description",
+          "description": "Adverse event Details"
+        },
+        "ndcs": {
+          "type": "String[]",
+          "visible": false,
+          "fullName": "NDC",
+          "description": "National Drug Code"
+        },
+        "kNumbers": {
+          "type": "String[]",
+          "visible": false,
+          "fullName": "K Numbers",
+          "description": "K Number"
+        },
+        "date": {
+          "type": "Date",
+          "index": true,
+          "fullName": "Posted Date",
+          "description": "The date when the alert was posted"
+        }
+      }
+    }
+  }
+}

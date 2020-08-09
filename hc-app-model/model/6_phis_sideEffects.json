@@ -1,0 +1,46 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "sideEffects": {
+          "type": "Subschema",
+          "fullName": "My Side Effects",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "dateSideEffect": -1 },
+          "fields": {
+            "dateSideEffect": {
+              "type": "Date",
+              "fullName": "Date of side effect",
+              "visibilityPriority": 1,
+              "required": true,
+              "description": "Date on which side effect occurred.",
+              "validate": ["notInFuture()"]
+            },
+            "sideEffect": {
+              "type": "String[]",
+              "fullName": "Side Effect(s) Experienced",
+              "visibilityPriority": 2,
+              "list": "sideEffects",
+              "required": true,
+              "description": "Pick one or more side effects that occurred."
+            },
+            "duration": {
+              "type": "Number",
+              "fullName": "Duration of side effect",
+              "visibilityPriority": 3,
+              "required": true,
+              "description": "Duration of the side effect(s) in minutes."
+            },
+            "comments": {
+              "type": "String",
+              "fullName": "Side Effect Comments",
+              "validate": ["maxLength(500)"],
+              "visibilityPriority": 4,
+              "description": "Comments about the side effects."
+            }
+          }
+        }
+      }
+    }
+  }
+}

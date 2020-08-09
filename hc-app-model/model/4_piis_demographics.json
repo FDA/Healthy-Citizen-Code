@@ -1,0 +1,77 @@
+{
+  "models": {
+    "piis": {
+      "fields": {
+        "demographics": {
+          "type": "Subschema",
+          "fullName": "My Demographic Data",
+          "description": "This contains your demographic data",
+          "limitReturnedRecords": 1,
+          "singleRecord": true,
+          "comment": "please redo this when Object type support is ready",
+          "requiresAuthentication": true,
+          "fields": {
+            "birthDate": {
+              "type": "Date",
+              "visible": false,
+              "fullName": "Birth Date",
+              "description": "The healthy citizen's date of birth."
+            },
+            "ageRange": {
+              "type": "String",
+              "fullName": "My Age Range",
+              "list": "ageRanges",
+              "description": "My age range."
+            },
+            "gender": {
+              "type": "String",
+              "list": "genders",
+              "required": true,
+              "fullName": "Gender",
+              "description": "The healthy citizen's gender."
+            },
+            "hispanic": {
+              "type": "String",
+              "visible": false,
+              "list": "triState",
+              "fullName": "Hispanic",
+              "description": "True if the healthy citizen is of hispanic origin"
+            },
+            "race": {
+              "type": "String",
+              "list": "races",
+              "fullName": "Race",
+              "description": "The race of the healthy citizen."
+            },
+            "geographicRegion": {
+              "type": "String",
+              "fullName": "Geographic Region",
+              "list": "geographicRegions",
+              "description": "Pick the geographic area where I live."
+            },
+            "zip": {
+              "type": "String",
+              "fullName": "Zip",
+              "validate": ["minLength(5)", "maxLength(10)"],
+              "description": "The zip code where the patient lives."
+            },
+            "guid": {
+              "type": "String",
+              "unique": true,
+              "required": true,
+              "visible": true,
+              "comment": "Global User Id",
+              "fullName": "GUID",
+              "description": "Unique global user identifier. It identifies the same user across multiple systems"
+            },
+            "shareDeidentifiedDataWithResearchers": {
+              "type": "Boolean",
+              "fullName": "Share Deadentified Data",
+              "description": "Allow researchers to use my deidentified data for research purposes and notify me on their findings"
+            }
+          }
+        }
+      }
+    }
+  }
+}

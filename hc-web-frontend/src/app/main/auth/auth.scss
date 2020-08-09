@@ -1,0 +1,202 @@
+ul.errors {
+    text-align: left;
+    list-style: none;
+    padding-left: 0;
+    color: rgb(213,0,0);
+}
+
+.captcha {
+    & > div {
+        margin: auto;
+    }
+
+    @media (max-width:380px) {
+        transform:scale(0.8) !important;
+        -webkit-transform:scale(0.8) !important;
+        transform-origin:0 0 !important;
+        -webkit-transform-origin:0 0 !important;
+    }
+}
+
+
+#auth {
+    height: 100%;
+    // background: url('/assets/images/backgrounds/march.jpg') no-repeat;
+    background-size: cover;
+    color: #000;
+
+    div.flex-80 {
+        width: 100%;
+        flex: 1 1 100%;
+        max-width: 100%;
+        padding: 0;
+        box-shadow: none;
+        h3 {
+            display: none;
+        }
+    }
+
+    #auth-form-wrapper {
+        flex: 1 0 auto;
+        padding: 10px 32px;
+
+        #auth-form {
+            width: 384px;
+            max-width: 384px;
+            padding: 0 32px;
+            background: #FFFFFF;
+            text-align: center;
+
+            .logo {
+                width: 128px;
+                height: 128px;
+                line-height: 128px;
+                font-size: 86px;
+                font-weight: 500;
+                margin: 32px auto;
+                color: #FFFFFF;
+                border-radius: 2px;
+            }
+
+            .title {
+                font-size: 17px;
+                margin: 16px 0 32px 0;
+            }
+
+            form {
+                width: 100%;
+                text-align: left;
+
+                md-checkbox {
+                    margin: 0;
+                }
+
+                .remember-forgot-password {
+                    font-size: 13px;
+                    margin-top: 8px;
+
+                    .remember-me {
+                        margin-bottom: 16px
+                    }
+
+                    .forgot-password {
+                        font-size: 13px;
+                        font-weight: 500;
+                        margin-bottom: 16px
+                    }
+                }
+
+                .submit-button {
+                    width: 220px;
+                    margin: 16px auto;
+                    display: block;
+                }
+
+                md-input-container {
+                    margin: 15px 0;
+                }
+            }
+
+            .register {
+                margin: 16px auto 24px auto;
+                width: 250px;
+                font-weight: 500;
+
+                .text {
+                    margin-right: 8px;
+                }
+            }
+
+            .separator {
+                font-size: 15px;
+                font-weight: 600;
+                margin: 24px auto 16px auto;
+                position: relative;
+                overflow: hidden;
+                width: 100px;
+                color: rgba(0, 0, 0, 0.54);
+
+                .text {
+                    display: inline-block;
+                    vertical-align: baseline;
+                    position: relative;
+                    padding: 0 8px;
+                    z-index: 9999;
+
+                    &:before, &:after {
+                        content: '';
+                        display: block;
+                        width: 30px;
+                        position: absolute;
+                        top: 10px;
+                        border-top: 1px solid rgba(0, 0, 0, 0.12);
+                    }
+
+                    &:before {
+                        right: 100%;
+                    }
+
+                    &:after {
+                        left: 100%;
+                    }
+                }
+            }
+
+            .md-button {
+
+                &.google,
+                &.facebook {
+                    width: 192px;
+                    text-transform: none;
+                    color: #FFFFFF;
+                    font-size: 13px;
+
+                    md-icon {
+                        color: #FFFFFF;
+                        margin: 0 8px 0 0;
+                    }
+                }
+
+                &.google {
+                    background-color: #D73D32;
+                }
+
+                &.facebook {
+                    background-color: rgb(63, 92, 154);
+                }
+            }
+        }
+    }
+}
+
+// RESPONSIVE
+@media screen and (max-width: $layout-breakpoint-xs) {
+
+    #auth {
+
+        #auth-form-wrapper {
+            padding: 16px;
+
+            #auth-form {
+                padding: 24px;
+                width: 100%;
+
+                form {
+
+                    .md-button {
+                        width: 90%;
+                    }
+                }
+
+                .md-button {
+
+                    &.google,
+                    &.facebook {
+                        width: 80%;
+                    }
+                }
+            }
+        }
+    }
+
+}

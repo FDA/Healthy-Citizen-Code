@@ -1,0 +1,92 @@
+<div id="auth" class="flex-scrollable md-primary-bg" layout="column" ms-scroll>
+    <div id="auth-form-wrapper" layout="column" layout-align="center center">
+        <div id="auth-form" class="md-whiteframe-8dp">
+            <div class="logo">
+                <hc-logo src="/public/logos/logo128x128.png"></hc-logo>
+                <!-- <span>HC</span> -->
+            </div>
+
+
+            <div class="title">Create your account</div>
+
+
+            <form name="registerForm" novalidate>
+
+
+                <!-- Login -->
+                <md-input-container class="md-block" md-no-float>
+                    <input type="text" name="login" ng-model="vm.newUser.login" placeholder="Login"
+                           translate
+                           required>
+                    <div ng-messages="registerForm.login.$error" role="alert">
+                        <div ng-message="required">
+                            <span>Login field is required</span>
+                        </div>
+                    </div>
+                </md-input-container>
+
+                <div layout="column" layout-gt-xs="row" flex="" class="layout-gt-xs-row layout-column flex">
+                  <!-- Password -->
+                    <md-input-container class="flex-gt-xs-50 flex-100" md-no-float>
+                        <input type="password" name="password" ng-model="vm.newUser.password" placeholder="Password"
+                               translate
+                               required>
+                        <div ng-messages="registerForm.password.$error" role="alert">
+                            <div ng-message="required">
+                                <span>Password field is required</span>
+                            </div>
+                        </div>
+                    </md-input-container>
+
+                    <!-- Repeat password -->
+                    <md-input-container class="flex-gt-xs-50 flex-100" md-no-float>
+                        <input type="password" name="repeatPassword" ng-model="vm.repeatPassword" placeholder="Repeat Password"
+                               translate
+                               required>
+                        <div ng-messages="registerForm.password" role="alert">
+                            <div ng-message="$error.required">
+                                <span>This field is required</span>
+                            </div>
+                        </div>
+                    </md-input-container>
+                </div>
+
+                <!-- Email -->
+                <md-input-container class="md-block" md-no-float>
+                    <input type="email" name="email" ng-model="vm.newUser.email" placeholder="Email"
+                           translate
+                           ng-pattern="/^.+@.+\..+$/" required>
+                    <div ng-messages="registerForm.email.$error" role="alert" multiple>
+                        <div ng-message="required">
+                            <span>Email field is required</span>
+                        </div>
+                        <div ng-message="pattern">
+                            <span>Email must be a valid e-mail address</span>
+                        </div>
+                    </div>
+                </md-input-container>
+
+
+                <br>
+
+                <!-- CAPTCHA -->
+                <div vc-recaptcha key="vm.key" class="captcha"  ng-if="!vm.captchaDisabled"></div>
+
+                <md-button type="submit" class="md-raised md-accent submit-button" aria-label="REGISTER"
+                           ng-disabled="registerForm.$invalid || registerForm.$pristine || vm.newUser.password !== vm.repeatPassword" ng-click="vm.createUser()">
+                    REGISTER
+                </md-button>
+            </form>
+
+            <div class="separator">
+                <span class="text">OR</span>
+            </div>
+
+
+            <div class="register" layout="row" layout-sm="column" layout-align="center center">
+                <span class="text">Already have an account?</span>
+                <a class="link" ui-sref="app.login">Log in</a>
+            </div>
+        </div>
+    </div>
+</div>

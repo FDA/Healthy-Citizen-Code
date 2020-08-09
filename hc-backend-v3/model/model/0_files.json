@@ -1,0 +1,42 @@
+{
+  "models": {
+    "files": {
+      "type": "Schema",
+      "fullName": "Uploaded Files",
+      "description": "This collection contains list of files uploaded by users",
+      "fields": {
+        "originalName": {
+          "fullName": "Original Name",
+          "type": "String",
+          "description": "Original file name"
+        },
+        "size": {
+          "fullName": "File Size",
+          "type": "Number",
+          "description": "File size in bytes"
+        },
+        "mimeType": {
+          "fullName": "MIME Type",
+          "type": "String",
+          "description": "File MIME type"
+        },
+        "filePath": {
+          "fullName": "File Path",
+          "type": "String",
+          "visible": false,
+          "description": "File path in local filesystem"
+        },
+        "user": {
+          "fullName": "File Owner",
+          "type": "ObjectID",
+          "lookup": {
+            "table": "users",
+            "foreignKey": "_id",
+            "label": "login",
+            "id": "file_user"
+          }
+        }
+      }
+    }
+  }
+}

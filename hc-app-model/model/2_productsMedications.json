@@ -1,0 +1,86 @@
+{
+  "models": {
+    "productsMedications": {
+      "type": "Schema",
+      "fullName": "Medication Products",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "requiresAuthentication": true,
+      "description": "Global catalog of medications supported by the system",
+      "fields": {
+        "rawData": {
+          "type": "Mixed",
+          "visible": false,
+          "fullName": "Raw Data",
+          "description": "Contains the pulled data as-is for future reparsing"
+        },
+        "processed": {
+          "type": "Boolean",
+          "visible": false,
+          "index": true,
+          "fullName": "Processed",
+          "description": "If true then the record was already processed, otherwise rawData needs to be processed to produce the rest of the records fields"
+        },
+        "key": {
+          "type": "String",
+          "visible": false,
+          "unique": true,
+          "fullName": "Key",
+          "description": "Unique key identifying each record to prevent duplicates. This is different from _id as it is based on the record contents"
+        },
+        "source": {
+          "type": "String",
+          "visible": false,
+          "index": true,
+          "list": "dataSources",
+          "fullName": "Source",
+          "description": "Data source as specified in dataPulls or (in the future) in 0_data_sources.json"
+        },
+
+        "name": {
+          "type": "String",
+          "searchable": true,
+          "index": true,
+          "fullName": "Name",
+          "description": "Product name"
+        },
+        "description": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Description",
+          "description": "Description of the product"
+        },
+        "ndc": {
+          "type": "String",
+          "searchable": true,
+          "index": true,
+          "fullName": "NDC",
+          "description": "National Drug Code"
+        },
+        "adverseEvents": {
+          "type": "ObjectID[]",
+          "fullName": "Adverse Events",
+          "visible": false,
+          "lookup": {
+            "table": "adverseEvents",
+            "foreignKey": "_id",
+            "label": "subject",
+            "id": "adverseEvents"
+          }
+        },
+        "recalls": {
+          "type": "ObjectID[]",
+          "fullName": "Recalls",
+          "visible": false,
+          "lookup": {
+            "table": "recalls",
+            "foreignKey": "_id",
+            "label": "subject",
+            "id": "recalls"
+          }
+        }
+      }
+    }
+  }
+}

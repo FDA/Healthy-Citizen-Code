@@ -1,0 +1,10 @@
+{
+  "CONSTANTS": {
+    "hostUrl": "https://test-frontend-stage.conceptant.com/#/",
+    "apiUrl": "https://adp-test-backend.conceptant.com",
+    "captchaDisabled": false,
+    "debug": false,
+    "reCaptchaKey": "fakekey",
+    "googleApiKey": "fakekey"
+  }
+}

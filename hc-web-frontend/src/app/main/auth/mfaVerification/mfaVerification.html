@@ -1,0 +1,42 @@
+<div id="login" class="flex-scrollable md-primary-bg" layout="column" ms-scroll>
+    <div id="login-form-wrapper" layout="column" layout-align="center center">
+        <div id="login-form" class="md-whiteframe-8dp">
+            <div class="logo">
+                <img src="assets/images/logos/logo.png" alt="">
+                <!-- <span>HC</span> -->
+            </div>
+
+            <div class="title">Enter Google MFA key here</div>
+
+            <ul class="errors" role="alert">
+              <li ng-repeat="error in vm.errors">{{error.message}}</li>
+            </ul>
+
+            <form name="mfaForm" novalidate>
+                <md-input-container class="md-block" md-no-float>
+                    <input type="number" name="code" ng-model="vm.form.code" placeholder="Verification Code" required>
+                </md-input-container>
+
+                <md-button type="submit" class="md-raised md-accent submit-button" aria-label="Verify"
+                           ng-disabled="mfaForm.$invalid || mfaForm.$pristine" ng-click="vm.verify()">
+                    Verify
+                </md-button>
+            </form>
+
+    
+           <div class="separator">
+                <span class="text">OR</span>
+            </div>
+
+
+            <div class="register" layout="row" layout-sm="column" layout-align="center center">
+                <!-- <span class="text">Don't have an account?</span> -->
+                <a class="link" ui-sref="app.login">Log in</a>
+            </div>
+        
+
+        </div>
+
+
+    </div>
+</div>

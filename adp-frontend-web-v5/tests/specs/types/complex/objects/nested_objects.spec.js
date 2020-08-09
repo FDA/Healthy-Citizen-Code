@@ -51,7 +51,7 @@ describe('complex objects', () => {
       'should not submit with filled non-required field on level2',
       async () => {
         const stringLvl2Selector = getFieldSelector('level2', 'stringLevel2');
-        await this.page.type(`${stringLvl2Selector} input`, '123');
+        await this.page.type(`${stringLvl2Selector}`, '123');
 
         await clickSubmit(this.page);
 
@@ -70,7 +70,7 @@ describe('complex objects', () => {
       'should submit with filled required field on top-level',
       async () => {
         const stringLvl1Selector = getFieldSelector('nestedObjects', 'stringLevel1');
-        await this.page.type(`${stringLvl1Selector} input`, '123');
+        await this.page.type(`${stringLvl1Selector}`, '123');
 
         await clickSubmit(this.page);
         const submitMsg = await getSubmitMsg(this.page);
@@ -82,7 +82,7 @@ describe('complex objects', () => {
       async () => {
         // fill in non-required field in level3
         const level3String2Selector = getFieldSelector('level3', 'level3String2');
-        await this.page.type(`${level3String2Selector} input`, '123');
+        await this.page.type(`${level3String2Selector}`, '123');
 
         await clickSubmit(this.page);
 

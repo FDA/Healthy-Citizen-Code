@@ -1,0 +1,45 @@
+<table class="table table-regular table-striped table-bordered table-hover">
+  <thead>
+    <tr class="columnFilters">
+      <th></th>
+      <th
+        ng-repeat="head in heads track by $index"
+        ng-if="heads"
+        class="hasinput"
+        ng-class="head.type">
+        <adp-tables-filter
+          head="head"
+          schema="schema.fields[head.name]"
+          list-name="schema.fields[head.name]['list']">
+        </adp-tables-filter>
+      </th>
+      <th ng-if="!!actionCbs" ng-style="actionsStyles"></th>
+    </tr>
+
+    <tr>
+      <th></th>
+      <th
+        ng-style="actionsStyles"
+        ng-if="heads"
+        ng-repeat="head in heads track by $index"
+        ng-class="head.type">
+        {{head.fullName}}
+      </th>
+      <th ng-if="!!actionCbs"></th>
+    </tr>
+  </thead>
+
+  <tbody>
+    <tr>
+      <td></td>
+
+      <td
+        ng-if="heads"
+        ng-repeat="head in heads track by $index"
+        ng-class="head.type">
+        {{head.fullName}}
+      </td>
+      <td ng-if="!!actionCbs"></td>
+    </tr>
+  </tbody>
+</table>

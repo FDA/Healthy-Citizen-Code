@@ -1,0 +1,6 @@
+apps:
+  - script   : 'node'
+    name     : 'ADP'
+    exec_mode: 'cluster'
+    instances: 3
+    args     : '--stack-size=40000 app.js'

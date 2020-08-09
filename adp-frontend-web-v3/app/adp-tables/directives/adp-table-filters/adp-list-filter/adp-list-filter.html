@@ -1,0 +1,11 @@
+<div>
+  <select
+      class="select2"
+      multiple="multiple">
+    <option
+      value="{{item.label}}"
+      ng-repeat="item in list track by $index">
+      {{item.label}}
+    </option>
+  </select>
+</div>

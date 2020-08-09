@@ -13,22 +13,28 @@
     IMPERIAL_UNITS_DEFAULTS,
     AdpBrowserService
   ) {
+    var DX_FACTORY = { directiveType: 'dx-field' };
     var typeMap = {
-      'String': { directiveType: 'string' },
-      'Phone': { directiveType: 'string' },
-      'Url': { directiveType: 'string' },
-      'Email': { directiveType: 'string' },
-      'PasswordAuth': { directiveType: 'string' },
+      'String': DX_FACTORY,
+      'Phone': DX_FACTORY,
+      'Url': DX_FACTORY,
+      'Email': DX_FACTORY,
+      'PasswordAuth': DX_FACTORY,
+
+      'Number': DX_FACTORY,
+      'Double': DX_FACTORY,
+      'Int32': DX_FACTORY,
+      'Int64': DX_FACTORY,
+      'Decimal128': DX_FACTORY,
+
+      'Date': DX_FACTORY,
+      'Time': DX_FACTORY,
+      'DateTime': DX_FACTORY,
+      'Text': DX_FACTORY,
+
       'Password': { directiveType: 'password' },
-      'Text': { directiveType: 'text' },
 
       Currency: { directiveType: 'currency' },
-
-      'Number': { directiveType: 'number' },
-      'Double': { directiveType: 'number' },
-      'Int32': { directiveType: 'int-number' },
-      'Int64': { directiveType: 'int-number' },
-      'Decimal128': { directiveType: 'decimal' },
 
       'String[]': { directiveType: 'string-array' },
       'Number[]': { directiveType: 'number-array' },
@@ -39,10 +45,6 @@
       'Recaptcha': { directiveType: 'recaptcha' },
 
       'Boolean': { directiveType: 'boolean' },
-
-      'Date': { directiveType: 'date' },
-      'Time': { directiveType: 'date' },
-      'DateTime': { directiveType: 'date' },
 
       'ImperialHeight': { directiveType: 'imperial-units' },
       'ImperialWeightWithOz': { directiveType: 'imperial-units' },

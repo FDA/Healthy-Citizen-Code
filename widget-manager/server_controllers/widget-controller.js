@@ -27,7 +27,7 @@ const TOKEN_URL = `https://apporchard.epic.com/interconnect-aocurprd-oauth/oauth
 const EPIC_AUTH_FULL_URL = process.env.EPIC_AUTH_FULL_URL || `${process.env.WIDGET_API_URL}/epic/auth`;
 
 const ENV_EPIC_CLIENT_ID_PREFIX = 'EPIC_CLIENT_ID_';
-const EPIC_CLIENT_ID_UCSF_FALLBACK = 'HealthyCitizenWidgets';
+const EPIC_CLIENT_ID_FALLBACK = process.env.EPIC_CLIENT_ID_FALLBACK || 'HealthyCitizenWidgets';
 
 const ISS_COOKIE_NAME = 'iss';
 const CLIENT_ID_COOKIE_NAME = 'clientId';
@@ -59,7 +59,7 @@ module.exports = function(globalMongoose) {
 
     // for backward compatibility with EPIC
     if (!process.env.EPIC_CLIENT_ID_UCSF_RECALLS) {
-      process.env.EPIC_CLIENT_ID_UCSF_RECALLS = EPIC_CLIENT_ID_UCSF_FALLBACK;
+      process.env.EPIC_CLIENT_ID_UCSF_RECALLS = EPIC_CLIENT_ID_FALLBACK;
     }
 
     const widgetTypes = _.keys(_.get(m.appLib.appModel.models, 'widgets.fields.type.list.values'));
@@ -246,7 +246,7 @@ module.exports = function(globalMongoose) {
     m.logInfo(`epicAuth req params: ${JSON.stringify(req.query)}, cookies: ${JSON.stringify(req.cookies)}`);
     const { code } = req.query;
     const iss = getCookieOrApplyFallback(req, ISS_COOKIE_NAME, ISS);
-    const clientId = getCookieOrApplyFallback(req, CLIENT_ID_COOKIE_NAME, EPIC_CLIENT_ID_UCSF_FALLBACK);
+    const clientId = getCookieOrApplyFallback(req, CLIENT_ID_COOKIE_NAME, EPIC_CLIENT_ID_FALLBACK);
     const widgetType = getCookieOrApplyFallback(req, WIDGET_TYPE_COOKIE_NAME, WIDGET_TYPE_FALLBACK);
     const tokenUrl = getCookieOrApplyFallback(req, TOKEN_URL_COOKIE_NAME, TOKEN_URL);
 
@@ -263,7 +263,7 @@ module.exports = function(globalMongoose) {
 
   function setCookie(res, cookieName, cookieValue) {
     res.cookie(cookieName, cookieValue, {
-      sameSite: true,
+      sameSite: 'lax',
       secure: true,
     });
   }

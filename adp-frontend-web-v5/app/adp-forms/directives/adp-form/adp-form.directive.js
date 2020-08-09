@@ -128,21 +128,8 @@
             formParams: formParams,
           };
 
-          $timeout(function () {
-            applyActionClass(scope.args.action);
-            bindFormEvents();
-
-            RequiredExpression.eval(scope.validationParams.formParams, scope.form);
-
-            // todo: replace with args
-            ShowExpression.eval({
-              formData: scope.args.row,
-              schema: scope.args.modelSchema,
-              actionType: scope.args.action,
-              groups: scope.topScopeFields.groups,
-              visibilityMap: scope.validationParams.formParams.visibilityMap,
-            });
-          });
+          applyActionClass(scope.args.action);
+          bindEvents();
         }
 
         function applyActionClass(action) {
@@ -161,11 +148,14 @@
             scope.uploaderCnt++;
           });
 
-          scope.submit = submit;
+          scope.$watch('[loading]', updateDisabledState);
+          scope.$watch(function () { return angular.toJson(scope.form) }, onFormUpdate);
+
           initActionsStrategy();
         }
 
         function initActionsStrategy() {
+          scope.submit = submit;
           var schemaStrategy = _.hasIn(scope, 'formOptions.schemaActionsStrategy');
           if (schemaStrategy) {
             setSchemaActionsStrategy();
@@ -190,11 +180,6 @@
               actionCb.apply(scope.args, [scope.args, scope.formHooks]);
             }
           }
-        }
-
-        function bindFormEvents() {
-          scope.$watch('[loading]', updateDisabledState);
-          scope.$watch(function () { return angular.toJson(scope.form) }, onFormUpdate);
         }
 
         function submit(args, cloneParams) {

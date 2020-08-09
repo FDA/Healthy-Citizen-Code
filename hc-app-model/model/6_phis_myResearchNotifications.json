@@ -1,0 +1,36 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "researchNotifications": {
+          "type": "Subschema",
+          "fullName": "Participant Notifications",
+          "description": "Generic notifications for Research to send to the participants",
+          "fields": {
+            "notificationId": {
+              "fullName": "Notification ID",
+              "type": "String",
+              "required": true,
+              "description": "Unique ID of the notification",
+              "comment": "This is not _id equivalent, it needs to be unique across all systems"
+            },
+            "subject": {
+              "fullName": "Subject",
+              "type": "String",
+              "required": true,
+              "description": "Brief subject of the notification",
+              "comment": "Similar to Subject in emails"
+            },
+            "body": {
+              "fullName": "Subject",
+              "type": "String",
+              "required": true,
+              "description": "Brief subject of the notification",
+              "comment": "Similar to Subject in emails"
+            }
+          }
+        }
+      }
+    }
+  }
+}

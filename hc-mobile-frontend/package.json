@@ -1,0 +1,58 @@
+{
+  "name": "HealthyCitizen",
+  "version": "0.4.21",
+  "private": true,
+  "scripts": {
+    "start": "node node_modules/react-native/local-cli/cli.js start",
+    "run-ios-debug": "react-native run-ios --configuration Debug",
+    "run-ios-staging": "react-native run-ios --configuration Staging",
+    "run-ios-production": "react-native run-ios --configuration Release --scheme \"HealthyCitizen\"",
+    "run-android-debug": "react-native run-android --variant=debug",
+    "run-android-staging": "react-native run-android --variant=stagingRelease",
+    "run-android-production": "ENVFILE=.env.prod react-native run-android --variant=release",
+    "build-android-debug": "cd ./android && ./gradlew assembleDebug",
+    "build-android-staging": "cd ./android && ./gradlew assembleStagingRelease",
+    "build-android-production": "cd ./android && ENVFILE=.env.prod ./gradlew assembleRelease",
+    "release-android-staging": "cd ./android && ./gradlew assembleStagingRelease crashlyticsUploadDistributionStagingRelease",
+    "release-android-production": "cd ./android && ENVFILE=.env.prod ./gradlew assembleRelease crashlyticsUploadDistributionRelease",
+    "test": "jest"
+  },
+  "dependencies": {
+    "mathjs": "^3.10.1",
+    "native-base": "github:danilvalov/NativeBase",
+    "prop-types": "^15.5.10",
+    "react": "~15.4.1",
+    "react-native": "^0.42.0",
+    "react-native-animatable": "^1.1.0",
+    "react-native-collapsible": "^0.8.0",
+    "react-native-config": "^0.3.1",
+    "react-native-drawer-layout": "^1.1.1",
+    "react-native-infinite-scroll-view": "^0.4.2",
+    "react-native-keyboard-spacer": "^0.3.1",
+    "react-native-linear-gradient": "^2.0.0",
+    "react-native-menu": "^0.20.2",
+    "react-native-orientation": "github:danilvalov/react-native-orientation",
+    "react-native-progress": "^3.2.0",
+    "react-native-sglistview": "^0.3.10",
+    "react-native-simple-modal": "^4.0.2",
+    "react-native-splash-screen": "2.0.0",
+    "react-native-swiper": "github:danilvalov/react-native-swiper",
+    "react-native-triangle": "0.0.6",
+    "react-native-websocket": "^1.0.0",
+    "react-navigation": "1.0.0-beta.7",
+    "react-redux": "^5.0.2",
+    "redux": "^3.6.0",
+    "redux-logger": "^2.8.1",
+    "redux-thunk": "^2.2.0",
+    "tcomb-form-native": "^0.6.7"
+  },
+  "devDependencies": {
+    "babel-jest": "19.0.0",
+    "babel-preset-react-native": "1.9.1",
+    "jest": "19.0.2",
+    "react-test-renderer": "15.4.2"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}

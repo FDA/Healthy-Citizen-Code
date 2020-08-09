@@ -1,0 +1,4 @@
+{
+  "backendUrl": "http://hc-backend-v3.conceptant.com",
+  "frontEndUrl": "http://localhost:3000"
+}  

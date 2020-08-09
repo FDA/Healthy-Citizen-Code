@@ -1,0 +1,36 @@
+<div class="page-layout simple fullwidth doc-page ng-scope layout-column">
+
+  <div class="header md-accent-bg layout-align-space-between-stretch layout-column">
+    <div layout="row" layout-align="space-between" class="layout-align-space-between-stretch layout-row">
+      <div>
+        <span class="title">Settings List</span>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="content layout-column">
+
+    <md-checkbox ng-model="data.cb1" aria-label="">
+      Two Factor Authentification
+    </md-checkbox>
+
+    <hr>
+    <md-list>
+      <md-list-item ng-repeat="setting in vm.settingsList">
+        <a ui-sref="app.setting({ id: setting._id })">
+          <div class="md-list-item-text">
+            <h3>{{setting.key}}</h3>
+
+            <div class="md-secondary">
+              <!-- <md-button class="md-warn" ng-click="vm.deleteUser(user._id)">Delete</md-button> -->
+            </div>
+
+          </div>
+        </a>
+      </md-list-item>
+    </md-list>
+
+  </div>
+
+</div>

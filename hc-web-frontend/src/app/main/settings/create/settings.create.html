@@ -1,0 +1,23 @@
+<div class="page-layout simple fullwidth doc-page ng-scope layout-column">
+
+  <div class="header md-accent-bg layout-align-space-between-stretch layout-column">
+    <div layout="row" layout-align="space-between" class="layout-align-space-between-stretch layout-row">
+      <div>
+        <span class="title">Create New Setting</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content layout-column">
+    <form name="settingsCreateForm" novalidate>
+      <hc-scheme-form data="vm.settingsSchema" ng-model="vm.setting" submit="vm.createSettings" title="Settings"></hc-scheme-form>
+    </form>
+    <div class="row">
+      <div class="form-wrapper md-whiteframe-1dp flex-80">
+
+        <md-button ng-click="vm.createSettings()" class="md-primary md-raised" ng-disabled="!settingsCreateForm.$valid">Create</md-button>
+      </div>
+    </div>
+
+  </div>
+</div>

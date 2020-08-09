@@ -1,0 +1,31 @@
+{
+  "models": {
+    "openFdaMedicationProducts": {
+      "type": "Schema",
+      "fullName": "OpenFDA Medication Products",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "description": "Global catalog of medications supported by the system",
+      "fields": {
+        "id": {
+          "type": "String",
+          "visible": true,
+          "fullName": "id",
+          "description": "Unique key from remote Open FDA server identifying each record to prevent duplicates. This is different from _id."
+        },
+        "rawData": {
+          "type": "Mixed",
+          "visible": false,
+          "fullName": "Raw Data",
+          "description": "Contains the pulled data as-is for future reparsing."
+        },
+        "ndc11": {
+          "type": "String[]",
+          "visible": true,
+          "fullName": "Ndc11 codes",
+          "description": "Array of ndc11 codes of current medication."
+        }
+      }
+    }
+  }
+}

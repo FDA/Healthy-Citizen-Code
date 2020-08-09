@@ -1,0 +1,40 @@
+{
+  "name": "health_cityzen",
+  "version": "1.0.0",
+  "scripts": {
+    "start": "node app.js",
+    "test": "mocha --reporter spec --timeout 5000"
+  },
+  "dependencies": {
+    "bcrypt": "^0.8.7",
+    "canvas": "^1.6.2",
+    "chalk": "^1.1.3",
+    "chance": "1.0.4",
+    "config": "^1.24.0",
+    "dotenv": "^2.0.0",
+    "dtrace-provider": "^0.8.0",
+    "fhir.js": "0.0.19",
+    "hc-common": "BITBUCKET/hc-common.git",
+    "jsonwebtoken": "^7.1.9",
+    "lodash": "^4.16.4",
+    "log4js": "^1.0.1",
+    "mongoose": "^4.6.5",
+    "nodemailer": "^2.6.4",
+    "nodemon": "^1.11.0",
+    "q": "^1.4.1",
+    "qrcode": "^0.5.0",
+    "restify": "^2.8.5",
+    "restify-errors": "^4.3.0",
+    "speakeasy": "^2.0.0"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.1.2",
+    "nodemon": "^1.11.0",
+    "supertest": "^2.0.0"
+  },
+  "engines": {
+    "node": "6.9.1"
+  },
+  "license": "MIT"
+}

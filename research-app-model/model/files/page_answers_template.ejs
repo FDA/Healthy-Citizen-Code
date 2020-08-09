@@ -1,0 +1,21 @@
+<hc-page-loader
+        loading="vm.loading">
+</hc-page-loader>
+
+<hc-content-container
+        class="multi-record"
+        ng-if="!vm.loading">
+
+    <hc-section-container>
+        <hc-page-title>
+            {{vm.data.fullName}}
+        </hc-page-title>
+    </hc-section-container>
+
+    <hc-section-container>
+        <hc-table-client-side
+                data="vm.tableData">
+        </hc-table-client-side>
+    </hc-section-container>
+
+</hc-content-container>

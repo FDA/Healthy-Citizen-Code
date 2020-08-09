@@ -1,0 +1,52 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "medicationAdherences": {
+          "type": "Subschema",
+          "fullName": "Tracking Medications",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "resultDate": -1 },
+          "fields": {
+            "resultDate": {
+              "type": "Date",
+              "visibilityPriority": 1,
+              "fullName": "Entry Date",
+              "required": true,
+              "description": "Date medication taken.",
+              "validate": ["notInFuture()"]
+            },
+            "timeOfDay": {
+              "type": "String",
+              "fullName": "Time of Day",
+              "visibilityPriority": 3,
+              "list": "dayTime",
+              "required": true,
+              "description": "Pick the time of the day when you took your medications."
+            },
+            "allMedicationsTaken": {
+              "type": "Boolean",
+              "visibilityPriority": 3,
+              "fullName": "Take All Medications",
+              "description": "Select if all medications have been taken for this session."
+            },
+            "numberMedicationsTaken": {
+              "type": "Number",
+              "visibilityPriority": 4,
+              "fullName": "Number of Medications Taken",
+              "description": "Indicates all medications scheduled were taken.",
+              "validate": ["max(99)"]
+            },
+            "comments": {
+              "type": "String",
+              "visibilityPriority": 5,
+              "validate": ["maxLength(500)"],
+              "fullName": "Comments",
+              "description": "Describe anything of interest about taking your medications."
+            }
+          }
+        }
+      }
+    }
+  }
+}

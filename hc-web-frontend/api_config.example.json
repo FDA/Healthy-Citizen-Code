@@ -1,0 +1,6 @@
+{
+  "CONSTANTS": {
+    "apiUrl": "https://hc-backend-stage.conceptant.com/",
+    "captchaDisabled": false
+  }
+}

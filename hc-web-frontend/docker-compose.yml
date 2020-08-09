@@ -1,0 +1,15 @@
+version: '2'
+services:
+
+  web:
+    # image: node:6.9.1
+    build:
+      context: .
+      dockerfile: docker/containers/nodejs/Dockerfile
+    volumes:
+      - ./:/usr/src/app
+    working_dir: /usr/src/app
+    # command: sh -c 'npm install && npm install -g bower --allow-root && bower --allow-root install && npm install -g gulp && gulp build && npm install -g http-server && cd dist && http-server'
+    # command: sh -c 'npm install -g http-server && cd dist && http-server'
+    ports:
+      - "8080:8080"

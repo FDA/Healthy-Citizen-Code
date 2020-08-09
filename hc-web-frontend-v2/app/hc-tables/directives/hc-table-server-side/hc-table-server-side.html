@@ -1,0 +1,24 @@
+<table
+  class="table">
+  <thead>
+  <tr class="columnFilters">
+    <th
+        ng-repeat="head in heads"
+        class="hasinput"
+        ng-class="head.type">
+      <hc-tables-filter
+          head="head"
+          server-side="true"
+          list-name="schema.fields[head.name]['list']">
+      </hc-tables-filter>
+    </th>
+  </tr>
+  <tr>
+    <th
+      ng-repeat="head in heads"
+      ng-class="head.type">
+      {{head.fullName}}
+    </th>
+  </tr>
+  </thead>
+</table>

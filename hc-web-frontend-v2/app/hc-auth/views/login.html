@@ -1,0 +1,30 @@
+<hc-form
+  class="auth-form"
+  hc-submit="vm.submit"
+  hc-fields="vm.fields">
+
+  <form-header>
+    Sign In
+  </form-header>
+
+  <form-footer>
+    <div class="text-center">
+      <button
+        type="submit"
+        class="btn btn-primary">
+        {{vm.authParams.signInText}}
+      </button>
+    </div>
+
+    <div class="separator text-center"><span class="separator-text">OR</span></div>
+
+    <div class="text-center">
+      Need an account?
+
+      <a ui-sref="auth.register">
+        {{vm.authParams.signUpText}}
+      </a>
+    </div>
+  </form-footer>
+
+</hc-form>

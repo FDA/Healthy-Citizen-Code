@@ -1,0 +1,6 @@
+This folder represents HC model V3.
+It is merged with the files in the backend/model/model folder
+
+Script build_combined_model.js represents code required to build the combined model from all these files.
+Please "npm install --save merge" before running that script.
+Feel free to reuse get_combined_model method from this script in the hc-backend REST call or where needed.

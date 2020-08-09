@@ -1,0 +1,16 @@
+<adp-form-field-container
+  ng-if="!captchaDisabled"
+  adp-field="field">
+
+  <div vc-recaptcha
+       key="key"
+       class="recaptcha"
+       name="{{field.keyName}}"
+       ng-model="recaptchaResponse">
+  </div>
+
+  <adp-messages
+    adp-field="field">
+  </adp-messages>
+
+</adp-form-field-container>

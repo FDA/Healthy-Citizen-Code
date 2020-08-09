@@ -1,0 +1,220 @@
+/*jarviswidget*/
+.sortable-grid{min-height:30px}
+.jarviswidget { margin: 0 0 30px; position: relative; -moz-border-radius: 0; -khtml-border-radius: 0; -webkit-border-radius: 0; border-radius: 0; padding: 0 }
+.widget-content-padding { padding: 20px }
+.widget-content-padding .well { margin-bottom: 0 }
+.jarviswidget>header { height: 34px; padding: 0; line-height: 40px }
+.jarviswidget>header>.widget-icon { display: block; width: 30px; height: 32px; position: relative; float: left; font-size: 111%; line-height: 32px; text-align: center; margin-right: -10px }
+.jarviswidget>header h2 { height: 100%; width: auto; display: inline-block; font-size: 14px; position: relative; margin: 0; line-height: 34px; font-weight: 400; letter-spacing: 0 }
+.jarviswidget>header>h2 { margin-left: 10px; float: left }
+.jarviswidget>header>:first-child.widget-icon { margin-left: 0 }
+.jarviswidget>header .jarviswidget-icon { width: 16px; height: 16px; float: left; margin: 12px 10px 0 0; display: block; zoom: 1; z-index: 4000 }
+.ui-sortable .jarviswidget-sortable>header { cursor: move; -moz-border-radius: 0; -khtml-border-radius: 0; -webkit-border-radius: 0; border-radius: 0; line-height: normal; box-shadow: inset 0 -2px 0 rgba(0,0,0,.05); -moz-box-shadow: inset 0 -2px 0 rgba(0,0,0,.05); -webkit-box-shadow: inset 0 -2px 0 rgba(0,0,0,.05) }
+.ui-sortable .jarviswidget-sortable.jarviswidget-collapsed>header { -moz-border-radius: 0; -khtml-border-radius: 0; -webkit-border-radius: 0; border-radius: 0 }
+.jarviswidget-ctrls { width: auto; float: right; padding: 0; margin: 0 }
+.jarviswidget-ctrls .button-icon { min-width: 30px; height: 32px; float: left; position: relative; font-family: Arial, Helvetica, sans-serif; border-left: 1px solid rgba(0,0,0,.09) }
+.jarviswidget-ctrls .button-icon:hover { background-color: rgba(0,0,0,.05) }
+.jarviswidget-loader { width: 32px; height: 32px; margin: 0; float: right; background-repeat: no-repeat; background-position: center center; display: none; text-align: center; line-height: 32px; font-size: 111% }
+.jarviswidget>div { box-sizing: border-box; float: left; width: 100%; position: relative; font-size: 13px; -moz-border-radius: 0; -khtml-border-radius: 0; -webkit-border-radius: 0; border-radius: 0; margin: 0; border-width: 1px 1px 2px; border-style: solid; border-top: none; border-right-color: #CCC!important; border-bottom-color: #CCC!important; border-left-color: #CCC!important; padding: 13px 13px 0; overflow: visible }
+.jarviswidget .widget-body { min-height: 100px; position: relative; padding-bottom: 13px }
+.jarviswidget .widget-body.widget-hide-overflow { overflow: hidden }
+.widget-toolbar.no-border { border-left: none }
+.widget-body.no-padding { margin: -13px -13px 0 }
+.widget-body.no-padding .alert { margin: 0 0 10px; padding: 10px; box-shadow: none!important; -webkit-box-shadow: none!important; -moz-box-shadow: none!important; border-width: 0 0 1px!important; border-radius: 0!important; -webkit-border-radius: 0!important; -moz-border-radius: 0!important }
+.jarviswidget.well.transparent .widget-body.no-padding { margin: 0!important }
+.widget-body>table { margin-bottom: 0 }
+.no-padding .md-editor, .widget-body.no-padding .cke_chrome { border: none }
+.widget-toolbar>.smart-form { margin-top: 2px }
+.widget-toolbar>.smart-form .toggle:last-child { font-size: 12px; line-height: 29px }
+.widget-toolbar>.smart-form .checkbox input+i, .widget-toolbar>.smart-form .radio input+i, .widget-toolbar>.smart-form .toggle input+i { border-width: 1px; border-color: #C7C7C7!important; margin-top: 1px; box-shadow: 0 1px 1px #FFF, 0 1px 1px #858585 inset; -webkit-box-shadow: 0 1px 1px #FFF, 0 1px 1px #858585 inset; -moz-box-shadow: 0 1px 1px #FFF, 0 1px 1px #858585 inset }
+.jarviswidget.well { margin: 0 0 30px }
+.jarviswidget.well>div { border: none!important; box-shadow: none!important; -webkit-box-shadow: none!important; -moz-box-shadow: none!important }
+.jarviswidget.well header { display: none }
+.widget-footer { display: block; min-height: 32px; vertical-align: middle; position: relative; background-color: #F8F7F7; padding: 5px; border-top: 1px solid #E4E4E4; text-align: right; margin: 0 -13px -13px }
+.no-padding .widget-footer { margin: 0 }
+.widget-footer.smart-form>label { margin-top: 4px; display: block }
+.jarviswidget-editbox { display: none; padding: 10px }
+.jarviswidget-timestamp { font-size: 12px; color: #868686; font-style: italic; margin: 10px 0 0 }
+.jarviswidget-placeholder { -moz-border-radius: 0; -khtml-border-radius: 0; -webkit-border-radius: 0; border-radius: 0; margin-bottom: 28px; padding: 0; -webkit-box-sizing: border-box; -khtml-box-sizing: border-box; -moz-box-sizing: border-box; -ms-box-sizing: border-box; box-sizing: border-box }
+body.nooverflow { overflow: hidden; position: fixed; width: 100% }
+#jarviswidget-fullscreen-mode { width: 100%; height: 100%; position: fixed; top: 0; left: 0; z-index: 1050 }
+#jarviswidget-fullscreen-mode .jarviswidget { margin: 0; -moz-border-radius: 0; -khtml-border-radius: 0; -webkit-border-radius: 0; border-radius: 0 }
+#jarviswidget-fullscreen-mode .jarviswidget>div { overflow-y: scroll; -moz-border-radius: 0; -khtml-border-radius: 0; -webkit-border-radius: 0; border-radius: 0 }
+#jarviswidget-fullscreen-mode>div>header { cursor: default }
+.smart-form.widget-body-toolbar, .widget-body-toolbar { display: block; padding: 8px 10px; margin: -13px -13px 13px; min-height: 42px; border-bottom: 1px solid #ccc; background: #fafafa }
+.no-padding .smart-form.widget-body-toolbar, .no-padding .widget-body-toolbar, .no-padding.widget-body-toolbar { display: block; margin: 0 }
+.smart-form .widget-body-toolbar .inline-group, .widget-body-toolbar.smart-form .inline-group { float: left; margin-top: 4px }
+.widget-body-toolbar .btn { vertical-align: middle }
+.widget-body-toolbar .btn-xs { margin-top: 5px }
+.widget-body-ajax-loading::before { content: url(../img/ajax-loader.gif); padding-top: 18%; text-align: center; font-weight: 700; font-size: 16px; color: #fff; display: block; background: rgba(255,255,255,.4); height: 100%; z-index: 1; width: 100%; position: absolute }
+.widget-body-ajax-loading:hover { cursor: wait!important }
+.jarviswidget>header { color: #333; border: 1px solid #C2C2C2; background: #fafafa }
+.jarviswidget>div { background-color: #fff!important }
+.jarviswidget-editbox { border-bottom: 1px solid #B1B1B1; background-color: #fff; margin: -13px -13px 13px }
+.no-padding .jarviswidget-editbox { margin: 0 0 10px }
+.jarviswidget-placeholder { background-color: #FFC; border: 1px dashed #A7A7A7 }
+.jarviswidget-remove-colors { color: #333!important; padding: 0!important; background: none!important }
+.jarviswidget-color-magenta>header { border-color: #643167!important; background: #6e3671; color: #fff }
+.jarviswidget-color-magenta .nav-tabs li:not(.active) a, .jarviswidget-color-magenta>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-magenta .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-pink>header { border-color: #a24d7f!important; background: #ac5287; color: #fff }
+.jarviswidget-color-pink .nav-tabs li:not(.active) a, .jarviswidget-color-pink>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-pink .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-pinkDark>header { border-color: #a27998!important; background: #a8829f; color: #fff }
+.jarviswidget-color-pinkDark .nav-tabs li:not(.active) a, .jarviswidget-color-pinkDark>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-pinkDark .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-yellow>header { border-color: #aa9452!important; background: #b09b5b; color: #fff }
+.jarviswidget-color-yellow .nav-tabs li:not(.active) a, .jarviswidget-color-yellow>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-yellow .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-orange>header { border-color: #ba871f!important; background: #c79121; color: #fff }
+.jarviswidget-color-orange .nav-tabs li:not(.active) a, .jarviswidget-color-orange>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-orange .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-orangeDark>header { border-color: #b1811d!important; background: #b6841e; color: #fff }
+.jarviswidget-color-orangeDark .nav-tabs li:not(.active) a, .jarviswidget-color-orangeDark>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-orangeDark .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-darken>header { border-color: #383838!important; background: #404040; color: #fff }
+.jarviswidget-color-darken>.nav-tabs>li:not(.active)>a, .jarviswidget-color-darken>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-darken .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-purple>header { border-color: #665271!important; background: #6e587a; color: #fff }
+.jarviswidget-color-purple .nav-tabs li:not(.active) a, .jarviswidget-color-purple>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-purple .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-teal>header { border-color: #508180!important; background: #568a89; color: #fff }
+.jarviswidget-color-teal .nav-tabs li:not(.active) a, .jarviswidget-color-teal>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-teal .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-blueDark>header { border-color: #45474b!important; background: #4c4f53; color: #fff }
+.jarviswidget-color-blueDark .nav-tabs li:not(.active) a, .jarviswidget-color-blueDark>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-blueDark .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-blue>header { border-color: #45474b!important; background: #4c4f53; color: #fff }
+.jarviswidget-color-blue .nav-tabs li:not(.active) a, .jarviswidget-color-blue>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-blue .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-blueLight>header { border-color: #a0aeb3!important; background: #cbd2d5; color: #000 }
+.jarviswidget-color-blueLight .nav-tabs li a:hover, .jarviswidget-color-blueLight .nav-tabs li:not(.active) a, .jarviswidget-color-blueLight>header>.jarviswidget-ctrls a { color: #2b363c!important }
+.jarviswidget-color-red>header { border-color: #9a0325!important; background: #a90329; color: #fff }
+.jarviswidget-color-red .nav-tabs li:not(.active) a, .jarviswidget-color-red>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-red .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-redLight>header { border-color: #9c5353!important; background: #a65858; color: #fff }
+.jarviswidget-color-redLight .nav-tabs li:not(.active) a, .jarviswidget-color-redLight>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-redLight .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-white>header { border-color: #ccc!important; background: #fff; color: #666 }
+.jarviswidget-color-white .nav-tabs li a:hover, .jarviswidget-color-white .nav-tabs li:not(.active) a, .jarviswidget-color-white>header>.jarviswidget-ctrls a { color: gray!important }
+.jarviswidget-color-greenDark>header { border-color: #436043!important; background: #496949; color: #fff }
+.jarviswidget-color-greenDark .nav-tabs li:not(.active) a, .jarviswidget-color-greenDark>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-greenDark .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-green>header { border-color: #306430!important; background: #356e35; color: #fff }
+.jarviswidget-color-green .nav-tabs li:not(.active) a, .jarviswidget-color-green>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-green .nav-tabs li a:hover { color: #333!important }
+.jarviswidget-color-greenLight>header { border-color: #687a3a!important; background: #71843f; color: #fff }
+.jarviswidget-color-greenLight .nav-tabs li:not(.active) a, .jarviswidget-color-greenLight>header>.jarviswidget-ctrls a { color: #fff!important }
+.jarviswidget-color-greenLight .nav-tabs li a:hover { color: #333!important }
+.color-select { list-style: none; margin: 0; padding: 4px; min-width: 166px; max-width: 156px; right: -3px }
+.color-select li { display: block; margin: 2px; float: left }
+.color-select li span:hover { border: 3px solid rgba(0,0,0,.2) }
+.color-box, .color-select li span { display: block; width: 22px; height: 22px; padding: 0; background: #333; box-sizing: border-box; -moz-box-sizing: border-box; -webkit-box-sizing: border-box; border: 1px solid rgba(0,0,0,.1); cursor: pointer }
+.color-box { position: relative; vertical-align: middle; border: 1px solid rgba(255,255,255,.3)!important; outline: 1px solid rgba(0,0,0,.1); background: rgba(255,255,255,.3)!important }
+.color-box:hover, .open .color-box { outline: 1px solid rgba(0,0,0,.1)!important }
+.color-box:hover { -webkit-transform: scale(1.07); -moz-transform: scale(1.07) }
+.color-box:active { top: 1px; left: 1px }
+.widget-toolbar>.color-box { margin-top: 7px; width: 18px; height: 18px; outline: 1px solid rgba(0,0,0,.2) }
+.widget-toolbar .dropdown-menu.color-select { right: -1px }
+.widget-toolbar>.color-box:active, .widget-toolbar>.color-box:focus, .widget-toolbar>.color-box:hover { outline: 1px solid rgba(0,0,0,.25)!important }
+.jarviswidget-ctrls a { text-decoration: none; font-size: 14px; text-align: center; display: inline-block; line-height: 32px; padding: 0; margin: 0; color: #333 }
+.clearfix:after, .clearfix:before, .inner-spacer:after, .inner-spacer:before, .jarviswidget-editbox:after, .jarviswidget-editbox:before, .jarviswidget:after, .jarviswidget:before, .jarviswidget>div:after, .jarviswidget>div:before { content: "\0020"; display: block; height: 0; overflow: hidden; font-size: 0; line-height: 0; visibility: hidden }
+.clearfix:after, .inner-spacer:after, .jarviswidget-editbox:after, .jarviswidget:after, .jarviswidget>div:after { clear: both }
+.clearfix, .inner-spacer:after, .jarviswidget, .jarviswidget-editbox, .jarviswidget>div { zoom: 1 }
+.widget-toolbar { display: inline-block; float: right; width: auto; height: 32px; line-height: 32px; position: relative; border-left: 1px solid rgba(0,0,0,.09); cursor: pointer; padding: 0 8px; text-align: center }
+.widget-toolbar>:first-child { text-align: left }
+.jarviswidget header .nav-tabs { border-bottom-color: transparent }
+.jarviswidget header .nav-tabs>li>a { border-radius: 0; border: none; padding: 7px 15px 6px }
+.jarviswidget header:first-child .nav-tabs { float: left }
+.jarviswidget header:first-child .nav-tabs li { padding-left: 0 }
+.jarviswidget header:first-child .nav-tabs li a { color: #333 }
+.jarviswidget header:first-child .nav-tabs.pull-right li:last-child a { margin-right: 0!important; border-right: none!important }
+.jarviswidget header .nav-tabs>li.active>a, .jarviswidget header .nav-tabs>li.active>a:focus, .jarviswidget header .nav-tabs>li.active>a:hover { color: #555; background-color: #FFF; border: 1px solid #C2C2C2; border-bottom-color: transparent; border-top: none; cursor: default }
+.jarviswidget header .nav-pills { margin: 3px }
+.jarviswidget header .nav-pills>li>a { padding: 3px 5px 4px }
+.widget-toolbar .btn-group { margin-top: -3px }
+.widget-toolbar>.btn { margin-top: -3px; font-size: 12px!important; padding: 1px 8px!important }
+.widget-toolbar .smart-form label.checkbox, .widget-toolbar .smart-form label.radio { line-height: 29px }
+.widget-toolbar>.label { vertical-align: middle; margin-top: -3px; display: inline-block; text-align: center; font-size: 12px; padding: 4px 7px }
+.widget-toolbar>.badge { padding: 5px; font-size: 14px; border-radius: 50%; font-weight: 400; min-width: 24px; text-align: center!important }
+.widget-toolbar .progress { width: 130px; margin: 7px 0 0; height: 18px!important; font-size: 12px; box-shadow: 0 1px 0 rgba(0,0,0,0), 0 0 0 1px #d1d1d1 inset; -webkit-box-shadow: 0 1px 0 rgba(0,0,0,0), 0 0 0 1px #d1d1d1 inset; -moz-box-shadow: 0 1px 0 transparent, 0 0 0 1px #D1D1D1 inset }
+.widget-toolbar .progress-bar { font-size: 12px }
+.widget-toolbar .pagination { margin: 4px 0 }
+.widget-toolbar .pagination>li>a { padding: 2px 7px }
+.widget-toolbar .widget-text-input { max-width: 220px }
+.widget-toolbar input[type=text] { height: 28px!important; margin-top: 2px }
+.widget-toolbar .smart-form .icon-append, .widget-toolbar .smart-form .icon-prepend, .widget-toolbar.smart-form .icon-append, .widget-toolbar.smart-form .icon-prepend { top: 3px!important }
+#jarviswidget-fullscreen-mode .fc-grid .fc-day-number { padding: 5px 12px; font-size: 40px }
+/**/
+/**.jarviswidget #calendar { margin-top: -18px }
+.jarviswidget td:first-child, .jarviswidget th:first-child { border-left: none }
+.jarviswidget td:last-child, .jarviswidget th:last-child { border-right: none }
+.jarviswidget tbody tr:last-child td { border-bottom: none }
+.jarviswidget .fc-toolbar .fc-left { float: none }
+.jarviswidget .fc-toolbar { margin-bottom: 0 }
+.jarviswidget .fc-toolbar h2 { text-shadow: 0 1px 0 #fff; margin-top: -12px; margin-left: 10px; font-size: 14px; font-weight: 700; margin-bottom: 9px }
+.jarviswidget.well.transparent>div, .jarviswidget.well.transparent>div .widget-body { padding: 0!important }
+.jarviswidget>header>.nav-tabs.pull-left>li:first-child a { border-left-width: 0!important }
+.colorblind-friendly .jarviswidget-ctrls .button-icon:hover { background-color: #333; color: #fff!important }
+.colorblind-friendly .jarviswidget-color-blue .jarviswidget-ctrls .button-icon:hover, .colorblind-friendly .jarviswidget-color-blueDark .jarviswidget-ctrls .button-icon:hover, .colorblind-friendly .jarviswidget-color-darken .jarviswidget-ctrls .button-icon:hover { background-color: #fff; color: #333!important }
+.colorblind-friendly .jarviswidget { position: relative }
+.colorblind-friendly .jarviswidget:hover:before { position: absolute; top: -3px; left: -5px; right: -5px; bottom: 0; border: 6px solid #333; visibility: visible; overflow: visible; height: 103%; z-index: 0; border-bottom-width: 10px }
+@media (max-width:979px) {
+.jarviswidget header h2 { width: 310px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media (min-width:768px) and (max-width:979px) {
+.jarviswidget header h2 { width: 200px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media (min-width:768px) and (max-width:880px) {
+.jarviswidget header h2 { width: 180px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media (max-width:767px) {
+.jarviswidget header h2 { width: 250px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media only screen and (min-width:0) and (max-width:679px) {
+.jarviswidget header h2 { width: 300px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media only screen and (min-width:320px) and (max-width:479px) {
+.jarviswidget header h2 { width: 135px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}**/
+.jarviswidget.well.transparent>div, .jarviswidget.well.transparent>div .widget-body { padding: 0!important }
+.jarviswidget>header>.nav-tabs.pull-left>li:first-child a { border-left-width: 0!important }
+@media (max-width:979px) {
+    .jarviswidget header h2 { width: 310px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media (min-width:768px) and (max-width:979px) {
+    .jarviswidget header h2 { width: 200px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media (min-width:768px) and (max-width:880px) {
+    .jarviswidget header h2 { width: 180px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media (max-width:767px) {
+    .jarviswidget header h2 { width: 250px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media only screen and (min-width:0) and (max-width:679px) {
+    .jarviswidget header h2 { width: 300px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+@media only screen and (min-width:320px) and (max-width:479px) {
+    .jarviswidget header h2 { width: 135px; text-overflow: ellipsis; white-space: nowrap; overflow: hidden }
+}
+/*color*/
+.bg-color-blue { background-color: #57889c!important }
+.bg-color-blueLight { background-color: #92a2a8!important }
+.bg-color-blueDark { background-color: #4c4f53!important }
+.bg-color-green { background-color: #356e35!important }
+.bg-color-greenLight { background-color: #71843f!important }
+.bg-color-greenDark { background-color: #496949!important }
+.bg-color-red { background-color: #a90329!important }
+.bg-color-yellow { background-color: #b09b5b!important }
+.bg-color-orange { background-color: #c79121!important }
+.bg-color-orangeDark { background-color: #a57225!important }
+.bg-color-pink { background-color: #ac5287!important }
+.bg-color-pinkDark { background-color: #a8829f!important }
+.bg-color-purple { background-color: #6e587a!important }
+.bg-color-darken { background-color: #404040!important }
+.bg-color-lighten { background-color: #d5e7ec!important }
+.bg-color-white { background-color: #fff!important }
+.bg-color-grayDark { background-color: #525252!important }
+.bg-color-magenta { background-color: #6e3671!important }
+.bg-color-teal { background-color: #568a89!important }
+.bg-color-redLight { background-color: #a65858!important }

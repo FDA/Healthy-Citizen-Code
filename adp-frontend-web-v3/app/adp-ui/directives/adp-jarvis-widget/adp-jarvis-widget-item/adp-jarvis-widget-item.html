@@ -1,0 +1,11 @@
+<div
+  class="adp-widget jarviswidget"
+  ng-attr-id="{{ 'jarviswidget-' + $id }}"
+>
+  <header class="adp-widget-header">
+    <span class="widget-icon"><i class="fa fa-eye"></i></span>
+    <h2 ng-transclude="header"></h2>
+  </header>
+
+  <div ng-transclude="body" class="widget-body"></div>
+</div>

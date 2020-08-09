@@ -1,0 +1,32 @@
+<div class="page-layout simple fullwidth">
+  <div class="header md-accent-bg layout-align-space-between-stretch layout-row">
+    <div class="title">{{vm.Schema.fullName || (vm.currentPage | camelCaseToSpace) }}</div>
+  </div>
+
+  <div class="content md-background-bg">
+    <!-- {{vm.formData}} -->
+    <div class="flex-xl-50 flex-lg-60 flex-md-80">
+      <form name="addForm" novalidate>
+        <hc-scheme-form
+          data="vm.addSchema"
+          ng-model="vm.formData"
+          hide-subforms="true">
+        </hc-scheme-form>
+      </form>
+    </div>
+    
+    <md-button
+      class="md-raised md-primary update-button submit-button"
+      aria-label="add"
+      ng-if="vm.isEmpty(vm.pageData)"
+      ng-disabled="addForm.$invalid || addForm.$pristine"
+      ng-click="vm.add(vm.formData)">Add</md-button>
+
+    <md-button
+      class="md-raised md-primary update-button submit-button"
+      aria-label="update"
+      ng-if="!vm.isEmpty(vm.pageData)"
+      ng-disabled="addForm.$invalid || addForm.$pristine"
+      ng-click="vm.update(vm.formData, vm.formData['_id'])">Update</md-button>
+  </div>
+</div>

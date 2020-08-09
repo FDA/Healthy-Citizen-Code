@@ -1,0 +1,11 @@
+{
+  "appenders": [
+    {
+      "type": "file",
+      "filename": "logs/hc.log"
+    }
+  ],
+  "levels": {
+    "[all]": "ERROR"
+  }
+}

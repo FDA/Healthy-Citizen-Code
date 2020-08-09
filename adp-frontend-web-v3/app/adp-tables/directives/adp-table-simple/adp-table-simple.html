@@ -1,0 +1,12 @@
+<table
+  class="table-list clearfix">
+  <thead>
+  <tr>
+    <th
+      ng-repeat="head in heads track by $index"
+      ng-class="head.type">
+      {{head.fullName}}
+    </th>
+  </tr>
+  </thead>
+</table>

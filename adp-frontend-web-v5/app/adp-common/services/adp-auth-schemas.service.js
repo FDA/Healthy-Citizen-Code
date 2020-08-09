@@ -94,7 +94,6 @@
 
     function passwordUpdateSchema() {
       var password = getPasswordModelField();
-      removeRegexValidator(password);
 
       return {
         type: 'Schema',

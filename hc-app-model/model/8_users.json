@@ -1,0 +1,115 @@
+{
+  "models": {
+    "users": {
+      "type": "Schema",
+      "fullName": "User Data",
+      "singleRecord": true,
+      "limitReturnedRecords": 1,
+      "requiresAuthentication": true,
+      "controller": "user",
+      "schemaTransform": "user",
+      "description": "This collection solely serves the purpose of user authentication. Besides password recovery email there should be no PII in this collection.",
+      "fields": {
+        "phiId": {
+          "type": "String",
+          "unique": true,
+          "visible": false,
+          "comment": "Use email in the MVP",
+          "fullName": "Citizen PII ID",
+          "generated": true,
+          "description": "The system generated unique identifier to store and retrieve the patient's PII information."
+        },
+        "piiId": {
+          "type": "String",
+          "unique": true,
+          "visible": false,
+          "comment": "Use email in the MVP",
+          "fullName": "Citizen PII ID",
+          "generated": true,
+          "description": "The system generated unique identifier to store and retrieve the patient's PII information."
+        },
+        "login": {
+          "type": "String",
+          "unique": true,
+          "required": true,
+          "visible": false,
+          "comment": "User login",
+          "fullName": "Login",
+          "description": "Unique user login. Could be email or anything else.",
+          "validate": ["minLength(5)", "maxLength(30)"]
+        },
+        "email": {
+          "type": "String",
+          "default": "",
+          "required": true,
+          "subtype": "Email",
+          "fullName": "Email",
+          "description": "This email is used for the password recovery purposes only"
+        },
+        "password": {
+          "type": "String",
+          "default": "",
+          "required": true,
+          "subtype": "Password",
+          "fullName": "Password",
+          "description": "The password that the citizen has selected to use with the HealthyCitizen application."
+        },
+        "salt": {
+          "type": "String",
+          "visible": false,
+          "generated": true,
+          "fullName": "Salt",
+          "description": "Password hash function salt"
+        },
+        "accountProvider": {
+          "type": "Array",
+          "fullName": "linkedAccounts",
+          "description": "Social network account providing authentication for this user. Additional social networks can be recorded in PII data",
+          "fields": {
+            "name": {
+              "type": "String",
+              "generated": true,
+              "fullName": "Provider",
+              "description": "Account provider (such as facebook, twitter etc)"
+            },
+            "data": {
+              "type": "Mixed",
+              "visible": false,
+              "fullName": "Provider Data",
+              "description": "Account provider-specific data"
+            }
+          }
+        },
+        "updated": {
+          "type": "Date",
+          "visible": false,
+          "generated": true,
+          "fullName": "Updated",
+          "description": "The system generated date when the citizen user account was updated."
+        },
+        "created": {
+          "type": "Date",
+          "visible": false,
+          "defaultF": "dateNow",
+          "generated": true,
+          "fullName": "Created",
+          "description": "The system generated date when the citizen user account was created."
+        },
+        "resetPasswordToken": {
+          "type": "String",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Token",
+          "description": "The system assigned token that is sent to the citizen when they request a password reset."
+        },
+        "resetPasswordExpires": {
+          "type": "Date",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Expires",
+          "description": "The date the password token will expire."
+        }
+      }
+    }
+  }
+}

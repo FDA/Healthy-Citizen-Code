@@ -1,0 +1,73 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "encounters": {
+          "fields": {
+            "procedures": {
+              "type": "Subschema",
+              "fullName": "Procedures",
+              "requiresAuthentication": true,
+              "defaultSortBy": { "procedureStartDate": -1 },
+              "fields": {
+                "procedureId": {
+                  "type": "String",
+                  "visible": false,
+                  "fullName": "Procedure ID"
+                },
+                "sourceType": {
+                  "type": "String",
+                  "list": "sourceTypes",
+                  "fullName": "Source of Record",
+                  "visible": false,
+                  "description": "The source of the patient data (e.g., hospital, clinic, etc.,)."
+                },
+                "procedureStartDate": {
+                  "type": "Date",
+                  "visibilityPriority": 1,
+                  "fullName": "Procedure Start Date",
+                  "required": true,
+                  "description": "The date the patient procedure was started.",
+                  "validate": ["notBeforeEncounterAdmissionDate()","notAfterEncounterDischargeDate()","notInFuture()"]
+                },
+                "procedureEndDate": {
+                  "type": "Date",
+                  "fullName": "Procedure End Date",
+                  "required": true,
+                  "description": "The date the patient procedure was complete.",
+                  "validate": ["min($procedureStartDate)","notAfterEncounterDischargeDate()","notInFuture()"]
+                },
+                "providerId": {
+                  "type": "String",
+                  "fullName": "Provider ID",
+                  "visible": false,
+                  "description": "The identification code of the healthcare provider that treated the patient."
+                },
+                "procedureCode": {
+                  "type": "String[]",
+                  "visibilityPriority": 2,
+                  "list": "procedures",
+                  "fullName": "Procedures",
+                  "required": true,
+                  "description": "All procedures that were performed on the patient during the encounter."
+                },
+                "procedureCodeType": {
+                  "type": "String",
+                  "list": "encountersProcedureCodeTypes",
+                  "fullName": "Procedure Code Type",
+                  "description": "ICD-10 procedure code grouping."
+                },
+                "originalProcedureCode": {
+                  "type": "String",
+                  "fullName": "Original Procedure Code",
+                  "visible": false,
+                  "description": "Is this the first procedure?"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

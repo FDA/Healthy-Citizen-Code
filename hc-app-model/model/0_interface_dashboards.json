@@ -1,0 +1,110 @@
+{
+  "interface": {
+    "mainDashboard": {
+      "type": "Dashboard",
+      "fullName": "Main Dashboard",
+      "comment": "This defines the main system dashboard",
+      "permissions": ["doUserActivities"],
+      "fields": {
+        "alerts": {
+          "type": "DashboardItem",
+          "id": "alerts",
+          "fullName": "Alerts",
+          "color": "#F1BB24",
+          "icon": "/public/dashboard/alert-icon.png",
+          "count": 2,
+          "description": "All alerts specific to this user",
+          "template": "<list><% for (var itemIndex in this) { %><% var item = this[itemIndex]; var date = new Date(item.date); %><list-item><string border><% (date.getMonth() + 1) + '/' + date.getDate() + '/' + ( date.getYear() % 100 ) + ': ' + item.alert %></string></list-item><% } %></list>",
+          "action": "view",
+          "linkLabel": "View All",
+          "link": "/phis/myRecalls"
+        },
+        "myMedications": {
+          "type": "DashboardItem",
+          "id": "myMedications",
+          "fullName": "Medicine",
+          "color": "#ACDF69",
+          "icon": "/public/dashboard/medicine-icon.png",
+          "description": "All medications specific to this user",
+          "template": "<% var images = {'good': '/public/icons/happy.png', 'bad': '/public/icons/sad.png'}; %><offset size=\"20\" /><grid><% for (var statusIndex in this) { %><% var status = this[statusIndex]; %><column><string center><% status.number %></string></column><% } %></grid><grid><% for (var statusIndex in this) { %><% var status = this[statusIndex]; var date = new Date(status.date); %><column><string center><% (date.getMonth() + 1) + '/' + date.getDate() + '/' + ( date.getYear() % 100 ) %></string><image source=\"<% images[status.kind.toLowerCase()] %>\" /><string center><% status.kind %></string></column><% } %></grid>",
+          "action": "add",
+          "linkLabel": "Take",
+          "link": "/phis/medicationAdherences"
+        },
+        "howAmI": {
+          "type": "DashboardItem",
+          "id": "howAmI",
+          "fullName": "How Are You",
+          "color": "#39C585",
+          "icon": "/public/dashboard/how-icon.png",
+          "description": "All mood records specific to this user",
+          "template": "<% var images = {'good': '/public/icons/happy.png', 'bad': '/public/icons/sad.png'}; %><offset size=\"20\" /><grid><% for (var statusIndex in this) { %><% var status = this[statusIndex]; %><column><string center><% status.type %></string></column><% } %></grid><grid><% for (var statusIndex in this) { %><% var status = this[statusIndex]; var date = new Date(status.date); %><column><string center><% (date.getMonth() + 1) + '/' + date.getDate() + '/' + ( date.getYear() % 100 ) %></string><image source=\"<% images[status.kind.toLowerCase()] %>\" /><string center><% status.kind %></string></column><% } %></grid>",
+          "action": "add",
+          "linkLabel": "Record",
+          "link": "/phis/moods"
+        },
+        "diet": {
+          "type": "DashboardItem",
+          "id": "diet",
+          "fullName": "Diet",
+          "color": "#367488",
+          "icon": "/public/dashboard/diet-icon.png",
+          "description": "All diet entries specific to this user",
+          "template": "<% var images = {'good': '/public/icons/happy.png', 'bad': '/public/icons/sad.png'}; %><offset size=\"20\" /><grid><% for (var statusIndex in this) { %><% var status = this[statusIndex]; %><column><string center><% status.meal %></string></column><% } %></grid><grid><% for (var statusIndex in this) { %><% var status = this[statusIndex]; var date = new Date(status.date); %><column><string center><% (date.getMonth() + 1) + '/' + date.getDate() + '/' + ( date.getYear() % 100 )%></string><image source=\"<% images[status.kind.toLowerCase()] %>\" /><string center><% status.kind %></string></column><% } %></grid>",
+          "action": "add",
+          "linkLabel": "Add",
+          "link": "/phis/diets"
+        },
+        "remindersAndAppointments": {
+          "type": "DashboardItem",
+          "id": "remindersAndAppointments",
+          "fullName": "Reminders",
+          "color": "#0079FF",
+          "icon": "/public/dashboard/side-effect-icon.png",
+          "description": "All reminders and appointments specific to this user",
+          "template": "<list><% for (var itemIndex in this) { %><% var item = this[itemIndex]; %><list-item><string border><% item %></string></list-item><% } %></list>",
+          "action": "view",
+          "linkLabel": "View All",
+          "link": "/phis/activities"
+        },
+        "myGlucoseLevel": {
+          "type": "DashboardItem",
+          "id": "myGlucoseLevel",
+          "fullName": "Glucose",
+          "color": "#5AC7F9",
+          "icon": "/public/dashboard/glucose-icon.png",
+          "description": "All glucose level records specific to this user",
+          "template": "<list><list-item><string>Last 3:</string><grid><% for (var itemIndex in this.slice(0, 3)) { var item = this[itemIndex]; %><column><circle><% item %></circle></column><% } %></grid></list-item><list-item><string>Average:</string><circle><% Math.round(this.reduce(function(a, v) { return a + v; }, 0) / this.length) %></circle></list-item></list>",
+          "action": "add",
+          "linkLabel": "Record",
+          "link": "/phis/homeLabs"
+        },
+        "myBloodPressure": {
+          "type": "DashboardItem",
+          "id": "myBloodPressure",
+          "fullName": "Blood Pressure",
+          "shortName": "BP",
+          "color": "#0FA1B9",
+          "icon": "/public/dashboard/blood-press-icon.png",
+          "description": "All blood pressure records specific to this user",
+          "template": "<list><list-item><string>Last 3:</string><grid><% for (var itemIndex in this.slice(0, 3)) { var item = this[itemIndex]; %><column><circle><fraction><% item[0] %>/<% item[1] %></fraction></circle></column><% } %></grid></list-item><list-item><string>Average:</string><circle><fraction><% Math.round(this.reduce(function(a, b) { return a + b[0]; }, 0) / this.length) %>/<% Math.round(this.reduce(function(a, b) { return a + b[1]; }, 0) / this.length) %></fraction></circle></list-item></list>",
+          "action": "add",
+          "linkLabel": "Record",
+          "link": "/phis/homeLabs"
+        },
+        "activities": {
+          "type": "DashboardItem",
+          "id": "activities",
+          "fullName": "Activity",
+          "color": "#79E1B7",
+          "icon": "/public/dashboard/activities-icon.png",
+          "description": "All activities specific to this user",
+          "template": "<list><% for (var itemIndex in this) { %><% var item = this[itemIndex]; %><list-item><string border><% item %></string></list-item><% } %></list>",
+          "action": "add",
+          "linkLabel": "Add",
+          "link": "/phis/activities"
+        }
+      }
+    }
+  }
+}

@@ -93,7 +93,7 @@ describe("Grid type", () => {
       await this.page.waitFor(gridTable1button, {timeout: SELECTOR_TIMEOUT});
       await this.page.click(gridTable1button);
 
-      const linkedToFieldSelector = 'form.gridTable1 div[name="linkedTo"] input';
+      const linkedToFieldSelector = 'form.gridTable1 [field-name-input="linkedTo"]';
       await this.page.waitFor(linkedToFieldSelector, {timeout: SELECTOR_TIMEOUT});
 
       const linkedToId = await this.page.$eval(linkedToFieldSelector, el=>el.value);

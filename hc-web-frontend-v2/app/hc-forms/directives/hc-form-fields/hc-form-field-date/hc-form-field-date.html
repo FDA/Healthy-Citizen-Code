@@ -1,0 +1,33 @@
+<hc-form-field-container
+  hc-is-error="form[field.keyName].$touched && form[field.keyName].$invalid"
+  hc-field="field">
+
+  <label
+    class="label">
+    {{field.fullName}}
+    <span ng-show="field.required">&nbsp;*</span>
+
+    <hc-tooltip
+      hc-field="field">
+    </hc-tooltip>
+  </label>
+
+  <label class="input datepicker-label">
+    <input
+      type="text"
+      id="{{field.keyName}}"
+      name="{{field.keyName}}"
+      hc-datepicker
+      class="form-control datepicker"
+      ng-model="hcFormData[field.keyName]"
+      hc-date-formatter
+      hc-validate="field"
+      ng-required="field.required"
+      placeholder="Enter date"
+      options="datepickerOptions">
+  </label>
+
+  <hc-messages
+    hc-field="field">
+  </hc-messages>
+</hc-form-field-container>

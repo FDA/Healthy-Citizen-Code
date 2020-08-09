@@ -1,0 +1,86 @@
+<div class="page-layout simple fullwidth doc-page ng-scope layout-column">
+
+  <div class="header md-accent-bg layout-align-space-between-stretch layout-column">
+    <div layout="row" layout-align="space-between" class="layout-align-space-between-stretch layout-row">
+      <div>
+        <span class="title">My Profile</span>
+      </div>
+    </div>
+  </div>
+
+  <div class="content layout-column">
+
+    <md-tabs md-dynamic-height md-border-bottom>
+      <!-- Info tab -->
+      <md-tab label="Info" md-active="vm.activeTab == 'Info'">
+        <hc-nested-table data="vm.displayUserData"></hc-nested-table>
+      </md-tab>
+
+      <!-- Edit Tab -->
+      <md-tab label="Edit" md-active="vm.activeTab == 'Edit'" class="">
+        <hc-scheme-form class="" data="vm.userDataSchema" ng-model="vm.userData" title="{{vm.formName}}"></hc-scheme-form>
+        <div class="row">
+          <div class="form-wrapper md-whiteframe-1dp">
+
+            <md-button ng-click="vm.updateUser()" class="md-primary">Update</md-button>
+          </div>
+        </div>
+      </md-tab>
+
+      <md-tab label="Hospitals" md-active="vm.activeTab == 'Hospitals'">
+        <table class="simple" ms-responsive-table>
+          <thead>
+            <tr>
+              <th ng-repeat="key in vm.hospitalsKeys">{{key}}</th>
+              <th></th>
+            </tr>
+          </thead>
+
+          <tbody>
+            <tr ng-repeat="item in vm.hospitals.items">
+              <td ng-repeat="key in vm.hospitalsKeys">{{item[key]}}</td>
+              <td>
+                <md-input-container>
+                  <input type="text" required="required" name="patientId" ng-model="vm.patientId"
+                        placeholder="Patient ID">
+                </md-input-container>
+
+                <md-button ng-disabled="!vm.patientId" class="md-raised md-primary" ng-click="vm.syncHospital(item._id)">Sync</md-button>
+              </td>
+            </tr>
+          </tbody>
+        </table>
+      </md-tab>
+
+      <md-tab label="Settings" md-active="vm.activeTab == 'Settings'">
+        <div class="row">
+          <div class="form-wrapper md-whiteframe-1dp flex-80">
+            
+            Two factor auth: {{vm.settings.twoFactorAuth | booleanFilter}}
+            <!-- <div ng-show="!vm.showValidators"> -->
+              <md-button ng-show="vm.settings.twoFactorAuth" ng-click="vm.toggleTwoFactorAuth(false)">Disable</md-button>
+              
+              <md-button ng-show="!vm.settings.twoFactorAuth" ng-click="vm.toggleTwoFactorAuth(true)">Enable</md-button>
+            <!-- </div> -->
+
+            <!-- Verify authentificator -->
+            <div ng-show="!vm.settings.twoFactorAuth && vm.showValidators">
+              <span ng-bind-html="vm.qrcode"></span>
+              <br>
+              <md-input-container>
+                <label>Verify token</label>
+                <input ng-model="vm.verificationCode">
+              </md-input-container>
+              <md-button ng-click="vm.verify()">Verify</md-button>
+            </div>
+
+          </div>
+        </div>
+        
+      </md-tab>
+
+
+    </md-tabs>
+  </div>
+
+</div>

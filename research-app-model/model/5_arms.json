@@ -1,0 +1,72 @@
+{
+  "models": {
+    "arms": {
+      "type": "Schema",
+      "fullName": "Study Arms",
+      "requiresAuthentication": true,
+      "fields": {
+        "source": {
+          "fullName": "The source of the information",
+          "type": "String",
+          "required": false,
+          "visible": false,
+          "description": "xxx"
+        },
+        "studyName": {
+          "fullName": "Study Name",
+          "type": "ObjectID[]",
+          "required": false,
+          "description": "Study Name",
+          "lookup": {
+            "table": "studies",
+            "foreignKey": "_id",
+            "label": "studyName",
+            "scopes": {
+              "ownRecordScope": {
+                "permissions": "accessAsUser",
+                "where": "{$eq: ['$creator', this.req.user._id]}"
+              }
+            },
+            "id": "studyName"
+          }
+        },
+          "armName": {
+            "fullName": "Arm Name",
+            "type": "String",
+            "default": "",
+            "required": true,
+            "description": "Name of the arm"
+          },
+          "armType": {
+            "fullName": "Arm Type",
+            "type": "String",
+            "list": "armTypes",
+            "default": "Experimental",
+            "required": true,
+            "description": "Type of arm"
+          },
+          "armRange": {
+            "fullName": "Arm Target Accrual Number Range",
+            "type": "Number",
+            "default": "",
+            "required": false,
+            "description": "what the total number for the arm needs to be"
+          },
+          "armWeight": {
+            "fullName": "Arm Randomization Weight",
+            "type": "Number",
+            "default": "",
+            "required": false,
+            "description": "the weighting for randomizing the arm"
+          },
+          "armDesc": {
+            "fullName": "Arm Description",
+            "type": "String",
+            "default": "",
+            "required": false,
+            "description": "Description of the Study Arm"
+          }
+        }
+      }
+    }
+  }

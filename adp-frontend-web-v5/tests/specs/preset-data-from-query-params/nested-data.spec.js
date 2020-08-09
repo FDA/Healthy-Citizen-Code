@@ -52,7 +52,7 @@ describe('data presetting', () => {
         await presetData(dataToPreset, this.page);
 
         const [s1FieldValue, s2FieldValue] = await Promise.all(
-          ['s1', 's2'].map(name => this.page.$eval(`[name="${name}"] input`, el => el.value))
+          ['s1', 's2'].map(name => this.page.$eval(`[field-name-input="${name}"]`, el => el.value))
         );
 
         expect(s1FieldValue).toBe(dataToPreset['o1.s1']);

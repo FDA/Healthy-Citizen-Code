@@ -1,0 +1,59 @@
+<div
+  ng-messages
+  for="form[field.keyName].$error"
+  ng-if="form[field.keyName].$dirty"
+  class="note note-error">
+  <span ng-message="required">
+    {{field.fullName}} is required.
+  </span>
+
+  <span ng-message="regex">
+    {{messages['regex']}}
+  </span>
+
+  <span ng-message="min"
+        ng-if="field.type == 'Date' && form[field.keyName].$touched">
+    {{messages['min']}}
+  </span>
+
+  <span ng-message="min"
+        ng-if="field.type != 'Date' && form[field.keyName].$dirty">
+    {{messages['min']}}
+  </span>
+
+  <span ng-message="max"
+        ng-if="field.type == 'Date' && form[field.keyName].$touched">
+    {{messages['max']}}
+  </span>
+
+  <span ng-message="max"
+        ng-if="field.type != 'Date' && form[field.keyName].$dirty">
+    {{messages['max']}}
+  </span>
+
+  <span ng-message="minLength">
+    {{messages['minLength']}}
+  </span>
+
+  <span ng-message="maxLength">
+    {{messages['maxLength']}}
+  </span>
+
+  <div ng-message="dateValid"
+       ng-if="form[field.keyName].$touched">
+    Date is invalid.
+  </div>
+
+  <span ng-message="notInFuture"
+        ng-if="form[field.keyName].$touched">
+    {{messages['notInFuture']}}
+  </span>
+
+  <span ng-message="passwordMatch">
+    Passwords do not match.
+  </span>
+
+  <span ng-message="location">
+    Address not found. Please try again.
+  </span>
+</div>

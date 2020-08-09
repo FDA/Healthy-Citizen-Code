@@ -1,0 +1,51 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "enrollments": {
+          "type": "Subschema",
+          "fullName": "Enrollments",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "start": -1 },
+          "fields": {
+            "start": {
+              "type": "Date",
+              "visibilityPriority": 1,
+              "fullName": "Enrollment Start Date",
+              "required": true,
+              "description": "insurance enrollment date.",
+              "validate": ["notInFuture()"]
+            },
+            "end": {
+              "type": "Date",
+              "fullName": "Enrollment End Date",
+              "description": "Insurance end date (estimated or actual).",
+              "validate": ["notInFuture()", "min($start)"]
+            },
+            "medicalCoverage": {
+              "type": "String",
+              "visibilityPriority": 2,
+              "list": "triState",
+              "fullName": "Medical Coverage",
+              "description": "If covered (Y/N)."
+            },
+            "drugCoverage": {
+              "type": "String",
+              "visibilityPriority": 3,
+              "list": "triState",
+              "fullName": "Drug Coverage",
+              "description": "If covered (Y/N)."
+            },
+            "chartAvailable": {
+              "type": "String",
+              "visible": false,
+              "list": "twoState",
+              "fullName": "Chart Available",
+              "description": "Indicates whether a chart is available for more detailed information about the patient."
+            }
+          }
+        }
+      }
+    }
+  }
+}

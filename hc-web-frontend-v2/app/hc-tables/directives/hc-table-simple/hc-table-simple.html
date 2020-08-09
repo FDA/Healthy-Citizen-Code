@@ -1,0 +1,12 @@
+<dl class="row"
+    ng-repeat="head in heads track by $index">
+  <dt class="col-md-4">{{head.fullName}}</dt>
+
+  <dd  class="col-md-8">
+    <span ng-if="!isEmpty(data[head.name])">
+      {{data|hcDataPresenter:schema:head.name}}
+    </span>
+
+    <span ng-if="isEmpty(data[head.name])">-</span>
+  </dd>
+</dl>

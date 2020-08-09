@@ -1,0 +1,20 @@
+<div class="login-info ng-cloak">
+    <span> <!-- User image size is adjusted inside CSS, it should stay as it -->
+        <a class="clearfix">
+          <img
+            hc-user-menu-toggle
+            ng-src="{{'assets/img/profile.jpg'}}"
+            alt="me"
+            class="hc-login-info-toggle online pull-left">
+
+          <img
+            hc-src="{{app.logo.small}}"
+            alt="me"
+            class="hc-login-info-logo pull-right">
+
+          <span>{{user.login}}</span>
+
+          <i class="fa fa-angle-down"></i>
+        </a>
+     </span>
+</div>

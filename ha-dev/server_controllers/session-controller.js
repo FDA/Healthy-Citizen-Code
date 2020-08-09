@@ -33,6 +33,10 @@ module.exports = () => {
       appLib.isAuthenticated,
       m.startSession,
     ]);
+    appLib.addRoute('get', `/load-session/:profile/profile.png`, [
+      appLib.isAuthenticated,
+      m.loadSession,
+    ]);
     appLib.addRoute('get', `/profiles`, [m.appLib.isAuthenticated, m.getStuff]);
     appLib.addRoute('get', `/devices`, [m.appLib.isAuthenticated, m.getStuff]);
     appLib.addRoute('get', `/drugsMaster`, [m.appLib.isAuthenticated, m.getStuff]);
@@ -168,6 +172,60 @@ module.exports = () => {
         res.json({ success: false, message: `An error occurred while starting a session` });
       });
   };
+
+
+  m.loadSession = (req, res) => {
+    const profile = _.get(req, 'params.profile');
+    // TODO: also check the UDID
+    // TODO: do not allow udids shorter than 12 characters for security reasons
+    // TODO: discuss with the privacy office if we're allowed to store both the udid and the source IP
+    /*
+    if (!udid || udid.length <= 12) {
+      log.warn(`UDID is incorrectly formatted: '${udid}'`);
+      return res.json({ success: false, message: `Incorrect deidentified ID` });
+    }
+     */
+
+    m.appLib.db
+        .model('profiles')
+        .findOne({ _id: new ObjectID(profile) })
+        .exec()
+        .then(r => {
+          if (!r) {
+            throw `Profile not found: ${profile}`;
+          } else  {
+            if(!req.session.profile) {
+              req.session.profile = {};
+            }
+            const sesProfile = req.session.profile;
+            sesProfile.id = profile;
+            sesProfile.devices = _.get(r, 'devices', []).map(d => new ObjectID(d.device._id));
+            sesProfile.drugs = _.get(r, 'drugs', []).map(d => new ObjectID(d.drug._id));
+            sesProfile.icdcodes = _.get(r, 'diagnoses', []).map(
+                d => new ObjectID(d.diagnosis[d.diagnosis.length-1]._id)
+            );
+          }
+        })
+        .then(() => {
+          //req.session.udid = udid;
+          return fs.readFile('../ha-dev/public/img/1x1.png').catch(err => {
+            log.error(`Error while reading 1x1 file: '${err}'`);
+            res.writeHead(500);
+            res.end();
+          });
+        })
+        .then(file => {
+          // res.writeHead(200);
+          res.setHeader('Content-Type', 'image/png');
+          res.end(file, 'binary');
+          // res.end();
+        })
+        .catch(e => {
+          log.error(`Error while loading the session`, e.stack);
+          res.json({ success: false, message: `An error occurred while loading a session` });
+        });
+  };
+
 
   function getDrugInfo(drug) {
     return { ndc11: drug.packageNdc11, brandName: drug.name };

@@ -1,0 +1,53 @@
+{
+  "models": {
+    "notifications": {
+        "type": "Schema",
+    "fullName": "Participants De-Identified Notifications",
+    "requiresAuthentication": true,
+    "fields": {
+      "dId": {
+        "fullName": "Participant De-Identified ID",
+        "type": "String",
+        "required": false,
+        "colspan": 2,
+        "description": "Participant De-Identified ID"
+      },
+      "orgId": {
+        "fullName": "Participant's Organization",
+        "type": "String",
+        "default": "",
+        "required": false,
+        "colspan": 2,
+        "description": "xxx"
+      },
+      "notificationType": {
+        "fullName": "Type of Notification",
+        "list": "notificationTypes",
+        "type": "String",
+        "default": "",
+        "required": false,
+        "colspan": 2,
+        "description": "Type of Notification"
+      },
+      "notificationText": {
+        "fullName": "Notification Text",
+        "type": "String",
+        "default": "",
+        "required": false,
+        "colspan": 2,
+        "description": "Notification Text"
+      },
+      "deliveryStatus": {
+        "fullName": "Delivery Status",
+        "type": "String",
+        "list": "deliveryStatuses",
+        "default": "",
+        "required": false,
+        "colspan": 2,
+        "description": "Delivery Status"
+      }
+      }
+    }
+    }
+  }
+

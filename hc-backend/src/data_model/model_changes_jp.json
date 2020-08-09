@@ -1,0 +1,173 @@
+{
+  "schema": {
+    "type": {
+      "required": "true",
+      "list": [
+        "String",
+        "Date",
+        "Number",
+        "Boolean",
+        "Mixed"
+      ],
+      "fullName": "Type",
+      "comment": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'"
+    },
+    "fullName": {
+      "default": "",
+      "fullName": "Full Name",
+      "comment": "Full name of the field in human-readable form"
+    },
+    "description": {
+      "default": "",
+      "fullName": "Description",
+      "comment": "Description of the field meaning"
+    },
+    "temporary": {
+      "default": false,
+      "fullName": "Temporary",
+      "comment": "If temporary then it should not be listed as a part of dictionary as this attribute is only used for MVP demo"
+    },
+    "maxlength": {
+      "default": null,
+      "fullName": "Maximum Length",
+      "comment": "Maximum length of the value, applicable to Strings only."
+    },
+    "minlength": {
+      "default": null,
+      "fullName": "Minimum Length",
+      "comment": "Minimum length of the value, applicable to Strings only."
+    },
+    "default": {
+      "default": null,
+      "fullName": "Default Value",
+      "comment": "Specifies the default value for this field if no value is provided"
+    },
+    "defaultF": {
+      "default": null,
+      "fullName": "Default Function",
+      "comment": "Specifies the function that will return the default value for this field if no value is provided"
+    },
+    "list": {
+      "default": null,
+      "fullName": "List",
+      "comment": "Lists all possible values of this attribute"
+    },
+    "listUrl": {
+      "default": null,
+      "fullName": "List URL",
+      "comment": "URL of REST EP returning the values"
+    },
+    "regexp": {
+      "default": null,
+      "fullName": "Regular Expression",
+      "comment": "If set then the value should be validated against this regular expression"
+    },
+    "comment": {
+      "default": null,
+      "fullName": "Comment",
+      "comment": "Free-form text containing comments about this field, will not be visible to the users"
+    },
+    "visible": {
+      "default": true,
+      "fullName": "Visible",
+      "comment": "Determines if the field should be visible in the forms by default or not. Can be overridden in a specific form"
+    },
+    "required": {
+      "default": false,
+      "fullName": "Required",
+      "comment": "If the attribute is required then no part of the record can be submitted without this attribute"
+    },
+    "generated": {
+      "default": false,
+      "fullName": "Generated",
+      "comment": "If set to true than the field is hidden and its value will be take care of middleware"
+    },
+    "validatorF": {
+      "default": null,
+      "fullName": "Validator Function",
+      "comment": "Function validating the value of the attribute. (value, values) => {return {valid: true, message: text}}. Values contains all values in the submitted record."
+    },
+    "invalidMessage": {
+      "default": null,
+      "fullName": "Invalid Message",
+      "comment": "Default message to be displayed if the value is invalid. Can be overridden in validator_f returnvalue"
+    },
+    "fieldType": {
+      "default": null,
+      "list": [
+        "password",
+        "email"
+      ],
+      "fullName": "Field Type",
+      "comment": "Overrides default field visual representation. For instance for type String the default input type is TEXT, but can be overridden here to be PASSWORD"
+    },
+    "unique": {
+      "default": false,
+      "fullName": "Unique",
+      "comment": "If set to true then this attribute value have to be unique across entire collection"
+    },
+    "uniqueMessage": {
+      "default": null,
+      "fullName": "Unique Message",
+      "comment": "Default message to be displayed if the value is invalid"
+    },
+    "trim": {
+      "default": false,
+      "fullName": "Trim",
+      "comment": "If true then the String value should be trimmed before storing the data"
+    }
+  },
+  "documentation": {
+    "adverse_events": "https://open.fda.gov/drug/event/reference/",
+    "medical_devices": "https://open.fda.gov/device/classification/reference/"
+  },
+  "models": {
+    "phi": {
+      "email": {
+        "type": "String",
+        "required": true,
+        "temporary": true
+      },
+      "citizenPhiId": {
+        "type": "String",
+        "fullName": "Citizen PHI ID",
+        "description": "The unique system generated identifier for the storing and retrieving of the Citizen's PHI information."
+      },
+      "conditions": {
+        "type": "String",
+        "list": "citizen_conditions",
+        "fullName": "Conditions",
+        "description": "The self-identified medical conditions of the citizen."
+      },
+      "enrollment": [
+        {
+          "start": {
+            "type": "Date",
+            "fullName": "Enrollment Start Date",
+            "description": "insurance enrollment date"
+          },
+          "end": {
+            "type": "Date",
+            "fullName": "Enrollment End Date",
+            "description": "insurance end date (estimated or actual)"
+          },
+          "activity": {
+            "type": "String",
+            "list": "personal_activities",
+            "fullName": "Medical Coverage",
+            "description": "if covered (Y/N)"
+          },
+          "drugCoverage": {
+            "type": "String",
+            "list": "tri_state",
+            "fullName": "Drug Coverage",
+            "description": "if covered (Y/N)"
+          },
+          "chartAvailable": {
+            "type": "String",
+            "list": "two_state",
+            "fullName": "Chart Available",
+            "description": "Indicates whether a chart is available for more detailed information about the patient."
+          }
+        }
+      ],

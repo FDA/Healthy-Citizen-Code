@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html ng-app="app" lang="en-us" class="no-js">
+<head>
+
+  <meta charset="utf-8">
+  <title><!-- interface.app.title --></title>
+
+
+  <meta name="description" content="<!-- interface.app.description -->">
+  <meta name="Keywords" content="<!-- interface.app.keywords -->">
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+
+  <!-- build:css({.tmp,./}) /styles/vendor.css -->
+  <!-- bower:css -->
+  <!-- run `gulp inject` to automatically populate bower styles dependencies -->
+  <!-- endbower -->
+  <!-- endbuild -->
+
+  <link rel="manifest" href="manifest.json">
+  <!-- build:css(.tmp) /styles/index.css -->
+  <link rel="stylesheet" href="styles/index.css"/>
+  <!-- endbuild -->
+
+  <link rel="apple-touch-icon"
+        href="<!-- interface.app.favicon[180x180] -->"
+        sizes="180x180">
+
+  <link rel="icon"
+        type="image/png"
+        href="<!-- interface.app.favicon[32x32] -->"
+        sizes="32x32">
+
+  <link rel="icon"
+        type="image/png"
+        href="<!-- interface.app.favicon[16x16] -->"
+        sizes="16x16">
+
+  <link rel="mask-icon"
+        color="<!-- interface.app.favicon['16x16'] -->">
+
+
+  <!-- iOS web-app metas : hides Safari UI Components and Changes Status Bar Appearance -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+</head>
+<!--
+
+TABLE OF CONTENTS.
+
+Use search to find needed section.
+
+===================================================================
+
+|  01. #CSS Links                |  all CSS links and file paths  |
+|  02. #FAVICONS                 |  Favicon links and file paths  |
+|  03. #GOOGLE FONT              |  Google font link              |
+|  04. #APP SCREEN / ICONS       |  app icons, screen backdrops   |
+|  05. #BODY                     |  body tag                      |
+|  06. #HEADER                   |  header tag                    |
+
+===================================================================
+
+-->
+
+<!-- #HEAD IDS -->
+<!--
+- #auth-page - Auth page, eg: login, register, forgot password
+- no id - other pages.
+
+-->
+<!-- #BODY -->
+<!-- Possible Classes (to hardcode the classes you must disable the __ module)
+
+* 'smart-style-{SKIN#}'
+* 'smart-rtl'         - Switch theme mode to RTL
+* 'menu-on-top'       - Switch to top navigation (no DOM change required)
+* 'no-menu'           - Hides the menu completely
+* 'hidden-menu'       - Hides the main menu but still accessable by hovering over left edge
+* 'fixed-header'      - Fixes the header
+* 'fixed-navigation'  - Fixes the main menu
+* 'fixed-ribbon'      - Fixes breadcrumb
+* 'fixed-page-footer' - Fixes footer
+* 'container'         - boxed layout mode (non-responsive: will not work with fixed-navigation & fixed-ribbon)
+
+Possible attributes
+
+* 'data-smart-device-detect' - Detects if mobile or desktop, adds a class to body tag
+* 'data-smart-fast-click'    - Mobile click events
+* 'data-smart-layout'        - Mobile view event listener
+* 'data-smart-page-title'    - Page title
+
+-->
+
+<body
+  data-smart-device-detect
+  data-smart-fast-click
+  data-smart-layout
+  data-smart-page-title="<!-- interface.app.title -->">
+
+<!-- ui-view container -->
+<div data-ui-view="root" data-autoscroll="false"></div>
+
+<!--[if lt IE 7]>
+<p class="browsehappy">
+  You are using an <strong>outdated</strong> browser. Please
+  <a href="http://browsehappy.com/">upgrade your browser</a> to improve your experience.</p>
+<![endif]-->
+
+<script src="/workers/lib/libvorbis.min.js"></script>
+<script src="/workers/lib/recorder.js"></script>
+
+<!-- build:js({.tmp,./}) /scripts/vendor.js -->
+<!-- bower:js -->
+<!-- endbower -->
+<!-- endbuild -->
+
+<!-- build:js({.tmp,./}) /scripts/app.js -->
+<!-- inject:js -->
+<!-- endinject -->
+<!-- endbuild -->
+</body>
+</html>

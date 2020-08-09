@@ -1,0 +1,87 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "myBiologics": {
+          "type": "Subschema",
+          "fullName": "My Biologic Products",
+          "defaultSortBy": { "start": -1 },
+          "fields": {
+            "productId": {
+              "type": "ObjectID",
+              "fullName": "Product Name",
+              "visibilityPriority": 1,
+              "description": "Name of the biological product.",
+              "required": true,
+              "lookup": {
+                "table": "productsBiologics",
+                "foreignKey": "_id",
+                "label": "name",
+                "id": "biologicId"
+              }
+            },
+            "frequencyTaken": {
+              "type": "String",
+              "required": true,
+              "list": "usageFrequency",
+              "fullName": "Frequency Product Taken",
+              "description": "Number of times to use a product in a given 24 hour period"
+            },
+            "dosage": {
+              "type": "Number",
+              "required": true,
+              "fullName": "Prescribed Dosage",
+              "description": "The dosage of this biologic (amount of each dose)."
+            },
+            "dosageUnits": {
+              "type": "String",
+              "list": "units",
+              "required": true,
+              "fullName": "Dosage Units",
+              "description": "The dosage units of this medication."
+            },
+            "route": {
+              "type": "String",
+              "required": true,
+              "list": "routesOfAdministration",
+              "fullName": "Route of Administration",
+              "description": "Administration route of the biologic."
+            },
+            "prescribed": {
+              "type": "Date",
+              "fullName": "Prescription Date",
+              "description": "Date prescription was issued.",
+              "validate": ["notInFuture()"]
+            },
+            "start": {
+              "type": "Date",
+              "fullName": "Product Start Date",
+              "description": "Date product usage began.",
+              "validate": ["notInFuture()", "min($prescribed)"]
+            },
+            "end": {
+              "type": "Date",
+              "fullName": "Product End Date",
+              "description": "Date product usage ended.",
+              "validate": ["min($start)","notInFuture()"]
+            },
+            "supply": {
+              "type": "Number",
+              "comment": "medications, biologics",
+              "fullName": "Amount in Prescription",
+              "description": "Amount of product included in prescription.",
+              "validate": ["min(1)", "max(999)"]
+            },
+            "lot": {
+              "type": "String",
+              "comment": "medications, biologics",
+              "fullName": "Biologic Lot",
+              "description": "The manufacturer's lot number listed on the product used.",
+              "validate": ["maxLength(100)"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

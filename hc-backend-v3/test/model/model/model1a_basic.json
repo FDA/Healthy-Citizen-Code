@@ -1,0 +1,34 @@
+{
+  "models": {
+    "model1s": {
+      "type": "Schema",
+      "fullName": "model1s",
+      "limitReturnedRecords": 1,
+      "requiresAuthentication": true,
+      "fields": {
+        "encounters": {
+          "type": "Subschema",
+          "comment": "Encounters Comment",
+          "fullName": "Encounters Full Name",
+          "description": "Encounters Description",
+          "fields": {
+            "diagnoses": {
+              "type": "Subschema",
+              "comment": "Diagnoses Comment",
+              "fullName": "Diagnoses Full Name",
+              "description": "Diagnoses Description",
+              "fields": {
+                "data": {
+                  "type": "String",
+                  "comment": "Data",
+                  "fullName": "Data Full Name",
+                  "description": "Data Description"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,74 @@
+<hc-page-loader
+  loading="vm.loading">
+</hc-page-loader>
+
+<hc-content-container
+  class="single-record"
+  ng-if="!vm.loading">
+
+  <hc-section-container>
+    <hc-page-title>{{vm.schema.fullName}}</hc-page-title>
+
+    <button
+      type="button"
+      ng-if="!vm.editMode"
+      ng-click="vm.enterEditMode()"
+      class="btn btn-primary page-action">
+      Edit
+    </button>
+
+    <button
+      ng-click="vm.cancelEditMode()"
+      ng-if="vm.editMode"
+      type="button"
+      class="btn btn-default page-action">
+      Cancel
+    </button>
+  </hc-section-container>
+
+  <hc-section-container
+     ng-if="vm.isEmpty && !vm.editMode">
+    <hc-section-title>No data to show.</hc-section-title>
+  </hc-section-container>
+
+  <hc-section-container
+    ng-if="!vm.isEmpty && !vm.editMode">
+
+    <hc-table-simple
+      schema="vm.schema"
+      data="vm.pageData">
+    </hc-table-simple>
+
+  </hc-section-container>
+
+  <hc-form
+    class="single-record-form"
+    ng-if="vm.editMode"
+    hc-submit="vm.submit"
+    hc-data="vm.editData"
+    hc-fields="vm.fields">
+    <form-footer>
+      <button
+        ng-if="vm.isNewRecord"
+        type="submit"
+        class="btn btn-primary">
+        Add
+      </button>
+
+      <button
+        type="submit"
+        ng-if="!vm.isNewRecord"
+        class="btn btn-primary">
+        Update
+      </button>
+
+      <button
+        ng-click="vm.cancelEditMode()"
+        type="button"
+        class="btn btn-default">
+        Cancel
+      </button>
+    </form-footer>
+
+  </hc-form>
+</hc-content-container>

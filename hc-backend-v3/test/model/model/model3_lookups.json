@@ -1,0 +1,23 @@
+{
+  "models": {
+    "model3s": {
+      "type": "Schema",
+      "fullName": "model3s",
+      "requiresAuthentication": true,
+      "description": "Used for testing lookups as the table requiring lookups",
+      "fields": {
+        "model4Id": {
+          "type": "ObjectID",
+          "fullName": "model4Id",
+          "lookup": {
+            "table": "model4s",
+            "foreignKey": "_id",
+            "label": "name",
+            "lookupFields": ["name", "description"],
+            "id": "model4Id"
+          }
+        }
+      }
+    }
+  }
+}

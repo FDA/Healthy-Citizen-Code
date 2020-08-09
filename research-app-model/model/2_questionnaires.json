@@ -1,0 +1,47 @@
+{
+  "models": {
+    "questionnaires": {
+      "type": "Schema",
+      "fullName": "Questionnaires",
+      "limitReturnedRecords": 50,
+      "description": "Contains various questionnaires",
+      "fields": {
+        "questionnaireName": {
+          "type": "String",
+          "unique": true,
+          "fullName": "Questionnaire Name",
+          "description": "Name of the full questionnaire",
+          "width": "100"
+        },
+        "questionnaireDescription": {
+          "type": "String",
+          "fullName": "Questionnaire Description",
+          "description": "Description or purpose of the questionnaire"
+        },
+        "questionnaireDefinitionFile": {
+          "type": "File",
+          "fullName": "File with Questionnaire Definition",
+          "required": true,
+          "description": ".xls file with questionnaire definition"
+        },
+        "questionnaireDefinition": {
+          "type": "Mixed",
+          "fullName": "Raw Data",
+          "description": "Contains the questionnaire definition in the form of JSON"
+        },
+        "pools": {
+          "fullName": "Assigned to Pools",
+          "type": "ObjectID[]",
+          "required": false,
+          "description": "List of pools the questionnaire is assigned to",
+          "lookup": {
+            "table": "pools",
+            "foreignKey": "_id",
+            "label": "poolName",
+            "id": "poolName"
+          }
+        }
+      }
+    }
+  }
+}

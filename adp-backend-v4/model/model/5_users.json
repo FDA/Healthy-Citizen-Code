@@ -1,0 +1,71 @@
+// This file includes essentials for the user management
+// you can override or extend it in your model
+{
+  "models": {
+    "users": {
+      "type": "Schema",
+      "singleRecord": true,
+      "limitReturnedRecords": 1,
+      "controller": "user",
+      "schemaTransform": "user",
+      "description": "This collection solely serves the purpose of user authentication. Besides password recovery email there should be no PII in this collection.",
+      "fields": {
+        "login": {
+          "type": "String",
+          "unique": true,
+          "required": true,
+          "visible": false,
+          "comment": "User login",
+          "fullName": "Login",
+          "description": "Unique use login. Could be email or anything else.",
+          "validate": ["minLength(5)", "maxLength(30)"]
+        },
+        "email": {
+          "type": "String",
+          "default": "",
+          "required": true,
+          "subtype": "Email",
+          "fullName": "Email",
+          "description": "This email is used for the password recovery purposes only"
+        },
+        "password": {
+          "type": "String",
+          "default": "",
+          "required": true,
+          "subtype": "Password",
+          "fullName": "Password",
+          "description": "User password. Please make it complex."
+        },
+        "salt": {
+          "type": "String",
+          "visible": false,
+          "generated": true,
+          "fullName": "Salt",
+          "description": "Password hash function salt"
+        },
+        "resetPasswordToken": {
+          "type": "String",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Token",
+          "description": "The system assigned t`oken that is sent to the citizen when they request a password reset."
+        },
+        "resetPasswordExpires": {
+          "type": "Date",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Expires",
+          "description": "The date the password token will expire."
+        },
+        "roles": {
+          type: "ObjectID[]",
+          lookup: {
+            table: "roles",
+            foreignKey: "_id",
+            label: "name"
+          }
+        }
+      }
+    }
+  }
+}

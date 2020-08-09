@@ -1,0 +1,69 @@
+<div class="page-layout simple fullwidth generatedPage">
+
+  <div class="header md-accent-bg layout-align-space-between-stretch layout-row">
+    <div class="title">{{vm.Schema.fullName || (vm.currentPage | camelCaseToSpace) }}</div>
+  </div>
+
+  <div class="content md-background-bg">
+
+
+    <md-button
+      ng-if="!vm.serverSide"
+      ng-hide="vm.singleRecord && vm.pageData.length == 1" class="md-raised md-accent submit-button" ng-click="vm.showAddDialog($event, 'add')">Create New</md-button>
+
+    <md-progress-circular class="md-accent" md-diameter="40" md-mode="indeterminate" ng-hide="vm.pageData"></md-progress-circular>
+
+
+    <!-- server side -->
+    <table datatable="" dt-options="vm.dtSSOptions" dt-columns="vm.dtSSColumns" class="dataTable dataTable-ss row-border hover"
+    ng-if="vm.pageData && vm.Schema.serverSide"></table>
+
+    <!-- regular table -->
+    <table class="dataTable row-border hover" datatable="ng" dt-column-defs="vm.DTColumnDefs" dt-options="vm.dtOptions" ng-if="vm.pageData && !vm.Schema.serverSide">
+      <thead>
+        <tr>
+          <th
+            class="secondary-text"
+            ng-repeat="head in vm.heads"
+
+            ng-if="vm.Schema['fields'][head]['visible'] !== false">
+            <div class="table-header">
+              <span class="column-title">{{vm.Schema['fields'][head]['fullName'] || (head | camelCaseToSpace)}}</span>
+            </div>
+          </th>
+          <th class="all"></th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr ng-repeat="item in vm.pageData track by $index">
+          <td
+            ng-repeat="head in vm.heads"
+            ng-dblclick="vm.goToDetails(item['_id'])"
+            ng-bind-html="item | valuesPresenter:vm.Schema['fields'][head]:head"
+
+            ng-if="vm.Schema['fields'][head]['visible'] !== false">
+          </td>
+
+          <td class="all">
+            <md-button
+                class="md-raised md-primary update-button"
+                aria-label="update"
+                ng-click="vm.showAddDialog($event, 'update', item['_id'], item['_parentId'], item)">
+              <span class="icon icon-pencil"></span>
+            </md-button>
+
+            <md-button
+                class="md-raised md-warn delete-button"
+                aria-label="delete"
+                ng-click="vm.openDelete($event, item['_id'], item['_parentId'])">
+              <span class="icon icon-delete"></span>
+            </md-button>
+          </td>
+
+        </tr>
+      </tbody>
+    </table>
+
+  </div>
+
+</div>

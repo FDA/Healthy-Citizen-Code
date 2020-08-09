@@ -1,0 +1,48 @@
+{
+  "models": {
+        "details": {
+          "type": "Schema",
+          "fullName": "Study Details",
+          "requiresAuthentication": true,
+          "fields": {
+            "sourceType": {
+              "type": "String",
+              "list": "sourceTypes",
+              "fullName": "Source of Record",
+              "visible": false,
+              "description": "Source of the Record"
+            },
+            "studyName": {
+              "fullName": "Study Name",
+              "type": "ObjectID",
+              "required": false,
+              "description": "Study Name",
+              "lookup": {
+                "table": "studies",
+                "foreignKey": "_id",
+                "label": "studyName",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: ['$creator', this.req.user._id]}"
+                  }
+                },
+                "id": "studyName"
+              }
+            },
+            "studyProtocol": {
+              "type": "String",
+              "visible": true,
+              "fullName": "Study Protocol",
+              "description": "Study Protocol"
+            },
+            "studyPurpose": {
+              "type": "String",
+              "visible": true,
+              "fullName": "Purpose of Study",
+              "description": "Purpose of Study"
+            }
+          }
+        }
+      }
+    }

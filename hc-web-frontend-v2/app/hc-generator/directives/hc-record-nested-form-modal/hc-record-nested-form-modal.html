@@ -1,0 +1,35 @@
+<hc-form
+  hc-submit="vm.submit"
+  hc-data="vm.data"
+  hc-fields="vm.fields">
+  <form-header>
+    <h1 class="semi-bold">{{vm.action}}</h1>
+  </form-header>
+
+  <form-body>
+    <button
+      type="button"
+      ng-click="vm.createParentCallback()"
+      class="btn btn-primary">
+      {{vm.parentField.buttonName}}
+    </button>
+  </form-body>
+
+  <form-footer>
+
+    <button
+      type="submit"
+      class="btn btn-primary">
+      {{ vm.action }}
+    </button>
+
+    <button
+      type="button"
+      ng-click="vm.cancel()"
+      class="btn btn-default">
+      Cancel
+    </button>
+
+  </form-footer>
+
+</hc-form>

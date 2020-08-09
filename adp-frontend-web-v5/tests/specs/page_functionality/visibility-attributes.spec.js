@@ -29,7 +29,7 @@ const fieldNames = [
 
 const evalFieldsExistInForm = (names) => {
   const hasDomElement = name => {
-    const selector = `#${name} input`;
+    const selector = `[field-name-input="${name}"]`;
     return document.querySelector(selector) !== null;
   };
 

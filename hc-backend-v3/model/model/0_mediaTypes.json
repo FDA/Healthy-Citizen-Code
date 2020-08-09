@@ -1,0 +1,63 @@
+{
+  "mediaTypes": {
+    "images": [
+      "jpg,",
+      "jpeg",
+      "png",
+      "gif",
+      "bmp"
+    ],
+    "video": [
+      "webm",
+      "mp4",
+      "mpeg",
+      "mpg"
+    ],
+    "audio": [
+      "webm",
+      "mp3",
+      "wav",
+      "ogg"
+    ],
+    "docs": [
+      "pdf",
+      "doc",
+      "docx",
+      "ppt",
+      "rtf",
+      "odt",
+      "xls",
+      "xlsx",
+      "djvu",
+      "djv"
+    ],
+    "any": [
+      "jpg,",
+      "jpeg",
+      "png",
+      "gif",
+      "bmp",
+
+      "webm",
+      "mp4",
+      "mpeg",
+      "mpg",
+
+      "webm",
+      "mp3",
+      "wav",
+      "ogg",
+
+      "pdf",
+      "doc",
+      "docx",
+      "ppt",
+      "rtf",
+      "odt",
+      "xls",
+      "xlsx",
+      "djvu",
+      "djv"
+    ]
+  }
+}

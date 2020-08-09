@@ -23,12 +23,12 @@ const {
 
 const selectors = {
   fieldSelect: '#list_id_fieldSelect',
-  s1: '#s1',
-  s3: '#s3',
+  s1: '[ng-field-name="s1"]',
+  s3: '[ng-field-name="s3"]',
   b2: '[ng-field-name="b2"]',
   a2: '[name="a2[0]"]',
   b3: '[ng-field-name="b3"]',
-  s4: '#s4',
+  s4: '[ng-field-name="s4"]',
 
   g1: '[ng-group-name="g1"]',
   g2: '[ng-group-name="g2"]',
@@ -146,6 +146,7 @@ describe('show expression', () => {
           m4: true,
         };
 
+        this.page.waitFor(300);
         const actualDomSnapshot = await this.page.evaluate(
           getDomSnapshot,
           selectors
@@ -183,7 +184,7 @@ describe('show expression', () => {
       'should change visibility and dom presence related Group and its children on menu click',
       async () => {
         await selectDxListValue('Option2', selectName, this.page);
-
+        await this.page.waitForSelector(selectors.b2);
         const expectedDomSnapshot = {
           fieldSelect: true,
           s1: true,
@@ -204,15 +205,11 @@ describe('show expression', () => {
           m4: true,
         };
 
-        const actualDomSnapshot = await this.page.evaluate(
-          getDomSnapshot,
-          selectors
-        );
+        const actualDomSnapshot = await this.page.evaluate(getDomSnapshot, selectors);
         expect(actualDomSnapshot).toEqual(expectedDomSnapshot);
 
         await this.page.click(selectors.m2);
-        await this.page.waitFor(500);
-        // await this.page.waitForSelector(selectors.s2);
+        await this.page.waitForSelector(selectors.b2);
 
         const expectedVisibilitySnapshot = {
           fieldSelect: true,
@@ -248,7 +245,7 @@ describe('show expression', () => {
         await this.page.waitForSelector(selectors.b3);
 
         await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
-        await this.page.waitFor(200);
+        await this.page.waitForSelector(selectors.s3);
 
         const isVisible = s => {
           const e = document.querySelector(s);
@@ -296,10 +293,7 @@ describe('show expression', () => {
           m4: true,
         };
 
-        const actualDomSnapshot = await this.page.evaluate(
-          getDomSnapshot,
-          selectors
-        );
+        const actualDomSnapshot = await this.page.evaluate(getDomSnapshot, selectors);
         expect(actualDomSnapshot).toEqual(expectedDomSnapshot);
 
         await this.page.click(selectors.m3);

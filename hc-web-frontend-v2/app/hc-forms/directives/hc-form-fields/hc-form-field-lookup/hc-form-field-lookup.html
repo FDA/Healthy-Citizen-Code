@@ -1,0 +1,34 @@
+<hc-form-field-container
+  hc-data="data"
+  hc-field="field">
+
+  <label
+    for="{{field.keyName}}"
+    class="label">
+    {{field.fullName}}
+    <span ng-show="field.required">&nbsp;*</span>
+
+    <hc-tooltip
+      hc-field="field">
+    </hc-tooltip>
+  </label>
+
+  <label class="select">
+    <input
+      type="text"
+      hc-select2
+      style="width:100%"
+      aria-label="{{field.keyName}}"
+      class="select2 form-control"
+      ng-required="field.required"
+      hc-validate="field"
+      data-options="options"
+      name="{{field.keyName}}"
+      ng-model="hcFormData[field.keyName]"
+      id="{{field.keyName}}">
+  </label>
+
+  <hc-messages
+    hc-field="field">
+  </hc-messages>
+</hc-form-field-container>

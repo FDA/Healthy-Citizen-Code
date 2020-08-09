@@ -30,8 +30,8 @@
 
     function queryBody(queryName) {
       return [
-        'query q($q: String, $foreignKeyVal: MongoId, $page: Int, $perPage: Int, ) {',
-          queryName + ' (filter: { q: $q, foreignKeyVal: $foreignKeyVal }, page: $page, perPage: $perPage) {',
+        'query q($filter: treeselectorFilter, $page: Int, $perPage: Int, ) {',
+          queryName + ' (filter: $filter, page: $page, perPage: $perPage) {',
           'items {',
             '_id',
             'label',
@@ -46,8 +46,10 @@
 
     function queryVars(params) {
       return {
-        q: params.searchValue,
-        foreignKeyVal: params.foreignKeyVal,
+        filter: {
+          q: params.searchValue,
+          foreignKeyVal: params.foreignKeyVal,
+        },
         page: page(params),
         perPage: params.take || 20,
       }

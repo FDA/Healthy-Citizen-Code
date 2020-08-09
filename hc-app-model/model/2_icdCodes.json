@@ -1,0 +1,23 @@
+{
+  "models": {
+    "icdCodes": {
+      "type": "Schema",
+      "fullName": "ICD10 data",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "description": "ICD10 data",
+      "fields": {
+        "icd10Code": {
+          "type": "String",
+          "fullName": "Code",
+          "description": "ICD10 code"
+        },
+        "description": {
+          "type": "String",
+          "fullName": "Diagnosis description",
+          "description": "Diagnosis description"
+        }
+      }
+    }
+  }
+}

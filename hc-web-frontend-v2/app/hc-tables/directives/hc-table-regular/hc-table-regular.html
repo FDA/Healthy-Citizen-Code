@@ -1,0 +1,28 @@
+<table
+  class="table table-striped table-bordered table-hoverf">
+  <thead>
+    <tr class="columnFilters">
+      <th
+        ng-repeat="head in heads"
+        class="hasinput"
+        ng-class="head.type">
+        <hc-tables-filter
+          head="head"
+          schema="schema.fields[head.name]"
+          list-name="schema.fields[head.name]['list']">
+        </hc-tables-filter>
+      </th>
+      <th></th>
+    </tr>
+    <tr>
+      <th
+        ng-repeat="head in heads"
+        ng-class="head.type">
+        {{head.fullName}}
+      </th>
+      <th ng-if="!!(update || delete)"></th>
+    </tr>
+  </thead>
+
+  <tbody></tbody>
+</table>

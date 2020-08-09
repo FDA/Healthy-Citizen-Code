@@ -1,0 +1,9 @@
+{
+  "CONSTANTS": {
+    "hostUrl": "https://test-frontend-stage.conceptant.com/#/",
+    "apiUrl": "https://test-backend-stage.conceptant.com",
+    "captchaDisabled": false,
+    "debug": false,
+    "reCaptchaKey": "fakekey"
+  }
+}

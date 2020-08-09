@@ -1,0 +1,67 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "groupings": {
+          "type": "Subschema",
+          "fullName": "My Groups",
+          "description": "My Groups",
+          "limitReturnedRecords": 1,
+          "singleRecord": true,
+          "comment": "please redo this when Object type support is ready",
+          "requiresAuthentication": true,
+          "fields": {
+            "medicalConditions": {
+              "type": "String[]",
+              "fullName": "Medical Conditions",
+              "list": "medicalConditions",
+              "description": "Select one or more medical conditions that apply to you"
+            },
+            "medicationTypes": {
+              "type": "String[]",
+              "fullName": "Medication Types",
+              "list": "diabetesMedicationTypes",
+              "description": "Select one or more medication types that apply to you."
+            },
+            "procedures": {
+              "type": "String[]",
+              "fullName": "Past Procedures",
+              "list": "procedures",
+              "description": "Select one or more procedures that apply to you."
+            },
+            "diabetesTypes": {
+              "type": "String",
+              "fullName": "Diabetes Type",
+              "list": "diabetesTypes",
+              "description": "Select  one or more diagnoses that apply to you."
+            },
+            "diagnosis": {
+              "type": "String[]",
+              "fullName": "Diabetes Related Diagnoses",
+              "list": "diagnoses",
+              "description": "Select  one or more diagnoses that apply to you."
+            },
+            "glucoseAverages": {
+              "type": "String",
+              "fullName": "Fasting Blood Sugar Average",
+              "list": "glucoses",
+              "description": "Select your average fasting glucose range."
+            },
+            "a1cs": {
+              "type": "String",
+              "fullName": "Glycoscolated Hemoglobin Range",
+              "list": "a1cs",
+              "description": "Select your glycoscolated hemoglobin results range."
+            },
+            "yearsWithDiabetes": {
+              "type": "String",
+              "fullName": "Years with Diabetes",
+              "list": "yearsWithDiabetes",
+              "description": "Select how many years you have had diabetes."
+            }
+          }
+        }
+      }
+    }
+  }
+}

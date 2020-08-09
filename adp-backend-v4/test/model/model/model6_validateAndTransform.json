@@ -1,0 +1,162 @@
+{
+  "models": {
+    "model6s": {
+      "type": "Schema",
+      "fullName": "model6s",
+      "limitReturnedRecords": 3,
+      "defaultSortBy": {
+        "n": -1
+      },
+      "description": "Used for testing validators and transformers",
+      "transform": "assignD",
+      "fields": {
+        "n": {
+          "type": "Number",
+          "fullName": "Number1",
+          "description": "Number1",
+          "validate": [
+            "min(6)",
+            "max(25)",
+            "notEqual(9)"
+          ],
+          "transform": [
+            "addOne"
+          ]
+        },
+        "n2": {
+          "type": "Number",
+          "fullName": "Number2",
+          "description": "Number2",
+          "validate": [
+            {
+              "validator": "notEqual",
+              "arguments": {
+                "value": "$n"
+              },
+              "errorMessages": {
+                "default": "This number should not be the same as @value"
+              }
+            }
+          ],
+          "transform": [
+            "addOne"
+          ]
+        },
+        "s": {
+          "type": "String",
+          "fullName": "String",
+          "description": "String",
+          "transform": [
+            "trim",
+            [
+              "appendQ",
+              "appendW"
+            ]
+          ],
+          "validate": [
+            "minLength(3)",
+            "maxLength(12)"
+          ]
+        },
+        "d": {
+          "type": "Date",
+          "fullName": "Date",
+          "description": "Date",
+          "validate": [
+            {
+              "validator": "notEqual",
+              "arguments": {
+                "value": "2017-01-01T00:00:00"
+              },
+              "errorMessages": {
+                "default": "The date should not be equal to Jan 1st, 2017 midnight"
+              }
+            }
+          ]
+        },
+        "as": {
+          "type": "Subschema",
+          "defaultSortBy": {
+            "sn": -1
+          },
+          "fullName": "Subschema",
+          "limitReturnedRecords": 4,
+          "description": "Subschema",
+          "fields": {
+            "sn": {
+              "type": "Number",
+              "fullName": "Subschema Number1",
+              "description": "Subschema Number1",
+              "transform": [
+                "addOne"
+              ]
+            },
+            "sn2": {
+              "type": "Number",
+              "fullName": "Subschema Number2",
+              "description": "Subschema Number2",
+              "transform": [
+                "addOne"
+              ],
+              "validate": [ "notEqual($sn)" ]
+            },
+            "ss": {
+              "type": "String",
+              "fullName": "Subschema String",
+              "transform": [
+                "trim",
+                [
+                  "appendQ",
+                  "appendW"
+                ]
+              ],
+              "description": "Subschema String",
+              "validate": [
+                "regex(a|d|g,i)"
+              ]
+            },
+            "sd": {
+              "type": "Date",
+              "fullName": "Subschema Date",
+              "description": "Subschema Date",
+              "validate": [
+                "max(4000-01-01T07:00:00)",
+                "notInFuture()"
+              ]
+            }
+          }
+        },
+        "height": {
+          "type": "Number",
+          "subtype": "ImperialHeight",
+          "fullName": "Height",
+          "description": "Height"
+        },
+        "weight": {
+          "type": "Number",
+          "subtype": "ImperialWeight",
+          "fullName": "Weight",
+          "description": "Weight"
+        },
+        "email": {
+          "type": "String",
+          "subtype": "Email",
+          "fullName": "Email",
+          "description": "Email"
+        },
+        "url": {
+          "type": "String",
+          "subtype": "Url",
+          "fullName": "Url",
+          "description": "Url"
+        },
+        "phone": {
+          "type": "String",
+          "subtype": "Phone",
+          "fullName": "Phone",
+          "description": "Phone"
+        }
+      }
+    }
+  }
+}

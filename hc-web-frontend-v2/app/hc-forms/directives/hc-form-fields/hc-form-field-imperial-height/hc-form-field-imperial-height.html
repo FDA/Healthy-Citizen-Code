@@ -1,0 +1,67 @@
+<hc-form-field-container
+  class="form-field-height"
+  hc-field="field">
+
+  <label
+    class="label">
+    {{field.fullName}}
+    <span ng-show="field.required">&nbsp;*</span>
+
+    <hc-tooltip
+      hc-field="field">
+    </hc-tooltip>
+  </label>
+
+  <div class="select form-group row">
+    <input
+      type="text"
+      style="display: none;"
+      hc-height-required="field.required"
+      hc-validate="field"
+      ng-model="hcFormData[field.keyName]"
+      name="{{field.keyName}}">
+
+    <div class="col col-6">
+      <select
+        hc-select2
+        aria-label="{{field.keyName + '.foot'}}"
+        ng-change="validate()"
+        hc-convert-to-number
+        class="select2 form-control"
+        data-options="options"
+        ng-model="height.foot">
+        <option value="0">0'</option>
+        <option
+          ng-repeat="foot in foots track by $index"
+          value="{{foot.value}}">
+          {{foot.label}}
+        </option>
+      </select>
+    </div>
+
+    <div class="col col-6">
+
+      <select
+        hc-select2
+        aria-label="{{field.keyName + '.inch'}}"
+        class="select2 form-control"
+        hc-convert-to-number
+        ng-change="validate()"
+        data-options="options"
+        ng-model="height.inch">
+        <option value="0">0"</option>
+        <option
+          ng-repeat="inch in inches track by $index"
+          value="{{inch.value}}">
+          {{inch.label}}
+        </option>
+      </select>
+    </div>
+
+  </div>
+
+  <hc-messages
+    hc-field="field">
+  </hc-messages>
+
+</hc-form-field-container>

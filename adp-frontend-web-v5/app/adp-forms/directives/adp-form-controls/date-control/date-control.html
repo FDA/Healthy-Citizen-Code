@@ -1,9 +1,12 @@
-<div
-  dx-date-box="config"
+<div class="js-field"></div>
+
+<input
+  name="{{field.fieldName}}"
   id="{{field.fieldName}}"
-  ng-model="adpFormData[field.fieldName]"
   adp-validate="validationParams"
   ng-required="isRequired()"
-  name="{{field.fieldName}}"
-  placeholder="{{placeholder}}"
-></div>
+  ng-model="adpFormData[field.fieldName]"
+  ng-model-options="{ allowInvalid: true }"
+  type="hidden"
+>
+

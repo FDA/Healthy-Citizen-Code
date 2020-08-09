@@ -42,20 +42,20 @@ module.exports = function () {
         nameAndNotifications: function(data, type, row, meta) {
             // (" + (row.numNewNotifications || 0) + " new)
             return data + "<br/>" +
-                "<a href=\"/?profile=" + row._id + "/#/notifications\">" + (row.numNotifications || 0) + " notifications </a><br>"
+                "<a href=\"/notifications?profile=" + row._id + "\">" + (row.numNotifications || 0) + " notifications </a><br>"
             ;
         },
         treatment: function (data, type, row, meta) {
-            return "<a href=\"/?profile=" + row._id + "/#/drugsMaster\">" + _.get(data, "length", 0) + " drugs</a><br>" +
-                   "<a href=\"/?profile=" + row._id + "/#/devices\">" + _.get(row, "devices.length", 0) + " devices</a><br>" /* +
-                   "<nobr></nobr><a href=\"/?profile=" + row._id + "/#/aeForDevices\">" + " Adverse Events for Devices</a></nobr><br>" +
-                   "<nobr><a href=\"/?profile=" + row._id + "/#/aeForDrugs\">" + " Adverse Events for Devices</a></nobr><br>" +
-                   "<nobr><a href=\"/?profile=" + row._id + "/#/recallsForDevices\">" + " Recalls for Devices</a></nobr><br>" +
-                   "<nobr><a href=\"/?profile=" + row._id + "/#/recallsForDrugs\">" + " Recalls for Drugs</a></nobr><br>" */
+            return "<a href=\"/drugsMaster?profile=" + row._id + "\">" + _.get(data, "length", 0) + " drugs</a><br>" +
+                   "<a href=\"/devices?profile=" + row._id + "\">" + _.get(row, "devices.length", 0) + " devices</a><br>" /* +
+                   "<nobr></nobr><a href=\"/aeForDevices?profile=" + row._id + "\">" + " Adverse Events for Devices</a></nobr><br>" +
+                   "<nobr><a href=\"/aeForDrugs?profile=" + row._id + "\">" + " Adverse Events for Devices</a></nobr><br>" +
+                   "<nobr><a href=\"/recallsForDevices?profile=" + row._id + "\">" + " Recalls for Devices</a></nobr><br>" +
+                   "<nobr><a href=\"/recallsForDrugs?profile=" + row._id + "\">" + " Recalls for Drugs</a></nobr><br>" */
                 ;
         },
         diagnosis: function (data, type, row, meta) {
-            return "<a href=\"/?profile=" + row._id + "/#/icdcodes\">" + _.get(data, "length", 0) + " diagnoses</a><br>" /* +
+            return "<a href=\"/icdcodes?profile=" + row._id + "\">" + _.get(data, "length", 0) + " diagnoses</a><br>" /* +
                 _.get(row, "totalArticles", 0) + " articles (" + _.get(row, "newArticles", 0) + " new)<br>" +
                 _.get(row, "totalStudies", 0) + " studies (" + _.get(row, "newStudies", 0) + " new)" */
                 ;
@@ -70,7 +70,7 @@ module.exports = function () {
             //return "<iframe style=\"width: 560px;height: 400px;border: 0 none;\" src='https://en.m.wikipedia.org/w/index.php?title=" + row.name + "&go=Go&mobileaction=toggle_view_mobile'></iframe>"
         },
         device: function(data, type, row, meta) {
-            return "<a href=\"/#/productsdevices\">" + _.get( data, "length", 0 ) + " devices</a><br>" +
+            return "<a href=\"/productsdevices\">" + _.get( data, "length", 0 ) + " devices</a><br>" +
                 _.get( row, "totalDeviceArticles", 0 ) + " articles (" + _.get( row, "newDeviceArticles", 0 ) + " new)<br>" +
                 _.get( row, "totalDeviceStudies", 0 ) + " studies (" + _.get( row, "newDeviceStudies", 0 ) + " new)"
                 ;

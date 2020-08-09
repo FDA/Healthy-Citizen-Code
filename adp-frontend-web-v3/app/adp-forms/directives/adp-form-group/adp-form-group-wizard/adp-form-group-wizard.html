@@ -1,0 +1,76 @@
+<fieldset>
+  <adp-form-field-factory
+    ng-repeat="field in fields.notGrouped track by $index"
+    adp-field="field"
+    adp-form-data="formData">
+  </adp-form-field-factory>
+</fieldset>
+
+<fiedlset
+  class="fuelux">
+  <div class="widget-body">
+    <div class="wizard clearfix">
+      <ul class="steps">
+        <li
+          ng-repeat="group in fields.groups track by $index"
+          ng-click="setCurrent($index)"
+          ng-class="{
+                'active': current == $index,
+                'complete': groupCompleted(group.children, form),
+                'has-errors': groupHasErrors(group.children, form),
+              }">
+
+          <span class="badge badge-info">{{$index + 1}}</span>
+          {{group.fullName}}
+          <span class="chevron"></span>
+
+        </li>
+      </ul>
+
+      <div class="actions">
+        <button
+          type="button"
+          ng-click="prev()"
+          class="btn btn-sm btn-default btn-prev"
+          ng-disabled="current < 1">
+          <i class="fa fa-arrow-left"></i> Prev
+        </button>
+
+        <button
+          type="button"
+          class="btn btn-sm btn-success btn-next"
+          ng-click="next()"
+          ng-if="current < fields.length - 1"
+          ng-disabled="">
+          Next <i class="fa fa-arrow-right"></i>
+        </button>
+
+        <button
+          type="submit"
+          class="btn btn-sm btn-primary btn-next"
+          ng-show="current == fields.length - 1">
+          Finish <i class="fa fa-check"></i>
+        </button>
+      </div>
+    </div>
+
+    <div class="step-content clearfix">
+      <div
+        ng-repeat="group in fields.groups track by $index"
+        class="step-pane"
+        ng-class="{'active': current == $index }">
+        <h3 class="step-pane-title">
+          <strong>Step {{$index + 1}}</strong> - {{group.fullName}}</h3>
+
+        <adp-form-field-factory
+          ng-repeat="field in group.children track by $index"
+          adp-field="field"
+          adp-form-params="$parent.formParams"
+          adp-form-data="$parent.formData">
+        </adp-form-field-factory>
+      </div>
+    </div>
+
+  </div>
+
+</fiedlset>

@@ -9,10 +9,6 @@
     "start": "node node_modules/.bin/webpack-dev-server --config webpack.dev.config.js",
     "test": "jest"
   },
-  "repository": {
-    "type": "git",
-    "url": "ssh://git@bitbucket.conceptant.com:7999/hc/hc-widget.git"
-  },
   "browserslist": [
     "last 2 versions",
     "IE 11"

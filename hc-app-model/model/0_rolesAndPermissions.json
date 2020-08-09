@@ -1,0 +1,53 @@
+{
+  "permissions": {
+    "createMasterCatalogRecord": {
+      "descrition": "Allows creating new records in the master catalog"
+    },
+    "readMasterCatalogRecord": {
+      "descrition": "Allows reading new records in the master catalog"
+    },
+    "updateMasterCatalogRecord": {
+      "descrition": "Allows updating new records in the master catalog"
+    },
+    "deleteMasterCatalogRecord": {
+      "descrition": "Allows deleting existing records in the master catalog"
+    },
+
+    "createMyNotificationsRecord": {
+      "descrition": "Allows creating new records in My Notifications"
+    },
+    "readMyNotificationsRecord": {
+      "descrition": "Allows reading new records in My Notifications"
+    },
+    "updateMyNotificationsRecord": {
+      "descrition": "Allows updating new records in My Notifications"
+    },
+    "deleteMyNotificationsRecord": {
+      "descrition": "Allows deleting existing records in My Notifications"
+    },
+
+    "edit3rdPartyPhi": {
+      "description": "Allows editing records downloaded from external sources, for instance PHI records downloaded from hospitals",
+      "comment": "In general this shuld only be allowed for demo purposes"
+    },
+
+    "doUserActivities": {
+      "description": "Perform other regular user activities",
+      "comment": "Basically everything falls into this category for now, but in the future this will be refined with additional permissions"
+    },
+    "doAdminActivities": {
+      "description": "Perform other regular admin activities",
+      "comment": "Basically everything 'Admin' falls into this category for now, but in the future this will be refined with additional permissions"
+    }
+  },
+  "roles": {
+    "user": {
+      "description": "System User in general",
+      "permissions": ["readMasterCatalogRecord", "readMyNotificationsRecord", "deleteMyNotificationsRecord", "doUserActivities"]
+    },
+    "admin": {
+      "description": "Administrator with permissions required for system maintenance and administration",
+      "permissions": ["createMasterCatalogRecord", "updateMasterCatalogRecord", "readMasterCatalogRecord", "deleteMasterCatalogRecord", "doAdminActivities"]
+    }
+  }
+}

@@ -1,0 +1,46 @@
+{
+  "models": {
+    "questions": {
+      "type": "Schema",
+      "fullName": "Question Pool",
+      "limitReturnedRecords": 50,
+      "description": "Contains various questions",
+      "fields": {
+        "questionName": {
+          "type": "String",
+          "unique": true,
+          "fullName": "Question Name",
+          "description": "Question Name"
+        },
+        "questionDescription": {
+          "type": "String",
+          "fullName": "Question Definition",
+          "description": "Question Definition"
+        },
+        "questionType": {
+          "type": "String",
+          "list": "questiontypes",
+          "fullName": "Question Type",
+          "description": "Type of question"
+        },
+        "questionOptions": {
+          "type": "String",
+          "fullName": "Question Choices",
+          "description": "Choices for the question, separate with commas"
+        },
+        "pools": {
+          "fullName": "Assigned to Questionnaire",
+          "type": "ObjectID[]",
+          "required": false,
+          "description": "List of pools the question is assigned to",
+          "lookup": {
+            "table": "questionnaires",
+            "foreignKey": "_id",
+            "label": "questionnaireName",
+            "id": "_id"
+          }
+        }
+      }
+    }
+  }
+}

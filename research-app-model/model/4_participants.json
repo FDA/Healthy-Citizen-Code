@@ -1,0 +1,170 @@
+{
+  "models": {
+    "participants": {
+      "type": "Schema",
+      "fullName": "Participants De-Identified Protected Health Information (PHI)",
+      "requiresAuthentication": true,
+      "fields": {
+        "source": {
+          "fullName": "Data Provider",
+          "type": "String",
+          "required": false,
+          "visible": true,
+          "description": "From where the participant data was originating"
+        },
+        "sourceId": {
+          "fullName": "The ID for source of the information",
+          "type": "String",
+          "required": false,
+          "visible": false,
+          "description": "The ID from where the participant data was originating"
+        },
+        "guid": {
+          "fullName": "Participant De-Identified ID",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "The Participants De-Identified ID from external provider"
+        },
+        "ageRange": {
+          "fullName": "Age Range",
+          "list": "ageRanges",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Age range of participant"
+        },
+        "gender": {
+          "fullName": "Gender",
+          "list": "genders",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Gender of participant"
+        },
+        "geographicRegion": {
+          "fullName": "Geographic Region",
+          "type": "String",
+          "list": "geographicRegions",
+          "default": "",
+          "required": false,
+          "description": "High level geographic region of participant"
+        },
+        "conditions": {
+          "fullName": "Medical Conditions",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Diagnosis of participant"
+        },
+        "procedures": {
+          "fullName": "Medical Procedures",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Past procedures of the participants"
+        },
+        "medicationTypes": {
+          "fullName": "Medications",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "List of current medications of the participant"
+        },
+        "sideEffects": {
+          "fullName": "Side Effects/Adverse Events",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Both side effects and adverse events reported by participant"
+        },
+        "researchNotifications": {
+          "type": "Subschema",
+          "fullName": "Participant Notifications",
+          "description": "Generic notifications for Research to send to the participants",
+          "fields": {
+            "notificationId": {
+              "fullName": "Notification ID",
+              "type": "String",
+              "required": true,
+              "description": "Unique ID of the notification",
+              "comment": "This is not _id equivalent, it needs to be unique across all systems"
+            },
+            "dId": {
+              "fullName": "Participant De-Identified ID",
+              "type": "String",
+              "default": "",
+              "required": false,
+              "colspan": 2,
+              "description": "Participant De-Identified ID"
+            },
+            "orgId": {
+              "fullName": "Participant's Organization",
+              "type": "String",
+              "default": "",
+              "required": false,
+              "colspan": 2,
+              "description": "Participant's Organization"
+            },
+            "notificationType": {
+              "fullName": "Type of Notification",
+              "list": "notificationTypes",
+              "type": "String",
+              "default": "",
+              "required": false,
+              "colspan": 2,
+              "description": "Type of Notification"
+            },
+            "deliveryStatus": {
+              "fullName": "Delivery Status",
+              "type": "String",
+              "list": "deliveryStatuses",
+              "default": "",
+              "required": false,
+              "colspan": 2,
+              "description": "Delivery Status"
+            },
+            "subject": {
+              "fullName": "Subject",
+              "type": "String",
+              "required": true,
+              "description": "Brief subject of the notification",
+              "comment": "Similar to Subject in emails"
+            },
+            "body": {
+              "fullName": "Subject",
+              "type": "String",
+              "required": true,
+              "description": "Brief subject of the notification",
+              "comment": "Similar to Subject in emails"
+            }
+          }
+        },
+        "answersToQuestionnaires": {
+          "type": "Subschema",
+          "fullName": "Questionnaire answers",
+          "requiresAuthentication": true,
+          "fields": {
+            "questionnaireId": {
+              "type": "ObjectID",
+              "fullName": "Questionnaire",
+              "required": true,
+              "description": "The questionnaire the answers are for",
+              "lookup": {
+                "table": "questionnaires",
+                "foreignKey": "_id",
+                "label": "questionnaireName",
+                "id": "_id"
+              }
+            },
+            "answers": {
+              "type": "Mixed",
+              "fullName": "Answers",
+              "description": "Questionnaire answers"
+            }
+          }
+        }
+      }
+    }
+  }
+}

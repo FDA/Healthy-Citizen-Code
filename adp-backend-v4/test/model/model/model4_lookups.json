@@ -1,0 +1,24 @@
+{
+  "models": {
+    "model4s": {
+      "type": "Schema",
+      "fullName": "model4s",
+      "limitReturnedRecords": 3,
+      "description": "Used for testing lookups as the table containing lookups",
+      "fields": {
+        "name": {
+          "type": "String",
+          "searchable": true,
+          "fullName": "Name",
+          "description": "Product name"
+        },
+        "description": {
+          "type": "String",
+          "searchable": true,
+          "fullName": "Description",
+          "description": "Description of the product"
+        }
+      }
+    }
+  }
+}

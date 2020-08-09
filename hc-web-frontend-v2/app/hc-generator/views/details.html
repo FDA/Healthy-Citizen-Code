@@ -1,0 +1,25 @@
+<hc-page-loader
+  loading="vm.loading">
+</hc-page-loader>
+
+<hc-content-container
+  class="detailsPage"
+  ng-if="!vm.loading">
+
+  <hc-section-container>
+    <hc-page-title>Details</hc-page-title>
+  </hc-section-container>
+
+  <hc-section-container
+    ng-if="vm.isEmpty">
+    <hc-section-title>No data to show.</hc-section-title>
+  </hc-section-container>
+
+  <hc-section-container
+    ng-if="!vm.isEmpty">
+    <pre>
+      {{vm.pageData|json}}
+    </pre>
+  </hc-section-container>
+
+</hc-content-container>

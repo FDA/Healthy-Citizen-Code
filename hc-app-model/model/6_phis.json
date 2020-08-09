@@ -1,0 +1,22 @@
+{
+  "models": {
+    "phis": {
+      "type": "Schema",
+      "fullName": "Clinical Health Information",
+      "requiresAuthentication": true,
+      "limitReturnedRecords": 1,
+      "singleRecord": true,
+      "fields": {
+        "notes": {
+          "type": "String",
+          "subtype": "Text",
+          "list": "citizenConditions",
+          "fullName": "Conditions",
+          "visible": false,
+          "comment": "delete this field if possible",
+          "description": "Random free-form notes about self."
+        }
+      }
+    }
+  }
+}

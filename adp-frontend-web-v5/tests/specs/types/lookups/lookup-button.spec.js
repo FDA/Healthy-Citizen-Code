@@ -26,7 +26,7 @@ const lookups = {
 };
 
 async function fillForm(fieldName, formSelector, page) {
-  const LABEL_FIELD_SELECTOR = `[name="${fieldName}"] input`;
+  const LABEL_FIELD_SELECTOR = `[field-name-input="${fieldName}"]`;
   const labelValue =  uuidv4();
   await typeIntoLabelField(LABEL_FIELD_SELECTOR, labelValue, page);
 

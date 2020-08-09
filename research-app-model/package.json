@@ -1,0 +1,21 @@
+{
+  "name": "test-app-model",
+  "version": "0.0.1",
+  "description": "Conceptant Platform Test App Model",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "author": "Andrey Mikhalchuk",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "async": "^2.4.1",
+    "fs": "0.0.1-security",
+    "lodash": "^4.17.4",
+    "lodash.get": "^4.4.2",
+    "log4js": "^1.1.1",
+    "moment": "^2.18.1",
+    "mongoose": "^4.10.8",
+    "whatwg-fetch": "^2.0.3"
+  }
+}

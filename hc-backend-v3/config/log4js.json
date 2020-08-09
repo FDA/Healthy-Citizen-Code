@@ -1,0 +1,14 @@
+{
+  "appenders": [
+    {
+      "type": "console"
+    },
+    {
+      "type": "file",
+      "filename": "logs/hc.log"
+    }
+  ],
+  "levels": {
+    "[all]": "TRACE"
+  }
+}

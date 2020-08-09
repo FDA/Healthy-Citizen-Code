@@ -1,0 +1,12 @@
+<div class="adp-dashboard">
+  <h3>Dashboard</h3>
+  <div class="adp-dashboard__grid"
+       ng-if="dashboardData">
+
+    <adp-dashboard-tile
+      ng-repeat="(key, item) in dashboardItems"
+      item="item"
+      data="dashboardData[key]">
+    </adp-dashboard-tile>
+  </div>
+</div>

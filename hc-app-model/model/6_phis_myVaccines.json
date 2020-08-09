@@ -1,0 +1,76 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "myVaccines": {
+          "type": "Subschema",
+          "fullName": "My Vaccinations",
+          "defaultSortBy": { "administered": -1 },
+          "fields": {
+            "productId": {
+              "type": "ObjectID",
+              "visibilityPriority": 1,
+              "fullName": "Product Name",
+              "description": "Name of the vaccine.",
+              "required": true,
+              "lookup": {
+                "table": "productsVaccines",
+                "foreignKey": "_id",
+                "label": "tradeName",
+                "id": "vaccineId"
+              }
+            },
+            "dosage": {
+              "type": "Number",
+              "fullName": "Prescribed Dosage",
+              "description": "The dosage of this vaccine.",
+              "validate": ["max(1000)"]
+            },
+            "dosageUnits": {
+              "type": "String",
+              "list": "units",
+              "fullName": "Dosage Units",
+              "description": "The dosage units of the vaccine."
+            },
+            "route": {
+              "type": "String",
+              "list": "routesOfAdministration",
+              "fullName": "Route of Administration",
+              "description": "Administration route of the vaccine."
+            },
+            "prescribed": {
+              "type": "Date",
+              "fullName": "Prescription Date",
+              "description": "Date prescription was issued.",
+              "validate": ["notInFuture()"]
+            },
+            "administered": {
+              "type": "Date",
+              "fullName": "Administered Date",
+              "description": "Date the vaccine was given.",
+              "validate": ["min($prescribed)","notInFuture()"]
+            },
+            "lot": {
+              "type": "String",
+              "fullName": "Vaccine Lot",
+              "description": "The manufacturer's lot number listed on the product used.",
+              "validate": ["maxLength(100)"]
+            },
+            "vaccinationAge": {
+              "type": "String",
+              "fullName": "Age at Vaccination",
+              "description": "Enter - Birth, Age in Months or Age in Years.",
+              "validate": ["maxLength(3)"]
+            },
+            "vaccineSequence": {
+              "type": "String",
+              "list": "vaccineFrequency",
+              "fullName": "Vaccine Sequence",
+              "description": "Number of the vaccine sequence."
+            }
+          }
+        }
+      }
+    }
+  }
+}

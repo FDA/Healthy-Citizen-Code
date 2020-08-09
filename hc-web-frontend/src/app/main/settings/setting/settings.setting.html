@@ -1,0 +1,34 @@
+<div class="page-layout simple fullwidth doc-page ng-scope layout-column">
+
+  <div class="header md-accent-bg layout-align-space-between-stretch layout-column">
+    <div layout="row" layout-align="space-between" class="layout-align-space-between-stretch layout-row">
+      <div>
+        <span class="title">Setting</span>
+      </div>
+    </div>
+  </div>
+
+
+  <div class="content layout-column">
+
+    <md-tabs md-dynamic-height md-border-bottom>
+      <!-- Info tab -->
+      <md-tab label="Info">
+        <hc-nested-table data="vm.setting"></hc-nested-table>
+      </md-tab>
+
+      <!-- Edit Tab -->
+      <md-tab label="Edit">
+        <hc-scheme-form data="vm.settingSchema" ng-model="vm.settingData" submit="vm.updateSetting" title="Setting"></hc-scheme-form>
+        <div class="row">
+          <div class="form-wrapper md-whiteframe-1dp flex-80">
+
+            <md-button ng-click="vm.updateSetting()" class="md-primary">Update</md-button>
+          </div>
+        </div>
+      </md-tab>
+
+    </md-tabs>
+  </div>
+
+</div>
