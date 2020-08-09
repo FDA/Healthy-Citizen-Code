@@ -1,0 +1,271 @@
+<div class="row">
+  <ng-form novalidate name="schemaForm" ng-model-options="{ updateOn: 'default', allowInvalid: true, debounce: 0 }">
+    <div class="form-wrapper">
+      <div >
+
+        <h3 ng-if="title">{{title | camelCaseToSpace}}</h3>
+
+        <div
+          ng-repeat="(key, value) in schema track by $index"
+          class="field-wrapper"
+          ng-init="getValidators(value, key)"
+          ng-hide="value.fields && hideSubforms || value.visible == false">
+
+          <md-input-container
+            ng-if="value.type || getDataSize(value) == 0"
+            ng-init="vm.fieldType = getFieldType(value, key)"
+            md-is-error="schemaForm[key].$touched && schemaForm[key].$invalid"
+            layout="row"
+            layout-wrap>
+
+            <!-- Input Text/Number/Email/password -->
+            <div class="label-wrapper" flex-gt-sm="40" flex="100">
+              <label
+                for="{{key}}"
+                class="md-container-ignore"
+                ng-click="delegateClick($event)">
+                  {{value.fullName || (key | camelCaseToSpace)}} <span ng-if="value.required">&nbsp;*</span>
+              </label>
+              <a
+                ng-if="value.description"
+                tooltips
+                tooltip-template="{{ value.description }}"
+                tooltip-side="bottom"
+                tooltip-speed="medium"
+                tooltip-smart="true">
+                <span class='icon icon-question-mark-circle'></span>
+              </a>
+            </div>
+
+            <!-- lookup -->
+             <!--<span ng-if="vm.fieldType == 'Lookup'">{{ngModel[key + '_label']}}</span>-->
+            <div class="input-wrapper" flex-gt-sm="60"
+            flex="100">
+            <ui-select
+              id="{{key}}"
+              name="{{key}}"
+              ng-model="ngModel[key]"
+
+              ng-model-options="{ allowInvalid: '$inherit' }"
+              theme="selectize"
+              class="md-no-float md-container-ignore"
+              ng-if="vm.fieldType == 'Lookup'">
+              <ui-select-match >
+                {{$select.selected.label || ngModel[key + '_label']}}
+              </ui-select-match>
+              <ui-select-choices
+                refresh="fetch(value.lookup, $select, null, ngModel[key + '_label']);"
+                refresh-delay="300"
+                repeat="item.id as item in items">
+                {{item.label}}
+                <md-button
+                  ng-if="$index == $select.items.length-1 && more"
+                  class="btn btn-xs btn-success"
+                  style="width: 100%; margin-top: 5px;"
+                  ng-click="fetch(value.lookup, $select, $event, ngModel[key + '_label']);"
+                  ng-disabled="loading">Load more...</md-button>
+
+              </ui-select-choices>
+            </ui-select>
+            <!-- lookup:end -->
+            <input
+              id="{{key}}"
+              name="{{key}}"
+              aria-label="{{key}}"
+              class="md-no-float md-container-ignore"
+              type="{{value.type || 'text'}}"
+              ng-required="value.required"
+              ng-model="ngModel[key]"
+
+              ng-model-options="{ updateOn: 'default', allowInvalid: '$inherit' }"
+              ng-min="validators[key]['min']['arguments'][0] || 0"
+              ng-max="validators[key]['max']['arguments'][0] || Infinity"
+              ng-minlength="validators[key]['minLength']['arguments'][0] || 0"
+              ng-maxlength="validators[key]['maxLength']['arguments'][0] || Infinity"
+              ng-pattern="validators[key]['regex']['arguments'][0]"
+              ng-if="vm.fieldType == 'String' || vm.fieldType == 'Number'">
+
+            <!-- Height -->
+            <div layout="row">
+              <ui-select
+                id="{{key}}Feet"
+                name="{{key}}Feet"
+                aria-label="{{key}} Feet"
+                class="md-no-float md-container-ignore height flex-gt-xs-30"
+                ng-model="ngModel[key][0]"
+                ng-model-options="{ allowInvalid: '$inherit' }"
+                reset-search-input="false"
+                theme="selectize"
+                ng-if="vm.fieldType == 'Height'"
+                ng-required="value.required">
+                <ui-select-match>{{ $select.selected }}'</ui-select-match>
+                <ui-select-choices
+                  repeat="item in height[0] track by $index">
+                  <span>{{item}}'</span>
+                </ui-select-choices>
+              </ui-select>
+
+              <ui-select
+                id="{{key}}Inch"
+                name="{{key}}Inch"
+                aria-label="{{key}} Inch"
+                class="md-no-float md-container-ignore height flex-gt-xs-30"
+                ng-model="ngModel[key][1]"
+                ng-model-options="{ allowInvalid: '$inherit' }"
+                reset-search-input="false"
+                theme="selectize"
+                ng-if="vm.fieldType == 'Height'"
+                ng-required="value.required">
+                <ui-select-match>{{ $select.selected }}"</ui-select-match>
+                <ui-select-choices
+                  repeat="item in height[1] track by $index">
+                  <span>{{item}}"</span>
+                </ui-select-choices>
+              </ui-select>
+            </div>
+
+            <!-- Checkbox for Boolean -->
+            <md-checkbox
+              id="{{key}}"
+              name="{{key}}"
+              aria-label="{{key}}"
+              class="md-no-float md-container-ignore"
+              ng-model="ngModel[key]"
+
+              ng-model-options="{ allowInvalid: '$inherit' }"
+              aria-label="{{key | camelCaseToSpace}}"
+              ng-required="value.required"
+              ng-if="vm.fieldType == 'Boolean'">
+              {{getPlaceholder(key, value.required)}}
+            </md-checkbox>
+
+            <!-- Datepicker -->
+            <md-datepicker
+              id="{{key}}"
+              name="{{key}}"
+              aria-label="{{key}}"
+              class="md-no-float md-container-ignore"
+              ng-model="ngModel[key]"
+              ng-model-options="{updateOn: 'default', allowInvalid: false}"
+              ng-blur="vm.isBlurred = true"
+              ng-init="vm.isBlurred = false"
+              ng-required="value.required"
+              ng-if="vm.fieldType == 'Date'"
+              md-placeholder="Enter date"
+              md-max-date="validators[key]['notInFuture']['arguments'][0]"
+              md-min-date="validators[key]['min']['arguments'][0]"
+              >
+            </md-datepicker>
+
+            <!-- String[] -->
+            <select2
+              id="{{key}}"
+              name="{{key}}"
+              ng-model="ngModel[key]"
+
+              ng-model-options="{ allowInvalid: '$inherit' }"
+              ng-required="value.required"
+              ng-if="vm.fieldType == 'String[]'"
+              s2-options="key as value for (key , value) in lists[value.list]" options="{multiple: 'multiple'}">
+            </select2>
+
+            <!-- Select -->
+            <ui-select
+              id="{{key}}"
+              name="{{key}}"
+              aria-label="{{key}}"
+              class="md-no-float md-container-ignore"
+              ng-model="ngModel[key]"
+
+              ng-model-options="{ allowInvalid: '$inherit' }"
+              reset-search-input="false"
+              theme="selectize"
+              ng-if="vm.fieldType == 'Enum' && lists[value.list] && !isNestedEnum(lists[value.list])"
+              ng-required="value.required">
+
+              <ui-select-match placeholder="{{getPlaceholder(key, value.required)}}">
+                {{ $select.selected.value }}
+              </ui-select-match>
+
+              <ui-select-choices
+                repeat="item.key as (key, item) in lists[value.list] track by $index">
+                <span
+                  ng-bind-html="item.value"
+                  data-value="{{item.key}}">
+                </span>
+              </ui-select-choices>
+            </ui-select>
+
+
+            <!-- Select for nested lists -->
+            <ui-select
+              id="{{key}}"
+              append-to-body="true"
+              name="{{key}}"
+              aria-label="{{key}}"
+              class="md-no-float md-container-ignore"
+              ng-model="ngModel[key]"
+
+              ng-model-options="{ allowInvalid: '$inherit' }"
+              reset-search-input="false"
+              theme="selectize"
+              ng-if="vm.fieldType == 'Enum' && lists[value.list] && isNestedEnum(lists[value.list])"
+              ng-required="value.required">
+
+              <ui-select-match placeholder="{{getPlaceholder(key, value.required)}}">
+                {{$select.selected.value.name}}
+              </ui-select-match>
+
+              <ui-select-choices
+                position='auto'
+                repeat="item.name as (name, item) in lists[value.list] track by $index">
+                <span data-value="{{item.key}}">
+                  <span ng-bind-html="item.value.name"></span>
+                  <br>
+                  <small ng-bind-html="item.value.definition"></small>
+                </span>
+              </ui-select-choices>
+            </ui-select>
+
+
+            <!-- errors messages -->
+            <div class="errors-wrapper flex-100">
+              <!-- <div class="md-errors-spacer"></div> -->
+              <div
+                ng-messages="schemaForm[key].$error"
+                role="alert"
+                md-auto-hide="false">
+
+                <div ng-message="valid"
+                     ng-class="{ 'no-animation': !vm.isBlurred }"
+                     ng-if="vm.isBlurred && vm.fieldType == 'Date'">
+                  Date is invalid
+                </div>
+
+                <div ng-message="mindate">{{ validators[key]['min']['errorMessages']['date'] }}</div>
+
+                <div ng-message="maxdate">
+                  <span ng-show="validators[key]['notInFuture']">{{ validators[key]['notInFuture']['errorMessages']['default'] }}</span>
+                  <span ng-hide="validators[key]['notInFuture']">{{ validators[key]['max']['errorMessages']['date'] }}</span>
+                </div>
+
+                <div ng-message="minlength">{{ validators[key]['minLength']['errorMessages']['default'] }}</div>
+                <div ng-message="maxlength">{{ validators[key]['maxLength']['errorMessages']['default'] }}</div>
+
+                <div ng-message="max">{{ validators[key]['max']['errorMessages']['default'] }}</div>
+                <div ng-message="min">{{ validators[key]['min']['errorMessages']['default'] }}</div>
+              </div>
+            </div>
+
+            </div>
+
+          </md-input-container>
+        </div>
+
+      </div>
+    </div>
+      <pre>
+          {{form|json}}
+      </pre>
+  </ng-form>
+</div>

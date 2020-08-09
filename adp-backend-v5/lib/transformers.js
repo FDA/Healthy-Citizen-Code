@@ -61,6 +61,7 @@ module.exports = (appLib) => {
         index,
         parentData,
         handlerSpec: handler,
+        modelName,
       };
 
       // log.trace(`>> Calling "${type}" hook "${JSON.stringify(handler)}" for "${lodashPath}" equal "${_.get(data, lodashPath)}", data: ${JSON.stringify(data)}`);

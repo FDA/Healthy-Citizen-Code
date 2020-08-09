@@ -1,0 +1,31 @@
+{
+  "products": {
+    "firstValidationFunctionsForMethods": {
+      "create": ["checkProductType", "isExistProductWithCode"],
+      "readAll": [],
+      "readById": [],
+      "update": ["checkProductType", "isExistProductWithCode"],
+      "deleteById": []
+    },
+    "additionalRoutFunctions": [
+      {
+        "functionName": "getTypes",
+        "urlEndPart": "types",
+        "isAuth": true,
+        "requestType": "get"
+      }
+    ],
+    "items": [
+      {
+        "type": "MD",
+        "schema_name:": "medical_devices",
+        "routes_key": "medical-device"
+      },
+      {
+        "type": "ME",
+        "schema_name:": "medication",
+        "routes_key": "medication"
+      }
+    ]
+  }
+}

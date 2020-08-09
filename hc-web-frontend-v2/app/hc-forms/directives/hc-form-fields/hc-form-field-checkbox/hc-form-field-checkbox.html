@@ -1,0 +1,33 @@
+<hc-form-field-container
+  hc-data="data"
+  hc-field="field">
+
+  <div class="inline-group">
+    <label class="checkbox"
+           for="{{field.keyName}}">
+
+      <input type="checkbox"
+             name="{{field.keyName}}"
+             id="{{field.keyName}}"
+             hc-validate="field"
+             ng-model="hcFormData[field.keyName]"
+             ng-required="field.required"
+             class="form-control">
+
+      <i></i>
+
+      {{field.fullName}} <span ng-show="field.required">&nbsp;*</span>
+    </label>
+
+    <label class="checkbox checkbox-tooltip">
+      <hc-tooltip
+        hc-field="field">
+      </hc-tooltip>
+    </label>
+  </div>
+
+  <hc-messages
+    hc-field="field">
+  </hc-messages>
+
+</hc-form-field-container>

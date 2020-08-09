@@ -29,8 +29,8 @@ describe('synthetic types', () => {
       await this.page.waitFor('form');
 
       const selectors = {
-        number1Selector: '[name=number1] .dx-texteditor-input',
-        number2Selector: '[name=number2] .dx-texteditor-input',
+        number1Selector: '[field-name-input="number1"]',
+        number2Selector: '[field-name-input="number2"]',
         number3Selector: '[ng-field-name="number3"] .input span',
         sumPlusIncrementSelector: '[ng-field-name="sumPlusIncrement"] .input span',
         sumPlusIncrementWithWatchSelector:
@@ -63,6 +63,7 @@ describe('synthetic types', () => {
       expect(snapshot1).toEqual(expectedSnapshot1);
 
       await this.page.type(selectors.number1Selector, '1');
+      await this.page.waitFor(300);
       const snapshot2 = await this.page.evaluate(getSnapshot, selectors);
       const expectedSnapshot2 = expect.objectContaining({
         ...expectedSnapshot1.sample,
@@ -71,9 +72,11 @@ describe('synthetic types', () => {
         sumPlusIncrementWithWatch: '1',
         randomString: snapshot1.randomString,
       });
+
       expect(snapshot2).toEqual(expectedSnapshot2);
 
       await this.page.type(selectors.number2Selector, '1');
+      await this.page.waitFor(300);
       const snapshot3 = await this.page.evaluate(getSnapshot, selectors);
       const expectedSnapshot3 = expect.objectContaining({
         ...expectedSnapshot2.sample,

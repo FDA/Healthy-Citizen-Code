@@ -1,0 +1,46 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "activities": {
+          "type": "Subschema",
+          "fullName": "My Activities",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "dateActivity": -1 },
+          "fields": {
+            "dateActivity": {
+              "type": "Date",
+              "fullName": "Date of Activity",
+              "visibilityPriority": 1,
+              "required": true,
+              "description": "Date on which activity is performed.",
+              "validate": ["notInFuture()"]
+            },
+            "activity": {
+              "type": "String",
+              "fullName": "Activity Performed",
+              "visibilityPriority": 2,
+              "list": "activities",
+              "required": true,
+              "description": "Pick the activity performed."
+            },
+            "duration": {
+              "type": "Number",
+              "fullName": "Activity Duration",
+              "visibilityPriority": 3,
+              "required": true,
+              "description": "Total duration of activity in minutes."
+            },
+            "comments": {
+              "type": "String",
+              "fullName": "Activity Comments",
+              "validate": ["maxLength(500)"],
+              "visibilityPriority": 4,
+              "description": "Comments about the activity."
+            }
+          }
+        }
+      }
+    }
+  }
+}

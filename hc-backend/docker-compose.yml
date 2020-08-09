@@ -1,0 +1,51 @@
+version: '2'
+services:
+
+  web:
+    # image: node:7.0
+    image: node:6.9.1
+    volumes:
+      - ./:/usr/src/app
+    working_dir: /usr/src/app
+    # command: sh -c 'npm install; npm install -g nodemon ; npm rebuild node-sass; nodemon -e js app.js'
+    # command: sh -c 'npm install --no-optional && npm install -g nodemon && nodemon app.js'
+    command: sh -c 'npm install bcrypt && npm install -g nodemon && nodemon app.js'
+    # command: sh -c 'npm install -g nodemon && nodemon app.js'
+    ports:
+      - "80:3000"
+    depends_on:
+      - mongo
+    networks:
+      - all
+    environment:
+      MONGODB_URI: "mongodb://mongo:27017/hc"
+
+##   container for imitate remot medication server
+#  web-remote:
+#  # image: node:7.0
+#    image: node:6.9.1
+#    volumes:
+#      - ./:/usr/src/app
+#    working_dir: /usr/src/app
+#    # command: sh -c 'npm install; npm install -g nodemon ; npm rebuild node-sass; nodemon -e js app.js'
+#    # command: sh -c 'npm install --no-optional && npm install -g nodemon && nodemon app.js'
+#    command: sh -c 'npm install bcrypt && npm install -g nodemon && nodemon app.js'
+#    ports:
+#      - "81:3000"
+#    depends_on:
+#      - mongo
+#    networks:
+#      - all
+#    environment:
+#      MONGODB_URI: "mongodb://mongo:27017/hcRemote"
+
+  mongo:
+    image: mongo:3
+    command: mongod --smallfiles
+    ports:
+      - "27017:27017"
+    networks:
+      - all
+
+networks:
+  all:

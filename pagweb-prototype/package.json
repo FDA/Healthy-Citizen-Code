@@ -7,10 +7,6 @@
     "test": "echo \"Error: no test specified\" && exit 1",
     "build": "gulp"
   },
-  "repository": {
-    "type": "git",
-    "url": "ssh://git@bitbucket.conceptant.com:7999/hc/hc-app-model.git"
-  },
   "author": "Andrey Mikhalchuk, Joshua Phipps",
   "license": "UNLICENSED",
   "dependencies": {

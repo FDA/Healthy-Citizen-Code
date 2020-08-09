@@ -1,0 +1,68 @@
+{
+  "models": {
+        "pros": {
+          "type": "Schema",
+          "fullName": "Patient Reported Outcomes",
+          "requiresAuthentication": true,
+          "fields":
+          {
+            "studyName": {
+              "fullName": "Study Name",
+              "type": "ObjectID[]",
+              "visibilityPriority": 1,
+              "required": false,
+              "description": "Study Name",
+              "lookup": {
+                "table": "studies",
+                "foreignKey": "_id",
+                "label": "studyName",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: ['$creator', this.req.user._id]}"
+                  }
+                },
+                "id": "studyName"
+              }
+            },
+            "proID": {
+              "type": "String",
+              "visibilityPriority": 2,
+              "visible": true,
+              "fullName": "PRO Assessment ID",
+              "description": "PRO Assessment ID."
+            },
+            "proOutcome1": {
+              "type": "String",
+              "visibilityPriority": 3,
+              "fullName": "Patient Reported Outcome 1",
+              "required": false,
+              "visible": true,
+              "description": "First Patient Outcome of the Study."
+            },
+            "proOutcome2": {
+              "type": "String",
+              "visibilityPriority": 4,
+              "fullName": "Patient Reported Outcome 2",
+              "required": false,
+              "visible": true,
+              "description": "Second Patient Outcome of the Study."
+            },
+            "proOutcome3": {
+              "type": "String",
+              "visibilityPriority": 5,
+              "fullName": "Patient Reported Outcome 3",
+              "required": false,
+              "visible": true,
+              "description": "Third Patient Outcome of the Study."
+            },
+            "proNotes": {
+              "type": "String",
+              "visibilityPriority": 6,
+              "fullName": "Patient Reported Outcome Notes",
+              "description": "Patient Reported Outcome Notes."
+            }
+          }
+        }
+      }
+    }

@@ -2,11 +2,11 @@
   "interface": {
     "app": {
       "auth": {
-        "requireAuthentication": false,
+        "requireAuthentication": true,
         "enableAuthentication": true,
         "enableRegistration": true,
         "enablePermissions": true,
-        "enableUserPasswordReset": false,
+        "enableUserPasswordReset": true,
         "enableMfa": false,
         "requireMfa": false
       },

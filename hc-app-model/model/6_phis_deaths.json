@@ -1,0 +1,75 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "deaths": {
+          "type": "Subschema",
+          "fullName": "Deaths",
+          "visible": false,
+          "requiresAuthentication": true,
+          "fields": {
+            "date": {
+              "type": "Date",
+              "visibilityPriority": 1,
+              "fullName": "Death Date",
+              "description": "The date of the patient's death."
+            },
+            "dateImputed": {
+              "type": "String",
+              "list": "dateImputedTypes",
+              "fullName": "Date Imputed",
+              "description": "When DeathDt is imputed, this variable indicates which parts of the date were imputed."
+            },
+            "source": {
+              "type": "String",
+              "list": "deathSourceTypes",
+              "fullName": "Source",
+              "validate": ["maxLength(1)"],
+              "description": "The source of the information regarding the patient's death."
+            },
+            "confidence": {
+              "type": "String",
+              "validate": ["maxLength(1)"],
+              "list": "deathConfidenceTypes",
+              "fullName": "Confidence",
+              "description": "The level of confidence as to the accuracy of the information?"
+            },
+            "cause": {
+              "type": "Object",
+              "fullName": "Cause of Death",
+              "fields": {
+                "causeOfDeathCode": {
+                  "type": "String",
+                  "validate": ["maxLength(8)"],
+                  "fullName": "Cause Of Death Code",
+                  "description": "ICD-10 codes that identify the patient's cause of death."
+                },
+                "causeOfDeathCodeType": {
+                  "type": "String",
+                  "validate": ["maxLength(1)"],
+                  "list": "causeOfDeathCodeTypes",
+                  "fullName": "Cause Of Death Code Type",
+                  "description": "ICD-10 codes that classifies or groups the cause of death?"
+                },
+                "source": {
+                  "type": "String",
+                  "validate": ["maxLength(1)"],
+                  "list": "deathSources",
+                  "fullName": "Source",
+                  "description": "The source of the information regarding the patient's cause  of death (e.g., autopy, etc.)."
+                },
+                "confidence": {
+                  "type": "String",
+                  "validate": ["maxLength(1)"],
+                  "list": "deathConfidenceTypes",
+                  "fullName": "Confidence",
+                  "description": "The level of confidence as to the accuracy of the information?"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

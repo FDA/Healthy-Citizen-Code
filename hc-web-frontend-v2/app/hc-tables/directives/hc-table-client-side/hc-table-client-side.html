@@ -1,0 +1,14 @@
+<table class="table">
+  <thead>
+  <tr class="columnFilters">
+    <th
+      ng-repeat="filter in filters"
+      class="hasinput">
+      <hc-tables-filter
+        ng-if="filter.filter.directiveType"
+        head="filter">
+      </hc-tables-filter>
+    </th>
+  </tr>
+  </thead>
+</table>

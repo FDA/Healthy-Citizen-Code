@@ -1,0 +1,33 @@
+<adp-form-field-container
+  adp-data="data"
+  adp-field="field">
+
+  <div class="inline-group">
+    <label class="checkbox"
+           for="{{field.keyName}}">
+
+      <input type="checkbox"
+             name="{{field.keyName}}"
+             id="{{field.keyName}}"
+             adp-validate="field"
+             ng-model="adpFormData[field.keyName]"
+             ng-required="field.required"
+             class="form-control">
+
+      <i></i>
+
+      {{field.fullName}} <span ng-show="field.required">&nbsp;*</span>
+    </label>
+
+    <label class="checkbox checkbox-tooltip">
+      <adp-tooltip
+        adp-field="field">
+      </adp-tooltip>
+    </label>
+  </div>
+
+  <adp-messages
+    adp-field="field">
+  </adp-messages>
+
+</adp-form-field-container>

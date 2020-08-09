@@ -1,0 +1,90 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "myMedications": {
+          "type": "Subschema",
+          "fullName": "My Medications",
+          "limitReturnedRecords": 30,
+          "defaultSortBy": { "start": -1 },
+          "fields": {
+            "productId": {
+              "type": "ObjectID",
+              "visibilityPriority": 1,
+              "fullName": "Product Name",
+              "description": "Name of the medication.",
+              "required": true,
+              "comment": "TODO: Rename this into productId",
+              "lookup": {
+                "table": "medicationMasters",
+                "foreignKey": "_id",
+                "label": "name",
+                "id": "medicationMasters"
+              }
+            },
+            "frequencyTaken": {
+              "type": "String",
+              "required": true,
+              "list": "usageFrequency",
+              "fullName": "Frequency Product Taken",
+              "description": "Number of times to use a product in a given period."
+            },
+            "dosage": {
+              "type": "Number",
+              "required": true,
+              "fullName": "Prescribed Dosage",
+              "description": "The dosage of this medication (amount of medication).",
+              "validate": ["max(1000)"]
+            },
+            "dosageUnits": {
+              "type": "String",
+              "list": "units",
+              "required": true,
+              "fullName": "Dosage Units",
+              "description": "The dosage units of this medication."
+            },
+            "route": {
+              "type": "String",
+              "required": true,
+              "list": "routesOfAdministration",
+              "fullName": "Route of Administration",
+              "description": "Administration route of the product"
+            },
+            "prescribed": {
+              "type": "Date",
+              "fullName": "Prescription Date",
+              "description": "Date prescription was issued.",
+              "validate": ["notInFuture()"]
+            },
+            "start": {
+              "type": "Date",
+              "fullName": "Product Start Date",
+              "description": "Date product usage began.",
+              "validate": ["min($prescribed)","notInFuture()"]
+            },
+            "end": {
+              "type": "Date",
+              "fullName": "Product End Date",
+              "description": "Date product usage ended.",
+              "validate": ["min($start)","notInFuture()"]
+            },
+            "supply": {
+              "type": "Number",
+              "comment": "medications, biologics",
+              "fullName": "Amount in Prescription",
+              "description": "Amount of product included in prescription.",
+              "validate": ["max(999)"]
+            },
+            "lot": {
+              "type": "String",
+              "comment": "medications, biologics",
+              "fullName": "Medication Lot",
+              "description": "The manufacturer's lot number listed on the product used.",
+              "validate": ["maxLength(100)"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

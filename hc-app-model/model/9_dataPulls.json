@@ -1,0 +1,61 @@
+{
+  "models": {
+    "dataPulls": {
+      "type": "Schema",
+      "fullName": "Data Pulls",
+      "limitReturnedRecords": 100,
+      "requiresAuthentication": true,
+      "description": "This collection contains the list of the data pulls",
+      "fields": {
+        "component": {
+          "type": "String",
+          "visibilityPriority": 2,
+          "fullName": "Component",
+          "description": "Name of the component being pulled"
+        },
+        "rangeStart": {
+          "type": "Date",
+          "fullName": "Range Start",
+          "description": "The start of the range of the data being pulled. Typically the start of the date range for which the data is being retrieved"
+        },
+        "rangeEnd": {
+          "type": "Date",
+          "fullName": "Range End",
+          "description": "The end of the range of the data being pulled. Typically the end of the date range for which the data is being retrieved"
+        },
+        "currentPoint": {
+          "type": "Date",
+          "fullName": "Current Point",
+          "description": "Where in the pull range (i.e. in rangeStart-rangeEnd range) the data pull process currently is"
+        },
+        "pullStartDate": {
+          "type": "Date",
+          "visibilityPriority": 1,
+          "fullName": "Pull Start Date",
+          "description": "When the data pull started"
+        },
+        "pullEndDate": {
+          "type": "Date",
+          "fullName": "Pull End Date",
+          "description": "When the data pull ended"
+        },
+        "numberOfCalls": {
+          "type": "Number",
+          "fullName": "Number of Calls",
+          "description": "Number of calls done in this data pull (for statistical purposes)"
+        },
+        "state": {
+          "type": "String",
+          "fullName": "State",
+          "description": "The current state of the data pull process",
+          "list": "dataPullStates"
+        },
+        "statusMessage": {
+          "type": "String",
+          "fullName": "Status Message",
+          "description": "Data Pull final status message. For instance error message if pull failed"
+        }
+      }
+    }
+  }
+}

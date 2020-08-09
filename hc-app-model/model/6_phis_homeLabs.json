@@ -1,0 +1,72 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "homeLabs": {
+          "type": "Subschema",
+          "fullName": "Home Laboratories",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "dateResult": -1, "timeResult": -1 },
+          "fields": {
+            "dateResult": {
+              "type": "Date",
+              "visibilityPriority": 1,
+              "fullName": "Entry Date",
+              "required": true,
+              "description": "Date of lab result.",
+              "validate": ["notInFuture()"]
+            },
+            "timeResult": {
+              "type": "String",
+              "fullName": "Time of Day",
+              "visibilityPriority": 2,
+              "list": "dayTime",
+              "required": true,
+              "description": "Pick time of day the lab was taken."
+            },
+            "testType": {
+              "type": "String",
+              "visibilityPriority": 3,
+              "fullName": "What Type of Test",
+              "list": "testTypes",
+              "required": true,
+              "description": "The type of home test."
+            },
+            "testResult": {
+              "type": "String",
+              "visibilityPriority": 4,
+              "fullName": "Test Result",
+              "validate": ["maxLength(100)"],
+              "required": true,
+              "description": "Value of the home lab test."
+            },
+            "resultUnit": {
+              "type": "String",
+              "fullName": "Test Result Unit",
+              "visibilityPriority": 5,
+              "visible": false,
+              "list": "resultsUnits",
+              "description": "The type of units measured in home test."
+            },
+            "comments": {
+              "type": "String",
+              "fullName": "Lab Test  Comments",
+              "validate": ["maxLength(500)"],
+              "visibilityPriority": 6,
+              "description": "Describe anything to do with this test."
+            },
+            "sourceType": {
+              "type": "String",
+              "list": "sourceHLTypes",
+              "required": false,
+              "visible": false,
+              "visibilityPriority": 7,
+              "fullName": "Source of Record",
+              "description": "The source of the patient data."
+            }
+          }
+        }
+      }
+    }
+  }
+}

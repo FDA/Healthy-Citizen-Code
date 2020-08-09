@@ -1,0 +1,12 @@
+<div class="hc-dashboard">
+  <h3>Dashboard</h3>
+  <div class="hc-dashboard__wrapper"
+       ng-if="dashboardData">
+
+    <hc-dashboard-tile
+      ng-repeat="(key, item) in dashboardItems"
+      item="item"
+      data="dashboardData[key]">
+    </hc-dashboard-tile>
+  </div>
+</div>

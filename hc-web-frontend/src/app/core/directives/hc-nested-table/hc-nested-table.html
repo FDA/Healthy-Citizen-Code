@@ -1,0 +1,34 @@
+<table class="simple" ms-responsive-table>
+  <tbody>
+
+    <tr ng-repeat="(key, value) in data" ng-if="!array">
+
+      <td>{{key | camelCaseToSpace }}</td>
+      <td ng-if="!isArray(value) && !isObject(value)">
+        <span ng-if="!isDate(value)">{{value}}</span>
+        <span ng-if="isDate(value)">{{value | date:short}}</span>
+      </td>
+
+      <td ng-if="!isArray(value) && isObject(value)">
+        <hc-nested-table data="value"></hc-nested-table>
+      </td>
+
+      <td ng-if="isArray(value)">
+        <hc-nested-table ng-if="hasObjects(value)" data="value"></hc-nested-table>
+        <span ng-if="!hasObjects(value)" ng-repeat="val in value">
+          {{val}}<span ng-if="!$last">, </span>
+        </span>
+
+      </td>
+
+    </tr>
+
+    <tr ng-repeat="v in data" ng-if="array">
+      <td>
+        <hc-nested-table data="v"></hc-nested-table>
+      </td>
+
+    </tr>
+
+  </tbody>
+</table>

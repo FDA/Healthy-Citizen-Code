@@ -84,6 +84,7 @@ describe('lookup types', () => {
       'Should select value for Lookup Field with multiple selection',
       async () => {
         await selectLookupValue(lastLabel, lookupNames.multiple, this.page);
+        await this.page.waitForSelector(`.lookup-name-${lookupNames.multiple} [lookup-selector] .dx-tag`);
         const [actualLookupValue] = await getMultipleLookupValue(lookupNames.multiple, this.page);
 
         expect(actualLookupValue).toMatch(lastLabel);

@@ -1,0 +1,57 @@
+{
+  "models": {
+    "productsTobaccos": {
+      "type": "Schema",
+      "fullName": "Tobacco Products",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "requiresAuthentication": true,
+      "description": "Global catalog of tobacco products supported by the system",
+      "fields": {
+        "rawData": {
+          "type": "Mixed",
+          "visible": false,
+          "fullName": "Raw Data",
+          "description": "Contains the pulled data as-is for future reparsing"
+        },
+        "processed": {
+          "type": "Boolean",
+          "visible": false,
+          "index": true,
+          "fullName": "Processed",
+          "description": "If true then the record was already processed, otherwise rawData needs to be processed to produce the rest of the records fields"
+        },
+        "key": {
+          "type": "String",
+          "visible": false,
+          "unique": true,
+          "fullName": "Key",
+          "description": "Unique key identifying each record to prevent duplicates. This is different from _id as it is based on the record contents"
+        },
+        "source": {
+          "type": "String",
+          "visible": false,
+          "index": true,
+          "list": "dataSources",
+          "fullName": "Source",
+          "description": "Data source as specified in dataPulls or (in the future) in 0_data_sources.json"
+        },
+
+        "name": {
+          "type": "String",
+          "searchable": true,
+          "index": true,
+          "fullName": "Name",
+          "description": "Product name"
+        },
+        "category": {
+          "type": "String",
+          "searchable": false,
+          "index": true,
+          "fullName": "Category",
+          "description": "Category of the product"
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "interface": {
+    "dashboardSubtypes": {
+      "fields": {
+        "DashboardBasicTile": {
+          "template": {
+            "type": "file",
+            "link": "dashboard_basic_tile_template.ejs"
+          }
+        }
+      }
+    }
+  }
+}

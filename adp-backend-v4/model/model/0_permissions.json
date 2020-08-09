@@ -1,0 +1,22 @@
+{
+  "models": {
+    "permissions": {
+      "type": "Schema",
+      "description": "This collection solely serves the purpose of user authentication. Besides password recovery email there should be no PII in this collection.",
+      "fields": {
+        "name": {
+          "type": "String",
+          "unique": true,
+          "required": true,
+          "fullName": "Permission Name",
+          "description": "Unique permission name"
+        },
+        "description": {
+          "type": "String",
+          "fullName": "Permission Description",
+          "description": "What does this permission mean"
+        }
+      }
+    }
+  }
+}

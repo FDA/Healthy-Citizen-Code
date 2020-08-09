@@ -1,17 +1,10 @@
-<div
-  ng-if="isMultiple"
-  dx-tag-box="config"
-  adp-validate="validationParams"
-  ng-required="isRequired()"
-  name="{{field.fieldName}}"
-  ng-model="adpFormData[field.fieldName]"
-></div>
+<div></div>
 
-<div
-  ng-if="!isMultiple"
-  dx-select-box="config"
+<input
+  name="{{field.fieldName}}"
+  id="{{field.fieldName}}"
   adp-validate="validationParams"
   ng-required="isRequired()"
-  name="{{field.fieldName}}"
   ng-model="adpFormData[field.fieldName]"
-></div>
+  type="hidden"
+>

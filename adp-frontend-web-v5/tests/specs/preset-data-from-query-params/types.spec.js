@@ -181,8 +181,7 @@ describe('data presetting', () => {
           };
 
           await presetDataAndWaitForSelector(dataToPreset, this.page);
-          let selector = `[name="${testDef.name}"]`;
-          selector += (testDef.type === 'Text' ? ' textarea' : ' .dx-texteditor-input');
+          let selector = `[field-name-input="${testDef.name}"]`;
 
           const actualValue = await this.page.$eval(selector, el => el.value);
           const expectedValue = ['Date', 'DateTime', 'Time'].includes(testDef.type) ?

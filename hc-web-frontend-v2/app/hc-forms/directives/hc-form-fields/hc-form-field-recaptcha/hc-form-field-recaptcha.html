@@ -1,0 +1,16 @@
+<hc-form-field-container
+  ng-if="!captchaDisabled"
+  hc-field="field">
+
+  <div vc-recaptcha
+       key="key"
+       class="recaptcha"
+       name="{{field.keyName}}"
+       ng-model="recaptchaResponse">
+  </div>
+
+  <hc-messages
+    hc-field="field">
+  </hc-messages>
+
+</hc-form-field-container>

@@ -1,0 +1,40 @@
+<hc-page-loader
+  loading="vm.loading">
+</hc-page-loader>
+
+<hc-content-container
+  class="multi-record"
+  ng-if="!vm.loading">
+
+  <hc-section-container>
+    <hc-page-title>{{ vm.schema.fullName }}</hc-page-title>
+
+    <button
+      ng-if="!vm.schema.serverSide"
+      type="button"
+      ng-click="vm.create()"
+      class="btn btn-primary page-action">
+      Create New
+    </button>
+  </hc-section-container>
+
+  <hc-section-container
+    ng-if="!vm.pageData.length">
+    <hc-section-title>No data to show.</hc-section-title>
+  </hc-section-container>
+
+  <hc-section-container
+    ng-if="vm.pageData.length">
+
+    <hc-table
+      schema="vm.schema"
+      data="vm.pageData"
+      url="vm.resourceUrl"
+      has-details="vm.hasDetails"
+      update="vm.update"
+      delete="vm.delete">
+    </hc-table>
+
+  </hc-section-container>
+
+</hc-content-container>

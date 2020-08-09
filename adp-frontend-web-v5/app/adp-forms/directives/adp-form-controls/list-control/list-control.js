@@ -21,14 +21,22 @@
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/list-control/list-control.html',
       require: '^^form',
-      link: function (scope, element) {
+      link: function (scope, element, attrs, formCtrl) {
         (function init() {
           scope.args = unifiedApproachArgs();
-          scope.config = getConfig(scope.args);
           scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
           scope.isMultiple = scope.field.type.includes('[]');
 
           bindWatcher(scope.field);
+
+          (function init() {
+            var config = getConfig(scope.args);
+            element.find('div')[getWidgetName()](config);
+
+            scope.$on('$destroy', function () {
+              scope.instance.dispose();
+            });
+          })();
         })();
 
         function getConfig(args) {
@@ -38,6 +46,10 @@
 
         function getDefaults(args) {
           return {
+            value: scope.adpFormData[scope.field.fieldName] || null,
+            onInitialized: function(e) {
+              scope.instance = e.component;
+            },
             valueExpr: 'value',
             displayExpr: 'label',
             elementAttr: {
@@ -49,18 +61,32 @@
             onOpened: function (e) {
               var ds = getDataSource();
               (ds instanceof DevExpress.data.DataSource) && ds.reload();
-            }
+            },
+            onValueChanged: function (e) {
+              scope.adpFormData[scope.field.fieldName] = e.value;
+              setAngularFormProps();
+            },
           };
         }
 
         function getInstance() {
-          var componentName = scope.isMultiple ? 'dxTagBox' : 'dxSelectBox';
-          return DevExpress.ui[componentName].getInstance(element.find('[ng-model]'));
+          return DevExpress.ui[getWidgetName()].getInstance(element.find('div'));
+        }
+
+        function getWidgetName() {
+          return scope.isMultiple ? 'dxTagBox' : 'dxSelectBox';
         }
 
         function getDataSource() {
           var instance = getInstance();
           return instance.option('dataSource');
+        }
+
+        function setAngularFormProps() {
+          var formField = formCtrl[scope.field.fieldName];
+
+          !formField.$dirty && formField.$setDirty();
+          !formField.$touched && formField.$setTouched();
         }
 
         function bindWatcher(field) {

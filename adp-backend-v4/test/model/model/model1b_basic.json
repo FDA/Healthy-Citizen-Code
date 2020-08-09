@@ -1,0 +1,31 @@
+{
+  "models": {
+    "model1s": {
+      "fields": {
+        "encounters": {
+          "fields": {
+            "vitalSigns": {
+              "type": "Subschema",
+              "comment": "VitalSigns Comment",
+              "fullName": "Vital Signs Full Name",
+              "description": "Vital Signs Description",
+              "fields": {
+                "data": {
+                  "type": "String",
+                  "comment": "Data",
+                  "fullName": "Data Full Name",
+                  "description": "Data Description"
+                },
+                "array": {
+                  "type": "String[]",
+                  "fullName": "Array",
+                  "description": "Array"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

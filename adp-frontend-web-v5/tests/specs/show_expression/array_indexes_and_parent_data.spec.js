@@ -29,8 +29,8 @@ const selectors = {
   'a1[0].a2[0].a3[0]': '[name="a1[0]"] [name="a2[0]"] [name="a3[0]"]',
   'a1[0].s1': '[name="a1[0]"] #list_id_s1',
   'a1[0].a2[0].s2': '[name="a1[0]"] [name="a2[0]"] #list_id_s2',
-  'a1[0].a2[0].s20': '[name="a1[0]"] [name="a2[0]"] #s20',
-  'a1[0].a2[0].a3[0].s3': '[name="a1[0]"] [name="a2[0]"] [name="a3[0]"] #s3',
+  'a1[0].a2[0].s20': '[name="a1[0]"] [name="a2[0]"] [field-name-input="s20"]',
+  'a1[0].a2[0].a3[0].s3': '[name="a1[0]"] [name="a2[0]"] [name="a3[0]"] [field-name-input="s3"]',
 };
 
 const fieldNames = {

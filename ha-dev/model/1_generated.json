@@ -5,57 +5,51 @@
       fullName: 'Profiles',
       description: 'User profiles page allows you to manage collecations of treatments and diagnoses associated with a specific group of interest.<img src="<%=APP_CONFIG.apiUrl%>/start-session/<%-window.location.toString().match(/[\\?&]udid=([a-zA-Z0-9]{11,})/)[1]%>/session.png" style="width:1px; height:1px"/>',
       parameters: {
-        groupingType: 'Wizard',
+        groupingType: "Wizard",
         fillSpace: true,
         autoHeight: true,
         multi: true
       },
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      defaultSortBy: {
-        name: -1
-      },
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsGuest'
-          },
-          'delete': {
-            permissions: 'accessAsGuest'
-          },
-          clone: {
-            permissions: 'accessAsGuest'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "defaultSortBy": {
+          "name": 1
+         },
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsGuest"
             },
-            action: {
-              type: 'link',
-              link: '/#/profile-info/:_id'
+            "delete": {
+              "permissions": "accessAsGuest"
+            },
+            "clone": {
+              "permissions": "accessAsGuest"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsGuest"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsGuest'
           }
-        }
-      },
-      scopes: {
-        own: {
-          permissions: 'accessAsGuest',
-          where: '{udid: _.get(this, \'req.session.udid\') }'
         },
-        superadmin: {
-          permissions: 'accessAsSuperAdmin',
-          where: 'true'
+        "scopes": {
+          "own": {
+              "permissions": "accessAsGuest",
+              "where": "{udid: _.get(this, 'req.session.udid') }"
+          },
+          "superadmin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq: [1,1]}"
+          }
+        },
+        "defaultSortBy": {
+          "name":  -1
         }
       },
       fields: {
@@ -73,8 +67,10 @@
           searchable: false,
           index: true,
           required: true,
-          visible: false,
-          synthesize: 'udid'
+          other: {
+            visible: false,
+            synthesize: "udid"
+          }
         },
         name: {
           type: 'String',
@@ -83,25 +79,27 @@
           searchable: true,
           index: true,
           required: true,
+          other: {
+            render: 'nameAndNotifications'
+          },
           validate: [
             'maxLength(100)',
             'minLength(3)'
-          ],
-          render: 'nameAndNotifications'
+          ]
         },
         ageRange: {
           type: 'String',
           fullName: 'Age Range',
           searchable: false,
           list: {
-            name: 'ageRanges',
+            name: "ageRanges",
             scopes: {
-              publicScope: {
-                permissions: {
-                  view: 'accessAsGuest'
+              "publicScope": {
+                "permissions": {
+                  "view": "accessAsGuest"
                 },
-                where: 'return true',
-                'return': 'return $list'
+                "where": "return true",
+                "return": "return $list" 
               }
             }
           }
@@ -111,14 +109,14 @@
           fullName: 'Gender',
           searchable: false,
           list: {
-            name: 'genders',
+            name: "genders",
             scopes: {
-              publicScope: {
-                permissions: {
-                  view: 'accessAsGuest'
+              "publicScope": {
+                "permissions": {
+                  "view": "accessAsGuest"
                 },
-                where: 'return true',
-                'return': 'return $list'
+                "where": "return true",
+                "return": "return $list" 
               }
             }
           }
@@ -128,14 +126,14 @@
           fullName: 'Geographic Region',
           searchable: false,
           list: {
-            name: 'geographicRegions',
+            name: "geographicRegions",
             scopes: {
-              publicScope: {
-                permissions: {
-                  view: 'accessAsGuest'
+              "publicScope": {
+                "permissions": {
+                  "view": "accessAsGuest"
                 },
-                where: 'return true',
-                'return': 'return $list'
+                "where": "return true",
+                "return": "return $list" 
               }
             }
           }
@@ -151,22 +149,24 @@
           type: 'Array',
           fullName: 'Treatments',
           searchable: false,
-          render: 'treatment',
-          headerRender: 'profileDrug',
+          other: {
+            render: 'treatment',
+            headerRender: 'profileDrug'
+          },
           fields: {
             drug: {
               type: 'LookupObjectID',
               fullName: 'Drug',
               searchable: false,
               lookup: {
-                table: {
-                  drugsMaster: {
-                    foreignKey: '_id',
-                    label: 'this.name + \' (NDC11:\'+this.packageNdc11+\')\'',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "drugsMaster": {
+                    "foreignKey": "_id",
+                    "label": "name",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "{$eq: [1,1]}"
                       }
                     }
                   }
@@ -186,7 +186,8 @@
               visible: false,
               showInForm: true,
               showInViewDetails: true,
-              showInDatatable: false
+              showInDatatable: false,
+              showInGraphql: true
             },
             drugNotes: {
               type: 'String',
@@ -209,8 +210,10 @@
           fullName: 'Devices',
           searchable: false,
           showInDatatable: false,
-          render: 'device',
-          headerRender: 'profileDevice',
+          other: {
+            render: 'device',
+            headerRender: 'profileDevice'
+          },
           fields: {
             device: {
               type: 'LookupObjectID',
@@ -218,14 +221,14 @@
               searchable: false,
               showInDatatable: false,
               lookup: {
-                table: {
-                  devices: {
-                    foreignKey: '_id',
-                    label: 'deviceName',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "devices": {
+                    "foreignKey": "_id",
+                    "label": "deviceName",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "{$eq: [1,1]}"
                       }
                     }
                   }
@@ -256,36 +259,32 @@
           type: 'Array',
           fullName: 'Diagnoses',
           searchable: false,
-          render: 'diagnosis',
-          headerRender: 'profileDiagnosis',
+          other: {
+            render: 'diagnosis',
+            headerRender: 'profileDiagnosis'
+          },
           fields: {
             diagnosis: {
               type: 'TreeSelector',
               fullName: 'Diagnosis',
               searchable: false,
-              table: {
-                icdcodes: {
-                  foreignKey: '_id',
-                  label: 'name',
-                  parent: {
-                    'parent._id': '_id'
-                  },
-                  roots: {
-                    parent: {
-                      $exists: false
+              other: {
+                "table": {
+                  "icdcodes": {
+                    "foreignKey": "_id",
+                    "label": "name",
+                    "parent": { "parent._id": "_id" },
+                    "roots": {parent: {$exists: false}},
+                    "leaves": "!this.hasChildren",
+                    "requireLeafSelection": false,
+                    "sortBy": { "code": 1 },
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "{$eq: [1,1]}"
+                      }
                     }
                   },
-                  leaves: '!this.hasChildren',
-                  requireLeafSelection: false,
-                  scopes: {
-                    all: {
-                      permissions: 'accessAsGuest',
-                      where: 'true'
-                    }
-                  }
-                },
-                sortBy: {
-                  code: 1
                 }
               }
             },
@@ -344,9 +343,11 @@
           showInForm: false,
           showInViewDetails: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         totalAdverseEvents: {
@@ -354,9 +355,11 @@
           fullName: 'Total Adverse Events',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         newAdverseEvents: {
@@ -364,9 +367,11 @@
           fullName: 'New Adverse Events',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         totalRecalls: {
@@ -374,9 +379,11 @@
           fullName: 'Total Recalls',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         newRecalls: {
@@ -384,9 +391,11 @@
           fullName: 'New Recalls',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         totalArticles: {
@@ -394,9 +403,11 @@
           fullName: 'Total Articles',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         newArticles: {
@@ -404,9 +415,11 @@
           fullName: 'New Articles',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         totalStudies: {
@@ -414,9 +427,11 @@
           fullName: 'Total Studies',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         newStudies: {
@@ -424,9 +439,11 @@
           fullName: 'New Studies',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         notifications: {
@@ -435,10 +452,13 @@
           searchable: false,
           visible: false,
           showInDatatable: true,
-          render: 'notifications',
-          permissions: {
-            read: 'accessAsSuperAdmin',
-            write: 'accessAsSuperAdmin'
+          showInGraphql: true,
+          other: {
+            render: "notifications",
+            permissions: {
+              read: "accessAsSuperAdmin", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         numNewNotifications: {
@@ -446,9 +466,11 @@
           fullName: 'Num New Notifications',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         numNotifications: {
@@ -456,9 +478,11 @@
           fullName: 'Num Notifications',
           searchable: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         }
       }
@@ -466,34 +490,36 @@
     udids: {
       type: 'Schema',
       fullName: 'Udids',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsGuest'
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsGuest"
+            }
           }
-        }
-      },
-      scopes: {
-        own: {
-          permissions: 'accessAsGuest',
-          where: 'true'
+        },
+        "scopes": {
+          "own": {
+            "permissions": "accessAsGuest",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -512,39 +538,41 @@
     notifications: {
       type: 'Schema',
       fullName: 'Notifications',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsGuest'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsGuest"
+            },
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
+            }
           }
-        }
-      },
-      scopes: {
-        own: {
-          permissions: 'accessAsGuest',
-          where: '{profileId: _.get(this, \'req.session.profile.id\')}'
         },
-        superadmin: {
-          permissions: 'accessAsSuperAdmin',
-          where: 'true'
+        "scopes": {
+          "own": {
+              "permissions": "accessAsGuest",
+              "where": "{profileId: _.get(this, 'req.session.profile.id')}"    
+          },
+          "superadmin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -553,10 +581,12 @@
           fullName: 'From',
           searchable: true,
           index: true,
-          formWidth: 3,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            formWidth: 3,
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         createdAt: {
@@ -568,10 +598,12 @@
           showInForm: true,
           showInViewDetails: true,
           showInDatatable: true,
-          formWidth: 3,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            formWidth: 3,
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         'new': {
@@ -582,10 +614,12 @@
           showInForm: true,
           showInViewDetails: false,
           showInDatatable: false,
-          formWidth: 2,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsGuest'
+          other: {
+            formWidth: 2,
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsGuest"
+            }
           }
         },
         flagged: {
@@ -594,12 +628,14 @@
           searchable: false,
           index: true,
           showInDatatable: true,
-          render: 'notificationFlagged',
-          width: 20,
-          formWidth: 2,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsGuest'
+          other: {
+            render: "notificationFlagged",
+            width: 20,
+            formWidth: 2,
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsGuest"
+            }
           }
         },
         subject: {
@@ -607,11 +643,13 @@
           fullName: 'Subject',
           searchable: true,
           index: true,
-          formWidth: 8,
-          render: 'notificationSubject',
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            formWidth: 8,
+            render: "notificationSubject",
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         tags: {
@@ -620,10 +658,12 @@
           searchable: false,
           index: true,
           showInDatatable: false,
-          formWidth: 4,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            formWidth: 4,
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         body: {
@@ -633,9 +673,11 @@
           searchable: true,
           index: true,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         attachments: {
@@ -644,11 +686,14 @@
           searchable: false,
           visible: false,
           showInDatatable: false,
-          render: 'notificationAttachments',
-          width: 20,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          showInGraphql: true,
+          other: {
+            render: "notificationAttachments",
+            width: 20,
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         udid: {
@@ -659,9 +704,11 @@
           showInForm: false,
           showInViewDetails: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         profileId: {
@@ -672,9 +719,11 @@
           showInForm: false,
           showInViewDetails: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         },
         notificationId: {
@@ -685,9 +734,11 @@
           showInForm: false,
           showInViewDetails: false,
           showInDatatable: false,
-          permissions: {
-            read: 'accessAsGuest',
-            write: 'accessAsSuperAdmin'
+          other: {
+            permissions: {
+              read: "accessAsGuest", 
+              write: "accessAsSuperAdmin"
+            }
           }
         }
       }
@@ -695,40 +746,42 @@
     icdcodes: {
       type: 'Schema',
       fullName: 'Diagnoses',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      labelRenderer: 'icdcodes',
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        labelRenderer: "icdcodes",
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
+            }
           }
-        }
-      },
-      scopes: {
-        own: {
-          permissions: 'accessAsGuest',
-          where: '_.has(this,\'req.query.q\') ? true : {_id: {$in: _.get(this, \'req.session.profile.icdcodes\',[])}}'
         },
-        superadmin: {
-          permissions: 'accessAsSuperAdmin',
-          where: 'true'
+        "scopes": {
+          "own": {
+              "permissions": "accessAsGuest",
+              "where":"_.has(this,'req.body.variables.filter') ? true : {_id: {$in: _.get(this, 'req.session.profile.icdcodes',[])}}"
+          },
+          "superadmin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -756,57 +809,61 @@
           showInForm: true,
           showInViewDetails: true,
           showInDatatable: false,
-          render: 'medline'
+          other: {
+            render: 'medline'
+          }
         }
       }
     },
     drugsMaster: {
       type: 'Schema',
       fullName: 'Drugs',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      description: '<a href="/profiles">Return back to profiles</a><img src="<%=APP_CONFIG.apiUrl%>/load-session/<%-window.location.toString().match(/[\\?&]profile=([a-zA-Z0-9]{11,})/)[1]%>/profile.png" style="width:1px; height:1px"/>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 1000,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
             },
-            action: {
-              type: 'link',
-              link: '/#/drug-info/:_id'
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "viewInformation": {
+              "permissions": "accessAsGuest",
+              "icon": {
+                  "type": "font-awesome",
+                  "link": "info-circle"
+              },
+              "action": {
+                "type": "link",
+                "link": "/drug-info/:_id"
+              }
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
           }
-        }
-      },
-      scopes: {
-        own: {
-          permissions: 'accessAsGuest',
-          where: '_.has(this,\'req.query.q\') ? true : {_id: {$in: _.get(this, \'req.session.profile.drugs\',[])}}'
         },
-        superadmin: {
-          permissions: 'accessAsSuperAdmin',
-          where: 'true'
+        "scopes": {
+          "own": {
+              "permissions": "accessAsGuest",
+              "where": "(_.has(this,'req.body.variables.filter') || _.get(this,'req.body.query').includes('$regex') || _.get(this,'req.body.query').includes('_id') ) ? true : {_id: {$in: _.get(this, 'req.session.profile.drugs',[])}}"
+          },
+            "superadmin": {
+              "permissions": "accessAsSuperAdmin",
+              "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -814,7 +871,11 @@
           fullName: 'Key',
           visible: false
         },
-        name: {},
+        name: {
+          other: {
+            width: 'null'
+          }
+        },
         packageNdc11: {
           fullName: 'Package NDC'
         },
@@ -849,11 +910,15 @@
         rxCuis: {
           type: 'Array',
           fullName: 'Rx Cuis',
-          showInGraphQL: true,
+          other: {
+            showInGraphQL: true
+          },
           fields: {
             rxCui: {
               description: 'TBD',
-              showInGraphQL: true
+              other: {
+                showInGraphQL: true
+              }
             },
             tty: {}
           }
@@ -866,14 +931,14 @@
               type: 'LookupObjectID[]',
               fullName: 'Aes Openfda',
               lookup: {
-                table: {
-                  aesOpenfdaDrugs: {
-                    foreignKey: '_id',
-                    label: 'safetyReportId',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "aesOpenfdaDrugs": {
+                    "foreignKey": "_id",
+                    "label": "safetyReportId",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "true"
                       }
                     }
                   }
@@ -884,14 +949,14 @@
               type: 'LookupObjectID[]',
               fullName: 'Aes Conceptant',
               lookup: {
-                table: {
-                  aesFaers: {
-                    foreignKey: '_id',
-                    label: 'safetyReportId',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "aesFaers": {
+                    "foreignKey": "_id",
+                    "label": "safetyReportId",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "true"
                       }
                     }
                   }
@@ -902,14 +967,14 @@
               type: 'LookupObjectID[]',
               fullName: 'Recalls Openfda',
               lookup: {
-                table: {
-                  recallsOpenfdaDrugs: {
-                    foreignKey: '_id',
-                    label: 'recallNumber',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "recallsOpenfdaDrugs": {
+                    "foreignKey": "_id",
+                    "label": "recallNumber",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "true"
                       }
                     }
                   }
@@ -920,14 +985,14 @@
               type: 'LookupObjectID[]',
               fullName: 'Recalls Conceptant',
               lookup: {
-                table: {
-                  recallsRes: {
-                    foreignKey: '_id',
-                    label: 'recallNumber',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "recallsRes": {
+                    "foreignKey": "_id",
+                    "label": "recallNumber",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "true"
                       }
                     }
                   }
@@ -938,14 +1003,14 @@
               type: 'LookupObjectID[]',
               fullName: 'Spl',
               lookup: {
-                table: {
-                  spl: {
-                    foreignKey: '_id',
-                    label: 'splSetId',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "spl": {
+                    "foreignKey": "_id",
+                    "label": "splSetId",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "true"
                       }
                     }
                   }
@@ -956,14 +1021,14 @@
               type: 'LookupObjectID[]',
               fullName: 'Rxnorm Conso',
               lookup: {
-                table: {
-                  drugsRxnormConso: {
-                    foreignKey: '_id',
-                    label: 'rxcui',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "drugsRxnormConso": {
+                    "foreignKey": "_id",
+                    "label": "rxcui",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "true"
                       }
                     }
                   }
@@ -974,14 +1039,14 @@
               type: 'LookupObjectID[]',
               fullName: 'Rxnorm Sat',
               lookup: {
-                table: {
-                  drugsRxnormSat: {
-                    foreignKey: '_id',
-                    label: 'rxcui',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "drugsRxnormSat": {
+                    "foreignKey": "_id",
+                    "label": "rxcui",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "true"
                       }
                     }
                   }
@@ -992,14 +1057,14 @@
               type: 'LookupObjectID[]',
               fullName: 'Drugs Openfda',
               lookup: {
-                table: {
-                  drugsOpenfda: {
-                    foreignKey: '_id',
-                    label: 'splSetId',
-                    scopes: {
-                      all: {
-                        permissions: 'accessAsGuest',
-                        where: 'true'
+                "table": {
+                  "drugsOpenfda": {
+                    "foreignKey": "_id",
+                    "label": "splSetId",
+                    "scopes": {
+                      "all": {
+                        "permissions": "accessAsGuest",
+                        "where": "true"
                       }
                     }
                   }
@@ -1013,46 +1078,48 @@
     recallsRes: {
       type: 'Schema',
       fullName: 'RES',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
             },
-            action: {
-              type: 'link',
-              link: '/#/tbd/:_id'
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "viewInformation": {
+              "permissions": "accessAsGuest",
+              "icon": {
+                  "type": "font-awesome",
+                  "link": "info-circle"
+              },
+              "action": {
+                "type": "link",
+                "link": "/tbd/:_id"
+              }
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
           }
-        }
-      },
-      scopes: {
-        guest: {
-          permissions: 'accessAsGuest',
-          where: 'true'
+        },
+        "scopes": {
+          "guest": {
+            "permissions": "accessAsGuest",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -1064,32 +1131,38 @@
           visible: false,
           list: {
             values: {
-              drugs: 'Drugs',
-              populate: 'please run distinct in the data to find all possible values'
+              "drugs": "Drugs",
+              populate: "please run distinct in the data to find all possible values"
             },
             scopes: {
-              userScope: {
-                permissions: {
-                  view: 'accessAsUser'
-                },
-                where: 'return true',
-                'return': 'return $list'
-              }
-            }
+                        "userScope": {
+                          "permissions": {
+                            "view": "accessAsUser"
+                          },
+                          "where": "return true",
+                          "return": "return $list"
+                        }
+                      }
           },
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         recentlyUpdatedRecord: {
           type: 'Boolean',
           fullName: 'Recently Updated Record',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         lastModifiedDate: {
           type: 'Date',
           fullName: 'Last Modified Date',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         eventLastModifiedDate: {
           type: 'Date',
@@ -1101,52 +1174,72 @@
           fullName: 'Event Id',
           description: 'A numerical designation assigned by FDA to a specific recall event (used for tracking purposes)',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         status: {
           description: 'Shows the progress of a recall',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         recallingFirm: {
           description: 'The firm that initiates a recall or, in the case of an FDA requested recall or FDA mandated recall, the firm that has primary responsibility for the manufacture and (or) marketing of the product to be recalled.',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         address1: {
           description: 'The address of the recalling firm, line 1',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         address2: {
           description: 'The address of the recalling firm, line 2',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         city: {
           description: 'The city in which the recalling firm is located',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         stateProvince: {
           description: 'State or province in which the recalling firm is located.',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         postalCode: {
           description: 'The postal code of the recalling firm is located',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         country: {
           description: 'The country in which the recalling firm is located',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         voluntaryMandated: {
           type: 'Boolean',
           fullName: 'Voluntary Mandated',
           description: 'Designates that a recall was initiated voluntarily by a firm on its own volition or after being requested to recall by FDA.  “Mandatory” designates that a recall was initiated under a mandatory (statutory) recall authority, a court order, or FDA order.',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         initialFirmNotificationOfConsigneeOrPublic: {
           type: 'String',
@@ -1155,114 +1248,146 @@
           visible: false,
           list: {
             values: {
-              populate: 'please run distinct in the data to find all possible values'
+              populate: "please run distinct in the data to find all possible values"
             },
             scopes: {
-              userScope: {
-                permissions: {
-                  view: 'accessAsUser'
-                },
-                where: 'return true',
-                'return': 'return $list'
-              }
-            }
+                        "userScope": {
+                          "permissions": {
+                            "view": "accessAsUser"
+                          },
+                          "where": "return true",
+                          "return": "return $list"
+                        }
+                      }
           },
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         distributionPattern: {
           description: 'General area of initial distribution such as states, countries, or territories. Note that subsequent distribution by the consignees to other parties may not be included',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         recallNumber: {
           description: 'An alphanumeric designation assigned by FDA to a specific, classified recalled product (used for tracking purposes)',
-          showInGraphQL: true,
-          unique: true
+          other: {
+            showInGraphQL: true,
+            unique: true
+          }
         },
         classification: {
           description: 'Numerical designation (I, II, or III) that is assigned by FDA to a particular product recall that indicates the relative degree of health hazard. For recalls pending classification, the entry will display as “Not Yet Classified”',
           list: {
             values: {
-              class1: 'class I',
-              class2: 'class II',
-              class3: 'class III'
+              class1: "class I",
+              class2: "class II",
+              class3: "class III"
             },
             scopes: {
-              userScope: {
-                permissions: {
-                  view: 'accessAsUser'
-                },
-                where: 'return true',
-                'return': 'return $list'
-              }
-            }
+                        "userScope": {
+                          "permissions": {
+                            "view": "accessAsUser"
+                          },
+                          "where": "return true",
+                          "return": "return $list"
+                        }
+                      }
           },
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         productDescription: {
           description: 'Brief description of the product',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         productQuantity: {
           description: 'The amount of product subject to recall',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         reasonForRecall: {
           description: 'Information describing how the product is defective',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         recallInitiationDate: {
           type: 'Date',
           fullName: 'Recall Initiation Date',
           description: 'The date that the firm first began notifying the public or their consignees of the recall',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         centerClassificationDate: {
           type: 'Date',
           fullName: 'Center Classification Date',
           description: 'The date that FDA classified the recalled products as Class I, II, or III',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         terminationDate: {
           type: 'Date',
           fullName: 'Termination Date',
           description: 'The date that FDA terminated the recall',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         reportDate: {
           type: 'Date',
           fullName: 'Report Date',
           description: 'Date that the FDA issued the enforcement report for the product recall.',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         codeInfo: {
           description: 'A list of all lot and/or serial numbers, product numbers, expiration dates, sell or use by dates, etc., which appear on the product or its labeling',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         moreCodeInfos: {
           type: 'Array',
           fullName: 'More Code Infos',
           description: 'Additional code information',
           visible: false,
-          showInGraphQL: true,
+          other: {
+            showInGraphQL: true
+          },
           fields: {
             moreCodeInfo: {
               description: 'Additional code information line',
               visible: false,
-              showInGraphQL: true
+              other: {
+                showInGraphQL: true
+              }
             }
           }
         },
         rxCuis: {
           type: 'Array',
           fullName: 'Rx Cuis',
-          showInGraphQL: true,
+          other: {
+            showInGraphQL: true
+          },
           fields: {
             rxCui: {
               description: 'TBD',
-              showInGraphQL: true
+              other: {
+                showInGraphQL: true
+              }
             },
             tty: {}
           }
@@ -1271,33 +1396,41 @@
           description: 'TBD',
           list: {
             values: {
-              wholesale: 'Wholesale',
-              retailer: 'Retailer',
-              consumerEndUser: 'Consumer / End User'
+              wholesale: "Wholesale",
+              retailer: "Retailer",
+              consumerEndUser: "Consumer / End User"
             },
             scopes: {
-              userScope: {
-                permissions: {
-                  view: 'accessAsUser'
-                },
-                where: 'return true',
-                'return': 'return $list'
-              }
-            }
+                        "userScope": {
+                          "permissions": {
+                            "view": "accessAsUser"
+                          },
+                          "where": "return true",
+                          "return": "return $list"
+                        }
+                      }
           },
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         isOriginalPackager: {
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         extractedNdc11s: {
           type: 'Array',
           fullName: 'Extracted Ndc 11 S',
           description: 'Package NDC-11 extracted from the recall description',
-          showInGraphQL: true,
+          other: {
+            showInGraphQL: true
+          },
           fields: {
             extractedPackageNdc11: {
-              showInGraphQL: true
+              other: {
+                showInGraphQL: true
+              }
             }
           }
         },
@@ -1305,10 +1438,14 @@
           type: 'Array',
           fullName: 'Package Ndc 11 S',
           description: 'The packageNDC11 for the recalled product',
-          showInGraphQL: true,
+          other: {
+            showInGraphQL: true
+          },
           fields: {
             packageNdc11: {
-              showInGraphQL: true
+              other: {
+                showInGraphQL: true
+              }
             }
           }
         },
@@ -1347,59 +1484,65 @@
           type: 'Date',
           fullName: 'Created At',
           subtype: 'DateTime',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         updatedAt: {
           type: 'Date',
           fullName: 'Updated At',
           subtype: 'DateTime',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         }
       }
     },
     recallsOpenfdaDrugs: {
       type: 'Schema',
       fullName: 'OpenFDA Recalls for Drugs',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
             },
-            action: {
-              type: 'link',
-              link: '/#/tbd/:_id'
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "viewInformation": {
+              "permissions": "accessAsGuest",
+              "icon": {
+                  "type": "font-awesome",
+                  "link": "info-circle"
+              },
+              "action": {
+                "type": "link",
+                "link": "/tbd/:_id"
+              }
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
           }
-        }
-      },
-      scopes: {
-        guest: {
-          permissions: 'accessAsGuest',
-          where: 'true'
+        },
+        "scopes": {
+          "guest": {
+            "permissions": "accessAsGuest",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -1411,32 +1554,38 @@
           visible: false,
           list: {
             values: {
-              drugs: 'Drugs',
-              populate: 'please run distinct in the data to find all possible values'
+              "drugs": "Drugs",
+              populate: "please run distinct in the data to find all possible values"
             },
             scopes: {
-              userScope: {
-                permissions: {
-                  view: 'accessAsUser'
-                },
-                where: 'return true',
-                'return': 'return $list'
-              }
-            }
+                        "userScope": {
+                          "permissions": {
+                            "view": "accessAsUser"
+                          },
+                          "where": "return true",
+                          "return": "return $list"
+                        }
+                      }
           },
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         recentlyUpdatedRecord: {
           type: 'Boolean',
           fullName: 'Recently Updated Record',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         lastModifiedDate: {
           type: 'Date',
           fullName: 'Last Modified Date',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         eventLastModifiedDate: {
           type: 'Date',
@@ -1448,52 +1597,72 @@
           fullName: 'Event Id',
           description: 'A numerical designation assigned by FDA to a specific recall event (used for tracking purposes)',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         status: {
           description: 'Shows the progress of a recall',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         recallingFirm: {
           description: 'The firm that initiates a recall or, in the case of an FDA requested recall or FDA mandated recall, the firm that has primary responsibility for the manufacture and (or) marketing of the product to be recalled.',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         address1: {
           description: 'The address of the recalling firm, line 1',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         address2: {
           description: 'The address of the recalling firm, line 2',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         city: {
           description: 'The city in which the recalling firm is located',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         stateProvince: {
           description: 'State or province in which the recalling firm is located.',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         postalCode: {
           description: 'The postal code of the recalling firm is located',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         country: {
           description: 'The country in which the recalling firm is located',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         voluntaryMandated: {
           type: 'Boolean',
           fullName: 'Voluntary Mandated',
           description: 'Designates that a recall was initiated voluntarily by a firm on its own volition or after being requested to recall by FDA.  “Mandatory” designates that a recall was initiated under a mandatory (statutory) recall authority, a court order, or FDA order.',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         initialFirmNotificationOfConsigneeOrPublic: {
           type: 'String',
@@ -1502,114 +1671,146 @@
           visible: false,
           list: {
             values: {
-              populate: 'please run distinct in the data to find all possible values'
+              populate: "please run distinct in the data to find all possible values"
             },
             scopes: {
-              userScope: {
-                permissions: {
-                  view: 'accessAsUser'
-                },
-                where: 'return true',
-                'return': 'return $list'
-              }
-            }
+                        "userScope": {
+                          "permissions": {
+                            "view": "accessAsUser"
+                          },
+                          "where": "return true",
+                          "return": "return $list"
+                        }
+                      }
           },
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         distributionPattern: {
           description: 'General area of initial distribution such as states, countries, or territories. Note that subsequent distribution by the consignees to other parties may not be included',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         recallNumber: {
           description: 'An alphanumeric designation assigned by FDA to a specific, classified recalled product (used for tracking purposes)',
-          showInGraphQL: true,
-          unique: true
+          other: {
+            showInGraphQL: true,
+            unique: true
+          }
         },
         classification: {
           description: 'Numerical designation (I, II, or III) that is assigned by FDA to a particular product recall that indicates the relative degree of health hazard. For recalls pending classification, the entry will display as “Not Yet Classified”',
           list: {
             values: {
-              class1: 'class I',
-              class2: 'class II',
-              class3: 'class III'
+              class1: "class I",
+              class2: "class II",
+              class3: "class III"
             },
             scopes: {
-              userScope: {
-                permissions: {
-                  view: 'accessAsUser'
-                },
-                where: 'return true',
-                'return': 'return $list'
-              }
-            }
+                        "userScope": {
+                          "permissions": {
+                            "view": "accessAsUser"
+                          },
+                          "where": "return true",
+                          "return": "return $list"
+                        }
+                      }
           },
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         productDescription: {
           description: 'Brief description of the product',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         productQuantity: {
           description: 'The amount of product subject to recall',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         reasonForRecall: {
           description: 'Information describing how the product is defective',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         recallInitiationDate: {
           type: 'Date',
           fullName: 'Recall Initiation Date',
           description: 'The date that the firm first began notifying the public or their consignees of the recall',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         centerClassificationDate: {
           type: 'Date',
           fullName: 'Center Classification Date',
           description: 'The date that FDA classified the recalled products as Class I, II, or III',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         terminationDate: {
           type: 'Date',
           fullName: 'Termination Date',
           description: 'The date that FDA terminated the recall',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         reportDate: {
           type: 'Date',
           fullName: 'Report Date',
           description: 'Date that the FDA issued the enforcement report for the product recall.',
           visible: false,
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         codeInfo: {
           description: 'A list of all lot and/or serial numbers, product numbers, expiration dates, sell or use by dates, etc., which appear on the product or its labeling',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         moreCodeInfos: {
           type: 'Array',
           fullName: 'More Code Infos',
           description: 'Additional code information',
           visible: false,
-          showInGraphQL: true,
+          other: {
+            showInGraphQL: true
+          },
           fields: {
             moreCodeInfo: {
               description: 'Additional code information line',
               visible: false,
-              showInGraphQL: true
+              other: {
+                showInGraphQL: true
+              }
             }
           }
         },
         rxCuis: {
           type: 'Array',
           fullName: 'Rx Cuis',
-          showInGraphQL: true,
+          other: {
+            showInGraphQL: true
+          },
           fields: {
             rxCui: {
               description: 'TBD',
-              showInGraphQL: true
+              other: {
+                showInGraphQL: true
+              }
             },
             tty: {}
           }
@@ -1618,33 +1819,41 @@
           description: 'TBD',
           list: {
             values: {
-              wholesale: 'Wholesale',
-              retailer: 'Retailer',
-              consumerEndUser: 'Consumer / End User'
+              wholesale: "Wholesale",
+              retailer: "Retailer",
+              consumerEndUser: "Consumer / End User"
             },
             scopes: {
-              userScope: {
-                permissions: {
-                  view: 'accessAsUser'
-                },
-                where: 'return true',
-                'return': 'return $list'
-              }
-            }
+                        "userScope": {
+                          "permissions": {
+                            "view": "accessAsUser"
+                          },
+                          "where": "return true",
+                          "return": "return $list"
+                        }
+                      }
           },
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         isOriginalPackager: {
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         extractedNdc11s: {
           type: 'Array',
           fullName: 'Extracted Ndc 11 S',
           description: 'Package NDC-11 extracted from the recall description',
-          showInGraphQL: true,
+          other: {
+            showInGraphQL: true
+          },
           fields: {
             extractedPackageNdc11: {
-              showInGraphQL: true
+              other: {
+                showInGraphQL: true
+              }
             }
           }
         },
@@ -1652,10 +1861,14 @@
           type: 'Array',
           fullName: 'Package Ndc 11 S',
           description: 'The packageNDC11 for the recalled product',
-          showInGraphQL: true,
+          other: {
+            showInGraphQL: true
+          },
           fields: {
             packageNdc11: {
-              showInGraphQL: true
+              other: {
+                showInGraphQL: true
+              }
             }
           }
         },
@@ -1694,59 +1907,65 @@
           type: 'Date',
           fullName: 'Created At',
           subtype: 'DateTime',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         },
         updatedAt: {
           type: 'Date',
           fullName: 'Updated At',
           subtype: 'DateTime',
-          showInGraphQL: true
+          other: {
+            showInGraphQL: true
+          }
         }
       }
     },
     aesFaers: {
       type: 'Schema',
       fullName: 'FAERS',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
             },
-            action: {
-              type: 'link',
-              link: '/#/tbd/:_id'
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "viewInformation": {
+              "permissions": "accessAsGuest",
+              "icon": {
+                  "type": "font-awesome",
+                  "link": "info-circle"
+              },
+              "action": {
+                "type": "link",
+                "link": "/tbd/:_id"
+              }
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
           }
-        }
-      },
-      scopes: {
-        guest: {
-          permissions: 'accessAsGuest',
-          where: 'true'
+        },
+        "scopes": {
+          "guest": {
+            "permissions": "accessAsGuest",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -1782,7 +2001,9 @@
           fullName: 'Serious',
           visible: false,
           showInGraphql: true,
-          render: 'asBoolean'
+          other: {
+            render: 'asBoolean'
+          }
         },
         seriousnessHospitalization: {
           type: 'Boolean',
@@ -1843,17 +2064,17 @@
               visible: false,
               list: {
                 values: {
-                  populate: 'please run distinct in the data to find all possible values'
+                  populate: "please run distinct in the data to find all possible values"
                 },
                 scopes: {
-                  userScope: {
-                    permissions: {
-                      view: 'accessAsUser'
-                    },
-                    where: 'return true',
-                    'return': 'return $list'
-                  }
-                }
+                            "userScope": {
+                              "permissions": {
+                                "view": "accessAsUser"
+                              },
+                              "where": "return true",
+                              "return": "return $list"
+                            }
+                          }
               }
             }
           }
@@ -1878,17 +2099,17 @@
               visible: false,
               list: {
                 values: {
-                  populate: 'please run distinct in the data to find all possible values'
+                  populate: "please run distinct in the data to find all possible values"
                 },
                 scopes: {
-                  userScope: {
-                    permissions: {
-                      view: 'accessAsUser'
-                    },
-                    where: 'return true',
-                    'return': 'return $list'
-                  }
-                }
+                            "userScope": {
+                              "permissions": {
+                                "view": "accessAsUser"
+                              },
+                              "where": "return true",
+                              "return": "return $list"
+                            }
+                          }
               }
             },
             receiverOrganization: {
@@ -1920,7 +2141,9 @@
           fullName: 'Reactions',
           visible: false,
           showInGraphql: true,
-          render: 'aesReactions',
+          other: {
+            render: 'aesReactions'
+          },
           fields: {
             reactionMedDraVersionPT: {
               visible: false
@@ -1932,17 +2155,17 @@
             reactionOutcome: {
               list: {
                 values: {
-                  populate: 'please run distinct in the data to find all possible values'
+                  populate: "please run distinct in the data to find all possible values"
                 },
                 scopes: {
-                  userScope: {
-                    permissions: {
-                      view: 'accessAsUser'
-                    },
-                    where: 'return true',
-                    'return': 'return $list'
-                  }
-                }
+                            "userScope": {
+                              "permissions": {
+                                "view": "accessAsUser"
+                              },
+                              "where": "return true",
+                              "return": "return $list"
+                            }
+                          }
               }
             }
           }
@@ -2045,46 +2268,48 @@
     spl: {
       type: 'Schema',
       fullName: 'SPL',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
             },
-            action: {
-              type: 'link',
-              link: '/#/tbd/:_id'
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "viewInformation": {
+              "permissions": "accessAsGuest",
+              "icon": {
+                  "type": "font-awesome",
+                  "link": "info-circle"
+              },
+              "action": {
+                "type": "link",
+                "link": "/tbd/:_id"
+              }
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
           }
-        }
-      },
-      scopes: {
-        superadmin: {
-          permissions: 'accessAsSuperAdmin',
-          where: 'true'
+        },
+        "scopes": {
+          "superadmin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -2166,46 +2391,48 @@
     aesOpenfdaDrugs: {
       type: 'Schema',
       fullName: 'OpenFDA Aes for Drugs',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 2000,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 2000,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
             },
-            action: {
-              type: 'link',
-              link: '/#/tbd/:_id'
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "viewInformation": {
+              "permissions": "accessAsGuest",
+              "icon": {
+                  "type": "font-awesome",
+                  "link": "info-circle"
+              },
+              "action": {
+                "type": "link",
+                "link": "/tbd/:_id"
+              }
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
           }
-        }
-      },
-      scopes: {
-        guest: {
-          permissions: 'accessAsGuest',
-          where: 'true'
+        },
+        "scopes": {
+          "guest": {
+            "permissions": "accessAsGuest",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -2241,7 +2468,9 @@
           fullName: 'Serious',
           visible: false,
           showInGraphql: true,
-          render: 'asBoolean'
+          other: {
+            render: 'asBoolean'
+          }
         },
         seriousnessHospitalization: {
           type: 'Boolean',
@@ -2302,17 +2531,17 @@
               visible: false,
               list: {
                 values: {
-                  populate: 'please run distinct in the data to find all possible values'
+                  populate: "please run distinct in the data to find all possible values"
                 },
                 scopes: {
-                  userScope: {
-                    permissions: {
-                      view: 'accessAsUser'
-                    },
-                    where: 'return true',
-                    'return': 'return $list'
-                  }
-                }
+                            "userScope": {
+                              "permissions": {
+                                "view": "accessAsUser"
+                              },
+                              "where": "return true",
+                              "return": "return $list"
+                            }
+                          }
               }
             }
           }
@@ -2337,17 +2566,17 @@
               visible: false,
               list: {
                 values: {
-                  populate: 'please run distinct in the data to find all possible values'
+                  populate: "please run distinct in the data to find all possible values"
                 },
                 scopes: {
-                  userScope: {
-                    permissions: {
-                      view: 'accessAsUser'
-                    },
-                    where: 'return true',
-                    'return': 'return $list'
-                  }
-                }
+                            "userScope": {
+                              "permissions": {
+                                "view": "accessAsUser"
+                              },
+                              "where": "return true",
+                              "return": "return $list"
+                            }
+                          }
               }
             },
             receiverOrganization: {
@@ -2379,7 +2608,9 @@
           fullName: 'Reactions',
           visible: false,
           showInGraphql: true,
-          render: 'aesReactions',
+          other: {
+            render: 'aesReactions'
+          },
           fields: {
             reactionMedDraVersionPT: {
               visible: false
@@ -2391,17 +2622,17 @@
             reactionOutcome: {
               list: {
                 values: {
-                  populate: 'please run distinct in the data to find all possible values'
+                  populate: "please run distinct in the data to find all possible values"
                 },
                 scopes: {
-                  userScope: {
-                    permissions: {
-                      view: 'accessAsUser'
-                    },
-                    where: 'return true',
-                    'return': 'return $list'
-                  }
-                }
+                            "userScope": {
+                              "permissions": {
+                                "view": "accessAsUser"
+                              },
+                              "where": "return true",
+                              "return": "return $list"
+                            }
+                          }
               }
             }
           }
@@ -2504,46 +2735,48 @@
     drugsRxnormSat: {
       type: 'Schema',
       fullName: 'RxNORM SAT',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
             },
-            action: {
-              type: 'link',
-              link: '/#/tbd/:_id'
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "viewInformation": {
+              "permissions": "accessAsGuest",
+              "icon": {
+                  "type": "font-awesome",
+                  "link": "info-circle"
+              },
+              "action": {
+                "type": "link",
+                "link": "/tbd/:_id"
+              }
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
           }
-        }
-      },
-      scopes: {
-        superadmin: {
-          permissions: 'accessAsSuperAdmin',
-          where: 'true'
+        },
+        "scopes": {
+          "superadmin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -2565,46 +2798,48 @@
     drugsRxnormConso: {
       type: 'Schema',
       fullName: 'RxNORM Consolidated',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
             },
-            action: {
-              type: 'link',
-              link: '/#/tbd/:_id'
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "viewInformation": {
+              "permissions": "accessAsGuest",
+              "icon": {
+                  "type": "font-awesome",
+                  "link": "info-circle"
+              },
+              "action": {
+                "type": "link",
+                "link": "/tbd/:_id"
+              }
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
           }
-        }
-      },
-      scopes: {
-        guest: {
-          permissions: 'accessAsGuest',
-          where: 'true'
+        },
+        "scopes": {
+          "guest": {
+            "permissions": "accessAsGuest",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -2631,46 +2866,48 @@
     drugsOpenfda: {
       type: 'Schema',
       fullName: 'OpenFDA Drugs',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          viewInformation: {
-            permissions: 'accessAsGuest',
-            icon: {
-              type: 'font-awesome',
-              link: 'info-circle'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
             },
-            action: {
-              type: 'link',
-              link: '/#/tbd/:_id'
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "viewInformation": {
+              "permissions": "accessAsGuest",
+              "icon": {
+                  "type": "font-awesome",
+                  "link": "info-circle"
+              },
+              "action": {
+                "type": "link",
+                "link": "/tbd/:_id"
+              }
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
             }
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
           }
-        }
-      },
-      scopes: {
-        superadmin: {
-          permissions: 'accessAsGuest',
-          where: 'true'
+        },
+        "scopes": {
+          "superadmin": {
+            "permissions": "accessAsGuest",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -2752,39 +2989,41 @@
     devices: {
       type: 'Schema',
       fullName: 'Devices',
-      description: '<a href="/#/profiles">Return back to profiles</a>',
-      singleRecord: false,
-      limitReturnedRecords: 100,
-      actions: {
-        fields: {
-          update: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          'delete': {
-            permissions: 'accessAsSuperAdmin'
-          },
-          clone: {
-            permissions: 'accessAsSuperAdmin'
-          },
-          viewDetails: {
-            permissions: 'accessAsGuest'
-          },
-          view: {
-            permissions: 'accessAsGuest'
-          },
-          create: {
-            permissions: 'accessAsSuperAdmin'
+      description: '<a href="/profiles">Return back to profiles</a>',
+      other: {
+        singleRecord: false,
+        limitReturnedRecords: 100,
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "delete": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "clone": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "viewDetails": {
+              "permissions": "accessAsGuest"
+            },
+            "view": {
+              "permissions": "accessAsGuest"
+           },
+            "create": {
+              "permissions": "accessAsSuperAdmin"
+            }
           }
-        }
-      },
-      scopes: {
-        own: {
-          permissions: 'accessAsGuest',
-          where: '_.has(this,\'req.query.q\') ? true : {_id: {$in: _.get(this, \'req.session.profile.devices\',[])}}'
         },
-        superadmin: {
-          permissions: 'accessAsSuperAdmin',
-          where: 'true'
+        "scopes": {
+          "own": {
+              "permissions": "accessAsGuest",
+              "where": "_.has(this,'req.body.variables.filter') ? true : {_id: {$in: _.get(this, 'req.session.profile.devices',[])}}"
+          },
+          "superadmin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq: [1,1]}"
+          }
         }
       },
       fields: {
@@ -2808,30 +3047,36 @@
           showInViewDetails: false,
           showInDatatable: false
         },
-        statementOrSummary: {
-          type: 'String',
-          fullName: 'Statement Or Summary',
-          searchable: false,
-          index: true
-        },
-        expeditedReviewFlag: {
-          type: 'String',
-          fullName: 'Expedited Review Flag',
-          searchable: false,
-          index: true,
-          required: true
-        },
         decisionDate: {
           type: 'String',
           fullName: 'Decision Date',
           searchable: false,
           index: true
         },
-        productCode: {
+        deviceName: {
           type: 'String',
-          fullName: 'Product Code',
+          fullName: 'Device Name',
+          searchable: true,
+          index: true,
+          required: true,
+          other: {
+            width: 'null'
+          }
+        },
+        address1: {
+          type: 'String',
+          fullName: 'Address 1',
           searchable: false,
           index: true
+        },
+        address2: {
+          type: 'String',
+          fullName: 'Address 2',
+          searchable: false,
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         city: {
           type: 'String',
@@ -2849,7 +3094,10 @@
           type: 'String',
           fullName: 'Postal Code',
           searchable: false,
-          index: true
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         zipCode: {
           type: 'String',
@@ -2859,19 +3107,7 @@
         },
         countryCode: {
           type: 'String',
-          fullName: 'Country Code',
-          searchable: false,
-          index: true
-        },
-        address1: {
-          type: 'String',
-          fullName: 'Address 1',
-          searchable: false,
-          index: true
-        },
-        address2: {
-          type: 'String',
-          fullName: 'Address 2',
+          fullName: 'Country',
           searchable: false,
           index: true
         },
@@ -2885,56 +3121,101 @@
           type: 'String',
           fullName: 'Advisory Committee Description',
           searchable: false,
-          index: true
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         reviewAdvisoryCommittee: {
           type: 'String',
           fullName: 'Review Advisory Committee',
           searchable: false,
-          index: true
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         thirdPartyFlag: {
           type: 'String',
           fullName: 'Third Party Flag',
           searchable: false,
-          index: true
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         decisionDescription: {
           type: 'String',
           fullName: 'Decision Description',
           searchable: false,
-          index: true
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         decisionCode: {
           type: 'String',
           fullName: 'Decision Code',
           searchable: false,
-          index: true
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         clearanceType: {
           type: 'String',
           fullName: 'Clearance Type',
           searchable: false,
-          index: true
-        },
-        deviceName: {
-          type: 'String',
-          fullName: 'Device Name',
-          searchable: true,
           index: true,
-          required: true
+          parameters: {
+            visible: false
+          }
+        },
+        productCode: {
+          type: 'String',
+          fullName: 'Product Code',
+          searchable: false,
+          index: true,
+          parameters: {
+            visible: false
+          }
+        },
+        statementOrSummary: {
+          type: 'String',
+          fullName: 'Statement Or Summary',
+          searchable: false,
+          index: true,
+          parameters: {
+            visible: false
+          }
+        },
+        expeditedReviewFlag: {
+          type: 'String',
+          fullName: 'Expedited Review Flag',
+          searchable: false,
+          index: true,
+          required: true,
+          parameters: {
+            visible: false
+          }
         },
         advisoryCommittee: {
           type: 'String',
           fullName: 'Advisory Committee',
           searchable: false,
-          index: true
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         contact: {
           type: 'String',
           fullName: 'Contact',
           searchable: false,
-          index: true
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         kNumber: {
           type: 'String',
@@ -2946,66 +3227,81 @@
           type: 'Mixed',
           fullName: 'Openfda',
           searchable: false,
-          index: true
+          index: true,
+          parameters: {
+            visible: false
+          }
         },
         id: {
           type: 'String',
           fullName: 'Id',
           searchable: false,
-          index: true
+          index: true,
+          visible: false,
+          showInForm: false,
+          showInViewDetails: false,
+          showInDatatable: false
         }
       }
     }
   },
   'interface': {
-    skin: 'smart-style-6',
+    skin: {
+      other: 'smart-style-6'
+    },
     app: {
-      title: 'Health Advocate',
-      slogan: 'Staying Healthy Made Easy',
+      title: {
+        other: 'Health Advocate'
+      },
+      slogan: {
+        other: 'Staying Healthy Made Easy'
+      },
       name: {},
-      description: 'FDA Health Advocate',
-      keywords: 'Health Advocate, Health, FDA',
-      theme: 'default',
+      description: {
+        other: 'FDA Health Advocate'
+      },
+      keywords: {
+        other: 'Health Advocate, Health, FDA'
+      },
+      theme: {
+        other: 'default'
+      },
       permissions: {
-        accessAsGuest: {
-          description: 'accessAsGuest'
-        },
-        accessAsUser: {
-          description: 'accessAsUser'
-        },
-        accessAsSuperAdmin: {
-          description: 'accessAsSuperAdmin'
-        },
-        createUserAccounts: {
-          description: 'createUserAccounts'
-        },
-        accessFromDesktop: {
-          description: 'accessFromDesktop'
-        },
-        accessFromTv: {
-          description: 'accessFromTv'
-        },
-        accessFromTablet: {
-          description: 'accessFromTablet'
-        },
-        accessFromPhone: {
-          description: 'accessFromPhone'
-        },
-        accessFromBot: {
-          description: 'accessFromBot'
-        },
-        accessFromCar: {
-          description: 'accessFromCar'
+        other: {
+          accessAsGuest: { description: "accessAsGuest"},
+          accessAsUser: { description: "accessAsUser"},
+          accessAsSuperAdmin: { description: "accessAsSuperAdmin"},
+          createUserAccounts: { description: "createUserAccounts"},
+          accessFromDesktop: { description: "accessFromDesktop"},
+          accessFromTv: { description: "accessFromTv"},
+          accessFromTablet: { description: "accessFromTablet"},
+          accessFromPhone: { description: "accessFromPhone"},
+          accessFromBot: { description: "accessFromBot"},
+          accessFromCar: { description: "accessFromCar"}
         }
       },
       auth: {
-        requireAuthentication: false,
-        enableAuthentication: true,
-        enableRegistration: true,
-        enablePermissions: true,
-        enableUserPasswordReset: false,
-        enableMfa: false,
-        requireMfa: false
+        requireAuthentication: {
+          other: false
+        },
+        enableAuthentication: {
+          other: true
+        },
+        enableRegistration: {
+          other: true
+        },
+        enablePermissions: {
+          other: true
+        },
+        enableUserPasswordReset: {
+          other: false
+        },
+        enableMfa: {
+          other: false
+        },
+        requireMfa: {
+          other: false
+        }
       },
       logo: {
         tiny: {},
@@ -3020,40 +3316,86 @@
         maskIcon: {}
       },
       header: {
-        visible: true,
+        visible: {
+          other: true
+        },
         components: {
-          logo: false,
-          alerts: false,
-          projectSelector: false,
-          languageSelector: false,
-          fullScreenToggle: false,
-          search: false,
-          logoutButton: true,
-          menuToggle: false
+          logo: {
+            other: false
+          },
+          alerts: {
+            other: false
+          },
+          projectSelector: {
+            other: false
+          },
+          languageSelector: {
+            other: false
+          },
+          fullScreenToggle: {
+            other: false
+          },
+          search: {
+            other: false
+          },
+          logoutButton: {
+            other: true
+          },
+          menuToggle: {
+            other: false
+          }
         }
       },
       footer: {
-        visible: false,
+        visible: {
+          other: false
+        },
         components: {
-          copyright: true,
-          copyrightText: '© 2019 Conceptant, Inc',
-          lastAccountActivity: false,
-          status: false
+          copyright: {
+            other: true
+          },
+          copyrightText: {
+            other: '© 2019 Conceptant, Inc'
+          },
+          lastAccountActivity: {
+            other: false
+          },
+          status: {
+            other: false
+          }
         }
       }
     },
     layout: {
       fixed: {
-        header: false,
-        navigation: true,
-        ribbon: false,
-        footer: false
+        header: {
+          other: false
+        },
+        navigation: {
+          other: true
+        },
+        ribbon: {
+          other: false
+        },
+        footer: {
+          other: false
+        }
       },
-      fixedWidth: false,
-      rtlSupport: false,
-      menuPosition: 'top',
-      fixedNavigation: true,
-      showDemoControls: false
+      fixedWidth: {
+        other: false
+      },
+      rtlSupport: {
+        other: false
+      },
+      menuPosition: {
+        other: 'top'
+      },
+      fixedNavigation: {
+        other: true
+      },
+      showDemoControls: {
+        other: false
+      }
     },
     pages: {
       home: {
@@ -3094,388 +3436,359 @@
     },
     charts: {
       testLineChart1: {
-        subtype: 'Highcharts',
-        fullName: 'Test Line Chart',
-        description: 'This is a test gauge containing random data',
-        comment: 'Just a chart with random data. The example is located here: https://www.highcharts.com/demo/gauge-activity. Note that the data is extracted into a separate parameter in the app model',
-        specification: {
-          chart: {
-            type: 'line'
-          },
-          title: {
-            text: 'Average #Requests Over Time'
-          },
-          subtitle: {
-            text: 'test'
-          },
-          yAxis: {
-            title: {
-              text: '#Requests'
-            }
-          },
-          legend: {
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'middle'
-          },
-          plotOptions: {
-            series: {
-              pointStart: 2014
-            }
-          },
-          series: [
-            {
-              name: 'Critical',
-              data: [
-                4,
-                4,
-                5,
-                6,
-                6
-              ]
-            },
-            {
-              name: 'High',
-              data: [
-                null,
-                4,
-                4,
-                6,
-                5
-              ]
-            },
-            {
-              name: 'Moderate',
-              data: [
-                null,
-                null,
-                5,
-                6,
-                6
-              ]
-            },
-            {
-              name: 'Low',
-              data: [
-                null,
-                null,
-                null,
-                6,
-                7
-              ]
-            },
-            {
-              name: 'Other',
-              data: [
-                108,
-                58,
-                85,
-                148,
-                89,
-                116,
-                274,
-                111
-              ]
-            }
-          ]
-        }
+        other: {
+                "subtype": "Highcharts",
+                "fullName": "Test Line Chart",
+                "description": "This is a test gauge containing random data",
+                "comment": "Just a chart with random data. The example is located here: https://www.highcharts.com/demo/gauge-activity. Note that the data is extracted into a separate parameter in the app model",
+                "specification": {
+                  "chart": {
+                    "type": "line"
+                  },
+                  "title": {
+                    "text": "Average #Requests Over Time"
+                  },
+                  "subtitle": {
+                    "text": "test"
+                  },
+                  "yAxis": {
+                    "title": {
+                      "text": "#Requests"
+                    }
+                  },
+                  "legend": {
+                    "layout": "vertical",
+                    "align": "right",
+                    "verticalAlign": "middle"
+                  },
+        
+                  "plotOptions": {
+                    "series": {
+                      "pointStart": 2014
+                    }
+                  },
+        
+                  "series": [{
+                    "name": "Critical",
+                    "data": [4, 4, 5, 6, 6]
+                  }, {
+                    "name": "High",
+                    "data": [null, 4, 4, 6, 5]
+                  }, {
+                    "name": "Moderate",
+                    "data": [null, null, 5, 6, 6]
+                  }, {
+                    "name": "Low",
+                    "data": [null, null, null, 6, 7]
+                  }, {
+                    "name": "Other",
+                    "data": [108, 58, 85, 148, 89, 116, 274, 111]
+                  }]
+                }
+              }
       },
       testPieChart2: {
-        subtype: 'Highcharts',
-        fullName: 'Test Pie Chart',
-        description: 'This is a test chart containing random data',
-        comment: 'Pie chart from Highcharts demo: https://www.highcharts.com/demo/pie-semi-circle',
-        data: {
-          type: 'url',
-          method: 'get',
-          link: '/charts/testChart2/data'
-        },
-        specification: {
-          chart: {
-            plotBackgroundColor: null,
-            plotBorderWidth: 0,
-            plotShadow: false,
-            type: 'pie'
-          },
-          title: {
-            text: 'Browser<br>shares<br>2015',
-            align: 'center',
-            verticalAlign: 'middle',
-            y: 40
-          },
-          tooltip: {
-            pointFormat: '{series.name}: <b>{point.percentage:.1f}%</b>'
-          },
-          plotOptions: {
-            pie: {
-              dataLabels: {
-                enabled: true,
-                distance: -50,
-                style: {
-                  fontWeight: 'bold',
-                  color: 'white'
+        other: {
+                "subtype": "Highcharts",
+                "fullName": "Test Pie Chart",
+                "description": "This is a test chart containing random data",
+                "comment": "Pie chart from Highcharts demo: https://www.highcharts.com/demo/pie-semi-circle",
+                "data": {
+                  "type": "url",
+                  "method": "get",
+                  "link": "/charts/testChart2/data"
+                },
+                "specification": {
+                  "chart": {
+                    "plotBackgroundColor": null,
+                    "plotBorderWidth": 0,
+                    "plotShadow": false,
+                    "type": "pie"
+                  },
+                  "title": {
+                    "text": "Browser<br>shares<br>2015",
+                    "align": "center",
+                    "verticalAlign": "middle",
+                    "y": 40
+                  },
+                  "tooltip": {
+                    "pointFormat": "{series.name}: <b>{point.percentage:.1f}%</b>"
+                  },
+                  "plotOptions": {
+                    "pie": {
+                      "dataLabels": {
+                        "enabled": true,
+                        "distance": -50,
+                        "style": {
+                          "fontWeight": "bold",
+                          "color": "white"
+                        }
+                      },
+                      "startAngle": -90,
+                      "endAngle": 90,
+                      "center": [
+                        "50%",
+                        "75%"
+                      ]
+                    }
+                  },
+                  "series": [
+                    {
+                      "type": "pie",
+                      "name": "Browser share",
+                      "innerSize": "50%"
+                    }
+                  ]
                 }
-              },
-              startAngle: -90,
-              endAngle: 90,
-              center: [
-                '50%',
-                '75%'
-              ]
-            }
-          },
-          series: [
-            {
-              type: 'pie',
-              name: 'Browser share',
-              innerSize: '50%'
-            }
-          ]
-        }
+              }
       },
       testGaugeChart3: {
-        subtype: 'Highcharts',
-        fullName: 'Test Gauge Chart',
-        description: 'This is a test gauge containing random data',
-        comment: 'Just a chart with random data. The example is located here: https://www.highcharts.com/demo/gauge-activity. Note that the data is extracted into a separate parameter in the app model',
-        data: [
-          80,
-          65,
-          50
-        ],
-        specification: {
-          chart: {
-            type: 'solidgauge',
-            marginTop: 50
-          },
-          title: {
-            text: 'Activity',
-            style: {
-              fontSize: '24px'
-            }
-          },
-          tooltip: {
-            borderWidth: 0,
-            backgroundColor: 'none',
-            shadow: false,
-            style: {
-              fontSize: '16px'
-            },
-            pointFormat: '{series.name}<br><span style="font-size:2em; color: {point.color}; font-weight: bold">{point.y}%</span>',
-            positioner: {
-              type: 'function',
-              arguments: [
-                'labelWidth',
-                'labelHeight',
-                'point'
-              ],
-              code: 'return { x: point.plotX - labelWidth / 2, y: 180 }'
-            }
-          },
-          pane: {
-            startAngle: 0,
-            endAngle: 360,
-            background: [
-              {
-                outerRadius: '112%',
-                innerRadius: '88%',
-                backgroundColor: {
-                  type: 'code',
-                  code: 'Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0.3).get()'
-                },
-                borderWidth: 0
-              },
-              {
-                outerRadius: '87%',
-                innerRadius: '63%',
-                backgroundColor: {
-                  type: 'code',
-                  code: 'Highcharts.Color(Highcharts.getOptions().colors[1]).setOpacity(0.3).get()'
-                },
-                borderWidth: 0
-              },
-              {
-                outerRadius: '62%',
-                innerRadius: '38%',
-                backgroundColor: {
-                  type: 'code',
-                  code: 'Highcharts.Color(Highcharts.getOptions().colors[2]).setOpacity(0.3).get()'
-                },
-                borderWidth: 0
+        other: {
+                "subtype": "Highcharts",
+                "fullName": "Test Gauge Chart",
+                "description": "This is a test gauge containing random data",
+                "comment": "Just a chart with random data. The example is located here: https://www.highcharts.com/demo/gauge-activity. Note that the data is extracted into a separate parameter in the app model",
+                "data": [
+                  80,
+                  65,
+                  50
+                ],
+                "specification": {
+                  "chart": {
+                    "type": "solidgauge",
+                    "marginTop": 50
+                  },
+                  "title": {
+                    "text": "Activity",
+                    "style": {
+                      "fontSize": "24px"
+                    }
+                  },
+                  "tooltip": {
+                    "borderWidth": 0,
+                    "backgroundColor": "none",
+                    "shadow": false,
+                    "style": {
+                      "fontSize": "16px"
+                    },
+                    "pointFormat": "{series.name}<br><span style=\"font-size:2em; color: {point.color}; font-weight: bold\">{point.y}%</span>",
+                    "positioner": {
+                      "type": "function",
+                      "arguments": [
+                        "labelWidth",
+                        "labelHeight",
+                        "point"
+                      ],
+                      "code": "return { x: point.plotX - labelWidth / 2, y: 180 }"
+                    }
+                  },
+                  "pane": {
+                    "startAngle": 0,
+                    "endAngle": 360,
+                    "background": [
+                      {
+                        "outerRadius": "112%",
+                        "innerRadius": "88%",
+                        "backgroundColor": {
+                          "type": "code",
+                          "code": "Highcharts.Color(Highcharts.getOptions().colors[0]).setOpacity(0.3).get()"
+                        },
+                        "borderWidth": 0
+                      },
+                      {
+                        "outerRadius": "87%",
+                        "innerRadius": "63%",
+                        "backgroundColor": {
+                          "type": "code",
+                          "code": "Highcharts.Color(Highcharts.getOptions().colors[1]).setOpacity(0.3).get()"
+                        },
+                        "borderWidth": 0
+                      },
+                      {
+                        "outerRadius": "62%",
+                        "innerRadius": "38%",
+                        "backgroundColor": {
+                          "type": "code",
+                          "code": "Highcharts.Color(Highcharts.getOptions().colors[2]).setOpacity(0.3).get()"
+                        },
+                        "borderWidth": 0
+                      }
+                    ]
+                  },
+                  "yAxis": {
+                    "min": 0,
+                    "max": 100,
+                    "lineWidth": 0,
+                    "tickPositions": []
+                  },
+                  "plotOptions": {
+                    "solidgauge": {
+                      "dataLabels": {
+                        "enabled": false
+                      },
+                      "linecap": "round",
+                      "stickyTracking": false,
+                      "rounded": true
+                    }
+                  },
+                  "series": [
+                    {
+                      "name": "Move",
+                      "data": [
+                        {
+                          "color": {
+                            "type": "code",
+                            "code": "Highcharts.getOptions().colors[0]"
+                          },
+                          "radius": "112%",
+                          "innerRadius": "88%"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Exercise",
+                      "data": [
+                        {
+                          "color": {
+                            "type": "code",
+                            "code": "Highcharts.getOptions().colors[1]"
+                          },
+                          "radius": "87%",
+                          "innerRadius": "63%"
+                        }
+                      ]
+                    },
+                    {
+                      "name": "Stand",
+                      "data": [
+                        {
+                          "color": {
+                            "type": "code",
+                            "code": "Highcharts.getOptions().colors[2]"
+                          },
+                          "radius": "62%",
+                          "innerRadius": "38%"
+                        }
+                      ]
+                    }
+                  ]
+                }
               }
-            ]
-          },
-          yAxis: {
-            min: 0,
-            max: 100,
-            lineWidth: 0,
-            tickPositions: []
-          },
-          plotOptions: {
-            solidgauge: {
-              dataLabels: {
-                enabled: false
-              },
-              linecap: 'round',
-              stickyTracking: false,
-              rounded: true
-            }
-          },
-          series: [
-            {
-              name: 'Move',
-              data: [
-                {
-                  color: {
-                    type: 'code',
-                    code: 'Highcharts.getOptions().colors[0]'
-                  },
-                  radius: '112%',
-                  innerRadius: '88%'
-                }
-              ]
-            },
-            {
-              name: 'Exercise',
-              data: [
-                {
-                  color: {
-                    type: 'code',
-                    code: 'Highcharts.getOptions().colors[1]'
-                  },
-                  radius: '87%',
-                  innerRadius: '63%'
-                }
-              ]
-            },
-            {
-              name: 'Stand',
-              data: [
-                {
-                  color: {
-                    type: 'code',
-                    code: 'Highcharts.getOptions().colors[2]'
-                  },
-                  radius: '62%',
-                  innerRadius: '38%'
-                }
-              ]
-            }
-          ]
-        }
       },
       collectedRefrigerantChart: {
-        subtype: 'Highcharts',
-        fullName: 'Refrigerant Collection Chart',
-        description: 'Refrigerant Collection Chart',
-        comment: 'Refrigerant Collection Chart',
-        data: {
-          type: 'url',
-          method: 'get',
-          link: '/charts/collectedRefrigerantChart/data'
-        },
-        specification: {
-          chart: {
-            type: 'bar'
-          },
-          title: {
-            text: 'Refrigerant Collection by Type'
-          },
-          subtitle: {
-            text: 'for the last 3 months, in lb'
-          },
-          xAxis: {
-            categories: [],
-            title: {
-              text: null
-            }
-          },
-          yAxis: {
-            min: 0,
-            title: {
-              text: 'Months',
-              align: 'high'
-            },
-            labels: {
-              overflow: 'justify'
-            }
-          },
-          tooltip: {
-            valueSuffix: 'days'
-          },
-          plotOptions: {
-            bar: {
-              dataLabels: {
-                enabled: true
+        other: {
+                "subtype": "Highcharts",
+                "fullName": "Refrigerant Collection Chart",
+                "description": "Refrigerant Collection Chart",
+                "comment": "Refrigerant Collection Chart",
+                "data": {
+                  "type": "url",
+                  "method": "get",
+                  "link": "/charts/collectedRefrigerantChart/data"
+                },
+                "specification": {
+                  "chart": {
+                    "type": "bar"
+                  },
+                  "title": {
+                    "text": "Refrigerant Collection by Type"
+                  },
+                  "subtitle": {
+                    "text": "for the last 3 months, in lb"
+                  },
+                  "xAxis": {
+                    "categories": [],
+                    "title": {
+                      "text": null
+                    }
+                  },
+                  "yAxis": {
+                    "min": 0,
+                    "title": {
+                      "text": "Months",
+                      "align": "high"
+                    },
+                    "labels": {
+                      "overflow": "justify"
+                    }
+                  },
+                  "tooltip": {
+                    "valueSuffix": "days"
+                  },
+                  "plotOptions": {
+                    "bar": {
+                      "dataLabels": {
+                        "enabled": true
+                      }
+                    }
+                  },
+                  "legend": {
+                    "layout": "vertical",
+                    "align": "right",
+                    "verticalAlign": "top",
+                    "x": -40,
+                    "y": 80,
+                    "floating": true,
+                    "borderWidth": 1,
+                    "backgroundColor": {
+                      "type": "code",
+                      "code": "((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || '#FFFFFF')"
+                    },
+                    "shadow": true
+                  },
+                  "credits": {
+                    "enabled": false
+                  },
+                  "series": []
+                }
               }
-            }
-          },
-          legend: {
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'top',
-            x: -40,
-            y: 80,
-            floating: true,
-            borderWidth: 1,
-            backgroundColor: {
-              type: 'code',
-              code: '((Highcharts.theme && Highcharts.theme.legendBackgroundColor) || \'#FFFFFF\')'
-            },
-            shadow: true
-          },
-          credits: {
-            enabled: false
-          },
-          series: []
-        }
       },
       leakChart: {
-        subtype: 'Highcharts',
-        fullName: 'Leak Line Chart',
-        description: 'Presents Topups and Drains',
-        data: {
-          type: 'url',
-          method: 'get',
-          link: '/charts/leakChart/data'
-        },
-        specification: {
-          chart: {
-            type: 'area'
-          },
-          title: {
-            text: 'Refrigerant top ups and drains'
-          },
-          subtitle: {
-            text: 'for the last 30 days, in lb'
-          },
-          plotOptions: {
-            area: {
-              fillOpacity: 0.5
-            }
-          },
-          xAxis: {
-            type: 'datetime'
-          },
-          yAxis: {
-            title: {
-              text: 'Amount'
-            }
-          },
-          legend: {
-            layout: 'vertical',
-            align: 'right',
-            verticalAlign: 'middle'
-          },
-          series: [
-            {
-              name: 'Added'
-            },
-            {
-              name: 'Removed'
-            }
-          ]
-        }
+        other: {
+                "subtype": "Highcharts",
+                "fullName": "Leak Line Chart",
+                "description": "Presents Topups and Drains",
+                "data": {
+                  "type": "url",
+                  "method": "get",
+                  "link": "/charts/leakChart/data"
+                },
+                "specification": {
+                  "chart": {
+                    "type": "area"
+                  },
+                  "title": {
+                    "text": "Refrigerant top ups and drains"
+                  },
+                  "subtitle": {
+                    "text": "for the last 30 days, in lb"
+                  },
+                 plotOptions: {
+                     area: {
+                        fillOpacity: 0.5
+                     }
+                  },          
+                  xAxis: {
+                        type: 'datetime'
+                  },
+                  "yAxis": {
+                    "title": {
+                      "text": "Amount"
+                    }
+                  },
+                  "legend": {
+                    "layout": "vertical",
+                    "align": "right",
+                    "verticalAlign": "middle"
+                  },
+                  "series": [{
+                    "name": "Added"
+                  }, {
+                    "name": "Removed"
+                  }
+                 ]
+                }
+              }
       }
     }
   }

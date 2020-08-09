@@ -28,6 +28,7 @@
         var formParams = {
           path: AdpPath.next(scope.validationParams.formParams.path, scope.field.fieldName, scope.index),
           row: scope.validationParams.formParams.row,
+          fieldSchema: scope.validationParams.formParams.fieldSchema,
           modelSchema: scope.validationParams.formParams.modelSchema,
           action: scope.validationParams.formParams.action,
           visibilityMap: scope.validationParams.formParams.visibilityMap,
@@ -60,7 +61,7 @@
             return visibilityUtils.arrayHasVisibleChild(getData(), scope.nextValidationParams);
           }
 
-          return field.type !== 'Boolean';
+          return true;
         };
 
         function getData() {
@@ -79,9 +80,10 @@
               'ng-class="[className]"',
               'ng-field-name="{{field.fieldName}}"',
               'adp-field="field">',
-              '<label ng-if="showLabel(field)">{{field.fullName}}</label>',
-
-              '<adp-required-mark ng-if="showLabel(field)" validation-params="nextValidationParams"></adp-required-mark>',
+              '<label class="label" ng-if="showLabel(field)">',
+                '{{field.fullName}}',
+                '<adp-required-mark validation-params="nextValidationParams"></adp-required-mark>',
+              '</label>',
 
               '<' + scope.uiProps.directiveType + '-control',
                 'adp-form-data="formData"',

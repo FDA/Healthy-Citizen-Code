@@ -58,8 +58,8 @@ async function loginWithUser(page) {
 
 async function fillLoginFormAndSubmit(page) {
   const { login, password } = getUserCredentials();
-  await page.type('#login input', login);
-  await page.type('#password input', password);
+  await page.type('#login', login);
+  await page.type('#password', password);
 
   await Promise.all([
     page.waitForNavigation({ waitUntil: 'networkidle2' }),
@@ -107,7 +107,7 @@ function getObjectErrorSelect(obj) {
 }
 
 function getFieldSelector(obj, field) {
-  return `[name='${obj}'] [name='${field}']`;
+  return `[name='${obj}'] [field-name-input='${field}']`;
 }
 
 async function clickCreateNewButton(page) {
@@ -169,7 +169,7 @@ function getArrayFieldErrorSelector(arr, index, field) {
 }
 
 function getArrayFieldSelector(arr, index, field) {
-  return `[name='${arr}[${index}]'] [name='${field}']`;
+  return `[name='${arr}[${index}]'] [field-name-input='${field}']`;
 }
 
 function getRemoveArrayElemSelector(arr, index) {

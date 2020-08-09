@@ -1,0 +1,22 @@
+{
+  "models": {
+    "phis": {
+      "type": "Schema",
+      "fullName": "User Profile",
+      "requiresAuthentication": true,
+      "limitReturnedRecords": 1,
+      "singleRecord": true,
+      "comment": "rename this schema into profiles after the demo",
+      "fields": {
+        "notes": {
+          "fullName": "Notes",
+          "type": "String",
+          "subtype": "Text",
+          "visible": false,
+          "comment": "delete this field if possible",
+          "description": "Random free-form notes about self."
+        }
+      }
+    }
+  }
+}

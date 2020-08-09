@@ -15,13 +15,13 @@ const {
 
 const selectorsChild0 = {
   a1: '[name="a1[0]"]',
-  s1: '[name="a1[0]"] [name="s1"]',
+  s1: '[name="a1[0]"] [field-name-input="s1"]',
   b1: '[name="a1[0]"] [ng-field-name="b1"]'
 };
 
 const selectorsChild1 = {
   a1: '[name="a1[1]"]',
-  s1: '[name="a1[1]"] [name="s1"]',
+  s1: '[name="a1[1]"] [field-name-input="s1"]',
   b1: '[name="a1[1]"] [ng-field-name="b1"]'
 };
 

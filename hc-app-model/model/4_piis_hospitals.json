@@ -1,0 +1,63 @@
+{
+  "models": {
+    "piis": {
+      "fields": {
+        "hospitals": {
+          "type": "Subschema",
+          "defaultSortBy": { "name": -1 },
+          "fullName": "My Medical Facilities",
+          "description": "This contains list of all possible hospitals HC supports data exchange with. Hospitals assiciated with a specific account are stored in the PHI data",
+          "limitReturnedRecords": 50,
+          "requiresAuthentication": false,
+          "fields": {
+            "clinician": {
+              "type": "String",
+              "required": true,
+              "fullName": "Healthcare Provider Name",
+              "validate": ["maxLength(200)"],
+              "description": "The name of the healthcare provider (MD, nurse, therapist, etc)"
+            },
+            "group": {
+              "type": "String",
+              "required": true,
+              "fullName": "Healthcare Group/Practice Name",
+              "validate": ["maxLength(200)"],
+              "description": "The name of the healthcare group or practice"
+            },
+            "name": {
+              "type": "String",
+              "fullName": "Medical Facility Name",
+              "validate": ["maxLength(200)"],
+              "description": "The name of the hospital"
+            },
+            "ehrAvailable": {
+              "type": "Boolean",
+              "required": false,
+              "fullName": "Electronic Record Available",
+              "description": "Is your health record available electronically from this care provider? If yes, please fill in next 3 fields."
+            },
+            "patientID": {
+              "type": "String",
+              "fullName": "Your Patient ID",
+              "validate": ["maxLength(100)"],
+              "description": "Your patient identification value from the facility"
+            },
+            "authID": {
+              "type": "String",
+              "fullName": "Your Authorization ID",
+              "validate": ["maxLength(100)"],
+              "description": "Your patient authorization value from the facility"
+            },
+            "apiUrl": {
+              "type": "String",
+              "subtype": "Url",
+              "fullName": "API URL",
+              "validate": ["maxLength(200)"],
+              "description": "The URL of the FHIR endpoint on hospital side"
+            }
+          }
+        }
+      }
+    }
+  }
+}

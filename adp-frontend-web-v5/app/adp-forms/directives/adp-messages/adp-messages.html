@@ -1,96 +1,70 @@
 <div
   ng-messages
   for="fieldModel.$error"
+  ng-if="fieldModel.$dirty"
   class="note note-error">
-  <span ng-if="form.$submitted || fieldModel.$dirty">
-    <span ng-message="required">
-      {{field.fullName}} is required.
+
+  <span ng-message="required">{{field.fullName}} is required.</span>
+
+  <span ng-message="regex">{{messages['regex']}}</span>
+
+  <span ng-message="min">{{messages['min']}}</span>
+
+  <span ng-message="max">{{messages['max']}}</span>
+
+  <span ng-message="minLength">{{messages['minLength']}}</span>
+
+  <span ng-message="maxLength">{{messages['maxLength']}}</span>
+
+  <span ng-message="passwordMatch">Passwords do not match.</span>
+
+  <span ng-message="location">Address not found. Please try again.</span>
+
+  <span ng-message="notInFuture">{{messages.notInFuture}}</span>
+
+  <span ng-message="notInPast">{{messages.notInPast}}</span>
+
+  <span ng-message="int32">{{messages.int32 || "Value is not a valid int32 number."}}</span>
+
+  <span ng-message="int64">{{messages.int64 || "Value is not a valid int32 number."}}</span>
+
+  <span ng-message="number">
+    <span ng-if="['Int32', 'Int64'].includes(field.type)">
+      "{{field.fullName}}" is not a valid integer number.
     </span>
 
-    <span ng-message="regex">
-      {{messages['regex']}}
-    </span>
-
-    <span ng-message="min">
-      {{messages['min']}}
-    </span>
-
-    <span ng-message="max">
-      {{messages['max']}}
-    </span>
-
-    <span ng-message="minLength">
-      {{messages['minLength']}}
-    </span>
-
-    <span ng-message="maxLength">
-      {{messages['maxLength']}}
-    </span>
-
-    <span ng-message="passwordMatch">
-      Passwords do not match.
-    </span>
-
-    <span ng-message="location">
-      Address not found. Please try again.
-    </span>
-
-    <span ng-message="notInFuture">
-      {{messages['notInFuture']}}
-    </span>
-
-    <span ng-message="notInPast">
-      {{messages['notInPast']}}
-    </span>
-
-    <span ng-message="int32">
-      {{messages.int32 || "Value is not a valid int32 number."}}
-    </span>
-
-    <span ng-message="int64">
-      {{messages.int64 || "Value is not a valid int32 number."}}
-    </span>
-
-    <span ng-message="number">
-      <span ng-if="['Int32', 'Int64'].includes(field.type)">
-        "{{field.fullName}}" is not a valid integer number.
-      </span>
-
-      <span ng-if="!['Int32', 'Int64'].includes(field.type)">
-        "{{field.fullName}}" is not a valid number.
-      </span>
-    </span>
-
-    <span ng-message="pattern">
-      <span ng-if="field.type === 'Decimal128'">
-        "{{field.fullName}}" is not a decimal valid number.
-      </span>
-
-      <span ng-if="['Int32', 'Int64'].includes(field.type)">
-        "{{field.fullName}}" is not a valid integer number.
-      </span>
-    </span>
-
-    <span ng-message="associativeArrayKeyUnique">
-      {{messages.associativeArrayKeyUnique}}
-    </span>
-
-    <span ng-message="schemaKeyRegExp">
-      {{messages.schemaKeyRegExp}}
-    </span>
-
-    <span ng-message="syntaxCodeEditorError">
-      Code editor contains errors. Fix all syntax errors before submitting
-    </span>
-
-    <span ng-message="jsonSyntaxCodeEditorError">
-      Invalid JSON.
+    <span ng-if="!['Int32', 'Int64'].includes(field.type)">
+      "{{field.fullName}}" is not a valid number.
     </span>
   </span>
 
-  <span
-    ng-message="dateValid"
-    ng-if="form.$submitted || fieldModel.$touched">
+  <span ng-message="pattern">
+    <span ng-if="field.type === 'Decimal128'">
+      "{{field.fullName}}" is not a decimal valid number.
+    </span>
+
+    <span ng-if="['Int32', 'Int64'].includes(field.type)">
+      "{{field.fullName}}" is not a valid integer number.
+    </span>
+  </span>
+
+  <span ng-message="associativeArrayKeyUnique">
+    {{messages.associativeArrayKeyUnique}}
+  </span>
+
+  <span ng-message="schemaKeyRegExp">
+    {{messages.schemaKeyRegExp}}
+  </span>
+
+  <span ng-message="syntaxCodeEditorError">
+    Code editor contains errors. Fix all syntax errors before submitting
+  </span>
+
+  <span ng-message="jsonSyntaxCodeEditorError">
+    Invalid JSON.
+  </span>
+
+  <span ng-message="dateValid">
     Date is invalid.
   </span>
 </div>

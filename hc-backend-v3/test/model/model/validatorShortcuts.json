@@ -1,0 +1,62 @@
+{
+  "validatorShortcuts": {
+    "regex": {
+      "arguments": {
+        "regex": "$1",
+        "regexOptions": "$2"
+      },
+      "errorMessages": {
+          "default": "This value doesn't seem right"
+      }
+    },
+    "minLength": {
+      "arguments": {
+        "length": "$1"
+      },
+      "errorMessages": {
+        "default": "Value is too short, should be at least $length characters long"
+      }
+    },
+    "maxLength": {
+      "arguments": {
+        "length": "$1"
+      },
+      "errorMessages": {
+        "default": "Value is too long, should be at most $length characters long"
+      }
+    },
+    "min": {
+      "arguments": {
+        "limit": "$1"
+      },
+      "errorMessages": {
+        "default": "Value $val is too small, should be greater than @limit",
+        "date": "Date $val should be after @limit"
+      }
+    },
+    "max": {
+      "arguments": {
+        "limit": "$1"
+      },
+      "errorMessages": {
+        "default": "Value $val is too large, should be less or equal to @limit",
+        "date": "Date $val should be before @limit"
+      }
+    },
+    "notInFuture": {
+      "arguments": {
+      },
+      "errorMessages": {
+        "default": "This date cannot be in the future"
+      }
+    },
+    "notEqual": {
+      "arguments": {
+        "value": "$1"
+      },
+      "errorMessages": {
+        "default": "Value should not be equal to '@value'. (Also test for $$ 'dollar' sign and @@ 'at' sign)"
+      }
+    }
+  }
+}

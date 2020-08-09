@@ -22,8 +22,6 @@
       },
       link: function (scope, element) {
         scope.uiProps = AdpFieldsService.getUiProps(scope.adpField);
-        var fieldWidth = scope.adpField.formWidth || 12;
-        scope.className = 'col';
 
         // FORM PARAMS
         var formParams = {
@@ -57,13 +55,16 @@
           formParams: formParams
         };
 
+        var fieldWidth = scope.adpField.formWidth || 12;
+        var className = 'col col-' + fieldWidth
+
         if (fieldWidth) {
-          scope.className += ' col-' + fieldWidth;
+
         }
 
         var template = [
           '<adp-form-field-' + scope.uiProps.directiveType,
-            'ng-class="[className]"',
+            'class="' + className + '"',
             'ng-if="display()"',
             'adp-form-data="::adpFormData"',
             'adp-field-ui-props="::uiProps"',

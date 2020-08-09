@@ -1,0 +1,30 @@
+<hc-form-field-container
+  hc-data="data"
+  hc-field="field">
+
+  <label
+    class="label">
+    {{field.fullName}}
+    <span ng-show="field.required">&nbsp;*</span>
+
+    <hc-tooltip
+      hc-field="field">
+    </hc-tooltip>
+  </label>
+
+  <label class="input">
+    <input type="{{uiProps.uiSubtypeType}}"
+           name="{{field.keyName}}"
+           id="{{field.keyName}}"
+           hc-validate="field"
+           escape-letters="field.type == 'Number'"
+           ng-model="hcFormData[field.keyName]"
+           ng-required="field.required"
+           class="form-control">
+  </label>
+
+  <hc-messages
+    hc-field="field">
+  </hc-messages>
+
+</hc-form-field-container>

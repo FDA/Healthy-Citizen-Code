@@ -1,0 +1,116 @@
+{
+  "models": {
+    "piis": {
+      "type": "Schema",
+      "fullName": "Personally Identifiable Information",
+      "singleRecord": true,
+      "limitReturnedRecords": 1,
+      "requiresAuthentication": true,
+      "fields": {
+        "firstName": {
+          "fullName": "First Name",
+          "type": "String",
+          "default": "",
+          "required": true,
+          "colspan": 2,
+          "description": "Enter your First/Given name."
+        },
+        "lastName": {
+          "fullName": "Last Name",
+          "type": "String",
+          "default": "",
+          "required": true,
+          "colspan": 2,
+          "description": "Enter your Family/Surname name."
+        },
+        "displayName": {
+          "type": "String",
+          "generated": true,
+          "fullName": "Display Name",
+          "description": "The name the citizen wants displayed when using the HealthyCitizen application."
+        },
+        "email": {
+          "type": "String",
+          "default": "",
+          "required": true,
+          "subtype": "Email",
+          "fullName": "Email",
+          "description": "The citizen's email address. Could be different from the password recovery email."
+        },
+        "linkedAccounts": {
+          "type": "Array",
+          "visible": false,
+          "fullName": "linkedAccounts",
+          "description": "List of social networks accounts linked to this profile",
+          "fields": {
+            "name": {
+              "type": "String",
+              "generated": true,
+              "visible": false,
+              "fullName": "Provider",
+              "description": "Account provider (such as facebook, twitter etc)"
+            },
+            "data": {
+              "type": "Mixed",
+              "visible": false,
+              "fullName": "Provider Data",
+              "description": "Account provider-specific data"
+            }
+          }
+        },
+        "updated": {
+          "type": "Date",
+          "visible": false,
+          "generated": true,
+          "fullName": "Updated",
+          "description": "The system generated date when the citizen user account was updated."
+        },
+        "created": {
+          "type": "Date",
+          "visible": false,
+          "defaultF": "dateNow",
+          "generated": true,
+          "fullName": "Created",
+          "description": "The system generated date when the citizen user account was created."
+        },
+        "resetPasswordToken": {
+          "type": "String",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Token",
+          "description": "The system assigned token that is sent to the citizen when they request a password reset."
+        },
+        "resetPasswordExpires": {
+          "type": "Date",
+          "visible": false,
+          "generated": true,
+          "fullName": "Reset Password Expires",
+          "description": "The date the password token will expire."
+        },
+        "settings": {
+          "type": "Object",
+          "fullName": "Settings",
+          "visible": false,
+          "fields": {
+            "twoFactorAuth": {
+              "fullName": "Two Factor Authentication",
+              "type": "Boolean",
+              "visible": false
+            },
+            "phoneVerified": {
+              "type": "Boolean",
+              "fullName": "Phone Verified",
+              "visible": false
+            },
+            "twoFactorAuthSecretBase32": {
+              "type": "String",
+              "fullName": "Two Factor Authentication Secret",
+              "generated": true,
+              "visible": false
+            }
+          }
+        }
+      }
+    }
+  }
+}

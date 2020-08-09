@@ -1,0 +1,19 @@
+{
+  interface: {
+    mainMenu: {
+      type: "Menu",
+      fullName: "Main Menu",
+      fields: {
+        home: {
+          type: "MenuItem",
+          link: "/home",
+          fullName: "Home",
+          icon: {
+            type: "font-awesome",
+            link: "fire"
+          }
+        }
+      }
+    }
+  }
+}

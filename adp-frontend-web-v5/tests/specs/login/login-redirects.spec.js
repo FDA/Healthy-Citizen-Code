@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer');
-const urlParse = require('url-parse');
 const {
   getLaunchOptions,
   getUrlFor,

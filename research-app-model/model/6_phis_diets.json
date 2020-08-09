@@ -1,0 +1,63 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "diets": {
+          "type": "Subschema",
+          "fullName": "My Diet",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "mealDate": -1, "meal": -1 },
+          "fields": {
+            "mealDate": {
+              "type": "Date",
+              "fullName": "Date of Meal",
+              "visibilityPriority": 1,
+              "required": true,
+              "comment": "This has to be a select from a list, right?",
+              "description": "Date of meal.",
+              "validate": ["notInFuture()"]
+            },
+            "meal": {
+              "type": "String",
+              "visibilityPriority": 2,
+              "fullName": "Meal of the Day",
+              "list": "meals",
+              "required": true,
+              "description": "Pick the meal of the day."
+            },
+            "mealType": {
+              "type": "String",
+              "visibilityPriority": 3,
+              "fullName": "1st Quality or Type of Meal",
+              "list": "mealType",
+              "required": true,
+              "description": "Qualify the type of meal."
+             },
+            "mealType2": {
+              "type": "String",
+              "visibilityPriority": 4,
+              "fullName": "2nd Quality or Type of Meal ",
+              "list": "mealType",
+              "description": "Qualify the type of meal."
+            },
+            "mealType3": {
+              "type": "String",
+              "visibilityPriority": 5,
+              "fullName": "3rd Quality or Type of Meal ",
+              "list": "mealType",
+              "description": "Qualify the type of meal."
+
+            },
+            "comments": {
+              "type": "String",
+              "visibilityPriority": 6,
+              "validate": ["maxLength(500)"],
+              "fullName": "Meal Comments",
+              "description": "Describe your meal."
+            }
+          }
+        }
+      }
+    }
+  }
+}

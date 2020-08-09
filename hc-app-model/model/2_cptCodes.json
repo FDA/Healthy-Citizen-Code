@@ -1,0 +1,28 @@
+{
+  "models": {
+    "cptCodes": {
+      "type": "Schema",
+      "fullName": "CPT data",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "description": "CPT data",
+      "fields": {
+        "procedureCodeCategory": {
+          "type": "String",
+          "fullName": "Category",
+          "description": "Procedure code category"
+        },
+        "cptCode": {
+          "type": "String",
+          "fullName": "Code",
+          "description": "CPT Code"
+        },
+        "codeDescription": {
+          "type": "String",
+          "fullName": "Procedure",
+          "description": "Procedure description"
+        }
+      }
+    }
+  }
+}

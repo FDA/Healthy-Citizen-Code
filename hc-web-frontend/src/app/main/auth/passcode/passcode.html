@@ -1,0 +1,39 @@
+<div id="passcode" class="flex-scrollable md-primary-bg" layout="column" ms-scroll>
+    <div id="passcode-form-wrapper" layout="column" layout-align="center center">
+        <div id="passcode-form" class="md-whiteframe-8dp">
+            <div class="logo">
+                <img src="assets/images/logos/logo.png" alt="">
+                <!-- <span>HC</span> -->
+            </div>
+
+
+            <div class="title">Verify Passcode</div>
+
+            <p>Passcode was sended on your email, please enter it below</p>
+            <ul class="errors" role="alert">
+                <li ng-repeat="error in vm.errors">{{error.message}}</li>
+            </ul>
+
+            <form name="passcodeForm" novalidate>
+                <md-input-container class="md-block" md-no-float>
+                    <input type="text" name="passcode" ng-model="vm.passcode" placeholder="Passcode"
+                          translate
+                          ng-minlength="6"
+                          required>
+                    <div ng-messages="passcodeForm.passcode.$error" role="alert" multiple>
+                        <div ng-message="minlength">
+                            <span>Passcode is to short</span>
+                        </div>
+                    </div>
+                </md-input-container>
+
+
+                <md-button type="submit" class="md-raised md-accent submit-button" aria-label="Verify"
+                           ng-disabled="passcodeForm.$invalid || passcodeForm.$pristine" ng-click="vm.verifyPasscode()">
+                    Verify
+                </md-button>
+            </form>
+
+        </div>
+    </div>
+</div>

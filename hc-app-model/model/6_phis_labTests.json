@@ -1,0 +1,230 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "labTests": {
+          "type": "Subschema",
+          "fullName": "Lab Tests",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "collectionDate": -1 },
+          "fields": {
+            "sourceType": {
+              "type": "String",
+              "list": "sourceTypes",
+              "fullName": "Source of Record",
+              "required": false,
+              "visible": false,
+              "description": "The source of the patient data (e.g., hospital, clinic, etc.,)."
+            },
+            "testName": {
+              "type": "String",
+              "visibilityPriority": 2,
+              "validate": ["maxLength(10)"],
+              "list": "testNames",
+              "fullName": "Test Name",
+              "required": true,
+              "description": "The name of the lab test performed."
+            },
+            "resultDate": {
+              "type": "Date",
+              "fullName": "Result Date",
+              "required": true,
+              "description": "The date that the lab results were complete.",
+              "validate": ["min($collectionDate)","notInFuture()"]
+            },
+            "originalResult": {
+              "type": "String",
+              "validate": ["maxLength(100)"],
+              "fullName": "Original Result",
+              "required": true,
+              "description": "The original result of the lab test."
+            },
+            "originalResultUnit": {
+              "type": "String",
+              "fullName": "Original Result Unit",
+              "required": true,
+              "list": "resultsUnits",
+              "description": "Original units for the test result, as reported in source data."
+            },
+            "resultType": {
+              "type": "String",
+              "list": "resultTypes",
+              "fullName": "Result Type",
+              "visible": false,
+              "description": "The results of the lab test performed."
+            },
+            "testSubCategory": {
+              "type": "String",
+              "visible": false,
+              "list": "testSubCategories",
+              "fullName": "Test Sub Category",
+              "description": "Sub-category for MS_Test_Name. Sub-categories apply to only select laboratory tests. ‘DIRECT’ and ‘CALCULATED’ is only populated for MS_Test_Name = CHOL_LDL. ‘DDU’ and ‘FEU’ is only populated for MS_Test_Name = D_DIMER, Result_Type = N. ‘BHCG’ AND ‘HCG’ is only populated for MS_Test_Name = PG. "
+            },
+            "fastingIndicator": {
+              "type": "String",
+              "list": "fastingIndicators",
+              "fullName": "Fasting Indicator",
+              "description": "Indicates whether the patient fasted before the specimen was given/taken."
+            },
+            "specimenSource": {
+              "type": "String",
+              "required": true,
+              "list": "specimenSources",
+              "fullName": "Specimen Source",
+              "description": "From where was the sample taken."
+            },
+            "loincCode": {
+              "type": "String",
+              "list": "loincCodes",
+              "visible": false,
+              "comment": "this list contains 80K+ records and will be stored in a table and loaded externally via JSON",
+              "fullName": "LOINC Code",
+              "description": "Identifies the source of the specimen (e.g., urine, feces, mucus, blood, etc.)."
+            },
+            "testImmediacy": {
+              "type": "String",
+              "list": "testImmediacyTypes",
+              "fullName": "Test Immediacy",
+              "visible": false,
+              "description": "Immediacy of test. The intent of this variable is to determine whether the test was obtained as part of routine care or as an emergent/urgent diagnostic test (designated as Stat or Expedite). "
+            },
+            "patientLocation": {
+              "type": "String",
+              "list": "patientLocationTypes",
+              "fullName": "Patient Location",
+              "description": "The location whether the patient gave the specimen."
+            },
+            "resultLocation": {
+              "type": "String",
+              "fullName": "Processing Laboratory",
+              "description": "The lab where the lab test was performed?"
+            },
+            "testLocalCode": {
+              "type": "String",
+              "fullName": "Test Local Code",
+              "visible": false,
+              "description": "Local code (non-LOINC) related to an individual lab test. Values for LOCAL_CD are not required. LOCAL_CD is only populated if available in source data. This variable will not be used in queries, but may be used by local programmers to identify and extract the required CDM tests."
+            },
+            "testBatteryCode": {
+              "type": "String",
+              "fullName": "Test Battery Code",
+              "visible": false,
+              "description": "Local code (non-LOINC) related to a battery or panel of lab tests. Values for BATTERY_CD are not required. BATTERY_CD is only populated if available in source data. This variable will not be used in queries, but may be used by local programmers to identify and extract the required CDM tests."
+            },
+            "procedureCode": {
+              "type": "String",
+              "fullName": "Procedure Code",
+              "visible": false,
+              "description": "A code that identifies the type of lab procedures performed on the patient's specimen."
+            },
+            "procedureCodeType": {
+              "type": "String",
+              "visible": false,
+              "list": "encountersLabtestsProcedureCodeTypes",
+              "fullName": "Procedure Code Type",
+              "description": "Identifies the procedure grouping type."
+            },
+            "orderingProviderDepartment": {
+              "type": "String",
+              "fullName": "Ordering Provider Department",
+              "validate": ["maxLength(200)"],
+              "description": "The healthcare provider's department that order the lab test. "
+            },
+            "orderDate": {
+              "type": "Date",
+              "visibilityPriority": 1,
+              "fullName": "Order Date",
+              "description": "The date the lab test was ordered by the healthcare professional.",
+              "validate": ["notInFuture()"]
+            },
+            "collectionDate": {
+              "type": "Date",
+              "fullName": "Collection Date",
+              "description": "The date the specimen was collected from the patient.",
+              "validate": ["min($orderDate)","notInFuture()"]
+            },
+            "resultValueC": {
+              "type": "String",
+              "validate": ["maxLength(50)"],
+              "fullName": "Result Value C",
+              "visible": false,
+              "description": "This standardized result value is only populated for text or character results (Result_Type = C) and is null for numeric results (Result_Type = N). If Result_Type = “C” and the source result is a range (e.g., 50-100 mg/mL), then populate MS_Result_C using Orig_Result with the start and end values of the range delimited by a vertical bar (e.g., '50-100 mg/mL' becomes '50|100 mg/mL'). "
+            },
+            "resultValueN": {
+              "type": "Number",
+              "fullName": "Result Value N",
+              "visible": false,
+              "description": "Standardized/converted numeric result for records where Result_Type=N. Acceptable values are numeric digits with or without a decimal ('.'). If the standardized result unit (STD_RESULT_UNIT) differs from an acceptable MS_RESULT_UNIT for a numeric test (RESULT_TYPE=N), then ORIG_RESULT is converted prior to populating the MS_RESULT_N value. Additionally, MS_RESULT_UNIT reflects this conversion. This variable is only populated for numeric results (RESULT_TYPE = N) and does not contain negative values. This variable is null for text/character results (RESULT_TYPE = C)."
+            },
+            "modifier": {
+              "type": "String",
+              "validate": ["maxLength(2)"],
+              "list": "labTestModifiers",
+              "fullName": "Modifier",
+              "visible": false,
+              "description": "Modifier for result values. Any relational operators in the original source data value (e.g., <, >, or =) are reflected in the Modifier variable. For example, if the original source data value is '<=200', then Orig_Result = 200 and Modifier = ‘LE’. If the original source data result value is text, then Modifier = TX. If the original source data result value is numeric (digits with or without decimal) and does not contain an operator, then Modifier = EQ."
+            },
+            "standardizedResultUnitC": {
+              "type": "String",
+              "validate": ["maxLength(11)"],
+              "fullName": "Standardized Result Unit C",
+              "visible": false,
+              "description": "Standardized units for the result. The purpose of STD_RESULT_UNIT is to modify ORIG_RESULT_UNIT from free text to a standardized unit, as an intermediary step in converting from ORIG_RESULT_UNIT to MS_RESULT_UNIT. This variable is only populated for records where Result_type = N. Common rules and guidelines for populating STD_RESULT_UNIT, include: converting all text values for ORIG_RESULT_UNIT to uppercase, and using standard abbreviations as provided by SOC. This variable does not include special characters, unless that character is part of the unit. For example, special characters are included in '10^9/L'. However, special characters are not included in '^U/L^', as these carats are not part of the unit value. This value is not usually null, though there are exceptions, such as when the test result is a ratio (e.g., International Normalized Ratio [INR]). This value is null for character tests (Result_Type=C) until that test has been reviewed and characterized by the Clinical Data Elements Workgroup."
+            },
+            "standardizedResultUnitN": {
+              "type": "String",
+              "validate": ["maxLength(11)"],
+              "fullName": "Standardized Result Unit N",
+              "visible": false,
+              "description": "Converted/standardized result units for the value populated in MS_RESULT_N. This value is null for records where Result_Type = C, and null for Laboratory Tests that have not been characterized and reviewed by the Clinical Data Elements Workgroup. This value may be null for some numeric tests (e.g., as International Normalized Ratio [INR] is a ratio, it does not have a result unit). For tests that require a result unit, MS_RESULT_UNIT is set to 'UNKNOWN' for all records where the original result unit is missing or blank, 'NULL', 'N/A', 'NA', or 'UNK.' Guidance is provided for only Laboratory Tests that have been reviewed by the Clinical Data Elements Workgroup."
+            },
+            "normalRangeLow": {
+              "type": "String",
+              "validate": ["maxLength(8)"],
+              "fullName": "Normal Range Low",
+              "visible": false,
+              "description": "Lower bound of the normal reference range, as assigned by the laboratory. The normal range associated with a test, as assigned by the laboratory is parsed out into the following variables: NORM_RANGE_LOW, MODIFIER_LOW, NORM_RANGE_HIGH, MODIFIER_HIGH, and reflects what is seen in source data. Value only contains the value of the lower bound of the normal reference range. This value is not converted and unit of measure is not included. It is assumed that the associated unit is the same as the original result unit from the source data. The symbols >, <, >=, <= are removed. For example, if the normal range for a test is >100 and <300, then '100' is entered. Additionally, this value is null for records where Result_Type = C."
+            },
+            "normalRangeLowModifier": {
+              "type": "String",
+              "validate": ["maxLength(2)"],
+              "list": "labTestLowModifiers",
+              "fullName": "Normal Range Low Modifier",
+              "visible": false,
+              "description": "Modifier for Norm_Range_low values. The normal range associated with a test, as assigned by the laboratory is parsed out into the following variables: NORM_RANGE_LOW, MODIFIER_LOW, NORM_RANGE_HIGH, MODIFIER_HIGH and reflects what is seen in source data. This value is null for records where Result_Type=C. For numeric results one of the following needs to be true:  1) Both Modifier_low and Modifier_high contain EQ (e.g., normal values fall in the range 3-10).  2) Modifier_low contains GT or GE and Modifier_high is null (e.g., normal values are >3 with no upper boundary).  3) Modifier_high contains LT or LE and Modifier_low is null (e.g., normal values are <=10 with no lower boundary)."
+            },
+            "normalRangeHigh": {
+              "type": "String",
+              "validate": ["maxLength(8)"],
+              "fullName": "Normal Range High",
+              "visible": false,
+              "description": "Upper bound of the normal reference range, as assigned by the laboratory. The normal range associated with a test, as assigned by the laboratory is parsed out into the following variables: NORM_RANGE_LOW, MODIFIER_LOW, NORM_RANGE_HIGH, MODIFIER_HIGH and reflects what is seen in source data. Value only contains the value of the upper bound of the normal reference range. This value is not converted and unit of measure is not included.  It is assumed that the associated unit is the same as the original result unit from source data. The symbols >, <, >=, <= are removed. For example, if the normal range for a test is >100 and <300, then '100' is entered. Additionally, this value is null for records where Result_Type = C."
+            },
+            "normalRangeHighModifier": {
+              "type": "String",
+              "validate": ["maxLength(2)"],
+              "list": "labTestHighModifiers",
+              "fullName": "Normal Range High Modifier",
+              "visible": false,
+              "description": "Modifier for Norm_Range_high values. The normal range associated with a test, as assigned by the laboratory is parsed out into the following variables: NORM_RANGE_LOW, MODIFIER_LOW, NORM_RANGE_HIGH, MODIFIER_HIGH and reflects what is seen in source data. The value is null for records where Result_Type=C. For numeric results one of the following needs to be true:  1) Both Modifier_low and Modifier_high contain EQ (e.g., normal values fall in the range 3-10).  2) Modifier_low contains GT or GE and Modifier_high is null (e.g., normal values are >3 with no upper boundary).  3) Modifier_high contains LT or LE and Modifier_low is null (e.g., normal values are <=10 with no lower boundary)."
+            },
+            "abnormalResultIndicator": {
+              "type": "String",
+              "validate": ["maxLength(2)"],
+              "list": "abnormalResultIndicators",
+              "fullName": "Abnormal Result Indicator",
+              "visible": false,
+              "description": "Indicator that identifies when a result is outside the normal range."
+            },
+            "facilityCode": {
+              "type": "String",
+              "fullName": "Facility Code",
+              "visible": false,
+              "description": "The unique code that identifies the healthcare facility."
+            }
+          }
+        }
+      }
+    }
+  }
+}

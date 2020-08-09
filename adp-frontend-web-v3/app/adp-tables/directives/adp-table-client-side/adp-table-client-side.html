@@ -1,0 +1,24 @@
+<table
+  class="table table-striped table-bordered table-hover">
+  <thead>
+  <tr
+    class="columnFilters">
+    <th
+      ng-if="heads"
+      ng-repeat="filter in filters track by $index"
+      class="hasinput">
+      <adp-tables-filter
+        head="filter">
+      </adp-tables-filter>
+    </th>
+  </tr>
+
+  <tr>
+    <th
+      ng-if="heads"
+      ng-repeat="head in heads track by $index">
+      {{head}}
+    </th>
+  </tr>
+  </thead>
+</table>

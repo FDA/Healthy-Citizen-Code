@@ -150,11 +150,6 @@ function getMainBowerFiles() {
           "moment": "^2.x"
         }
       },
-      "ng-tags-input": {
-        "dependencies": {
-          "jquery-ui": "^1.11.x",
-        }
-      },
       "jszip": {
         "main": [
           "./dist/jszip.js"

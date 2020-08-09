@@ -1,0 +1,25 @@
+{
+  "models": {
+    "rxnsats": {
+      "type": "Schema",
+      "fullName": "Rxnsats",
+      "limitReturnedRecords": 30,
+      "serverSide": true,
+      "description": "Data rom RXNSAT.RRF which contains ndc11 and rxcui data",
+      "fields": {
+        "ndc11": {
+          "type": "String",
+          "visible": false,
+          "fullName": "NDC11",
+          "description": "NDC11 defines medication and its package. Contains 11 characters"
+        },
+        "RXCUI": {
+          "type": "String",
+          "visible": false,
+          "fullName": "RXCUI",
+          "description": "RXCUI"
+        }
+      }
+    }
+  }
+}

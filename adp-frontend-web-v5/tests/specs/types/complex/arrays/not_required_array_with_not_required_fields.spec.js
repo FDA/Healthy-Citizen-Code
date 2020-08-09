@@ -78,10 +78,7 @@ describe('complex arrays', () => {
         await clickArrayItem('array', 1, this.page);
         const firstElemString1Selector = getArrayFieldSelector('array', 1, 'string1');
         await this.page.type(firstElemString1Selector, '123');
-        await this.page.evaluate(
-          selector => document.querySelector(selector).click(),
-          getArrayFieldSelector('array', 1, 'boolean1')
-        );
+        await this.page.click(`[name="array[1]"] [ng-field-name="boolean1"] .dx-switch-handle`);
 
         // add partially filled item
         await addArrayItem('array', this.page);

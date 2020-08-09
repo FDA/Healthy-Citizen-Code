@@ -1,0 +1,62 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "myAdverseEvents": {
+          "type": "Subschema",
+          "fullName": "My Adverse Events",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "date": -1 },
+          "fields": {
+            "subject": {
+              "type": "String",
+              "visibilityPriority": 2,
+              "fullName": "Subject",
+              "description": "Short description of the adverse event."
+            },
+            "details": {
+              "type": "String",
+              "fullName": "Description",
+              "description": "Adverse event Details."
+            },
+            "eventId": {
+              "type": "ObjectID",
+              "required": true,
+              "visible": false,
+              "unique": true,
+              "fullName": "Adverse Event ID",
+              "description": "ID of the adverse event in the global adverse events collection.",
+              "lookup": {
+                "table": "adverseEvents",
+                "foreignKey": "_id",
+                "label": "subject",
+                "id": "adverseEventId"
+              }
+            },
+            "key": {
+              "type": "String",
+              "fullName": "FDA ID",
+              "description": "Unique FDA ID"
+            },
+            "productName": {
+              "type": "String",
+              "fullName": "Product Name",
+              "description": "Product Name."
+            },
+            "productType": {
+              "type": "String",
+              "fullName": "Product Type",
+              "description": "Product Type."
+            },
+            "date": {
+              "type": "Date",
+              "visibilityPriority": 1,
+              "fullName": "Posted Date",
+              "description": "The date when the alert was posted."
+            }
+          }
+        }
+      }
+    }
+  }
+}

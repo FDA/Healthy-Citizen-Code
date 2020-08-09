@@ -25,6 +25,7 @@
       require: '^^form',
       link: function (scope, element, attrs, formCtrl) {
         scope.schemaFields = AdpFieldsService.getFormFields(scope.field.fields).notGrouped;
+
         scope.visibilityStatus = [];
         scope.form = formCtrl;
         scope.rootForm = AdpFormService.getRootForm(scope.form);
@@ -33,6 +34,7 @@
         var formParams = {
           path: scope.validationParams.formParams.path,
           row: scope.validationParams.formParams.row,
+          fieldSchema: scope.validationParams.formParams.fieldSchema,
           modelSchema: scope.validationParams.formParams.modelSchema,
           action: scope.validationParams.formParams.action,
           visibilityMap: scope.validationParams.formParams.visibilityMap,

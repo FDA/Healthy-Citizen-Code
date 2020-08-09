@@ -47,10 +47,9 @@ describe('complex objects', () => {
         const string1Selector = getFieldSelector('object', 'string1');
         await this.page.waitForSelector(string1Selector);
         await this.page.type(string1Selector, '123');
-        await this.page.evaluate(
-          selector => document.querySelector(selector).click(),
-          getFieldSelector('object', 'boolean1')
-        );
+        await this.page.click(`[name='object'] [ng-field-name="boolean1"] .dx-switch-handle`);
+
+        expect(true).toBeTruthy();
       });
   });
 });

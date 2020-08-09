@@ -24,10 +24,10 @@ const {
 const selectors = {
   select: '#list_id_select',
   selectOne: '#list_id_selectOne',
-  n1: '[name="n1"]  .dx-texteditor-input',
-  n2: '[name="n2"]  .dx-texteditor-input',
-  n3: '[name="n3"]  .dx-texteditor-input',
-  s2: '[name="s2"]  .dx-texteditor-input',
+  n1: '[ng-field-name="n1"]',
+  n2: '[ng-field-name="n2"]',
+  n3: '[ng-field-name="n3"]',
+  s2: '[ng-field-name="s2"]',
   b1: '[ng-field-name="b1"]',
 };
 
@@ -123,7 +123,7 @@ describe('show expression', () => {
         );
         expect(n1IsVisiblityActual).toBe(true);
 
-        await this.page.click('[ng-field-name="b1"] .dx-switch-handle');
+        await this.page.click('[ng-field-name="b1"] [dx-switch]');
         await this.page.waitForSelector(selectors.n2);
 
         let actualN2Visibility = await this.page.evaluate(
@@ -136,13 +136,15 @@ describe('show expression', () => {
     test(
       'should calculate fields show on edit action',
       async () => {
+        await this.page.click('[ng-field-name="b1"] [dx-switch]');
+        await this.page.waitForSelector(selectors.selectOne);
+
         await selectDxListValue('Option2', fieldNames.select, this.page);
-        await this.page.click('[ng-field-name="b1"] .dx-switch-handle');
-        await this.page.waitFor(200);
 
         await clickSubmit(this.page);
         const { _id } = await getResponseForCreatedRecord('helperMethods_showPrimitive', this.page);
         await clickEditButton(_id, this.page);
+        await this.page.waitForSelector(selectors.selectOne);
 
         const expectedSnapshot = {
           select: true,
@@ -159,8 +161,8 @@ describe('show expression', () => {
     test(
       'Should auto-fill list with single value after list is dynamically shown',
       async () => {
-        await this.page.click('[ng-field-name="b1"] .dx-switch-handle');
-        await this.page.waitFor(200);
+        await this.page.click('[ng-field-name="b1"] [dx-switch]');
+        await this.page.waitForSelector(selectors.selectOne);
 
         let autoSelected = await getDxSingleListValue(fieldNames.selectOne, this.page);
 

@@ -1,0 +1,23 @@
+<form name="form"
+      class="smart-form client-form"
+      novalidate
+      ng-submit="form.$valid && submit()">
+
+  <header ng-transclude="header"></header>
+
+  <fieldset
+    class="smart-form-controls"
+    ng-transclude="body">
+  </fieldset>
+
+  <fieldset>
+    <hc-form-field-factory
+      ng-repeat="field in fields track by $index"
+      hc-field="field"
+      hc-form-data="formData"
+      ng-if="field.visible">
+    </hc-form-field-factory>
+  </fieldset>
+
+  <footer ng-transclude="footer"></footer>
+</form>

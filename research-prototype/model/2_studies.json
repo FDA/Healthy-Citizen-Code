@@ -86,7 +86,8 @@
         "studyNotes": {
           "type": "String",
           "fullName": "Study Notes",
-          "description": "Study Notes."
+          "description": "Study Notes.",
+          "width": null
         }
       }
     }

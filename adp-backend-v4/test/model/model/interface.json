@@ -1,0 +1,34 @@
+{
+  "interface": {
+    "main_menu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "comment": "This defines the main menu that will go into the sidebar",
+      "fields": {
+        "menu1": {
+          "type": "MenuGroup",
+          "fullName": "Menu #1",
+          "link": "/menu1",
+          "description": "Menu #1",
+          "comment": "Menu #1 comment",
+          "fields": {
+            "menu2": {
+              "type": "MenuGroup",
+              "fullName": "Menu #2",
+              "link": "/menu2",
+              "description": "Menu #2",
+              "fields": {
+                "menu3": {
+                  "type": "MenuItem",
+                  "fullName": "Menu #3",
+                  "link": "/menu3",
+                  "description": "Menu #3"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -1,0 +1,71 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "myTobaccos": {
+          "type": "Subschema",
+          "fullName": "My Tobacco Usage",
+          "defaultSortBy": { "start": -1 },
+          "fields": {
+            "productId": {
+              "type": "ObjectID",
+              "visibilityPriority": 1,
+              "fullName": "Product Name",
+              "description": "Name of the tobacco product.",
+              "required": true,
+              "lookup": {
+                "table": "productsTobaccos",
+                "foreignKey": "_id",
+                "label": "name",
+                "id": "tobaccoId"
+              }
+            },
+            "frequencyTaken": {
+              "type": "String",
+              "list": "usageFrequency",
+              "fullName": "Frequency Product Taken",
+              "description": "Number of times to use a product in a given 24 hour period"
+            },
+            "route": {
+              "type": "String",
+              "list": "routesOfAdministration",
+              "fullName": "Route of Administration",
+              "description": "Administration route of the tobacco product."
+            },
+            "start": {
+              "type": "Date",
+              "fullName": "Product Start Date",
+              "description": "Date product usage began.",
+              "validate": ["notInFuture()"]
+            },
+            "end": {
+              "type": "Date",
+              "fullName": "Product End Date",
+              "description": "Date product usage ended.",
+              "validate": ["min($start)","notInFuture()"]
+            },
+            "supply": {
+              "type": "Number",
+              "comment": "nicotine content",
+              "fullName": "Amount of Nicotine",
+              "description": "Amount of Nicotine in a dose of the tobacco product.",
+              "validate": ["min(0.001)", "max(1000)"]
+            },
+            "lot": {
+              "type": "String",
+              "fullName": "Tobacco Product Lot",
+              "description": "The manufacturer's lot number listed on the product used.",
+              "validate": ["maxLength(100)"]
+            },
+            "serialNumber": {
+              "type": "String",
+              "fullName": "Tobacco Device Serial Number",
+              "description": "The manufacturer's serial number listed on the product used if an eCigarette or Vaporizer.",
+              "validate": ["maxLength(100)"]
+            }
+          }
+        }
+      }
+    }
+  }
+}

@@ -28,7 +28,7 @@ const getFieldValue = (testDef) => {
 }
 
 const getFieldSelector = (testDef) => {
-  return `#${testDef.fieldName} .dx-texteditor-input`;
+  return `#${testDef.fieldName}`;
 }
 
 describe('form field validation', () => {
@@ -338,7 +338,7 @@ describe('form field validation', () => {
         await this.page.type(selector, fieldValue);
         await this.page.$eval(selector, e => e.blur());
 
-        const validControl = await this.page.$(`#${testDef.fieldName}.ng-valid`);
+        const validControl = await this.page.$(`[name=${testDef.fieldName}].ng-valid`);
         expect(validControl).toBeTruthy();
 
         const [__, message] = await Promise.all([

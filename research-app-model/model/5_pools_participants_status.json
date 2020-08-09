@@ -1,0 +1,55 @@
+{
+  "models": {
+        "statuses": {
+          "type": "Schema",
+          "fullName": "Pool Participant Status",
+          "requiresAuthentication": true,
+          "fields": {
+            "PoolName": {
+              "fullName": "Pool Name",
+              "type": "ObjectID",
+              "required": false,
+              "description": "Arm Name",
+              "lookup": {
+                "table": "pools",
+                "foreignKey": "_id",
+                "label": "poolName",
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: ['$creator', this.req.user._id]}"
+                  }
+                },
+                "id": "poolName"
+              }
+            },
+            "patientID": {
+              "type": "String",
+              "visibilityPriority": 2,
+              "visible": true,
+              "fullName": "Patient ID",
+              "description": "Patient ID."
+            },
+            "inviteSent": {
+              "type": "Boolean",
+              "visibilityPriority": 3,
+              "fullName": "Invitation sent",
+              "description": "Invitation sent."
+            },
+            "inviteAccepted": {
+              "type": "Boolean",
+              "visibilityPriority": 4,
+              "fullName": "Invitation accepted",
+              "description": "Invitation accepted."
+            },
+            "acceptanceNotes": {
+              "type": "String",
+              "visibilityPriority": 5,
+              "fullName": "Accept Notes",
+              "description": "Accept Notes"
+            }
+          }
+        }
+      }
+    }
+

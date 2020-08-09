@@ -1,0 +1,26 @@
+<adp-form-field-container
+  adp-data="data"
+  adp-field="field">
+
+  <label
+    class="label">
+    {{field.fullName}}
+    <span ng-show="field.required">&nbsp;*</span>
+
+    <adp-tooltip
+      adp-field="field">
+    </adp-tooltip>
+  </label>
+
+  <label class="input">
+    <div
+      ng-bind-html="fieldView"
+      ng-show="fieldView">
+    </div>
+  </label>
+
+  <adp-messages
+    adp-field="field">
+  </adp-messages>
+
+</adp-form-field-container>

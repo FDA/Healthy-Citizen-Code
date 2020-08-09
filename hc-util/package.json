@@ -5,10 +5,6 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "ssh://git@bitbucket.conceptant.com:7999/hc/hc-util.git"
-  },
   "author": "Andrey Mikhalchuk <amikhalchuk@conceptant.com>",
   "license": "UNLICENSED",
   "dependencies": {

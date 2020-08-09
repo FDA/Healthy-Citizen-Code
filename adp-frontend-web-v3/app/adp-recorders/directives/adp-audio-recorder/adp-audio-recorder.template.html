@@ -1,0 +1,12 @@
+<div class="adp-recorder-viewport"></div>
+
+<div class="adp-record-engine">
+  <label class="label">Record as:</label>
+
+  <select
+    class="form-control adp-record-engine-label"
+    ng-model="currentEngine"
+    ng-options="item for item in engines"
+    ng-change="setEngine()">
+  </select>
+</div>

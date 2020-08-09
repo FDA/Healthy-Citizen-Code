@@ -1,0 +1,12 @@
+<div>
+  <select
+      class="select2"
+      multiple="multiple">
+    <option
+      value="{{key}}"
+      ng-repeat="(key, item) in list">
+      {{item.name || item}}
+    </option>
+  </select>
+
+</div>

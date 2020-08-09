@@ -1,0 +1,61 @@
+{
+  "models": {
+    "pools": {
+      "type": "Schema",
+      "fullName": "Study Pools",
+      "requiresAuthentication": true,
+      "fields": {
+        "source": {
+          "fullName": "The source of the information",
+          "type": "String",
+          "required": false,
+          "visible": false,
+          "description": "The source of the information"
+        },
+        "armPoolId": {
+          "fullName": "Arm Name",
+          "type": "ObjectID",
+          "required": false,
+          "description": "Arm Name",
+          "lookup": {
+            "table": "arms",
+            "foreignKey": "_id",
+            "label": "armName",
+            "scopes": {
+              "ownRecordScope": {
+                "permissions": "accessAsUser",
+                "where": "{$eq: ['$creator', this.req.user._id]}"
+              }
+            },
+            "id": "armName"
+          }
+        },
+        "poolId": {
+          "fullName": "Pool ID",
+          "type": "String",
+          "searchable": true,
+          "index": true,
+          "default": "",
+          "required": true,
+          "unique": true,
+          "description": "Pool ID"
+        },
+        "poolName": {
+          "fullName": "Pool Name",
+          "type": "String",
+          "default": "",
+          "required": true,
+          "unique": true,
+          "description": "Pool Name"
+        },
+        "poolDesc": {
+          "fullName": "Pool Description",
+          "type": "String",
+          "default": "",
+          "required": false,
+          "description": "Pool Description"
+        }
+      }
+    }
+  }
+}

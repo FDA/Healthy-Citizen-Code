@@ -1,0 +1,34 @@
+{
+  "placeholder": {
+    "products": {
+      "rxDate": "Rx Date",
+      "start": "Start",
+      "end": "End",
+      "medFrequency": "Med Frequency",
+      "supply": "Supply",
+      "lot": "Lot",
+      "serialNumber": "Serial Number",
+      "dosage": "Dosage",
+      "unitsDosage": "Units Dosage"
+    },
+    "labTests": {
+
+    },
+    "vaccines": {
+      
+    },
+    "enrollment": {
+      "start": "Start",
+      "end": "End"
+    },
+    "encounters": {
+
+    },
+    "medication": {
+
+    },
+    "medicalDevices": {
+
+    }
+  }
+}

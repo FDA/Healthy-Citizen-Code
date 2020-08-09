@@ -1,0 +1,55 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "myRecalls": {
+          "type": "Subschema",
+          "fullName": "My Recalls",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "date": -1 },
+          "fields": {
+            "subject": {
+              "type": "String",
+              "visibilityPriority": 1,
+              "fullName": "Subject",
+              "description": "Short description of the recall."
+            },
+            "details": {
+              "type": "String",
+              "fullName": "Description",
+              "description": "Recall details."
+            },
+            "eventId": {
+              "type": "ObjectID",
+              "required": true,
+              "fullName": "Recall ID",
+              "description": "ID of the recall in the global recalls collection.",
+              "unique": true,
+              "lookup": {
+                "table": "recalls",
+                "foreignKey": "_id",
+                "label": "subject",
+                "id": "recallId"
+              }
+            },
+            "productName": {
+              "type": "String",
+              "fullName": "Product Name",
+              "description": "Product Name."
+            },
+            "productType": {
+              "type": "String",
+              "fullName": "Product Type",
+              "description": "Product Type."
+            },
+            "date": {
+              "type": "Date",
+              "fullName": "Posted Date",
+              "description": "The date when the alert was posted."
+            }
+          }
+        }
+      }
+    }
+  }
+}

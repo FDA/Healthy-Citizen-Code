@@ -1,0 +1,1362 @@
+{
+  "schema": {
+    "type": {
+      "required": "true",
+      "list": [
+        "String",
+        "Date",
+        "Number",
+        "Boolean",
+        "Mixed"
+      ],
+      "fullName": "Type",
+      "comment": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'"
+    },
+    "fullName": {
+      "default": "",
+      "fullName": "Full Name",
+      "comment": "Full name of the field in human-readable form"
+    },
+    "description": {
+      "default": "",
+      "fullName": "Description",
+      "comment": "Description of the field meaning"
+    },
+    "temporary": {
+      "default": false,
+      "fullName": "Temporary",
+      "comment": "If temporary then it should not be listed as a part of dictionary as this attribute is only used for MVP demo"
+    },
+    "maxlength": {
+      "default": null,
+      "fullName": "Maximum Length",
+      "comment": "Maximum length of the value, applicable to Strings only."
+    },
+    "minlength": {
+      "default": null,
+      "fullName": "Minimum Length",
+      "comment": "Minimum length of the value, applicable to Strings only."
+    },
+    "default": {
+      "default": null,
+      "fullName": "Default Value",
+      "comment": "Specifies the default value for this field if no value is provided"
+    },
+    "defaultF": {
+      "default": null,
+      "fullName": "Default Function",
+      "comment": "Specifies the function that will return the default value for this field if no value is provided"
+    },
+    "list": {
+      "default": null,
+      "fullName": "List",
+      "comment": "Lists all possible values of this attribute"
+    },
+    "listUrl": {
+      "default": null,
+      "fullName": "List URL",
+      "comment": "URL of REST EP returning the values"
+    },
+    "regexp": {
+      "default": null,
+      "fullName": "Regular Expression",
+      "comment": "If set then the value should be validated against this regular expression"
+    },
+    "comment": {
+      "default": null,
+      "fullName": "Comment",
+      "comment": "Free-form text containing comments about this field, will not be visible to the users"
+    },
+    "visible": {
+      "default": true,
+      "fullName": "Visible",
+      "comment": "Determines if the field should be visible in the forms by default or not. Can be overridden in a specific form"
+    },
+    "required": {
+      "default": false,
+      "fullName": "Required",
+      "comment": "If the attribute is required then no part of the record can be submitted without this attribute"
+    },
+    "generated": {
+      "default": false,
+      "fullName": "Generated",
+      "comment": "If set to true than the field is hidden and its value will be take care of middleware"
+    },
+    "validatorF": {
+      "default": null,
+      "fullName": "Validator Function",
+      "comment": "Function validating the value of the attribute. (value, values) => {return {valid: true, message: text}}. Values contains all values in the submitted record."
+    },
+    "invalidMessage": {
+      "default": null,
+      "fullName": "Invalid Message",
+      "comment": "Default message to be displayed if the value is invalid. Can be overridden in validator_f returnvalue"
+    },
+    "fieldType": {
+      "default": null,
+      "list": [
+        "password",
+        "email"
+      ],
+      "fullName": "Field Type",
+      "comment": "Overrides default field visual representation. For instance for type String the default input type is TEXT, but can be overridden here to be PASSWORD"
+    },
+    "unique": {
+      "default": false,
+      "fullName": "Unique",
+      "comment": "If set to true then this attribute value have to be unique across entire collection"
+    },
+    "uniqueMessage": {
+      "default": null,
+      "fullName": "Unique Message",
+      "comment": "Default message to be displayed if the value is invalid"
+    },
+    "trim": {
+      "default": false,
+      "fullName": "Trim",
+      "comment": "If true then the String value should be trimmed before storing the data"
+    }
+  },
+  "documentation": {
+    "adverseEvents": "https://open.fda.gov/drug/event/reference/",
+    "medicalDevices": "https://open.fda.gov/device/classification/reference/"
+  },
+  "models": {
+    "phi": {
+      "email": {
+        "type": "String",
+        "required": true,
+        "temporary": true
+      },
+      "citizenPhiId": {
+        "type": "String",
+        "fullName": "Citizen PHI ID",
+        "description": "The unique system generated identifier for the storing and retrieving of the Citizen's PHI information."
+      },
+      "conditions": {
+        "type": "String",
+        "list": "citizen_conditions",
+        "fullName": "Conditions",
+        "description": "The self-identified medical conditions of the citizen."
+      },
+      "enrollment": [
+        {
+          "start": {
+            "type": "Date",
+            "fullName": "Enrollment Start Date",
+            "description": "insurance enrollment date"
+          },
+          "end": {
+            "type": "Date",
+            "fullName": "Enrollment End Date",
+            "description": "insurance end date (estimated or actual)"
+          },
+          "medicalCoverage": {
+            "type": "String",
+            "list": "tri_state",
+            "fullName": "Medical Coverage",
+            "description": "if covered (Y/N)"
+          },
+          "drugCoverage": {
+            "type": "String",
+            "list": "tri_state",
+            "fullName": "Drug Coverage",
+            "description": "if covered (Y/N)"
+          },
+          "chartAvailable": {
+            "type": "String",
+            "visible": false,
+            "list": "two_state",
+            "fullName": "Chart Available",
+            "description": "Indicates whether a chart is available for more detailed information about the patient."
+          }
+        }
+      ],
+      "products": [
+        {
+          "productType": {
+            "type": "String",
+            "list": "product_types_list",
+            "fullName": "Product Type",
+            "required": true,
+            "description": "Type of product used (e.g., drug, medical device, etc.)."
+          },
+          "fdaProductCode": {
+            "type": "String",
+            "maxlength": 7,
+            "fullName": "FDA Product Code",
+            "description": "FDA regulated product code."
+          },
+          "rxDate": {
+            "type": "Date",
+            "fullName": "RX Date",
+            "description": "Date prescription was issued."
+          },
+          "start": {
+            "type": "Date",
+            "fullName": "Product Start Date",
+            "description": "Date product usage began."
+          },
+          "end": {
+            "type": "Date",
+            "fullName": "Product End Date",
+            "description": "Date product usage ended."
+          },
+          "supply": {
+            "type": "Number",
+            "comment": "medications, biologics",
+            "fullName": "Amount in Prescription",
+            "description": "amount of product included in prescription"
+          },
+          "lot": {
+            "type": "String",
+            "comment": "medications, biologics",
+            "fullName": "Medication or Biologic Lot",
+            "description": "The manufacturer's lot number listed on the product used."
+          },
+          "serialNumber": {
+            "type": "String",
+            "comment": "devices",
+            "fullName": "Device Serial Number",
+            "description": "The manufacturer's serial number listed on the product used."
+          },
+          "medFrequency": {
+            "type": "String",
+            "list": "medication_frequency",
+            "fullName": "Frequency to Take Product",
+            "description": "Number of times to take medication"
+          },
+          "dosage": {
+            "type": "Number",
+            "fullName": "Dosage (amount of medication)",
+            "description": "The dosage of a medication."
+          },
+          "unitsDosage": {
+            "type": "String",
+            "list": "units",
+            "fullName": "Dosage (amount of medication)",
+            "description": "The dosage of a medication."
+          },
+          "route": {
+            "type": "String",
+            "list": "routes_of_administration",
+            "fullName": "Route",
+            "description": "The path or way the product was taken into the body (e.g., sublingual, oral, injection, etc.)."
+          },
+          "productCode": {
+            "type": "String",
+            "required": true,
+            "fullName": "Manufacturer Product Code",
+            "description": "Manufacturer product code (NDC, UDII, etc)."
+          }
+        }
+      ],
+      "encounters": [
+        {
+          "encounterId": {
+            "type": "String",
+            "visible": false,
+            "fullName": "Encounter ID",
+            "description": "System generated number to uniquely identify a patients encounter with a medical professional."
+          },
+          "sourceType": {
+            "type": "String",
+            "list": "source_types",
+            "fullName": "Source Type",
+            "description": "The source of the patient data (e.g., hospital, clinic, etc.,)."
+          },
+          "admissionDate": {
+            "type": "Date",
+            "fullName": "Admission Date",
+            "description": "The date the patient was admitted to a health care facility."
+          },
+          "dischargeDate": {
+            "type": "Date",
+            "fullName": "Discharge Date",
+            "description": "The date the patient was discharged from a health care facility."
+          },
+          "providerId": {
+            "type": "String",
+            "fullName": "Provider ID",
+            "description": "The identification code of the healthcare provider that treated the patient."
+          },
+          "encounterType": {
+            "type": "String",
+            "list": "encounter_types",
+            "fullName": "Encounter Type",
+            "description": "Type of encounter with the patient (e.g., hospital, walkin clinic, etc.)."
+          },
+          "facilityLocation": {
+            "type": "String",
+            "fullName": "Facility Location",
+            "description": "The location of the healthcare facility that the patient received treament."
+          },
+          "facilityCode": {
+            "type": "String",
+            "fullName": "Facility Code",
+            "description": "The unique code that identifies the healthcare facility."
+          },
+          "dischargeDisposition": {
+            "type": "String",
+            "list": "discharge_dispositions",
+            "fullName": "Discharge Disposition",
+            "description": "The final disposition of the patient at the time of discharge."
+          },
+          "dischargeStatus": {
+            "type": "String",
+            "list": "encounter_discharge_and_admitting_sources",
+            "fullName": "Discharge Status",
+            "description": "Indicates the patient's status of discharge (e.g., discharged, in-process, etc.)."
+          },
+          "diagnosisRelatedGroup": {
+            "type": "String",
+            "maxlength": 3,
+            "fullName": "Diagnosis Related Group",
+            "description": "ICD10"
+          },
+          "diagnosisRelatedGroupType": {
+            "type": "String",
+            "list": "diagnosis_related_group_types",
+            "fullName": "Diagnosis Related Group Type",
+            "description": "CMS MS-DRG "
+          },
+          "admittingSource": {
+            "type": "String",
+            "list": "encounters_admitting_source",
+            "fullName": "Admitting Source",
+            "description": "The source of the encounter and admission information."
+          },
+          "diagnosis": [
+            {
+              "admissionDate": {
+                "type": "Date",
+                "fullName": "Admission Date",
+                "description": "The date the patient was admitted to a health care facility."
+              },
+              "providerId": {
+                "type": "String",
+                "fullName": "Provider ID",
+                "description": "The identification code of the healthcare provider that treated the patient."
+              },
+              "diagnosisCode": {
+                "type": "String",
+                "maxlength": 18,
+                "comment": "For ICD codes this variable can include decimal points. Remove site specific suffixes and prefixes. Other codes should be listed as recorded in the source data.",
+                "fullName": "Diagnosis Code",
+                "description": "ICD-10 medical diagnosis code that documents the healthcare providers diagonsis of the patient."
+              },
+              "diagnosisCodeType": {
+                "type": "String",
+                "list": "diagnosis_code_types",
+                "fullName": "Diagnosis Code Type",
+                "description": "DRG coding version used"
+              },
+              "originalDiagnosisCode": {
+                "type": "String",
+                "fullName": "Original Diagnosis Code",
+                "description": "On of the 467 DRG codes from CMS"
+              },
+              "principalDischargeDiagnosis": {
+                "type": "String",
+                "list": "principal_discharge_diagnosis_flags",
+                "fullName": "Prinicipal Discharge Diagnosis",
+                "description": "The principal diagnosis for the patient at the time of discharge."
+              }
+            }
+          ],
+          "procedures": [
+            {
+              "procedureId": {
+                "type": "String",
+                "fullName": "Procedure ID"
+              },
+              "admissionDate": {
+                "type": "Date",
+                "fullName": "Admission Date",
+                "description": "The date the patient was admitted to a health care facility and procedures were performed."
+              },
+              "dischargeDate": {
+                "type": "Date",
+                "fullName": "Discharge Date",
+                "description": "The date the patient was discharged to a health care facility and procedures were performed."
+              },
+              "providerId": {
+                "type": "String",
+                "fullName": "Provider ID",
+                "description": "The identification code of the healthcare provider that treated the patient."
+              },
+              "procedureCode": {
+                "type": "String",
+                "fullName": "Procedure Code",
+                "description": "ICD-10 procedure codes identifying the type of procedure(s) that were performed on the patient."
+              },
+              "procedureCodeType": {
+                "type": "String",
+                "list": "encounters_procedure_code_types",
+                "fullName": "Procedure Code Type",
+                "description": "ICD-10 procedure code grouping?"
+              },
+              "originalProcedureCode": {
+                "type": "String",
+                "fullName": "Original Procedure Code",
+                "description": "Is this the first procedure?"
+              }
+            }
+          ],
+          "vitalSigns": [
+            {
+              "measureDate": {
+                "type": "Date",
+                "fullName": "Measure Date",
+                "description": "The date the patient's vitals were taken during the encounter."
+              },
+              "height": {
+                "type": "Number",
+                "fullName": "Height",
+                "description": "The patient's height."
+              },
+              "weight": {
+                "type": "Number",
+                "fullName": "Weight",
+                "description": "The patient's weight."
+              },
+              "diastolic": {
+                "type": "Number",
+                "fullName": "Diastolic",
+                "description": "The patient's diastolic reading."
+              },
+              "systolic": {
+                "type": "Number",
+                "fullName": "Systolic",
+                "description": "The patient's systolic reading."
+              },
+              "bloodPressureType": {
+                "type": "String",
+                "maxlength": 1,
+                "list": "blood_pressure_types",
+                "fullName": "Blood Pressure Type",
+                "description": "The type of device used to capture the patient's blood pressure."
+              },
+              "bloodPressurePosition": {
+                "type": "String",
+                "maxlength": 1,
+                "list": "blood_pressure_position",
+                "fullName": "Blood Pressure Position",
+                "description": "The position where the blood pressure measuring device was placed to obtain the patient's blood pressure."
+              },
+              "tobaccoStatus": {
+                "type": "String",
+                "maxlength": 1,
+                "list": "tobacco_statuses",
+                "fullName": "Tobacco Status",
+                "description": "Documents the patient's tobacco usage."
+              },
+              "tobaccoType": {
+                "type": "String",
+                "maxlength": 1,
+                "list": "tobacco_type",
+                "fullName": "Tobacco Type",
+                "description": "Documents the type of tobacco product that the patient uses."
+              }
+            }
+          ]
+        }
+      ],
+      "death": {
+        "date": {
+          "type": "Date",
+          "fullName": "Death Date",
+          "description": "The date of the patient's death."
+        },
+        "dateImputed": {
+          "type": "String",
+          "list": "date_imputed_types",
+          "fullName": "Date Imputed",
+          "description": "When DeathDt is imputed, this variable indicates which parts of the date were imputed."
+        },
+        "source": {
+          "type": "String",
+          "maxlength": 1,
+          "list": "death_source_types",
+          "fullName": "Source",
+          "description": "The source of the information regarding the patient's death."
+        },
+        "confidence": {
+          "type": "String",
+          "maxlength": 1,
+          "list": "death_confidence_types",
+          "fullName": "Confidence",
+          "description": "The level of confidence as to the accuracy of the information?"
+        },
+        "cause": {
+          "causeOfDeathCode": {
+            "type": "String",
+            "maxlength": 8,
+            "fullName": "Cause Of Death Code",
+            "description": "ICD-10 codes that identify the patient's cause of death."
+          },
+          "causeOfDeathCodeType": {
+            "type": "String",
+            "maxlength": 1,
+            "list": "cause_of_death_code_types",
+            "fullName": "Cause Of Death Code Type",
+            "description": "ICD-10 codes that classifies or groups the cause of death?"
+          },
+          "source": {
+            "type": "String",
+            "maxlength": 1,
+            "list": "death_sources",
+            "fullName": "Source",
+            "description": "The source of the information regarding the patient's cause  of death (e.g., autopy, etc.)."
+          },
+          "confidence": {
+            "type": "String",
+            "maxlength": 1,
+            "list": "death_confidence_types",
+            "fullName": "Confidence",
+            "description": "The level of confidence as to the accuracy of the information?"
+          }
+        }
+      },
+      "labTests": [
+        {
+          "testName": {
+            "type": "String",
+            "maxlength": 10,
+            "list": "test_names",
+            "fullName": "Test Name",
+            "description": "The name of the lab test performed."
+          },
+          "resultType": {
+            "type": "String",
+            "maxlength": 1,
+            "list": "result_types",
+            "fullName": "Result Type",
+            "description": "The results of the lab test performed."
+          },
+          "testSubCategory": {
+            "type": "String",
+            "maxlength": 6,
+            "list": "test_sub_categories",
+            "fullName": "Test Sub Category",
+            "description": "Sub-category for MS_Test_Name. Sub-categories apply to only select laboratory tests. ‘DIRECT’ and ‘CALCULATED’ is only populated for MS_Test_Name = CHOL_LDL. ‘DDU’ and ‘FEU’ is only populated for MS_Test_Name = D_DIMER, Result_Type = N. ‘BHCG’ AND ‘HCG’ is only populated for MS_Test_Name = PG. "
+          },
+          "fastingIndicator": {
+            "type": "String",
+            "maxlength": 1,
+            "list": "fasting_indicators",
+            "fullName": "Fasting Indicator",
+            "description": "Indicates whether the patient fasted before the specimen was given/taken."
+          },
+          "specimenSource": {
+            "type": "String",
+            "maxlength": 6,
+            "list": "specimen_sources",
+            "fullName": "",
+            "description": ""
+          },
+          "loincCode": {
+            "type": "String",
+            "list": "loinc_codes",
+            "maxlength": 10,
+            "comment": "this list contains 80K+ records and will be stored in a table and loaded externally via JSON",
+            "fullName": "Specimen Source",
+            "description": "Identifies the source of the specimen (e.g., urine, feces, mucus, blood, etc.)."
+          },
+          "testImmediacy": {
+            "type": "String",
+            "maxlength": 1,
+            "list": "test_immediacy_types",
+            "fullName": "Test Immediacy",
+            "description": "Immediacy of test. The intent of this variable is to determine whether the test was obtained as part of routine care or as an emergent/urgent diagnostic test (designated as Stat or Expedite). "
+          },
+          "patientLocation": {
+            "type": "String",
+            "maxlength": 1,
+            "list": "patient_location_types",
+            "fullName": "Patient Location",
+            "description": "The location whether the patient gave the specimen."
+          },
+          "resultLocation": {
+            "type": "String",
+            "maxlength": 1,
+            "list": "result_location_types",
+            "fullName": "Result Location",
+            "description": "The lab where the lab test was performed?"
+          },
+          "testLocalCode": {
+            "type": "String",
+            "fullName": "Test Local Code",
+            "description": "Local code (non-LOINC) related to an individual lab test. Values for LOCAL_CD are not required. LOCAL_CD is only populated if available in source data. This variable will not be used in queries, but may be used by local programmers to identify and extract the required CDM tests."
+          },
+          "testBatteryCode": {
+            "type": "String",
+            "fullName": "Test Battery Code",
+            "description": "Local code (non-LOINC) related to a battery or panel of lab tests. Values for BATTERY_CD are not required. BATTERY_CD is only populated if available in source data. This variable will not be used in queries, but may be used by local programmers to identify and extract the required CDM tests."
+          },
+          "procedureCode": {
+            "type": "String",
+            "fullName": "Procedure Code",
+            "description": "A code that identifies the type of lab procedures performed on the patient's specimen."
+          },
+          "procedureCodeType": {
+            "type": "String",
+            "maxlength": 2,
+            "list": "encounters_labtests_procedure_code_types",
+            "fullName": "Procedure Code Type",
+            "description": "Identifies the procedure grouping type."
+          },
+          "orderDate": {
+            "type": "Date",
+            "fullName": "Order Date",
+            "description": "The date the lab test was ordered by the healthcare professional."
+          },
+          "collectionDate": {
+            "type": "Date",
+            "fullName": "Collection Date",
+            "description": "The date the specimen was collected from the patient."
+          },
+          "resultDate": {
+            "type": "Date",
+            "fullName": "Result Date",
+            "description": "The date that the lab results were complete."
+          },
+          "originalResult": {
+            "type": "String",
+            "maxlength": 50,
+            "fullName": "Original Result",
+            "description": "The original result of the lab test."
+          },
+          "resultValueC": {
+            "type": "String",
+            "maxlength": 50,
+            "fullName": "Result Value C",
+            "description": "This standardized result value is only populated for text or character results (Result_Type = C) and is null for numeric results (Result_Type = N). If Result_Type = “C” and the source result is a range (e.g., 50-100 mg/mL), then populate MS_Result_C using Orig_Result with the start and end values of the range delimited by a vertical bar (e.g., '50-100 mg/mL' becomes '50|100 mg/mL'). "
+          },
+          "resultValueN": {
+            "type": "Number",
+            "fullName": "Result Value N",
+            "description": "Standardized/converted numeric result for records where Result_Type=N. Acceptable values are numeric digits with or without a decimal ('.'). If the standardized result unit (STD_RESULT_UNIT) differs from an acceptable MS_RESULT_UNIT for a numeric test (RESULT_TYPE=N), then ORIG_RESULT is converted prior to populating the MS_RESULT_N value. Additionally, MS_RESULT_UNIT reflects this conversion. This variable is only populated for numeric results (RESULT_TYPE = N) and does not contain negative values. This variable is null for text/character results (RESULT_TYPE = C)."
+          },
+          "modifier": {
+            "type": "String",
+            "maxlength": 2,
+            "list": "lab_test_modifiers",
+            "fullName": "Modifier",
+            "description": "Modifier for result values. Any relational operators in the original source data value (e.g., <, >, or =) are reflected in the Modifier variable. For example, if the original source data value is '<=200', then Orig_Result = 200 and Modifier = ‘LE’. If the original source data result value is text, then Modifier = TX. If the original source data result value is numeric (digits with or without decimal) and does not contain an operator, then Modifier = EQ."
+          },
+          "originalResultUnit": {
+            "type": "String",
+            "maxlength": 20,
+            "fullName": "Original Result Unit",
+            "description": "Original units for the test result, as reported in source data. This variable is directly related to ORIG_RESULT and MODIFIER. This variable does not include the test name, or any special characters, unless that character is part of the unit value. For example, special characters are included in '10^9/L'. However, special characters are not included in '^U/L^', as these carats are not part of the unit value. Some laboratory tests may not have a result unit."
+          },
+          "standardizedResultUnitC": {
+            "type": "String",
+            "maxlength": 11,
+            "fullName": "Standardized Result Unit C",
+            "description": "Standardized units for the result. The purpose of STD_RESULT_UNIT is to modify ORIG_RESULT_UNIT from free text to a standardized unit, as an intermediary step in converting from ORIG_RESULT_UNIT to MS_RESULT_UNIT. This variable is only populated for records where Result_type = N. Common rules and guidelines for populating STD_RESULT_UNIT, include: converting all text values for ORIG_RESULT_UNIT to uppercase, and using standard abbreviations as provided by SOC. This variable does not include special characters, unless that character is part of the unit. For example, special characters are included in '10^9/L'. However, special characters are not included in '^U/L^', as these carats are not part of the unit value. This value is not usually null, though there are exceptions, such as when the test result is a ratio (e.g., International Normalized Ratio [INR]). This value is null for character tests (Result_Type=C) until that test has been reviewed and characterized by the Clinical Data Elements Workgroup."
+          },
+          "standardizedResultUnitN": {
+            "type": "String",
+            "maxlength": 11,
+            "fullName": "Standardized Result Unit N",
+            "description": "Converted/standardized result units for the value populated in MS_RESULT_N. This value is null for records where Result_Type = C, and null for Laboratory Tests that have not been characterized and reviewed by the Clinical Data Elements Workgroup. This value may be null for some numeric tests (e.g., as International Normalized Ratio [INR] is a ratio, it does not have a result unit). For tests that require a result unit, MS_RESULT_UNIT is set to 'UNKNOWN' for all records where the original result unit is missing or blank, 'NULL', 'N/A', 'NA', or 'UNK.' Guidance is provided for only Laboratory Tests that have been reviewed by the Clinical Data Elements Workgroup."
+          },
+          "normalRangeLow": {
+            "type": "String",
+            "maxlength": 8,
+            "fullName": "Normal Range Low",
+            "description": "Lower bound of the normal reference range, as assigned by the laboratory. The normal range associated with a test, as assigned by the laboratory is parsed out into the following variables: NORM_RANGE_LOW, MODIFIER_LOW, NORM_RANGE_HIGH, MODIFIER_HIGH, and reflects what is seen in source data. Value only contains the value of the lower bound of the normal reference range. This value is not converted and unit of measure is not included. It is assumed that the associated unit is the same as the original result unit from the source data. The symbols >, <, >=, <= are removed. For example, if the normal range for a test is >100 and <300, then '100' is entered. Additionally, this value is null for records where Result_Type = C."
+          },
+          "normalRangeLowModifier": {
+            "type": "String",
+            "maxlength": 2,
+            "list": "lab_test_low_modifiers",
+            "fullName": "Normal Range Low Modifier",
+            "description": "Modifier for Norm_Range_low values. The normal range associated with a test, as assigned by the laboratory is parsed out into the following variables: NORM_RANGE_LOW, MODIFIER_LOW, NORM_RANGE_HIGH, MODIFIER_HIGH and reflects what is seen in source data. This value is null for records where Result_Type=C. For numeric results one of the following needs to be true:  1) Both Modifier_low and Modifier_high contain EQ (e.g., normal values fall in the range 3-10).  2) Modifier_low contains GT or GE and Modifier_high is null (e.g., normal values are >3 with no upper boundary).  3) Modifier_high contains LT or LE and Modifier_low is null (e.g., normal values are <=10 with no lower boundary)."
+          },
+          "normalRangeHigh": {
+            "type": "String",
+            "maxlength": 8,
+            "fullName": "Normal Range High",
+            "description": "Upper bound of the normal reference range, as assigned by the laboratory. The normal range associated with a test, as assigned by the laboratory is parsed out into the following variables: NORM_RANGE_LOW, MODIFIER_LOW, NORM_RANGE_HIGH, MODIFIER_HIGH and reflects what is seen in source data. Value only contains the value of the upper bound of the normal reference range. This value is not converted and unit of measure is not included.  It is assumed that the associated unit is the same as the original result unit from source data. The symbols >, <, >=, <= are removed. For example, if the normal range for a test is >100 and <300, then '100' is entered. Additionally, this value is null for records where Result_Type = C."
+          },
+          "normalRangeHighModifier": {
+            "type": "String",
+            "maxlength": 2,
+            "list": "lab_test_high_modifiers",
+            "fullName": "Normal Range High Modifier",
+            "description": "Modifier for Norm_Range_high values. The normal range associated with a test, as assigned by the laboratory is parsed out into the following variables: NORM_RANGE_LOW, MODIFIER_LOW, NORM_RANGE_HIGH, MODIFIER_HIGH and reflects what is seen in source data. The value is null for records where Result_Type=C. For numeric results one of the following needs to be true:  1) Both Modifier_low and Modifier_high contain EQ (e.g., normal values fall in the range 3-10).  2) Modifier_low contains GT or GE and Modifier_high is null (e.g., normal values are >3 with no upper boundary).  3) Modifier_high contains LT or LE and Modifier_low is null (e.g., normal values are <=10 with no lower boundary)."
+          },
+          "abnormalResultIndicator": {
+            "type": "String",
+            "maxlength": 2,
+            "list": "abnormal_result_indicators",
+            "fullName": "Abnormal Result Indicator",
+            "description": "Indicator that identifies when a result is outside the normal range."
+          },
+          "orderingProviderDepartment": {
+            "type": "String",
+            "fullName": "Ordering Provider Department",
+            "description": "The healthcare provider's department that order the lab test. "
+          },
+          "facilityCode": {
+            "type": "String",
+            "fullName": "Facility Code",
+            "description": "The unique code that identifies the healthcare facility."
+          }
+        }
+      ],
+      "vaccines": [
+        {
+          "IIS": {
+            "type": "String",
+            "maxlength": 3,
+            "list": "iis_list",
+            "fullName": "IIS",
+            "description": "State administered in"
+          },
+          "vaccinationDate": {
+            "type": "Date",
+            "fullName": "Vaccination Date",
+            "description": "The date of the vaccination."
+          },
+          "provider": {
+            "type": "String",
+            "fullName": "Provider",
+            "description": "The name of the provider that gave the vaccine to the patient."
+          },
+          "administrationType": {
+            "type": "String",
+            "maxlength": 2,
+            "list": "vaccination_administration_type",
+            "fullName": "Adminstration Type",
+            "description": "The method of vaccine administration (e.g., injection, nasal, etc.)."
+          },
+          "vaccinationCode": {
+            "type": "String",
+            "maxlength": 6,
+            "fullName": "Vaccination Code",
+            "description": "The vaccine product code?"
+          },
+          "vaccinationCodeType": {
+            "type": "String",
+            "maxlength": 2,
+            "list": "encounters_vaccines_vaccination_code_types",
+            "fullName": "Vaccination Code Type",
+            "description": "The classification which identifies the type of vaccine."
+          },
+          "vaccineManufacturer": {
+            "type": "String",
+            "maxlength": 3,
+            "fullName": "Vaccine Manufacturer",
+            "description": "The manufacturer that produced the vaccine."
+          },
+          "vaccineLotNumber": {
+            "type": "String",
+            "maxlength": 15,
+            "fullName": "Vaccine Lot Number",
+            "description": "The manufacturer's lot number for the vaccine."
+          }
+        }
+      ]
+    },
+    "pii": {
+      "citizenPiiId": {
+        "type": "String",
+        "unique": true,
+        "visible": false,
+        "comment": "Use email in the MVP",
+        "fullName": "Citizen PII ID",
+        "generated": true,
+        "description": "The system generated unique identifier to store and retrieve the patient's PII information."
+      },
+      "firstName": {
+        "type": "String",
+        "trim": true,
+        "default": "",
+        "validatorF": "validateLocalStrategyProperty",
+        "invalidMessage": "Please fill in your first name",
+        "required": true,
+        "colspan": 2
+      },
+      "lastName": {
+        "type": "String",
+        "trim": true,
+        "default": "",
+        "validatorF": "validateLocalStrategyProperty",
+        "invalidMessage": "Please fill in your first name",
+        "required": true,
+        "colspan": 2
+      },
+      "displayName": {
+        "type": "String",
+        "trim": true,
+        "generated": true,
+        "fullName": "Display Name",
+        "description": "The name the citizen wants displayed when using the HealthyCitizen application."
+      },
+      "email": {
+        "type": "String",
+        "trim": true,
+        "default": "",
+        "validatorF": "validateLocalStrategyProperty",
+        "invalidMessage": "Please fill in your first name",
+        "regexp": ".+\\@.+\\..+",
+        "required": true,
+        "fieldType": "email",
+        "fullName": "Email",
+        "description": "The citizen's email address."
+      },
+      "password": {
+        "type": "String",
+        "default": "",
+        "validatorF": "validateLocalStrategyPassword",
+        "invalidMessage": "Invalid password",
+        "required": true,
+        "fieldType": "password",
+        "fullName": "Password",
+        "description": "The password that the citizen has selected to use with the HealthyCitizen application."
+      },
+      "salt": {
+        "type": "String",
+        "visible": false,
+        "generated": true,
+        "fullName": "Salt",
+        "description": "Password hash function salt"
+      },
+      "provider": {
+        "type": "String",
+        "generated": true,
+        "fullName": "Provider",
+        "description": "Account provider (such as facebook, twitter etc)"
+      },
+      "providerData": {
+        "type": "Mixed",
+        "visible": false,
+        "fullName": "Provider Data",
+        "description": "Account provider-specific data"
+      },
+      "additionalProvidersData": {
+        "type": "Mixed",
+        "visible": false,
+        "fullName": "Additional Providers Data",
+        "description": "Additional provider-specific data"
+      },
+      "updated": {
+        "type": "Date",
+        "visible": false,
+        "generated": true,
+        "fullName": "Updated",
+        "description": "The system generated date when the citizen user account was updated."
+      },
+      "created": {
+        "type": "Date",
+        "visible": false,
+        "defaultF": "dateNow",
+        "generated": true,
+        "fullName": "Created",
+        "description": "The system generated date when the citizen user account was created."
+      },
+      "resetPasswordToken": {
+        "type": "String",
+        "visible": false,
+        "generated": true,
+        "fullName": "Reset Password Token",
+        "description": "The system assigned token that is sent to the citizen when they request a password reset."
+      },
+      "resetPasswordExpires": {
+        "type": "Date",
+        "visible": false,
+        "generated": true,
+        "fullName": "Reset Password Expires",
+        "description": "The date the password token will expire."
+      },
+      "settings": {
+        "twoFactorAuth": {
+          "type": "Boolean"
+        },
+        "phoneVerified": {
+          "type": "Boolean"
+        },
+        "twoFactorAuthSecretBase32": {
+          "type": "String",
+          "generated": true
+        }
+      },
+      "demographic": {
+        "ageRange": {
+          "type": "String",
+          "fullName": "Age Range",
+          "description": "The healthy citizen's approximate age."
+        },
+        "birthDate": {
+          "type": "Date",
+          "visible": false,
+          "fullName": "Birth Date",
+          "description": "The healthy citizen's date of birth."
+        },
+        "gender": {
+          "type": "String",
+          "list": "genders",
+          "fullName": "Gender",
+          "description": "The healthy citizen's gender."
+        },
+        "hispanic": {
+          "type": "String",
+          "visible": false,
+          "list": "tri_state",
+          "fullName": "Hispanic",
+          "description": "True if the healthy citizen is of hispanic origin"
+        },
+        "race": {
+          "type": "String",
+          "visible": false,
+          "list": "races",
+          "fullName": "Race",
+          "description": "The race of the healthy citizen."
+        },
+        "region": {
+          "type": "String",
+          "list": "geographic_region",
+          "fullName": "Geographic Region",
+          "description": "The geographic region where the patient lives."
+        },
+        "zip": {
+          "type": "Number",
+          "visible": false,
+          "fullName": "Zip",
+          "description": "The zip code where the patient lives."
+        },
+        "zipDate": {
+          "type": "Date",
+          "visible": false,
+          "temporary": true,
+          "fullName": "Zip Date",
+          "description": "Please clarify status if we still need this"
+        }
+      }
+    },
+    "settings": {
+      "key": {
+        "type": "String",
+        "fullName": "Key",
+        "description": "The name/key of the settings parameter"
+      },
+      "val": {
+        "type": "String",
+        "fullName": "Value",
+        "description": "The settings parameter value"
+      }
+    },
+    "adverseEvents": {
+      "safetyReportId": {
+        "type": "String",
+        "fullName": "Safety Report ID",
+        "description": "The 8-digit Safety Report ID number, also known as the case report number or case ID. The first 7 digits (before the hyphen) identify an individual report and the last digit (after the hyphen) is a checksum. This field can be used to identify or find a specific adverse event report."
+      },
+      "safetyReportVersion": {
+        "type": "Number",
+        "fullName": "Safety Report Version",
+        "description": "The version number of the safetyreportid. Multiple versions of the same report may exist, it is generally best to only count the latest report and disregard others. openFDA will only return the latest version of a report."
+      },
+      "receiveDate": {
+        "type": "Date",
+        "fullName": "Receive Date",
+        "description": "Date that the report was first received by FDA. If this report has multiple versions, this will be the date the first version was received by FDA"
+      },
+      "receiveDateFormat": {
+        "type": "String",
+        "fullName": "Receive Date Format",
+        "description": "Encoding format of the transmissiondate field. Always set to 102 (YYYYMMDD)."
+      },
+      "receiptDate": {
+        "type": "Date",
+        "fullName": "Receipt Date",
+        "description": "Date that the most recent information in the report was received by FDA."
+      },
+      "receiptDateFormat": {
+        "type": "String",
+        "fullName": "Receipt Date Format",
+        "description": "Encoding format of the transmissiondate field. Always set to 102 (YYYYMMDD)."
+      },
+      "serious": {
+        "type": "Boolean",
+        "fullName": "Serious",
+        "description": "Seriousness of the adverse event. Value is one of the following 1 = The adverse event resulted in death, a life threatening condition, hospitalization, disability, congenital anomaly, or other serious condition 2 = The adverse event did not result in any of the above"
+      },
+      "seriousnessDeath": {
+        "type": "Boolean",
+        "fullName": "Seriousness Death",
+        "description": "This value is 1 if the adverse event resulted in death, and absent otherwise."
+      },
+      "seriousnessDisabling": {
+        "type": "Boolean",
+        "fullName": "Seriousness Disabling",
+        "description": "This value is 1 if the adverse event resulted in disability, and absent otherwise."
+      },
+      "seriousnessHospitalization": {
+        "type": "Boolean",
+        "fullName": "Receipt Date Format",
+        "description": "This value is 1 if the adverse event resulted in a hospitalization, and absent otherwise."
+      },
+      "seriousnessLifeThreatening": {
+        "type": "Boolean",
+        "fullName": "Seriousness Life Threatening",
+        "description": "This value is 1 if the adverse event resulted in a life threatening condition, and absent otherwise."
+      },
+      "seriousnessOther": {
+        "type": "Boolean",
+        "fullName": "Seriousness Other",
+        "description": "This value is 1 if the adverse event resulted in some other serious condition, and absent otherwise."
+      },
+      "transmissionDate": {
+        "type": "Date",
+        "fullName": "Transmission Date",
+        "description": "Date that the record was created. This may be earlier than the date the record was received by the FDA."
+      },
+      "transmissionDateFormat": {
+        "type": "String",
+        "fullName": "Transmission Date Format",
+        "description": "Encoding format of the transmissiondate field. Always set to 102 (YYYYMMDD)."
+      },
+      "duplicate": {
+        "type": "Boolean",
+        "fullName": "Duplicate",
+        "description": "This value is 1 if earlier versions of this report were submitted to FDA. openFDA only shows the most recent version."
+      },
+      "companyNumber": {
+        "type": "String",
+        "fullName": "Company Number",
+        "description": "Identifier for the company providing the report. This is self-assigned."
+      },
+      "occurredCountry": {
+        "type": "String",
+        "fullName": "Occurred Country",
+        "description": "The name of the country where the event occurred."
+      },
+      "primarySourceCountry": {
+        "type": "String",
+        "fullName": "Primary Source Country",
+        "description": "Country of the reporter of the event."
+      },
+      "primarySource": {
+        "qualification": {
+          "type": "Number",
+          "fullName": "Primary Source Qualification",
+          "list": "primary_source_qualifications",
+          "description": "Category of individual who submitted the report."
+        },
+        "reporterCountry": {
+          "type": "String",
+          "fullName": "Primary Source Reporter Country",
+          "description": "Country from which the report was submitted"
+        }
+      },
+      "reportDuplicate": {
+        "duplicateSource": {
+          "type": "String",
+          "fullName": "Duplicate Source",
+          "description": "The name of the organization providing the duplicate"
+        },
+        "duplicateNumber": {
+          "type": "String",
+          "fullName": "Duplicate Number",
+          "description": "The case identifier for the duplicate"
+        }
+      },
+      "sender": {
+        "senderType": {
+          "type": "String",
+          "fullName": "Sender Type",
+          "description": "The name of the organization sending the report. Because FDA is providing these reports to you, the value is always 2. Value is one of the following, 2 = Regulatory authority"
+        },
+        "senderOrganization": {
+          "type": "String",
+          "fullName": "Sender Organization",
+          "description": "Name of the organization sending the report. Because FDA is providing these reports to you, the value is always FDA-Public Use"
+        }
+      }
+    },
+    "receiver": {
+      "type": "String",
+      "fullName": "Receiver",
+      "description": "Information on the organization receiving the report."
+    },
+    "patient": {
+      "type": "Mixed",
+      "fullName": "Patient",
+      "description": "Information about the patient in the adverse event report. We will keep it as an object for now and will provide internal structure later if necessary."
+    },
+    "medicalDevices": {
+      "regulationNumber": {
+        "type": "String",
+        "fullName": "Regulation Number",
+        "description": "The classification regulation in the Code of Federal Regulations (CFR) under which the device is identified, described, and formally classified (Code of Federal regulations Title 21, 862.00 through 892.00). The classification regulation covers various aspects of design, clinical evaluation, manufacturing, packaging, labeling, and postmarket surveillance of the specific medical device."
+      },
+      "lifeSustainSupportFlag": {
+        "type": "Boolean",
+        "fullName": "Life Sustain Support Flag",
+        "description": "An indicator that the device is essential to, or yields information that is essential to, the restoration or continuation of a bodily function important to the continuation of human life. Value is one of the following: Y = Device is used for life sustaining purposes, N = Device is not used for life sustaining purposes"
+      },
+      "definition": {
+        "type": "String",
+        "fullName": "Definition",
+        "description": "Compositional definition of a medical device, based on the input of nomenclature experts, incorporating the definition of components of a device."
+      },
+      "reviewCode": {
+        "type": "String",
+        "fullName": "Review Code",
+        "description": "Documentation forthcoming."
+      },
+      "submissionTypeId": {
+        "type": "Number",
+        "fullName": "Submission type ID",
+        "list": "submission_type_ids",
+        "description": "The submission type (510(k), PMA, 510(k) Exempt) to which a product code is limited, or “Contact ODE” if its limitations (if any) are undetermined."
+      },
+      "thirdPartyFlag": {
+        "type": "Boolean",
+        "fullName": "Third Party Flag",
+        "description": "Eligibility for a manufacturer to utilize a contracted Accredited Person in lieu of direct submission to FDA. By law, FDA must in turn issue a final determination within 30 days after receiving the recommendation of an Accredited Person (yielding a streamlined review process). Value is one of the following: Y = Device is a candidate for a third party review program, N = Device is not a candidate for a third party review program"
+      },
+      "implantFlag": {
+        "type": "Boolean",
+        "fullName": "Implant Flag",
+        "description": "An indicator that the device is placed into a surgically or naturally formed cavity of the human body. Intended to remain implanted for 30 days or more; or the Commissioner makes a determination (that the device is to be considered implanted). Value is one of the following: Y = Device is implantable, N = Device is not implantable"
+      },
+      "medicalSpecialty": {
+        "type": "String",
+        "fullName": "Medical Speciality",
+        "list": "medical_speciality",
+        "description": "Regulation Medical Specialty is assigned based on the regulation (e.g. 21 CFR Part 888 is Orthopedic Devices) which is why Class 3 devices lack the “Regulation Medical Specialty” field. Two letters indicating the medical specialty panel responsible for reviewing the product. See link for further detail."
+      },
+      "medicalSpecialtyDescription": {
+        "type": "String",
+        "fullName": "Medical Speciality Description",
+        "description": "Same as medical_specialty but with the codes replaced with a human readable description. Note that & and and have been removed from the descriptions as they conflicted with the API syntax)."
+      },
+      "deviceClass": {
+        "type": "String",
+        "fullName": "Device Class",
+        "list": "device_classes",
+        "description": "A risk based classification system for all medical devices ((Federal Food, Drug, and Cosmetic Act, section 513)."
+      },
+      "deviceName": {
+        "type": "String",
+        "fullName": "Device Name",
+        "description": "This is the proprietary name, or trade name, of the cleared device"
+      },
+      "productCode": {
+        "type": "String",
+        "fullName": "Product Code",
+        "required": true,
+        "description": "A three-letter identifier assigned to a device category. Assignment is based upon the medical device classification designated under 21 CFR Parts 862-892, and the technology and intended use of the device. Occasionally these codes are changed over time."
+      },
+      "reviewPanel": {
+        "type": "String",
+        "fullName": "Review Panel",
+        "description": "Known as the “510(k) Review Panel” since 2014, this helps define the review division within CDRH in which the 510(k) would be reviewed, if it were reviewed today; this is derived from the procode and is always the same as the “Review Advisory Committee” field in the 510(k) database."
+      },
+      "unclassifiedReason": {
+        "type": "String",
+        "fullName": "Unclassified Reason",
+        "list": "unclassified_reasons",
+        "description": "This indicates the reason why a device is unclassified (e.g. Pre-Amendment)."
+      },
+      "gmpExemptFlag": {
+        "type": "Boolean",
+        "fullName": "GMP Exemption Flag",
+        "description": "An indication the device is exempt from Good Manufacturing Processes CFR 820. U.S. zip code of the Applicant. See here for more detail."
+      }
+    },
+    "alerts": {
+      "issuer": {
+        "type": "String",
+        "list": "alerts_issuers"
+      },
+      "id": {
+        "type": "String"
+      },
+      "type": {
+        "type": "String",
+        "list": "alerts_types"
+      },
+      "created": {
+        "type": "Date"
+      },
+      "initiationDate": {
+        "type": "Date"
+      },
+      "title": {
+        "type": "String"
+      },
+      "reason": {
+        "type": "String"
+      },
+      "status": {
+        "type": "String"
+      },
+      "classification": {
+        "type": "String"
+      },
+      "quantity": {
+        "type": "String"
+      },
+      "voluntaryMandated": {
+        "type": "String",
+        "list": "voluntary_mandated"
+      },
+      "distributionStatus": {
+        "type": "String"
+      },
+      "items": [
+        {
+          "country": {
+            "type": "String",
+            "listUrl": "http://data.okfn.org/data/core/country-list/r/data.json",
+            "list": "alert_item_country"
+          },
+          "state": {
+            "type": "String"
+          },
+          "city": {
+            "type": "String"
+          },
+          "vendor": {
+            "type": "String"
+          },
+          "vendorAddress": {
+            "type": "String"
+          },
+          "datePublished": {
+            "type": "String"
+          },
+          "products": [
+            {
+              "product_type": {
+                "type": "String"
+              },
+              "product_description": {
+                "type": "String"
+              },
+              "category": {
+                "type": "String"
+              },
+              "categoryName": {
+                "type": "String"
+              },
+              "code_info": {
+                "type": "String"
+              },
+              "note": {
+                "type": "String"
+              }
+            }
+          ]
+        }
+      ]
+    },
+    "hospital": {
+      "name": "String",
+      "apiUrl": "String"
+    },
+    "medication": {
+      "productName": {
+        "type": "String",
+        "required": true
+      },
+      "dosage": {
+        "type": "Number"
+      },
+      "frequency": {
+        "type": "String",
+        "list": "medication_frequency"
+      },
+      "route": {
+        "type": "String",
+        "list": "routes_of_administration"
+      },
+      "productDescription":{
+        "type": "String"
+      },
+      "productCode":{
+        "type": "String",
+        "required": true
+      },
+      "manufacturer":{
+        "type": "String"
+      },
+      "lot":{
+        "type": "String"
+      },
+      "amount":{
+        "type": "String"
+      },
+      "remarks":{
+        "type": "String"
+      }
+    },
+    "sideEffect": {
+      "email": {
+        "type": "String",
+        "required": true
+      },
+      "productName": {
+        "type": "String"
+      },
+      "productDescription": {
+        "type": "String"
+      },
+      "productCode": {
+        "type": "String"
+      },
+      "manufacturer": {
+        "type": "String"
+      },
+      "lot": {
+        "type": "String"
+      },
+      "sideEffectDescription": {
+        "type": "String"
+      },
+      "adverseEventResult": {
+        "type": "String"
+      },
+      "adverseEventDate": {
+        "type": "Date"
+      },
+      "injury": {
+        "type": "String"
+      },
+      "notificationDate": {
+        "type": "Date"
+      },
+      "remarks": {
+        "type": "String"
+      },
+      "symptoms": {
+        "type": "String"
+      },
+      "systemAffected": {
+        "type": "String"
+      },
+      "onsetTime": {
+        "type": "String"
+      },
+      "onsetTimeUnit": {
+        "type": "Date"
+      },
+      "duration": {
+        "type": "String"
+      },
+      "durationTimeUnit": {
+        "type": "String"
+      },
+      "remarks": {
+        "type": "String"
+      }
+    }
+  }
+}

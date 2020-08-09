@@ -1,0 +1,62 @@
+<div class="page-layout simple fullwidth doc-page layout-column">
+
+    <div class="content">
+
+        <div
+            class="widget-group layout-wrap layout-row flex-100 flex-gt-lg-70"
+            layout="row"
+            flex="100"
+            layout-wrap=""
+        >  
+            <ms-widget
+                ng-repeat="(key, item) in vm.dashboardItems"
+                class="dashboardItem"
+                flippable="true"
+                layout="column"
+                flex="100"
+                flex-gt-xs="50"
+                flex-gt-md="25"
+            >   
+                <ms-widget-front class="white-bg ms-widget-front">
+                    <div
+                        class="pl-16 pr-8 pv-16 h-55 border-bottom"
+                        layout="row"
+                        layout-align="space-between center"
+                    >
+                        <h3
+                            class="h3"
+                            ng-bind=item.fullName
+                            ng-style="{'color': item.color}"
+                        >&nbsp;</h3>
+                    </div>
+                    <hc-dashboard-tile
+                        item="item"
+                        data="vm.dashboardData[key]"
+                        class="pt-8 pb-32 "
+                        flex="100"
+                        layout="column"
+                        layout-align="space-around center"
+                        layout-wrap
+                    >
+                    </hc-dashboard-tile>
+                    <div
+                        class="p-16 grey-50-bg border-top"
+                        layout="row"
+                        layout-align="start center"
+                    >
+                        <!-- <a href="#{{item.link}}"> -->
+                            <md-button
+                                class="md-raised md-primary"
+                                ng-style="{'background-color': item.color}"
+                                aria-label="item.linkLabel"
+                                ng-bind="item.linkLabel"
+                                ng-click="vm[item.action](item.link)"
+                            >&nbsp;</md-button>
+                        <!-- </a> -->
+                    </div>
+                </ms-widget-front>
+            </ms-widget>
+        </div>
+
+    </div>
+</div>

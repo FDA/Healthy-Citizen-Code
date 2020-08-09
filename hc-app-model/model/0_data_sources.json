@@ -1,0 +1,24 @@
+{
+  "dataSources": {
+    "description": "This is not working yet. Please see CorpUtil/conceptant.js#dataPulls",
+    "sources": {
+      "openFdaDeviceAdverseEventArchive": {
+        "label": "OpenFDA Device Adverse Events Local Archive",
+        "type": "local_openfda_json",
+        "source": "openFdaDeviceAdverseEventArchive",
+        "key": "report_number",
+        "destination": "adverseEvents",
+        "description": "Should contain unzipped archives of openFDA data from https://open.fda.gov/device/event/. All .json files in folder $source will be processed"
+      },
+      "openFdaDeviceAdverseEventOnline": {
+        "label": "OpenFDA Device Adverse Events Online",
+        "type": "online_openfda_json",
+        "source": "https://api.fda.gov/device/event.json",
+        "key": "report_number",
+        "destination": "adverseEvents",
+        "needDateRange": "for date range (in 'YYYYMMDD TO YYYYMMDD' format): ",
+        "description": "Should refer to a valid openFDA endpoint. OpenFDA key should be defined in .env"
+      }
+    }
+  }
+}

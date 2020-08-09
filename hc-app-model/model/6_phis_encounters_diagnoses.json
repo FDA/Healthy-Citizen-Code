@@ -1,0 +1,73 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "encounters": {
+          "fields": {
+            "diagnoses": {
+              "type": "Subschema",
+              "fullName": "Diagnoses",
+              "requiresAuthentication": true,
+              "defaultSortBy": { "admissionDate": -1 },
+              "fields": {
+                "sourceType": {
+                  "type": "String",
+                  "list": "sourceTypes",
+                  "fullName": "Source of Record",
+                  "visible": false,
+                  "description": "The source of the patient data (e.g., hospital, clinic, etc.,)."
+                },
+                "admissionDate": {
+                  "type": "Date",
+                  "visibilityPriority": 1,
+                  "fullName": "Diagnosis Date",
+                  "description": "The date the patient was admitted to a health care facility.",
+                  "validate": ["notBeforeEncounterAdmissionDate()","notAfterEncounterDischargeDate()","notInFuture()"]
+                },
+                "providerId": {
+                  "type": "String",
+                  "visibilityPriority": 2,
+                  "fullName": "Provider ID",
+                  "visible": false,
+                  "description": "The identification code of the healthcare provider that treated the patient."
+                },
+                "diagnosisCode": {
+                  "type": "ObjectID[]",
+                  "fullName": "Diagnoses",
+                  "required": true,
+                  "description": "Select all medical diagnoses from the healthcare provider during the encounter.",
+                  "lookup": {
+                    "table": "icdCodes",
+                    "foreignKey": "_id",
+                    "label": "description",
+                    "id": "icdCodes"
+                  }
+                },
+                "diagnosisCodeType": {
+                  "type": "String",
+                  "list": "diagnosisCodeTypes",
+                  "fullName": "Diagnosis Code Type",
+                  "visible": false,
+                  "description": "DRG coding version used."
+                },
+                "originalDiagnosisCode": {
+                  "type": "String",
+                  "fullName": "Original Diagnosis Code",
+                  "visible": false,
+                  "description": "On of the 467 DRG codes from CMS."
+                },
+                "principalDischargeDiagnosis": {
+                  "type": "String",
+                  "list": "principalDischargeDiagnosisFlags",
+                  "visible": false,
+                  "fullName": "Prinicipal Discharge Diagnosis",
+                  "description": "The principal diagnosis for the patient at the time of discharge."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

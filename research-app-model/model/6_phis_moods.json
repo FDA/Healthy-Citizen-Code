@@ -1,0 +1,47 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "moods": {
+          "type": "Subschema",
+          "fullName": "How Am I Feeling",
+          "requiresAuthentication": true,
+          "defaultSortBy": { "dateMood": -1, "time": -1 },
+          "fields": {
+            "dateMood": {
+              "type": "Date",
+              "visibilityPriority": 1,
+              "fullName": "Entry Date",
+              "required": true,
+              "description": "Date of mood entry.",
+              "validate": ["notInFuture()"]
+            },
+            "time": {
+              "type": "String",
+              "visibilityPriority": 2,
+              "fullName": "Time of Day",
+              "list": "dayTime",
+              "required": true,
+              "description": "Pick the time of the day you were in this mood."
+            },
+            "moodType": {
+              "type": "String",
+              "visibilityPriority": 3,
+              "fullName": "Your Mood",
+              "list": "moodTypes",
+              "required": true,
+              "description": "Choose your mood at the time."
+            },
+            "comments": {
+              "type": "String",
+              "visibilityPriority": 4,
+              "validate": ["maxLength(500)"],
+              "fullName": "Mood Comments",
+              "description": "Describe your mood."
+            }
+          }
+        }
+      }
+    }
+  }
+}

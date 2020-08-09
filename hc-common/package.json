@@ -1,0 +1,19 @@
+{
+  "name": "hc-common",
+  "version": "0.0.5",
+  "description": "Library for HC project general code.",
+  "main": "index",
+  "scripts": {
+    "test": "test"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "lodash": "^4.17.3"
+  },
+  "devDependencies": {
+    "chai": "^3.5.0",
+    "mocha": "^3.1.2",
+    "supertest": "^2.0.0"
+  }
+}

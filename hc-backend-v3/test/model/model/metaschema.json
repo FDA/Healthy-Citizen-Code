@@ -1,0 +1,223 @@
+{
+  "metaschema": {
+    "type": {
+      "required": "true",
+      "default": "String",
+      "list": [
+        "ApplicationInterface",
+
+        "String",
+        "Date",
+        "Number",
+        "Boolean",
+        "Mixed",
+        "Array",
+        "Subschema",
+        "Object",
+        "Schema",
+        "ObjectID",
+        "String[]",
+        "Date[]",
+        "Number[]",
+        "Boolean[]",
+        "Mixed[]",
+        "ObjectID[]",
+
+        "Menu",
+        "MenuGroup",
+        "MenuItem",
+        "Dashboard",
+        "DashboardItem"
+      ],
+      "fullName": "Type",
+      "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Subschema is an array that should be displayed in the menu. Some types are only available for interface elements and not the model"
+    },
+    "subtype": {
+      "list": [
+        "Password",
+        "Email",
+        "Phone",
+        "Url",
+        "Text",
+        "ImperialHeight",
+        "ImperialWeight",
+        "BloodPressure"
+      ],
+      "fullName": "Field Subtype",
+      "description": "Overrides default field visual representation. For instance for type String the default input type is TEXT, but can be overridden here to be PASSWORD"
+    },
+
+    "width": {
+      "default": 100,
+      "fullName": "Width",
+      "description": "Width of the field as rendered in the datatables",
+      "comment": "TODO: discuss with the team and decide if UI attributes should be grouped. For instance 'ui':{width:100,height:200,style:'best'}"
+    },
+    "colspan": {
+      "fullName": "Column Span",
+      "description": "Defines what portion of a layout it should occupy",
+      "comment": "TODO: discuss with the team and decide if UI attributes should be grouped. For instance 'ui':{width:100,height:200,style:'best', colspan:2}. Or get rid of this"
+    },
+    "visibilityPriority": {
+      "default": 100,
+      "fullName": "Visibility Priority",
+      "description": "Defines the priority of this field being displayed in datatables",
+      "comment": "TODO: discuss with the team and decide if UI attributes should be grouped. For instance 'ui':{width:100,visibilityPriority:200,style:'best', colspan:2}. Or get rid of this"
+    },
+
+    "labelRenderer": {
+      "fullName": "Label Renderer",
+      "description": "Name of the function from LabelRenderers rendering label representing given object. This is used in parent select lists and similar, for instance see encounters."
+    },
+    "singleRecord": {
+      "fullName": "Single Record",
+      "description": "Requires special treatment in UI since only one record will be returnedm not need to show datatables"
+    },
+    "title": {
+      "fullName": "Title",
+      "description": "The title of the dashboard item or similar tile"
+    },
+    "link": {
+      "fullName": "Link",
+      "description": "The URL to be linked to a title. Can be a javascript or modal target for bringing up modal dialogs"
+    },
+    "linkLabel": {
+      "fullName": "View All",
+      "description": "The label of the link in a dashbaord item or a tile"
+    },
+    "template": {
+      "fullName": "Template",
+      "description": "Template representing the dashboard item or tile or similar visual element"
+    },
+    "fullName": {
+      "required": true,
+      "fullName": "Full Name",
+      "description": "Full name of the field in human-readable form"
+    },
+    "description": {
+      "fullName": "Description",
+      "description": "Description of the field meaning. This will be sent to the front-end"
+    },
+    "temporary": {
+      "fullName": "Temporary",
+      "description": "If temporary then it should not be listed as a part of dictionary as this attribute is only used for MVP demo"
+    },
+    "default": {
+      "fullName": "Default Value",
+      "description": "Specifies the default value for this field if no value is provided"
+    },
+    "defaultF": {
+      "fullName": "Default Function",
+      "description": "Specifies the function that will return the default value for this field if no value is provided",
+      "comment": "TODO: get rid of it, replace with 'transform' attribute"
+    },
+    "list": {
+      "fullName": "List",
+      "comment": "Lists all possible values of this attribute"
+    },
+    "listUrl": {
+      "fullName": "List URL",
+      "description": "URL of REST EP returning the values",
+      "comment": "We don't use it. Delete?"
+    },
+    "comment": {
+      "fullName": "Comment",
+      "description": "Free-form text containing comments about this field, will not be visible to the users or sent to front-end"
+    },
+    "visible": {
+      "default": true,
+      "fullName": "Visible",
+      "description": "Determines if the field should be visible in the forms by default or not. Can be overridden in a specific form, but will be sent to the front-end"
+    },
+    "searchable": {
+      "fullName": "Searchable",
+      "description": "If true then this field can be searched in order to fin right record in lookups, datatable searches and similar"
+    },
+    "serverSide": {
+      "fullName": "Server-side",
+      "description": "If true then most of the handling for these records should be done by the server, i.e. server-side mode for datatables"
+    },
+    "required": {
+      "fullName": "Required",
+      "description": "If the attribute is required then no part of the record can be submitted without this attribute"
+    },
+    "generated": {
+      "fullName": "Generated",
+      "description": "If set to true than the field is hidden and its value will be take care of middleware. Can be set to array of function calls which will be called in order to generate the value"
+    },
+    "unique": {
+      "fullName": "Unique",
+      "description": "If set to true then this attribute value have to be unique across entire collection. You don't need to specify index:true if unique:true"
+    },
+    "validate": {
+      "fullName": "List of Validators",
+      "description": "Validates the attribute value against validators specified in the array. Both simplified and advanced form of validators is supported, see 0_validatorShortcuts.json for translation specification"
+    },
+    "errorMessages": {
+      "fullName": "Error Messages",
+      "description": "Error message templates to be used and returned by the validator"
+    },
+    "arguments": {
+      "fullName": "Arguments",
+      "description": "Arguments to be used in the validator"
+    },
+    "transform": {
+      "fullName": "Trasform",
+      "description": "Lists array functions to be called to transform the data before storing it in the database. You can provide a 2-element array instead of one function to perform transformation before storing value into the database and after retrieving value from the database"
+    },
+    "schemaTransform": {
+      "fullName": "Schema Trasform",
+      "description": "Lists array functions to be called to transform the model schema"
+    },
+    "fields": {
+      "fullName": "Fields",
+      "description": "For type Subschema defines the list of included fields"
+    },
+    "index": {
+      "fullName": "Index",
+      "description": "If true then the field need to be indexed"
+    },
+    "lookup": {
+      "fullName": "Lookup",
+      "description": "A way to link two collections and lookup for appropriate record in the foreign collection"
+    },
+    "requiresAuthentication": {
+      "default": true,
+      "fullName": "Requires Authentication",
+      "description": "If true then the this schema/subschema will require authentication in order to be manipulated",
+      "comment": "TODO: get rid of it, replace with 'requiresPermissions' attribute"
+    },
+    "limitReturnedRecords": {
+      "fullName": "Limit Returned Records",
+      "description": "If set to a number then no more than this number of records can be returned at once. Only applicable to schemas, nothing else."
+    },
+    "controller": {
+      "fullName": "Controller",
+      "description": "If set than this model will use custom controller named as specified in this attribute"
+    },
+    "permissions": {
+      "fullName": "Permissions",
+      "description": "Lists permissions associated with given activity/data or role"
+    },
+    "defaultSortBy": {
+      "default": { "_id": -1 },
+      "fullName": "Default Sort By",
+      "description": "Unless specified otherwise in the query the backend will sort its GET queries based on this order"
+    },
+
+    "generatorSpecification": {
+      "default": "2",
+      "fullName": "Specification for the generator",
+      "description": "See synthetic_generator.js#get_model_records in CorpUtil for examples of how the spec may look like"
+    },
+    "generatorDistribution": {
+      "default": "random",
+      "list": [
+        "random",
+        "sequential"
+      ],
+      "fullName": "Distribution",
+      "description": "How values from the range of possible values should be picked"
+    }
+  }
+}

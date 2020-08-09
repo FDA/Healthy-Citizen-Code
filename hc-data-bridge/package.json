@@ -9,10 +9,6 @@
     "logs": "pm2 logs",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "repository": {
-    "type": "git",
-    "url": "ssh://git@bitbucket.conceptant.com:7999/hc/hc-data-bridge.git"
-  },
   "keywords": [
     "Healthy",
     "Citizen",

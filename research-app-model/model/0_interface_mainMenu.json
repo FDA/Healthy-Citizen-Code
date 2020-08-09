@@ -1,0 +1,143 @@
+{
+  "interface": {
+    "main_menu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "comment": "This defines the main menu that will go into the sidebar",
+      "default": "/studies",
+      "permissions": [
+        "doUserActivities"
+      ],
+      "fields": {
+        "participants": {
+          "type": "MenuItem",
+          "fullName": "Participants",
+          "link": "/participants",
+          "icon": {
+            "type": "font-awesome",
+            "link": "users"
+          },
+          "description": "Available Participants"
+        },
+        "studies": {
+          "type": "MenuGroup",
+          "fullName": "Studies",
+          "description": "Study",
+          "icon": {
+            "type": "font-awesome",
+            "link": "flask"
+          },
+          "fields": {
+            "myStudies": {
+              "type": "MenuItem",
+              "fullName": "My Studies",
+              "link": "/studies",
+              "description": "My Studies"
+            },
+            "eligibilities": {
+              "type": "MenuItem",
+              "fullName": "Study Eligibility Requirements",
+              "link": "/eligibilities",
+              "description": "Study Eligibility Requirements"
+            },
+            "details": {
+              "type": "MenuItem",
+              "fullName": "Study Details",
+              "link": "/details",
+              "description": "My demographic data"
+            },
+            "cros": {
+              "type": "MenuItem",
+              "fullName": "Study Clinical Reported Outcomes",
+              "link": "/cros",
+              "description": "Study Clinical Reported Outcomes"
+            },
+            "pros": {
+              "type": "MenuItem",
+              "fullName": "Study Patient Reported Outcomes",
+              "link": "/pros",
+              "description": "Study Patient Reported Outcomes"
+            }
+          }
+        },
+        "arms": {
+          "type": "MenuGroup",
+          "fullName": "Study Branches",
+          "description": "Different groups within a study",
+          "icon": {
+            "type": "font-awesome",
+            "link": "code-fork"
+          },
+          "fields": {
+            "arms": {
+              "type": "MenuItem",
+              "fullName": "Study Arms",
+              "link": "/arms",
+              "description": "Study Arms"
+            },
+            "pools": {
+              "type": "MenuItem",
+              "fullName": "Study Pools",
+              "link": "/pools",
+              "description": "Study Pools"
+            }
+          }
+          },
+        "poolParticipants": {
+          "type": "MenuGroup",
+          "fullName": "Pool Info",
+          "description": "Participants in the Pool",
+          "icon": {
+            "type": "font-awesome",
+            "link": "user-circle-o"
+          },
+          "fields": {
+            "poolParticipants": {
+              "type": "MenuGroup",
+              "fullName": "Pool Participants",
+              "link": "/poolParticipants",
+              "description": "Participants in the Pool"
+            },
+            "participantStatuses": {
+              "type": "MenuItem",
+              "fullName": "Participants Status",
+              "link": "/statuses",
+              "description": "Participants Status"
+            }
+          }
+        },
+        "questionnaires": {
+          "type": "MenuItem",
+          "fullName": "Questionnaire Mgt",
+          "link": "/questionnaires",
+          "icon": {
+            "type": "font-awesome",
+            "link": "question-circle"
+          },
+          "description": "Questionnaires"
+        },
+        "questions": {
+          "type": "MenuItem",
+          "fullName": "Questions",
+          "link": "/questions",
+          "icon": {
+            "type": "font-awesome",
+            "link": "question-circle"
+          },
+          "description": "Questions for questionnaires"
+        },
+        "questionnaireAnswers": {
+          "type": "MenuItem",
+          "fullName": "Questionnaire Answers",
+          "link": "/questionnaireAnswers",
+          "icon": {
+            "type": "font-awesome",
+            "link": "question-circle"
+          },
+          "description": "Available Participants"
+        }
+      }
+    }
+  }
+}
+

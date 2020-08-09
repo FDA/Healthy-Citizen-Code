@@ -1,0 +1,92 @@
+{
+  "models": {
+    "phis": {
+      "fields": {
+        "encounters": {
+          "fields": {
+            "vitalSigns": {
+              "type": "Subschema",
+              "fullName": "Vital Signs",
+              "requiresAuthentication": true,
+              "defaultSortBy": { "measureDate": -1 },
+              "fields": {
+                "sourceType": {
+                  "type": "String",
+                  "list": "sourceTypes",
+                  "fullName": "Source of Record",
+                  "visible": false,
+                  "description": "The source of the patient data (e.g., hospital, clinic, etc.,)."
+                },
+                "measureDate": {
+                  "type": "Date",
+                  "visibilityPriority": 1,
+                  "fullName": "Measure Date",
+                  "required": true,
+                  "description": "The date the patient's vitals were taken during the encounter.",
+                  "validate": ["notBeforeEncounterAdmissionDate()","notInFuture()","notAfterEncounterDischargeDate()"]
+                },
+                "height": {
+                  "type": "Number",
+                  "subtype": "ImperialHeight",
+                  "fullName": "Height",
+                  "required": true,
+                  "description": "The patient's height.",
+                  "comment": "No need to add validators here, they are defined in 0_typeDefaults for this subtype"
+                },
+                "weight": {
+                  "type": "Number",
+                  "subtype": "ImperialWeight",
+                  "fullName": "Weight",
+                  "description": "The patient's weight in pounds.",
+                  "comment": "No need to add validators here, they are defined in 0_typeDefaults for this subtype"
+                },
+                "bloodPressureType": {
+                  "type": "String",
+                  "validate": ["maxLength(1)"],
+                  "list": "bloodPressureTypes",
+                  "fullName": "Blood Pressure Type",
+                  "description": "The type of device used to capture the patient's blood pressure."
+                },
+                "bloodPressurePosition": {
+                  "type": "String",
+                  "validate": ["maxLength(1)"],
+                  "list": "bloodPressurePosition",
+                  "fullName": "Blood Pressure Position",
+                  "description": "The position where the blood pressure measuring device was placed to obtain the patient's blood pressure."
+                },
+                "systolic": {
+                  "type": "Number",
+                  "fullName": "Systolic",
+                  "description": "The patient's systolic reading.",
+                  "validate": ["min(00)", "max(400)"]
+                },
+                "diastolic": {
+                  "type": "Number",
+                  "fullName": "Diastolic",
+                  "description": "The patient's diastolic reading.",
+                  "validate": ["min(0)", "max(200)"]
+                },
+                "tobaccoStatus": {
+                  "type": "String",
+                  "validate": ["maxLength(1)"],
+                  "list": "tobaccoStatuses",
+                  "fullName": "Tobacco Status",
+                  "visible": false,
+                  "description": "Documents the patient's tobacco usage."
+                },
+                "tobaccoType": {
+                  "type": "String",
+                  "validate": ["maxLength(1)"],
+                  "list": "tobaccoType",
+                  "fullName": "Tobacco Type",
+                  "visible": false,
+                  "description": "Documents the type of tobacco product that the patient uses."
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  }
+}

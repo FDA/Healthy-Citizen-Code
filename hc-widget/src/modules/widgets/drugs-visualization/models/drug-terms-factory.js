@@ -27,12 +27,10 @@ const TERM_OBJECT = {
   },
 
   distanceMin() {
-    // TODO: please move this parameters into object0descriptions.json
     return this.group === 'objDrug' ? 700 : 350;
   },
 
   strength() {
-    // TODO: please move this parameters into object0descriptions.json
     return this.group === 'objDrug' ? -800: -4000;
   },
 

@@ -117,15 +117,30 @@ module.exports = (appLib) => {
       next();
     },
     async hashPassword(next) {
-      const { path, row, data } = this;
-      const isBcryptHash = bcryptHashRegex.test(data);
-      if (!data || isBcryptHash) {
-        return next();
-      }
+      const { path, row, data, modelName } = this;
+      if (typeof data === 'undefined') {
+        // this happens when users record is being updated, but the password is not a part of the update
+        // in this case we need to read the existing hash and return it
+        const oldRecord = await appLib.db.model(modelName).findOne(row._id).lean();
+        if (!oldRecord) {
+          throw `Unable to find record with _id=${row._id} while trying to preserve the password`;
+        }
+        const oldHash = _.get(oldRecord, path);
+        if (oldHash.length < 10) {
+          throw `Unable to obtain a valid hash for record _id=${row._id} while trying to preserve the password`;
+        }
+        _.set(row, path, oldHash);
+        next();
+      } else {
+        const isBcryptHash = bcryptHashRegex.test(data);
+        if (!data || isBcryptHash) {
+          return next();
+        }
 
-      const hash = await hashPassword(data);
-      _.set(row, path, hash);
-      next();
+        const hash = await hashPassword(data);
+        _.set(row, path, hash);
+        next();
+      }
     },
     cleanupPassword(next) {
       const { action, row, path } = this;
