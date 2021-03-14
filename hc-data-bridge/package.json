@@ -32,7 +32,7 @@
     "dotenv": "^4.0.0",
     "event-stream": "3.3.4",
     "faker": "^4.1.0",
-    "fast-csv": "^2.4.1",
+    "fast-csv": "^4.3.6",
     "fast-xml-parser": "^3.12.13",
     "fhir.js": "0.0.22",
     "fs-extra": "^5.0.0",
