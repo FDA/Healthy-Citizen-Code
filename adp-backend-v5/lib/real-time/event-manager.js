@@ -1,4 +1,6 @@
 const _ = require('lodash');
+const log = require('log4js').getLogger('lib/real-time');
+const { getFunction } = require('../util/memoize');
 
 async function filterSockets({ appLib, ioNamespace, socketFilter, authFilter, context }) {
   try {
@@ -8,7 +10,7 @@ async function filterSockets({ appLib, ioNamespace, socketFilter, authFilter, co
     } else if (_.isFunction(socketFilter)) {
       socketFilterFunc = socketFilter;
     } else {
-      socketFilterFunc = new Function('socket', socketFilter).bind(context);
+      socketFilterFunc = getFunction('socket', socketFilter).bind(context);
     }
     const sockets = _.filter(ioNamespace.connected, (socket) => socketFilterFunc(socket));
 
@@ -16,7 +18,7 @@ async function filterSockets({ appLib, ioNamespace, socketFilter, authFilter, co
     if (_.isFunction(authFilter)) {
       authFilterFunc = authFilter;
     } else if (_.isString(authFilter)) {
-      authFilterFunc = new Function('auth', authFilter).bind(context);
+      authFilterFunc = getFunction('auth', authFilter).bind(context);
     }
     if (!authFilterFunc) {
       return sockets;
@@ -24,8 +26,8 @@ async function filterSockets({ appLib, ioNamespace, socketFilter, authFilter, co
 
     const authFilteredSockets = await Promise.map(sockets, async (socket) => {
       try {
-        const auth = await appLib.authenticationCheck(socket.request);
-        const isPassed = await authFilter(auth);
+        const authData = await appLib.authenticationCheck(socket.request);
+        const isPassed = await authFilter(authData);
         return isPassed ? socket : null;
       } catch (e) {
         return null;
@@ -39,6 +41,9 @@ async function filterSockets({ appLib, ioNamespace, socketFilter, authFilter, co
 
 function getEventManager(appLib) {
   const eventSpecs = {};
+  addDefaultEvents(appLib);
+
+  return { eventSpecs, addEvent };
 
   function addEvent(eventName, eventHandlers) {
     if (eventSpecs[eventName]) {
@@ -62,16 +67,13 @@ function getEventManager(appLib) {
       async hook({ data, socketFilter, authFilter, context }) {
         const ioNamespace = this;
         const sockets = await filterSockets({ appLib, ioNamespace, socketFilter, authFilter, context });
-        console.log(`Emitting ${JSON.stringify(data)} to sockets ${sockets.map((s) => s.id)}`);
+        log.trace(`Emitting ${JSON.stringify(data)} to sockets ${sockets.map((s) => s.id)}`);
         _.each(sockets, (socket) => {
           socket.emit('message', data);
         });
       },
     });
   }
-
-  addDefaultEvents(appLib);
-  return { eventSpecs, addEvent };
 }
 
 module.exports = {

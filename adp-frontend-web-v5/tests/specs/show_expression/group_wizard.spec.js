@@ -116,7 +116,7 @@ describe('show expression', () => {
       this.page = await this.context.newPage();
       await this.page.goto(getUrlFor('helperMethods_showAttributeWizard'));
       await clickCreateNewButton(this.page);
-      await this.page.waitFor(1000);
+      await this.page.waitForTimeout(1000);
     });
 
     afterEach(async () => {
@@ -146,7 +146,7 @@ describe('show expression', () => {
           m4: true,
         };
 
-        this.page.waitFor(300);
+        this.page.waitForTimeout(300);
         const actualDomSnapshot = await this.page.evaluate(
           getDomSnapshot,
           selectors
@@ -266,7 +266,7 @@ describe('show expression', () => {
         await this.page.click(selectors.m3);
         await this.page.waitForSelector(selectors.b3);
         await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
-        await this.page.waitFor(200);
+        await this.page.waitForTimeout(200);
         await selectDxListValue('Option2', selectName, this.page);
 
         await clickSubmit(this.page);
@@ -299,7 +299,7 @@ describe('show expression', () => {
         await this.page.click(selectors.m3);
         await this.page.waitForSelector(selectors.b3);
         // fix for unstable test: to make sure b3 is visible
-        await this.page.waitFor(1000);
+        await this.page.waitForTimeout(1000);
 
         const expectedVisibilitySnapshot = {
           fieldSelect: true,
@@ -333,11 +333,11 @@ describe('show expression', () => {
       async () => {
         await selectDxListValue('Option2', selectName, this.page);
         await this.page.waitForSelector(selectors.b2);
-        await this.page.waitFor(200);
+        await this.page.waitForTimeout(200);
 
         await this.page.click(selectors.m2);
         await this.page.click('[ng-field-name="b2"] .dx-switch-handle');
-        await this.page.waitFor(200);
+        await this.page.waitForTimeout(200);
 
         let a2IsVisibleActual = await this.page.evaluate(
           s => document.querySelector(s) !== null,

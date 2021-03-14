@@ -487,7 +487,7 @@ describe('V5 Backend Field Permissions', function () {
           describe('update document with empty doc as user (should leave all the fields which cannot be written)', function () {
             const record = {};
             const checkDbData = (dbData) => {
-              // should return only generated fields and empty arrays(due to the way mongoose handles arrays)
+              // should return only generated fields and empty arrays
               should(dbData._id).not.be.undefined();
               should(dbData.rField1).be.undefined();
               should(dbData.rField2).be.equal('rField2');
@@ -539,7 +539,7 @@ describe('V5 Backend Field Permissions', function () {
 
             const record = {};
             const checkDbData = (dbData) => {
-              // should return only generated fields and empty arrays(due to the way mongoose handles arrays)
+              // should return only generated fields and empty arrays
               should(_.keys(dbData).length).equal(7);
               should(dbData.array1).be.empty();
               should(dbData.array2).be.empty();

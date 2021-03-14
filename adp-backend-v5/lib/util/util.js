@@ -4,10 +4,11 @@
  */
 
 const _ = require('lodash');
-const moment = require('moment');
+const dayjs = require('dayjs');
 const crypto = require('crypto');
 const { ObjectID } = require('mongodb');
-const hash = require('object-hash');
+const stringifySafe = require('json-stringify-safe');
+const { getFunction } = require('./memoize');
 
 function getUrlParts(url) {
   return encodeURI(url)
@@ -151,11 +152,6 @@ function stringifyObjectId(obj) {
   return mapValuesDeep(obj, valHandler);
 }
 
-function hashObject(obj) {
-  const hashParamObj = stringifyObjectId(obj);
-  return hash(hashParamObj, { algorithm: 'sha256', encoding: 'base64' });
-}
-
 /**
  * Gets error message if its mongo duplicate error.
  * Mongo duplicate error may be represented as:
@@ -164,7 +160,7 @@ function hashObject(obj) {
  * - E11000 duplicate key error collection: rlog-mobile.refrigerantTypes index: obj.nestedObjNumber_1 dup key: { : 11111111 }
  * NOTE: If many fields break index constraint then only one field is represented in error message.
  * @param error
- * @param appLib
+ * @param models
  * @returns {*}
  */
 function getMongoDuplicateErrorMessage(error, models) {
@@ -204,8 +200,8 @@ function getMongoSortParallelArrayErrorMessage(error) {
 }
 
 const defaultArgsAndValuesForInlineCode = {
-  args: `moment, _, ObjectID, and, or`,
-  values: [moment, _, ObjectID, MONGO.and, MONGO.or],
+  args: `dayjs, _, ObjectID, and, or`,
+  values: [dayjs, _, ObjectID, MONGO.and, MONGO.or],
 };
 
 function getDefaultArgsAndValuesForInlineCode() {
@@ -214,7 +210,7 @@ function getDefaultArgsAndValuesForInlineCode() {
 
 function getDocValueForExpression(doc, expression) {
   const { args, values } = getDefaultArgsAndValuesForInlineCode();
-  return new Function(args, `return ${expression}`).apply(doc, values);
+  return getFunction(args, `return ${expression}`).apply(doc, values);
 }
 
 function stringifyLog(obj, space) {
@@ -225,10 +221,13 @@ function stringifyLog(obj, space) {
     if (value instanceof ObjectID) {
       return `ObjectID(${value.toString()})`;
     }
+    if (value instanceof ObjectID) {
+      return `ObjectID(${value.toString()})`;
+    }
     return value;
   };
 
-  return JSON.stringify(mapValuesDeep(obj, valHandler), null, space);
+  return stringifySafe(mapValuesDeep(obj, valHandler), null, space);
 }
 
 function stringifyObj(obj) {
@@ -324,9 +323,9 @@ function updateSearchConditions(searchConditions, fields, term) {
     searchConditions.push(condition);
   });
 }
-function isMongoReplicaSet(mongooseCon) {
-  const isStandalone = [...mongooseCon.db.s.topology.s.description.servers.values()]
-    .map((s) => s.type)
+function isMongoSupportsSessions(dbCon) {
+  const isStandalone = [...dbCon.s.topology.s.description.servers.values()]
+    .map((serverDescription) => serverDescription.type)
     .includes('Standalone');
   return !isStandalone;
 }
@@ -358,6 +357,14 @@ function showMemoryUsage(logger = console) {
   logger.info(message);
 }
 
+function handleResult(res, func = (r) => r) {
+  const isPromise = !!res.then;
+  if (isPromise) {
+    return res.then((resolvedResult) => func.call(this, resolvedResult));
+  }
+  return func.call(this, res);
+}
+
 module.exports = {
   getUrlParts,
   getUrlWithoutPrefix,
@@ -368,7 +375,6 @@ module.exports = {
   MONGO,
   mapValuesDeep,
   stringifyObjectId,
-  hashObject,
   getMongoDuplicateErrorMessage,
   getMongoSortParallelArrayErrorMessage,
   getDefaultArgsAndValuesForInlineCode,
@@ -382,8 +388,9 @@ module.exports = {
   getItemPathByFullModelPath,
   getBeforeAndAfterLastArrayPath,
   updateSearchConditions,
-  isMongoReplicaSet,
+  isMongoSupportsSessions,
   expandObjectAsKeyValueList,
   expandObjectAsNumberedList,
   showMemoryUsage,
+  handleResult,
 };

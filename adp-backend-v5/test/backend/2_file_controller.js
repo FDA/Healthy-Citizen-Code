@@ -80,6 +80,7 @@ describe('File Controller', function () {
     { name: 'adp-grid-view-manager/adp-grid-view-manager.controller.js' },
     { name: 'adp-grid-view-manager/adp-grid-view-manager.module.js' },
     { name: 'adp-grid-view-manager/adp-grid-view-manager.service.js' },
+    { name: 'adp-rtc-actions/adp-rtc-actions.module.js' },
     { name: 'adp-synthetic-generate/adp-synthetic-generate.component.js' },
     { name: 'adp-synthetic-generate/adp-synthetic-generate.controller.js' },
     { name: 'adp-synthetic-generate/adp-synthetic-generate.module.js' },
@@ -95,6 +96,8 @@ describe('File Controller', function () {
     { name: 'adp-filter-builder/adp-filter-builder.module.js' },
     { name: 'adp-filter-builder/adp-filter-builder.service.js' },
     { name: 'adp-form-actions/adp-form-actions.module.js' },
+    { name: 'adp-profile/adp-profile.module.js' },
+    { name: 'adp-roles-permissions-editor/adp-roles-permissions-editor.module.js' },
   ];
 
   describe('Serving public files', function () {

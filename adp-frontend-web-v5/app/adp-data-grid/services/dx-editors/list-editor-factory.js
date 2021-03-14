@@ -23,6 +23,10 @@
         dataSource: AdpListsService.getDataSource(init.args),
         onValueChanged: init.onValueChanged,
         showClearButton: true,
+        onOpened: function (e) {
+          var ds = e.component.option('dataSource');
+          (ds instanceof DevExpress.data.DataSource) && ds.reload();
+        },
       };
 
       return AdpFieldsService.configFromParameters(init.args.fieldSchema, defaults);

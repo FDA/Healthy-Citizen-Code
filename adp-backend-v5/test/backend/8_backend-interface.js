@@ -5,7 +5,6 @@
 
 require('should');
 const assert = require('assert');
-const mongoose = require('mongoose');
 const { prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
 describe('V5 Backend Routes Functionality', function () {
@@ -14,7 +13,6 @@ describe('V5 Backend Routes Functionality', function () {
     this.appLib = require('../../lib/app')();
     await this.appLib.setup();
     this.dba = require('../../lib/database-abstraction')(this.appLib);
-    this.M6 = mongoose.model('model6s');
     this.appLib.authenticationCheck = (req, res, next) => next(); // disable authentication
   });
 

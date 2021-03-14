@@ -13,6 +13,47 @@
             "link": "fire"
           },
           "menuOrder": 0
+        },
+        system: {
+          type: 'MenuGroup',
+          "fullName": "System",
+          "scopes": {
+            "view": {
+              "permissions": "accessSystemMenu"
+            }
+          },
+          fields: {
+            users: {
+              type: 'MenuItem',
+              fullName: 'Users',
+              "scopes": {
+                "view": {
+                  "permissions": "accessUsers"
+                }
+              },
+              "link": '/users'
+            },
+            "roles": {
+              type: 'MenuItem',
+              fullName: 'Roles and Permissions',
+              "scopes": {
+                "view": {
+                  "permissions": "accessRolesAndPermissions"
+                }
+              },
+              "link": "/roles"
+            },
+            "rolesPermissionsEditor": {
+              "type": "MenuItem",
+              "fullName": "Roles Permissions Editor",
+              "scopes": {
+                "view": {
+                  "permissions": "accessRolesAndPermissions"
+                }
+              },
+              "link": "/roles-permissions-editor"
+            }
+          }
         }
       }
     }

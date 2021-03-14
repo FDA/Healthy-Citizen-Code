@@ -16,7 +16,7 @@
     "js-base64": "^2.5.1",
     "lodash": "^4.17.15",
     "log4js": "^6.1.0",
-    "nanoid": "^2.0.1",
+    "nanoid": "^3.1.16",
     "querystring": "^0.2.0",
     "url-parse": "^1.4.7"
   },

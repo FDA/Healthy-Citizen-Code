@@ -57,6 +57,7 @@
     function _getDefaults(field, defaults) {
       var fieldType = field.type.toLowerCase()
         .replace("[]", "");
+
       return defaults[fieldType];
     }
 

@@ -8,7 +8,9 @@
   /** @ngInject */
   function CellEditorsValidationService(
     AdpValidationMessages,
-    AdpValidationRules
+    AdpValidationRules,
+    AdpUnifiedArgs,
+    ACTIONS
   ) {
     var requiredValidator = { type: 'required' };
 
@@ -17,7 +19,8 @@
       getMessage: getMessage,
     }
 
-    function getValidators(field) {
+    function getValidators(schema, fieldName) {
+      var field = schema.fields[fieldName];
       var rules = [];
       if (field.required === true) {
         rules.push(requiredValidator);
@@ -44,7 +47,8 @@
           reevaluate: true,
           validationCallback: function (e) {
             e.rule.message = AdpValidationMessages.update(e.value, field, validatorRule);
-            return AdpValidationRules[validatorRule.validator](e.value, field, validatorRule);
+            var args = getArgs(field.fieldName, schema, e.data, validatorRule);
+            return AdpValidationRules[validatorRule.validator](args);
           }
         });
       });
@@ -58,6 +62,18 @@
       }
 
       return AdpValidationMessages.update(value, field, validatorRule);
+    }
+
+    function getArgs(fieldName, schema, row, validationRule) {
+      var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: fieldName,
+        formData: row,
+        action: ACTIONS.UPDATE,
+        schema: schema,
+      });
+      args.validationRule = validationRule;
+
+      return args;
     }
   }
 })();

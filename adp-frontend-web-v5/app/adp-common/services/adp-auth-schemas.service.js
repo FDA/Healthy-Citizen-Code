@@ -35,6 +35,7 @@
 
       return {
         type: 'Schema',
+        schemaName: 'login',
         fields: {
           login: loginField,
           password: password,
@@ -50,6 +51,7 @@
     function registrationSchema() {
       return {
         type: 'Schema',
+        schemaName: 'singup',
         fields: {
           login: getModelField('login'),
           email: getModelField('email'),
@@ -67,6 +69,7 @@
     function forgotPasswordSchema() {
       return {
         type: 'Schema',
+        schemaName: 'forgotPassword',
         fields: {
           email: getModelField('email'),
           recaptcha: getRecaptchaField(),
@@ -81,6 +84,7 @@
     function resetPasswordSchema() {
       return {
         type: 'Schema',
+        schemaName: 'resetPassword',
         fields: {
           password: getPasswordModelField(),
           passwordConfirmation: getPasswordConfirmation(),

@@ -8,7 +8,6 @@
   /** @ngInject */
   function LookupSelector(
     LookupDataSource,
-    AdpLookupHelpers,
     DxEditorMixin,
     LookupDxConfig,
     AdpFieldsService

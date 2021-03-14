@@ -1,5 +1,6 @@
 (function () {
-  angular.module('app.adpGridControlActions', []).factory('AdpGridControlActions', GridControlsActions);
+  angular.module('app.adpGridControlActions', [])
+    .factory('AdpGridControlActions', GridControlsActions);
 
   /** @ngInject */
   function GridControlsActions(AdpClientCommonHelper, AdpSchemaService, GraphqlCollectionQuery, ActionsHandlers) {
@@ -20,41 +21,40 @@
       });
     }
 
-    function createAction() {
-      return function (toolbarWidgetRegister) {
-        var actionOptions = this.actionOptions;
-        var isDisabled = _.get(actionOptions, 'params.disabled', false);
+    function createAction(toolbarWidgetRegister) {
+      var actionOptions = this.actionOptions;
+      var isDisabled = _.get(actionOptions, 'params.disabled', false);
 
-        return toolbarWidgetRegister(function (gridComponent) {
-          return {
-            widget: 'dxMenu',
-            disabled: isDisabled,
-            options: {
-              cssClass: 'create-grid-control',
-              dataSource: createDataSourceForCreateActionMenu(actionOptions),
-              showSubmenuMode: {
-                name: 'onClick',
-                delay: { show: 0, hide: 0 },
-              },
-              onItemClick: function onItemClick(e) {
-                var schemaName = e.itemData.schemaName;
-                if (!schemaName) {
-                  return;
-                }
-                var schema = getSchemaByName(schemaName);
-                var createDataGetter = _.get(actionOptions, 'params.createDataGetter');
-                var createData = _.isFunction(createDataGetter)? createDataGetter(schemaName) : {}
+      return toolbarWidgetRegister(function (gridComponent) {
+        return {
+          widget: 'dxMenu',
+          disabled: isDisabled,
+          options: {
+            cssClass: 'create-grid-control',
+            dataSource: createDataSourceForCreateActionMenu(actionOptions),
+            showSubmenuMode: {
+              name: 'onClick',
+              delay: {show: 0, hide: 0}
+            },
+            onItemClick: function onItemClick(e) {
+              var schemaName = e.itemData.schemaName;
+              if (!schemaName) {
+                return;
+              }
+              var schema = getSchemaByName(schemaName);
+              var createDataGetter = _.get(actionOptions, 'params.createDataGetter');
+              var createData = _.isFunction(createDataGetter) ? createDataGetter(schemaName) : {}
 
-                ActionsHandlers.create(schema, createData).then(function () {
+              ActionsHandlers.create(schema, createData)
+                .then(function () {
                   gridComponent.refresh();
                 });
 
-                AdpClientCommonHelper.repaintToolbar(gridComponent);
-              },
-            },
-          };
-        });
-      };
+              AdpClientCommonHelper.repaintToolbar(gridComponent);
+            }
+          }
+        };
+      });
     }
 
     function createDataSourceForCreateActionMenu(actionOptions) {
@@ -66,8 +66,8 @@
       var dataSource = [
         {
           template: '<button type="button" class="' + className + '">' + buttonText + '</button>',
-          disabled: isDisabled,
-        },
+          disabled: isDisabled
+        }
       ];
 
       if (tableNames.length === 1) {
@@ -76,7 +76,7 @@
         dataSource[0].items = _.map(actionOptions.table, function (table, name) {
           return {
             text: 'Create "' + _.startCase(name) + '"',
-            schemaName: name,
+            schemaName: name
           };
         });
       }

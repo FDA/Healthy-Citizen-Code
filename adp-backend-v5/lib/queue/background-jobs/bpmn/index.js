@@ -3,7 +3,7 @@ const { prepareJavaInstance } = require('../dmn');
 
 const BPMN_QUEUE_NAME = 'bpmnRunner';
 const bpmnRunnerConcurrency = +process.env.BPMN_RUNNER_CONCURRENCY || 1;
-const bpmnBatchSize = +process.env.BPMN_BATCH_SIZE || 10000;
+const bpmnBatchSize = +process.env.BPMN_BATCH_SIZE || 50;
 const bpmnProcessesCollectionName = 'bpmnProcesses';
 
 async function createBpmnQueue({ appLib, log }) {
@@ -14,7 +14,7 @@ async function createBpmnQueue({ appLib, log }) {
   bpmnContext.setCommonContext({ db: appLib.db, cache: appLib.cache, log, backgroundJobsUtil: util });
 
   const bpmnRunnerQueue = appLib.queue.createQueue(BPMN_QUEUE_NAME);
-  util.addLogsAndNotificationsForQueueEvents(appLib, bpmnRunnerQueue, log);
+  util.addQueueEventHandlers({ appLib, bullQueue: bpmnRunnerQueue, log });
 
   bpmnRunnerQueue.process(bpmnRunnerConcurrency, require('./bpmn-queue-processor')(bpmnContext));
 
@@ -35,7 +35,9 @@ async function runBpmnProcess({
 }) {
   try {
     const bpmnRunnerQueue = appLib.queue.getQueue(BPMN_QUEUE_NAME);
-    const record = await appLib.db.collection(bpmnProcessesCollectionName).findOne({ _id: ObjectID(_id) });
+    const { record } = await appLib.db
+      .collection(bpmnProcessesCollectionName)
+      .hookQuery('findOne', { _id: ObjectID(_id) });
     const { xml } = record.definition || {};
     if (!xml) {
       return {

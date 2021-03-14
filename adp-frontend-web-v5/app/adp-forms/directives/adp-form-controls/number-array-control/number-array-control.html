@@ -2,15 +2,16 @@
   dx-tag-box="config"
   class="adp-number-array"
   ng-if="config"
-  field-name="{{field.fieldName}}"
+  field-name="{{args.fieldSchema.fieldName}}"
 >
 </div>
 
 <input
   type="hidden"
   ng-required="isRequired()"
-  adp-validate="validationParams"
-  name="{{field.fieldName}}"
-  ng-model="adpFormData[field.fieldName]"
+  adp-validate="args"
+  name="{{args.fieldSchema.fieldName}}"
+  ng-model="getterSetter"
+  ng-model-options="{ getterSetter: true }"
 >
 

@@ -3,12 +3,12 @@ const log = require('log4js').getLogger('lib/default-conditions-util');
 const { ObjectID } = require('mongodb');
 const Promise = require('bluebird');
 const { JSONPath } = require('jsonpath-plus');
-const { MONGO, getDocValueForExpression } = require('./util/util');
+const { MONGO, getDocValueForExpression, isValidObjectId } = require('./util/util');
 const { buildLookupsFromDocs } = require('./util/lookups');
 const { buildTreeSelectorsFromDocs } = require('./util/treeselectors');
 const { ValidationError, AccessError, LinkedRecordError } = require('./errors');
 
-module.exports = appLib => {
+module.exports = (appLib) => {
   const m = {};
   const { getRequestMeta } = appLib.butil;
 
@@ -23,7 +23,7 @@ module.exports = appLib => {
 
   m.deleteItem = async (context, session) => {
     context.userContext.action = 'delete';
-    const { appModel, modelName, userContext, model, mongoParams } = context;
+    const { appModel, modelName, userContext, mongoParams } = context;
 
     await appLib.hooks.preHook(appModel, userContext);
     const { items, meta } = await m.getElements({ context });
@@ -34,25 +34,54 @@ module.exports = appLib => {
     }
 
     const deleteInfo = await m.getLinkedRecordsInfoOnDelete(data, modelName, session);
-    const isAllDeletionsValid = deleteInfo.every(info => info.isValidDelete);
+    const isAllDeletionsValid = deleteInfo.every((info) => info.isValidDelete);
     if (!isAllDeletionsValid) {
       const message =
         'ERROR: Unable to delete this record because there are other records referring. ' +
         'Please update the referring records and remove reference to this record.';
       throw new LinkedRecordError(message, deleteInfo);
     }
-    const handleLinkedRecordsOnDeletePromises = Promise.map(deleteInfo, info => info.handleDeletePromise());
+    const handleLinkedRecordsOnDeletePromises = Promise.map(deleteInfo, (info) => info.handleDeletePromise());
     const [deletedItem] = await Promise.all([
-      appLib.dba.removeItem(model, mongoParams.conditions, session),
+      appLib.dba.removeItem(modelName, mongoParams.conditions, session),
       handleLinkedRecordsOnDeletePromises,
     ]);
     await appLib.hooks.postHook(appModel, userContext);
     return deletedItem;
   };
 
+  m.deleteItems = async (context, session) => {
+    context.userContext.action = 'delete';
+    const { appModel, modelName, userContext, mongoParams } = context;
+
+    await appLib.hooks.preHook(appModel, userContext);
+    const { items, meta } = await m.getElements({ context });
+    if (!items.length) {
+      log.info(`Unable to delete requested elements. Meta: ${getRequestMeta(context, meta)}`);
+      throw new AccessError(`Unable to delete requested elements`);
+    }
+
+    const deleteInfos = await Promise.map(items, (item) => m.getLinkedRecordsInfoOnDelete(item, modelName, session));
+    const flatDeleteInfos = _.flatMap(deleteInfos);
+    const isAllDeletionsValid = flatDeleteInfos.every((info) => info.isValidDelete);
+    if (!isAllDeletionsValid) {
+      const message =
+        'ERROR: Unable to delete these records because there are other records referring. ' +
+        'Please update the referring records and remove reference to this record.';
+      throw new LinkedRecordError(message, flatDeleteInfos);
+    }
+    const handleLinkedRecordsOnDeletePromises = Promise.map(flatDeleteInfos, (info) => info.handleDeletePromise());
+    const [deletedCount] = await Promise.all([
+      appLib.dba.removeItems(modelName, mongoParams.conditions, session),
+      handleLinkedRecordsOnDeletePromises,
+    ]);
+    await appLib.hooks.postHook(appModel, userContext);
+    return deletedCount;
+  };
+
   m.putItem = async (context, newItem, session) => {
     await appLib.validation.validateNewItem(context, newItem);
-    const { appModel, modelName, userContext, model, mongoParams, userPermissions } = context;
+    const { appModel, modelName, userContext, mongoParams, userPermissions } = context;
     context.userContext.action = 'update';
     const { action } = context.userContext;
 
@@ -72,7 +101,7 @@ module.exports = appLib => {
       userPermissions,
     });
     const updatedItem = await appLib.dba.updateItem({
-      model,
+      modelName,
       userContext,
       mongoConditions: mongoParams.conditions,
       data: newData,
@@ -84,11 +113,79 @@ module.exports = appLib => {
     return updatedItem;
   };
 
-  m.postItem = async (context, newItem, session) => {
-    await appLib.validation.validateNewItem(context, newItem);
-    const { inlineContext, appModel, userContext, model, mongoParams, userPermissions } = context;
-    context.userContext.action = 'create';
+  m.putItems = async (context, newItems, session) => {
+    await Promise.map(newItems, (newItem) => appLib.validation.validateNewItem(context, newItem));
+    const { appModel, modelName, userContext, userPermissions } = context;
+    context.userContext.action = 'update';
     const { action } = context.userContext;
+
+    await appLib.hooks.preHook(appModel, userContext);
+
+    const { items, meta } = await m.getElements({ context });
+    if (!items.length) {
+      log.error(`Unable to update requested elements. Meta: ${getRequestMeta(context, meta)}`);
+      throw new ValidationError(`Unable to update requested elements`);
+    }
+    const itemPairsToMerge = [];
+    const notExistingItemIds = [];
+    _.each(newItems, (newItem) => {
+      const newItemId = newItem._id.toString();
+      const item = items.find((i) => i._id.toString() === newItemId);
+      if (!item) {
+        notExistingItemIds.push(newItemId);
+      } else {
+        itemPairsToMerge.push({ item, newItem });
+      }
+    });
+    if (notExistingItemIds.length) {
+      const errors = {};
+      _.each(notExistingItemIds, (id) => {
+        errors[id] = `Invalid id`;
+      });
+      return errors;
+    }
+
+    const mergedItems = [];
+    _.each(itemPairsToMerge, (itemPair) => {
+      const mergedItem = appLib.accessUtil.mergeDocUsingFieldActions({
+        appModel,
+        dbDoc: itemPair.item,
+        userData: itemPair.newItem,
+        action,
+        userPermissions,
+      });
+      mergedItems.push(mergedItem);
+    });
+
+    const errors = await appLib.dba.updateItems({
+      modelName,
+      userContext,
+      items: mergedItems,
+      session,
+    });
+
+    if (!_.isEmpty(errors)) {
+      return errors;
+    }
+
+    await Promise.map(mergedItems, (mergedItem, index) => {
+      const item = items[index];
+      return m.updateLinkedRecords(mergedItem, item, modelName, session);
+    });
+
+    await appLib.hooks.postHook(appModel, userContext);
+
+    return errors;
+  };
+
+  m.cloneItem = async (context, newItem, session) => {
+    return m.postItem(context, newItem, session, 'clone');
+  };
+
+  m.postItem = async (context, newItem, session, action = 'create') => {
+    await appLib.validation.validateNewItem(context, newItem);
+    const { inlineContext, appModel, userContext, mongoParams, userPermissions, modelName } = context;
+    context.userContext.action = action;
 
     await appLib.hooks.preHook(appModel, userContext);
     const scopeConditionsMeta = await appLib.accessUtil.getScopeConditionsMeta(
@@ -101,7 +198,7 @@ module.exports = appLib => {
     const item = await appLib.controllerUtil.createItemWithCheckAndFilter({
       action,
       data: newItem,
-      model,
+      modelName,
       mongoConditions: MONGO.and(mongoParams.conditions, scopeConditions),
       userPermissions,
       userContext,
@@ -113,16 +210,7 @@ module.exports = appLib => {
 
   m.upsertItem = async (context, newItem, session) => {
     await appLib.validation.validateNewItem(context, newItem);
-    const {
-      inlineContext,
-      appModelPath,
-      appModel,
-      modelName,
-      userContext,
-      model,
-      mongoParams,
-      userPermissions,
-    } = context;
+    const { inlineContext, appModelPath, appModel, userContext, modelName, mongoParams, userPermissions } = context;
     context.userContext.action = 'upsert';
     const { action } = context.userContext;
     await appLib.hooks.preHook(appModel, userContext);
@@ -140,7 +228,7 @@ module.exports = appLib => {
         userPermissions,
       });
       upsertedItem = await appLib.dba.updateItem({
-        model,
+        modelName,
         userContext,
         mongoConditions: mongoParams.conditions,
         data: newData,
@@ -160,7 +248,7 @@ module.exports = appLib => {
       upsertedItem = await appLib.controllerUtil.createItemWithCheckAndFilter({
         action,
         data: newItem,
-        model,
+        modelName,
         mongoConditions: MONGO.and(mongoParams.conditions, scopeConditions),
         userPermissions,
         userContext,
@@ -173,7 +261,7 @@ module.exports = appLib => {
   };
 
   m.getElementsCount = async ({
-    context: { action, appModel, userPermissions, inlineContext, model, mongoParams },
+    context: { action, appModel, userPermissions, inlineContext, modelName, mongoParams },
   }) => {
     const scopeConditionsMeta = await appLib.accessUtil.getScopeConditionsMeta(
       appModel,
@@ -183,11 +271,11 @@ module.exports = appLib => {
     );
     const scopeConditions = scopeConditionsMeta.overallConditions;
     const conditions = MONGO.and(mongoParams.conditions, scopeConditions);
-    return appLib.dba.getCountDocuments(model, conditions);
+    return appLib.dba.getDocumentsCountUsingCache(modelName, conditions);
   };
 
   m.getElements = async ({
-    context: { appModel, userPermissions, userContext, inlineContext, model, mongoParams },
+    context: { appModel, userPermissions, userContext, inlineContext, modelName, mongoParams },
     actionsToPut = false,
   }) => {
     const { action } = userContext;
@@ -200,7 +288,7 @@ module.exports = appLib => {
     const scopeConditions = scopeConditionsMeta.overallConditions;
     mongoParams.conditions = MONGO.and(modelConditions, scopeConditions);
     const items = await appLib.dba.getItemsUsingCache({
-      model,
+      modelName,
       userContext,
       mongoParams,
       actionFuncs: actionFuncsMeta.actionFuncs,
@@ -218,20 +306,14 @@ module.exports = appLib => {
     return { items, meta };
   };
 
-  m.getElementsWithFilteredFields = async ({
-    context: { appModel, userPermissions, userContext, inlineContext, model, mongoParams },
-    actionsToPut = false,
-  }) => {
-    const { items, meta } = await m.getElements({
-      context: { appModel, userPermissions, userContext, inlineContext, model, mongoParams },
-      actionsToPut,
-    });
-    const { action } = userContext;
-    appLib.accessUtil.filterDocFields(appModel, items, action, userPermissions);
+  m.getElementsWithFilteredFields = async ({ context, actionsToPut = false }) => {
+    const { items, meta } = await m.getElements({ context, actionsToPut });
+    const { appModel, userPermissions, userContext } = context;
+    appLib.accessUtil.filterDocFields(appModel, items, userContext.action, userPermissions);
     return { items, meta };
   };
 
-  m.getTreeSelectorConditions = async (treeSelectorSpec, model, parentLookup) => {
+  m.getTreeSelectorConditions = async (treeSelectorSpec, modelName, parentLookup) => {
     if (!parentLookup) {
       return treeSelectorSpec.roots;
     }
@@ -245,7 +327,9 @@ module.exports = appLib => {
       return { [parentRefKey]: parentLookup._id };
     }
 
-    const parentDoc = await model.findOne({ [foreignKey]: parentLookup._id }, { [fieldContainingRef]: 1 }).lean();
+    const { record: parentDoc } = await appLib.db
+      .collection(modelName)
+      .hookQuery('findOne', { [foreignKey]: parentLookup._id }, { [fieldContainingRef]: 1 });
     return { [parentRefKey]: _.get(parentDoc, fieldContainingRef) };
   };
 
@@ -262,8 +346,8 @@ module.exports = appLib => {
     };
   };
 
-  m.getSchemaLookups = async lookupCtx => {
-    const { model, userContext, userPermissions, inlineContext, tableSpec, mongoParams } = lookupCtx;
+  m.getSchemaLookups = async (lookupCtx) => {
+    const { modelName, userContext, userPermissions, inlineContext, tableSpec, mongoParams } = lookupCtx;
     const { limit, skip, sort, conditions } = mongoParams;
     const lookupWholeConditions = await appLib.accessUtil.getViewConditionsByPermissionsForLookup(
       userPermissions,
@@ -272,7 +356,7 @@ module.exports = appLib => {
       conditions
     );
     const docs = await appLib.dba.getItemsUsingCache({
-      model,
+      modelName,
       userContext,
       mongoParams: {
         conditions: lookupWholeConditions,
@@ -286,9 +370,9 @@ module.exports = appLib => {
     return { lookups, more: lookups.length === limit };
   };
 
-  m.getTreeSelectorLookups = async treeSelectorCtx => {
+  m.getTreeSelectorLookups = async (treeSelectorCtx) => {
     const {
-      model,
+      modelName,
       userContext,
       userPermissions,
       inlineContext,
@@ -301,10 +385,10 @@ module.exports = appLib => {
 
     const [viewCondition, treeSelectorCondition] = await Promise.all([
       appLib.accessUtil.getViewConditionsByPermissionsForLookup(userPermissions, inlineContext, tableSpec, conditions),
-      m.getTreeSelectorConditions(tableSpec, model, treeSelectorParentLookup),
+      m.getTreeSelectorConditions(tableSpec, modelName, treeSelectorParentLookup),
     ]);
     const docs = await appLib.dba.getItemsUsingCache({
-      model,
+      modelName,
       userContext,
       mongoParams: {
         conditions: MONGO.and(viewCondition, treeSelectorCondition),
@@ -321,16 +405,15 @@ module.exports = appLib => {
   m.createItemWithCheckAndFilter = async ({
     action,
     data,
-    model,
+    modelName,
     mongoConditions,
     userPermissions,
     userContext,
     session,
   }) => {
-    const { modelName } = model;
     const appModel = appLib.appModel.models[modelName];
     const filteredDoc = appLib.accessUtil.filterDocFields(appModel, data, action, userPermissions);
-    return appLib.dba.createItemCheckingConditions(model, mongoConditions, userContext, filteredDoc, session);
+    return appLib.dba.createItemCheckingConditions(modelName, mongoConditions, userContext, filteredDoc, session);
   };
 
   /**
@@ -341,11 +424,11 @@ module.exports = appLib => {
    */
   m.transformLookupKeys = (item, modelName) => {
     const lookupFieldsMeta = _.get(appLib.lookupFieldsMeta, modelName);
-    _.each(lookupFieldsMeta, lookupMeta => {
+    _.each(lookupFieldsMeta, (lookupMeta) => {
       const { jsonPath } = lookupMeta.paths;
       const lookupVals = JSONPath({ path: jsonPath, json: item });
-      const lookups = _.flatten(lookupVals).filter(l => l);
-      _.each(lookups, lookupObj => {
+      const lookups = _.flatten(lookupVals).filter((l) => l);
+      _.each(lookups, (lookupObj) => {
         transformLookupKeysObj(lookupObj);
       });
 
@@ -371,7 +454,7 @@ module.exports = appLib => {
     // check whether label, data or foreign key fields in item is changed
     // if yes - update corresponding docs in other models
     const updatePromises = [];
-    const actualRecordCond = appLib.dba.getConditionForActualRecord();
+    const actualRecordCond = appLib.dba.getConditionForActualRecord(modelName);
 
     // used for clearing cache for changed linked records
     const updatedModels = new Set();
@@ -380,7 +463,7 @@ module.exports = appLib => {
     // TODO: improve efficiency by decreasing number of update requests for same records
     // TODO: one record may be updated multiple times if it has multiple lookups/treeselector linked to same scheme.
     _.each(labelFieldsMeta, (labelReferences, label) => {
-      _.each(labelReferences, labelReference => {
+      _.each(labelReferences, (labelReference) => {
         const {
           scheme,
           paths: { itemPath, mongoPath, beforeArrPath, afterArrPath },
@@ -407,7 +490,7 @@ module.exports = appLib => {
 
         if (isLabelChanged || isDataChanged || isForeignKeyValChanged) {
           updatedModels.add(scheme);
-          const model = appLib.db.model(scheme);
+          const collection = appLib.db.collection(scheme);
           let updatePromise;
 
           const hasArraysInPath = mongoPath.includes('$[]') || isMultiple;
@@ -422,13 +505,14 @@ module.exports = appLib => {
             if (data) {
               update[`${itemPath}.data`] = newItemData;
             }
-            updatePromise = model.updateMany(
+            updatePromise = collection.hookQuery(
+              'updateMany',
               MONGO.and(actualRecordCond, {
                 [`${itemPath}._id`]: oldItemFKey,
                 [`${itemPath}.table`]: modelName,
               }),
               { $set: update },
-              { session }
+              { session, checkKeys: false }
             );
           } else if (isMultiple) {
             const update = {
@@ -438,12 +522,14 @@ module.exports = appLib => {
             if (data) {
               update[`${mongoPath}.$[elem].data`] = newItemData;
             }
-            updatePromise = model.updateMany(
+            updatePromise = collection.hookQuery(
+              'updateMany',
               MONGO.and({ [pathToArrayWithoutPosOperators]: { $exists: true } }, actualRecordCond),
               { $set: update },
               {
                 arrayFilters: [{ 'elem._id': oldItemFKey, 'elem.table': modelName }],
                 session,
+                checkKeys: false,
               }
             );
           } else {
@@ -456,12 +542,14 @@ module.exports = appLib => {
             if (data) {
               update[`${itemPathWithElem}.data`] = newItemData;
             }
-            updatePromise = model.updateMany(
+            updatePromise = collection.hookQuery(
+              'updateMany',
               MONGO.and({ [pathToArrayWithoutPosOperators]: { $exists: true } }, actualRecordCond),
               { $set: update },
               {
                 arrayFilters: [{ [`${elemPath}._id`]: oldItemFKey, [`${elemPath}.table`]: modelName }],
                 session,
+                checkKeys: false,
               }
             );
           }
@@ -471,7 +559,7 @@ module.exports = appLib => {
     });
 
     await Promise.all(updatePromises);
-    return Promise.map([...updatedModels], model => appLib.cache.clearCacheForModel(model));
+    return Promise.map([...updatedModels], (model) => appLib.cache.clearCacheForModel(model));
   };
 
   /**
@@ -490,11 +578,11 @@ module.exports = appLib => {
    */
   m.getLinkedRecordsInfoOnDelete = (itemToDelete, lookupTableName, session) => {
     const promises = [];
-    const actualRecordCond = appLib.dba.getConditionForActualRecord();
+    const actualRecordCond = appLib.dba.getConditionForActualRecord(lookupTableName);
 
     const labelFieldsMeta = _.get(appLib.labelFieldsMeta, lookupTableName);
-    _.each(labelFieldsMeta, labelReferences => {
-      _.each(labelReferences, labelReference => {
+    _.each(labelFieldsMeta, (labelReferences) => {
+      _.each(labelReferences, (labelReference) => {
         promises.push(getLabelReferenceInfoPromise(labelReference, session));
       });
     });
@@ -512,21 +600,23 @@ module.exports = appLib => {
         required,
       } = _labelReference;
       const itemFKey = _.get(itemToDelete, foreignKey);
-      const linkedModel = appLib.db.model(scheme);
+      const collection = appLib.db.collection(scheme);
 
       if (isMultiple && fieldType === 'LookupObjectID[]') {
-        return docs =>
-          linkedModel.updateMany(
-            { _id: { $in: docs.map(doc => doc._id) } },
+        return (docs) =>
+          collection.hookQuery(
+            'updateMany',
+            { _id: { $in: docs.map((doc) => doc._id) } },
             { $pull: { [mongoPath]: { _id: itemFKey, table: lookupTableName } } },
-            { session: _session }
+            { session: _session, checkKeys: false }
           );
       }
       if (!isMultiple && fieldType === 'LookupObjectID') {
         if (beforeArrPath) {
-          return docs =>
-            linkedModel.updateMany(
-              { _id: { $in: docs.map(doc => doc._id) } },
+          return (docs) =>
+            collection.hookQuery(
+              'updateMany',
+              { _id: { $in: docs.map((doc) => doc._id) } },
               {
                 $set: {
                   [beforeArrPath]: {
@@ -535,14 +625,15 @@ module.exports = appLib => {
                   },
                 },
               },
-              { session: _session }
+              { session: _session, checkKeys: false }
             );
         }
-        return docs =>
-          linkedModel.updateMany(
-            { _id: { $in: docs.map(doc => doc._id) } },
+        return (docs) =>
+          collection.hookQuery(
+            'updateMany',
+            { _id: { $in: docs.map((doc) => doc._id) } },
             { $set: { [itemPath]: null } },
-            { session: _session }
+            { session: _session, checkKeys: false }
           );
       }
 
@@ -556,8 +647,8 @@ module.exports = appLib => {
           return () => {};
         }
 
-        return docs => {
-          Promise.map(docs, doc => {
+        return (docs) => {
+          Promise.map(docs, (doc) => {
             const changes = {};
             JSONPath({
               path: jsonPath,
@@ -567,7 +658,7 @@ module.exports = appLib => {
                 let { value: treeSelector } = payload;
                 if (allowedToSelectNodes) {
                   const deletedLookupIndex = treeSelector.findIndex(
-                    lookup => lookup.table === lookupTableName && lookup._id.toString() === itemFKey.toString()
+                    (lookup) => lookup.table === lookupTableName && lookup._id.toString() === itemFKey.toString()
                   );
                   if (deletedLookupIndex !== -1) {
                     treeSelector.splice(deletedLookupIndex, treeSelector.length);
@@ -580,7 +671,12 @@ module.exports = appLib => {
               },
             });
 
-            return linkedModel.updateOne({ _id: doc._id }, changes, { session: _session });
+            return collection.hookQuery(
+              'updateOne',
+              { _id: doc._id },
+              { $set: changes },
+              { session: _session, checkKeys: false }
+            );
           });
         };
       }
@@ -599,7 +695,11 @@ module.exports = appLib => {
         isMultiple,
         foreignKey,
       } = _labelReference;
-      const itemFKey = _.get(itemToDelete, foreignKey);
+      let itemFKey = _.get(itemToDelete, foreignKey);
+      if (isValidObjectId(itemFKey)) {
+        itemFKey = ObjectID(itemFKey);
+      }
+
       if (isMultiple) {
         return MONGO.and({ [itemPath]: { $elemMatch: { _id: itemFKey, table: lookupTableName } } }, actualRecordCond);
       }
@@ -613,15 +713,9 @@ module.exports = appLib => {
         paths: { itemPath },
         fieldType,
       } = _labelReference;
-      const linkedModel = appLib.db.model(scheme);
 
       const findLinkedRecordsCondition = getFindLinkedRecordsCondition(_labelReference);
-      const handleDeletePromise = getHandleDeletePromise(_labelReference, _session);
-
-      const docs = await linkedModel
-        .find(findLinkedRecordsCondition)
-        .lean()
-        .exec();
+      const docs = await appLib.db.collection(scheme).find(findLinkedRecordsCondition, { session: _session }).toArray();
 
       // condition to allow performing deleteFunc
       // for now its:
@@ -633,8 +727,11 @@ module.exports = appLib => {
         isValidDelete,
         linkedCollection: scheme,
         linkedLabel: itemPath,
-        linkedRecords: docs.map(doc => ({ _id: doc._id })),
-        handleDeletePromise: () => handleDeletePromise(docs),
+        linkedRecords: docs.map((doc) => ({ _id: doc._id })),
+        handleDeletePromise: () => {
+          const handleDeletePromise = getHandleDeletePromise(_labelReference, _session);
+          return handleDeletePromise(docs);
+        },
       };
     }
   };
@@ -647,21 +744,18 @@ module.exports = appLib => {
   m.normalizeLookupObjectIds = () =>
     Promise.map(appLib.lookupFieldsMeta, async (lookup, modelName) => {
       const lookupFields = Object.keys(lookup);
-      const allExistsConditions = lookupFields.map(f =>
+      const allExistsConditions = lookupFields.map((f) =>
         MONGO.and({ [f]: { $exists: true } }, { [f]: { $ne: [] } }, { [f]: { $ne: {} } })
       );
       const condition = MONGO.or(...allExistsConditions);
-      const model = appLib.db.model(modelName);
+      const collection = appLib.db.collection(modelName);
 
-      const docs = await model
-        .find(condition)
-        .lean()
-        .exec();
+      const docs = await collection.find(condition).toArray();
 
       // update each doc
-      return Promise.map(docs, doc => {
+      return Promise.map(docs, (doc) => {
         appLib.controllerUtil.transformLookupKeys(doc, modelName);
-        return model.updateOne({ _id: doc._id }, doc);
+        return collection.hookQuery('updateOne', { _id: doc._id }, doc, { checkKeys: false });
       });
     });
 

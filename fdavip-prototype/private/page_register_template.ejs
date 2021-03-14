@@ -1,0 +1,16 @@
+<adp-page-loader loading="vm.loading"></adp-page-loader>
+
+<adp-content-container ng-if="!vm.loading">
+
+    <adp-section-container>
+        <adp-page-title>
+            {{vm.data.fullName}}
+        </adp-page-title>
+    </adp-section-container>
+
+    <adp-section-container>
+        <p>This is a website prototype, no user registration is included in the prototype functionality.</p>
+        <p>Please <a href="mailto:info@conceptant.com?subject=Circadiance Prototype">contact Conceptant</a> if you need more information about this prototype.</p>
+    </adp-section-container>
+
+</adp-content-container>

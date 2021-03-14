@@ -5,123 +5,40 @@
  */
 
 const log = require('log4js').getLogger('lib/model');
-const mongoose = require('mongoose');
 const fs = require('fs-extra');
+const nodePath = require('path');
 const _ = require('lodash');
 const Promise = require('bluebird');
+const ejs = require('ejs');
 const { appRoot } = require('./util/env');
+const { getFunction } = require('./util/memoize');
 
-const { Schema } = mongoose;
 const {
   getItemPathByFullModelPath,
   getJsonPathByFullModelPath,
   getMongoPathByFullModelPath,
   getBeforeAndAfterLastArrayPath,
   camelCase2CamelText,
+  stringifyObj,
 } = require('./util/util');
-const schemaTransformers = require('./schema-transformers')();
+// const schemaTransformers = require('./schema-transformers')();
 const {
   getTransformedInterfaceAppPermissions,
-  getAppModelWithTransformedPermissions,
-  transformListPermissions,
   transformMenuPermissions,
   transformPagesPermissions,
   expandPermissionsForScopes,
+  expandPermissionsForScope,
 } = require('./access/transform-permissions');
-const { combineModels, schemaKeyRegExp } = require('./util/model');
+const {
+  combineModels,
+  removeNullsFromObj,
+  schemaKeyRegExp,
+  EJS_BACKEND_APP_SCHEMA_DELIMITER,
+} = require('./util/model');
 const { getSchemaPaths, getSchemaNestedPaths } = require('./util/env');
 
 module.exports = (appLib) => {
   const m = {};
-
-  function ObjectIdOrScalar(key, options) {
-    mongoose.SchemaType.call(this, key, options, 'ObjectIdOrScalar');
-  }
-  ObjectIdOrScalar.prototype = Object.create(mongoose.SchemaType.prototype);
-  ObjectIdOrScalar.prototype.cast = (val) => {
-    if (!_.isNumber(val) && !_.isString(val) && !_.isBoolean(val) && !(_.get(val, 'constructor.name') === 'ObjectID')) {
-      throw new Error(`${val} is not an objectId instance or scalar type`);
-    }
-    return val;
-  };
-
-  const mongooseTypes = mongoose.Schema.Types;
-  mongooseTypes.ObjectIdOrScalar = ObjectIdOrScalar;
-  const LookupObjectIDSchema = new Schema({
-    _id: ObjectIdOrScalar,
-    table: String,
-    label: String,
-    data: mongooseTypes.Mixed,
-  });
-
-  /**
-   * Maps HC schema master file types to mongoose types
-   * @enum {Object}
-   */
-  m.mongooseTypesMapping = {
-    String,
-    Html: String,
-    Code: String,
-    Date,
-    Number,
-    Double: Number,
-    Int32: Number,
-    Int64: Number,
-    Decimal128: mongooseTypes.Decimal128,
-    Boolean,
-    Mixed: mongooseTypes.Mixed,
-    ObjectID: mongooseTypes.ObjectId,
-    LookupObjectID: LookupObjectIDSchema,
-    TreeSelector: [LookupObjectIDSchema],
-    'String[]': [String],
-    'Date[]': [Date],
-    'Number[]': [Number],
-    'Double[]': [Number],
-    'Int32[]': [Number],
-    'Int64[]': [Number],
-    'Decimal128[]': [mongooseTypes.Decimal128],
-    'Boolean[]': [Boolean],
-    'Mixed[]': [mongooseTypes.Mixed],
-    'Object[]': [mongooseTypes.Mixed],
-    'ObjectID[]': [mongooseTypes.ObjectId],
-    'LookupObjectID[]': [LookupObjectIDSchema],
-    // the following fields will only contain file names
-    Image: [mongooseTypes.Mixed],
-    Video: [mongooseTypes.Mixed],
-    Audio: [mongooseTypes.Mixed],
-    File: [mongooseTypes.Mixed],
-    'Image[]': [mongooseTypes.Mixed],
-    'Video[]': [mongooseTypes.Mixed],
-    'Audio[]': [mongooseTypes.Mixed],
-    'File[]': [mongooseTypes.Mixed],
-    Location: new Schema(
-      {
-        type: { type: String, default: 'Point' },
-        coordinates: {
-          type: [Number],
-        },
-        label: String,
-      },
-      { _id: false }
-    ),
-    // ex-subtypes
-    Password: String,
-    Email: String,
-    Phone: String,
-    Url: String,
-    Text: String,
-    ImperialHeight: Number,
-    ImperialWeight: Number,
-    ImperialWeightWithOz: Number,
-    BloodPressure: Number,
-    Time: Date,
-    DateTime: Date,
-    Barcode: String,
-    Blank: String,
-    Currency: Number,
-    List: String,
-    'List[]': [String],
-  };
 
   /**
    * Combines all files passed to appModelSources into a single JSON representing the master schema
@@ -145,146 +62,6 @@ module.exports = (appLib) => {
     }
 
     return combineModels({ modelSources, log: log.trace.bind(log), appModelProcessors, macrosDirPaths });
-  };
-
-  // Generating the mongoose model -------------------------------------------------------------
-
-  /**
-   * Gets complete mongoose-compatible schema definition based on JSON application model
-   * @param {string} name name of the conceptant JSON element to generate mongoose schema definition for
-   * @param {Object} obj - conceptant JSON element top generate mongoose schema for
-   * @param {Object} mongooseModel mongoose equivalent of the model will go into this parameter
-   */
-  m.getMongooseSchemaDefinition = (name, obj, mongooseModel) => {
-    const { type, fields } = obj;
-    if (type === 'Group' || type === 'Grid') {
-      return;
-    }
-
-    if (type === 'Schema') {
-      fields.deletedAt.default = new Date(0);
-      fields.generatorBatchName = {
-        type: 'String',
-        showInDatatable: false,
-        showInViewDetails: false,
-        showInForm: false,
-        showInGraphql: false,
-        // "comment": "Do not set this to anything for real records, they may get wiped out as autogenerated otherwise", // this will be eliminated by backed
-        generated: true,
-        fullName: 'Generator Batch Name',
-        description: 'Set to the ID of generator batch for synthetic records',
-        generatorSpecification: {
-          generator: 'scgGeneratorBatchName',
-        },
-      };
-      for (const field in fields) {
-        if (_.has(fields, field)) {
-          m.getMongooseSchemaDefinition(field, fields[field], mongooseModel);
-        }
-      }
-    } else if (type === 'Object') {
-      mongooseModel[name] = {};
-      for (const field in fields) {
-        if (_.has(fields, field)) {
-          m.getMongooseSchemaDefinition(field, fields[field], mongooseModel[name]);
-        }
-      }
-    } else if (type === 'Array') {
-      mongooseModel[name] = [{}];
-      for (const field in fields) {
-        if (_.has(fields, field)) {
-          m.getMongooseSchemaDefinition(field, fields[field], mongooseModel[name][0]);
-        }
-      }
-    } else if (type === 'AssociativeArray') {
-      mongooseModel[name] = {};
-      for (const field in fields) {
-        if (_.has(fields, field)) {
-          m.getMongooseSchemaDefinition(field, fields[field], mongooseModel[name]);
-        }
-      }
-      const schemaWithoutId = new Schema(mongooseModel[name], { _id: false });
-      mongooseModel[name] = {
-        type: Map,
-        of: schemaWithoutId,
-      };
-    } else {
-      mongooseModel[name] = { type: m.mongooseTypesMapping[type] };
-
-      if (name === '_id' && type === 'ObjectID') {
-        // autogenerate _id
-        mongooseModel[name].auto = true;
-      }
-
-      if (obj.default) {
-        mongooseModel[name].default = obj.default;
-      }
-
-      setMongooseIndexesByScheme(obj, mongooseModel, name);
-      if (_.has(obj, 'list')) {
-        if (appLib.appModelHelpers.Lists[obj.list]) {
-          if (_.isString(appLib.appModelHelpers.Lists[obj.list])) {
-            // do nothing, will need to validate value in the code since it's 100% dynamic
-          } else {
-            // mongooseModel[name].enum = Object.keys(appLib.appModelHelpers.Lists[obj.list]); // Mongoose validations do not allow creating records with empty enum values, which is what we need for optional fields
-          }
-        } else if (_.isObject(obj.list)) {
-          // Array is also an object
-          // mongooseModel[name].enum = Object.keys(obj.list); // Mongoose validations do not allow creating records with empty enum values, which is what we need for optional fields
-        } else {
-          throw new Error(
-            `List "${
-              obj.list
-            }" in attribute "${name}" is not defined in lists and is not valid list. Please update helpers/lists.js or the app model. Attribute Specification: ${JSON.stringify(
-              obj,
-              null,
-              2
-            )}`
-          );
-        }
-      }
-    }
-
-    /**
-     * Sets indexes into mongoose model by json scheme
-     * @param schemeField
-     * @param model
-     * @param fieldName
-     */
-    function setMongooseIndexesByScheme(schemeField, model, fieldName) {
-      const mongooseField = model[fieldName];
-      if (schemeField.unique) {
-        mongooseField.unique = schemeField.unique;
-      }
-
-      // do not generate other indexes(not unique) for tests,
-      // since it affects only search speed and consume time and disk space
-      if (process.env.CREATE_INDEXES !== 'true') {
-        return;
-      }
-
-      if (schemeField.index) {
-        mongooseField.index = schemeField.index;
-      }
-
-      const lookupTypes = ['LookupObjectID', 'LookupObjectID[]', 'TreeSelector'];
-      // index speedups updateLinkedRecords
-      const schemeType = schemeField.type;
-      if (lookupTypes.includes(schemeType)) {
-        // considering single or array types mongoose
-        const mongooseType = mongooseField.type;
-        const index = { _id: 1, table: 1 };
-        const singleType = _.isArray(mongooseType) ? mongooseType[0] : mongooseType;
-        const isIndexAlreadySet = singleType._indexes.find(([indexSpec]) => _.isEqual(indexSpec, index));
-        if (!isIndexAlreadySet) {
-          singleType.index(index, { background: true });
-        }
-      }
-
-      if (schemeType === 'Location') {
-        mongooseField.index = '2dsphere';
-      }
-    }
   };
 
   /**
@@ -339,28 +116,46 @@ module.exports = (appLib) => {
   // TODO: rewrite using m.traverseAppModel ?
   // TODO: split this method into multiple functions, it's getting big
   // TODO: add validation for hooks existence and that its returning Promises
-  m.validateAndCleanupAppModel = (models) => {
-    let errors = [];
+  m.validateAndCleanupAppModel = () => {
+    const errors = [];
     const warnings = [];
-    const allowedAttributes = _.keys(appLib.appModel.metaschema);
 
     expandOtherFieldPart(appLib.appModel);
-    setAppAuthSettings();
+    // interface.app.permissions might be merged with 'other' object from APP_SCHEMA
+    appLib.accessUtil.setAvailablePermissions();
+
+    setAppAuthSettings(warnings);
     initLookupAndTreeSelectorMeta();
-    validateModelParts(models, []);
+
+    const { models } = appLib.appModel;
+    processModelParts({ parts: models, path: [], errors, warnings, collectMeta: true, mergeDefaults: true });
+    // lookups and treeselectors are dependent from other models this is why they are processed after main transformations
+    processLookupsAndTreeSelectors({ parts: models, path: [], errors, warnings, collectMeta: true });
+
+    removeNullsFromObj(models);
+
     setLookupFieldsMeta();
-    handlePermissions();
-    const requiredWarnings = m.validateRequiredFields(models);
-    warnings.push(...requiredWarnings);
+    transformAppPermissions({ errors });
 
     if (appLib.appModel.interface) {
-      validateInterfaceParts(appLib.appModel.interface, []); // TODO: add test for this
-      _.each(['loginPage', 'charts', 'pages'], (interfacePart) => {
+      validateInterfaceParts({ parts: appLib.appModel.interface, path: [], errors, warnings }); // TODO: add test for this
+      // validateInterfaceParts is recursive only for 'fields' field, this is why custom paths is handled separately
+      _.each(['mainMenu', 'loginPage', 'charts', 'pages'], (interfacePart) => {
         if (appLib.appModel.interface[interfacePart]) {
-          validateInterfaceParts(appLib.appModel.interface[interfacePart], [interfacePart]);
+          validateInterfaceParts({
+            parts: appLib.appModel.interface[interfacePart],
+            path: [interfacePart],
+            errors,
+            warnings,
+          });
         }
       });
     }
+
+    validateAppPermissions({ errors, warnings });
+    const requiredWarnings = m.validateRequiredFields(models);
+    warnings.push(...requiredWarnings);
+
     return { errors, warnings };
 
     // These validators are called for specific part of the model (vs all attributes of the part, see below) -----
@@ -368,11 +163,14 @@ module.exports = (appLib) => {
     function initLookupAndTreeSelectorMeta() {
       appLib.appLookups = {}; // model LookupObjectID and LookupObjectID[] will be stored here by id
       appLib.appTreeSelectors = {}; // model TreeSelectors will be stored here by id
+
       // used to validate lookup and transform lookup._id sent from frontend as String to ObjectID.
       appLib.treeSelectorFieldsMeta = {};
       appLib.lookupObjectIdFieldsMeta = {};
+
       // used to update linked labels when original record is changed
       appLib.labelFieldsMeta = {};
+
       // used to validate uniqueness of lookup ids
       appLib.lookupIds = {};
     }
@@ -380,346 +178,305 @@ module.exports = (appLib) => {
     function setLookupFieldsMeta() {
       appLib.lookupFieldsMeta = _.merge({}, appLib.treeSelectorFieldsMeta, appLib.lookupObjectIdFieldsMeta);
     }
+  };
 
-    /** Function that changes old format of something to new format of something
-     *  Further old format should not be supported completely.
-     * */
-    function transformForBackwardCompatibility(part) {
-      if (part.showInGraphQL) {
-        part.showInGraphql = part.showInGraphQL;
-        delete part.showInGraphQL;
+  /** Function that changes old format of something to new format of something
+   *  Further old format should not be supported completely.
+   * */
+  function transformForBackwardCompatibility(part) {
+    if (part.showInGraphQL) {
+      part.showInGraphql = part.showInGraphQL;
+      delete part.showInGraphQL;
+    }
+  }
+
+  function validateSchemaKey(part, path, errors) {
+    const key = path[path.length - 1];
+    if (!schemaKeyRegExp.test(key)) {
+      errors.push(
+        `Found invalid key '${key}' by path ${path.join(
+          '.'
+        )}. Every key must match pattern ${schemaKeyRegExp.toString()}`
+      );
+    }
+  }
+
+  /**
+   * Merges the defaults set in the typeDefaults and subtypeDefaults into the appModel part
+   * @param part
+   */
+  function mergeTypeDefaults(part, coerceDefaultType) {
+    if (!part.type) {
+      if (!coerceDefaultType) {
+        return;
       }
+      part.type = appLib.appModel.metaschema.type.default;
+    }
+    const defaults = _.get(appLib.appModel, ['typeDefaults', 'fields', part.type], {});
+    _.mergeWith(part, defaults, customMergeWithArrayConcat);
+    const { subtype } = part;
+    const isBackwardCompatibilitySubtype = subtype === part.type;
+    if (subtype && !isBackwardCompatibilitySubtype) {
+      const subtypeDefaults = _.get(appLib.appModel, `subtypeDefaults.fields.${part.subtype}`, {});
+      _.mergeWith(part, subtypeDefaults, customMergeWithArrayConcat);
+    }
+    removeNullsFromObj(part);
+
+    function customMergeWithArrayConcat(destinationValue, sourceValue) {
+      // destinationValue is the target value, see https://lodash.com/docs/4.17.10#mergeWith
+      if (_.isBoolean(destinationValue)) {
+        return destinationValue;
+      }
+      if (_.isArray(destinationValue) && _.isArray(sourceValue)) {
+        return sourceValue.concat(destinationValue);
+      }
+      if (_.isString(destinationValue) && _.isArray(sourceValue)) {
+        return sourceValue.concat([destinationValue]);
+      }
+      if (typeof destinationValue === 'undefined') {
+        return _.cloneDeep(sourceValue);
+      }
+      if (sourceValue == null || destinationValue == null) {
+        return null;
+      }
+      if (_.isString(sourceValue) && _.isString(destinationValue)) {
+        return destinationValue;
+      }
+      return _.mergeWith(destinationValue, sourceValue, customMergeWithArrayConcat);
+    }
+  }
+
+  function addSchemeNameOrFieldName(part, path) {
+    const key = path[path.length - 1];
+    if (part.type === 'Schema') {
+      part.schemaName = key;
+    } else {
+      part.fieldName = key;
+    }
+  }
+
+  /**
+   * Converts transformer definition consisting of just one string into one-element array
+   * @param part
+   */
+  function convertTransformersToArrays(part) {
+    if (part.transform === null) {
+      delete part.transform;
+      return;
     }
 
-    function validateSchemaKey(part, path) {
-      const key = path[path.length - 1];
-      if (!schemaKeyRegExp.test(key)) {
+    if (_.isString(part.transform)) {
+      part.transform = [part.transform];
+    }
+  }
+
+  /**
+   * Converts transformer definition consisting of just one string into one-element array
+   * @param part
+   */
+  function convertSynthesizersToArrays(part) {
+    if (_.has(part, 'synthesize')) {
+      if (!_.isArray(part.synthesize)) {
+        part.synthesize = [part.synthesize];
+      }
+    }
+  }
+
+  /**
+   * Validates format and field presence for defaultSortBy attribute
+   * @param part
+   * @param path
+   */
+  function validateDefaultSortBy(part, path, errors) {
+    if (!_.has(part, 'defaultSortBy')) {
+      return;
+    }
+
+    if (typeof part.defaultSortBy !== 'object') {
+      return errors.push(`defaultSortBy in ${path.join('.')} has incorrect format, must be an object`);
+    }
+
+    _.each(part.defaultSortBy, (val, key) => {
+      if (val !== -1 && val !== 1) {
         errors.push(
-          `Found invalid key '${key}' by path ${path.join(
-            '.'
-          )}. Every key must match pattern ${schemaKeyRegExp.toString()}`
+          `defaultSortBy in ${path.join('.')} has incorrect format, the sorting order must be either 1 or -1`
         );
       }
-    }
 
-    /**
-     * Merges the defaults set in the typeDefaults and subtypeDefaults into the appModel part
-     * @param part
-     */
-    function mergeTypeDefaults(part) {
-      part.type = _.get(part, 'type', appLib.appModel.metaschema.type.default);
-      const defaults = _.get(appLib.appModel, ['typeDefaults', 'fields', part.type], {});
-      _.mergeWith(part, defaults, doNotOverwrite);
-      const { subtype } = part;
-      const isBackwardCompatibilitySubtype = subtype === part.type;
-      if (subtype && !isBackwardCompatibilitySubtype) {
-        const subtypeDefaults = _.get(appLib.appModel, `subtypeDefaults.fields.${part.subtype}`, {});
-        _.mergeWith(part, subtypeDefaults, doNotOverwrite);
-        // _.merge(part, defaults);
-      }
-
-      function doNotOverwrite(destinationValue, sourceValue) {
-        // destinationValue is the target value, see https://lodash.com/docs/4.17.10#mergeWith
-        if (_.isBoolean(destinationValue)) {
-          return destinationValue;
-        }
-        if (_.isArray(destinationValue) && _.isArray(sourceValue)) {
-          return sourceValue.concat(destinationValue);
-        }
-        if (_.isString(destinationValue) && _.isArray(sourceValue)) {
-          return sourceValue.concat([destinationValue]);
-        }
-        if (typeof destinationValue === 'undefined') {
-          return _.cloneDeep(sourceValue);
-        }
-        if (sourceValue == null || destinationValue == null) {
-          return null;
-        }
-        if (_.isString(sourceValue) && _.isString(destinationValue)) {
-          return destinationValue;
-        }
-        return _.mergeWith(destinationValue, sourceValue, doNotOverwrite);
-        // return destinationValue;
-      }
-    }
-
-    function addSchemeNameOrFieldName(part, path) {
-      const key = path[path.length - 1];
-      if (part.type === 'Schema') {
-        part.schemaName = key;
-      } else {
-        part.fieldName = key;
-      }
-    }
-
-    /**
-     * Converts transformer definition consisting of just one string into one-element array
-     * @param part
-     */
-    function convertTransformersToArrays(part) {
-      if (part.transform === null) {
-        delete part.transform;
-        return;
-      }
-
-      if (_.isString(part.transform)) {
-        part.transform = [part.transform];
-      }
-    }
-
-    /**
-     * Converts transformer definition consisting of just one string into one-element array
-     * @param part
-     */
-    function convertSynthesizersToArrays(part) {
-      if (_.has(part, 'synthesize')) {
-        if (!_.isArray(part.synthesize)) {
-          part.synthesize = [part.synthesize];
+      if (part.type !== 'Grid') {
+        const hasNonExistingField = !_.has(part.fields, key) && key !== '_id';
+        if (hasNonExistingField) {
+          errors.push(`defaultSortBy in ${path.join('.')} refers to nonexisting field "${key}"`);
         }
       }
-    }
+    });
+  }
 
-    /**
-     * Validates format and field presence for defaultSortBy attribute
-     * @param part
-     * @param path
-     */
-    function validateDefaultSortBy(part, path) {
-      if (!_.has(part, 'defaultSortBy')) {
-        return;
+  /**
+   * Uses validatorShortcuts to expand validators into full form
+   * @param part
+   * @param path
+   */
+  function expandValidators(part, path, errors) {
+    if (_.has(part, 'validate')) {
+      if (typeof part.validate === 'string') {
+        part.validate = [part.validate];
       }
-
-      if (typeof part.defaultSortBy !== 'object') {
-        return errors.push(`defaultSortBy in ${path.join('.')} has incorrect format, must be an object`);
-      }
-
-      _.each(part.defaultSortBy, (val, key) => {
-        if (val !== -1 && val !== 1) {
-          errors.push(
-            `defaultSortBy in ${path.join('.')} has incorrect format, the sorting order must be either 1 or -1`
-          );
-        }
-
-        if (part.type !== 'Grid') {
-          const hasNonExistingField = !_.has(part.fields, key) && key !== '_id';
-          if (hasNonExistingField) {
-            errors.push(`defaultSortBy in ${path.join('.')} refers to nonexisting field "${key}"`);
-          }
-        }
-      });
-    }
-
-    /**
-     * Uses validatorShortcuts to expand validators into full form
-     * @param part
-     * @param path
-     */
-    function expandValidators(part, path) {
-      if (_.has(part, 'validate')) {
-        if (typeof part.validate === 'string') {
-          part.validate = [part.validate];
-        }
-        part.validate = _.map(part.validate, (handler) => {
-          /* eslint-disable security/detect-unsafe-regex */
-          const matches = _.isString(handler) ? handler.match(/^([a-zA-Z_][a-zA-Z0-9_]*)(\((.*)\))?$/) : null;
-          let handlerSpec;
-          if (matches) {
-            const handlerName = matches[1];
-            const matchedArguments = matches[3] ? matches[3].split(',') : [];
-            if (appLib.appModel.validatorShortcuts[handlerName]) {
-              handlerSpec = {
-                validator: handlerName,
-                arguments: _.mapValues(appLib.appModel.validatorShortcuts[handlerName].arguments, (o) =>
-                  o.replace(/\$(\d+)/g, (match, p1) => matchedArguments[parseInt(p1, 10) - 1])
-                ),
-                errorMessages: appLib.appModel.validatorShortcuts[handlerName].errorMessages,
-              };
-            } else {
-              errors.push(`No validator shortcut is provided for validator ${handlerName}`);
-            }
-          } else if (typeof handler === 'object' && handler.validator) {
-            handlerSpec = handler;
+      part.validate = _.map(part.validate, (handler) => {
+        /* eslint-disable security/detect-unsafe-regex */
+        const matches = _.isString(handler) ? handler.match(/^([a-zA-Z_][a-zA-Z0-9_]*)(\((.*)\))?$/) : null;
+        let handlerSpec;
+        if (matches) {
+          const handlerName = matches[1];
+          const matchedArguments = matches[3] ? matches[3].split(',') : [];
+          if (appLib.appModel.validatorShortcuts[handlerName]) {
+            handlerSpec = {
+              validator: handlerName,
+              arguments: _.mapValues(appLib.appModel.validatorShortcuts[handlerName].arguments, (o) =>
+                o.replace(/\$(\d+)/g, (match, p1) => matchedArguments[parseInt(p1, 10) - 1])
+              ),
+              errorMessages: appLib.appModel.validatorShortcuts[handlerName].errorMessages,
+            };
           } else {
-            errors.push(`Unable to expand validator ${JSON.stringify(handler)} for ${path.join('.')}`);
+            errors.push(`No validator shortcut is provided for validator ${handlerName}`);
           }
-          return handlerSpec;
-        });
-        // make sure all validators exist
-        _.each(part.validate, (val) => {
-          if (_.get(val, 'validator') && !_.has(appLib.appModelHelpers.Validators, val.validator)) {
-            errors.push(`Validator "${val.validator}" doesn't exist in ${path.join('.')}`);
-          }
-        });
-      }
-    }
-
-    /**
-     * Converts values like "true" and "false" into booleans for attributes accepting boolean values (like "visible" or "required")
-     * @param part
-     */
-    function convertStringsForNonstringAttributes(part) {
-      _.each(part, (val, key) => {
-        if (
-          typeof appLib.appModel.metaschema[key] !== 'undefined' &&
-          appLib.appModel.metaschema[key].type === 'Boolean' &&
-          _.isString(val)
-        ) {
-          // part[key] = _.includes(["true", "TRUE", "True", "yes", "YES", "Yes"], val);
+        } else if (typeof handler === 'object' && handler.validator) {
+          handlerSpec = handler;
+        } else {
+          errors.push(`Unable to expand validator ${JSON.stringify(handler)} for ${path.join('.')}`);
+        }
+        return handlerSpec;
+      });
+      // make sure all validators exist
+      _.each(part.validate, (val) => {
+        if (_.get(val, 'validator') && !_.has(appLib.appModelHelpers.Validators, val.validator)) {
+          errors.push(`Validator "${val.validator}" doesn't exist in ${path.join('.')}`);
         }
       });
     }
+  }
 
-    /**
-     * Validates that all transformers referred in the model exist
-     * @param part
-     * @param path
-     */
-    function makeSureAllTransformersExist(part, path) {
-      if (_.has(part, 'transform')) {
-        _.each(part.transform, (val) => {
-          if (_.isArray(val)) {
-            if (!_.has(appLib.appModelHelpers.Transformers, val[0])) {
-              errors.push(`Transformer "${val[0]}" doesn't exist in ${path.join('.')}`);
-            }
-            if (!_.has(appLib.appModelHelpers.Transformers, val[1])) {
-              errors.push(`Transformer "${val[1]}" doesn't exist in ${path.join('.')}`);
-            }
-            if (val.length > 2) {
-              errors.push(
-                `Transformer "${val}" doesn't look right in ${path.join(
-                  '.'
-                )} (if array then must contain only two elements)`
-              );
-            }
-          } else if (!_.has(appLib.appModelHelpers.Transformers, val)) {
-            errors.push(`Transformer "${val}" doesn't exist in ${path.join('.')}`);
+  /**
+   * Converts values like "true" and "false" into booleans for attributes accepting boolean values (like "visible" or "required")
+   * @param part
+   */
+  function convertStringsForNonstringAttributes(part) {
+    _.each(part, (val, key) => {
+      if (
+        typeof appLib.appModel.metaschema[key] !== 'undefined' &&
+        appLib.appModel.metaschema[key].type === 'Boolean' &&
+        _.isString(val)
+      ) {
+        // part[key] = _.includes(["true", "TRUE", "True", "yes", "YES", "Yes"], val);
+      }
+    });
+  }
+
+  /**
+   * Validates that all transformers referred in the model exist
+   * @param part
+   * @param path
+   */
+  function makeSureAllTransformersExist(part, path, errors) {
+    if (_.has(part, 'transform')) {
+      _.each(part.transform, (val) => {
+        if (_.isArray(val)) {
+          if (!_.has(appLib.appModelHelpers.Transformers, val[0])) {
+            errors.push(`Transformer "${val[0]}" doesn't exist in ${path.join('.')}`);
           }
-        });
-      }
-    }
-
-    function generateLookupId(path) {
-      return _(path)
-        .difference(['fields'])
-        .map((v) => _.capitalize(v))
-        .value()
-        .join('');
-    }
-
-    function transformLookupScopes(tableLookup) {
-      if (!appLib.getAuthSettings().enablePermissions) {
-        return;
-      }
-      expandPermissionsForScopes(tableLookup.scopes, ['view']);
-      tableLookup.scopes = _.merge(tableLookup.scopes, appLib.accessUtil.getAdminLookupScopeForViewAction());
-    }
-
-    function transformLookupLabels(tableLookup) {
-      const { label } = tableLookup;
-      tableLookup.label = label.includes('this.') ? label : `this.${label}`;
-    }
-
-    function transformLookupSortBy(tableLookup) {
-      const defaultSortBy = _.get(appLib.appModel.metaschema, `defaultSortBy.default`);
-
-      if (!tableLookup.sortBy) {
-        tableLookup.sortBy = defaultSortBy;
-      }
-    }
-
-    function addForeignKeyType(tableLookup) {
-      const { foreignKey } = tableLookup;
-      if (foreignKey === '_id') {
-        tableLookup.foreignKeyType = 'ObjectID';
-      } else {
-        tableLookup.foreignKeyType = _.get(appLib.appModel.models, `${tableLookup.table}.fields.${foreignKey}.type`);
-      }
-    }
-
-    function addSourceTable(tableLookup, sourceTable) {
-      tableLookup.sourceTable = sourceTable;
-    }
-
-    function transformLookups(part, path) {
-      const { lookup } = part;
-
-      if (lookup) {
-        const tableProp = lookup.table;
-
-        if (_.isString(tableProp)) {
-          part.lookup = {
-            table: {
-              [tableProp]: {
-                foreignKey: lookup.foreignKey || '_id',
-                label: lookup.label || '_id',
-                table: tableProp,
-                sortBy: lookup.sortBy,
-                data: lookup.data,
-                scopes: lookup.scopes,
-              },
-            },
-            id: lookup.id || generateLookupId(path),
-          };
-        } else if (_.isPlainObject(tableProp)) {
-          _.each(tableProp, (tableLookup, tableName) => {
-            tableLookup.table = tableName;
-            tableLookup.label = tableLookup.label || '_id';
-          });
-          lookup.id = lookup.id || generateLookupId(path);
+          if (!_.has(appLib.appModelHelpers.Transformers, val[1])) {
+            errors.push(`Transformer "${val[1]}" doesn't exist in ${path.join('.')}`);
+          }
+          if (val.length > 2) {
+            errors.push(
+              `Transformer "${val}" doesn't look right in ${path.join(
+                '.'
+              )} (if array then must contain only two elements)`
+            );
+          }
+        } else if (!_.has(appLib.appModelHelpers.Transformers, val)) {
+          errors.push(`Transformer "${val}" doesn't exist in ${path.join('.')}`);
         }
-
-        const sourceTable = path[0];
-        _.each(part.lookup.table, (tableLookup) => {
-          transformLookupScopes(tableLookup);
-          transformLookupLabels(tableLookup);
-          transformLookupSortBy(tableLookup);
-          addForeignKeyType(tableLookup);
-          addSourceTable(tableLookup, sourceTable);
-        });
-      }
+      });
     }
+  }
 
-    function transformTreeSelectors(part, path) {
-      const { type, table } = part;
-      if (type !== 'TreeSelector') {
-        return;
-      }
+  function generateLookupId(path) {
+    return _(path)
+      .difference(['fields'])
+      .map((v) => _.capitalize(v))
+      .value()
+      .join('');
+  }
 
-      if (_.isString(table)) {
-        const collectionName = table;
-        const pickedFromRoot = _.pick(part, [
-          'label',
-          'data',
-          'parent',
-          'roots',
-          'leaves',
-          'requireLeafSelection',
-          'scopes',
-          'prepare',
-          'where',
-          'sortBy',
-        ]);
-        part.table = {
-          [collectionName]: {
-            ...pickedFromRoot,
-            label: pickedFromRoot.label || '_id',
-            table: collectionName,
+  function transformLookupScopes(tableLookup) {
+    if (!appLib.getAuthSettings().enablePermissions) {
+      return;
+    }
+    tableLookup.scopes = _.merge(tableLookup.scopes, appLib.accessUtil.getAdminLookupScopeForViewAction());
+    expandPermissionsForScopes(tableLookup.scopes, ['view']);
+  }
+
+  function transformLookupLabels(tableLookup) {
+    const { label } = tableLookup;
+    const isLabelPresentedAsSingleField = !label.includes('this.');
+    if (!isLabelPresentedAsSingleField) {
+      return;
+    }
+    tableLookup.label = `this.${label}`;
+  }
+
+  function transformLookupSortBy(tableLookup) {
+    const defaultSortBy = _.get(appLib.appModel.metaschema, `defaultSortBy.default`);
+
+    if (!tableLookup.sortBy) {
+      tableLookup.sortBy = defaultSortBy;
+    }
+  }
+
+  function addForeignKeyType(tableLookup) {
+    const { foreignKey } = tableLookup;
+    if (foreignKey === '_id') {
+      tableLookup.foreignKeyType = 'ObjectID';
+    } else {
+      tableLookup.foreignKeyType = _.get(appLib.appModel.models, `${tableLookup.table}.fields.${foreignKey}.type`);
+    }
+  }
+
+  function addSourceTable(tableLookup, sourceTable) {
+    tableLookup.sourceTable = sourceTable;
+  }
+
+  function transformLookups(part, path) {
+    const { lookup } = part;
+
+    if (lookup) {
+      const tableProp = lookup.table;
+
+      if (_.isString(tableProp)) {
+        part.lookup = {
+          table: {
+            [tableProp]: {
+              foreignKey: lookup.foreignKey || '_id',
+              label: lookup.label || '_id',
+              table: tableProp,
+              sortBy: lookup.sortBy,
+              data: lookup.data,
+              scopes: lookup.scopes,
+            },
           },
+          id: lookup.id || generateLookupId(path),
         };
-      } else if (_.isPlainObject(table)) {
-        _.each(table, (tableSpec, tableName) => {
-          tableSpec.table = tableName;
-          tableSpec.label = tableSpec.label || '_id';
+      } else if (_.isPlainObject(tableProp)) {
+        _.each(tableProp, (tableLookup, tableName) => {
+          tableLookup.table = tableName;
+          tableLookup.label = tableLookup.label || '_id';
         });
+        lookup.id = lookup.id || generateLookupId(path);
       }
-
-      part.table.id = part.table.id || generateLookupId(path);
 
       const sourceTable = path[0];
-      _.each(part.table, (tableLookup, tableName) => {
-        if (tableName === 'id') {
-          return;
-        }
+      _.each(part.lookup.table, (tableLookup) => {
         transformLookupScopes(tableLookup);
         transformLookupLabels(tableLookup);
         transformLookupSortBy(tableLookup);
@@ -727,1140 +484,1365 @@ module.exports = (appLib) => {
         addSourceTable(tableLookup, sourceTable);
       });
     }
+  }
 
-    /**
-     * Validates lookups format and sets default fields
-     * @param part
-     * @param path
-     */
-    function validateLookups(part, path) {
-      if (_.has(part, 'lookup')) {
-        if (!_.has(part, 'transform')) {
-          // if there is transform, it's already an array, see above
-          part.transform = [];
-        }
-        if (!part.lookup.table) {
-          errors.push(`Lookup in ${path.join('.')} doesn't have property "table"`);
-        } else {
-          _.each(part.lookup.table, (tableLookup) => {
-            validateTableLookup(tableLookup);
-          });
-          validateLookupId(part.lookup, path);
-        }
-      }
-
-      function validateTableLookup(tableLookup) {
-        const { table: tableName, foreignKey, label } = tableLookup;
-        const tableLookupErrors = [];
-
-        const pathStr = path.join('.');
-        if (!tableName) {
-          tableLookupErrors.push(`Lookup in ${pathStr} must have 'table' field`);
-        }
-        if (!foreignKey) {
-          tableLookupErrors.push(`Lookup in ${pathStr} must have 'foreignKey' field`);
-        }
-        if (!label) {
-          tableLookupErrors.push(`Lookup in ${pathStr} must have 'label' field`);
-        }
-        if (!_.isEmpty(tableLookupErrors)) {
-          errors = errors.concat(tableLookupErrors);
-          return;
-        }
-
-        const model = appLib.appModel.models[tableName];
-        if (!model) {
-          tableLookupErrors.push(`Lookup in ${pathStr} refers to nonexisting collection "${tableName}"`);
-        } else {
-          if (!model.fields[foreignKey] && foreignKey !== '_id') {
-            tableLookupErrors.push(`Lookup in ${pathStr} refers to nonexisting foreignKey "${foreignKey}"`);
-          }
-
-          const fieldsInLabel = (label.match(/this\.\w+/gi) || []).map((s) => s.replace('this.', ''));
-          const missedFields = fieldsInLabel.reduce((res, fieldInLabel) => {
-            if (!model.fields[fieldInLabel]) {
-              res.push(fieldInLabel);
-            }
-            return res;
-          }, []);
-
-          if (missedFields.length) {
-            const missed = missedFields.join(', ');
-            tableLookupErrors.push(`Lookup label "${label}" in ${pathStr} uses nonexisting fields: "${missed}"`);
-          }
-        }
-        errors = errors.concat(tableLookupErrors);
-      }
-
-      function validateLookupId(lookup) {
-        const joinedPath = path.join('.');
-        const lookupId = lookup.id;
-        if (!lookupId) {
-          errors.push(`Lookup in '${joinedPath}' must have 'id' field`);
-        }
-
-        if (appLib.lookupIds[lookupId]) {
-          errors.push(
-            `Lookup id '${lookupId}' in '${joinedPath}' is already used for path '${appLib.lookupIds[lookupId]}'. It must be unique.`
-          );
-        }
-        appLib.lookupIds[lookupId] = joinedPath;
-      }
+  function transformTreeSelectors(part, path) {
+    const { type, table } = part;
+    if (type !== 'TreeSelector') {
+      return;
     }
 
-    /*
-    /!**
-     * Validates that all schema names are plural - important for mongoose
-     * @param part
-     * @param path
-     *!/
-    function validateSchemaNamesArePlural(part, path) {
-      if (part.type === 'Schema' && !path[path.length - 1].endsWith('s')) {
-        errors.push(`Schema names must be plural in ${path.join('.')}`);
-      }
-      // add _id field to schemas
-      // These are created in the mongoose model implicitly (schemas)
-      // so possibly it makes sense to move their creation here
-      /!*
-      if ('Schema' == part.type) {
-          part.fields["_id"] = {
-              "type": "ObjectID",
-              "visible": false,
-              "comment": "Added to implicitly include in all datatables",
-              "generated": true,
-              "fullName": "Schema element id",
-              "description": "Schema element id"
-          }
-      }
-      *!/
-    }
-*/
-
-    /**
-     * fullName is a required attribute, generate it from the key if necessary
-     * @param part
-     * @param path
-     */
-    function generateFullName(part, path) {
-      const partKey = path[path.length - 1];
-      if (appLib.appModel.metaschema.fullName && !part.fullName) {
-        // some tests and potentially apps do not have fullName in metaschema
-        part.fullName = camelCase2CamelText(partKey);
-      }
-    }
-
-    /**
-     * Validate that all required attributes are in place
-     * @param part
-     * @param path
-     */
-    function validateRequiredAttributes(part, path) {
-      _.each(appLib.appModel.metaschema, (val, key) => {
-        if (val.required && !_.has(part, key)) {
-          errors.push(`Attribute ${path.join('.')} doesn't have required property "${key}"`);
-        }
-      });
-    }
-
-    function addValidatorForConditionalRequired(part) {
-      if (!part.required) {
-        return;
-      }
-
-      const requiredValidator = {
-        validator: 'required',
-        arguments: {},
-        errorMessages: {
-          default: 'Field is required',
+    if (_.isString(table)) {
+      const collectionName = table;
+      const pickedFromRoot = _.pick(part, [
+        'label',
+        'data',
+        'parent',
+        'roots',
+        'leaves',
+        'requireLeafSelection',
+        'scopes',
+        'prepare',
+        'where',
+        'sortBy',
+      ]);
+      part.table = {
+        [collectionName]: {
+          ...pickedFromRoot,
+          label: pickedFromRoot.label || '_id',
+          table: collectionName,
         },
       };
-      if (_.isArray(part.validate)) {
-        part.validate.push(requiredValidator);
+    } else if (_.isPlainObject(table)) {
+      _.each(table, (tableSpec, tableName) => {
+        tableSpec.table = tableName;
+        tableSpec.label = tableSpec.label || '_id';
+      });
+    }
+
+    part.table.id = part.table.id || generateLookupId(path);
+
+    const sourceTable = path[0];
+    _.each(part.table, (tableLookup, tableName) => {
+      if (tableName === 'id') {
+        return;
+      }
+      transformLookupScopes(tableLookup);
+      transformLookupLabels(tableLookup);
+      transformLookupSortBy(tableLookup);
+      addForeignKeyType(tableLookup);
+      addSourceTable(tableLookup, sourceTable);
+    });
+  }
+
+  /**
+   * Validates lookups format and sets default fields
+   * @param part
+   * @param path
+   */
+  function validateLookupsAndTreeSelectorsPart(part, path, errors) {
+    if (_.has(part, 'lookup')) {
+      if (!_.has(part, 'transform')) {
+        // if there is transform, it's already an array, see above
+        part.transform = [];
+      }
+      if (!part.lookup.table) {
+        errors.push(`Lookup in ${path.join('.')} doesn't have property "table"`);
       } else {
-        part.validate = [requiredValidator];
-      }
-    }
-
-    /**
-     * Sets certain attributes to defaults where it's difficult to enforce them from metaschema
-     * @param part
-     */
-    function setDefaultAttributes(part) {
-      function setAttribute(sPart, attr) {
-        const { metaschema } = appLib.appModel;
-
-        if (!_.has(sPart, attr)) {
-          const defaultAttr = _.get(metaschema, `${attr}.default`);
-          if (defaultAttr !== undefined) {
-            sPart[attr] = defaultAttr;
-          }
-        }
-      }
-
-      if (part.type) {
-        if (part.type === 'Schema') {
-          // setAttribute(part, 'requiresAuthentication'); // depricated, now we use permission 'authenticated'
-          setAttribute(part, 'defaultSortBy');
-        } else {
-          setAttribute(part, 'visible');
-          setAttribute(part, 'responsivePriority');
-          setAttribute(part, 'width');
-        }
-      }
-    }
-
-    function handleVisibleAttribute(part) {
-      if (part.type && part.type !== 'Schema') {
-        const visible = part.visible === true || part.visible === undefined;
-
-        ['showInDatatable', 'showInViewDetails', 'showInForm', 'showInGraphql'].forEach((showField) => {
-          const isShowFieldSpecified = part[showField] !== undefined;
-          if (!isShowFieldSpecified) {
-            part[showField] = visible;
-          }
+        _.each(part.lookup.table, (tableLookup) => {
+          validateTableLookup(tableLookup);
         });
-
-        delete part.visible;
+        validateLookupId(part.lookup);
       }
+      return errors;
     }
 
-    function handleOrderAttribute(part, path) {
-      if (part.type && part.type !== 'Schema') {
-        const { order } = part;
-        if (order === undefined) {
-          return;
-        }
-        if (!_.isNumber(order)) {
-          return errors.push(`Attribute 'order' must be a number for path '${path.join('.')}'`);
+    function validateTableLookup(tableLookup) {
+      const { table: tableName, foreignKey, label } = tableLookup;
+      const tableLookupErrors = [];
+
+      const pathStr = path.join('.');
+      if (!tableName) {
+        tableLookupErrors.push(`Lookup in ${pathStr} must have 'table' field`);
+      }
+      if (!foreignKey) {
+        tableLookupErrors.push(`Lookup in ${pathStr} must have 'foreignKey' field`);
+      }
+      if (!label) {
+        tableLookupErrors.push(`Lookup in ${pathStr} must have 'label' field`);
+      }
+      if (!_.isEmpty(tableLookupErrors)) {
+        errors.push(...tableLookupErrors);
+        return;
+      }
+
+      const model = appLib.appModel.models[tableName];
+      if (!model) {
+        tableLookupErrors.push(`Lookup in ${pathStr} refers to nonexisting collection "${tableName}"`);
+      } else {
+        if (!model.fields[foreignKey] && foreignKey !== '_id') {
+          tableLookupErrors.push(`Lookup in ${pathStr} refers to nonexisting foreignKey "${foreignKey}"`);
         }
 
-        ['formOrder', 'datagridOrder', 'detailedViewOrder'].forEach((orderField) => {
-          const isOrderFieldSpecified = part[orderField] !== undefined;
-          if (!isOrderFieldSpecified) {
-            part[orderField] = order;
-          }
-        });
-        delete part.order;
-      }
-    }
-
-    function addLookupMeta(part, path) {
-      if (part.type.startsWith('LookupObjectID')) {
-        const itemPath = getItemPathByFullModelPath(path);
-        const { schemeName, jsonPath } = getJsonPathByFullModelPath(appLib.appModel.models, path);
-        const { mongoPath } = getMongoPathByFullModelPath(appLib.appModel.models, path);
-        const { beforeArrPath, afterArrPath } = getBeforeAndAfterLastArrayPath(mongoPath);
-        const paths = {
-          itemPath,
-          jsonPath,
-          mongoPath,
-          beforeArrPath,
-          afterArrPath,
-          modelPath: path,
-        };
-
-        _.set(appLib.lookupObjectIdFieldsMeta, [schemeName, itemPath], {
-          table: part.lookup.table,
-          paths,
-        });
-
-        // create labelFieldsMeta to update lookupTables during updating label part
-        _.each(part.lookup.table, (tableLookup, tableName) => {
-          const lookupPathsMeta = _.get(appLib.labelFieldsMeta, [tableName, tableLookup.label]) || [];
-          lookupPathsMeta.push({
-            scheme: schemeName,
-            paths,
-            isMultiple: part.type.endsWith('[]'), // need this info for updating object or array
-            fieldType: part.type,
-            required: part.required,
-            foreignKey: tableLookup.foreignKey,
-            data: tableLookup.data,
-          });
-          _.set(appLib.labelFieldsMeta, [tableName, tableLookup.label], lookupPathsMeta);
-        });
-      }
-
-      if (part.type === 'TreeSelector') {
-        const itemPath = getItemPathByFullModelPath(path);
-        const { schemeName, jsonPath } = getJsonPathByFullModelPath(appLib.appModel.models, path);
-        const { mongoPath } = getMongoPathByFullModelPath(appLib.appModel.models, path);
-        const { beforeArrPath, afterArrPath } = getBeforeAndAfterLastArrayPath(mongoPath);
-        const paths = {
-          itemPath,
-          jsonPath,
-          mongoPath,
-          beforeArrPath,
-          afterArrPath,
-          modelPath: path,
-        };
-
-        const treeSelectorTables = _.omit(part.table, ['id']);
-        const lookupData = Object.values(treeSelectorTables)[0];
-        lookupData.isLeaf = new Function(`return ${lookupData.leaves}`);
-        _.set(appLib.treeSelectorFieldsMeta, [schemeName, itemPath], {
-          table: treeSelectorTables,
-          paths,
-        });
-
-        // create labelFieldsMeta to update lookupTables during updating label part
-        _.each(treeSelectorTables, (tableLookup, tableName) => {
-          const lookupPathsMeta = _.get(appLib.labelFieldsMeta, [tableName, tableLookup.label]) || [];
-          lookupPathsMeta.push({
-            scheme: schemeName,
-            paths,
-            isMultiple: true, // TreeSelector is always array of LookupObjectID
-            fieldType: part.type,
-            required: part.required,
-            requireLeafSelection: tableLookup.requireLeafSelection,
-            foreignKey: tableLookup.foreignKey,
-            data: tableLookup.data,
-          });
-          _.set(appLib.labelFieldsMeta, [tableName, tableLookup.label], lookupPathsMeta);
-        });
-      }
-    }
-
-    function validateFieldName(path) {
-      const lastFieldName = path[path.length - 1];
-      const alphanumericOrQuotesRegExp = /^[\w"]+$/;
-      if (!alphanumericOrQuotesRegExp.test(lastFieldName)) {
-        errors.push(
-          `Field '${lastFieldName}' has invalid name: should contain only alphanumeric and quotes. ` +
-            `Path: '${path.join('.')}'`
-        );
-      }
-    }
-
-    /**
-     * Loads data specified in external file for all metaschema attributes that have supportsExternalData == true
-     * @param part
-     * @param path
-     */
-    function loadExternalData(part, path) {
-      const supportsExternalData = _.reduce(
-        appLib.appModel.metaschema,
-        (res, val, key) => {
-          if (val.supportsExternalData) {
-            res.push(key);
+        const fieldsInLabel = (label.match(/this\.\w+/gi) || []).map((s) => s.replace('this.', ''));
+        const missedFields = fieldsInLabel.reduce((res, fieldInLabel) => {
+          if (!model.fields[fieldInLabel]) {
+            res.push(fieldInLabel);
           }
           return res;
-        },
-        []
-      );
-      _.each(supportsExternalData, (reference) => {
-        const ref = _.get(part, reference);
-        if (!_.isPlainObject(ref)) {
-          return;
+        }, []);
+
+        if (missedFields.length) {
+          const missed = missedFields.join(', ');
+          tableLookupErrors.push(`Lookup label "${label}" in ${pathStr} uses nonexisting fields: "${missed}"`);
         }
-
-        if (ref.type === 'file' && _.isString(ref.link)) {
-          const defaultFilePath = require('path').resolve(appRoot, `model/private/${ref.link}`);
-          if (fs.existsSync(defaultFilePath)) {
-            part[reference] = fs.readFileSync(defaultFilePath, 'utf-8');
-          } else {
-            const schemaPaths = getSchemaPaths();
-            for (const schemaPath of schemaPaths) {
-              const schemaRefFilePath = `${schemaPath}/private/${ref.link}`;
-              if (fs.existsSync(schemaRefFilePath)) {
-                part[reference] = fs.readFileSync(schemaRefFilePath, 'utf-8');
-                break;
-              }
-            }
-
-            if (!part[reference]) {
-              warnings.push(`Unable to find file by link '${ref.link}' for interface path '${path.join('.')}'`);
-            }
-          }
-
-          const isJson = ref.link.endsWith('.json');
-          if (isJson) {
-            part[reference] = JSON.parse(part[reference]);
-          }
-        }
-      });
+      }
+      errors.push(...tableLookupErrors);
     }
 
-    function transformActions(part) {
-      if (part.type === 'Schema') {
-        const actions = _.get(part, 'actions', { fields: {} });
-        const removedActions = [];
-        _.each(actions.fields, (val, actionName) => {
-          if (val === false) {
-            // delete old disabled actions
-            removedActions.push(actionName);
-            delete actions.fields[actionName];
-          }
-          if (_.isPlainObject(val) && !val.permissions) {
-            // set admin permissions for declared actions (including actions with frontend router)
-            val.permissions = appLib.accessCfg.PERMISSIONS.accessAsSuperAdmin;
-          }
-        });
+    function validateLookupId(lookup) {
+      const joinedPath = path.join('.');
+      const lookupId = lookup.id;
+      if (!lookupId) {
+        errors.push(`Lookup in '${joinedPath}' must have 'id' field`);
+      }
 
-        // set admin permissions for default actions if not exists
-        _.each(appLib.accessCfg.DEFAULT_ACTIONS, (action) => {
-          const isRemovedAction = removedActions.includes(action);
-          const actionSpecHasPermissions = !!_.get(actions.fields, `${action}.permissions`);
-          if (!isRemovedAction && !actionSpecHasPermissions) {
-            _.set(actions.fields, `${action}.permissions`, appLib.accessCfg.PERMISSIONS.accessAsSuperAdmin);
-          }
-        });
+      const lookupIdPath = appLib.lookupIds[lookupId];
+      const isLookupExist = !_.isNil(lookupIdPath);
+      const isLookupPathMatchCurrentPath = _.isEqual(lookupIdPath, joinedPath);
+      if (isLookupExist && !isLookupPathMatchCurrentPath) {
+        errors.push(
+          `Lookup id '${lookupId}' in '${joinedPath}' is already used for path '${lookupIdPath}'. It must be unique.`
+        );
+      }
+    }
+  }
 
-        part.actions = actions;
+  /**
+   * fullName is a required attribute, generate it from the key if necessary
+   * @param part
+   * @param path
+   */
+  function generateFullName(part, path) {
+    const partKey = path[path.length - 1];
+    if (appLib.appModel.metaschema.fullName && !part.fullName) {
+      // some tests and potentially apps do not have fullName in metaschema
+      part.fullName = camelCase2CamelText(partKey);
+    }
+  }
+
+  /**
+   * Validate that all required attributes are in place
+   * @param part
+   * @param path
+   */
+  function validateRequiredAttributes(part, path, errors) {
+    _.each(appLib.appModel.metaschema, (val, key) => {
+      if (val.required && !_.has(part, key)) {
+        errors.push(`Attribute ${path.join('.')} doesn't have required property "${key}"`);
+      }
+    });
+  }
+
+  function addValidatorForConditionalRequired(part) {
+    if (!part.required) {
+      return;
+    }
+
+    const requiredValidator = {
+      validator: 'required',
+      arguments: {},
+      errorMessages: {
+        default: 'Field is required',
+      },
+    };
+    if (_.isArray(part.validate)) {
+      part.validate.push(requiredValidator);
+    } else {
+      part.validate = [requiredValidator];
+    }
+  }
+
+  /**
+   * Sets certain attributes to defaults where it's difficult to enforce them from metaschema
+   * @param part
+   */
+  function setDefaultAttributes(part) {
+    function setAttribute(sPart, attr) {
+      const { metaschema } = appLib.appModel;
+
+      if (!_.has(sPart, attr)) {
+        const defaultAttr = _.get(metaschema, `${attr}.default`);
+        if (defaultAttr !== undefined) {
+          sPart[attr] = defaultAttr;
+        }
       }
     }
 
-    function validateActions(part, path) {
+    if (part.type) {
       if (part.type === 'Schema') {
-        const actions = _.get(part, 'actions', { fields: {} });
-        _.each(actions.fields, (spec, modelActionName) => {
-          const link = _.get(spec, 'action.link');
-          const type = _.get(spec, 'action.type');
+        // setAttribute(part, 'requiresAuthentication'); // depricated, now we use permission 'authenticated'
+        setAttribute(part, 'defaultSortBy');
+      } else {
+        setAttribute(part, 'visible');
+        setAttribute(part, 'responsivePriority');
+        setAttribute(part, 'width');
+      }
+    }
+  }
 
-          if (!link) {
-            if (!appLib.allActionsNames.includes(modelActionName)) {
-              errors.push(`Invalid action ${modelActionName} specified by path '${path}'`);
-            }
-            return;
+  function handleVisibleAttribute(part) {
+    if (part.type && part.type !== 'Schema') {
+      const visible = part.visible === true || part.visible === undefined;
+
+      ['showInDatatable', 'showInViewDetails', 'showInForm', 'showInGraphql'].forEach((showField) => {
+        const isShowFieldSpecified = part[showField] !== undefined;
+        if (!isShowFieldSpecified) {
+          part[showField] = visible;
+        }
+      });
+
+      delete part.visible;
+    }
+  }
+
+  function handleOrderAttribute(part, path, errors) {
+    if (part.type && part.type !== 'Schema') {
+      const { order } = part;
+      if (order === undefined) {
+        return;
+      }
+      if (!_.isNumber(order)) {
+        return errors.push(`Attribute 'order' must be a number for path '${path.join('.')}'`);
+      }
+
+      ['formOrder', 'datagridOrder', 'detailedViewOrder'].forEach((orderField) => {
+        const isOrderFieldSpecified = part[orderField] !== undefined;
+        if (!isOrderFieldSpecified) {
+          part[orderField] = order;
+        }
+      });
+      delete part.order;
+    }
+  }
+
+  function collectLookupMeta(part, path) {
+    if (_.has(part, 'lookup')) {
+      const lookupId = part.lookup.id;
+      appLib.lookupIds[lookupId] = path.join('.');
+    }
+
+    if (part.type.startsWith('LookupObjectID')) {
+      const itemPath = getItemPathByFullModelPath(path);
+      const { schemeName, jsonPath } = getJsonPathByFullModelPath(appLib.appModel.models, path);
+      const { mongoPath } = getMongoPathByFullModelPath(appLib.appModel.models, path);
+      const { beforeArrPath, afterArrPath } = getBeforeAndAfterLastArrayPath(mongoPath);
+      const paths = {
+        itemPath,
+        jsonPath,
+        mongoPath,
+        beforeArrPath,
+        afterArrPath,
+        modelPath: path,
+      };
+
+      _.set(appLib.lookupObjectIdFieldsMeta, [schemeName, itemPath], {
+        table: part.lookup.table,
+        paths,
+      });
+
+      // create labelFieldsMeta to update lookupTables during updating label part
+      _.each(part.lookup.table, (tableLookup, tableName) => {
+        const lookupPathsMeta = _.get(appLib.labelFieldsMeta, [tableName, tableLookup.label]) || [];
+        lookupPathsMeta.push({
+          scheme: schemeName,
+          paths,
+          isMultiple: part.type.endsWith('[]'), // need this info for updating object or array
+          fieldType: part.type,
+          required: part.required,
+          foreignKey: tableLookup.foreignKey,
+          data: tableLookup.data,
+        });
+        _.set(appLib.labelFieldsMeta, [tableName, tableLookup.label], lookupPathsMeta);
+      });
+    }
+
+    if (part.type === 'TreeSelector') {
+      const itemPath = getItemPathByFullModelPath(path);
+      const { schemeName, jsonPath } = getJsonPathByFullModelPath(appLib.appModel.models, path);
+      const { mongoPath } = getMongoPathByFullModelPath(appLib.appModel.models, path);
+      const { beforeArrPath, afterArrPath } = getBeforeAndAfterLastArrayPath(mongoPath);
+      const paths = {
+        itemPath,
+        jsonPath,
+        mongoPath,
+        beforeArrPath,
+        afterArrPath,
+        modelPath: path,
+      };
+
+      const treeSelectorTables = _.omit(part.table, ['id']);
+      const lookupData = Object.values(treeSelectorTables)[0];
+      lookupData.isLeaf = getFunction(`return ${lookupData.leaves}`);
+      _.set(appLib.treeSelectorFieldsMeta, [schemeName, itemPath], {
+        table: treeSelectorTables,
+        paths,
+      });
+
+      // create labelFieldsMeta to update lookupTables during updating label part
+      _.each(treeSelectorTables, (tableLookup, tableName) => {
+        const lookupPathsMeta = _.get(appLib.labelFieldsMeta, [tableName, tableLookup.label]) || [];
+        lookupPathsMeta.push({
+          scheme: schemeName,
+          paths,
+          isMultiple: true, // TreeSelector is always array of LookupObjectID
+          fieldType: part.type,
+          required: part.required,
+          requireLeafSelection: tableLookup.requireLeafSelection,
+          foreignKey: tableLookup.foreignKey,
+          data: tableLookup.data,
+        });
+        _.set(appLib.labelFieldsMeta, [tableName, tableLookup.label], lookupPathsMeta);
+      });
+    }
+  }
+
+  function handleStaticHtml(part, path, errors) {
+    if (part.type === 'StaticHtml') {
+      const { type, link } = part.template || {};
+      const ejsOptions = { context: appLib.macrosFunctionContext, delimiter: EJS_BACKEND_APP_SCHEMA_DELIMITER };
+
+      if (type === 'inline') {
+        // macros are already processed before therefore 'link' already contains processed data
+        return;
+      }
+
+      if (type === 'file') {
+        const template = getFileContentByLink(link);
+        if (!template) {
+          return errors.push(`Unable to find file by link '${link}' for path '${path.join('.')}'`);
+        }
+
+        const rendered = ejs.render(template, {}, ejsOptions);
+        part.template.link = rendered;
+      }
+    }
+  }
+
+  function validateFieldName(part, path, errors) {
+    const lastFieldName = path[path.length - 1];
+    const alphanumericOrQuotesRegExp = /^[\w"]+$/;
+    if (!alphanumericOrQuotesRegExp.test(lastFieldName)) {
+      errors.push(
+        `Field '${lastFieldName}' has invalid name: should contain only alphanumeric and quotes. ` +
+          `Path: '${path.join('.')}'`
+      );
+    }
+  }
+
+  function getFileContentByLink(link) {
+    const schemaPaths = getSchemaPaths();
+    for (const schemaPath of schemaPaths) {
+      const schemaRefFilePath = `${schemaPath}/private/${link}`;
+      if (fs.existsSync(schemaRefFilePath)) {
+        return fs.readFileSync(schemaRefFilePath, 'utf-8');
+      }
+    }
+
+    const defaultFilePath = nodePath.resolve(appRoot, `model/private/${link}`);
+    if (fs.existsSync(defaultFilePath)) {
+      return fs.readFileSync(defaultFilePath, 'utf-8');
+    }
+
+    return null;
+  }
+
+  /**
+   * Loads data specified in external file for all metaschema attributes that have supportsExternalData == true
+   * @param part
+   * @param path
+   */
+  function loadExternalData(part, path, warnings = []) {
+    const supportsExternalData = _.reduce(
+      appLib.appModel.metaschema,
+      (res, val, key) => {
+        if (val.supportsExternalData) {
+          res.push(key);
+        }
+        return res;
+      },
+      []
+    );
+
+    _.each(supportsExternalData, (reference) => {
+      const ref = _.get(part, reference);
+      if (!_.isPlainObject(ref)) {
+        return;
+      }
+
+      const { type, link } = ref;
+      if (type === 'file' && _.isString(link)) {
+        const fileContent = getFileContentByLink(link);
+        if (fileContent) {
+          part[reference] = fileContent;
+        } else {
+          warnings.push(`Unable to find file by link '${link}' for interface path '${path.join('.')}'`);
+        }
+
+        const isJson = link.endsWith('.json');
+        if (isJson) {
+          part[reference] = JSON.parse(part[reference]);
+        }
+      }
+    });
+  }
+
+  function transformActions(part) {
+    if (part.type !== 'Schema') {
+      return;
+    }
+    const actions = _.get(part, 'actions', { fields: {} });
+    _.each(actions.fields, (val, actionName) => {
+      if (val === false) {
+        delete actions.fields[actionName];
+      }
+
+      if (_.isPlainObject(val)) {
+        val.actionName = actionName;
+
+        if (!val.permissions) {
+          // set admin permissions for declared actions (including actions with frontend router)
+          val.permissions = appLib.accessCfg.PERMISSIONS.accessAsSuperAdmin;
+        }
+      }
+    });
+
+    part.actions = actions;
+  }
+
+  function validateActions(part, path, errors) {
+    if (part.type === 'Schema') {
+      const actions = _.get(part, 'actions', { fields: {} });
+      _.each(actions.fields, (spec, modelActionName) => {
+        if (!_.isPlainObject(spec)) {
+          return errors.push(`Invalid specification for '${modelActionName}' action for scheme '${path}'`);
+        }
+
+        const link = _.get(spec, 'action.link');
+        const type = _.get(spec, 'action.type');
+
+        if (!link) {
+          if (!appLib.allActionsNames.includes(modelActionName)) {
+            errors.push(`Invalid action '${modelActionName}' specified for scheme '${path}'`);
           }
+          return;
+        }
 
-          if (!_.isString(link)) {
+        if (!_.isString(link)) {
+          return errors.push(
+            `Action link must be a string if specified, found in scheme '${path}' for action '${modelActionName}'`
+          );
+        }
+
+        if (type !== 'module') {
+          const isFrontendAction = link.startsWith('/');
+          const isUrlAction = link.startsWith('http://') || link.startsWith('https://');
+          if (!isUrlAction && !isFrontendAction && !appLib.allActionsNames.includes(link)) {
             return errors.push(
-              `Action link must be a string if specified, found by path '${path}' for modelActionName '${modelActionName}'`
+              `Action link '${link}' is not valid (must be one of default or custom actions if specified), found in scheme '${path}' for action '${modelActionName}'`
             );
           }
-
-          if (type !== 'module') {
-            const isFrontendAction = link.startsWith('/');
-            const isUrlAction = link.startsWith('http://') || link.startsWith('https://');
-            if (!isUrlAction && !isFrontendAction && !appLib.allActionsNames.includes(link)) {
-              return errors.push(
-                `Action link '${link}' is not valid (must be one of default or custom actions if specified), found by path '${path}' for modelActionName '${modelActionName}'`
-              );
-            }
-          }
-        });
-      }
-    }
-
-    function transformFieldPermissions(part) {
-      if (!appLib.getAuthSettings().enablePermissions) {
-        return;
-      }
-
-      // TODO: validate field permissions and throw error on invalid
-      const { permissions } = part;
-      const isValidType = part.type !== 'Schema' && part.type !== 'Group';
-      if (!permissions && isValidType) {
-        const { accessAsAnyone } = appLib.accessCfg.PERMISSIONS;
-        part.permissions = {
-          view: accessAsAnyone,
-          create: accessAsAnyone,
-          update: accessAsAnyone,
-          upsert: accessAsAnyone,
-        };
-      } else if (_.isString(permissions) || _.isArray(permissions)) {
-        part.permissions = {
-          view: permissions,
-          create: permissions,
-          update: permissions,
-          upsert: permissions,
-        };
-      } else if (_.isPlainObject(permissions)) {
-        const { accessAsSuperAdmin } = appLib.accessCfg.PERMISSIONS;
-
-        const { read, write } = permissions;
-        const readPermission = read || accessAsSuperAdmin;
-        const writePermission = write || accessAsSuperAdmin;
-
-        part.permissions = {
-          view: readPermission,
-          create: writePermission,
-          update: writePermission,
-          delete: writePermission,
-          upsert: writePermission,
-        };
-      }
-    }
-
-    function transformFilters(part) {
-      const { filter } = part;
-      if (filter) {
-        return;
-      }
-
-      const filterName = appLib.filterUtil.getDefaultFilterName(part);
-      if (filterName) {
-        part.filter = filterName;
-      }
-    }
-
-    function validateFilters(part, path) {
-      const { filter } = part;
-      if (!filter) {
-        return;
-      }
-
-      const metaschemaFilter = appLib.appModel.metaschema.filters[filter];
-      const pathMsg = path.join('.');
-      if (!metaschemaFilter) {
-        return errors.push(`Unable to find metaschema filter by name '${filter}' specified by path ${pathMsg}`);
-      }
-      const { type, value } = metaschemaFilter.where || {};
-      if (!['function', 'reference', 'code'].includes(type)) {
-        return errors.push(
-          `Invalid filter specification by path '${pathMsg}': found unknown type '${type}'. Must be one of ['function', 'reference', 'code']`
-        );
-      }
-      if (type === 'function' && !appLib.appModelHelpers.FiltersWhere[value]) {
-        return errors.push(`Unable to find appModelHelpers filter by name '${filter}' specified by path '${pathMsg}'`);
-      }
-      if (type === 'reference' && !appLib.appModel.metaschema.filters[value]) {
-        return errors.push(`Unable to find metaschema filter by reference '${filter}' specified by path '${pathMsg}'`);
-      }
-    }
-
-    /**
-     * Removes all disabled menu items
-     * @param part
-     */
-    function deleteDisabledMenuItems(part) {
-      if (_.isPlainObject(part) && part.type === 'Menu' && part.fields) {
-        _.each(part.fields, (val, key) => {
-          if (val === false) {
-            delete part.fields[key];
-          }
-        });
-      }
-    }
-
-    /**
-     * Collects all permission names for future validation with models
-     * @param part
-     * @param path
-     */
-    function collectUsedPermissionNames(part, path) {
-      if (!appLib.appModel.usedPermissions) {
-        appLib.appModel.usedPermissions = new Set();
-      }
-      // According to 'Attaching Permissions' https://confluence.conceptant.com/pages/viewpage.action?pageId=1016055
-      // There are many places where permissions are used
-
-      // schema, list scopes
-      addPermissionsFromScopes(part);
-
-      // schema actions
-      const actionFields = _.get(part, 'actions.fields');
-      _.each(actionFields, (val) => {
-        const actionPermissions = _.get(val, 'permissions');
-        addToUsedPermissions(actionPermissions);
+        }
       });
+    }
+  }
 
-      // add lookup scopes
-      if (part.type.startsWith('LookupObjectID')) {
-        const lookups = _.get(part, 'lookup.table');
-        _.each(lookups, (lookup) => {
-          addPermissionsFromScopes(lookup);
-        });
-      }
-
-      // add fields permissions
-      if (part.permissions) {
-        addToUsedPermissions(part.permissions);
-      }
-
-      function addPermissionsFromScopes(aPart) {
-        const scopeFields = _.get(aPart, 'scopes');
-        _.each(scopeFields, (scopeObj) => {
-          const scopePermissions = _.get(scopeObj, 'permissions');
-          addToUsedPermissions(scopePermissions);
-        });
-      }
-
-      function addToUsedPermissions(permissions) {
-        if (!permissions) {
-          return;
-        }
-
-        if (_.isString(permissions)) {
-          appLib.appModel.usedPermissions.add(permissions);
-        } else if (Array.isArray(permissions)) {
-          _.flattenDeep(permissions).forEach((permission) => {
-            if (_.isString(permission)) {
-              appLib.appModel.usedPermissions.add(permission);
-            } else {
-              errors.push(`Found permission with not String type. Permission: ${permission}, path: ${path}`);
-            }
-          });
-        } else if (_.isPlainObject(permissions)) {
-          _.each(permissions, (objPermission) => {
-            addToUsedPermissions(objPermission);
-          });
-        }
-      }
+  function transformScopes(part) {
+    if (part.type !== 'Schema') {
+      return;
     }
 
-    /**
-     * Validates list format and checks that referred list exists in appModelHelpers.Lists
-     * Add dynamic list validator if necessary
-     * Note: there is another check when Mongoose model is being beuilt, delete this one?
-     * @param part
-     * @param path
-     */
-    function validateLists(part, path) {
-      const { list } = part;
-      if (!list) {
+    const modelActionNames = _.keys(_.get(part, 'actions.fields'));
+    expandPermissionsForScopes(part.scopes, modelActionNames);
+  }
+
+  function transformFieldPermissions(part) {
+    if (!appLib.getAuthSettings().enablePermissions) {
+      return;
+    }
+
+    // TODO: validate field permissions and throw error on invalid
+    const { permissions } = part;
+    const isValidType = part.type !== 'Schema' && part.type !== 'Group';
+    if (!permissions && isValidType) {
+      const { accessAsAnyone } = appLib.accessCfg.PERMISSIONS;
+      part.permissions = {
+        view: accessAsAnyone,
+        create: accessAsAnyone,
+        clone: accessAsAnyone,
+        delete: accessAsAnyone,
+        update: accessAsAnyone,
+        upsert: accessAsAnyone,
+      };
+    } else if (_.isString(permissions) || _.isArray(permissions)) {
+      part.permissions = {
+        view: permissions,
+        create: permissions,
+        clone: permissions,
+        delete: permissions,
+        update: permissions,
+        upsert: permissions,
+      };
+    } else if (_.isPlainObject(permissions)) {
+      const { read, write } = permissions;
+      const isReadWritePermissionObject = read || write;
+      if (!isReadWritePermissionObject) {
         return;
       }
 
-      const listPath = _.concat(path, 'list').join('.');
-      if (!_.isPlainObject(list)) {
-        return errors.push(`Attribute ${listPath} after transformation must be an object.`);
+      const { accessAsSuperAdmin } = appLib.accessCfg.PERMISSIONS;
+      const readPermission = read || accessAsSuperAdmin;
+      const writePermission = write || accessAsSuperAdmin;
+
+      part.permissions = {
+        view: readPermission,
+        create: writePermission,
+        clone: writePermission,
+        delete: writePermission,
+        update: writePermission,
+        upsert: writePermission,
+      };
+    }
+  }
+
+  function transformFilters(part) {
+    const { filter } = part;
+    if (filter) {
+      return;
+    }
+
+    const filterName = appLib.filterUtil.getDefaultFilterName(part);
+    if (filterName) {
+      part.filter = filterName;
+    }
+  }
+
+  function validateFilters(part, path, errors) {
+    const { filter } = part;
+    if (!filter) {
+      return;
+    }
+
+    const metaschemaFilter = appLib.appModel.metaschema.filters[filter];
+    const pathMsg = path.join('.');
+    if (!metaschemaFilter) {
+      return errors.push(`Unable to find metaschema filter by name '${filter}' specified by path ${pathMsg}`);
+    }
+    const { type, value } = metaschemaFilter.where || {};
+    if (!['function', 'reference', 'code'].includes(type)) {
+      return errors.push(
+        `Invalid filter specification by path '${pathMsg}': found unknown type '${type}'. Must be one of ['function', 'reference', 'code']`
+      );
+    }
+    if (type === 'function' && !appLib.appModelHelpers.FiltersWhere[value]) {
+      return errors.push(`Unable to find appModelHelpers filter by name '${filter}' specified by path '${pathMsg}'`);
+    }
+    if (type === 'reference' && !appLib.appModel.metaschema.filters[value]) {
+      return errors.push(`Unable to find metaschema filter by reference '${filter}' specified by path '${pathMsg}'`);
+    }
+  }
+
+  /**
+   * Removes all disabled menu items
+   * @param part
+   */
+  function deleteDisabledMenuItems(part) {
+    if (_.isPlainObject(part) && part.type === 'Menu' && part.fields) {
+      _.each(part.fields, (val, key) => {
+        if (val === false) {
+          delete part.fields[key];
+        }
+      });
+    }
+  }
+
+  function validatePermissionNames(part, path, errors) {
+    // schema, list scopes
+    validatePermissionsFromScopes(part);
+
+    // schema actions
+    const actionFields = _.get(part, 'actions.fields');
+    _.each(actionFields, (val) => {
+      const actionPermissions = _.get(val, 'permissions');
+      validatePermissions(actionPermissions);
+    });
+
+    // lookup scopes
+    if (part.type.startsWith('LookupObjectID')) {
+      const lookups = _.get(part, 'lookup.table');
+      _.each(lookups, (lookup) => {
+        validatePermissionsFromScopes(lookup);
+      });
+    }
+
+    // fields permissions
+    if (part.permissions) {
+      validatePermissions(part.permissions);
+    }
+
+    function validatePermissions(permissions) {
+      if (!permissions) {
+        return;
       }
 
-      const listName = list.name;
-      const listValues = list.values;
-      const listReferenceByName = _.get(appLib.appModelHelpers, ['Lists', listName]);
+      if (_.isArray(permissions)) {
+        _.flattenDeep(permissions).forEach((permission) => {
+          if (!_.isString(permission)) {
+            errors.push(`Found permission with not String type. Permission: ${permission}, path: ${path}`);
+          }
+        });
+      } else if (_.isPlainObject(permissions)) {
+        _.each(permissions, (objPermission) => {
+          validatePermissions(objPermission);
+        });
+      }
+    }
 
-      if (listReferenceByName && listValues) {
-        return errors.push(
-          `Attribute ${listPath} must have only one source of values for list (either 'name' or 'values')`
+    function validatePermissionsFromScopes(_part) {
+      const scopeFields = _.get(_part, 'scopes');
+      _.each(scopeFields, (scopeObj) => {
+        const scopePermissions = _.get(scopeObj, 'permissions');
+        validatePermissions(scopePermissions, errors);
+      });
+    }
+  }
+  /**
+   * Collects all permission names for future validation with models
+   * @param part
+   * @param path
+   */
+  function collectUsedPermissionNames(part) {
+    if (!part.type) {
+      return;
+    }
+
+    if (!appLib.appModel.usedPermissions) {
+      appLib.appModel.usedPermissions = new Set();
+    }
+    // According to 'Attaching Permissions' https://confluence.conceptant.com/pages/viewpage.action?pageId=1016055
+    // There are many places where permissions are used
+
+    // schema, list scopes
+    addPermissionsFromScopes(part);
+
+    // schema actions
+    const actionFields = _.get(part, 'actions.fields');
+    _.each(actionFields, (val) => {
+      const actionPermissions = _.get(val, 'permissions');
+      addToUsedPermissions(actionPermissions);
+    });
+
+    // add lookup scopes
+    if (part.type.startsWith('LookupObjectID')) {
+      const lookups = _.get(part, 'lookup.table');
+      _.each(lookups, (lookup) => {
+        addPermissionsFromScopes(lookup);
+      });
+    }
+
+    // add fields permissions
+    if (part.permissions) {
+      addToUsedPermissions(part.permissions);
+    }
+
+    function addPermissionsFromScopes(_part) {
+      const scopeFields = _.get(_part, 'scopes');
+      _.each(scopeFields, (scopeObj) => {
+        const scopePermissions = _.get(scopeObj, 'permissions');
+        addToUsedPermissions(scopePermissions);
+      });
+    }
+
+    function addToUsedPermissions(permissions) {
+      if (!permissions) {
+        return;
+      }
+
+      if (_.isString(permissions)) {
+        appLib.appModel.usedPermissions.add(permissions);
+      } else if (_.isArray(permissions)) {
+        _.flattenDeep(permissions).forEach((permission) => {
+          appLib.appModel.usedPermissions.add(permission);
+        });
+      } else if (_.isPlainObject(permissions)) {
+        _.each(permissions, (objPermission) => {
+          addToUsedPermissions(objPermission);
+        });
+      }
+    }
+  }
+
+  function getIndexSpecNameByKeys(indexKeys) {
+    let indexSpecName = '';
+    _.each(indexKeys, (val, indexKey) => {
+      indexSpecName += `${indexKey}${val}`;
+    });
+    return indexSpecName;
+  }
+
+  function transformModelsIndexes(part, path, errors) {
+    if (part.type !== 'Schema' || _.isNil(part.indexes)) {
+      return;
+    }
+
+    if (_.isNil(part.indexes)) {
+      part.indexes = [];
+      return;
+    }
+
+    const indexErrors = [];
+    _.each(part.indexes, (indexSpec, key) => {
+      const indexSpecPath = path.concat(['indexes', key]);
+      if (!_.isPlainObject(indexSpec.keys) || _.keys(indexSpec.keys).length === 0) {
+        return indexErrors.push(`Index specification by path '${indexSpecPath}' must have 'keys' specification`);
+      }
+
+      const invalidKeysSpecifactions = _.pickBy(indexSpec.keys, (v) => v !== 1 && v !== -1);
+      if (!_.isEmpty(invalidKeysSpecifactions)) {
+        return indexErrors.push(
+          `Index specification by path '${indexSpecPath}' has invalid keys ${stringifyObj(invalidKeysSpecifactions)}`
         );
       }
+    });
 
-      const isValidListReference = _.isPlainObject(listReferenceByName) || _.isFunction(listReferenceByName);
-      if (!list.isDynamicList && !_.isPlainObject(listValues) && !isValidListReference) {
+    if (indexErrors.length) {
+      errors.push(...indexErrors);
+      return;
+    }
+
+    const isAlreadyTransformed = _.isArray(part.indexes);
+    if (isAlreadyTransformed) {
+      return;
+    }
+
+    part.indexes = _.map(part.indexes, (indexSpec, key) => {
+      const background = _.get(indexSpec, 'options.background');
+      if (background !== false) {
+        _.set(indexSpec, 'options.background', true);
+      }
+
+      const indexSpecName = key || getIndexSpecNameByKeys(indexSpec.keys);
+      return { ...indexSpec, indexSpecName };
+    });
+  }
+
+  function addIndexesByFields(part, path) {
+    const hasIndex = part.index === true;
+    const hasUnique = part.unique === true;
+    const isLocation = part.type === 'Location';
+    if (!hasIndex && !hasUnique && !isLocation) {
+      return;
+    }
+
+    const [modelName, ...fieldPathArray] = path;
+    const fieldPath = fieldPathArray.filter((val, key) => key % 2 === 1).join('.');
+
+    const indexSpec = {
+      options: { background: true },
+    };
+
+    if (hasUnique === true) {
+      indexSpec.keys = { [fieldPath]: 1 };
+      indexSpec.options = { unique: true };
+    } else if (hasIndex) {
+      indexSpec.keys = { [fieldPath]: 1 };
+    }
+
+    if (isLocation) {
+      indexSpec.keys = { [fieldPath]: '2dsphere' };
+    }
+
+    const isLookupType = ['LookupObjectID', 'LookupObjectID[]', 'TreeSelector'].includes(part.type);
+    if (isLookupType) {
+      indexSpec.keys = { [`${fieldPath}._id`]: 1, [`${fieldPath}.table`]: 1 };
+    }
+
+    if (indexSpec.keys) {
+      indexSpec.indexSpecName = getIndexSpecNameByKeys(indexSpec.keys);
+      const modelIndexes = _.get(appLib.appModel.models, [modelName, 'indexes'], []);
+      const isIndexForCurrentFieldExist = modelIndexes.find((i) => i.indexSpecName === indexSpec.indexSpecName);
+
+      if (!isIndexForCurrentFieldExist) {
+        modelIndexes.push(indexSpec);
+        _.set(appLib.appModel.models, [modelName, 'indexes'], modelIndexes);
+      }
+    }
+  }
+
+  /**
+   * Validates list format and checks that referred list exists in appModelHelpers.Lists
+   * Add dynamic list validator if necessary
+   * @param part
+   * @param path
+   */
+  function validateLists(part, path, errors) {
+    const { list } = part;
+    if (!list) {
+      return;
+    }
+
+    const listPath = _.concat(path, 'list').join('.');
+    if (!_.isPlainObject(list)) {
+      return errors.push(`Attribute ${listPath} after transformation must be an object.`);
+    }
+
+    const listName = list.name;
+    const listValues = list.values;
+    const listReferenceByName = _.get(appLib.appModelHelpers, ['Lists', listName]);
+
+    if (listReferenceByName && listValues) {
+      return errors.push(
+        `Attribute ${listPath} must have only one source of values for list (either 'name' or 'values')`
+      );
+    }
+
+    const isValidListReference = _.isPlainObject(listReferenceByName) || _.isFunction(listReferenceByName);
+    if (!list.isDynamicList && !_.isPlainObject(listValues) && !isValidListReference) {
+      errors.push(
+        `Attribute ${listPath} must have list 'values' represented as object or 'name' referenced to object or function`
+      );
+    }
+  }
+
+  // These validators are called for all fields in the schema -----------------
+
+  /**
+   * Deletes all attributes "comment" from the app model
+   * @param part
+   * @param path
+   * @param val
+   * @param key
+   */
+  function deleteComments(part, path, val, key) {
+    if (_.includes(['comment'], key)) {
+      delete part[key];
+    }
+  }
+
+  /**
+   * If metaschema has list of allowed values for given field then validate that the app model attribute value is in that list
+   * @param part
+   * @param path
+   * @param val
+   * @param key
+   */
+  function validateValuesAreAllowedInMetaschema(part, path, val, key, errors) {
+    if (
+      appLib.appModel.metaschema[key] &&
+      _.has(appLib.appModel.metaschema[key], 'list') &&
+      !_.includes(appLib.appModel.metaschema[key].list, val)
+    ) {
+      // value is not allowed in metaschema
+      errors.push(
+        `Value '${val}' is not listed in metaschema for '${key}', found by path '${_.concat(path, key).join('.')}'`
+      );
+    }
+  }
+
+  /**
+   * Validates that the attribute is allowed in metaschema
+   * @param part
+   * @param path
+   * @param val
+   * @param key
+   */
+  function validateAttributeAllowed(part, path, val, key, errors) {
+    const allowedAttributes = _.keys(appLib.appModel.metaschema);
+    if (!_.includes(allowedAttributes, key)) {
+      // attribute of app model is listed in metadata
+      errors.push(`Unknown attribute ${_.concat(path, key).join('.')}`);
+    }
+  }
+
+  function transformAppPermissions({ errors }) {
+    const appPermissions = _.get(appLib.appModel, 'interface.app.permissions');
+    const newAppPermissions = getTransformedInterfaceAppPermissions(appPermissions, errors);
+    newAppPermissions && _.set(appLib.appModel, 'interface.app.permissions', newAppPermissions);
+
+    const mainMenuItems = _.get(appLib, 'appModel.interface.mainMenu.fields');
+    transformMenuPermissions(mainMenuItems, appLib.allActionsNames);
+
+    const pages = _.get(appLib, 'appModel.interface.pages.fields');
+    transformPagesPermissions(pages, appLib.allActionsNames);
+  }
+
+  function validateAppPermissions({ errors, warnings }) {
+    if (!appLib.getAuthSettings().enablePermissions) {
+      log.trace(`Flag enablePermissions is disabled, handling app permissions is skipped.`);
+      return;
+    }
+
+    // should be created in method collectUsedPermissionNames
+    if (!appLib.appModel.usedPermissions) {
+      throw new Error(`Used permissions are not preloaded`);
+    }
+
+    const declaredPermissions = _.get(appLib.appModel, 'interface.app.permissions', {});
+
+    for (const usedPermissionName of appLib.appModel.usedPermissions.values()) {
+      if (declaredPermissions[usedPermissionName] === undefined) {
         errors.push(
-          `Attribute ${listPath} must have list 'values' represented as object or 'name' referenced to object or function`
+          `Permission with name '${usedPermissionName}' is used but not declared in interface.app.permissions.`
         );
       }
     }
 
-    /**
-     * Recursively processes all fields in the part
-     * @param validator
-     * @param part
-     * @param path
-     */
-    function validateFields(validator, part, path) {
-      if (_.has(part, 'fields')) {
-        validator(part.fields, _.concat(path, 'fields'));
-      }
-    }
-
-    // These validators are called for all fields in the schema -----------------
-
-    /**
-     * Deletes all attributes "comment" from the app model
-     * @param part
-     * @param path
-     * @param val
-     * @param key
-     */
-    function deleteComments(part, path, val, key) {
-      if (_.includes(['comment'], key)) {
-        delete part[key];
-      }
-    }
-
-    /**
-     * If metaschema has list of allowed values for given field then validate that the app model attribute value is in that list
-     * @param part
-     * @param path
-     * @param val
-     * @param key
-     */
-    function validateValuesAreAllowedInMetaschema(part, path, val, key) {
-      if (
-        appLib.appModel.metaschema[key] &&
-        _.has(appLib.appModel.metaschema[key], 'list') &&
-        !_.includes(appLib.appModel.metaschema[key].list, val)
-      ) {
-        // value is allowed in metaschema
-        errors.push(`Invalid value ${val} for ${_.concat(path, key).join('.')}`);
-      }
-    }
-
-    /**
-     * Validates that the attribute is allowed in metaschema
-     * @param part
-     * @param path
-     * @param val
-     * @param key
-     */
-    function validateAttributeAllowed(part, path, val, key) {
-      if (!_.includes(allowedAttributes, key)) {
-        // attribute of app model is listed in metadata
-        errors.push(`Unknown attribute ${_.concat(path, key).join('.')}`);
-      }
-    }
-
-    // recursive validation code -----------------------
-
-    function handlePermissions() {
-      // if (!appLib.getAuthSettings().enablePermissions) {
-      //   log.trace(`Flag enablePermissions is disabled, handling app permissions is skipped.`);
-      //   return;
-      // }
-
-      // TODO: move to validateModelParts?
-      transformPermissions();
-      validatePermissions();
-    }
-
-    function transformPermissions() {
-      const appPermissions = _.get(appLib.appModel, 'interface.app.permissions');
-      const newAppPermissions = getTransformedInterfaceAppPermissions(appPermissions, errors);
-      newAppPermissions && _.set(appLib.appModel, 'interface.app.permissions', newAppPermissions);
-
-      const transformedAppModel = getAppModelWithTransformedPermissions(appLib.appModel.models);
-      _.set(appLib.appModel, 'models', transformedAppModel);
-
-      transformListPermissions(appLib.ListsFields, appLib.appModel.models, appLib.allActionsNames);
-
-      const mainMenuItems = _.get(appLib, 'appModel.interface.mainMenu.fields');
-      transformMenuPermissions(mainMenuItems, appLib.allActionsNames);
-
-      const pages = _.get(appLib, 'appModel.interface.pages.fields');
-      transformPagesPermissions(pages, appLib.allActionsNames);
-    }
-
-    function validatePermissions() {
-      if (!appLib.getAuthSettings().enablePermissions) {
-        log.trace(`Flag enablePermissions is disabled, handling app permissions is skipped.`);
-        return;
-      }
-
-      // should be created in method collectUsedPermissionNames
-      if (!appLib.appModel.usedPermissions) {
-        throw new Error(`Used permissions are not preloaded`);
-      }
-
-      const declaredPermissions = _.get(appLib.appModel, 'interface.app.permissions', {});
-
-      for (const usedPermissionName of appLib.appModel.usedPermissions.values()) {
-        if (declaredPermissions[usedPermissionName] === undefined) {
-          errors.push(
-            `Permission with name '${usedPermissionName}' is used but not declared in interface.app.permissions.`
-          );
-        }
-      }
-
-      for (const declaredPermissionName of _.keys(declaredPermissions)) {
-        if (!appLib.appModel.usedPermissions.has(declaredPermissionName)) {
-          warnings.push(
-            `Permission with name '${declaredPermissionName}' is declared in interface.app.permissions but not used.`
-          );
-        }
-      }
-    }
-
-    function setAppAuthSettings() {
-      const authSettings = _.get(appLib.appModel, 'interface.app.auth', {});
-      const defaultAuthSettings = _.get(appLib, 'accessCfg.DEFAULT_AUTH_SETTINGS', {});
-      const mergedSettings = _.merge({}, defaultAuthSettings, authSettings);
-
-      if (mergedSettings.requireAuthentication && !mergedSettings.enableAuthentication) {
+    for (const declaredPermissionName of _.keys(declaredPermissions)) {
+      if (!appLib.appModel.usedPermissions.has(declaredPermissionName)) {
         warnings.push(
-          `Found contradictory settings: app.auth.requireAuthentication is true and app.auth.enableAuthentication is false.\n` +
-            `app.auth.enableAuthentication will be set to true.`
+          `Permission with name '${declaredPermissionName}' is declared in interface.app.permissions but not used.`
         );
-        mergedSettings.enableAuthentication = true;
-      }
-      _.set(appLib.appModel, 'interface.app.auth', mergedSettings);
-    }
-
-    /**
-     * Needed for dispatching list values of all models with considering scope conditions
-     * @param part
-     * @param path
-     */
-    function collectListsMetaInfo(part, path) {
-      if (!appLib.ListsFields) {
-        appLib.ListsFields = [];
-      }
-
-      const pathToModelField = path.join('.'); // for example 'roles.fields.permissions'
-      if (_.get(part, 'list')) {
-        appLib.ListsFields.push(pathToModelField);
       }
     }
+  }
 
-    function transformLists(part) {
-      if (!part.list) {
-        return;
-      }
+  function setAppAuthSettings(warnings) {
+    const authSettings = _.get(appLib.appModel, 'interface.app.auth', {});
+    const defaultAuthSettings = _.get(appLib, 'accessCfg.DEFAULT_AUTH_SETTINGS', {});
+    const mergedSettings = _.merge({}, defaultAuthSettings, authSettings);
 
-      const { enablePermissions } = appLib.getAuthSettings();
-      const anyoneListScopeForViewAction = enablePermissions ? appLib.accessUtil.getAnyoneListScope() : {};
-      const adminListScopeForViewAction = enablePermissions ? appLib.accessUtil.getAdminListScope() : {};
+    if (mergedSettings.requireAuthentication && !mergedSettings.enableAuthentication) {
+      warnings.push(
+        `Found contradictory settings: app.auth.requireAuthentication is true and app.auth.enableAuthentication is false.\n` +
+          `app.auth.enableAuthentication will be set to true.`
+      );
+      mergedSettings.enableAuthentication = true;
+    }
+    _.set(appLib.appModel, 'interface.app.auth', mergedSettings);
+  }
 
-      const listVal = part.list;
-      if (_.isString(listVal)) {
-        // transform to object
+  /**
+   * Needed for dispatching list values of all models with considering scope conditions
+   * @param part
+   * @param path
+   */
+  function collectListsMetaInfo(part, path) {
+    if (!appLib.ListsFields) {
+      appLib.ListsFields = [];
+    }
+
+    const pathToModelField = path.join('.'); // for example 'roles.fields.permissions'
+    if (_.get(part, 'list')) {
+      appLib.ListsFields.push(pathToModelField);
+    }
+  }
+
+  function transformLists(part, path, errors) {
+    if (!part.list) {
+      return;
+    }
+
+    const { enablePermissions } = appLib.getAuthSettings();
+    const anyoneListScopeForViewAction = enablePermissions ? appLib.accessUtil.getAnyoneListScope() : {};
+    const adminListScopeForViewAction = enablePermissions ? appLib.accessUtil.getAdminListScope() : {};
+
+    const listVal = part.list;
+    if (_.isString(listVal)) {
+      // transform to object
+      part.list = {
+        name: listVal,
+        scopes: anyoneListScopeForViewAction,
+      };
+    } else if (_.isPlainObject(listVal)) {
+      const newFormatListFields = ['name', 'values', 'scopes', 'params'];
+      const isNewListFormat = _.every(listVal, (field, fieldName) => newFormatListFields.includes(fieldName));
+
+      if (isNewListFormat) {
+        const listScopes = listVal.scopes;
+        if (listScopes) {
+          // add admin scope to existing scopes to make sure admin may retrieve full list
+          // since existing scopes might return stripped down lists
+          listVal.scopes = _.merge(listScopes, adminListScopeForViewAction);
+        } else {
+          listVal.scopes = anyoneListScopeForViewAction;
+        }
+      } else {
         part.list = {
-          name: listVal,
+          values: listVal,
           scopes: anyoneListScopeForViewAction,
         };
-      } else if (_.isPlainObject(listVal)) {
-        const newFormatListFields = ['name', 'values', 'scopes', 'params'];
-        const isNewListFormat = _.every(listVal, (field, fieldName) => newFormatListFields.includes(fieldName));
-
-        if (isNewListFormat) {
-          const listScopes = listVal.scopes;
-          if (listScopes) {
-            expandPermissionsForScopes(listScopes, appLib.allActionsNames);
-            // add admin scope to existing scopes to make sure admin may retrieve full list
-            // since existing scopes might return stripped down lists
-            listVal.scopes = _.merge(listScopes, adminListScopeForViewAction);
-          } else {
-            listVal.scopes = anyoneListScopeForViewAction;
-          }
-        } else {
-          part.list = {
-            values: listVal,
-            scopes: anyoneListScopeForViewAction,
-          };
-        }
-      }
-
-      handleDynamic(part.list);
-      handleScopes(part.list);
-
-      function handleDynamic(list) {
-        const { name } = list;
-        if (!_.isString(name)) {
-          list.isDynamicList = false;
-          return;
-        }
-
-        const urlBeginnings = ['http://', 'https://', '/'];
-
-        const isNameUrl = urlBeginnings.some((b) => name.startsWith(b));
-        if (isNameUrl) {
-          list.name = getListFullUrl(name);
-          list.isDynamicList = true;
-          return;
-        }
-
-        const listReference = appLib.appModelHelpers.Lists[name];
-        if (!_.isString(listReference)) {
-          list.isDynamicList = false;
-          return;
-        }
-        const isListReferenceUrl = urlBeginnings.some((b) => listReference.startsWith(b));
-        if (isListReferenceUrl) {
-          list.name = getListFullUrl(listReference);
-          list.isDynamicList = true;
-          return;
-        }
-        errors.push(`Found list with name '${name}' which is not an url and not a list reference to an url.`);
-
-        function getListFullUrl(url) {
-          const isShortFormUrl = url.startsWith('/');
-          if (!isShortFormUrl) {
-            return url;
-          }
-
-          const appUrl = process.env.APP_URL;
-          const isValidAppUrl = appUrl && ['http://', 'https://'].some((b) => appUrl.startsWith(b));
-          if (!isValidAppUrl) {
-            errors.push(
-              `Param 'APP_URL' must be valid (startsWith 'http://' or 'https://') to build a full url for dynamic list with a short url '${url}'`
-            );
-          }
-          return `${appUrl}${appLib.getFullRoute(appLib.API_PREFIX, url)}`;
-        }
-      }
-
-      function handleScopes(list) {
-        _.each(list.scopes, (scope) => {
-          scope.where = scope.where || 'return true';
-          scope.return = scope.return || 'return $list';
-        });
       }
     }
 
-    function validateModelPart(part, path) {
-      transformForBackwardCompatibility(part, path);
-      validateSchemaKey(part, path);
-      addSchemeNameOrFieldName(part, path);
-      mergeTypeDefaults(part, path);
-      convertTransformersToArrays(part, path);
-      convertSynthesizersToArrays(part, path);
-      validateDefaultSortBy(part, path);
-      transformLists(part);
-      validateLists(part, path);
+    handleDynamic(part.list);
+    handleScopes(part.list);
+
+    function handleDynamic(list) {
+      const { name } = list;
+      if (!_.isString(name)) {
+        list.isDynamicList = false;
+        return;
+      }
+
+      const urlBeginnings = ['http://', 'https://', '/'];
+
+      const isNameUrl = urlBeginnings.some((b) => name.startsWith(b));
+      if (isNameUrl) {
+        list.name = getListFullUrl(name);
+        list.isDynamicList = true;
+        return;
+      }
+
+      const listReference = appLib.appModelHelpers.Lists[name];
+      if (!_.isString(listReference)) {
+        list.isDynamicList = false;
+        return;
+      }
+      const isListReferenceUrl = urlBeginnings.some((b) => listReference.startsWith(b));
+      if (isListReferenceUrl) {
+        list.name = getListFullUrl(listReference);
+        list.isDynamicList = true;
+        return;
+      }
+      errors.push(`Found list with name '${name}' which is not an url and not a list reference to an url.`);
+
+      function getListFullUrl(url) {
+        const isShortFormUrl = url.startsWith('/');
+        if (!isShortFormUrl) {
+          return url;
+        }
+
+        const appUrl = process.env.APP_URL;
+        const isValidAppUrl = appUrl && ['http://', 'https://'].some((b) => appUrl.startsWith(b));
+        if (!isValidAppUrl) {
+          errors.push(
+            `Param 'APP_URL' must be valid (startsWith 'http://' or 'https://') to build a full url for dynamic list with a short url '${url}'`
+          );
+        }
+        return `${appUrl}${appLib.getFullRoute(appLib.API_PREFIX, url)}`;
+      }
+    }
+
+    function handleScopes(list) {
+      _.each(list.scopes, (scope) => {
+        expandPermissionsForScope(scope, appLib.allActionsNames);
+        scope.return = scope.return || 'return $list';
+      });
+    }
+  }
+
+  function validateInterfacePart({ part, path, errors, warnings }) {
+    loadExternalData(part, path, warnings);
+    mergeTypeDefaults(part, false, true);
+
+    deleteDisabledMenuItems(part);
+    collectUsedPermissionNames(part);
+
+    if (_.has(part, 'fields')) {
+      validateInterfaceParts({ parts: part.fields, path: _.concat(path, 'fields'), errors, warnings });
+    }
+
+    // validate and cleanup individual fields
+    _.each(part, (val, key) => {
+      // validateValuesAreAllowedInMetaschema(part, path, val, key); // fails on dashboards
+      deleteComments(part, path, val, key);
+    });
+  }
+
+  function validateInterfaceParts({ parts, path, errors, warnings }) {
+    _.each(parts, (val, key) => {
+      validateInterfacePart({ part: val, path: _.concat(path, key), errors, warnings });
+    });
+  }
+
+  function processModelParts({ parts, path, errors, warnings, collectMeta, mergeDefaults }) {
+    _.each(parts, (val, key) => {
+      processModelPart({ part: val, path: _.concat(path, key), errors, warnings, collectMeta, mergeDefaults });
+    });
+  }
+
+  m.validateNewModel = (model, modelName) => {
+    const errors = [];
+    const warnings = [];
+    const part = model;
+    const path = [modelName];
+    const collectMeta = false;
+    const mergeDefaults = false;
+
+    processModelPart({ part, path, errors, warnings, collectMeta, mergeDefaults });
+    processLookupsAndTreeSelectorsPart({ part, path, errors, warnings, collectMeta });
+
+    return { errors, warnings };
+  };
+
+  m.fixLookupIdDuplicates = (part, path) => {
+    _.each(part.fields, (field, key) => {
+      fixLookupIdDuplicates(field, _.concat(path, 'fields', key));
+    });
+
+    function fixLookupIdDuplicates(_part, _path) {
+      if (_part.lookup) {
+        const joinedPath = _path.join('.');
+        const lookupId = _part.lookup.id;
+        const lookupIdPath = appLib.lookupIds[lookupId];
+
+        const isLookupExist = !_.isNil(lookupIdPath);
+        const isLookupPathMatchCurrentPath = _.isEqual(lookupIdPath, joinedPath);
+        if (isLookupExist && !isLookupPathMatchCurrentPath) {
+          _part.lookup.id = generateLookupId(_path);
+        }
+      }
+
+      if (_.has(_part, 'fields')) {
+        m.fixLookupIdDuplicates(_part.fields, _.concat(_path, 'fields'));
+      }
+    }
+  };
+
+  m.upsertNewModel = (model, modelName, action) => {
+    const errors = [];
+    const warnings = [];
+    const part = model;
+    const path = [modelName];
+    const collectMeta = true;
+    // When update or clone (model is already transformed) merging defaults is not performed to avoid accumulating duplicates in arrays ('validate', 'transform').
+    const mergeDefaults = action === 'create';
+
+    appLib.appModel.models[modelName] = model;
+    processModelPart({ part, path, errors, warnings, collectMeta, mergeDefaults });
+    processLookupsAndTreeSelectorsPart({ part, path, errors, warnings, collectMeta });
+
+    return { errors, warnings };
+  };
+
+  function processModelPart({ part, path, errors, warnings, collectMeta, mergeDefaults }) {
+    transformForBackwardCompatibility(part, path);
+    validateSchemaKey(part, path, errors);
+    addSchemeNameOrFieldName(part, path);
+    if (mergeDefaults) {
+      mergeTypeDefaults(part, true);
+    }
+    convertTransformersToArrays(part, path);
+    convertSynthesizersToArrays(part, path);
+    validateDefaultSortBy(part, path, errors);
+    transformLists(part, path, errors);
+    validateLists(part, path, errors);
+    expandValidators(part, path, errors);
+    convertStringsForNonstringAttributes(part, path);
+    makeSureAllTransformersExist(part, path, errors);
+    // validateSchemaNamesArePlural(part, path);
+    generateFullName(part, path);
+    validateRequiredAttributes(part, path, errors);
+    addValidatorForConditionalRequired(part);
+    setDefaultAttributes(part);
+    transformActions(part);
+    validateActions(part, path, errors);
+    transformScopes(part);
+    handleVisibleAttribute(part, path);
+    handleOrderAttribute(part, path, errors);
+    transformFieldPermissions(part);
+    transformFilters(part);
+    validateFilters(part, path, errors);
+    validateFieldName(part, path, errors);
+    handleStaticHtml(part, path, errors);
+    validatePermissionNames(part, path, errors);
+    transformModelsIndexes(part, path, errors);
+    addIndexesByFields(part, path);
+
+    if (collectMeta) {
       collectListsMetaInfo(part, path);
-      expandValidators(part, path);
-      convertStringsForNonstringAttributes(part, path);
-      makeSureAllTransformersExist(part, path);
-      transformLookups(part, path);
-      validateLookups(part, path);
-      transformTreeSelectors(part, path);
-      // validateSchemaNamesArePlural(part, path);
-      generateFullName(part, path);
-      validateRequiredAttributes(part, path);
-      addValidatorForConditionalRequired(part);
-      setDefaultAttributes(part);
-      transformActions(part);
-      validateActions(part, path);
-      handleVisibleAttribute(part, path);
-      handleOrderAttribute(part, path);
-      transformFieldPermissions(part);
-      transformFilters(part, path);
-      validateFilters(part, path);
-      collectUsedPermissionNames(part, path);
-      validateFieldName(path);
-      addLookupMeta(part, path);
+      collectUsedPermissionNames(part);
+    }
 
-      validateFields(validateModelParts, part, path);
-
-      // validate and cleanup individual fields
-      _.each(part, (val, key) => {
-        validateAttributeAllowed(part, path, val, key);
-        validateValuesAreAllowedInMetaschema(part, path, val, key);
-        deleteComments(part, path, val, key);
+    if (_.has(part, 'fields')) {
+      processModelParts({
+        parts: part.fields,
+        path: _.concat(path, 'fields'),
+        errors,
+        warnings,
+        collectMeta,
+        mergeDefaults,
       });
     }
 
-    function validateInterfacePart(part, path) {
-      loadExternalData(part, path);
-
-      deleteDisabledMenuItems(part);
-      validateFields(validateInterfaceParts, part, path);
-
-      // validate and cleanup individual fields
-      _.each(part, (val, key) => {
-        // validateValuesAreAllowedInMetaschema(part, path, val, key); // fails on dashboards
-        deleteComments(part, path, val, key);
-      });
-    }
-
-    function validateInterfaceParts(parts, path) {
-      _.each(parts, (val, key) => {
-        validateInterfacePart(val, _.concat(path, key));
-      });
-    }
-
-    function validateModelParts(parts, path) {
-      _.each(parts, (val, key) => {
-        validateModelPart(val, _.concat(path, key));
-      });
-    }
-
-    /**
-     * Expands 'other' field retrieved from data-bridge.
-     * Example:
-     * 1. Scalar value { title: {  other: 'App title' } } transforms to { title: 'App title' }
-     * 2. Object value
-     *   {
-     *     modelName: {
-     *       scopes: { scope1: {...} },
-     *       other: { scopes: { scope2: {...} } }
-     *     }
-     *   }
-     *   expands with merge to following object
-     *   {
-     *     modelName: {
-     *       scopes: { scope1: {...}, scope2: {...} }
-     *     }
-     *   }
-     * @param wholeObj
-     * @param path
-     */
-    function expandOtherFieldPart(wholeObj, path = []) {
-      const part = _.isEmpty(path) ? wholeObj : _.get(wholeObj, path);
-      processOtherValue(wholeObj, part, path);
-
-      _.each(part, (val, key) => {
-        if (_.isPlainObject(val)) {
-          expandOtherFieldPart(wholeObj, _.concat(path, key));
-        }
-      });
-
-      function processOtherValue(_wholeObj, _part, _path) {
-        if (!_.has(_part, 'other')) {
-          return;
-        }
-        const otherValue = part.other;
-        if (_.isPlainObject(otherValue)) {
-          delete _part.other;
-          _.merge(_part, otherValue);
-          log.info(`Merged other object for path '${_path.join('.')}'`);
-          return;
-        }
-
-        let parsedValue = otherValue;
-
-        if (_.isString(otherValue)) {
-          const numberVal = +otherValue;
-          const isStringParsedNumber = !Number.isNaN(numberVal);
-          if (isStringParsedNumber) {
-            parsedValue = numberVal;
-          }
-        }
-
-        _.set(_wholeObj, _path, parsedValue);
-        log.info(`Set other value (${parsedValue}) for path '${_path.join('.')}'`);
-      }
-    }
-  };
-
-  m.getMongooseModel = (model, collectionName) => {
-    const mongooseSchemaDefinition = {};
-    m.getMongooseSchemaDefinition(null, model, mongooseSchemaDefinition);
-    const schema = new mongoose.Schema(mongooseSchemaDefinition, {
-      collection: collectionName,
-      strict: true,
-      versionKey: false,
-      minimize: true,
+    // validate and cleanup individual fields
+    _.each(part, (val, key) => {
+      validateAttributeAllowed(part, path, val, key, errors);
+      validateValuesAreAllowedInMetaschema(part, path, val, key, errors);
+      deleteComments(part, path, val, key);
     });
+  }
 
-    if (model.schemaTransform) {
-      if (typeof model.schemaTransform === 'string') {
-        model.schemaTransform = [model.schemaTransform];
+  function processLookupsAndTreeSelectors({ parts, path, errors, warnings, collectMeta }) {
+    _.each(parts, (val, key) => {
+      if (val === null) {
+        return;
       }
-      model.schemaTransform.forEach((transformer) => {
-        schemaTransformers[transformer](schema);
-      });
+      processLookupsAndTreeSelectorsPart({ part: val, path: _.concat(path, key), errors, warnings, collectMeta });
+    });
+  }
+
+  function processLookupsAndTreeSelectorsPart({ part, path, errors, warnings, collectMeta }) {
+    transformLookups(part, path);
+    transformTreeSelectors(part, path);
+    validateLookupsAndTreeSelectorsPart(part, path, errors);
+
+    if (collectMeta) {
+      collectLookupMeta(part, path);
     }
 
-    return schema;
-  };
+    if (_.has(part, 'fields')) {
+      processLookupsAndTreeSelectors({
+        parts: part.fields,
+        path: _.concat(path, 'fields'),
+        errors,
+        warnings,
+        collectMeta,
+      });
+    }
+  }
 
-  // For now we have adp hooks and mongoose hooks
-  // Adp hooks are invoked in methods defined in dba, so if model code queries the database without using dba methods hooks are not invoked
-  // Mongoose hooks are convenient for code in models, since using mongoose save new record invokes hooks
-  // We going to refuse using mongoose in the future
-  // TODO: in future rewrite all models' code to use only dba methods and add new dba methods if existing ones don't cover all needs
-  m.getCollectionToMongooseMiddlewares = () => {
-    const clearCacheForUsersWithPermissions = function () {
-      return appLib.cache.clearCacheByKeyPattern(`usersWithPermissions:*`);
-    };
-
-    // some of queries may trigger updating linked records
-    // i.e. 'remove' role may trigger 'updateMany' users which results in 2 function invocations
-    // in a good way function should be invoked only once and in same transaction in which main queries are executed
-    const queryMiddlewares = [
-      'findOneAndDelete',
-      'findOneAndRemove',
-      'findOneAndUpdate',
-      'remove',
-      'update',
-      'updateOne',
-      'updateMany',
-      'deleteMany',
-      'deleteOne',
-    ];
-    const docMiddlewares = ['save', 'remove', 'updateOne', 'deleteOne'];
-
-    const clearUserWithStatusesAfterWriteHook = function (schema) {
-      schema.post(queryMiddlewares, { query: true, document: false }, clearCacheForUsersWithPermissions);
-      schema.post(docMiddlewares, { query: false, document: true }, clearCacheForUsersWithPermissions);
-    };
-
-    return {
-      users: (schema) => clearUserWithStatusesAfterWriteHook(schema),
-      roles: (schema) => clearUserWithStatusesAfterWriteHook(schema),
-    };
-  };
   /**
-   * Generates mongoose models based on models JSON and puts them in m.mongooseModels hash
-   * Note that some methods require m.mongoos_models to be populated before they work correctly
-   * @param db the mongoose db connection
-   * @param models JSON defining the model
-   * @param isOverride
+   * Expands 'other' field retrieved from data-bridge.
+   * Example:
+   * 1. Scalar value { title: {  other: 'App title' } } transforms to { title: 'App title' }
+   * 2. Object value
+   *   {
+   *     modelName: {
+   *       scopes: { scope1: {...} },
+   *       other: { scopes: { scope2: {...} } }
+   *     }
+   *   }
+   *   expands with merge to following object
+   *   {
+   *     modelName: {
+   *       scopes: { scope1: {...}, scope2: {...} }
+   *     }
+   *   }
+   * @param wholeObj
+   * @param path
    */
-  m.generateMongooseModels = (db, models, isOverride) => {
-    const collectionToMongooseMiddlewares = m.getCollectionToMongooseMiddlewares();
-    return Promise.map(Object.entries(models), async ([name, model]) => {
-      try {
-        const collectionName = name;
-        const mongooseModelName = name;
-        const schema = m.getMongooseModel(model, collectionName);
-        log.trace(`Generating model ${name}`);
-        if (isOverride) {
-          delete db.models[mongooseModelName];
-        }
+  function expandOtherFieldPart(wholeObj, path = []) {
+    const part = _.isEmpty(path) ? wholeObj : _.get(wholeObj, path);
+    processOtherValue(wholeObj, part, path);
 
-        const addMongooseMiddlewares = collectionToMongooseMiddlewares[mongooseModelName];
-        if (addMongooseMiddlewares) {
-          await addMongooseMiddlewares(schema);
+    _.each(part, (val, key) => {
+      if (_.isPlainObject(val)) {
+        expandOtherFieldPart(wholeObj, _.concat(path, key));
+      }
+    });
+
+    function processOtherValue(_wholeObj, _part, _path) {
+      if (!_.has(_part, 'other')) {
+        return;
+      }
+      const otherValue = part.other;
+      if (_.isPlainObject(otherValue)) {
+        delete _part.other;
+        _.merge(_part, otherValue);
+        log.info(`Merged other object for path '${_path.join('.')}'`);
+        return;
+      }
+
+      let parsedValue = otherValue;
+
+      if (_.isString(otherValue)) {
+        const numberVal = +otherValue;
+        const isStringParsedNumber = !Number.isNaN(numberVal);
+        if (isStringParsedNumber) {
+          parsedValue = numberVal;
         }
-        return db.model(mongooseModelName, schema);
+      }
+
+      _.set(_wholeObj, _path, parsedValue);
+      log.info(`Set other value (${parsedValue}) for path '${_path.join('.')}'`);
+    }
+  }
+
+  m.removeUnusedIndexes = async (collectionName) => {
+    const collection = appLib.db.collection(collectionName);
+    let existingIndexes = [];
+    try {
+      existingIndexes = await collection.indexInformation({ full: true });
+    } catch (e) {
+      if (e.codeName === 'NamespaceNotFound') {
+        // collection does not exist, so unused indexes don't exist
+        return;
+      }
+    }
+    const schemaIndexSpecs = appLib.appModel.models[collectionName].indexes;
+    const unusedIndexNames = getUnusedIndexNames(schemaIndexSpecs, existingIndexes);
+
+    return Promise.map(unusedIndexNames, (unusedIndexName) => {
+      try {
+        log.info(`Dropping index '${collectionName}.${unusedIndexName}' which does not exist in schema.`);
+        return collection.dropIndex(unusedIndexName);
       } catch (e) {
-        log.error('MDL001', `Unable to generate mongoose model ${name}`);
+        log.info(
+          `Error occurred while removing unused indexes for collection '${collectionName}'.`,
+          `Index names: ${unusedIndexNames.join(', ')}`
+        );
         throw e;
       }
     });
-  };
 
-  m.removeIrrelevantSingleUniqueIndexes = (collectionName) => {
-    const collection = appLib.db.collection(collectionName);
-    const modelUniqueFields = getModelUniqueFields(collectionName);
-    return getRemoveModelUniqueIndexesPromise(collection, modelUniqueFields);
-
-    async function getRemoveModelUniqueIndexesPromise(_collection, _modelUniqueFields) {
-      try {
-        const uniqueIndexes = (await _collection.getIndexes({ full: true })).filter((i) => i.unique === true);
-        return Promise.map(uniqueIndexes, (index) => {
-          const keyPaths = Object.keys(index.key);
-          const isUniqueIndexNotExistsInSchema = keyPaths.length === 1 && !_modelUniqueFields.has(keyPaths[0]);
-          if (isUniqueIndexNotExistsInSchema) {
-            log.info(`Dropping unique index which does not exists in schema: ${index.name}`);
-            return _collection.dropIndex(index.name);
-          }
-        });
-      } catch (e) {
-        if (e.codeName === 'NamespaceNotFound') {
-          // collections does not exist, so skip removing unique indexes
+    function getUnusedIndexNames(_schemaIndexSpecs, _existingIndexes) {
+      const _unusedIndexNames = [];
+      _.each(_existingIndexes, (existingIndex) => {
+        const { name, unique, key } = existingIndex;
+        const isDefaultIdIndex = name === '_id_';
+        if (isDefaultIdIndex) {
           return;
         }
-        log.info(`Error occurred while removing unique indexes for collection '${_collection}'`);
-        throw e;
-      }
-    }
 
-    function getModelUniqueFields(modelName, uniqueFieldPaths = new Set(), curPath = []) {
-      const curAppModel = appLib.appModel.models[modelName];
-      if (!curAppModel) {
-        return uniqueFieldPaths;
-      }
-      const curObj = _.isEmpty(curPath) ? curAppModel : _.get(curAppModel, curPath);
-      if (curObj.unique === true) {
-        const indexPath = curPath.filter((part) => part !== 'fields').join('.');
-        uniqueFieldPaths.add(indexPath);
-      }
-      _.each(curObj.fields, (field, fieldName) => {
-        const nestedPath = curPath.concat('fields', fieldName);
-        getModelUniqueFields(modelName, uniqueFieldPaths, nestedPath);
+        const hasSchemaIndex = !!_schemaIndexSpecs.find((schemaIndexSpec) => {
+          const { keys: sKeys, options } = schemaIndexSpec;
+          const { unique: sUnique } = options;
+          // _.isEqual({a:1, b:1},{b:1, a:1}) = true, this is why arrays of keys and values are compared separately (order matters)
+          const hasSameKeys = _.isEqual(_.keys(key), _.keys(sKeys)) && _.isEqual(_.values(key), _.values(sKeys));
+          const hasSameUnique = unique === sUnique;
+          return hasSameKeys && hasSameUnique;
+        });
+        if (!hasSchemaIndex) {
+          _unusedIndexNames.push(name);
+        }
       });
-      return uniqueFieldPaths;
+
+      return _unusedIndexNames;
     }
+  };
+
+  m.createIndexes = (collectionName) => {
+    const createAllIndexes = process.env.CREATE_INDEXES === 'true';
+    const { indexes = [] } = appLib.appModel.models[collectionName];
+
+    return Promise.map(indexes, (indexSpec) => {
+      const { keys, options } = indexSpec;
+      // do not generate other indexes(not unique) for tests,
+      // since it affects only search speed but consumes time and disk space
+      const isUniqueIndex = options.unique === true;
+      if (!isUniqueIndex && !createAllIndexes) {
+        return;
+      }
+
+      return appLib.db
+        .collection(collectionName)
+        .createIndex(keys, options)
+        .catch((e) => {
+          throw new Error(
+            `Unable to create index for collection '${collectionName}' and indexSpec '${stringifyObj(indexSpec)}'.\n${
+              e.stack
+            }`
+          );
+        });
+    });
   };
 
   m.handleIndexes = async () => {
     const collectionNames = Object.keys(appLib.appModel.models);
 
-    await Promise.mapSeries(collectionNames, (collectionName) =>
-      // log.info(`Handling indexes for collection '${collectionName}'`);
-      m.removeIrrelevantSingleUniqueIndexes(collectionName)
-    );
-
-    const entriesWithIndexes = Object.entries(appLib.appModel.models).filter(([, model]) => model.indexes);
-
-    await Promise.mapSeries(entriesWithIndexes, ([collectionName, model]) => {
-      return Promise.mapSeries(Object.entries(model.indexes), ([indexSpecName, indexSpec]) => {
-        return appLib.db
-          .collection(collectionName)
-          .createIndex(indexSpec.keys, indexSpec.options)
-          .catch((e) => {
-            throw new Error(
-              `Unable to create index for collection '${collectionName}' and indexSpecName '${indexSpecName}'.\n${e.stack}`
-            );
-          });
-      });
-    });
+    await Promise.map(collectionNames, (collectionName) => m.removeUnusedIndexes(collectionName));
+    await Promise.map(collectionNames, (collectionName) => m.createIndexes(collectionName));
   };
 
   return m;

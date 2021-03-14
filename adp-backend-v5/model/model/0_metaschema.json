@@ -15,7 +15,8 @@
         "Int64",
         "Decimal128",
         "Boolean",
-        "Mixed", // mongoose type Mixed, i.e. any object with any structure
+        "TriStateBoolean",
+        "Mixed", // any structure, might be either primitive type or Object/Array
         "Object", // something with defined structure,
         "AssociativeArray",
         "ObjectID",
@@ -31,6 +32,7 @@
         "Int64[]",
         "Decimal128[]",
         "Boolean[]",
+        "TriStateBoolean[]",
         "Mixed[]",
         "Object[]",
         "ObjectID[]",
@@ -65,12 +67,15 @@
         "BloodPressure",
         "Time",
         "DateTime",
+        "DateTime[]",
         "DynamicList",
         "Barcode",
         "Currency",
         "List",
         "List[]",
-        "Blank"
+        "Blank",
+        "StaticHtml",
+        "CronExpression"
       ],
       "fullName": "Type",
       "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Some types are only available for interface elements and not the model"
@@ -413,10 +418,38 @@
             },
             "link": {
               "type": "String"
+            },
+            "params": {
+              "fields": {
+                "changeType": {
+                  "list": [
+                    "recorddeleted",
+                    "recordupdated",
+                    "recordcreated",
+                    "collectioncreated",
+                    "collectiondeleted"
+                  ]
+                },
+                "minTimeBetweenReloads": {
+                  "type": "Number"
+                },
+                "maxTimeBetweenReloads": {
+                  "type": "Number"
+                }
+              }
             }
           }
         }
       }
+    },
+    "recordActionsLayout": {
+      "default": "spread",
+      "list": [
+        "spread",
+        "menu"
+      ],
+      "fullName": "Record actions layout",
+      "description": "The way actions appear in data grid row"
     },
     "scopes": {
       "fullName": "Scopes",
@@ -490,6 +523,13 @@
     "showHeader": {
       "fullName": "Height Attribute of type=Grid",
       "description": "Allows to specify height of rendered table. Number, px"
+    },
+    "html": {
+      "fullName": "Html attributes and properties",
+      "description": "Allows to specify html attributes and properties, that should be mapped to corresponded field. Presented as key-val map, where key is action and val is map of attributes."
+    },
+    "softDelete": {
+      "fullName": "Whether to use soft delete for schema records"
     }
   }
 }

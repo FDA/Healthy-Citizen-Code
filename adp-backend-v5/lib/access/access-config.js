@@ -1,6 +1,6 @@
 module.exports = {
   // default system permissions that do not depend on app model permissions
-  // these permissions cannot be granted
+  // these permissions cannot be assigned to a user created role
   PERMISSIONS: {
     accessAsAnyone: 'accessAsAnyone',
     accessAsGuest: 'accessAsGuest',
@@ -13,6 +13,7 @@ module.exports = {
     accessFromPhone: 'accessFromPhone',
     accessFromBot: 'accessFromBot',
     accessFromCar: 'accessFromCar',
+    accessForbidden: 'accessForbidden',
   },
   DEFAULT_AUTH_SETTINGS: {
     requireAuthentication: true,

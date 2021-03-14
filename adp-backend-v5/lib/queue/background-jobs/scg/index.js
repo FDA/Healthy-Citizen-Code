@@ -1,7 +1,7 @@
 const _ = require('lodash');
 
 const { getOrCreateContext } = require('../processor-context');
-const { handleJobError, addLogsAndNotificationsForQueueEvents } = require('../util');
+const { handleJobError, addQueueEventHandlers } = require('../util');
 const { getSchemaPaths } = require('../../../util/env');
 const { getParamsForGeneratorFiles, getHelperFiles } = require('../../../synthetic-content-generator/start-helpers');
 
@@ -31,7 +31,7 @@ async function createScgQueue({ appLib, log }) {
   setCommonContext({ appLib, log, generatorFiles, paramsForGeneratorFiles });
 
   const scgRunnerQueue = appLib.queue.createQueue(SCG_QUEUE_NAME);
-  addLogsAndNotificationsForQueueEvents(appLib, scgRunnerQueue, log);
+  addQueueEventHandlers({ appLib, bullQueue: scgRunnerQueue, log, enableNotifications: true });
 
   scgRunnerQueue.process(scgRunnerConcurrency, require('./scg-processor')(processorContext));
 

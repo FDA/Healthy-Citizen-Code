@@ -38,7 +38,12 @@ module.exports = function () {
         maxLabelWidth=120,
 		rectangularRep=false,
 		scaleNodesByIndividuals = true,
-		token = null;
+		token = null,
+		apiUrl = '--';
+
+	options.apiUrl = function() {
+		return apiUrl;
+	};
 
 	options.token = function() {
 		return token;
@@ -302,6 +307,10 @@ module.exports = function () {
 			if (opts.token) {
 				token = opts.token;
 			}
+
+		if (opts.apiUrl) {
+			apiUrl = opts.apiUrl;
+		}
 
         if (opts.sidebar!==undefined) {
           sidebar.showSidebar(parseInt(opts.sidebar), true);

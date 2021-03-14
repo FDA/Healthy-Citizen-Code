@@ -32,7 +32,7 @@ describe("2D visualisation(WEBVOWL) page", () => {
     async () => {
       const canvasSelector = ".well vowl iframe";
 
-      await this.page.waitFor(canvasSelector);
+      await this.page.waitForSelector(canvasSelector);
 
     });
 });

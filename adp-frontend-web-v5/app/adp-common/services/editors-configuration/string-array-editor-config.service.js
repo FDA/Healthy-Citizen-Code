@@ -7,14 +7,13 @@
 
   /** @ngInject */
   function StringArrayEditorConfig() {
-    return function (initialValue, onValueChangeCb) {
+    return function (args, initialValue, onValueChangeCb) {
       var fieldData = initialValue || [];
 
       return {
         showClearButton: true,
-        elementAttr: {
-          class: 'adp-select-box',
-        },
+        elementAttr: { class: 'adp-select-box' },
+        inputAttr: { 'test-field-control-id': args.path },
         acceptCustomValue: true,
         placeholder: 'Type in new value and press Enter',
         openOnFieldClick: false,
@@ -30,6 +29,23 @@
           var value = getValueForControl(e.component.option('dataSource'));
           onValueChangeCb({ value: value });
         },
+        tagTemplate: function tagTemplate(data, tagElement) {
+          var component = this;
+          var removeBtn = $('<div class="dx-tag-remove-button">');
+
+          removeBtn.on('click', function () {
+            var ids = component.option('value').slice();
+            _.pull(ids, data.id);
+
+            component.option('value', ids);
+            removeBtn.off('click');
+          });
+
+          $('<div class="dx-tag-content">')
+            .attr('adp-qaid-field-tag', args.path)
+            .append('<span>' + data.label + '</span>', removeBtn)
+            .appendTo(tagElement);
+        }
       };
     }
 
@@ -61,9 +77,7 @@
     }
 
     function getValueForControl(valueList) {
-      return _.isEmpty(valueList) ?
-        null :
-        valueList.map(function (i) { return i.label });
+      return _.isEmpty(valueList) ? null : _.map(valueList, 'label');
     }
   }
 })();

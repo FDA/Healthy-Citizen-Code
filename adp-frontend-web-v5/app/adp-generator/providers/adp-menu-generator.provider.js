@@ -79,7 +79,8 @@
             title: item.fullName,
             icon: item.icon,
             type: item.type,
-            fieldName: fieldName
+            fieldName: fieldName,
+            fieldSchema: item,
           };
 
           _.each({menuOrder: "order", menuGroup: "group", className: "css"},
@@ -96,8 +97,7 @@
 
                 if (_.isFunction(menuActionFn)) {
                   menuItem[attr] = function(unifiedArgs){
-                    var context = Object.assign({},unifiedArgs,{schema: item});
-                    return menuActionFn.call(context);
+                    return menuActionFn.call(unifiedArgs);
                   }
                 }
               }
@@ -181,7 +181,7 @@
 
       if ('default' in menuInterface) {
         state = {
-          url: menuInterface.default,
+          url: APP_CONFIG.appSuffix + menuInterface.default,
           stateName: _linkToState(menuInterface.default)
         };
         _logDebug('======= Default page found: \n', state);

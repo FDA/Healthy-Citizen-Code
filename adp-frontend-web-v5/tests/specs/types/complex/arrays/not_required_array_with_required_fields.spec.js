@@ -21,7 +21,7 @@ const {
 
 const clickCheckboxForArrayIndex = async (index, name) => {
   await this.page.click(`[name="array[${index}]"] [ng-field-name="${name}"] .dx-switch-handle`);
-  await this.page.waitFor(200);
+  await this.page.waitForTimeout(200);
 }
 
 describe('complex arrays', () => {

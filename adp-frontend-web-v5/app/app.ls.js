@@ -18,8 +18,12 @@ var lsService = (function () {
 
   function setUserData(data) {
     _set('expTime', data.expiresIn);
-    _set('user', JSON.stringify(data.user));
+    setUser(data.user);
     _set('token', data.token);
+  }
+
+  function setUser(user) {
+    _set('user', JSON.stringify(user));
   }
 
   function removeUserData() {
@@ -62,12 +66,23 @@ var lsService = (function () {
     return _get('token');
   }
 
+  function getTokenExpire() {
+    return _get('expTime');
+  }
+
+  function clear() {
+    localStorage.clear();
+  }
+
   return {
     setUserData: setUserData,
     removeUserData: removeUserData,
     setGuestUserData: setGuestUserData,
     getUser: getUser,
+    setUser: setUser,
     getToken: getToken,
-    isGuest: isGuest
+    getTokenExpire: getTokenExpire,
+    isGuest: isGuest,
+    clear: clear,
   };
 })();

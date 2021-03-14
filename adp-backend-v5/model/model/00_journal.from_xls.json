@@ -1,0 +1,162 @@
+{
+  models: {
+    _journal: {
+      type: 'Schema',
+      fullName: 'Journal',
+      parameters: {
+        grouping: {
+          autoExpandAll: false
+        },
+        filterPanel: {
+          visible: true
+        },
+        selection: {
+          mode: "multiple"
+        },
+        enableInCellEditing: true
+      },
+      other: {
+        "recordActionsLayout": "spread",
+        "softDelete": false,
+        "fields": {
+          "updatedAt": null,
+          "creator": null,
+          "createdAt": null,
+          "deletedAt": null
+        },
+        "actions": {
+          "width": 60,
+          "fields": {
+            "update": null,
+            "delete": null,
+            "clone": null,
+            "viewDetails": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "view": {
+              "permissions": "accessAsSuperAdmin"
+            },
+            "create": null
+          }
+        },
+        "scopes": {
+          "admin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq:[1,1]}"
+          }
+        }
+      },
+      fields: {
+        type: {
+          list: {
+            values: {
+              auth: "auth",
+              security: "security",
+              db: "db",
+              http: "http",
+              system: "system"
+            }
+          }
+        },
+        duration: {
+          type: 'Number',
+          fullName: 'Duration'
+        },
+        timestamp: {
+          type: 'DateTime',
+          fullName: 'Timestamp'
+        },
+        method: {
+          showInViewDetails: 'this.row.type === "db" || this.row.type === "http"'
+        },
+        collection: {
+          showInViewDetails: 'this.row.type === "db"'
+        },
+        query: {
+          type: 'Mixed',
+          fullName: 'Query',
+          showInViewDetails: 'this.row.type === "db" || this.row.type === "http"'
+        },
+        options: {
+          type: 'Mixed',
+          fullName: 'Options',
+          showInViewDetails: 'this.row.type === "db"'
+        },
+        message: {
+          other: {
+            width: 'null'
+          },
+          showInViewDetails: 'this.row.type !== "db"'
+        },
+        user: {
+          type: 'LookupObjectID',
+          fullName: 'User',
+          lookup: {
+            "table": "users",
+            "foreignKey": "_id",
+            "label": "login",
+            "data": {
+              "email": "this.email"
+            }
+          }
+        },
+        sessionId: {
+          type: 'String',
+          fullName: 'Session Id'
+        },
+        requestId: {
+          type: 'String',
+          fullName: 'Request Id'
+        },
+        clientIp: {
+          type: 'String',
+          fullName: 'Client Ip'
+        },
+        data: {
+          type: 'Mixed',
+          fullName: 'Data',
+          showInViewDetails: 'this.row.type === "http"'
+        }
+      }
+    }
+  },
+  'interface': {
+    mainMenu: {
+      type: 'Menu',
+      fullName: 'Main Menu',
+      'default': '/experiments',
+      fields: {
+        system: {
+          type: 'MenuGroup',
+          fullName: 'System',
+          other: {
+            "menuOrder": 1000,
+            "scopes": {
+              "user": {
+                "permissions": "accessAsUser"
+              }
+            }
+          },
+          icon: {
+            type: 'font-awesome',
+            link: 'heartbeat'
+          },
+          fields: {
+            _journal: {
+              type: 'MenuItem',
+              fullName: 'Audit Log',
+              other: {
+                "scopes": {
+                  "user": {
+                    "permissions": "accessAsSuperAdmin"
+                  }
+                }
+              },
+              link: '/_journal'
+            }
+          }
+        }
+      }
+    }
+  }
+}

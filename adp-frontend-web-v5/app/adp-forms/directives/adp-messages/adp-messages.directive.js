@@ -9,43 +9,38 @@
     return {
       restrict: 'E',
       scope: {
-        adpField: '='
+        args: '=',
       },
       require: '^^form',
       templateUrl: 'app/adp-forms/directives/adp-messages/adp-messages.html',
-      link: function (scope, element, attrs, formCtrl) {
-        var unbind = scope.$watch("adpField", function () {
+      link: function (scope, el, attrs, form) {
+        var unbind = scope.$watch('args', function () {
           init();
           unbind();
         });
 
         function init() {
-          scope.form = formCtrl;
-          scope.field = scope.adpField;
-          scope.fieldModel = scope.form[scope.field.fieldName];
-
-          if (scope.field.validate && scope.field.validate.length) {
-            scope.$watch(function () { return angular.toJson(scope.form); }, updateMessages);
+          scope.field = scope.args.fieldSchema;
+          if (_.isEmpty(scope.field.validate)) {
+            return;
           }
+
+          scope.fieldModel = form[scope.field.fieldName];
+          scope.$watch('fieldModel.$viewValue', updateMessages);
         }
 
-        function updateMessages() {
-          var formData = getViewValues(scope.form);
-          scope.messages = AdpValidationMessages.updateAll(scope.field, formData);
+        function updateMessages(newVal, oldVal) {
+          if (newVal === oldVal) {
+            return;
+          }
+
+          scope.messages = AdpValidationMessages.updateAll(scope.field, getFormData());
         }
 
-        function getViewValues(angularFormController) {
-          var formData = {};
-
-          _.each(angularFormController, function(field, key) {
-            if (!_.hasIn(field, '$viewValue')) {
-              return;
-            }
-
-            formData[key] = field.$viewValue;
-          });
-
-          return formData;
+        function getFormData() {
+          return _.transform(form.$getControls(), function (result, control) {
+            result[control.$name] = control.$viewValue;
+          }, {});
         }
       }
     }

@@ -157,9 +157,6 @@
       "fullName": "Main Menu",
       "default": "/users",
       "comment": "This defines the main menu that will go into the sidebar",
-      "permissions": [
-        "doUserActivities"
-      ],
       "fields": {
         "home": false,
         "myProfile": {

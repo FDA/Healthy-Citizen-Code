@@ -85,7 +85,7 @@ module.exports = (appLib) => {
   };
 
   m.getBuildAppModelJson = (req, res, next) => {
-    appLib
+    appLib.auth
       .authenticationCheck(req, res, next)
       .then(async ({ user, roles, permissions }) => {
         appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
@@ -197,7 +197,7 @@ module.exports = (appLib) => {
       .replace(/.json$/, '')
       .split('/');
 
-    appLib
+    appLib.auth
       .authenticationCheck(req, res, next)
       .then(({ user, roles, permissions }) => {
         appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
@@ -215,24 +215,6 @@ module.exports = (appLib) => {
           message: `Error occurred while retrieving schema`,
         });
       });
-  };
-
-  /**
-   * Returns true if the backend is running in development mode (set it in .env file)
-   * Good for chaining in the routes setup
-   * @param req
-   * @param res
-   * @param next
-   * @returns {*}
-   */
-  m.isDevelopmentMode = (req, res, next) => {
-    if (process.env.DEVELOPMENT === 'true') {
-      return next();
-    }
-    res.status(403).json({
-      success: false,
-      message: 'This route is only available in development mode',
-    });
   };
 
   /**
@@ -283,15 +265,18 @@ module.exports = (appLib) => {
   m.getItems = async (req, res, next) => {
     try {
       const context = await new DatatablesContext(appLib, req).init();
-      const { model, appModel, userContext, mongoParams } = context;
+      const { modelName, appModel, userContext, mongoParams } = context;
+      const collection = appLib.db.collection(modelName);
 
       context.userContext.action = 'view';
       const { action } = context.userContext;
       await appLib.hooks.preHook(appModel, userContext);
       const { items, meta } = await controllerUtil.getElementsWithFilteredFields({ context, actionsToPut: true });
+
       const { draw } = req.query;
-      const recordsTotal = draw ? await model.countDocuments({}) : 0;
-      const recordsFiltered = draw ? await model.countDocuments(mongoParams.conditions) : 0;
+      const recordsTotal = draw ? await collection.countDocuments({}) : 0;
+      const conditionForFiltered = mongoParams.conditions === true ? {} : mongoParams.conditions;
+      const recordsFiltered = draw ? await collection.countDocuments(conditionForFiltered) : 0;
       await appLib.hooks.postHook(appModel, userContext, action);
       log.debug(`Meta: ${getRequestMeta(context, meta)}`);
 

@@ -2,6 +2,33 @@
   "typeDefaults": {
     "comment": "This file provides defaults for various attributes depending on the field type. One can always override these defaults by providing value directly in the field",
     "fields": {
+      "MenuItem": {
+        "menuOrder": 500
+      },
+      "MenuGroup": {
+        "menuOrder": 500
+      },
+      "MenuSeparator": {
+        "menuOrder": 500
+      },
+      "StaticHtml": {
+        "showInForm": true,
+        "showInDatatable": false,
+        "showInViewDetails": true,
+        "showInGraphql": false,
+        "virtual": true,
+        "parameters": {
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": false
+          },
+          "allowHeaderFiltering": false,
+          "headerFilter": {
+            "allowSearch": false
+          },
+          "allowSearch": false
+        }
+      },
       "Array": {
         "width": 200,
         "parameters": {
@@ -10,8 +37,17 @@
             "allowGrouping": false
           },
           "allowSearch": false,
-          "maxDatagridCellHeight": 200
-        }
+          "maxDatagridCellHeight": 70
+        },
+        "validate": [
+          {
+            "validator": "array",
+            "errorMessages": {
+              "default": "Please enter correct Array value"
+            }
+          }
+        ],
+        "transform": ["array"]
       },
       "AssociativeArray": {
         "width": 200,
@@ -21,7 +57,7 @@
             "allowGrouping": false
           },
           "allowSearch": false,
-          "maxDatagridCellHeight": 200
+          "maxDatagridCellHeight": 70
         },
         "validate": [{ "validator": "validateAssociativeArrayKeys" }]
       },
@@ -34,7 +70,15 @@
           },
           "allowSearch": false,
           "maxDatagridCellHeight": 200
-        }
+        },
+        "validate": [
+          {
+            "validator": "object",
+            "errorMessages": {
+              "default": "Please enter correct Object value"
+            }
+          }
+        ]
       },
       "Mixed": {
         "width": 200,
@@ -44,7 +88,7 @@
             "allowGrouping": false
           },
           "allowSearch": false,
-          "maxDatagridCellHeight": 200
+          "maxDatagridCellHeight": 70
         }
       },
       "BloodPressure": {
@@ -56,6 +100,8 @@
         }
       },
       "Html": {
+        "searchable": true,
+        "transform": [["htmlStringToHtmlObject", "htmlObjectToHtmlString"]],
         "parameters": {
           "renderAsHtml": false,
           "maxDatagridCellHeight": 200,
@@ -111,7 +157,15 @@
           },
           "filterType": "include",
           "allowSearch": true
-        }
+        },
+        "validate": [
+          {
+            "validator": "string",
+            "errorMessages": {
+              "default": "Please enter correct String value"
+            }
+          }
+        ]
       },
       "String[]": {
         "autocomplete": "enable",
@@ -169,8 +223,8 @@
           "filterType": "include",
           "allowSearch": true,
           "grouping": {
-            "allowGrouping": false,
-            "allowExpandGroup": false
+            "allowGrouping": true,
+            "allowExpandGroup": true
           },
           "maxDatagridCellHeight": 200
         },
@@ -185,8 +239,19 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
-        }
+          "allowSearch": true,
+          "pickerType": "rollers",
+          "openOnFieldClick": false
+        },
+        "validate": [
+          {
+            "validator": "dateTime",
+            "errorMessages": {
+              "default": "Please enter correct DateTime value"
+            }
+          }
+        ],
+        "transform": [["dateTime", "null"]]
       },
       "Date": {
         "width": 150,
@@ -197,8 +262,19 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
-        }
+          "allowSearch": true,
+          "pickerType": "rollers",
+          "openOnFieldClick": false
+        },
+        "validate": [
+          {
+            "validator": "date",
+            "errorMessages": {
+              "default": "Please enter correct Date value"
+            }
+          }
+        ],
+        "transform": [["date", "null"]]
       },
       "Time": {
         "width": 150,
@@ -435,16 +511,32 @@
             "allowGrouping": true,
             "allowExpandGroup": true
           },
+          "allowHeaderFiltering": false,
+          "filterType": "include",
+          "allowSearch": true
+        },
+        "validate": [{ "validator": "boolean" }]
+      },
+      "TriStateBoolean": {
+        "width": 120,
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
           "allowHeaderFiltering": true,
           "headerFilter": {
             "allowSearch": true
           },
           "filterType": "include",
           "allowSearch": true
-        }
+        },
+        "validate": [{ "validator": "triStateBoolean" }]
       },
       "ObjectID": {
-        "width": 120
+        "width": 120,
+        "showInForm": false
       },
       "Currency": {
         "parameters": {
@@ -462,6 +554,7 @@
         }
       },
       "Schema": {
+        "softDelete": true,
         "generatorSpecification": [
           {
             "generator": "scgCreatedAtUpdatedAt"
@@ -478,20 +571,25 @@
                 "allowGrouping": false,
                 "allowExpandGroup": false
               }
-            }
+            },
+            "transform": [["objectId", "null"]]
           },
           "creator": {
             "type": "LookupObjectID",
             "lookup": {
-              "table": "users",
-              "foreignKey": "_id",
-              "label": "login"
+              "table": {
+                "users": {
+                  "foreignKey": "_id",
+                  "label": "this.login",
+                  "table": "users"
+                }
+              }
             },
+            "index": true,
             "fullName": "Creator",
-            "visible": false,
             "synthesize": "creator",
             "description": "Record Creator",
-            "permissions": "accessAsSuperAdmin",
+            "permissions": {"view": "accessAsUser", "read": "accessAsUser", "write": "accessForbidden"},
             "generatorSpecification": {
               "generator": "scgCreator"
             },
@@ -506,10 +604,9 @@
           "createdAt": {
             "type": "DateTime",
             "fullName": "Created at",
-            "visible": false,
             "synthesize": "createdAt",
             "description": "Record Created At",
-            "permissions": "accessAsSuperAdmin",
+            "permissions": {"read": "accessAsUser", "write": "accessForbidden"},
             "index": true,
             "showInDatatable": true,
             "showInViewDetails": true,
@@ -522,10 +619,9 @@
           "updatedAt": {
             "type": "DateTime",
             "fullName": "Updated at",
-            "visible": false,
             "synthesize": "updatedAt",
             "description": "Record Updated At",
-            "permissions": "accessAsSuperAdmin",
+            "permissions": {"read": "accessAsUser", "write": "accessForbidden"},
             "index": true,
             "showInDatatable": true,
             "showInViewDetails": true,
@@ -538,9 +634,8 @@
           "deletedAt": {
             "type": "DateTime",
             "fullName": "Deleted at",
-            "visible": false,
             "description": "Record Deleted At",
-            "permissions": "accessAsSuperAdmin",
+            "permissions": {"read": "accessAsUser", "write": "accessForbidden"},
             "index": true,
             "generatorSpecification": {
               "generator": "scgDeletedAt"
@@ -548,21 +643,39 @@
             "showInDatatable": true,
             "showInViewDetails": true,
             "showInGraphql": true,
+            "showInForm": false,
             "parameters": {
               "enableInCellEditing": false,
               "visible": false
+            },
+            "transform": [["setEpochIfNotSet", "null"]]
+          },
+          "generatorBatchName": {
+            "type": "String",
+            "showInDatatable": false,
+            "showInViewDetails": false,
+            "showInForm": false,
+            "showInGraphql": false,
+            "searchable": false,
+            // "comment": "Do not set this to anything for real records, they may get wiped out as autogenerated otherwise",
+            "generated": true,
+            "fullName": "Generator Batch Name",
+            "description": "Set to the ID of generator batch for synthetic records",
+            "generatorSpecification": {
+              "generator": "scgGeneratorBatchName"
             }
           }
         },
-        "limitReturnedRecords": 1000,
+        "limitReturnedRecords": 10000,
+        "recordActionsLayout": "menu",
         "scopes": {
           "superAdminScope": {
             "permissions": "accessAsSuperAdmin",
-            "where": "true"
+            "where": true
           }
         },
         "actions": {
-          "width": 160,
+          "width": 60,
           "responsivePriority": -1,
           "fields": {
             "update": {
@@ -577,7 +690,8 @@
               "action": {
                 "type": "action",
                 "link": "update"
-              }
+              },
+              "actionOrder": 1
             },
             "delete": {
               "description": "Delete record",
@@ -591,7 +705,8 @@
               "action": {
                 "type": "action",
                 "link": "delete"
-              }
+              },
+              "actionOrder": 2
             },
             "clone": {
               "description": "Clone record",
@@ -605,7 +720,8 @@
               "action": {
                 "type": "action",
                 "link": "clone"
-              }
+              },
+              "actionOrder": 3
             },
             "viewDetails": {
               "description": "View record details",
@@ -619,7 +735,8 @@
               "action": {
                 "type": "action",
                 "link": "viewDetails"
-              }
+              },
+              "actionOrder": 4
             },
             "view": {
               "showInTable": false
@@ -639,7 +756,8 @@
               "action": {
                 "type": "action",
                 "link": "create"
-              }
+              },
+              "actionOrder": 7
             },
             "group": {
               "permissions": "accessAsUser",
@@ -648,7 +766,8 @@
               "action": {
                 "type": "action",
                 "link": "group"
-              }
+              },
+              "actionOrder": 8
             },
 
             "search": {
@@ -659,7 +778,8 @@
               "action": {
                 "type": "action",
                 "link": "search"
-              }
+              },
+              "actionOrder": 9
             },
             "print": {
               "permissions": "accessAsUser",
@@ -672,7 +792,8 @@
               "action": {
                 "type": "module",
                 "link": "AdpGridPrint"
-              }
+              },
+              "actionOrder": 10
             },
             "manageViews": {
               "permissions": "accessAsUser",
@@ -686,7 +807,8 @@
               "action": {
                 "type": "module",
                 "link": "AdpGridViewManager"
-              }
+              },
+              "actionOrder": 11
             },
             "quickFilter": {
               "permissions": "accessAsUser",
@@ -699,7 +821,8 @@
               "action": {
                 "type": "module",
                 "link": "AdpGridQuickFilter"
-              }
+              },
+              "actionOrder": 12
             },
             "export": {
               "permissions": "accessAsUser",
@@ -713,7 +836,8 @@
               "action": {
                 "type": "module",
                 "link": "AdpDataExport"
-              }
+              },
+              "actionOrder": 13
             },
             "import": {
               "permissions": "accessAsUser",
@@ -727,7 +851,8 @@
               "action": {
                 "type": "module",
                 "link": "AdpDataImport"
-              }
+              },
+              "actionOrder": 14
             },
             "syntheticGenerate": {
               "permissions": "accessAsUser",
@@ -741,7 +866,8 @@
               "action": {
                 "type": "module",
                 "link": "AdpSyntheticGenerate"
-              }
+              },
+              "actionOrder": 15
             },
             "chooseColumns": {
               "permissions": "accessAsUser",
@@ -754,7 +880,8 @@
               "action": {
                 "type": "module",
                 "link": "AdpGridColumnChooser"
-              }
+              },
+              "actionOrder": 16
             },
             "filterBuilder": {
               "permissions": "accessAsUser",
@@ -768,9 +895,10 @@
               "action": {
                 "type": "module",
                 "link": "AdpFilterBuilder"
-              }
+              },
+              "actionOrder": 17
             },
-            "submit" : {
+            "submit": {
               "fullName": {
                 "code": "({ create: 'Add', clone: 'Add', cloneDataSet: 'Add', update: 'Update' })[this.action]",
                 "type": "function"
@@ -788,9 +916,9 @@
                 "type": "submit",
                 "className": "adp-action-b-primary"
               },
-              "showInTable": false,
+              "showInTable": false
             },
-            "apply" : {
+            "apply": {
               "fullName": "Apply",
               "permissions": "accessAsUser",
               "position": "form.bottom",
@@ -822,6 +950,19 @@
               "htmlAttributes": {
                 "className": "adp-action-b-secondary"
               }
+            },
+            "gridDbChangeNotification": {
+              "position": "rtc",
+              "action": {
+                "type": "module",
+                "link": "AdpRtcActions",
+                "method": "gridDbChangeNotification",
+                "params": {
+                  "minTimeBetweenReloads": 3000
+                }
+              },
+              "showInTable": false,
+              "actionOrder": 1
             }
           }
         },
@@ -850,7 +991,10 @@
           },
           "pager": {
             "showPageSizeSelector": true,
-            "allowedPageSizes": [10, 15, 20]
+            "allowedPageSizes": [10, 50, 100],
+            "showInfo": true,
+            "showNavigationButtons": true,
+            "visible": true
           },
           "sorting": {
             "mode": "multiple"
@@ -1052,6 +1196,18 @@
       "ImperialWeightWithOz": {
         "width": 150,
         "transform": ["trim", ["weightImperialWithOzToMetric", "weightMetricToImperialWithOz"]],
+        "validate": [
+          {
+            "validator": "imperialWeightWithOz",
+            "arguments": {
+              "from": [1, 0],
+              "to": [99, 15]
+            },
+            "errorMessages": {
+              "default": "This weight doesn't look reasonable, should in range 1lb - 99lb 15oz"
+            }
+          }
+        ],
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -1175,6 +1331,100 @@
           },
           "allowSearch": false
         }
+      },
+      "List": {
+        "width": 150,
+        "list": {
+          "scopes": {
+            "userScope": {
+              "permissions": "accessAsUser",
+              "where": "return true",
+              "return": "return $list"
+            }
+          }
+        },
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "List[]": {
+        "width": 150,
+        "list": {
+          "scopes": {
+            "userScope": {
+              "permissions": {
+                "view": "accessAsUser"
+              },
+              "where": "return true",
+              "return": "return $list"
+            }
+          }
+        },
+        "parameters": {
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        }
+      },
+      "Location": {
+        "validate": [
+          {
+            "validator": "location",
+            "errorMessages": {
+              "default": "Please enter correct Location value"
+            }
+          }
+        ],
+        "transform": ["location"]
+      },
+      "CronExpression": {
+        "searchable": true,
+        "transform": ["trim"],
+        "parameters": {
+          "renderAsHtml": false,
+          "enableInCellEditing": true,
+          "grouping": {
+            "allowGrouping": true,
+            "allowExpandGroup": true
+          },
+          "minWidth": 100,
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
+        },
+        "validate": [
+          {
+            "validator": "regex",
+            "arguments": {
+              "regex": "^ {0,}((\\d+,)+\\d+|(\\d+(\\/|-|#)\\d+)|\\d+L?|\\*(\\/\\d+)?|L(-\\d+)?|\\?|[A-Z]{3}(-[A-Z]{3})?)( ((\\d+,)+\\d+|(\\d+(\\/|-|#)\\d+)|\\d+L?|\\*(\\/\\d+)?|L(-\\d+)?|\\?|[A-Z]{3}(-[A-Z]{3})?)){4,6} {0,}$|(@(annually|yearly|monthly|weekly|daily|hourly|reboot))|(@every (\\d+(ns|us|µs|ms|s|m|h))+)",
+              "regexOptions": "i"
+            },
+            "errorMessages": {
+              "default": "$val is not correct cron expression"
+            }
+          }
+        ]
       }
     }
   },
@@ -1286,6 +1536,7 @@
         }
       },
       "ImperialHeight": {
+        "width": 150,
         "transform": [["heightImperialToMetric", "heightMetricToImperial"]],
         "validate": [
           {
@@ -1304,10 +1555,17 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "ImperialWeight": {
+        "width": 150,
         "transform": ["trim", ["weightImperialToMetric", "weightMetricToImperial"]],
         "validate": ["min(1)", "max(1000)"],
         "parameters": {
@@ -1315,59 +1573,42 @@
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       },
       "ImperialWeightWithOz": {
+        "width": 150,
         "transform": ["trim", ["weightImperialWithOzToMetric", "weightMetricToImperialWithOz"]],
+        "validate": [
+          {
+            "validator": "imperialWeightWithOz",
+            "arguments": {
+              "from": [1, 0],
+              "to": [99, 15]
+            },
+            "errorMessages": {
+              "default": "This weight doesn't look reasonable, should in range 1lb - 99lb 15oz"
+            }
+          }
+        ],
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
-          }
-        }
-      },
-      "List": {
-        "width": 150,
-        "list": {
-          "scopes": {
-            "userScope": {
-              "permissions": {
-                "view": "accessAsUser"
-              },
-              "where": "return true",
-              "return": "return $list"
-            }
-          }
-        },
-        "parameters": {
-          "enableInCellEditing": false,
-          "grouping": {
-            "allowGrouping": false,
-            "allowExpandGroup": false
-          }
-        }
-      },
-      "List[]": {
-        "width": 150,
-        "list": {
-          "scopes": {
-            "userScope": {
-              "permissions": {
-                "view": "accessAsUser"
-              },
-              "where": "return true",
-              "return": "return $list"
-            }
-          }
-        },
-        "parameters": {
-          "enableInCellEditing": false,
-          "grouping": {
-            "allowGrouping": false,
-            "allowExpandGroup": false
-          }
+          },
+          "allowHeaderFiltering": true,
+          "headerFilter": {
+            "allowSearch": true
+          },
+          "filterType": "include",
+          "allowSearch": true
         }
       }
     }

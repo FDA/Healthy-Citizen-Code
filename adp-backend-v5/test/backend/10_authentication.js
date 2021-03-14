@@ -59,7 +59,7 @@ describe('V5 Backend Authentication', function () {
 
     const { getFullRoute, API_PREFIX } = this.appLib;
     assert(brief.includes(`POST ${getFullRoute(API_PREFIX, '/login')}`));
-    assert(brief.includes(`GET ${getFullRoute(API_PREFIX, '/logout')}`));
+    assert(brief.includes(`POST ${getFullRoute(API_PREFIX, '/logout')}`));
     assert(brief.includes(`POST ${getFullRoute(API_PREFIX, '/signup')}`));
     assert(brief.includes(`POST ${getFullRoute(API_PREFIX, '/account/password')} AUTH`));
     // res.body.data.brief.should.containEql('GET /forgot');
@@ -92,7 +92,6 @@ describe('V5 Backend Authentication', function () {
       .set('Accept', 'application/json')
       // .set("Authorization", `JWT ${token}`)
       .expect('Content-Type', /json/);
-    // console.log(res.body.data);
     res.statusCode.should.equal(200);
     res.body.success.should.equal(true);
 

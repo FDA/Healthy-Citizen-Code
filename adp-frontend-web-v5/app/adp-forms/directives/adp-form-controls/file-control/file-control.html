@@ -1,7 +1,7 @@
 <adp-file-uploader
-  ng-model="fakeModel"
-  name="{{field.fieldName}}"
+  ng-model="getterSetter"
+  ng-model-options="{ getterSetter: true }"
   file-required="isRequired()"
-  field="field"
-  data="adpFormData[field.fieldName]">
-</adp-file-uploader>
+  name="{{args.fieldSchema.fieldName}}"
+  args="args"
+></adp-file-uploader>

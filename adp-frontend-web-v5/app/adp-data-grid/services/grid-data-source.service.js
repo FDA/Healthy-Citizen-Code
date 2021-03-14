@@ -16,7 +16,8 @@
     ServerError,
     GridOptionsHelpers,
     GridSchema,
-    AdpListsService
+    AdpListsService,
+    AdpUnifiedArgs
   ) {
     return function (options, schema, customOptions) {
       options.dataSource = { store: createStore(schema, customOptions) };
@@ -118,7 +119,14 @@
         _.unset(data, path);
       });
 
-      return AdpFormDataUtils.transformDataBeforeSending(data, schema);
+      var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: '',
+        schema: schema,
+        formData: data,
+        action: null,
+      });
+
+      return AdpFormDataUtils.transformDataBeforeSending(args).row;
     }
 
     function groupingEnabled(grid) {

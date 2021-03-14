@@ -5,25 +5,25 @@
       "actions": {
         "fields": {
           "update": {
-            "permissions": "accessAsSuperAdmin"
+            "permissions": "manageExternalCommands"
           },
           "delete": {
-            "permissions": "accessAsSuperAdmin"
+            "permissions": "manageExternalCommands"
           },
           "clone": {
-            "permissions": "accessAsSuperAdmin"
+            "permissions": "manageExternalCommands"
           },
           "viewDetails": {
-            "permissions": "accessAsSuperAdmin"
+            "permissions": [["viewExternalCommands", "manageExternalCommands", "runExternalCommands"]]
           },
           "view": {
-            "permissions": "accessAsSuperAdmin"
+            "permissions": [["viewExternalCommands", "manageExternalCommands", "runExternalCommands"]]
           },
           "create": {
-            "permissions": "accessAsSuperAdmin"
+            "permissions": "manageExternalCommands"
           },
           "runExternalCommand": {
-            "permissions": "accessAsSuperAdmin",
+            "permissions": "runExternalCommands",
             "showInTable": true,
             "icon": {
               "link": "play"
@@ -39,6 +39,12 @@
               "redirectUrl": "/runExternalCommand"
             }
           }
+        }
+      },
+      "scopes": {
+        "own": {
+          // Specified permissions are accessAsAnyone just to make it appear in app-model
+          "permissions": "accessAsAnyone"
         }
       },
       "fields": {

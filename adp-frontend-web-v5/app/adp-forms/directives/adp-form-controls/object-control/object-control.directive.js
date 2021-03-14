@@ -9,62 +9,28 @@
     AdpValidationUtils,
     AdpFieldsService,
     AdpFormService,
-    AdpUnifiedArgs
+    ControlSetterGetter
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<',
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/object-control/object-control.html',
       require: '^^form',
       link: function (scope, element, attrs, formCtrl) {
-        scope.fields = AdpFieldsService.getFormFields(scope.field.fields).notGrouped;
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.fields = AdpFieldsService.getFormFields(scope.args.fieldSchema.fields).notGrouped;
         scope.form = formCtrl;
         scope.rootForm = AdpFormService.getRootForm(scope.form);
+        scope.fieldName = _.get(scope, 'args.fieldSchema.fieldName');
         scope.isVisible = false;
         scope.errorCount = 0;
-        scope.subSchema = scope.validationParams.schema.fields[scope.field.fieldName];
-
-        // FORM PARAMS
-        var formParams = {
-          path: scope.validationParams.formParams.path,
-          row: scope.validationParams.formParams.row,
-          modelSchema: scope.validationParams.formParams.modelSchema,
-          action: scope.validationParams.formParams.action,
-          visibilityMap: scope.validationParams.formParams.visibilityMap,
-          requiredMap: scope.validationParams.formParams.requiredMap,
-        };
-
-        // DEPRECATED: will be replaced with formParams
-        // validationParams fields naming is wrong, use formParams instead
-        // modelSchema - grouped fields
-        // schema - original ungrouped schema
-        scope.nextValidationParams = {
-          field: scope.adpField,
-          fields: scope.adpFields,
-          formData: scope.adpFormData,
-          modelSchema: scope.adpFields,
-          schema: scope.schema,
-          $action: formParams.action,
-
-          formParams: formParams
-        };
+        scope.hasHeaderRender = AdpFieldsService.hasHedearRenderer(scope.args.fieldSchema);
 
         scope.getHeader = function() {
-          scope.hasHeaderRender = AdpFieldsService.hasHedearRenderer(scope.field);
-
-          var args = AdpUnifiedArgs.getHelperParamsWithConfig({
-            path: formParams.path,
-            action: formParams.action,
-            formData: formParams.row,
-            schema: formParams.modelSchema,
-          });
-
-          return AdpFieldsService.getHeaderRenderer(args);
+          return AdpFieldsService.getHeaderRenderer(scope.args);
         };
 
         scope.toggle = function () {
@@ -72,31 +38,23 @@
         };
 
         if (isEmpty()) {
-          setData({})
+          getterSetterFn({});
         }
 
-        scope.subFormData = getData();
+        scope.subFormData = getterSetterFn();
 
         scope.$watch(
           function () { return angular.toJson(scope.rootForm); },
           function () {
             if (scope.rootForm.$submitted) {
-              var formToCount = scope.form[scope.field.fieldName];
+              var formToCount = scope.form[scope.fieldName];
               scope.errorCount = AdpFormService.countErrors(formToCount);
             }
           });
 
         function isEmpty() {
-          var data = getData();
-          return _.isUndefined(data) || _.isNull(data) || _.isEmpty(data);
-        }
-
-        function getData() {
-          return scope.adpFormData[scope.field.fieldName];
-        }
-
-        function setData(value) {
-          return scope.adpFormData[scope.field.fieldName] = value;
+          var data = getterSetterFn();
+          return _.isNil(data)|| _.isEmpty(data);
         }
       }
     }

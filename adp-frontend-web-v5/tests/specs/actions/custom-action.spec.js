@@ -7,6 +7,8 @@ const {
   getUrlFor,
   form: {
     clickCreateNewButton,
+    clickTableAction,
+    evaluateTableAction,
   },
   submit: {
     clickSubmit,
@@ -14,7 +16,7 @@ const {
 } = require('../../utils');
 
 const PAGE_TO_TEST = 'customActions';
-const waitForGridLoaded = async (page) => page.waitFor(2000);
+const waitForGridLoaded = async (page) => page.waitForTimeout(2000);
 const ensureAtLeastOneRecordExistToDisplayActions = async (page) => {
   const hasData = await page.$('.dx-data-row td');
   if (hasData) {
@@ -48,58 +50,44 @@ describe('Custom Actions', () => {
 
   const rowActionsSnapshot = [
     {
-      "tag": "BUTTON",
-      "type": "delete",
       "action": "delete",
-      "iconClass": "fa fa-fw fa-trash"
+      "iconClass": "adp-icon fa fa-fw fa-trash"
     },
     {
-      "tag": "BUTTON",
-      "type": "update",
       "action": "update",
-      "iconClass": "fa fa-fw fa-pencil"
+      "iconClass": "adp-icon fa fa-fw fa-pencil"
     },
     {
-      "tag": "BUTTON",
-      "type": "AdpEchoTest.forRow",
-      "action": "AdpEchoTest.forRow",
-      "iconClass": "fa fa-fw fa-bolt"
+      "action": "action1",
+      "iconClass": "adp-icon fa fa-fw fa-bolt"
     },
     {
-      "tag": "BUTTON",
-      "type": "showRowContents",
-      "action": "showRowContents",
-      "iconClass": "fa fa-fw fa-bolt"
+      "action": "action",
+      "iconClass": "adp-icon fa fa-fw fa-bolt"
     },
     {
-      "tag": "A",
-      "type": "/#/test/:_id/test-page",
-      "action": "/#/test/:_id/test-page",
-      "iconClass": "fa fa-fw fa-link"
+      "action": "link",
+      "iconClass": "adp-icon fa fa-fw fa-link"
     },
     {
-      "tag": "BUTTON",
-      "type": "clone",
       "action": "clone",
-      "iconClass": "fa fa-fw fa-clone"
+      "iconClass": "adp-icon fa fa-fw fa-clone"
     },
     {
-      "tag": "BUTTON",
-      "type": "viewDetails",
       "action": "viewDetails",
-      "iconClass": "fa fa-fw fa-eye"
+      "iconClass": "adp-icon fa fa-fw fa-eye"
     }
   ];
 
   const toolbarActionsSnapshot = [
     {
       "action": "customHelperAction",
-      "iconClass": "fa fa-fw fa-bolt dx-icon",
+      "iconClass": "adp-icon fa fa-fw fa-bolt dx-icon",
       "customItemClass": ""
     },
     {
       "action": "chooseColumns",
-      "iconClass": "fa fa-fw fa-columns dx-icon",
+      "iconClass": "adp-icon fa fa-fw fa-columns dx-icon",
       "customItemClass": ""
     },
     {
@@ -109,22 +97,22 @@ describe('Custom Actions', () => {
     },
     {
       "action": "manageViews",
-      "iconClass": "dx-icon-detailslayout dx-icon",
+      "iconClass": "adp-icon dx-icon-detailslayout dx-icon",
       "customItemClass": ""
     },
     {
       "action": "syntheticGenerate",
-      "iconClass": "fa fa-fw fa-magic dx-icon",
+      "iconClass": "adp-icon fa fa-fw fa-magic dx-icon",
       "customItemClass": ""
     },
     {
       "action": "import",
-      "iconClass": "fa fa-fw fa-upload dx-icon",
+      "iconClass": "adp-icon fa fa-fw fa-upload dx-icon",
       "customItemClass": ""
     },
     {
       "action": "export",
-      "iconClass": "fa fa-fw fa-download dx-icon",
+      "iconClass": "adp-icon fa fa-fw fa-download dx-icon",
       "customItemClass": " table-top-custom-class-export"
     },
     {
@@ -139,17 +127,17 @@ describe('Custom Actions', () => {
     },
     {
       "action": "quickFilter",
-      "iconClass": "fa fa-fw fa-filter dx-icon",
+      "iconClass": "adp-icon fa fa-fw fa-filter dx-icon",
       "customItemClass": " table-top-custom-class-qfilter"
     },
     {
       "action": "print",
-      "iconClass": "fa fa-fw fa-print dx-icon",
+      "iconClass": "adp-icon fa fa-fw fa-print dx-icon",
       "customItemClass": ""
     },
     {
       "action": "customLink",
-      "iconClass": "fa fa-fw fa-bolt dx-icon",
+      "iconClass": "adp-icon fa fa-fw fa-bolt dx-icon",
       "customItemClass": ""
     },
     {
@@ -160,22 +148,20 @@ describe('Custom Actions', () => {
     {
       "action": "filterBuilder",
       "customItemClass": "",
-      "iconClass": "fa fa-fw fa-search-plus dx-icon"
+      "iconClass": "adp-icon fa fa-fw fa-search-plus dx-icon"
     }
   ];
 
   test(
     'should click to custom Link action',
     async () => {
-      const linkAction = await this.page.$('.dx-data-row:first-child [data-action-name="link"]');
-      expect(linkAction).toBeTruthy();
+      await evaluateTableAction(null, 'link', this.page);
     });
 
   test(
     'should click to custom Action action',
     async () => {
-      const linkAction = await this.page.$('.dx-data-row:first-child [data-action-name="action"]');
-      expect(linkAction).toBeTruthy();
+      await evaluateTableAction(null, 'action', this.page);
     });
 
   test(
@@ -188,18 +174,18 @@ describe('Custom Actions', () => {
           return {
             action: el.className.replace(/^.*?adp-toolbar-action-(\w+).*?$/, '$1'),
             iconClass: icon && icon.className,
-            customItemClass:itemContent
+            customItemClass: itemContent
               && itemContent.className.replace('dx-item-content dx-menu-item-content', ''),
           }}))
       expect(actionsSnapshot).toEqual(toolbarActionsSnapshot);
 
-      actionsSnapshot = await this.page.$$eval('.dx-data-row:first-child .actions-column-container > *',
+      const confirmedActionsSetSelectors = await evaluateTableAction(null, null, this.page);
+
+      actionsSnapshot = await this.page.$$eval(confirmedActionsSetSelectors,
         elems => elems.map(el=>{
           return {
-            tag: el.tagName,
-            type: el.dataset.action,
-            action: el.dataset.action,
-            iconClass: el.children[0].className
+            action: el.dataset.actionName,
+            iconClass: el.querySelector('.adp-icon').className,
           }}))
 
       expect(actionsSnapshot).toEqual(rowActionsSnapshot);
@@ -220,26 +206,23 @@ describe('Custom Actions', () => {
         })
       );
 
-      await this.page.waitFor(toolbarHelperActionSelector);
+      await this.page.waitForSelector(toolbarHelperActionSelector);
       await this.page.click(toolbarHelperActionSelector);
       const helperMessage = await alertPromise;
 
       expect(helperMessage)
-        .toEqual("schema,customGridOptions,gridOptions,actionOptions");
+        .toEqual("data,row,fieldSchema,modelSchema,appSchema,action,parentData,path,schemaPath,index,indexes,config,customGridOptions,gridOptions,actionOptions");
 
-      await this.page.waitFor(toolbarModuleActionSelector);
+      await this.page.waitForSelector(toolbarModuleActionSelector);
       await this.page.click(toolbarModuleActionSelector);
 
-      await this.page.waitFor(successMessageSelector);
+      await this.page.waitForSelector(successMessageSelector);
       const resultMessage = await this.page.$eval(successMessageSelector, elem => elem.innerText);
 
       expect(resultMessage)
-        .toEqual("Call in context of [schema, customGridOptions, gridOptions, actionOptions]");
+        .toEqual("Call in context of [data, row, fieldSchema, modelSchema, appSchema, action, parentData, path, schemaPath, index, indexes, config, customGridOptions, gridOptions, actionOptions]");
     }
   )
-
-  const rowHelperActionSelector = '.dx-data-row:first-child .actions-column-container [data-action="showRowContents"]'
-  const rowModuleActionSelector = '.dx-data-row:first-child .actions-column-container [data-action="AdpEchoTest.forRow"]'
 
   test(
     "should call echo & module actions from row",
@@ -251,17 +234,15 @@ describe('Custom Actions', () => {
         })
       );
 
-      await this.page.waitFor(rowHelperActionSelector);
-      await this.page.click(rowHelperActionSelector);
+      await clickTableAction(null, 'action', this.page);
       const helperMessage = await alertPromise;
 
       expect(helperMessage.substr(0,10))
         .toEqual('{"field1":');
 
-      await this.page.waitFor(rowModuleActionSelector);
-      await this.page.click(rowModuleActionSelector);
+      await clickTableAction(null, 'action1', this.page);
 
-      await this.page.waitFor(successMessageSelector);
+      await this.page.waitForSelector(successMessageSelector);
       const resultMessage = await this.page.$eval(successMessageSelector, elem => elem.innerText);
 
       expect(resultMessage)

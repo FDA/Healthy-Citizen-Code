@@ -9,7 +9,7 @@
     return {
       restrict: 'E',
       scope: {
-        formGroup: '='
+        argsList: '='
       },
       require: '^^form',
       templateUrl: 'app/adp-forms/directives/adp-form-group-messages/adp-form-group-messages.html'

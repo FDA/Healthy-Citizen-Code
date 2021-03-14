@@ -32,6 +32,13 @@
                                     <div class="form-row">Tags
                                         <div class="fg3d-tags-container same-width"></div>
                                     </div>
+                                    <label class="form-row">
+                                        Select adjacent [T]
+                                        <span><input type='checkbox'
+                                                     ng-model='vm.config.highlightAdjacent'
+                                                     ng-change='vm.doRefreshGraph()'
+                                            /></span>
+                                    </label>
                                 </div>
                                 <div class="fg3d-fieldset">
                                     <div class="fg3d-fieldset-label">Show labels for</div>
@@ -78,6 +85,13 @@
                                     <div class="form-row">Highlight
                                     <span>%<input type="number"
                                                   ng-model="vm.config.hlBrightness"
+                                                      ng-change='vm.doRefreshGraph()'
+                                                      class="same-width"
+                                            /></span>
+                                    </div>
+                                    <div class="form-row">Glow bloom
+                                        <span>%<input type="number"
+                                                      ng-model="vm.config.hlGlow"
                                                       ng-change='vm.doRefreshGraph()'
                                                       class="same-width"
                                             /></span>
@@ -151,6 +165,14 @@
                                                      ng-change='vm.toggleCameraOrbit()'
                                             /></span>
                                     </label>
+                                    <label class="form-row">
+                                        Show performance monitor
+                                        <span><input type='checkbox'
+                                                     ng-if="vm.performanceMonitor"
+                                                     ng-model='vm.performanceMonitor.show'
+                                                     ng-change='vm.performanceMonitor.toggle()'
+                                            /></span>
+                                    </label>
                                 </div>
                                 <div class="justify-between">
                                     <button ng-click='vm.screenCapture()'
@@ -169,7 +191,7 @@
                                             class="btn">Save config [S]
                                     </button>
                                     <button ng-click='vm.loadConfig()'
-                                            ng-disabled='!vm.savedConfig'
+                                            ng-disabled='!vm.cachedConfig'
                                             class="btn">Load config [L]
                                     </button>
                                 </div>
@@ -187,7 +209,7 @@
                             <div ng-repeat="type in vm.legend.nodes" class='fg3d-legend-item'>
                                 <div class='fg3d-leg-icon'>
                                     <div ng-class='{ "fg3d-leg-icon-node":1,  ["shape_" + type.shp.toLowerCase()]:1 }'
-                                         ng-style='{ backgroundColor: type.col }'></div>
+                                         ng-style='{ backgroundColor: type.col || "white" }'></div>
                                 </div>
                                 <div class='fg3d-leg-txt'>{{ type.text || '[no title]' }}</div>
                             </div>
@@ -197,7 +219,7 @@
                             <div ng-repeat="type in vm.legend.links" class='fg3d-legend-item'>
                                 <div class='fg3d-leg-icon'>
                                     <div class='fg3d-leg-icon-link'
-                                         ng-style='{ borderBottomWidth: type.w + "px", borderColor: type.col }'></div>
+                                         ng-style='{ borderBottomWidth: type.w + "px", borderColor: type.col || "white" }'></div>
                                 </div>
                                 <div class='fg3d-leg-txt'>{{ type.text || '[no title]' }}</div>
                             </div>
@@ -212,18 +234,16 @@
                 <div ng-repeat="node in vm.selectedNodes" class='fg3d-entity-info'>
                     <div class='fg3d-info-icon'>
                         <div ng-class='{ "fg3d-leg-icon-node":1, ["shape_" +  node.shp.toLowerCase()]:1 }'
-                             ng-style='{ backgroundColor:  node.col }'
+                             ng-style='{ backgroundColor:  node.col || "white" }'
                              ng-if='node.__type === "node"'
                         ></div>
                         <div class='fg3d-leg-icon-link'
-                             ng-style='{"borderBottomWidth: (node.w ? (node.w + 2) : 1 ) + "px", borderColor: node.col }'
+                             ng-style='{borderBottomWidth: (node.w ? (node.w + 2) : 1 ) + "px", borderColor: node.col || "white" }'
                              ng-if='node.__type === "link"'
                         ></div>
                     </div>
                     <p class='fg3d-info-name-p'><b>Name: </b>{{ node.n }}</p>
-                    <p class='fg3d-info-name-p' ng-if="node.tags.length"><b>Tags: </b>
-                        <span ng-repeat="(key, value) in node.tags">{{ key > 0 ? ', ' : ''}}{{ vm.tags[value].text }}</span>
-                    </p>
+                    <p class='fg3d-info-name-p' ng-if="node.tags.length"><b>Tags:</b> {{ vm.getTagNamesByIds(node.tags) }}</p>
                     <p class='fg3d-info-name-p' ng-if="node.d"><b>Description: </b><span ng-bind-html="node.d"></span>
                     </p>
                     <p ng-repeat="(key, value) in node.obj"><b>{{ key }}: </b><span ng-bind-html="vm.trustedHtml(value)"></span></p>
@@ -235,6 +255,10 @@
                 <button ng-click='vm.navigationZoomIn()' class="btn">+</button>
                 <button ng-click='vm.navigationZoomOut()' class="btn">-</button>
                 <button ng-click='vm.navigationCenter()' class="btn"><i class="fa fa-dot-circle-o"></i></button>
+                <div id="fg3d-performance-monitor"
+                     ng-if="vm.performanceMonitor"
+                     ng-show="vm.performanceMonitor.show"
+                ></div>
             </div>
         </div>
     </adp-section-container>

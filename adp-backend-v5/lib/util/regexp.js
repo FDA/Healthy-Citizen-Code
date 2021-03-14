@@ -6,7 +6,6 @@ const endOfRegExp = /\/([gimy]+)?$/;
 const isRegExpString = (s) => s.charAt(0) === '/' && endOfRegExp.test(s);
 
 function getSourceFlags(s) {
-  s = s.trim();
   if (!s) {
     return;
   }
@@ -31,6 +30,9 @@ function toRegExp(pattern, opts = {}) {
     throw new Error(`Param 'pattern' must be a string`);
   }
   const sourceFlags = getSourceFlags(pattern);
+  if (!sourceFlags) {
+    return '';
+  }
   let { source, flags } = sourceFlags;
 
   if (opts.startsWith) {

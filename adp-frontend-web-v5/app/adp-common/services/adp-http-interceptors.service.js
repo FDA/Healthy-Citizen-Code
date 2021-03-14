@@ -66,6 +66,7 @@
     }
 
     function handleErrorsForRestApi(error) {
+      var AdpSessionService = $injector.get('AdpSessionService');
       var sessionExpired = isApiRequest(error.config.url) && error.status === 401;
       var hasApiError = error.status >= 400;
 

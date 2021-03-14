@@ -1,13 +1,12 @@
 <fieldset>
-  <adp-form-field-factory
-    ng-repeat="field in ::fields.notGrouped track by $index"
-    adp-field="::field"
-    adp-fields="::fields"
-    adp-form-data="::formData"
-    schema="::schema"
-    validation-params="::validationParams"
-  >
-  </adp-form-field-factory>
+  <div class="adp-form-fieldset">
+    <adp-form-field-factory
+      ng-repeat="field in fields.notGrouped track by $index"
+      field-name="::field.fieldName"
+      args="::args"
+      form-context="::$parent.formContext"
+    ></adp-form-field-factory>
+  </div>
 </fieldset>
 
 <fiedlset
@@ -28,7 +27,11 @@
               }">
 
           <span class="badge badge-info">{{$index + 1}}</span>
-          <span ng-bind-html="getHeader(group)"></span>
+          <span
+            ng-bind-html="getHeader(group)"
+            ng-attr-adp-qaid-group-header="{{groupName}}"
+          ></span>
+
           <span class="chevron"></span>
         </li>
       </ul>
@@ -68,23 +71,22 @@
         ng-repeat="(groupName, group) in fields.groups track by $index"
         ng-group-name="{{groupName}}"
         class="step-pane"
-        ng-class="{'active': currentName == groupName }">
+        ng-class="{'active': currentName == groupName }"
+        ng-attr-adp-qaid-group-name="{{groupName}}"
+      >
         <h3 class="step-pane-title">
           <strong>Step {{$index + 1}}</strong> - {{group.fullName}}</h3>
 
-        <adp-form-field-factory
-          ng-repeat="field in group.fields track by $index"
-          adp-field="::field"
-          adp-fields="::fields"
-          adp-form-params="::$parent.formParams"
-          adp-form-data="::$parent.formData"
-          schema="::$parent.schema"
-          validation-params="::$parent.validationParams"
-        >
-        </adp-form-field-factory>
+        <div class="adp-form-fieldset">
+          <adp-form-field-factory
+            ng-repeat="field in ::group.fields track by $index"
+            field-name="::field.fieldName"
+            args="::$parent.args"
+            form-context="::$parent.formContext"
+          ></adp-form-field-factory>
+        </div>
       </div>
     </div>
-
   </div>
 
 </fiedlset>

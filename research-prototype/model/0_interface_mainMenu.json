@@ -5,7 +5,6 @@
       "fullName": "Main Menu",
       "comment": "This defines the main menu that will go into the sidebar",
       "default": "/studies",
-      "permissions": ["doUserActivities"],
       "fields": {
         "home": false,
         "testDashboard": {

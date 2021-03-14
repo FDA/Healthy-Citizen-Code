@@ -10,10 +10,9 @@
         <adp-page-title>{{ vm.data.fullName }}</adp-page-title>
       </adp-section-container>
 
-      <adp-section-container
-        class="adp-data-grid-container"
-      >
-        <div dx-data-grid="vm.tableConfig"
+      <adp-section-container class="adp-data-grid-container">
+        <div
+          dx-data-grid="vm.tableConfig"
           ng-if="!vm.isEmpty"
         ></div>
       </adp-section-container>

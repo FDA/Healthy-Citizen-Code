@@ -24,7 +24,7 @@
         getOptions: function () {
           var fieldData = this.init.args.data;
           var fieldSchema = this.init.args.fieldSchema;
-          var defaults = NumberArrayEditorConfig(fieldData, this.init.onValueChanged);
+          var defaults = NumberArrayEditorConfig(this.init.args, fieldData, this.init.onValueChanged);
 
           var editorConfig = _.merge(defaults, {
             fieldTemplate: fieldTemplate,

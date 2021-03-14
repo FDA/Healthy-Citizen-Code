@@ -12,7 +12,7 @@ const {
   clickOutsideOfGridToTriggerSubmit,
 } = require('./cell-editors.utils');
 
-const PAGE_TO_TEST = 'cellEditingListTypes';
+const PAGE_TO_TEST = 'cellEditingListStringTypes';
 
 describe('Cell Editors: List types', () => {
   beforeAll(async () => {

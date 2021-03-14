@@ -1,15 +1,17 @@
 <adp-form-field-container
-  adp-form-data="::adpFormData"
-  adp-field="::adpField">
-
+  args="::args"
+  enabled="false"
+>
   <div style="display: flex; width: 100%;">
     <div style="width: 140px; padding-right: 10px; display: flex;">
       <label
-        class="label">
-        {{adpField.fullName}}
+        ng-attr-adp-qaid-field-label="{{args.path}}"
+        class="label"
+      >
+        {{args.fieldSchema.fullName}}
 
         <adp-tooltip
-          adp-field="adpField">
+          adp-field="::args.fieldSchema">
         </adp-tooltip>
       </label>
     </div>
@@ -17,16 +19,10 @@
     <div style="width: calc(100% - 150px); display: flex;">
       <readonly-control
         style="width: 100%;"
-        field="::adpField"
-        adp-form-data="::adpFormData"
-        ui-props="::adpFieldUiProps"
-        validation-params="::validationParams"
-      >
-      </readonly-control>
+        args="::args"
+      ></readonly-control>
 
-      <adp-messages
-        adp-field="adpField">
-      </adp-messages>
+      <adp-messages ng-attr-adp-qaid-field-error-messages="{{args.path}}" args="::args"></adp-messages>
     </div>
   </div>
 

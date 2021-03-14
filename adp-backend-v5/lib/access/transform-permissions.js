@@ -30,6 +30,12 @@ function expandPermissionsForScope(scope, actions) {
       scope.permissions[action] = permissionName;
     });
   }
+
+  if (scope.where === 'true' || scope.where === 'false') {
+    scope.where = JSON.parse(scope.where);
+  } else if (_.isNil(scope.where) || scope.where === '') {
+    scope.where = true;
+  }
 }
 
 function expandPermissionsForScopes(scopes, actions) {
@@ -38,37 +44,23 @@ function expandPermissionsForScopes(scopes, actions) {
   });
 }
 
-function getAppModelWithTransformedPermissions(appModel) {
-  const appModelCopy = _.cloneDeep(appModel);
-  _.each(appModelCopy, (model) => {
-    const modelActionNames = _.keys(_.get(model, 'actions.fields'));
-    expandPermissionsForScopes(model.scopes, modelActionNames);
-  });
-  return appModelCopy;
-}
-
-function transformListPermissions(listsFields, appModel, actions) {
-  _.each(listsFields, (listField) => {
-    const listPath = `${listField}.list`;
-    const { scopes } = _.get(appModel, listPath);
-    expandPermissionsForScopes(scopes, actions);
-  });
-}
-
 function transformMenuPermissions(mainMenuItems, actionsToInject) {
-  _.each(mainMenuItems, (menuItem) => {
-    if (!_.isPlainObject(menuItem)) {
-      return;
-    }
-    transformMenuItemScopes(menuItem, actionsToInject);
+  _.each(mainMenuItems, (menuItem, menuKey) => {
+    transformMenuItemScopes(mainMenuItems, menuKey, actionsToInject);
   });
 }
 
-function transformMenuItemScopes(menuItem, actionsToInject) {
+function transformMenuItemScopes(parentMenuObj, menuKey, actionsToInject) {
+  const menuItem = parentMenuObj[menuKey];
+  if (!_.isPlainObject(menuItem)) {
+    delete parentMenuObj[menuKey];
+    return;
+  }
+
   expandPermissionsForScopes(menuItem.scopes, actionsToInject);
   if (menuItem.type === 'MenuGroup') {
-    _.each(menuItem.fields, (subMenu) => {
-      transformMenuItemScopes(subMenu, actionsToInject);
+    _.each(menuItem.fields, (subMenu, subMenuKey) => {
+      transformMenuItemScopes(menuItem.fields, subMenuKey, actionsToInject);
     });
   }
 }
@@ -79,8 +71,6 @@ function transformPagesPermissions(pages, actionsToInject) {
 
 module.exports = {
   getTransformedInterfaceAppPermissions,
-  getAppModelWithTransformedPermissions,
-  transformListPermissions,
   transformMenuPermissions,
   transformPagesPermissions,
   expandPermissionsForScopes,

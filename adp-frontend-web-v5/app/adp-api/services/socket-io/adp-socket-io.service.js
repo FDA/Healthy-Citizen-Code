@@ -1,9 +1,9 @@
 (function () {
-  "use strict";
+  'use strict';
 
   angular
-    .module("app.adpApi")
-    .factory("AdpSocketIoService", AdpSocketIoService);
+    .module('app.adpApi')
+    .factory('AdpSocketIoService', AdpSocketIoService);
 
   /** @ngInject */
   function AdpSocketIoService(
@@ -11,29 +11,113 @@
     $http,
     $state,
     $location,
-    AdpNotificationService,
-    AdpModalService
+    AdpSessionHelper,
+    AdpModalService,
+    AdpNotificationService
   ) {
-    var socket = null;
-    var messageProcessors = [{processor:defaultMessageProcessor}];
-    var socketMessagesTypes = {
-      backgroundJobs: "Background Jobs",
-    };
+    var activeSocket = null;
+    var tokenIsRefreshingNow = false;
+    var messageProcessors = [{processor: defaultMessageProcessor}];
+    var standardMessageHandlers = {
+      message: defaultHandlerTypeMessage,
+      logoutNotification: logoutHandler,
+      backgroundJobs: simpleBackgroundJobsHandler,
+    }
 
     function login() {
       if (lsService.isGuest()) {
         return;
       }
 
-      var authHeader = "JWT " + lsService.getToken();
-
       if (!io) {
-        console.error("Socket IO api not found");
+        socketLog('API not found');
         return;
       }
 
-      socket = io.connect(APP_CONFIG.serverBaseUrl, {
-        path: APP_CONFIG.apiPrefix + "/socket.io",
+      connectSocket();
+    }
+
+    function setupSocketHandlers(socket) {
+      socket.on('unauthorized', function (err) {
+        socketLog('Auth error');
+        if (!tokenIsRefreshingNow) {
+          socket.close();
+          socketLog('Finally disconnected');
+          lsService.removeUserData();
+          $state.go('auth.login');
+        } else {
+          socketLog('Waiting token to refresh');
+        }
+      });
+
+      socket.on('authenticated', function () {
+        socketLog('Successfully authenticated');
+      });
+
+      socket.on('message', applyProcessorQueueToMessage);
+
+      socket.on('disconnect', function (reason) {
+        socketLog('Disconnected');
+
+        if (reason === 'io server disconnect' && !lsService.isGuest()) {
+          socketLog('Reconnecting...');
+
+          connectSocket();
+        }
+      });
+
+      socket.on('connect_timeout', function (timeout) {
+        socketLog('Connection timeout ' + timeout);
+      });
+
+      socket.on('error', function (error) {
+        socketLog('Error: ' + error);
+      });
+
+      socket.on('reconnect', function () {
+        socketLog('Reconnected. Token refresh start.');
+        socket.close();
+
+        tokenIsRefreshingNow = true;
+
+        AdpSessionHelper
+          .setTokenRefreshTimeout(true)
+          .then(connectSocket)
+          .finally(function () {
+            tokenIsRefreshingNow = false;
+          });
+      });
+
+      socket.on('reconnect_attempt', function (attemptNumber) {
+        var authHeader = getAuthString();
+
+        socketLog('Reconnect attempt #' + attemptNumber);
+
+        socket.io.opts.extraHeaders.Authorization =
+          socket.io.opts.transportOptions.polling.Authorization = authHeader;
+      });
+
+      socket.on('connect', function () {
+        socketLog('Connected');
+      });
+    }
+
+    function getAuthString() {
+      return 'JWT ' + lsService.getToken();
+    }
+
+    function connectSocket() {
+      var authHeader = getAuthString();
+
+      if (activeSocket && activeSocket.connected) {
+        activeSocket.close();
+        socketLog('Closing currently active socket');
+      }
+
+      socketLog('Connect attempt...');
+
+      activeSocket = io.connect(APP_CONFIG.serverBaseUrl, {
+        path: APP_CONFIG.apiPrefix + '/socket.io',
         forceNew: true,
         extraHeaders: {Authorization: authHeader},
         reconnectionDelayMax: 64000,
@@ -46,88 +130,50 @@
         },
       });
 
-      if (!socket) {
-        console.error("Socket initialisation failed");
-        return;
+      if (activeSocket) {
+        setupSocketHandlers(activeSocket);
+      } else {
+        socketLog('Initialization failed');
       }
-
-      socket.on("unauthorized", function (err) {
-        socket = null;
-        console.log("SocketIO: Auth error, disconnected");
-        lsService.removeUserData();
-
-        AdpModalService.confirm({
-          message: "User session is expired. Please login again.",
-          backdropClass: "adp-hide-backdrop",
-          windowClass: "adp-session-expired-modal",
-          hideCancelButton: true,
-          okButtonText: "Go to Login page"
-        }).then(function (res) {
-          return $state.go("auth.login");
-        })
-      });
-      socket.on("authenticated", function () {
-        console.log("SocketIO: successfully authenticated");
-      });
-      socket.on("message", applyProcessorQueueToMessage);
-      socket.on("disconnect", function (reason) {
-        if (socket === null) {
-          return;
-        }
-
-        if (socket.io.connecting.indexOf(socket) !== -1) {
-          return console.log(
-            "SocketIO: disconnected by reason '" +
-            reason +
-            "'. It will automatically try to reconnect"
-          );
-        }
-        // disconnection was initiated by the server, need to reconnect manually
-        console.log(
-          "SocketIO: disconnection was initiated by the server, trying to reconnect..."
-        );
-        socket.connect();
-      });
-      socket.on("connect_timeout", function (timeout) {
-        console.log("SocketIO: connection timeout " + timeout);
-      });
-      socket.on("error", function (error) {
-        console.log("SocketIO: error: " + error);
-      });
-      socket.on("reconnect", function (attemptNumber) {
-        console.log(
-          "SocketIO: successfully reconnected with attempt number " +
-          attemptNumber
-        );
-      });
-      socket.on("reconnect_attempt", function (attemptNumber) {
-        console.log("SocketIO: reconnect attempt number " + attemptNumber);
-      });
-      socket.on("connect", function () {
-        console.log("SocketIO: connected");
-      });
-
     }
 
-    function logout() {
-      if (socket) {
-        socket.close();
-        socket = null;
+    function socketLogout() {
+      if (activeSocket) {
+        activeSocket.close();
       }
     }
 
     function defaultMessageProcessor(data) {
-      if (data.level === "error") {
-        AdpNotificationService.notifyError(
-          data.message,
-          getHumanizedType(data.type)
-        );
-      } else {
-        AdpNotificationService.notifySuccess(
-          data.message,
-          getHumanizedType(data.type)
-        );
+      var standardTypeHandler = standardMessageHandlers[data.type];
+
+      if (_.isFunction(standardTypeHandler)) {
+        standardTypeHandler(data);
       }
+    }
+
+    function defaultHandlerTypeMessage(data) {
+      var notifyType = _.get(data, 'data.msgType', 'success');
+      var notificationTypes = {
+        success: 'notifySuccess',
+        error: 'notifyError',
+      }
+      AdpNotificationService[notificationTypes[notifyType] || notificationTypes.success](
+        data.data.msgText || '-void-',
+        data.data.msgTitle
+      );
+    }
+
+    function logoutHandler() {
+      AdpSessionHelper.doLogout();
+    }
+
+    function simpleBackgroundJobsHandler(data){
+      var notificationMethod = _.get(data, 'level') === 'error' ? 'notifyError' :  'notifySuccess';
+
+      AdpNotificationService[notificationMethod](
+        data.message,
+        'Background jobs'
+      );
     }
 
     function applyProcessorQueueToMessage(data) {
@@ -150,24 +196,32 @@
     }
 
     function registerMessageProcessor(processor, params) {
-      messageProcessors.unshift({processor: processor, params: params});
+      var item = {processor: processor};
+
+      if (params) {
+        item.params = params;
+      }
+
+      messageProcessors.unshift(item);
     }
 
     function unRegisterMessageProcessor(processor) {
-      var index = _.findIndex(messageProcessors, function(item){ return item.processor===processor});
+      var index = _.findIndex(messageProcessors, function (item) {
+        return item.processor === processor
+      });
 
       if (index >= 0) {
         messageProcessors.splice(index, 1);
       }
     }
 
-    function getHumanizedType(type) {
-      return socketMessagesTypes[type] || type;
+    function socketLog(message) {
+      console.log('SocketIO: ', message);
     }
 
     return {
       login: login,
-      logout: logout,
+      socketLogout: socketLogout,
       registerMessageProcessor: registerMessageProcessor,
       unRegisterMessageProcessor: unRegisterMessageProcessor,
     };

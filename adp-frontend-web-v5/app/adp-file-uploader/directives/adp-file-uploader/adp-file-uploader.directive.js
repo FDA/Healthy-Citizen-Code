@@ -10,32 +10,34 @@
     AdpFileUploaderModalService,
     AdpFileUploaderService,
     AdpUploaderMessages,
-    Guid,
-    $timeout
+    Guid
   ) {
     return {
       restrict: 'E',
       scope: {
-        data: '=',
-        field: '=',
-        fileRequired: '='
+        args: '<',
+        ngModel: '=ngModel',
+        fileRequired: '<',
       },
       require: '^^form',
       templateUrl: 'app/adp-file-uploader/directives/adp-file-uploader/adp-file-uploader.template.html',
-      link: function ($scope, $elem, $attr, form) {
-        var unbind = $scope.$watch("adpField", function () {
+      link: function ($scope, el, attrs, form) {
+        var unbind = $scope.$watch('args', function () {
           init();
           unbind();
         });
 
         function init() {
+          $scope.field = $scope.args.fieldSchema;
+          $scope.data = $scope.ngModel();
           $scope.uploader = AdpFileUploaderService.create($scope.field, $scope.data);
           $scope.options = $scope.uploader.getOptions();
+
           $scope.$emit('adpFileUploaderInit');
 
           bindEvents();
           if ($scope.fileRequired) {
-            addValidator();
+            addRequiredValidator();
           }
         }
 
@@ -46,22 +48,17 @@
           $scope.$on('adpFileUploadStart', startUpload);
         }
 
-        function addValidator() {
-          var modelRef = form[$scope.field.fieldName];
-          modelRef.$options = {
-            allowInvalid: true
+        function addRequiredValidator() {
+          var control = form[$scope.field.fieldName];
+
+          $scope.$watch('uploader.queue.length', function (n, o) {
+            (n !== o) && control.$validate();
+          });
+
+          control.$validators.required = function() {
+            return _.get($scope, 'uploader.queue.length', 0) > 0;
           };
-
-          $scope.$watch(function() {
-            return $scope.uploader.queue && $scope.uploader.queue.length;
-          }, modelRef.$validate);
-
-          modelRef.$validators.required = function() {
-            var arr = $scope.uploader.queue;
-            if(!arr) { return false; }
-
-            return arr.length > 0;
-          };
+          control.$validators.required();
         }
 
         function startUpload() {
@@ -100,11 +97,11 @@
           };
 
           $scope.data.push(fileItem);
-          $scope.$apply();
+          $scope.ngModel($scope.data);
         }
 
         function update(item, response) {
-          var itemToUpdate = _.find($scope.data, function (fileItem) {
+          var itemToUpdate = _.find($scope.ngModel(), function (fileItem) {
             return fileItem.id === item._file.id;
           });
 

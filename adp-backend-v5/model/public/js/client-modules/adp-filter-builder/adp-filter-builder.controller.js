@@ -201,11 +201,12 @@
               event.setValue(filterOptions.value);
             },
             closeEditor: event.closeEditor,
-            //  placeholder: getPlaceholder(event, schema),
             parentType: event.parentType,
           };
 
-          options.args.modelSchema = {filter: valueType};
+          // force filter type to render special filter types like 'relative date' for example
+          options.args.fieldSchema = _.cloneDeep(options.args.fieldSchema);
+          options.args.fieldSchema.filter = valueType;
 
           event.cancel = true; // Cancels creating the default editor
 

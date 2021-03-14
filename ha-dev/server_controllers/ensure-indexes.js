@@ -5,13 +5,13 @@ module.exports = function() {
 
   m.init = appLib => {
     m.appLib = appLib;
-    const aesOpenfdaDrugs = appLib.db.model('aesOpenfdaDrugs');
-    const recallsOpenfdaDrugs = appLib.db.model('recallsOpenfdaDrugs');
-    const recallsRes = appLib.db.model('recallsRes');
-    const drugsRxnormConso = appLib.db.model('drugsRxnormConso');
+    const aesOpenfdaDrugs = appLib.db.collection('aesOpenfdaDrugs');
+    const recallsOpenfdaDrugs = appLib.db.collection('recallsOpenfdaDrugs');
+    const recallsRes = appLib.db.collection('recallsRes');
+    const drugsRxnormConso = appLib.db.collection('drugsRxnormConso');
 
     return Promise.all([
-      aesOpenfdaDrugs.collection.createIndex(
+      aesOpenfdaDrugs.createIndex(
         {
           'drugs.openfda.rxCuis.rxCui': 1,
           'drugs.drugCharacterization': 1,
@@ -21,17 +21,17 @@ module.exports = function() {
         },
         { name: 'ae_ix' }
       ),
-      recallsOpenfdaDrugs.collection.createIndex({
+      recallsOpenfdaDrugs.createIndex({
         'rxCuis.rxCui': 1,
         centerRecommendedDepth: 1,
         status: 1,
       }),
-      recallsRes.collection.createIndex({
+      recallsRes.createIndex({
         'rxCuis.rxCui': 1,
         centerRecommendedDepth: 1,
         status: 1,
       }),
-      drugsRxnormConso.collection.createIndex({ rxcui: 1 }),
+      drugsRxnormConso.createIndex({ rxcui: 1 }),
     ]);
   };
   return m;

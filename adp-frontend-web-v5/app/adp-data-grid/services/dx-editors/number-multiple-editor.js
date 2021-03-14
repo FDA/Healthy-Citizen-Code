@@ -26,7 +26,7 @@
           var fieldSchema = this.init.args.fieldSchema;
 
           var self = this;
-          var defaults = NumberArrayEditorConfig(fieldData, function (e) {
+          var defaults = NumberArrayEditorConfig(this.init.args, fieldData, function (e) {
             self.init.onValueChanged({ value: (e.value || []).map(_.toNumber) })
           });
 

@@ -17,7 +17,9 @@
         "scheme": {
           "type": "Mixed",
           "description": "App-schema-compatible JSON specification of the exported collection.",
-          "showInDatatable": false
+          "showInDatatable": false,
+          "validate": [{ "validator": "validateScheme" }],
+          "transform": ["transformScheme"]
         },
         "collectionName": {
           "type": "String",
@@ -64,8 +66,7 @@
       },
       "scopes": {
         "ownRecordScope": {
-          "permissions": "accessAsUser",
-          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+          "permissions": "accessAsUser"
         }
       }
     }

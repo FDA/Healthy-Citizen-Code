@@ -3,8 +3,6 @@ const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
 const { getSchemaNestedPaths, appRoot } = require('../util/env');
 
-const MOUNT_POINT = 'api-docs';
-
 const { getGraphqlConfig } = require('./configs/graphql-config');
 const { getCrudRoutesConfig } = require('./configs/crud-config');
 const { getLookupConfig } = require('./configs/lookup-config');
@@ -21,7 +19,7 @@ const connectSwagger = (appLib) => {
     ],
   });
 
-  connectSwaggerSpec(appLib, MOUNT_POINT, swaggerSpec);
+  connectSwaggerSpec(appLib, swaggerSpec);
 };
 
 function getSwaggerConfig(appLib) {
@@ -105,8 +103,8 @@ All responses are wrapped in envelop:
   };
 }
 
-function connectSwaggerSpec(appLib, mountPoint, swaggerSpec) {
-  appLib.app.use(`/${mountPoint}`, swaggerUi.serve, swaggerUi.setup(swaggerSpec));
+function connectSwaggerSpec(appLib, swaggerSpec, mountPoint = '/api-docs') {
+  appLib.addRoute('use', mountPoint, [swaggerUi.serve, swaggerUi.setup(swaggerSpec)]);
 }
 
 module.exports = connectSwagger;

@@ -1,20 +1,25 @@
 const _ = require('lodash');
+const log = require('log4js').getLogger('data-vis-webvowl');
 const commons = require('../lib/src/data_vis_common');
 
-module.exports = function() {
+module.exports = function () {
   const m = {};
 
-  m.init = appLib => {
+  m.init = (appLib) => {
     m.appLib = appLib;
-    appLib.addRoute('get', '/getFdaVipWebVOWLConfig', [
-      appLib.isAuthenticated,
-      (req, res) =>
-        commons
-          .getDbData(m.appLib, req)
-          .then(data => m.transformRelationshipsToWebVOWL(data))
-          .then(config => res.json(config)),
-    ]);
+    appLib.addRoute('get', '/getFdaVipWebVOWLConfig', [appLib.isAuthenticated, getFdaVipWebVOWLConfig]);
   };
+
+  async function getFdaVipWebVOWLConfig(req, res) {
+    try {
+      const dbData = await commons.getDbData(m.appLib, req);
+      const config = m.transformRelationshipsToWebVOWL(dbData);
+      res.json(config);
+    } catch (e) {
+      log.error(e.stack);
+      return res.json({ success: false, data: null, message: `Unable to get WebVOWL config.` });
+    }
+  }
 
   function getObjAnnotations(obj, model) {
     const annotations = {};
@@ -47,13 +52,13 @@ module.exports = function() {
     return annotations;
   }
 
-  m.transformRelationshipsToWebVOWL = relationships => {
+  m.transformRelationshipsToWebVOWL = (relationships) => {
     transformOntologyListKeys(relationships);
 
     const config = getInitialConfig();
     const addedEntitiesSet = new Set();
 
-    _.each(relationships, r => {
+    _.each(relationships, (r) => {
       // arrow will be shown from domain entity to range entity: domain -> range
       // relationships might have only domain without range and other relationship info
 
@@ -65,7 +70,7 @@ module.exports = function() {
         addedEntitiesSet.add(domainClassId);
         config.class.push({
           id: domainClassId,
-          type: r.domain.type.ontologyElement,
+          type: _.get(r, 'domain.type.ontologyElement'),
         });
         config.classAttribute.push({
           id: domainClassId,
@@ -112,7 +117,7 @@ module.exports = function() {
       const { models } = m.appLib.appModel;
       const entityOntologyElements = models.entityTypes.fields.ontologyElement.list.values;
       const relationshipOntologyValues = models.relationshipTypes.fields.ontologyElement.list.values;
-      _.each(_relationships, r => {
+      _.each(_relationships, (r) => {
         const domainOntologyListKey = _.get(r, 'domain.type.ontologyElement');
         const domainOntologyElement = entityOntologyElements[domainOntologyListKey];
         if (domainOntologyElement) {

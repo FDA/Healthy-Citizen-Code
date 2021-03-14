@@ -48,5 +48,16 @@ module.exports = () => {
     return process.env[varName];
   };
 
+  m.visualizationsModelSpecifications = function () {
+    return '';
+  };
+
+  m.visualizationTypes = function () {
+    // this should scan model/visualizations (in all schemas listed in
+    // the APP_SCHEMA), read their specification.json and return the list
+    // of available visualization types in the form {<key>:<name>}
+    return '{pie_chart: "Pie Chart"}';
+  };
+
   return m;
 };

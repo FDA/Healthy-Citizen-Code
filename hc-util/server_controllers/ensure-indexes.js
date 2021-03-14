@@ -5,11 +5,11 @@ module.exports = function() {
   m.init = appLib => {
     m.appLib = appLib;
 
-    const drugEvents = appLib.db.model("drugEvents");
-    const recalls = appLib.db.model("recalls");
+    const drugEvents = appLib.db.collection("drugEvents");
+    const recalls = appLib.db.collection("recalls");
 
     return Promise.all([
-      drugEvents.collection.createIndex(
+      drugEvents.createIndex(
         {
           "rawData.patient.drug.openfda.rxcui": 1,
           "rawData.patient.drug.drugcharacterization": 1,
@@ -21,7 +21,7 @@ module.exports = function() {
       ),
       // rawData.product_description value exceeds 1024 bytes giving 'key too large to index'
       // https://stackoverflow.com/questions/27792706/cannot-create-index-in-mongodb-key-too-large-to-index
-      recalls.collection.createIndex({
+      recalls.createIndex({
         "rawData.status": 1 /*'rawData.product_description': 1*/
       })
     ]);

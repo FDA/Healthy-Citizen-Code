@@ -2,22 +2,21 @@
   <div
     dx-select-box="configFirstUnit"
     class="adp-inline-form-control-left"
-    name="{{field.fieldName}}FirstUnit"
-  >
-  </div>
+    name="{{args.fieldSchema.fieldName}}FirstUnit"
+  ></div>
 
   <div
     dx-select-box="configSecondUnit"
     class="adp-inline-form-control-right"
-    name="{{field.fieldName}}SecondUnit"
-  >
-  </div>
+    name="{{args.fieldSchema.fieldName}}SecondUnit"
+  ></div>
 </div>
 
 <input
   type="hidden"
   ng-required="isRequired()"
-  adp-validate="validationParams"
-  ng-model="adpFormData[field.fieldName]"
-  name="{{field.fieldName}}"
+  adp-validate="args"
+  ng-model="getterSetter"
+  ng-model-options="{ getterSetter: true }"
+  name="{{args.fieldSchema.fieldName}}"
 >

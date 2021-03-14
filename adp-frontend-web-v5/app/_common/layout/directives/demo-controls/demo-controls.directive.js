@@ -1,7 +1,7 @@
 'use strict';
 
 angular.module('SmartAdmin.Layout')
-  .directive('demoControls', function ($rootScope) {
+  .directive('demoControls', function ($rootScope, AdpModalService) {
     return {
       restrict: 'EA',
       replace: true,
@@ -100,15 +100,12 @@ angular.module('SmartAdmin.Layout')
         }
 
         $scope.factoryReset = function () {
-          $.SmartMessageBox({
-            title: "<i class='fa fa-refresh' style='color:green'></i> Clear Settings",
-            content: "Would you like to RESET all your widgets?",
-            buttons: '[No][Yes]'
-          }, function (ButtonPressed) {
-            if (ButtonPressed == "Yes") {
-              location.reload()
-            }
-          });
+          var options = { message: 'Would you like to RESET all your widgets?' };
+
+          AdpModalService.confirm(options)
+            .then(function () {
+              location.reload();
+            });
         }
       }
     }

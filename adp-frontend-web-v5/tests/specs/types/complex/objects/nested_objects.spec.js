@@ -88,7 +88,7 @@ describe('complex objects', () => {
 
         // check error for required field
         const string31MsgSelector = getFieldErrorSelector('level3', 'level3String1');
-        await this.page.waitFor(string31MsgSelector, {
+        await this.page.waitForSelector(string31MsgSelector, {
           timeout: SELECTOR_TIMEOUT,
         });
         const [

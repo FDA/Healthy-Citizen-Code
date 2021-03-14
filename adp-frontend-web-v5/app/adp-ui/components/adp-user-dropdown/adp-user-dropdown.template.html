@@ -20,7 +20,8 @@
       data-toggle="dropdown"
       href>
       <img
-        src="assets/img/profile.jpg"
+        ng-src="{{vm.avatarSrc}}"
+        ng-if="vm.avatarSrc"
         alt="me"
         class="header-avatar online"
       >
@@ -30,6 +31,29 @@
       <li role="menuitem">
         <a href>
           Hello {{vm.user.login}}
+        </a>
+      </li>
+
+      <li role="menuitem">
+        <a ui-sref="app.profile">
+          <u>P</u>rofile
+        </a>
+      </li>
+
+      <li role="menuitem">
+        <a ui-sref="app._userSettings">
+          <u>U</u>ser settings
+        </a>
+      </li>
+
+      <li
+        ng-if="vm.showClsCsrInUserMenu"
+        role="menuitem">
+        <a
+          href-void
+          ng-click="vm.resetUI()"
+        >
+          <u>R</u>eset User Interface
         </a>
       </li>
 

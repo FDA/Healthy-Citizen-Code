@@ -81,8 +81,8 @@ describe('show expression', () => {
           s3: false,
         };
 
-        await this.page.waitFor('.smart-form');
-        await this.page.waitFor(selectors.g1);
+        await this.page.waitForSelector('.smart-form');
+        await this.page.waitForSelector(selectors.g1);
         const snapshot1 = await this.page.evaluate(getVisibilitySnapshot, selectors);
         expect(snapshot1).toEqual(expectedSnapshot1);
       });

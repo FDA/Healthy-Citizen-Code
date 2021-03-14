@@ -1,10 +1,9 @@
 const should = require('should');
 const assert = require('assert');
 const _ = require('lodash');
-const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 
-const { prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
+const { prepareEnv, getMongoConnection, apiRequest, setAppAuthOptions } = require('../test-util');
 
 describe('V5 Backend Transformers', function () {
   const sampleData0 = {
@@ -84,11 +83,12 @@ describe('V5 Backend Transformers', function () {
   before(async function () {
     prepareEnv();
     this.appLib = require('../../lib/app')();
-    this.appLib.isAuthenticated = (req, res, next) => next(); // disable authentication
+    setAppAuthOptions(this.appLib, { requireAuthentication: false });
     await this.appLib.setup();
     this.dba = require('../../lib/database-abstraction')(this.appLib);
-    this.M6 = mongoose.model('model6s');
-    await this.appLib.db.createCollection('model6s');
+    this.modelName = 'model6s';
+    this.M6 = this.appLib.db.collection(this.modelName);
+    await this.appLib.db.createCollection(this.modelName);
   });
 
   after(async function () {
@@ -108,8 +108,8 @@ describe('V5 Backend Transformers', function () {
       it('1st level data', async function () {
         const data = _.cloneDeep(sampleData0);
         const userContext = { _id: 1 };
-        await this.dba.createItem(this.M6, userContext, data);
-        const foundData = await this.dba.getPreparedItems({ model: this.M6, userContext });
+        await this.dba.createItem(this.modelName, userContext, data);
+        const foundData = await this.dba.getPreparedItems({ modelName: this.modelName, userContext });
         const item = foundData[0];
         should(item.n).be.equal(8);
         should(item.s).be.equal('abcQW');
@@ -186,7 +186,7 @@ describe('V5 Backend Transformers', function () {
         postRes.body.should.have.property('id');
         const savedId = postRes.body.id;
 
-        const data = await this.M6.findOne({});
+        const data = await this.M6.findOne({ _id: ObjectID(savedId) });
         data.height.should.equal(185);
         data.weight.should.equal(45359.237001003545);
         const res = await apiRequest(this.appLib.app)

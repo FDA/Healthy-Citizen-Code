@@ -3,7 +3,7 @@ const _ = require('lodash');
 const { random } = require('../util/random');
 const ScgError = require('./errors/scg-error');
 
-async function generateDataByModel({ appLib, functions, model, env, log }) {
+async function generateDataByModel({ appLib, generators, model, env, log }) {
   const unifiedContext = {
     row: {},
     modelSchema: model,
@@ -11,26 +11,26 @@ async function generateDataByModel({ appLib, functions, model, env, log }) {
     path: [],
     schemaPath: [],
     config: env,
-    generators: functions,
+    generators,
   };
-  await generateObjectField({ appLib, functions, unifiedContext, log });
+  await generateObjectField({ appLib, functions: generators, unifiedContext, log });
 
-  const generatorSpecifications = _.castArray(model.generatorSpecification);
-  for (const generatorSpecification of generatorSpecifications) {
+  const modelGeneratorSpecs = _.castArray(model.generatorSpecification);
+  for (const modelGeneratorSpec of modelGeneratorSpecs) {
     // eslint-disable-next-line
-    await generateFieldsForRecord(functions, generatorSpecification, unifiedContext);
+    await handleModelGeneratorSpec(generators, modelGeneratorSpec, unifiedContext);
   }
 
   return unifiedContext.row;
 }
 
-async function generateFieldsForRecord(functions, generatorSpecification, unifiedContext) {
-  const generatorName = _.get(generatorSpecification, 'generator');
-  const generatorFunc = functions[generatorName];
+async function handleModelGeneratorSpec(generators, modelGeneratorSpec, unifiedContext) {
+  const generatorName = _.get(modelGeneratorSpec, 'generator');
+  const generatorFunc = generators[generatorName];
   if (!generatorFunc) {
     throw new Error(`Unable to find record-wide generator function '${generatorName}'`);
   }
-  const params = _.get(generatorSpecification, 'params', {});
+  const params = _.get(modelGeneratorSpec, 'params', {});
   const contextWithParams = { ...unifiedContext, params };
   return generatorFunc.call(contextWithParams);
 }
@@ -39,7 +39,7 @@ async function generateDataByField({ appLib, functions, unifiedContext, log }) {
   const { fieldSchema } = unifiedContext;
   const { type } = fieldSchema;
 
-  if (type === 'Group') {
+  if (['Group', 'Blank', 'StaticHtml'].includes(type)) {
     return;
   }
   if (type === 'Array') {
@@ -148,6 +148,7 @@ function compactArrayResult(result) {
 
 async function generateObjectField({ appLib, functions, unifiedContext, log }) {
   const objSpec = unifiedContext.fieldSchema;
+  !objSpec && console.log('generateObjectField unifiedContext', unifiedContext);
   for (const [fieldName, fieldSchema] of Object.entries(objSpec.fields)) {
     const nestedPath = unifiedContext.path.concat(fieldName);
     const nestedContext = {
@@ -167,7 +168,7 @@ async function generateObjectField({ appLib, functions, unifiedContext, log }) {
       if (e instanceof ScgError) {
         log.error(e.message);
       } else {
-        log.error(e.stack);
+        log.error(`Unable to generate object field for path '${nestedPath.join('.')}'. It will be skipped.`, e.stack);
       }
     }
   }
@@ -175,7 +176,7 @@ async function generateObjectField({ appLib, functions, unifiedContext, log }) {
 
 function generateMixedField() {}
 
-async function generateDocs({ appLib, env, functions, collectionName, count, log, onDocInsert = _.noop() }) {
+async function generateDocs({ appLib, env, generators, collectionName, count, log, onDocInsert = _.noop() }) {
   const { models } = appLib.appModel;
   const {
     transformers,
@@ -185,23 +186,23 @@ async function generateDocs({ appLib, env, functions, collectionName, count, log
   const model = models[collectionName];
 
   for (let i = 0; i < count; i++) {
-    const record = await generateDataByModel({ appLib, functions, model, env, log });
-
+    let record;
     try {
+      record = await generateDataByModel({ appLib, generators, model, env, log });
       await transformers.preSaveTransformData(collectionName, {}, record, []);
+      const { record: insertedDoc } = await appLib.db
+        .collection(collectionName)
+        .hookQuery('insertOne', record, { checkKeys: false });
+      onDocInsert({ collectionName, insertedDoc });
     } catch (e) {
       const msg = `Generated '${collectionName}' record failed validation. It will be skipped.`;
       if (e instanceof ValidationError) {
         log.error(`${msg}\n${e.message}`);
       } else {
-        log.error(`${msg}\n${e.stack}\nRecord:${stringifyObj(record)}`);
+        const recordPart = record ? `Record:${stringifyObj(record)}` : '';
+        log.error(`${msg}\n${e.stack}\n${recordPart}`);
       }
-      continue;
     }
-
-    const response = await appLib.db.model(collectionName).collection.insertOne(record);
-    const insertedDoc = response.ops[0];
-    onDocInsert({ collectionName, insertedDoc });
   }
 }
 

@@ -72,3 +72,8 @@ h2 {
 .djs-popup-body .bpmn-icon-subprocess-expanded {
   display: none;
 }
+
+.dmn-definitions {
+  /*To hide Name+id window on the editor*/
+  display: none;
+}

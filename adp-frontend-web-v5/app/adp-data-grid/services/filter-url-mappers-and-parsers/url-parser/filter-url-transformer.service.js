@@ -33,18 +33,8 @@
       string: [function (value) {
         return !!value ? value : null;
       }],
-      boolean: [function (value) {
-        var allowedTruthyValues = ['1', 'true'];
-        var allowedFalsyValue = ['0', 'false'];
-
-        if (allowedTruthyValues.includes(value)) {
-          return BOOLEAN_FILTER_VALUES.TRUE;
-        } else if (allowedFalsyValue.includes(value)) {
-          return BOOLEAN_FILTER_VALUES.FALSE;
-        } else {
-          return null;
-        }
-      }],
+      boolean: [transformToBoolean],
+      triStateBoolean: [transformToBoolean],
       list: [transformToList],
       dynamicList: [transformToList],
       imperialHeight: [
@@ -105,7 +95,7 @@
 
     function transformToDate(value, field) {
       var format = AdpValidationUtils.getDateFormat(field.type);
-      var result = moment(value, format).toDate();
+      var result = dayjs(value, format).toDate();
 
       return !result.getTime() ? null : result;
     }
@@ -136,6 +126,19 @@
       });
 
       return filtered.length === 2 ? value : null;
+    }
+
+    function transformToBoolean(value) {
+      var allowedTruthyValues = ['1', 'true'];
+      var allowedFalsyValue = ['0', 'false'];
+
+      if (allowedTruthyValues.includes(value)) {
+        return BOOLEAN_FILTER_VALUES.TRUE;
+      } else if (allowedFalsyValue.includes(value)) {
+        return BOOLEAN_FILTER_VALUES.FALSE;
+      } else {
+        return null;
+      }
     }
 
     function validateLookupValues(value, field) {

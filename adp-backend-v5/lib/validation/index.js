@@ -9,7 +9,7 @@ module.exports = (appLib) => {
   const m = {};
 
   m.validateNewItem = async (context, newItem) => {
-    const { modelName, userPermissions, inlineContext } = context;
+    const { modelName, userPermissions, inlineContext, userContext } = context;
     const listErrors = await appLib.accessUtil.validateListsValues(modelName, newItem, userPermissions, inlineContext);
     if (!_.isEmpty(listErrors)) {
       throw new ValidationError(`Incorrect request: ${listErrors.join(' ')}`);
@@ -17,61 +17,14 @@ module.exports = (appLib) => {
 
     appLib.controllerUtil.transformLookupKeys(newItem, modelName);
     await m.checkIsTreeSelectorValid(newItem, modelName);
-    await m.checkIsLookupValid(newItem, modelName);
-  };
-
-  m.validateListsValues = (modelName, data, userPermissions, inlineContext) => {
-    const listsErrors = [];
-    // if (!appLib.getAuthSettings().enablePermissions) {
-    //   return listsErrors;
-    // }
-
-    const fieldsPathInAppModel = `${modelName}.fields`;
-
-    // transform relative paths of req.body to absolute paths
-    const userData = _.reduce(
-      data,
-      (result, val, key) => {
-        const fullPath = `${fieldsPathInAppModel}.${key}`;
-        result[fullPath] = val;
-        return result;
-      },
-      {}
-    );
-
-    const schemaListsFields = appLib.ListsFields.filter((path) => path.startsWith(fieldsPathInAppModel));
-    const schemaAllowedLists = appLib.accessUtil.getListsForUser(userPermissions, inlineContext, schemaListsFields);
-    _.each(schemaAllowedLists, (list, fieldPath) => {
-      const userVal = userData[fieldPath];
-
-      if (_.isEmpty(userVal) && list.required) {
-        listsErrors.push(`Required value must be set for '${fieldPath}'.`);
-        return;
-      }
-
-      if (list.type.endsWith('[]')) {
-        // check array type
-        if (!Array.isArray(userVal)) {
-          listsErrors.push(`Value '${userVal}' should be an array for '${fieldPath}'.`);
-        } else {
-          userVal.forEach((val) => {
-            if (!list.values[val]) {
-              listsErrors.push(`Value '${val}' is not allowed for '${fieldPath}'.`);
-            }
-          });
-        }
-      } else if (userVal && !list.values[userVal]) {
-        listsErrors.push(`Value '${userVal}' is not allowed for '${fieldPath}'.`);
-      }
-    });
-    return listsErrors;
+    await m.checkAndTransformLookup(newItem, modelName, userContext);
   };
 
   m.checkIsTreeSelectorValid = async (item, modelName) => {
     const modelTreeSelectors = _.get(appLib.treeSelectorFieldsMeta, modelName);
     const checkTreeSelectorPromises = [];
 
-    const actualRecordCond = appLib.dba.getConditionForActualRecord();
+    const actualRecordCond = appLib.dba.getConditionForActualRecord(modelName);
     _.each(modelTreeSelectors, (treeSelectorMeta, itemPath) => {
       const { jsonPath } = treeSelectorMeta.paths;
       const singleTableMeta = Object.values(treeSelectorMeta.table)[0];
@@ -82,7 +35,7 @@ module.exports = (appLib) => {
         const lastChildId = treeSelectorData[treeSelectorData.length - 1]._id;
         const [fromField, toField] = Object.entries(parent)[0];
         const checkPromise = appLib.db
-          .model(table)
+          .collection(table)
           .aggregate([
             { $match: { ...actualRecordCond, [foreignKey]: lastChildId } },
             {
@@ -96,6 +49,7 @@ module.exports = (appLib) => {
               },
             },
           ])
+          .toArray()
           .then((docs) => {
             if (!docs.length) {
               return { [itemPath]: `Unable to find a chain` };
@@ -146,10 +100,10 @@ module.exports = (appLib) => {
    * @param modelName
    * @returns {Promise}
    */
-  m.checkIsLookupValid = async (item, modelName) => {
+  m.checkAndTransformLookup = async (item, modelName, userContext) => {
     const lookupFieldsMeta = _.get(appLib.lookupObjectIdFieldsMeta, modelName);
     const checkLookupPromises = [];
-    const conditionForActualRecord = appLib.dba.getConditionForActualRecord();
+    const conditionForActualRecord = appLib.dba.getConditionForActualRecord(modelName);
 
     _.each(lookupFieldsMeta, (lookupMeta, itemPath) => {
       const { jsonPath } = lookupMeta.paths;
@@ -162,19 +116,26 @@ module.exports = (appLib) => {
         if (!lookupTableMeta) {
           return `Lookup meta for collection ${table} does not exist.`;
         }
-        const condition = MONGO.and(conditionForActualRecord, {
-          [lookupTableMeta.foreignKey]: _id,
+
+        const records = await appLib.dba.getItemsUsingCache({
+          modelName: table,
+          userContext,
+          mongoParams: {
+            conditions: MONGO.and(conditionForActualRecord, {
+              [lookupTableMeta.foreignKey]: _id,
+            }),
+            limit: 1,
+          },
         });
 
-        const doc = await appLib.db.collection(table).findOne(condition);
-
-        if (!doc) {
+        if (!records.length) {
           return `Lookup with _id '${_id.toString()}' in collection ${table} does not exist`;
         }
-        lookupObj.label = getLabelOrDataValue(doc, lookupTableMeta.label);
+        const record = records[0];
+        lookupObj.label = getLabelOrDataValue(record, lookupTableMeta.label);
 
         _.each(lookupTableMeta.data, (dataExpr, dataFieldName) => {
-          _.set(lookupObj, `data.${dataFieldName}`, getLabelOrDataValue(doc, dataExpr));
+          _.set(lookupObj, `data.${dataFieldName}`, getLabelOrDataValue(record, dataExpr));
         });
       }).then((errors) => {
         const errMessages = errors.filter((msg) => msg);

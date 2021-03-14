@@ -53,7 +53,7 @@
         },
         formData: {
           recordsNum: 5,
-          batchName: schema.fullName + ' generation at ' + moment().format('hh:mm MM/DD/YYYY'),
+          batchName: schema.fullName + ' generation at ' + dayjs().format('hh:mm MM/DD/YYYY'),
         },
       });
 

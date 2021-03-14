@@ -15,31 +15,44 @@
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/grid-control/grid-control.html',
       require: '^^form',
       link: function (scope) {
-        var newRecordsAllowed = scope.validationParams.formParams.action === 'update';
-
-        scope.schema = GridControlHelper.mergeSchema(scope.field.table, scope.validationParams.schema);
-        setParametersToSchema(scope.field, scope.schema);
-        addActions(scope.schema, scope.field.table, newRecordsAllowed);
-        showHideHeader(scope.field.showHeader, scope.schema);
+        var fieldSchema = scope.args.fieldSchema;
+        createSchema();
+        addWatcherForAction();
 
         scope.options = {
           dataSource: {
             store: new DevExpress.data.CustomStore({
               load: function () {
-                return GridControlHelper.getMergedData(
-                  scope.field.table, scope.adpFormData, scope.validationParams.formParams.action)
+                return GridControlHelper.getMergedData(fieldSchema.table, scope.args.row, scope.args.action);
               }
             })
           }
         };
+
+        function createSchema() {
+          scope.modelSchemaForGrid = GridControlHelper.mergeSchema(fieldSchema, scope.args.modelSchema);
+
+          setParametersToSchema(fieldSchema, scope.modelSchemaForGrid);
+          addActions(scope.modelSchemaForGrid, fieldSchema.table);
+          showHideHeader(fieldSchema.showHeader, scope.modelSchemaForGrid);
+        }
+
+        function addWatcherForAction() {
+          if (scope.args.action !== 'create') {
+            return;
+          }
+
+          var unbind = scope.$watch('args.action', function (newValue) {
+            if (newValue !== 'update') { return; }
+            createSchema();
+            unbind();
+          });
+        }
 
         function setParametersToSchema(field, schema) {
           var defaults = {
@@ -68,7 +81,7 @@
           });
         }
 
-        function addActions(schema, tables, newRecordsAllowed) {
+        function addActions(schema, tables) {
           schema.actions.fields = _.cloneDeep(GRID_CONTROL_ACTIONS);
           schema.actions.fields.gridCreateControl.table = tables;
 
@@ -77,19 +90,20 @@
           }
 
           if (schema.actions.fields.gridCreateControl) {
+            var newRecordsAllowed = scope.args.action !== 'update';
             schema.actions.fields.gridCreateControl.params = {
               createDataGetter: createDataGetter,
-              disabled: !newRecordsAllowed,
+              disabled: newRecordsAllowed,
             }
           }
         }
 
         function preparePresetData(fields) {
           var args = AdpUnifiedArgs.getHelperParamsWithConfig({
-            path: scope.field.fieldName,
-            formData: scope.adpFormData,
+            path: scope.args.path,
+            formData: scope.args.row,
+            schema: scope.modelSchemaForGrid,
             action: ACTIONS.CREATE,
-            schema: scope.schema
           });
 
           return _.mapValues(fields, function(field){

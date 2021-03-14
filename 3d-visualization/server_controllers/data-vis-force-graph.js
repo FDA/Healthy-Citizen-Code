@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const commons = require('../lib/src/data_vis_common');
+const commons = require('../lib/force-graph/data_vis_common');
 
 module.exports = function () {
   const m = {};
@@ -39,7 +39,7 @@ module.exports = function () {
             tags: getSubjectTags(subj.tags),
             d: commons.clearSomeTags(subj.description || '').replace(/\n/g, ' '),
             col: _.get(subj, 'type.nodeColor'),
-            size: getOwnOrTypeAttribute(subj, 'nodeSize'),
+            size: Math.min(100, getOwnOrTypeAttribute(subj, 'entitySize')),
             shp: _.get(subj, 'type.nodeShape'),
             obj: getObjAnnotations(subj, entitySchema),
             crtd: commons.formatDateTime(subj.createdAt, 'DateTime'),
@@ -56,7 +56,7 @@ module.exports = function () {
       });
 
       if (_.get(r, 'domain._id') && _.get(r, 'range._id')) {
-        const particleSize = parseInt(getOwnOrTypeAttribute(r, 'particleSize'));
+        const particleSize = Math.min(100, parseInt(getOwnOrTypeAttribute(r, 'particleSize')));
         const link = {
           n: r.name,
           tags: getSubjectTags(r.tags),

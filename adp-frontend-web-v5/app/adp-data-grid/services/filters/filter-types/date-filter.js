@@ -50,11 +50,13 @@
         onValueChanged: init.parentType === 'filterBuilder' ?
           onValueChanged :
           _.debounce(onValueChanged, INPUT_TIMEOUT),
+        pickerType: _.get(init, 'args.fieldSchema.parameters.pickerType'),
+        openOnFieldClick: _.get(init, 'args.fieldSchema.parameters.openOnFieldClick', false)
       };
 
       function onValueChanged(e) {
         if (e.value) {
-          e.value = moment(moment(e.value).format(momentFormat), momentFormat).toDate();
+          e.value = dayjs(dayjs(e.value).format(momentFormat), momentFormat).toDate();
         }
 
         init.onValueChanged(e);

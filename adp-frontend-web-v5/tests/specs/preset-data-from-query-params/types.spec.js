@@ -57,7 +57,7 @@ describe('data presetting', () => {
 
         await presetDataAndWaitForSelector(dataToPreset, this.page);
         const actualValue = await this.page.$$eval(
-          '[field-name="stringMultiple"] .dx-tag span',
+          '[adp-qaid-field-tag=stringMultiple]',
             els => els.map(el => el.innerText)
         );
 

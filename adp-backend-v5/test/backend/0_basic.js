@@ -48,6 +48,7 @@ const sampleModel1 = {
     permissions: {},
     schemaName: {},
     fieldName: {},
+    indexes: {},
   },
   typeDefaults: {
     fields: {
@@ -124,6 +125,7 @@ const sampleModel2WithLookups = {
     permissions: {},
     schemaName: {},
     fieldName: {},
+    indexes: {},
   },
   models: {
     M1: {
@@ -231,6 +233,7 @@ const sampleModel3DefaultSortBy = {
     permissions: {},
     schemaName: {},
     fieldName: {},
+    indexes: {},
   },
   models: {
     M1: {
@@ -324,6 +327,7 @@ const sampleModel4ValidatorsAndTransformers = {
     permissions: {},
     schemaName: {},
     fieldName: {},
+    indexes: {},
   },
   models: {
     M1: {
@@ -413,6 +417,7 @@ const sampleRequiredValidation = {
     validate: {},
     transform: {},
     permissions: {},
+    indexes: {},
   },
   models: {
     complexTypes: {
@@ -594,8 +599,10 @@ describe('V5 Core Utility', function () {
         accessCfg,
         filterUtil,
       };
+      appLib.accessUtil = require('../../lib/access/access-util')(appLib);
+
       const mutil = require('../../lib/model')(appLib);
-      const { errors, warnings } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
+      const { errors, warnings } = mutil.validateAndCleanupAppModel();
       errors.length.should.equal(0, errors.join('\n')); // sampleModel1 has no errors
       const { M1 } = appLib.appModel.models;
       M1.should.not.have.property('comment'); // comments removed
@@ -621,6 +628,8 @@ describe('V5 Core Utility', function () {
         accessCfg,
         filterUtil,
       };
+      appLib.accessUtil = require('../../lib/access/access-util')(appLib);
+
       const mutil = require('../../lib/model')(appLib);
       const { errors } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(3, errors.join('\n'));
@@ -636,6 +645,8 @@ describe('V5 Core Utility', function () {
         accessCfg,
         filterUtil,
       };
+      appLib.accessUtil = require('../../lib/access/access-util')(appLib);
+
       const mutil = require('../../lib/model')(appLib);
       const { errors } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(3, errors.join('\n'));
@@ -655,6 +666,8 @@ describe('V5 Core Utility', function () {
         },
         filterUtil,
       };
+      appLib.accessUtil = require('../../lib/access/access-util')(appLib);
+
       const mutil = require('../../lib/model')(appLib);
       const { errors } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       errors.length.should.equal(4, errors.join('\n'));
@@ -673,6 +686,8 @@ describe('V5 Core Utility', function () {
         allActionsNames: [...accessCfg.DEFAULT_ACTIONS],
         filterUtil,
       };
+      appLib.accessUtil = require('../../lib/access/access-util')(appLib);
+
       const mutil = require('../../lib/model')(appLib);
       const { warnings } = mutil.validateAndCleanupAppModel(appLib.appModel.models);
       warnings.length.should.equal(5, warnings.join('\n'));

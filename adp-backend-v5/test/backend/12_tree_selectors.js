@@ -64,6 +64,8 @@ describe('V5 TreeSelectors', function () {
     this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
+
+    await Promise.all([this.db.createCollection('model11treeselector'), this.db.createCollection('treeCollection')]);
   });
 
   after(async function () {
@@ -73,8 +75,6 @@ describe('V5 TreeSelectors', function () {
 
   beforeEach(async function () {
     await Promise.all([
-      this.db.createCollection('model11treeselector'),
-      this.db.createCollection('treeCollection'),
       this.db.collection('treeCollection').deleteMany({}),
       this.db.collection('model11treeselector').deleteMany({}),
       this.db.collection('users').deleteMany({}),

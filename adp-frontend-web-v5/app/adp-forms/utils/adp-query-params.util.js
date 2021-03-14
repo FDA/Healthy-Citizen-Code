@@ -60,7 +60,7 @@
       var dateFormat = AdpValidationUtils.getDateFormat(field.type);
 
       if (AdpValidationUtils.isValidDate(item, field.type)) {
-        return moment(item, dateFormat).toDate();
+        return dayjs(item, dateFormat).toDate();
       } else {
         return null;
       }

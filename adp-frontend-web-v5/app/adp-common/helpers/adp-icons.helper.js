@@ -9,7 +9,7 @@
     }
 
     function getIconHtml(icon, _options) {
-      var classNames = [];
+      var classNames = ['adp-icon'];
       var tagProps = [];
       var options = _options || {};
 

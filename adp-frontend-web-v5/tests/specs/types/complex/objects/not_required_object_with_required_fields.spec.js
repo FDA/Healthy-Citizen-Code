@@ -55,7 +55,7 @@ describe('complex objects', () => {
 
         const objectErrorSelector = getObjectErrorSelect('object');
         const string1ErrorSelector = getFieldErrorSelector('object', 'string1');
-        await this.page.waitFor(string1ErrorSelector, {
+        await this.page.waitForSelector(string1ErrorSelector, {
           timeout: SELECTOR_TIMEOUT,
         });
 

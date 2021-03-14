@@ -18,35 +18,48 @@ const SERVICE_TASK_PROPERTY = 'implementation';
 const numberRegExp = /^-?\d+(.\d+)?$/;
 const quotedStringRegExp = /^(["']).*?\1$/;
 const arrayValidator = (val, regExp) => !_.compact(_.map(val.split(','), x=>!x.trim().match(regExp))).length;
+const singleVariableValidator = val => val.match(/^\$[a-z]\w{0,}(\.[a-z](\w){0,}|\.\d+|\[\s{0,}\d+\s{0,}\]){0,}$/)
 const propTypesConfig = {
   'String': {
     control: 'textField',
+    validate: val => {
+      const isVariableLike = val.match(/^\$[a-z]\w+/);
+      return (isVariableLike && singleVariableValidator(val)) || !isVariableLike
+        ? '' : 'Seems like incorrect variable is used'
+    },
   },
   'Number': {
     control: 'textField',
-    validate: val => !val || val.trim().match(numberRegExp) ? '' : 'Incorrect number',
+    validate: val => !val || val.trim().match(numberRegExp) || singleVariableValidator(val)
+      ? '' : 'Variable or correct number is expected',
     toJSON: val => parseFloat(val)
   },
   'Number[]': {
     control: 'textField',
-    validate: val => !val || arrayValidator (val, numberRegExp) ? '' : 'Comma-separated numbers are expected',
+    validate: val => !val || arrayValidator (val, numberRegExp)  || singleVariableValidator(val)
+      ? '' : 'Variable or comma-separated numbers are expected',
     toJSON: val => _.map(val.split(','), x=>parseFloat(x)),
     fromJSON: val=>val && val.join ? val.join(', ') : val
   },
   'String[]': {
     control: 'textField',
-    validate: val => !val || arrayValidator (val, quotedStringRegExp)  ? '' : 'Comma-separated quoted strings are expected',
-    toJSON: val => _.map(val.split(','), x=>x.trim().substring(1, x.trim().length-1)),
+    validate: val => !val || arrayValidator (val, quotedStringRegExp)  || singleVariableValidator(val)
+      ? '' : 'Variable or comma-separated quoted strings are expected',
+    toJSON: val => singleVariableValidator(val)
+      ? val : _.map(val.split(','), x=>x.trim().substring(1, x.trim().length-1)),
     fromJSON: val=>val && val.join ? val.map(x=>`"${x}"`).join(', ') : val
   },
   'AssociativeArray': {
     control: 'textBox', //overrided by template
     validate: val => {
+      if (singleVariableValidator(val)) {
+        return '';
+      }
       try {
         JSON.parse(relaxedJson.transform(val));
         return '';
       } catch (e) {
-        return 'Valid JSON is required';
+        return 'Variable or valid JSON is required';
       }
     },
     template: function (propName, name, opt, params) {

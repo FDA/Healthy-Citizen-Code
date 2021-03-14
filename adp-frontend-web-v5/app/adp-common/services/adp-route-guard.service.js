@@ -9,7 +9,8 @@
   function AdpRouteGuardService(
     AdpSessionService,
     $location,
-    $state
+    $state,
+    $urlService
   ) {
     var service = this;
 
@@ -21,10 +22,17 @@
       }
 
       var DEFAULT_STATE = window.adpAppStore.defaultState();
+      var returnState = ($state.current.name === 'auth.login') && _.find($state.get(), function (s) {
+        if (!s.$$state().url) {
+          return false;
+        }
+
+        return s.$$state().url.exec($location.search().returnUrl);
+      });
 
       var redirects = {
         user: 'auth.login',
-        guest: DEFAULT_STATE.stateName
+        guest: (returnState && returnState.name) || DEFAULT_STATE.stateName,
       };
 
       var canHaveAccess = service[strategy](state);

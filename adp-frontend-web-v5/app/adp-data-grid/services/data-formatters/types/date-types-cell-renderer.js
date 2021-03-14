@@ -15,7 +15,7 @@
     function date(args) {
       var dateFormat = getDateFormat(args);
       var value = args.data;
-      return _.isNil(value) ? GRID_FORMAT.EMPTY_VALUE : moment(value).format(dateFormat);
+      return _.isNil(value) ? GRID_FORMAT.EMPTY_VALUE : dayjs(value).format(dateFormat);
     }
 
     function getDateFormat(args) {

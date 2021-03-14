@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const { getUrlParts, getUrlWithoutPrefix, MONGO, updateSearchConditions } = require('../../util/util');
 const BaseContext = require('../BaseContext');
@@ -11,13 +10,12 @@ module.exports = class DatatablesContext extends BaseContext {
     this.urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.API_PREFIX));
     this.modelName = this._getModelName();
     if (!this.modelName) {
-      throw new ValidationError('No schema name');
-    }
-    this.model = mongoose.model(this.modelName);
-    if (!this.model) {
-      throw new ValidationError('Invalid model name');
+      throw new ValidationError('No model name');
     }
     this.appModel = this._getAppModel();
+    if (!this.appLib.appModel.models[this.modelName]) {
+      throw new ValidationError('Invalid model name');
+    }
     this.mongoParams = this._getMongoParams();
     return this;
   }
@@ -81,9 +79,9 @@ module.exports = class DatatablesContext extends BaseContext {
 
     // Set all the fields projections to handle 'validate', 'transform' and 'synthesize' stages
     // Using model.schema.tree rather than this.model.schema.paths since 'AssociativeArray' type creates paths like 'assocArray.$*' of instance SingleNestedPath which breaks mongo query (along with 'assocArray' path).
-    for (const path of _.keys(this.model.schema.tree)) {
-      projections[path] = 1;
-    }
+    // for (const path of _.keys(this.model.schema.tree)) {
+    //   projections[path] = 1;
+    // }
 
     return {
       conditions,

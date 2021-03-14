@@ -11,7 +11,7 @@
 // opt-in, read http://bit.ly/CRA-PWA.
 
 function serviceWorkerManager() {
-  var workerPath = '';
+  var workerPath = '{{ baseUrl }}';
 
   var isLocalhost = Boolean(
     window.location.hostname === 'localhost' ||
@@ -170,7 +170,7 @@ function serviceWorkerManager() {
 
 var sw = serviceWorkerManager();
 
-if (<!-- interface.app.offlineModeSupport -->) {
+if ({{ interface.app.offlineModeSupport }}) {
   sw.register();
 } else {
   sw.unregister();

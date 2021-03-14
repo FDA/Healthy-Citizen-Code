@@ -38,20 +38,23 @@
     function setHeaderFiltersToColumns(columns, schema) {
       columns.forEach(function (column) {
         var field = schema.fields[column.dataField];
-        if (!field || !column.allowFiltering) {
+
+        if (!field || !column.allowFiltering || !column.allowHeaderFiltering) {
+          column.allowHeaderFiltering = false;
           return;
         }
 
-        column.headerFilter = {}
-        var dataSource = getCustomFilterDataSource(field, schema);
+        column.headerFilter = {};
+        var customDataSource = getCustomFilterDataSource(field, schema);
 
-        if (!_.isNil(dataSource)) {
-          return;
+        if (customDataSource) {
+          _.set(column, 'headerFilter.dataSource', customDataSource);
+        } else {
+          var dataSource = getDataSourceForOperations(['undefined', 'notUndefined'], field);
+          dataSource = _.concat(dataSource, getStringBasedOperations(field));
+
+          _.set(column, 'headerFilter.dataSource', dataSource);
         }
-
-        dataSource = getDataSourceForOperations(['undefined', 'notUndefined'], field);
-        dataSource = _.concat(dataSource, getStringBasedOperations(field));
-        column.headerFilter.dataSource = dataSource;
       });
     }
 
@@ -66,7 +69,7 @@
       var args = AdpUnifiedArgs.getHelperParamsWithConfig({
         path: field.fieldName,
         formData: null,
-        action: null,
+        action: 'headerFilterDataSource',
         schema: schema,
       });
 
@@ -92,7 +95,7 @@
         field.type
       );
 
-      if (!isStringBased) {
+      if (field.list || !isStringBased) {
         return [];
       }
 

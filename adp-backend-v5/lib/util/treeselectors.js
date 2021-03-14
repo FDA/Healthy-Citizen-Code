@@ -1,9 +1,10 @@
 const { buildLookupFromDoc, buildLookupsFromDocs } = require('./lookups');
+const { getFunction } = require('./memoize');
 
 function buildTreeSelectorFromDoc(doc, tableSpec) {
   const lookup = buildLookupFromDoc(doc, tableSpec);
 
-  const isLeafFunc = new Function(`return ${tableSpec.leaves}`);
+  const isLeafFunc = getFunction(`return ${tableSpec.leaves}`);
   lookup.isLeaf = isLeafFunc.call(doc);
 
   return lookup;
@@ -11,7 +12,7 @@ function buildTreeSelectorFromDoc(doc, tableSpec) {
 
 function buildTreeSelectorsFromDocs(docs, tableSpec) {
   const lookups = buildLookupsFromDocs(docs, tableSpec);
-  const isLeafFunc = new Function(`return ${tableSpec.leaves}`);
+  const isLeafFunc = getFunction(`return ${tableSpec.leaves}`);
 
   for (let i = 0; i < docs.length; i++) {
     const lookup = lookups[i];

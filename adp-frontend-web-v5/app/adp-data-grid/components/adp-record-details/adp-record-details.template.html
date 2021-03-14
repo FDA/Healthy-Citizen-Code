@@ -3,7 +3,7 @@
   ng-repeat="item in vm.formattedData track by $index"
 >
 
-  <dl class="row">
+  <dl class="row" ng-class="['view-details-row-' + item.name]">
     <dt class="col-md-4">{{item.name}}</dt>
 
     <dd class="col-md-8">

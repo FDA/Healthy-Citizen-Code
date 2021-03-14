@@ -150,7 +150,7 @@ const result = _.compact(_.map(libraries, (itemConfig, name) => {
   const generatedConfig = {
     output: {
       path: `${rootPath}/../public/js/lib/${name}`,
-      publicPath: `/resource/public/js/lib/${name}`,
+      publicPath: `..`,
     },
   };
 

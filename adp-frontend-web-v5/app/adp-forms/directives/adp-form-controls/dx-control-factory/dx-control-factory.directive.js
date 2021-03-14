@@ -9,21 +9,22 @@
     AdpValidationUtils,
     AdpFieldsService,
     AdpUnifiedArgs,
-    $injector
+    $injector,
+    ControlSetterGetter,
+    DX_CONTROLS
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/dx-control-factory/dx-control-factory.html',
       require: '^^form',
       link: function (scope, el, attr, formCtrl) {
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
-        scope.args = unifiedApproachArgs();
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.getterSetter = getterSetterFn;
+        scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
 
         (function init(args) {
           var widgetConfig = getWidgetConfig(args);
@@ -37,6 +38,19 @@
 
         function getConfig(args, widgetOptions) {
           var cfg = _.merge(getDefaults(args), widgetOptions);
+
+          cfg.onValueChanged = function (e) {
+            if (widgetOptions.onValueChanged) {
+              var shouldPreventChange = widgetOptions.onValueChanged(e) !== undefined;
+              if (shouldPreventChange) {
+                return;
+              }
+            }
+
+            getterSetterFn(e.value);
+            setAngularFormProps(args.fieldSchema);
+          }
+
           return AdpFieldsService.configFromParameters(args.fieldSchema, cfg);
         }
 
@@ -44,7 +58,7 @@
           var field = args.fieldSchema;
 
           return {
-            value: scope.adpFormData[field.fieldName] || null,
+            value: getterSetterFn() || null,
             onInitialized: function (e) {
               scope.instance = e.component;
             },
@@ -52,42 +66,19 @@
               autocomplete: AdpFieldsService.autocompleteValue(field),
               'field-name-input': field.fieldName,
               id: field.fieldName,
-            },
-            onValueChanged: function (e) {
-              scope.adpFormData[field.fieldName] = e.value;
-              setAngularFormProps(field);
+              'adp-qaid-field-control': scope.args.path,
             },
             valueChangeEvent: 'input blur',
           };
         }
 
         function getWidgetConfig(args) {
-          var widgetConfigNamesPart = {
-            String: ['String', 'Phone', 'Url', 'Email', 'PasswordAuth'],
-            Number: ['Number', 'Double'],
-            Decimal: ['Decimal128'],
-            Int: ['Int32', 'Int64'],
-            Date: ['Date', 'DateTime', 'Time'],
-            Text: ['Text'],
-          };
-
-          var widgetType = _.findKey(widgetConfigNamesPart, function (val) {
+          var widgetType = _.findKey(DX_CONTROLS, function (val) {
             return val.includes(args.fieldSchema.type);
           });
 
           var name = 'Dx' + widgetType + 'Config';
           return $injector.get(name)(args);
-        }
-
-        function unifiedApproachArgs() {
-          var formParams = scope.validationParams.formParams;
-
-          return AdpUnifiedArgs.getHelperParamsWithConfig({
-            path: formParams.path,
-            formData: formParams.row,
-            action: formParams.action,
-            schema: formParams.modelSchema,
-          });
         }
 
         function getInstance() { return scope.instance; }

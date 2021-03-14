@@ -5,10 +5,9 @@
  */
 
 const log = require('log4js').getLogger('research-app-model/pool-controller');
+const Promise = require('bluebird');
 
-module.exports = function (globalMongoose) {
-  const mongoose = globalMongoose;
-
+module.exports = function () {
   const m = {};
 
   m.init = (appLib) => {
@@ -17,6 +16,9 @@ module.exports = function (globalMongoose) {
   };
 
   m.addParticipantsToPool = async (req, res) => {
+    const poolsCollectionName = 'pools';
+    const pollParticipantsCollectionName = 'poolParticipants';
+
     const { name: poolName, participantsFilter } = req.body;
     const { dba, filterParser, appModel } = m.appLib;
     const creator = {
@@ -27,16 +29,15 @@ module.exports = function (globalMongoose) {
 
     let pool;
     try {
-      const poolModel = mongoose.model('pools');
-      pool = await poolModel
+      const poolCollection = m.appLib.db.collection(poolsCollectionName);
+      pool = await poolCollection
         .findOne({
           poolName,
-          ...dba.getConditionForActualRecord(),
-        })
-        .lean();
+          ...dba.getConditionForActualRecord(poolsCollectionName),
+        });
       if (!pool) {
         // TODO: add checking user permissions?
-        pool = await poolModel.create({ poolName, creator });
+        pool = await poolCollection.insertOne({ poolName, creator });
       }
     } catch (e) {
       log.error(`Unable to create a pool`, e.stack);
@@ -44,11 +45,10 @@ module.exports = function (globalMongoose) {
     }
 
     const { conditions } = filterParser.parse(participantsFilter, appModel.models.participants);
-    const participantsToAddPromise = mongoose.model('participants').find(conditions, { _id: 0, guid: 1 }).lean();
-    const existingParticipantsPromise = mongoose
-      .model('poolParticipants')
-      .find({ 'poolId._id': pool._id, ...dba.getConditionForActualRecord() }, { _id: 0, guid: 1 })
-      .lean();
+    const participantsToAddPromise = m.appLib.db.collection('participants').find(conditions, { _id: 0, guid: 1 }).toArray();
+    const existingParticipantsPromise = m.appLib.db.collection(pollParticipantsCollectionName)
+      .find({ 'poolId._id': pool._id, ...dba.getConditionForActualRecord(pollParticipantsCollectionName) }, { _id: 0, guid: 1 })
+      .toArray();
     const [participantsToAdd, existingParticipants] = await Promise.all([
       participantsToAddPromise,
       existingParticipantsPromise,
@@ -63,7 +63,7 @@ module.exports = function (globalMongoose) {
       poolId: {
         _id: pool._id,
         label: poolName,
-        table: 'pools',
+        table: poolsCollectionName,
       },
       guid: pGuid,
       statusCode: 1,
@@ -73,12 +73,12 @@ module.exports = function (globalMongoose) {
     }));
 
     try {
-      await mongoose.model('poolParticipants').create(poolParticipants);
+      await m.appLib.db.collection(pollParticipantsCollectionName).insertMany(poolParticipants);
     } catch (e) {
-      log.error(`Unable to create poolParticipants`, e.stack);
+      log.error(`Unable to create ${pollParticipantsCollectionName}`, e.stack);
       return res.json({
         success: false,
-        message: `Unable to create poolParticipants`,
+        message: `Unable to create ${pollParticipantsCollectionName}`,
       });
     }
 

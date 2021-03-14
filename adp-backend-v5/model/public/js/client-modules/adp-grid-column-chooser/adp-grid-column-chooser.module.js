@@ -5,7 +5,7 @@
   function AdpGridColumnChooser(AdpClientCommonHelper) {
     return function (toolbarWidgetRegister) {
       var actionOptions = this.actionOptions;
-      var schema = this.schema;
+      var schema = this.modelSchema;
 
       this.gridOptions.columnChooser = { enabled: true };
 

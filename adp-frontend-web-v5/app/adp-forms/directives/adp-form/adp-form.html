@@ -1,14 +1,14 @@
 <form
   name="form"
+  ng-attr-adp-qaid-form="{{args.modelSchema.schemaName}}"
   class="smart-form client-form"
   ng-class="[formActionClass, args.modelSchema.schemaName]"
   novalidate
   adp-fullscreen
   ng-submit="submit(args, cloneParams)"
-  >
+>
   <header class="smart-form-header">
     <span ng-transclude-replace="header"></span>
-
     <adp-fullscreen-button></adp-fullscreen-button>
   </header>
 
@@ -16,43 +16,36 @@
     <div ng-switch-when="accordion">
       <adp-form-group-accordion
         fields="::topScopeFields"
-        form-data="::args.row"
-        schema="::args.modelSchema"
-        validation-params="::validationParams"
-      >
-      </adp-form-group-accordion>
+        args="::args"
+        form-context="::formContext"
+      ></adp-form-group-accordion>
     </div>
 
     <div ng-switch-when="wizard">
       <adp-form-group-wizard
         fields="::topScopeFields"
-        form-data="::args.row"
-        schema="::args.modelSchema"
-        validation-params="::validationParams"
-      >
-      </adp-form-group-wizard>
+        args="::args"
+        form-context="::formContext"
+      ></adp-form-group-wizard>
     </div>
 
     <div ng-switch-when="grouping">
       <adp-form-group-grouping
         fields="::topScopeFields"
-        form-data="::args.row"
-        schema="::args.modelSchema"
-        validation-params="::validationParams"
-      >
-      </adp-form-group-grouping>
+        args="::args"
+        form-context="::formContext"
+      ></adp-form-group-grouping>
     </div>
 
     <fieldset ng-switch-default>
-      <adp-form-field-factory
-        ng-repeat="field in ::topScopeFields.notGrouped track by $index"
-        adp-field="::field"
-        adp-fields="::topScopeFields"
-        adp-form-data="::args.row"
-        schema="::args.modelSchema"
-        validation-params="::validationParams"
-      >
-      </adp-form-field-factory>
+      <div class="adp-form-fieldset">
+        <adp-form-field-factory
+          ng-repeat="field in ::topScopeFields.notGrouped track by $index"
+          args="::args"
+          field-name="::field.fieldName"
+          form-context="::formContext"
+        ></adp-form-field-factory>
+      </div>
     </fieldset>
   </div>
 

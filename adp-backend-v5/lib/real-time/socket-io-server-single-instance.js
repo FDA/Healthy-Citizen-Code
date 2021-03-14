@@ -4,27 +4,22 @@ const { getEventManager } = require('./event-manager');
 module.exports = ({ appLib, socketIoOpts, namespace, log }) => {
   const m = {};
 
-  let ioServer = null;
-  let eventManager = null;
+  m.ioServer = null;
+  const eventManager = getEventManager(appLib);
+  m.addEvent = eventManager.addEvent.bind(eventManager);
 
   m.build = async (server) => {
-    ioServer = getSocketIoServer(server, socketIoOpts);
-    addAuthentication({ appLib, io: ioServer, log });
+    m.ioServer = getSocketIoServer(server, socketIoOpts);
+    addAuthentication({ appLib, io: m.ioServer, log });
 
-    eventManager = getEventManager(appLib);
-    m.addEvent = eventManager.addEvent;
-    const { eventSpecs } = eventManager;
-
-    m.sendRequest = sendRequest;
-
-    async function sendRequest(type, data) {
-      const eventSpec = eventSpecs[type];
+    m.sendRequest = async (type, data) => {
+      const eventSpec = eventManager.eventSpecs[type];
       if (!eventSpec) {
         throw new Error(`Invalid event type '${type}'`);
       }
 
       try {
-        const ioNamespace = ioServer.of(namespace);
+        const ioNamespace = m.ioServer.of(namespace);
         const result = await eventSpec.hook.call(ioNamespace, data);
         // emulate same API for repliesHandler i.e. wrapping single response in array
         const replies = [result];
@@ -32,7 +27,7 @@ module.exports = ({ appLib, socketIoOpts, namespace, log }) => {
       } catch (e) {
         return eventSpec.repliesHandler(e, null);
       }
-    }
+    };
   };
 
   return m;

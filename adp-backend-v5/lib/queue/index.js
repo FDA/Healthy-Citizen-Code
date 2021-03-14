@@ -221,5 +221,26 @@ module.exports = (options) => {
     return queue.resume();
   };
 
+  // removeRepeatableByKey does not remove associated delayed job.
+  // This approach is described here: https://github.com/OptimalBits/bull/issues/1400
+  m.removeScheduledJob = async ({ queueName, jobKey, jobId }) => {
+    const queue = m.getQueue(queueName);
+    await queue.removeRepeatableByKey(jobKey);
+
+    const jobs = await queue.getJobs(['delayed']);
+    const jobToDelete = jobs.find((delayedJob) => {
+      // IDs of repeatable jobs are composite, example: "repeat:2c835288a7a1df36a6c896e4c016a2a5:1564412682000"
+      const tokens1 = String(delayedJob.id).split(':');
+      const tokens2 = String(jobId).split(':');
+      return tokens1[0] === tokens2[0] && tokens1[1] === tokens2[1];
+    });
+
+    if (jobToDelete) {
+      await jobToDelete.remove();
+      return jobToDelete;
+    }
+    return null;
+  };
+
   return m;
 };

@@ -40,7 +40,7 @@
 
         forEachField(schema.fields, function (field) {
           var args = getArgs(field, schema, record);
-          row += '<td>' + HtmlCellRenderer(args)(args) + '</td>';
+          row += '<td>' + HtmlCellRenderer(args) + '</td>';
         });
 
         body += row + '</tr>';
@@ -65,6 +65,7 @@
         path: field.fieldName,
         formData: recordData,
         schema: schema,
+        action: 'print',
       });
 
       args.params = { asText: true };

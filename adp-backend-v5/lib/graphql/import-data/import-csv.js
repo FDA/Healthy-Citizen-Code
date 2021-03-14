@@ -1,12 +1,14 @@
 const { ObjectID } = require('mongodb');
 const csv = require('csv-parser');
+const stripBom = require('strip-bom-stream');
 const Promise = require('bluebird');
 const fs = require('fs-extra');
+const mem = require('mem');
 const _ = require('lodash');
 const { getDateFromAmPmTime } = require('../../util/date');
 const { importItems } = require('./import-json');
 const { getResponseWithErrors } = require('./util');
-const { getLookup, getTableSpecParams } = require('./../../util/lookups');
+const { getLookup, getTableSpecParams } = require('../../util/lookups');
 
 const CSV_MULTIPLE_TYPE_SEPARATOR = '; ';
 
@@ -45,7 +47,10 @@ async function getLookupByLabel({ appLib, csvLabelValue, tableSpecs }) {
 
   const docs = await db
     .collection(table)
-    .find({ [labelFieldSimplified]: label, ...appLib.dba.getConditionForActualRecord() }, { [foreignKeyFieldName]: 1 })
+    .find(
+      { [labelFieldSimplified]: label, ...appLib.dba.getConditionForActualRecord(table) },
+      { [foreignKeyFieldName]: 1 }
+    )
     .toArray();
   if (!docs.length) {
     throw new Error(`Unable to find referenced document by label '${csvLabelValue}'`);
@@ -64,17 +69,50 @@ function getTableSpecs(schemeSpec) {
   return _.mapValues(schemeSpec.lookup.table, (tableSpec) => getTableSpecParams(tableSpec));
 }
 
-async function parseCsvToJsonValue({ appLib, scheme, val, fieldName }) {
+async function parseCsvToJsonValue({ appLib, scheme, val, fieldName, getListValuesMem }) {
   const schemeSpec = scheme.fields[fieldName];
-  const { type } = schemeSpec;
+  const { type, list } = schemeSpec;
 
-  const stringTypes = ['String', 'List', 'Email', 'Phone', 'Url', 'Text', 'Barcode', 'Decimal128'];
-  const stringArrayTypes = ['String[]', 'List[]', 'Decimal128[]'];
+  const stringTypes = ['String', 'Email', 'Phone', 'Url', 'Text', 'Barcode', 'Decimal128', 'Html', 'CronExpression'];
+  const stringArrayTypes = ['String[]', 'Decimal128[]'];
   const numberTypes = ['Number', 'Double', 'Int32', 'Int64'];
   const numberArrayTypes = ['Number[]', 'Double[]', 'Int32[]', 'Int64[]'];
+  const isListType = !_.isNil(list);
 
   if (!val) {
     return null;
+  }
+
+  if (isListType) {
+    try {
+      const listValues = await getListValuesMem(schemeSpec.list);
+      const labelsToKeys = _.zipObject(_.values(listValues), _.keys(listValues));
+      const listLabels = _.unescape(val).split(', ');
+
+      const invalidLabels = [];
+      const listKeys = [];
+      _.each(listLabels, (label) => {
+        const listKey = labelsToKeys[label];
+        if (!listKey) {
+          invalidLabels.push(label);
+        } else {
+          listKeys.push(listKey);
+        }
+      });
+
+      if (!_.isEmpty(invalidLabels)) {
+        throw new Error(`Invalid list values: ${invalidLabels.join(', ')}`);
+      }
+
+      const isMultipleList = type.endsWith('[]');
+      if (isMultipleList) {
+        return listKeys;
+      }
+
+      return listKeys[0];
+    } catch (e) {
+      throw new Error(`Unable to get list values.`);
+    }
   }
 
   if (stringTypes.includes(type)) {
@@ -172,6 +210,7 @@ async function parseCsvToJsonValue({ appLib, scheme, val, fieldName }) {
   throw new Error(`Type '${type}' is not supported for CSV export.`);
 }
 
+let getListValuesMem;
 async function getItemsFromCsv({ filePath, context }) {
   const { modelName, appLib } = context;
   const scheme = appLib.appModel.models[modelName];
@@ -181,18 +220,25 @@ async function getItemsFromCsv({ filePath, context }) {
   });
 
   const nonExistingFields = [];
-  const stream = fs.createReadStream(filePath).pipe(
-    csv({
-      mapHeaders: ({ header: fieldFullName }) => {
-        const fieldName = fieldFullNameToFieldName[fieldFullName];
-        if (!fieldName) {
-          nonExistingFields.push(fieldFullName);
+  const stream = fs
+    .createReadStream(filePath)
+    .pipe(stripBom())
+    .pipe(
+      csv({
+        mapHeaders: ({ header }) => {
+          const fieldName = fieldFullNameToFieldName[header];
+          if (fieldName) {
+            return fieldName;
+          }
+          if (scheme.fields[header]) {
+            return header;
+          }
+
+          nonExistingFields.push(header);
           return null;
-        }
-        return fieldName;
-      },
-    })
-  );
+        },
+      })
+    );
 
   const items = [];
   const errors = {};
@@ -214,11 +260,17 @@ async function getItemsFromCsv({ filePath, context }) {
     return { errors };
   }
 
+  if (!getListValuesMem) {
+    // create mem function for getting dynamic lists
+    const oneMin = 60 * 1000;
+    getListValuesMem = mem(context.appLib.accessUtil.getListValues, { maxAge: oneMin });
+  }
+
   for await (const csvRowData of stream) {
     const item = {};
     for (const [fieldName, val] of _.entries(csvRowData)) {
       try {
-        item[fieldName] = await parseCsvToJsonValue({ appLib, scheme, val, fieldName });
+        item[fieldName] = await parseCsvToJsonValue({ appLib, scheme, val, fieldName, getListValuesMem });
       } catch (e) {
         _.set(errors, `${csvRowIndex}.${fieldName}`, e.message);
       }

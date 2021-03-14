@@ -9,7 +9,7 @@
     AdpModalService
   ) {
     return function (toolbarWidgetRegister) {
-      var schema = this.schema;
+      var schema = this.modelSchema;
       var actionOptions = this.actionOptions;
       var customOptions = this.customGridOptions;
 

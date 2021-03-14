@@ -47,11 +47,120 @@
       return res.hex();
     }
 
+    function prepareGraphData(inputData, buildDynamicLegend, mergeSimilarLegendItems) {
+      const newLegend = {nodes: {}, links: {}};
+
+      var types = {
+        nodes: {
+          styleAttrName: _.get(inputData, 'nodeStyleAttribute'),
+          defaults: _.get(inputData, 'defaultStyles.node', {}),
+          typedProcess: function (node) {
+            node.__type = 'node';
+            node.l = node.obj.Acronym || node.n;
+            node.shp = node.shp || 'sphere';
+          }
+        },
+        links: {
+          styleAttrName: _.get(inputData, 'linkStyleAttribute'),
+          defaults: _.get(inputData, 'defaultStyles.link', {}),
+          typedProcess: function (link) {
+            link.__type = 'link';
+            if (!link.pw) {
+              link.trf = 0;
+            }
+          }
+        }
+      }
+
+      // 1.  Extracting styles in legend items
+      _.each(types, function (conf, type) {
+        var legendSection = _.get(inputData, 'legend.' + type, []);
+
+        _.each(legendSection, function (item) {
+          if (conf.styleAttrName) {
+            var style = getStyle(item, conf.styleAttrName);
+
+            Object.assign(item, Object.assign({}, conf.defaults, style, item));
+
+            if (!item.text) {
+              item.text = item[conf.styleAttrName];
+            }
+
+            delete item[conf.styleAttrName];
+          }
+          updateLegendWithItem(newLegend[type], item, item.text, mergeSimilarLegendItems);
+        });
+      });
+
+      // 2. Extracting styles in nodes and links and check if types are present in legend
+      _.each(types, function (conf, type) {
+        _.each(inputData[type] || [], function (item) {
+          var style = getStyle(item, conf.styleAttrName);
+
+          Object.assign(item, Object.assign({}, conf.defaults, style, item));
+
+          conf.typedProcess && conf.typedProcess(item);
+          commonProcess(item);
+
+          if (buildDynamicLegend) {
+            updateLegendWithItem(newLegend[type], item,
+              item[conf.styleAttrName] || (item.obj && item.obj.Acronym) || item.n, false);
+          }
+        });
+
+        newLegend[type] = _.values(newLegend[type])
+          .sort(function (a, b) {
+            if (!a.text) {
+              return 1;
+            }
+            if (!b.text) {
+              return -1;
+            }
+            return a.text.toLowerCase() > b.text.toLowerCase() ? 1 : -1;
+          });
+      });
+
+      inputData.legend = newLegend;
+
+      return inputData;
+
+      function commonProcess(obj) {
+        obj.createdAt = obj.crtd;
+        obj.updatedAt = obj.uptd;
+        obj.col = obj.col || DEFAULT_COLOR;
+        delete obj.crtd;
+        delete obj.uptd;
+      }
+
+      function getStyle(object, styleAttrName) {
+        if (styleAttrName) {
+          return _.find(inputData.styles || [], function (val, key) {
+            return object[styleAttrName] && key && key.toLowerCase() === object[styleAttrName].toLowerCase()
+          }) || {};
+        } else {
+          return {};
+        }
+      }
+
+      function updateLegendWithItem(dictionary, item, itemLabel, mergeSimilarItemsLabels) {
+        var legendKey = item.shp + '___' + item.w + '___' + item.col;
+
+        if (dictionary[legendKey]) {
+          if (mergeSimilarItemsLabels) {
+            dictionary[legendKey].text = dictionary[legendKey].text + '; ' + itemLabel;
+          }
+        } else {
+          dictionary[legendKey] = Object.assign({}, item, {text:itemLabel});
+        }
+      }
+    }
+
     return {
       linkSpeed: linkSpeed,
       fitGraphSize: fitGraphSize,
-      linkParticleColor:linkParticleColor,
-      mixColors:mixColors,
+      linkParticleColor: linkParticleColor,
+      mixColors: mixColors,
+      prepareGraphData: prepareGraphData,
     };
   }
 

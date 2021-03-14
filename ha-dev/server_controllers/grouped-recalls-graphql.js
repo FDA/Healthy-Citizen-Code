@@ -2,10 +2,10 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const log = require('log4js').getLogger('grouped-recalls-graphql');
 
-module.exports = function() {
+module.exports = function () {
   const m = {};
 
-  m.init = appLib => {
+  m.init = (appLib) => {
     m.appLib = appLib;
     const {
       graphqlCompose: { schemaComposer },
@@ -64,12 +64,11 @@ function getGroupedRecallsResolver(schemaComposer) {
 
         const action = 'view';
         const inlineContext = appLib.accessUtil.getInlineContext(req);
-        const conditionForActualRecord = appLib.dba.getConditionForActualRecord();
         const { MONGO } = appLib.butil;
 
         // check permissions for modelNames
         const modelNames = [recallCollectionName, consoCollectionName];
-        const modelConditions = await Promise.map(modelNames, async modelName => {
+        const modelConditions = await Promise.map(modelNames, async (modelName) => {
           const scopeConditionsMeta = await appLib.accessUtil.getScopeConditionsMeta(
             appLib.appModel.models[modelName],
             req.permissions,
@@ -77,6 +76,7 @@ function getGroupedRecallsResolver(schemaComposer) {
             action
           );
           const scopeConditions = scopeConditionsMeta.overallConditions;
+          const conditionForActualRecord = appLib.dba.getConditionForActualRecord(modelName);
           return MONGO.and(conditionForActualRecord, scopeConditions);
         });
 
@@ -168,10 +168,7 @@ function getGroupedRecallsResolver(schemaComposer) {
           { $project: { medicationName: '$_id', recalls: 1 } },
         ];
 
-        const res = await appLib.db
-          .model(recallCollectionName)
-          .aggregate(pipeline)
-          .exec();
+        const res = await appLib.db.collection(recallCollectionName).aggregate(pipeline).toArray();
         return res;
       } catch (e) {
         log.error(e);

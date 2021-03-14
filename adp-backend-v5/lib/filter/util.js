@@ -20,6 +20,7 @@ const typeToFilterName = {
   'Int64[]': 'number',
   'Decimal128[]': 'decimal128',
   Boolean: 'boolean',
+  TriStateBoolean: 'triStateBoolean',
   Array: 'none',
   Object: 'none',
   Mixed: 'none',
@@ -47,6 +48,8 @@ const typeToFilterName = {
   BloodPressure: 'none',
   Barcode: 'string',
   Currency: 'currency',
+  Html: 'html',
+  Code: 'string',
 };
 
 function getDefaultFilterName(fieldScheme) {
@@ -79,8 +82,8 @@ function construct(fieldName, operator, compValue) {
   return { [fieldName]: { [operator]: compValue } };
 }
 
-function constructRegex(fieldName, regex) {
-  return { [fieldName]: { $regex: regex } };
+function constructRegex(fieldName, regex, negate = false) {
+  return negate ? { [fieldName]: { $not: { $regex: regex } } } : { [fieldName]: { $regex: regex } };
 }
 
 function createFilter(context, operationsMap) {
@@ -118,11 +121,20 @@ function getSupportedOperationsFromMap(map) {
 const flags = { safe: true, insensitive: true };
 const stringOperations = {
   contains: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, flags)),
-  notcontains: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, negate: true })),
+  notcontains: (fieldPath, value) => {
+    const regex = toRegExp(value, flags);
+    if (!regex) {
+      return {};
+    }
+    const regexCondition = constructRegex(fieldPath, regex, true);
+    // adding null fields as they do not contain any chars thus fit the filter
+    const nullCondition = { [fieldPath]: null };
+    return { $or: [regexCondition, nullCondition] };
+  },
   startswith: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, startsWith: true })),
   endswith: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, endsWith: true })),
   regex: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, flags)),
-  notRegex: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, { ...flags, negate: true })),
+  notRegex: (fieldPath, value) => constructRegex(fieldPath, toRegExp(value, flags), true),
   '=': (fieldPath, value) => {
     if (!value) {
       return { $or: [{ [fieldPath]: '' }, { [fieldPath]: { $exists: false } }] };

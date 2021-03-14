@@ -4,10 +4,31 @@
   "models": {
     "users": {
       "type": "Schema",
-      "singleRecord": true,
-      "limitReturnedRecords": 1,
-      "controller": "user",
       "description": "This collection solely serves the purpose of user authentication.",
+      "other": {
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessUsers"
+            },
+            "delete": {
+              "permissions": "accessUsers"
+            },
+            "clone": {
+              "permissions": "accessUsers"
+            },
+            "viewDetails": {
+              "permissions": "accessUsers"
+            },
+            "view": {
+              "permissions": "accessUsers"
+            },
+            "create": {
+              "permissions": "accessUsers"
+            }
+          }
+        }
+      },
       "fields": {
         "login": {
           "type": "String",
@@ -25,6 +46,22 @@
           "subtype": "Email",
           "fullName": "Email",
           "description": "This email is used for the password recovery purposes only"
+        },
+        "avatar": {
+          "type": "Image",
+          "fullName": "Photo",
+          "description": "User's photo. Upload or take a picture using your webcam.",
+          "arguments": {
+            "minWidth": 50,
+            "maxWidth": 1000,
+            "minHeight": 50,
+            "maxHeight": 1000,
+            "aspectRatio": 1,
+            "enableCropper": true,
+            "maxFileSize": 10000000,
+            "enablePhotoCapture": true,
+            "enableDragAndDrop": true
+          }
         },
         "password": {
           "type": "Password",
@@ -54,12 +91,49 @@
             "table": "roles",
             "foreignKey": "_id",
             "label": "name"
+          },
+          "permissions": {
+            "read": [["accessAsUser", "accessAsSuperAdmin"]],
+            "write": "accessAsSuperAdmin"
           }
         },
-        "timezone": {
-          "type": "String",
-          "fullName": "Timezone",
-          "description": "Timezone required for date/time calculation"
+        "disabledAt": {
+          "type": "DateTime",
+          "description": "The date when current user was disabled.",
+          "permissions": {
+            "read": "accessAsSuperAdmin",
+            "write": "accessAsSuperAdmin"
+          }
+        },
+        "failedLoginAttempts": {
+          "type": "DateTime[]",
+          "permissions": {
+            "read": "accessAsSuperAdmin",
+            "write": "accessAsSuperAdmin"
+          }
+        },
+        "lastLoginAt": {
+          "type": "DateTime",
+          "permissions": {
+            "read": "accessAsSuperAdmin",
+            "write": "accessAsSuperAdmin"
+          }
+        },
+        "loginCooldownAt": {
+          "type": "DateTime",
+          "permissions": {
+            "read": "accessAsSuperAdmin",
+            "write": "accessAsSuperAdmin"
+          }
+        }
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ '_id': { $eq: this.req.user._id } }"
+        },
+        "allowed": {
+          "permissions": "accessUsers"
         }
       }
     }

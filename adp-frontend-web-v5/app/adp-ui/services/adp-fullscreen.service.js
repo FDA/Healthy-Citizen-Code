@@ -29,16 +29,16 @@
       forceFullscreen(element);
     }
 
-    function forceFullscreen( element ) {
-      if( element.requestFullscreen ) {
-        element.requestFullscreen();
-      } else if( element.mozRequestFullScreen ) {
-        element.mozRequestFullScreen();
-      } else if(element.webkitRequestFullscreen) {
-        element.webkitRequestFullscreen();
-      } else if(element.msRequestFullscreen) {
-        element.msRequestFullscreen();
-      }
+    function forceFullscreen(element) {
+      var possibleMethods = ['requestFullscreen', 'mozRequestFullScreen', 'webkitRequestFullscreen', 'msRequestFullscreen'];
+
+      _.find(possibleMethods, function (method) {
+        if (element[method]) {
+          element[method]();
+
+          return true;
+        }
+      });
     }
 
     function exitFullscreen() {

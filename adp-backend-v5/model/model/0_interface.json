@@ -52,6 +52,7 @@
         "accessAsGuest": { "description": "Default guest permission" },
         "accessAsUser": { "description": "Default user permission" },
         "accessAsSuperAdmin": { "description": "Default admin permission" },
+        "accessForbidden": { "description": "Permission that will not be given to any role (even to the SuperAdmin role)" },
         "createUserAccounts": { "description": "Default createUserAccounts permission" },
         "accessFromDesktop": { "description": "accessFromDesktop" },
         "accessFromTv": { "description": "accessFromTv" },
@@ -75,6 +76,48 @@
         },
         "wsViewAllJobsStatus": {
           "description": "Allows to get real-time notifications about own jobs details for each own job in any queue"
+        },
+        "viewExternalCommands": {
+          "description": "Allows to view external programs"
+        },
+        "manageExternalCommands": {
+          "description": "Allows to manage external programs"
+        },
+        "runExternalCommands": {
+          "description": "Allows to run external programs"
+        },
+        "viewScheduledJobs": {
+          "description": "Allows to view scheduled jobs"
+        },
+        "manageScheduledJobs": {
+          "description": "Allows to manage scheduled jobs"
+        },
+        "accessBpmnProcesses": {
+          "description": "Access Bpmn processes"
+        },
+        "accessBusinessRules": {
+          "description": "Access Business Rules"
+        },
+        "accessAimlModels": {
+          "description": "Access Aiml Models"
+        },
+        "accessDataMappings": {
+          "description": "Access Data Mappings"
+        },
+        "accessOutputs": {
+          "description": "Access Outputs"
+        },
+        "accessSystemMenu": {
+          "description": "Access system menu"
+        },
+        "accessRolesAndPermissions": {
+          "description": "Access roles and permissions"
+        },
+        "accessUsers": {
+          "description": "Access system users"
+        },
+        "accessJournal": {
+          "description": "Access system journal"
         }
       },
       "preStart": {}

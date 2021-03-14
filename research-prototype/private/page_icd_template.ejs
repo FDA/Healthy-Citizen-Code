@@ -24,7 +24,10 @@
     </adp-section-container>
 
     <adp-section-container ng-if="vm.tableData.length">
-        <adp-table-client-side data="vm.tableData"></adp-table-client-side>
+        <div
+            dx-data-grid="vm.tableConfig"
+            ng-if="vm.tableData"
+        ></div>
     </adp-section-container>
 
 </adp-content-container>

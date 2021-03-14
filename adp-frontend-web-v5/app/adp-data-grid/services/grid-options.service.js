@@ -11,6 +11,7 @@
     GridDataSource,
     GridToolbarActions,
     GridLifecycleActions,
+    GridRtcActions,
     GridOptionsHelpers,
     AdpGridCustomOptionsService,
     GridFilters,
@@ -29,9 +30,6 @@
         remoteOperations: true,
         twoWayBindingEnabled: false,
         errorRowEnabled: false,
-        // onInitialized: function (e) {
-        //   customGridOptions.setGridComponent(e.component);
-        // },
         onDataErrorOccurred: function () {
           this.dataErrorMessage = 'Data Loading Error';
         },
@@ -71,6 +69,7 @@
       GridFilters.setFiltersFromUrl(options, schema);
       GridToolbarActions(options, schema, customGridOptions);
       GridLifecycleActions(options, schema, customGridOptions);
+      GridRtcActions(options, schema, customGridOptions);
 
       if (options.stateStoring &&
         options.stateStoring.enabled &&
@@ -127,9 +126,31 @@
         options.paging.pageSize = Math.max(100, options.paging.pageSize);
       }
 
-      options.onDisposing = function () {
+      var prevDisposer = options.onDisposing;
+      options.onDisposing = function (event) {
+        if (prevDisposer) {
+          prevDisposer(event);
+        }
+
         AdpListsService.dropCache();
       };
+
+      GridOptionsHelpers.onOptionChanged(options, function (e) {
+        if (e.fullName !== 'paging.pageIndex') {
+          return;
+        }
+
+        var isGridVisible = e.component.element()[0].getBoundingClientRect().top > 0;
+        if (isGridVisible) {
+          return;
+        }
+
+        var scrollPos = e.component.element().offset().top;
+
+        $('html, body').animate({
+          scrollTop: scrollPos
+        }, 300);
+      });
 
       return options;
     }

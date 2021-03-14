@@ -15,13 +15,19 @@ function wrapServices(services) {
     services[serviceName] = function (encodedArgsString) {
       const decodedArgs = decodeURIComponent(encodedArgsString);
       let argsObj;
+      let isInvalidArgs;
       try {
         argsObj = JSON5.parse(decodedArgs);
       } catch (e) {
-        throw `Invalid args passed '${encodedArgsString}', should be a string parsable to object`;
+        isInvalidArgs = true;
       }
-      if (!_.isPlainObject(argsObj)) {
-        throw `Invalid args passed '${encodedArgsString}' should be a string parsable to object`;
+
+      if (isInvalidArgs || !_.isPlainObject(argsObj)) {
+        return (executeOptions, callback) => {
+          callback(
+            `Invalid args passed '${encodedArgsString}' for service '${serviceName}', should be a string parsable to object`
+          );
+        };
       }
 
       return async (executionContext, callback) => {
@@ -37,10 +43,10 @@ function getServices(db, log) {
   const m = {};
 
   m.lookup = async function ({ value, collectionName, fieldName }) {
-    const doc = await db
+    const record = await db
       .collection(collectionName)
-      .findOne({ [fieldName]: { $eq: value }, deletedAt: new Date(0) }, { _id: 1 });
-    return !!doc;
+      .hookQuery('findOne', { [fieldName]: { $eq: value }, deletedAt: new Date(0) }, { _id: 1 });
+    return !!record;
   };
 
   m.mux = function ({ ws, vs }) {
@@ -63,7 +69,9 @@ function getServices(db, log) {
   };
 
   m.dmn = async function ({ name }) {
-    const dmnRuleRecord = await db.collection(ruleCollectionName).findOne({ name: { $eq: name } });
+    const { record: dmnRuleRecord } = await db
+      .collection(ruleCollectionName)
+      .hookQuery('findOne', { name: { $eq: name } });
     if (!dmnRuleRecord) {
       throw new Error(`Unable to find dmn rule with name '${name}'`);
     }

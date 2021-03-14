@@ -1,6 +1,7 @@
 <div class="adp-form-group-messages">
   <adp-messages
-    ng-repeat="field in formGroup track by $index"
-    adp-field="field">
-  </adp-messages>
+    ng-repeat="args in ::argsList track by $index"
+    ng-attr-adp-qaid-group-field-error-messages="{{args.path}}"
+    args="args"
+  ></adp-messages>
 </div>

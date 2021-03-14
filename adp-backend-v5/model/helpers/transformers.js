@@ -5,6 +5,12 @@
  * path - string containing path to the element being altered (compatible with lodash _.set and _.get
  * next - callback to be called in the end of transformation
  */
+const _ = require('lodash');
+const sanitizeHtml = require('sanitize-html');
+const { ObjectId } = require('mongodb');
+const log = require('log4js').getLogger('helpers/transformers');
+const { hashPassword, bcryptHashRegex } = require('../../lib/util/password');
+const { getTime } = require('../../lib/util/date');
 
 const {
   heightImperialToMetric,
@@ -15,19 +21,24 @@ const {
   weightMetricToImperial,
 } = require('./transformers_util');
 
-// eslint-disable-next-line no-unused-vars
 module.exports = (appLib) => {
-  const _ = require('lodash');
-  const { ObjectId } = require('mongodb');
-  const { hashPassword, bcryptHashRegex } = require('../../lib/util/password');
-  const { getTime } = require('../../lib/util/date');
-
   function stringifyObjId(value) {
     return appLib.butil.isValidObjectId(value) ? value.toString() : value;
   }
 
   function objectId(value) {
     return appLib.butil.isValidObjectId(value) ? ObjectId(value) : value;
+  }
+
+  function getDecimalValue(val) {
+    if (_.isString(val)) {
+      return val;
+    }
+    // Decimal128 value is saved in cache as object. Example: { "$numberDecimal": "12.345" }
+    if (_.isPlainObject(val) && val.$numberDecimal) {
+      return val.$numberDecimal;
+    }
+    return val.toString();
   }
 
   const m = {
@@ -48,16 +59,9 @@ module.exports = (appLib) => {
     },
     decimalToString(next) {
       const { path, row, data } = this;
-      if (data) {
-        if (_.isArray(data)) {
-          _.set(
-            row,
-            path,
-            data.map((elem) => elem.toString())
-          );
-        } else {
-          _.set(row, path, data.toString());
-        }
+      if (!_.isNil(data)) {
+        const value = _.isArray(data) ? data.map((elem) => getDecimalValue(elem)) : getDecimalValue(data);
+        _.set(row, path, value);
       }
       next();
     },
@@ -118,18 +122,19 @@ module.exports = (appLib) => {
     },
     async hashPassword(next) {
       const { path, row, data, modelName } = this;
-      if (typeof data === 'undefined') {
+      if (typeof data === 'undefined' && row._id) {
         // this happens when users record is being updated, but the password is not a part of the update
         // in this case we need to read the existing hash and return it
-        const oldRecord = await appLib.db.model(modelName).findOne(row._id).lean();
+        const { record: oldRecord } = await appLib.db
+          .collection(modelName)
+          .hookQuery('findOne', { _id: ObjectId(row._id) });
         if (!oldRecord) {
           throw `Unable to find record with _id=${row._id} while trying to preserve the password`;
         }
         const oldHash = _.get(oldRecord, path);
-        if (oldHash.length < 10) {
-          throw `Unable to obtain a valid hash for record _id=${row._id} while trying to preserve the password`;
+        if (oldHash) {
+          _.set(row, path, oldHash);
         }
-        _.set(row, path, oldHash);
         next();
       } else {
         const isBcryptHash = bcryptHashRegex.test(data);
@@ -154,8 +159,22 @@ module.exports = (appLib) => {
       _.set(row, path, getTime(data));
       next();
     },
+    objectId(next) {
+      const { row, data, path } = this;
+      if (!_.isNil(data)) {
+        _.set(row, path, objectId(data));
+      }
+      next();
+    },
+    stringifyObjectId(next) {
+      const { row, data, path } = this;
+      if (!_.isNil(data)) {
+        _.set(row, path, stringifyObjId(data));
+      }
+      next();
+    },
     stringifyLookupObjectId(next) {
-      const { data, path, row } = this;
+      const { row, data, path } = this;
       if (!_.isNil(data) || !_.isEmpty(data)) {
         const isArrayVal = _.isArray(data);
         let formatted = _.castArray(data).map((obj) => {
@@ -170,7 +189,7 @@ module.exports = (appLib) => {
       next();
     },
     lookupObjectId(next) {
-      const { data, path, row } = this;
+      const { row, data, path } = this;
       if (!_.isNil(data) || !_.isEmpty(data)) {
         const isArrayVal = _.isArray(data);
         let formatted = _.castArray(data).map((obj) => {
@@ -185,7 +204,7 @@ module.exports = (appLib) => {
       next();
     },
     stringifyTreeSelector(next) {
-      const { data, path, row } = this;
+      const { row, data, path } = this;
       if (!_.isEmpty(data)) {
         _.each(data, (obj) => stringifyObjId(obj._id));
         _.set(row, path, data);
@@ -193,11 +212,94 @@ module.exports = (appLib) => {
       next();
     },
     objectIdTreeSelector(next) {
-      const { data, path, row } = this;
+      const { row, data, path } = this;
       if (!_.isEmpty(data)) {
         _.each(data, (obj) => objectId(obj._id));
         _.set(row, path, data);
       }
+      next();
+    },
+    setEpochIfNotSet(next) {
+      const { row, data, path } = this;
+      if (_.isNil(data)) {
+        _.set(row, path, new Date(0));
+      }
+      next();
+    },
+    array(next) {
+      const { row, data, path } = this;
+      if (_.isNil(data)) {
+        _.set(row, path, []);
+      }
+      _.each(data, (obj) => {
+        obj._id = obj._id ? objectId(obj._id) : ObjectId();
+      });
+      next();
+    },
+    date(next) {
+      const { row, data, path } = this;
+      if (!_.isNil(data)) {
+        _.set(row, path, new Date(data));
+      }
+      next();
+    },
+    dateTime(next) {
+      const { row, data, path } = this;
+      if (!_.isNil(data)) {
+        _.set(row, path, new Date(data));
+      }
+      next();
+    },
+    location(next) {
+      const { row, data, path } = this;
+      if (!_.isNil(data) && data.type !== 'Point') {
+        _.set(row, `${path}.type`, 'Point');
+      }
+      next();
+    },
+    htmlStringToHtmlObject(next) {
+      const { row, data: html, path } = this;
+      if (_.isString(html)) {
+        let htmlNoTags = sanitizeHtml(html, { allowedTags: [], allowedAttributes: {} });
+        // remove edge space chars and replace space chars with single space in the middle to sort and filter records properly
+        htmlNoTags = htmlNoTags
+          .replace(/^(\s)+/, '')
+          .replace(/(\s)+$/, '')
+          .replace(/(\s)+/g, ' ');
+
+        _.set(row, path, {
+          html,
+          htmlNoTags,
+        });
+      }
+      next();
+    },
+    htmlObjectToHtmlString(next) {
+      const { row, data, path } = this;
+      if (_.isPlainObject(data)) {
+        _.set(row, path, data.html);
+      }
+      next();
+    },
+    transformScheme(next) {
+      const { action, row, data, path } = this;
+      const { schemaName } = data;
+      if (!schemaName) {
+        return next(`Scheme must have 'schemaName' field`);
+      }
+
+      // on 'update' the whole array value should be rewritten with user value
+      try {
+        const { errors } = appLib.mutil.upsertNewModel(data, schemaName, action);
+        if (errors.length) {
+          return next(`Scheme has errors:\n${errors.join('\n')}`);
+        }
+        _.set(row, path, data);
+      } catch (e) {
+        log.error('Unable to collect meta info for scheme', e.stack);
+        return next('Unable to process scheme');
+      }
+
       next();
     },
   };

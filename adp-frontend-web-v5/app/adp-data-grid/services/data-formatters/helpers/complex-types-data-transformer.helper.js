@@ -69,8 +69,7 @@
       }
 
       _.set(leafArgs, 'params.asText', true);
-      var formatter = CellRenderer(leafArgs);
-      return formatter(leafArgs);
+      return CellRenderer(leafArgs);
     }
 
     function isObject(args) {

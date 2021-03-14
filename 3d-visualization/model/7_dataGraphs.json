@@ -98,7 +98,8 @@
         },
         "entitySize": {
           "type": "Number",
-          "fullName": "Entity Size"
+          "fullName": "Entity Size",
+          "validate": ["min(1)", "max(100)"]
         },
         "authorativeData": {
           "type": "String[]",
@@ -450,12 +451,14 @@
           "list": {
             "values": {
               "red": "Red",
-              "blue": "Blue",
               "green": "Green",
+              "#1e90ff": "Blue",
               "yellow": "Yellow",
-              "purple": "Purple",
               "lime": "Lime",
-              "white": "White"
+              "#8a2be2": "Purple",
+              "white": "White",
+              "blue": "Dark blue",
+              "purple": "Dark purple"
             },
             "scopes": {
               "userScope": {

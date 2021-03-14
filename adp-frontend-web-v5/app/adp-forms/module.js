@@ -1,7 +1,7 @@
 ;(function () {
   'use strict';
 
-  angular.module('app.adpForms', ['ngMessages']);
+  angular.module('app.adpForms', ['ngMessages', 'ui.sortable']);
 
   angular
     .module('app.adpForms')

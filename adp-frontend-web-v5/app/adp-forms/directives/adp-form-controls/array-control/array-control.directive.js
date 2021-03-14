@@ -11,101 +11,90 @@
     AdpFormService,
     visibilityUtils,
     Guid,
-    AdpUnifiedArgs
+    ControlSetterGetter
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/array-control/array-control.html',
       require: '^^form',
       link: function (scope, element, attrs, formCtrl) {
-        scope.schemaFields = AdpFieldsService.getFormFields(scope.field.fields).notGrouped;
+        var getterSetter = ControlSetterGetter(scope.args);
+        scope.arrayFields = AdpFieldsService.getFormFields(scope.args.fieldSchema.fields).notGrouped;
+        scope.field = scope.args.fieldSchema;
 
         scope.visibilityStatus = [];
         scope.form = formCtrl;
         scope.rootForm = AdpFormService.getRootForm(scope.form);
         scope.errorCount = [];
 
-        var formParams = {
-          path: scope.validationParams.formParams.path,
-          row: scope.validationParams.formParams.row,
-          fieldSchema: scope.validationParams.formParams.fieldSchema,
-          modelSchema: scope.validationParams.formParams.modelSchema,
-          action: scope.validationParams.formParams.action,
-          visibilityMap: scope.validationParams.formParams.visibilityMap,
-          requiredMap: scope.validationParams.formParams.requiredMap,
-        };
-
-        // DEPRECATED: will be replaced with formParams
-        // validationParams fields naming is wrong, use formParams instead
-        // modelSchema - grouped fields
-        // schema - original ungrouped schema
-        scope.nextValidationParams = {
-          field: scope.field,
-          fields: scope.schemaFields,
-          formData: scope.adpFormData,
-          modelSchema: scope.adpFields,
-          schema: scope.validationParams.schema.fields[scope.field.fieldName],
-          $action: scope.validationParams.$action,
-
-          formParams: formParams
-        };
-
         setKeysToAssociativeArray();
         setIdsToData();
         setDefaultDisplay();
 
+        if (isEmpty()) {
+          setData([]);
+          addArrayItem();
+        }
+
         scope.display = function(index) {
-          var arrayItemPath = formParams.path + '[' + index + ']';
-          return formParams.visibilityMap[arrayItemPath];
+          var arrayItemPath = scope.args.path + '[' + index + ']';
+          return scope.formContext.visibilityMap[arrayItemPath];
         };
 
         function setDisplay(index, value) {
-          var arrayItemPath = formParams.path + '[' + index + ']';
-          formParams.visibilityMap[arrayItemPath] = value;
+          var arrayItemPath = scope.args.path + '[' + index + ']';
+          scope.formContext.visibilityMap[arrayItemPath] = value;
         }
 
-        scope.getData = getData;
-        scope.isEmpty = isEmpty;
         scope.addArrayItem = addArrayItem;
         scope.remove = remove;
         scope.isRemoveDisabled = isRemoveDisabled;
-        scope.getPath = getPath;
         scope.showMoveToTop = showMoveToTop;
+        scope.showMoveToBottom = showMoveToBottom;
         scope.moveToTop = moveToTop;
+        scope.moveToBottom = moveToBottom;
 
         scope.guid = Guid.create;
 
-        scope.onStop = function(event) {
-          swapVisibilityStatus(event.newIndex, event.oldIndex);
-        }
+        scope.sortableCfg = {
+          axis: 'y',
+          'ui-floating': false,
+          handle: '> .subform-frame > .subform-frame__title',
+          start: function (event, ui) {
+            $(this).attr('data-previndex', ui.item.index());
 
-        scope.onSorted = function updateOrder(event) {
-          swap(getData(), event.newIndex, event.oldIndex);
+            ui.item.addClass('draggable-mirror');
+            ui.placeholder.css({ display: 'block' });
+          },
+          stop: function (event, ui) {
+            var newIndex = ui.item.index();
+            var oldIndex = $(this).attr('data-previndex');
+
+            var list = scope.visibilityStatus;
+            var b = list[newIndex];
+            list[newIndex] = list[oldIndex];
+            list[oldIndex] = b;
+
+            $(this).removeAttr('data-previndex');
+
+            ui.item.removeClass('draggable-mirror');
+            ui.placeholder.remove();
+          },
         };
 
         scope.hasVisibleItems = function () {
-          return visibilityUtils.arrayHasVisibleChild(getData(), scope.validationParams);
+          return visibilityUtils.arrayHasVisibleChild(scope.args, scope.formContext);
         };
 
         scope.getHeader = function (index) {
-          var args = AdpUnifiedArgs.getHelperParamsWithConfig({
-            path: formParams.path,
-            action: formParams.action,
-            formData: formParams.row,
-            schema: formParams.modelSchema,
-          });
-          args.index = index;
-
+          var args = _.assign({}, scope.args, { index: index });
           return AdpFieldsService.getHeaderRenderer(args);
         };
 
-        scope.getFields = getFields;
         scope.toggle = function (event, index) {
           event.preventDefault();
           event.stopPropagation();
@@ -113,17 +102,12 @@
           scope.visibilityStatus[index] = !scope.visibilityStatus[index];
         };
 
-        if (scope.isEmpty()) {
-          setData([]);
-          addArrayItem();
-        }
-
         scope.$watch(
           function () { return angular.toJson(scope.form); },
           function () {
             if (scope.rootForm.$submitted) {
               scope.errorCount = getData().map(function (_v, i) {
-                var formName = scope.field.fieldName + '[' + i + ']';
+                var formName = scope.args.fieldSchema.fieldName + '[' + i + ']';
                 var formToCount = scope.form[formName];
                 return AdpFormService.countErrors(formToCount);
               });
@@ -139,11 +123,13 @@
         }
 
         function getData() {
-          return scope.adpFormData[scope.field.fieldName];
+          // keeping reference to data fresh on every operation
+          scope.arrayData = getterSetter();
+          return scope.arrayData;
         }
 
         function setData(value) {
-          return scope.adpFormData[scope.field.fieldName] = value;
+          return getterSetter(value);
         }
 
         function isEmpty() {
@@ -167,65 +153,56 @@
           scope.visibilityStatus.splice(index, 1);
         }
 
-        function getFields() {
-          return scope.schemaFields;
-        }
-
         function isRemoveDisabled() {
           // kind of hack: checking if first element is required
-          var requiredMap = formParams.requiredMap;
-          var path = formParams.path + '[0]';
+          var requiredMap = scope.formContext.requiredMap;
+          var path = scope.args.path + '[0]';
           var isFirstRequired = requiredMap[path];
           var hasOneItem = getData().length === 1;
 
           return isFirstRequired && hasOneItem;
         }
 
-        function getPath() {
-          return formParams.path;
-        }
-
         function setKeysToAssociativeArray() {
+          var arrayValue = getData();
+
           if (scope.field.type === 'AssociativeArray') {
-            scope.adpFormData[scope.field.fieldName] = _.map(scope.adpFormData[scope.field.fieldName], function (item, key) {
+            var data = _.map(arrayValue, function (item, key) {
               var newItem = _.clone(item);
               newItem.$key = key;
               return newItem;
             });
+
+            setData(data);
           }
         }
 
         function setIdsToData() {
-          if (_.isArray(scope.adpFormData[scope.field.fieldName])) {
-            scope.adpFormData[scope.field.fieldName] = _.map(scope.adpFormData[scope.field.fieldName], function (item) {
+          var arrayValue = getData();
+          if (_.isArray(arrayValue)) {
+            var data = _.map(arrayValue, function (item) {
               item._id = Guid.create();
               return item;
-            })
+            });
+
+            setData(data);
           }
-        }
-
-        function swapVisibilityStatus(newIndex, oldIndex) {
-          var lhs = scope.visibilityStatus[oldIndex];
-          var rhs = scope.visibilityStatus[newIndex];
-          if (lhs === rhs) {
-            return;
-          }
-
-          swap(scope.visibilityStatus, oldIndex, newIndex);
-        }
-
-        function swap(list, newIndex, oldIndex) {
-          var tmp = list[oldIndex];
-          list[oldIndex] = list[newIndex];
-          list[newIndex] = tmp;
         }
 
         function showMoveToTop(index) {
-          if (index === 0) {
+          if (getData().length === 1) {
             return false;
           }
 
-          return getData().length > 1;
+          return index > 0;
+        }
+
+        function showMoveToBottom(index) {
+          if (getData().length === 1) {
+            return false;
+          }
+
+          return index < (getData().length - 1);
         }
 
         function moveToTop(event, index) {
@@ -239,6 +216,19 @@
             list.unshift(itemToMove);
           }
         }
+
+        function moveToBottom(event, index) {
+          event.preventDefault();
+
+          moveToLastPosition(getData());
+          moveToLastPosition(scope.visibilityStatus);
+
+          function moveToLastPosition(list) {
+            var itemToMove = list.splice(index, 1)[0];
+            list.push(itemToMove);
+          }
+        }
+
       }
     }
   }

@@ -5,7 +5,7 @@
     .module('app.adpForms')
     .directive('adpFormActions', adpFormActions);
 
-  function adpFormActions(AdpIconsHelper) {
+  function adpFormActions(AdpIconsHelper, ActionsHelpers) {
     return {
       restrict: 'E',
       scope: false,
@@ -34,7 +34,7 @@
           var btnType = _.get(evaledAction, 'htmlAttributes.type', 'button');
           var className = _.get(evaledAction, 'htmlAttributes.className');
 
-            _.set(evaledAction, 'htmlAttributes.type', btnType);
+          _.set(evaledAction, 'htmlAttributes.type', btnType);
           _.set(evaledAction, 'htmlAttributes.style', getActionStyles(evaledAction));
 
           if (_.isNil( className )) {
@@ -56,6 +56,10 @@
           return _.isString(action.visible) ?
             evalProperty(action, 'visible', false) :
             action.visible || true;
+        }
+
+        scope.disabledState = function (action) {
+          return ActionsHelpers.evalDisabledAttr(action, scope.args.row, scope.args.modelSchema);
         }
 
         function evalProperty(action, propertyPath, defaultValue) {

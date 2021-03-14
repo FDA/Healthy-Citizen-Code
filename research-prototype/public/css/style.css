@@ -1,5 +1,4 @@
-multi-level-select[data-child] > div { padding-left: 2%; }
-
+multi-level-select[data-child] > div { margin-top: 10px; margin-left: 15px; }
 
 .raw-questionaire {}
 .cell-questionaire {

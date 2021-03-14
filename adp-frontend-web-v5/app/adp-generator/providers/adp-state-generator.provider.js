@@ -49,7 +49,7 @@
    * @return {{createStates: AdpStateGenerator.createStates, createDashboards: AdpStateGenerator.createDashboards, createCustomPages: AdpStateGenerator.createCustomPages, _replaceUrlParams: _replaceUrlParams, $get: service.$get}}
    * @constructor
    */
-  function AdpStateGenerator($stateProvider) {
+  function AdpStateGenerator($stateProvider, APP_CONFIG) {
     var $stateRegistry = $stateProvider.stateRegistry;
 
     var service = {
@@ -208,7 +208,7 @@
         var state = _.clone(stateDefault);
 
         state.name = dashboardMenuItem.stateName;
-        state.url = '/' + dashboardMenuItem.link;
+        state.url = _addBaseUrlSuffix( '/' + dashboardMenuItem.link, APP_CONFIG.appSuffix);
         state.data = {
           redirectStrategy: 'user',
           title: dashboardMenuItem.title,
@@ -266,8 +266,8 @@
         var state = _.cloneDeep(stateDefault);
 
         state.name = 'app.' + name;
-        state.url = _addRulesToUrlParams(pageConfig.link);
-
+        state.url = _addBaseUrlSuffix(_addRulesToUrlParams(pageConfig.link), APP_CONFIG.appSuffix);
+        pageConfig.link = state.url;
         state.data = _.extend({
           title: pageConfig.fullName,
           // intentional duplication of title to avoid compabillity issues in already implemented applications
@@ -366,7 +366,12 @@
      * @private
      */
     function _getStateUrl(schemaPath) {
-      return '/' + schemaPath.replace(/\./g, '/');
+      var baseStateUrl = '/' + schemaPath.replace(/\./g, '/');
+      return _addBaseUrlSuffix(baseStateUrl, APP_CONFIG.appSuffix);
+    }
+
+    function _addBaseUrlSuffix(url, suffix) {
+      return !!suffix ? ['/', suffix, url].join('') : url;
     }
 
     function _getSchemaPath(schemaName, parentSchemaPath) {
@@ -510,7 +515,7 @@
     function createBuiltInStates() {
       var datasetsId = {
         name: 'app.datasetsId',
-        url: '/datasets/{_id:[0-9A-Fa-f]{24}}',
+        url: _addBaseUrlSuffix('/datasets/{_id:[0-9A-Fa-f]{24}}', APP_CONFIG.appSuffix),
         views: {
           content: {
             templateUrl: 'app/adp-generator/views/datasets.html',

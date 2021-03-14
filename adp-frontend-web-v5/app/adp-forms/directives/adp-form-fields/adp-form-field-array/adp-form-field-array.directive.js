@@ -9,19 +9,13 @@
     return {
       restrict: 'E',
       scope: {
-        adpField: '<',
-        adpFormData: '<',
-        adpFieldUiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-fields/adp-form-field-array/adp-form-field-array.html',
       link: function (scope) {
-        function getData() {
-          return scope.adpFormData[scope.adpField.fieldName];
-        }
-
         scope.hasVisibleItems = function () {
-          return visibilityUtils.arrayHasVisibleChild(getData(), scope.validationParams);
+          return visibilityUtils.arrayHasVisibleChild(scope.args, scope.formContext);
         };
       }
     }

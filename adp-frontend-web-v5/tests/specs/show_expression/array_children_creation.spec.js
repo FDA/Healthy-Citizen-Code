@@ -66,7 +66,7 @@ describe('show expression', () => {
         const clickCheckboxByIndex = async (index) => {
           let checkboxSelector = `[name="a1[${index}]"] [ng-field-name="b1"] .dx-switch-handle`;
           await this.page.click(checkboxSelector);
-          await this.page.waitFor(200);
+          await this.page.waitForTimeout(200);
         };
 
         await clickCheckboxByIndex(0);

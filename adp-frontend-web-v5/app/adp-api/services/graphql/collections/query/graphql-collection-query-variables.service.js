@@ -7,7 +7,7 @@
 
   /** @ngInject */
   function GraphqlCollectionQueryVariables(GraphqlHelper) {
-    return function (params) {
+    return function (schema, params) {
       var ret;
 
       if (params.group) {
@@ -15,14 +15,14 @@
           group: params.group || [],
           groupSummary: params.groupSummary || [],
           totalSummary: params.totalSummary || [],
-          dxQuery: dxQuery(params),
+          dxQuery: dxQuery(schema, params),
           skip: params.skip,
           take: params.take,
         };
       } else {
         ret = {
           sort: sort(params.sort),
-          dxQuery: dxQuery(params),
+          dxQuery: dxQuery(schema, params),
           isGroupFilter: params.isGroupFilter,
         };
 
@@ -53,14 +53,9 @@
       return '{' + sortParams.join(', ') + '}';
     }
 
-    function dxQuery(params) {
-      var filter = params.filter;
+    function dxQuery(schema, params) {
       var buildFilter = params.customOptions && _.clone(params.customOptions.filterBuilder);
-
-      if (buildFilter && buildFilter.length) {
-        buildFilter = GraphqlHelper.processCustomTypedValues(buildFilter);
-        filter = filter ? [filter, buildFilter] : buildFilter;
-      }
+      var filter = GraphqlHelper.combineFilters(schema, params.filter, buildFilter);
 
       if (!filter) {
         return '';

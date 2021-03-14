@@ -4,7 +4,7 @@
   addClientModules(angular.module('app'));
 
   function addClientModules(rootModule) {
-    var depsList = <!-- moduleList -->;
+    var depsList = {{ moduleList }};
     if (!depsList.length) {
       return;
     }

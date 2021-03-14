@@ -294,8 +294,8 @@ const setAppAuthOptions = (appLib, authOptions) => {
 
 const checkItemSoftDeleted = async (db, modelName, _id) => {
   try {
-    const doc = await db.collection(modelName).findOne({ _id: ObjectID(_id) });
-    return _.get(doc, 'deletedAt');
+    const { record } = await db.collection(modelName).hookQuery('findOne', { _id: ObjectID(_id) });
+    return _.get(record, 'deletedAt');
   } catch (e) {
     return null;
   }
@@ -346,7 +346,6 @@ function resourceRequest(app, envFilePath = './test/backend/.env.test') {
 }
 
 module.exports = {
-  // reReadModelsAndMongoose,
   isDateString,
   diffObjects,
   checkForEqualityConsideringInjectedFields,

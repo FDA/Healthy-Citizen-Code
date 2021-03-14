@@ -8,9 +8,7 @@
   function AdpValidationUtils(
     DATE_FORMAT,
     DATE_TIME_FORMAT,
-    TIME_FORMAT,
-    AdpUnifiedArgs,
-    AdpPath
+    TIME_FORMAT
   ) {
     var dateFormats = {
       Date: DATE_FORMAT,
@@ -24,20 +22,13 @@
       maxString: maxString,
       isValidDate: isValidDate,
       getDateFormat: getDateFormat,
-      dateToMoment: dateToMoment,
       formatDate: formatDate,
       isRequired: isRequired,
       getRequiredFn: getRequiredFn,
     }
 
-    function dateToMoment(stringDate, fieldType) {
-      var format = getDateFormat(fieldType);
-
-      return moment(stringDate, format);
-    }
-
     function getMinutesOfDay(m) {
-      return m.minutes() + m.hours() * 60;
+      return m.minute() + m.hour() * 60;
     }
 
     function minString(length, limit) {
@@ -51,13 +42,7 @@
     function isValidDate(value, type) {
       var dateFormat = getDateFormat(type);
 
-      var formats = [
-        moment.ISO_8601,
-        dateFormat
-      ];
-
-      var d = moment(value, formats, true);
-      return d.isValid();
+      return dayjs(value, dateFormat).isValid();
     }
 
     function getDateFormat(type) {
@@ -66,52 +51,34 @@
 
     function formatDate(value, field) {
       var format = getDateFormat(field.type);
-      return moment(value, format).format(format);
+      var dayjsInstance = typeof value === 'string' ?
+        dayjs(value, format) : dayjs(value);
+
+      return dayjsInstance.format(format);
     }
 
-    function isRequired(formParams) {
+    function isRequired(path, requiredMap) {
       return function () {
-        var path = formParams.path;
-        return formParams.requiredMap[path] || false;
+        return requiredMap[path] || false;
       }
     }
 
-    function getRequiredFn(formParams) {
-      var schemaPath = AdpPath.schemaPath(formParams.path);
-      var field = _.get(formParams.fieldSchema.fields, schemaPath);
+    function getRequiredFn(args) {
+      var requiredRule = args.fieldSchema.required;
 
-      if (_.isString(field.required)) {
-        return _createConditionalRequiredFn(formParams);
+      if (_.isString(requiredRule)) {
+        return _createConditionalRequiredFn(args);
       } else {
         return function () {
-          return !!field.required;
+          return !!requiredRule;
         };
       }
     }
 
-    function _createConditionalRequiredFn(formParams) {
-      var params = AdpUnifiedArgs.getHelperParamsWithConfig({
-        path: formParams.path,
-        action: formParams.action,
-        formData: formParams.row,
-        schema: formParams.modelSchema,
-      });
-
-      // DEPRECATED: do not use - non context arguments will be removed
-      var schemaPath = AdpPath.schemaPath(formParams.path);
-      var field = _.get(formParams.modelSchema.fields, schemaPath);
-      var data = _.get(formParams.row, formParams.path);
-      var row = formParams.row;
-      var modelSchema = formParams.modelSchema;
-      var $action = formParams.action;
-
-      // fieldValue, formData, rootSchema, $action
-      var requiredFunc = new Function(
-        'data, row, modelSchema, $action',
-        'return ' + field.required
-      ).bind(params, data, row, modelSchema, $action);
-
-      return requiredFunc;
+    function _createConditionalRequiredFn(args) {
+      return new Function('data, row, modelSchema, $action',
+        'return ' + args.fieldSchema.required
+      ).bind(args, args.data, args.row, args.modelSchema, args.action);
     }
   }
 })();

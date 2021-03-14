@@ -15,8 +15,14 @@
         editorId: '=',
       },
       link: function (scope, elem) {
-        elem[0].innerHTML =
-          '<div class="adp-html-editor form-control clearfix" contenteditable="true" id="' + scope.editorId + '">';
+        elem[0].innerHTML = [
+          '<div ',
+          'class="adp-html-editor form-control clearfix"',
+          'contenteditable="true"',
+          'id="' + scope.editorId + '"',
+          'adp-qaid-field-control="' + scope.editorId + '"',
+          '>'
+        ].join(' ')
 
         scope.$watch('editorsConfig', initEditor);
 
@@ -60,7 +66,7 @@
         function bindEvents(editor) {
           editor.on('instanceReady', function (e) {
             $('.cke_button__sourcedialog_label').hide();
-            editor.setData(scope.ngModel || '');
+            editor.setData(scope.ngModel() || '');
 
             $(editor.element.$).css(scope.editorStyles)
           });
@@ -72,19 +78,19 @@
 
           var editorEl = elem.find('.adp-html-editor');
           editorEl.on(inputEvents, function (e) {
-            scope.ngModel = $(e.target).html();
+            scope.ngModel($(e.target).html());
           });
 
           editor.on('change', function () {
-            scope.ngModel = editorEl.html();
+            scope.ngModel(editorEl.html());
           });
 
           editor.on('paste', function (e) {
-            scope.ngModel = e.data.dataValue;
+            scope.ngModel(e.data.dataValue);
           });
 
           editor.on('blur', function (e) {
-            scope.ngModel = e.editor.getData();
+            scope.ngModel(e.editor.getData());
           });
 
           scope.$on('$destroy', function () {

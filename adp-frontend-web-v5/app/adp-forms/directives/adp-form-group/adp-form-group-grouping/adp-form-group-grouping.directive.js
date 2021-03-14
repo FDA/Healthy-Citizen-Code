@@ -14,10 +14,8 @@
       restrict: 'E',
       scope: {
         fields: '<',
-        formData: '<',
-        formParams: '<',
-        schema: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-group/adp-form-group-grouping/adp-form-group-grouping.html',
       require: '^^form',
@@ -25,13 +23,14 @@
         scope.groupHasErrors = AdpFormService.groupHasErrors;
         scope.groupCompleted = AdpFormService.groupCompleted;
         scope.form = form;
+        scope.formParams = _.get(scope, 'args.modelSchema.parameters', {});
 
         scope.getHeader = function (group) {
           var args = AdpUnifiedArgs.getHelperParamsWithConfig({
             path: group.fieldName,
-            action: scope.validationParams.formParams.action,
-            formData: scope.formData,
-            schema: scope.schema,
+            action: scope.args.action,
+            formData: scope.args.row,
+            schema: scope.args.modelSchema,
           });
           args.data = getData(group);
 
@@ -39,18 +38,12 @@
         };
 
         function getData(group) {
-          var data = {};
-
-          _.each(group.fields, function (f) {
-            data[f.fieldName] = scope.formData[f.fieldName];
-          });
-
-          return data;
+          var fieldNames = _.map(group.fields, function (f) { return f.fieldName });
+          return _.pick(scope.args.row, fieldNames);
         }
 
         scope.display = function(path) {
-          var visibilityMap = scope.validationParams.formParams.visibilityMap;
-          return visibilityMap[path];
+          return scope.formContext.visibilityMap[path];
         };
       }
     }

@@ -9,6 +9,7 @@
   function CustomFilterExpression(AdpUnifiedArgs) {
     var expressions = {
       Boolean: calculateExprForBoolean,
+      TriStateBoolean: calculateExprForTriStateBoolean,
       DateTime: transformBetweenToNonStrictRange,
       Date: transformBetweenToNonStrictRange,
       Time: transformBetweenToNonStrictRange,
@@ -36,16 +37,30 @@
       return [this.dataField, (selectedFilterOperation || this.defaultSelectedFilterOperation), filterValue];
     }
 
-    function calculateExprForBoolean(filterValue, selectedFilterOperation) {
-      if (filterValue === 'TRUE_VALUE') {
-        return [this.dataField, selectedFilterOperation, true];
-      }
+    function calculateExprForBoolean(filter, selectedFilterOperation, fieldType) {
+      var valueMap = {
+        'TRUE_VALUE': true,
+        'FALSE_VALUE': null,
+      };
+      var filterValue = filter.value || filter;
+      var val = valueMap[filterValue];
 
-      if (filterValue === 'FALSE_VALUE') {
-        return [this.dataField, selectedFilterOperation, null];
-      }
+      return !_.isUndefined(val) ?
+        [this.dataField, selectedFilterOperation, val] :
+        this.defaultCalculateFilterExpression.apply(this, arguments);
+    }
 
-      return this.defaultCalculateFilterExpression.apply(this, arguments);
+    function calculateExprForTriStateBoolean(filter, selectedFilterOperation) {
+      var valueMap = {
+        'TRUE_VALUE': true,
+        'FALSE_VALUE': false,
+      };
+      var filterValue = filter.value || filter;
+      var val = valueMap[filterValue];
+
+      return _.isUndefined(val) ?
+        this.defaultCalculateFilterExpression.apply(this, arguments) :
+        [this.dataField, selectedFilterOperation, val];
     }
 
     function imperialUnitMultipeExpr(filterValue, selectedFilterOperation) {
@@ -103,7 +118,7 @@
       return AdpUnifiedArgs.getHelperParamsWithConfig({
         path: field.fieldName,
         formData: null,
-        action: null,
+        action: 'filterExpression',
         schema: schema,
       });
     }

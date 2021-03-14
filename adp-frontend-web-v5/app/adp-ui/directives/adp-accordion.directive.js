@@ -13,8 +13,8 @@
         var defaults = {
           header: '.adp-form-group-head',
           icons: {
-            header: "fa fa-plus",
-            activeHeader: "fa fa-minus"
+            header: 'fa fa-plus',
+            activeHeader: 'fa fa-minus'
           },
           animate : 300,
           fillSpace: false,

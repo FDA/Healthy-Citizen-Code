@@ -5,76 +5,62 @@
     .module('app.adpForms')
     .directive('adpFormFieldFactory', adpFormFieldFactory);
 
-  // main adp fields factory directive
   function adpFormFieldFactory(
     $compile,
     AdpFieldsService,
-    AdpPath
+    AdpPath,
+    AdpUnifiedArgs
   ) {
     return {
       restrict: 'E',
       scope: {
-        adpField: '<',
-        adpFields: '<',
-        adpFormData: '<',
-        schema: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
+        fieldName: '<',
+        index: '<?',
       },
-      link: function (scope, element) {
-        scope.uiProps = AdpFieldsService.getUiProps(scope.adpField);
+      compile: function () {
+        return function (scope, element) {
+          scope.nextArgs = AdpUnifiedArgs.next(
+            scope.args,
+            scope.fieldName,
+            scope.index
+          );
 
-        // FORM PARAMS
-        var formParams = {
-          path: AdpPath.next(scope.validationParams.formParams.path, scope.adpField.fieldName),
-          row: scope.validationParams.formParams.row,
-          fieldSchema: scope.validationParams.formParams.fieldSchema,
-          modelSchema: scope.validationParams.formParams.modelSchema,
-          action: scope.validationParams.formParams.action,
-          visibilityMap: scope.validationParams.formParams.visibilityMap,
-          requiredMap: scope.validationParams.formParams.requiredMap,
-        };
+          scope.formContext.visibilityMap[scope.nextArgs.path] = true;
+          scope.display = function() {
+            return scope.formContext.visibilityMap[scope.nextArgs.path];
+          };
 
-        // default value
-        formParams.visibilityMap[formParams.path] = true;
-        scope.display = function() {
-          return formParams.visibilityMap[formParams.path];
-        };
+          if (scope.args.action === 'create') {
+            var unbind = scope.$watch('args.action', function (newVal) {
+              if (newVal !== 'update') {
+                return;
+              }
 
-        // DEPRECATED: will be replaced with formParams
-        // validationParams fields naming is wrong, use formParams instead
-        // modelSchema - grouped fields
-        // schema - original ungrouped schema
-        scope.nextValidationParams = {
-          field: scope.adpField,
-          fields: scope.adpFields,
-          formData: scope.adpFormData,
-          fieldSchema: scope.adpFields,
-          schema: scope.schema,
-          $action: formParams.action,
+              scope.nextArgs.action = scope.args.action;
+              unbind();
+            });
+          }
 
-          formParams: formParams
-        };
+          var fieldWidth = _.get(scope, 'nextArgs.fieldSchema.formWidth', 12);
+          var className = 'col col-' + fieldWidth;
 
-        var fieldWidth = scope.adpField.formWidth || 12;
-        var className = 'col col-' + fieldWidth
+          var directiveType = AdpFieldsService.getDirectiveType(scope.nextArgs.fieldSchema);
 
-        if (fieldWidth) {
+          var template = [
+            '<adp-form-field-' + directiveType,
+              'class="' + className + '"',
+              'ng-if="display()"',
+              'args="::nextArgs"',
+              'form-context="::formContext"',
+              'ng-attr-adp-qaid-field="{{nextArgs.path}}"',
+            '>',
+            '</adp-form-field-' + directiveType + '>'
+          ].join(' ');
 
+          element.replaceWith($compile(template)(scope));
         }
-
-        var template = [
-          '<adp-form-field-' + scope.uiProps.directiveType,
-            'class="' + className + '"',
-            'ng-if="display()"',
-            'adp-form-data="::adpFormData"',
-            'adp-field-ui-props="::uiProps"',
-            'validation-params="::nextValidationParams"',
-            'adp-field="::adpField"',
-          '>',
-          '</adp-form-field-' + scope.uiProps.directiveType + '>'
-        ].join(' ');
-
-        element.replaceWith($compile(template)(scope));
       }
     }
   }

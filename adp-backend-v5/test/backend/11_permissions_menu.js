@@ -238,7 +238,7 @@ describe('V5 Backend Menu Permissions', function () {
       appModelSources: [...getSchemaNestedPaths('model'), menuPart, authPart],
     });
 
-    await this.appLib.setup();
+    await appLib.setup();
     const token = await loginWithUser(appLib, user);
 
     const res = await apiRequest(appLib.app)
@@ -248,6 +248,9 @@ describe('V5 Backend Menu Permissions', function () {
       .expect('Content-Type', /json/);
     res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
     res.body.success.should.equal(true, res.body.message);
+
+    const menuItemDefaults = appLib.appModel.typeDefaults.fields.MenuItem;
+    const menuGroupDefaults = appLib.appModel.typeDefaults.fields.MenuGroup;
 
     const { fields: menuFields } = res.body.data.interface.mainMenu;
     const {
@@ -268,22 +271,40 @@ describe('V5 Backend Menu Permissions', function () {
     _.isEqual(menuDashboardLinkWithScopes, menuDashboardLinkWithScopesOmitted).should.be.true();
     _.isUndefined(menuDashboardLinkWithImpracticableScope).should.be.true();
 
-    _.isEqual(menuItemNoScopes, srcMenuFields.menuItemNoScopes).should.be.true();
+    _.isEqual(menuItemNoScopes, { ...menuItemDefaults, ...srcMenuFields.menuItemNoScopes }).should.be.true();
     const menuItemWithScopesOmitted = _.omit(srcMenuFields.menuItemWithScopes, ['scopes']);
-    _.isEqual(menuItemWithScopes, menuItemWithScopesOmitted).should.be.true();
+    _.isEqual(menuItemWithScopes, { ...menuItemDefaults, ...menuItemWithScopesOmitted }).should.be.true();
     _.isUndefined(menuItemWithImpracticableScope).should.be.true();
 
-    const menuGroupNoScopesOmitted = _.omit(srcMenuFields.menuGroupNoScopes, [
+    let menuGroupNoScopesOmitted = _.omit(srcMenuFields.menuGroupNoScopes, [
       'fields.nestedMenuItemWithAvailableScopes.scopes',
       'fields.nestedMenuItemWithImpracticableScope',
     ]);
+    menuGroupNoScopesOmitted = addTypeDefaultsForGroup(menuGroupNoScopesOmitted, menuGroupDefaults, menuItemDefaults);
     _.isEqual(menuGroupNoScopes, menuGroupNoScopesOmitted).should.be.true();
-    const menuGroupWithScopesOmitted = _.omit(srcMenuFields.menuGroupWithScopes, [
+
+    let menuGroupWithScopesOmitted = _.omit(srcMenuFields.menuGroupWithScopes, [
       'scopes',
       'fields.nestedMenuItemWithAvailableScopes.scopes',
       'fields.nestedMenuItemWithImpracticableScope',
     ]);
-    _.isEqual(menuGroupWithScopes, menuGroupWithScopesOmitted).should.be.true();
+    menuGroupWithScopesOmitted = addTypeDefaultsForGroup(
+      menuGroupWithScopesOmitted,
+      menuGroupDefaults,
+      menuItemDefaults
+    );
+    _.isEqual(menuGroupWithScopes, { ...menuGroupDefaults, ...menuGroupWithScopesOmitted }).should.be.true();
+
     _.isUndefined(menuGroupWithImpracticableScope).should.be.true();
   });
+
+  function addTypeDefaultsForGroup(group, menuGroupDefaults, menuItemDefaults) {
+    const newGroup = { ...menuGroupDefaults, ...group };
+    _.each(newGroup.fields, (field, path) => {
+      if (field.type === 'MenuItem') {
+        newGroup.fields[path] = { ...menuItemDefaults, ...field };
+      }
+    });
+    return newGroup;
+  }
 });

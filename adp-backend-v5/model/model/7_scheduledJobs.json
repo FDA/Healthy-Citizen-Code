@@ -1,0 +1,141 @@
+{
+  "models": {
+    "scheduledJobs": {
+      "type": "Schema",
+      "fullName": "Scheduled Jobs",
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "manageScheduledJobs"
+          },
+          "delete": {
+            "permissions": "manageScheduledJobs"
+          },
+          "clone": {
+            "permissions": "manageScheduledJobs"
+          },
+          "viewDetails": {
+            "permissions": [["viewScheduledJobs", "manageScheduledJobs"]]
+          },
+          "view": {
+            "permissions": [["viewScheduledJobs", "manageScheduledJobs"]]
+          },
+          "create": {
+            "permissions": "manageScheduledJobs"
+          }
+        }
+      },
+      "scopes": {
+        "own": {
+          // Specified permissions are accessAsAnyone just to make it appear in app-model
+          "permissions": "accessAsAnyone"
+        }
+      },
+      "fields": {
+        "name": {
+          "type": "String",
+          "fullName": "Job name"
+        },
+        "type": {
+          "type": "List",
+          "fullName": "Job type",
+          "required": true,
+          "list": {
+            "values": {
+              "cron": "cron",
+              "repeat": "repeat",
+              "delayed": "delayed"
+            },
+            "scopes": {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsAnyone"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        "repeat": {
+          "type": "Object",
+          "fullName": "Schedule options",
+          "fields": {
+            "cron": {
+              "type": "CronExpression",
+              "show": "this.row.type === 'cron'"
+            },
+            "tz": {
+              "type": "String",
+              "fullName": "Timezone",
+              "show": "['cron', 'delayed'].includes(this.row.type)"
+            },
+            "startDate": {
+              "type": "DateTime",
+              "description": "Start date when the repeat job should start repeating.",
+              "show": "['cron', 'delayed'].includes(this.row.type)"
+            },
+            "endDate": {
+              "type": "DateTime",
+              "description": "End date when the repeat job should stop repeating.",
+              "show": "['cron', 'repeat'].includes(this.row.type)"
+            },
+            "every": {
+              "type": "Number",
+              "description": "Repeat every millis (cron setting cannot be used together with this setting)",
+              "show": "this.row.type === 'repeat'"
+            },
+            "limit": {
+              "type": "Number",
+              "description": "Number of times the job should repeat at max.",
+              // for delayed job limit is set to 1
+              "show": "['cron', 'repeat'].includes(this.row.type)"
+            }
+//            "count": {
+//              "type": "Number",
+//              "description": "The start value for the repeat iteration count.",
+//              // for delayed job count is set to 0
+//              "show": "['cron', 'repeat'].includes(this.row.type)"
+//            }
+          }
+        },
+        "command": {
+          "type": "LookupObjectID",
+          "fullName": "Command",
+          "description": "Command to be run",
+          "required": true,
+          "lookup": {
+            "table": {
+              "bjrExternalCommands": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsUser"
+                    },
+                    "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "isActive": {
+          "type": "Boolean",
+          "fullName": "Is active"
+        },
+        "scheduledJobId": {
+          "type": "String",
+          "showInDatatable": false,
+          "showInForm": false
+        },
+        "scheduledJobKey": {
+          "type": "String",
+          "showInDatatable": false,
+          "showInForm": false
+        }
+      }
+    }
+  }
+}

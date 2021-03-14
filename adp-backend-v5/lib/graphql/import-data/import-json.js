@@ -6,7 +6,7 @@ const { ValidationError } = require('../../errors');
 const { getResponseWithErrors, getOverallErrorResponse, getSuccessfulResponse } = require('./util');
 
 async function importItems({ items, context, log }) {
-  const { appLib, inlineContext, modelName, appModel, userContext, model, mongoParams, userPermissions } = context;
+  const { appLib, inlineContext, modelName, appModel, userContext, mongoParams, userPermissions } = context;
   context.userContext.action = 'create';
   const { action } = context.userContext;
 
@@ -40,23 +40,12 @@ async function importItems({ items, context, log }) {
 
       await appLib.validation.validateNewItem(context, doc);
       const filteredItem = appLib.accessUtil.filterDocFields(appModel, doc, action, userPermissions);
-
       await appLib.transformers.preSaveTransformData(modelName, userContext, filteredItem, []);
-      // eslint-disable-next-line new-cap
-      const record = new model(filteredItem);
 
-      if (record.errors) {
-        errors[index] = _.values(record.errors)
-          .map((v) => v.message)
-          .join(' | ');
-        return;
-      }
-
-      const preparedItem = record.toObject();
-      if (!filteringFunc(preparedItem)) {
+      if (!filteringFunc(filteredItem)) {
         errors[index] = `Not enough permissions to create the item`;
       } else {
-        preparedItems.push(preparedItem);
+        preparedItems.push(filteredItem);
       }
     } catch (e) {
       errors[index] = e.message;
@@ -70,12 +59,9 @@ async function importItems({ items, context, log }) {
   const { getMongoDuplicateErrorMessage } = appLib.butil;
   try {
     const res = await appLib.dba.withTransaction((session) =>
-      model.collection.insertMany(preparedItems, {
-        session,
-        checkKeys: false,
-      })
+      appLib.db.collection(modelName).insertMany(preparedItems, { session, ordered: false, checkKeys: false })
     );
-    await appLib.cache.clearCacheForModel(model.modelName);
+    await appLib.cache.clearCacheForModel(modelName);
     return getSuccessfulResponse(res.insertedCount);
   } catch (e) {
     const mongoDuplicateErrorMessage = getMongoDuplicateErrorMessage(e, appLib.appModel.models);

@@ -57,6 +57,9 @@
           'class': 'adp-select-box adp-lookup-selector',
           'lookup-selector': true,
         },
+        inputAttr: {
+          'adp-qaid-field-control': options.args.path,
+        },
         buttons: LookupBtns.getFieldButtons(options, options.args),
         itemTemplate: function (lookupData) {
           return createLabelForFormLookup(lookupData, options.args);
@@ -140,6 +143,13 @@
           'table-selector': true,
           'class': hasSingleTable ? ' hidden' : '',
         },
+        inputAttr: {
+          'adp-qaid-lookup-table-selector': options.args.path,
+        },
+        itemTemplate: function (data, index, element) {
+          element.attr('adp-qaid-lookup-table-selector-item', options.args.path);
+          return data.label;
+        },
         value: items[0].value,
         items: items,
         valueExpr: 'value',
@@ -159,22 +169,21 @@
 
     function tagTemplate(templateConf) {
       var removeBtn = $('<div class="dx-tag-remove-button">');
+      var cmp = templateConf.component;
 
       removeBtn.on('click', function () {
-        var val = templateConf.component.option('value');
-        var itemIndex = _.findIndex(val, function (item) {
-          return item._id === templateConf.lookupData._id;
-        });
-
-        val.splice(itemIndex, 1);
-        templateConf.component.option('value', val);
+        var val = cmp.option('value').slice();
+        _.remove(val, ['_id', templateConf.lookupData._id]);
+        cmp.option('value', val);
 
         removeBtn.off('click');
       });
 
-      var content = $('<span>').html(AdpLookupHelpers.selectionLabel(templateConf.lookupData, templateConf.args));
+      var content = $('<span>')
+        .html(AdpLookupHelpers.selectionLabel(templateConf.lookupData, templateConf.args));
 
       $('<div class="dx-tag-content">')
+        .attr('adp-qaid-field-tag', templateConf.args.path)
         .append(content, removeBtn)
         .appendTo(templateConf.tagElement);
     }
@@ -189,13 +198,19 @@
         '<div class="adp-text-box-label-empty">' + placeholder + '</div>' :
         AdpLookupHelpers.selectionLabel(data, args);
 
+      var labelText = $('<div>').append(label).text();
+
       var tpl = $('<div class="adp-text-box-label">')
+        .attr('adp-qaid-field-control', templateConf.args.path)
         .append(label);
 
       var textBox = $('<div class="adp-text-box">')
         .dxTextBox({
           placeholder: placeholder,
-          value: _.isNil(data) ? '' : label,
+          value: _.isNil(data) ? '' : labelText,
+          inputAttr: {
+            'adp-qaid-lookup-input': templateConf.args.path
+          }
         });
 
       container.append(tpl, textBox);

@@ -1,13 +1,35 @@
 const Promise = require('bluebird');
 const _ = require('lodash');
-const YAML = require('yamljs');
+const YAML = require('yaml');
+const sanitizeHtml = require('sanitize-html');
+const dayjs = require('dayjs');
+
+function transformFile(file) {
+  return file.name;
+}
+
+function clearTags(text) {
+  return sanitizeHtml(text, {
+    allowedTags: [],
+    allowedAttributes: {},
+  });
+}
+
+function formatDateTime(value, type) {
+  const dateFormats = {
+    Date: 'M/D/YYYY',
+    Time: 'h:mm a',
+    DateTime: 'M/D/YYYY h:mm a',
+  };
+
+  return dayjs(value).format(dateFormats[type]);
+}
 
 module.exports = {
   getDbData: async (appLib, req) => {
     const action = 'view';
     const inlineContext = appLib.accessUtil.getInlineContext(req);
     const modelNames = ['relationships', 'entities', 'entityTypes', 'relationshipTypes'];
-    const conditionForActualRecord = appLib.dba.getConditionForActualRecord();
     const { MONGO } = appLib.butil;
 
     const modelConditions = await Promise.map(modelNames, async modelName => {
@@ -18,6 +40,7 @@ module.exports = {
         action,
       );
       const scopeConditions = scopeConditionsMeta.overallConditions;
+      const conditionForActualRecord = appLib.dba.getConditionForActualRecord(modelName);
       return MONGO.and(conditionForActualRecord, scopeConditions);
     });
 
@@ -137,9 +160,9 @@ module.exports = {
       },
     ];
     const relationships = await appLib.db
-      .model('entities')
+      .collection('entities')
       .aggregate(fullRelationshipsPipeline)
-      .exec();
+      .toArray();
 
     const entityIdsInRelationships = [];
     _.each(relationships, rel => {
@@ -178,9 +201,9 @@ module.exports = {
       { $unwind: '$type' },
     ];
     const entitiesWithoutRelationships = await appLib.db
-      .model('entities')
+      .collection('entities')
       .aggregate(noRelationshipsPipeline)
-      .exec();
+      .toArray();
 
     const onlyDomainRelationships = entitiesWithoutRelationships.map(entity => ({ domain: entity }));
     // adding onlyDomainRelationships is kind of hack to not to rework everything related to such format
@@ -193,11 +216,26 @@ module.exports = {
     const modelPart = model.fields[fieldName];
     const type = _.get(modelPart, 'type', '');
 
+    if (type === 'File') {
+      return transformFile(val);
+    }
+    if (type === 'File[]') {
+      return val && val.length ? _.map(val, file => transformFile(file)).join(', ') : '';
+    }
     if (type.includes('String')) {
       return _.castArray(val).join(', ');
     }
+    if (type.includes('LookupObjectID')) {
+      return _.map(_.castArray(val), x=>x.label).join(', ');
+    }
     if (type.includes('ObjectID')) {
       return _.castArray(val).join(', ');
+    }
+    if (type === 'Html') {
+      return clearTags(val);
+    }
+    if (type === 'Date' || type === 'Time' || type === 'DateTime') {
+      return formatDateTime(val, type);
     }
     return YAML.stringify(val, 2);
   },

@@ -1,10 +1,16 @@
 const _ = require('lodash');
+const dayjs = require('dayjs');
+dayjs.extend(require('dayjs/plugin/utc'));
+dayjs.extend(require('dayjs/plugin/timezone'));
+
 const JSON5 = require('json5');
 const ejs = require('ejs');
 const { ObjectID } = require('mongodb');
 const log = require('log4js').getLogger('filter/filter-parser');
 const { ValidationError } = require('../errors');
 const { getSchemaPathByFieldPath } = require('../util/unified-approach');
+const { getFunction } = require('../util/memoize');
+const { parseRelativeDateValue } = require('./util');
 
 module.exports = (appLib) => {
   const m = {};
@@ -62,7 +68,7 @@ module.exports = (appLib) => {
     if (type === 'code') {
       const functionCode = value;
       const { args, values } = appLib.butil.getDefaultArgsAndValuesForInlineCode();
-      return new Function(args, functionCode).apply(context, values);
+      return getFunction(args, functionCode).apply(context, values);
     }
 
     if (type === 'reference') {
@@ -85,7 +91,7 @@ module.exports = (appLib) => {
     },
   };
 
-  function getFilterForObject(obj, schema) {
+  function getFilterForObject(obj, scheme, meta) {
     const type = _.get(obj, 'type');
     let expression = _.get(obj, 'expression');
     if (!type || !expression) {
@@ -103,13 +109,14 @@ module.exports = (appLib) => {
     const typeToFilter = {
       'Mongo Expression': getFilterForMongoExpression,
       'Database Field': getFilterForDatabaseField,
+      'Relative Date': getFilterForRelativeDateField,
     };
 
     const filter = typeToFilter[type];
     if (!filter) {
       throw new ValidationError(`Invalid filter type specified, allowed types: ${typeToFilter.join(', ')}`);
     }
-    return filter(expression, schema);
+    return filter(expression, scheme, meta);
   }
 
   function getFilterForMongoExpression(expression) {
@@ -120,14 +127,14 @@ module.exports = (appLib) => {
     return expression;
   }
 
-  function getFilterForDatabaseField(expression, schema) {
+  function getFilterForDatabaseField(expression, scheme) {
     if (!_.isArray(expression) || expression.length !== 3) {
       throw new ValidationError('Invalid expression value, should be an [field, operation, field] array .');
     }
 
     const [f1, operation, f2] = expression;
-    const f1Type = _.get(schema, `fields.${f1}.type`);
-    const f2Type = _.get(schema, `fields.${f2}.type`);
+    const f1Type = _.get(scheme, `fields.${f1}.type`);
+    const f2Type = _.get(scheme, `fields.${f2}.type`);
     const groups = {
       string: ['String', 'Html', 'Code', 'Email', 'Phone', 'Url', 'Text', 'Barcode'],
       number: ['Number', 'Double', 'Int32', 'Int64', 'Decimal128'],
@@ -162,6 +169,22 @@ module.exports = (appLib) => {
     return { $expr: { [operator]: [`$${f1}`, `$${f2}`] } };
   }
 
+  function getFilterForRelativeDateField(filterObj, scheme, meta) {
+    const { fieldPath, operation, value, timezone } = filterObj;
+    const dateInServerTz = parseRelativeDateValue(value);
+    let dayJsInUserTz = dayjs(dateInServerTz).tz(timezone);
+
+    const schemaPath = getSchemaPathByFieldPath(fieldPath);
+    const fieldType = _.get(scheme, `${schemaPath}.type`);
+    if (fieldType === 'Date') {
+      // dates must be presented as midnight in user timezone
+      dayJsInUserTz = dayJsInUserTz.millisecond(0).second(0).minute(0).hour(0);
+    }
+    const dateInUserTz = dayJsInUserTz.format();
+
+    return getFilterForField(fieldPath, operation, dateInUserTz, scheme, meta);
+  }
+
   /**
    * Devexterme filter expression parser.
    * Expression types^
@@ -194,6 +217,7 @@ module.exports = (appLib) => {
    * @param expr {String|Array} - current filter expression (it changes while going deeper)
    * @param scheme - scheme for which expression is specified
    * @param wholeExpression - entire filter expression
+   * @param meta
    * @return {Object} - mongo query
    */
   m.parse = function parse(expr, scheme, wholeExpression = expr, meta = {}) {
@@ -215,7 +239,7 @@ module.exports = (appLib) => {
       }
 
       if (_.isString(expression)) {
-        return { conditions: getFilterForField(expression, '=', true, scheme), meta };
+        return { conditions: getFilterForField(expression, '=', true, scheme, meta), meta };
       }
 
       if (_.isPlainObject(expression)) {

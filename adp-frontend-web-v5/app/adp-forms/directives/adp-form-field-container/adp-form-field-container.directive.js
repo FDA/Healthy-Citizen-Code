@@ -5,61 +5,62 @@
     .module('app.adpForms')
     .directive('adpFormFieldContainer', adpFormFieldContainer);
 
-  function adpFormFieldContainer() {
+  function adpFormFieldContainer(AdpAttrs) {
     return {
       restrict: 'E',
       scope: {
-        adpField: '<',
-        adpFormData: '<',
-        adpIsError: '<',
-        adpIsSuccess: '<',
+        args: '<',
+        enabled: '<?',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-field-container/adp-form-field-container.html',
       require: '^^form',
       transclude: true,
       link: function (scope, el, attrs, formCtrl) {
-        var unbind = scope.$watch("adpField", function () {
-          init();
-          unbind();
-        });
+        (function init() {
+          AdpAttrs(el.find('.input-container')[0], scope.args);
+          setClassCondition();
+        })();
 
-        function init() {
-          scope.field = scope.adpField;
+        function setClassCondition() {
+          if (!conditionsEnabled()) {
+            scope.successCondition = false;
+            scope.errorCondition = false;
+            return;
+          }
+
           scope.form = formCtrl;
-
           scope.successCondition = successCondition;
           scope.errorCondition = errorCondition;
         }
 
+        function conditionsEnabled() {
+          if (_.isNil(scope.enabled)) {
+            return true;
+          }
+
+          return scope.enabled;
+        }
+
         function successCondition() {
-          var model = scope.form[scope.field.fieldName];
+          var model = scope.form[scope.args.fieldSchema.fieldName];
           if (_.isNil(model)) {
             return false;
           }
 
-          var successCondition;
-          if (_.isUndefined(scope.adpIsSuccess)) {
-            successCondition = model.$dirty && model.$valid;
-
-            if (!scope.field.required) {
-              return successCondition && !!model.$viewValue;
-            }
-          } else {
-            return scope.adpIsSuccess();
+          if (scope.args.fieldSchema.required) {
+            return false;
           }
+
+          return (model.$dirty && model.$valid) && !!model.$viewValue;
         }
 
         function errorCondition() {
-          var model = scope.form[scope.field.fieldName];
+          var model = scope.form[scope.args.fieldSchema.fieldName];
           if (_.isNil(model)) {
             return false;
           }
 
-          if (_.isUndefined(scope.adpIsError)) {
-            return (scope.form.$submitted || model.$dirty) && model.$invalid;
-          } else {
-            return scope.adpIsError();
-          }
+          return (scope.form.$submitted || model.$dirty) && model.$invalid;
         }
       }
     }

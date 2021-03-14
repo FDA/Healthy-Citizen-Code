@@ -1,8 +1,9 @@
-<section class="input-container"
-         ng-field-name="{{field.fieldName}}"
-         ng-transclude
-         ng-class="{
-         'state-error': errorCondition(),
-         'state-success': successCondition(),
-       }">
-</section>
+<section
+  class="input-container"
+  ng-field-name="{{args.fieldSchema.fieldName}}"
+  ng-transclude
+  ng-class="{
+    'state-error': errorCondition && errorCondition(),
+    'state-success': successCondition && successCondition(),
+  }"
+></section>

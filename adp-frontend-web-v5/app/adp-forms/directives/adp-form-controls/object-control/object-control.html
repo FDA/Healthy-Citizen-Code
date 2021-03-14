@@ -1,31 +1,36 @@
-<ng-form name="{{field.fieldName}}">
+<ng-form
+  ng-attr-adp-qaid-object="{{args.path}}"
+  name="{{fieldName}}">
   <div
     class="subform-frame clearfix"
     ng-class="{
     'subform-frame--is-collapsed': !isVisible,
-    'subform-frame--invalid': rootForm.$submitted && form[field.fieldName].$invalid
+    'subform-frame--invalid': rootForm.$submitted && form[fieldName].$invalid
    }">
     <h3
       class="subform-frame__title"
       ng-class="{
-        'subform-frame__title--invalid': rootForm.$submitted && form[field.fieldName].$invalid,
+        'subform-frame__title--invalid': rootForm.$submitted && form[fieldName].$invalid,
         'subform-frame__title--opened': isVisible
       }"
     >
-      <div>
+      <div
+        class="subform-frame__panel"
+        ng-attr-adp-qaid-complex-field-header="{{args.path}}">
         <button
           type="button"
-          class="subform-frame__collapse subform-frame__btn btn fa fa-2x"
+          class="subform-frame__collapse subform-frame__btn fa fa-2x"
           ng-click="toggle()"
-          ng-class="{ 'fa-minus-square-o': isVisible, 'fa-plus-square-o': !isVisible }">
-        </button>
+          ng-class="{ 'fa-minus-square-o': isVisible, 'fa-plus-square-o': !isVisible }"
+          ng-attr-adp-qaid-complex-collapse-btn="{{args.path}}"
+        ></button>
 
-        <span ng-bind-html="getHeader()"></span>
+        <span ng-attr-adp-qaid-complex-field-header-text="{{args.path}}" ng-bind-html="getHeader()"></span>
 
         <adp-tooltip
           ng-if="!hasHeaderRender"
-          adp-field="field">
-        </adp-tooltip>
+          adp-field="args.fieldSchema"
+        ></adp-tooltip>
       </div>
 
       <div ng-if="rootForm.$submitted && errorCount > 0">
@@ -40,19 +45,15 @@
     </h3>
 
     <div
-      class="subform-frame__content clearfix"
+      class="subform-frame__content clearfix adp-form-fieldset"
       ng-hide="!isVisible"
     >
       <adp-form-field-factory
-        ng-repeat="subField in fields track by $index"
-        adp-field="subField"
-        adp-fields="fields"
-        adp-field-ui-props="uiProps"
-        adp-form-data="subFormData"
-        validation-params="nextValidationParams"
-        schema="subSchema"
-      >
-      </adp-form-field-factory>
+        ng-repeat="field in ::fields track by $index"
+        args="::args"
+        form-context="::formContext"
+        field-name="::field.fieldName"
+      ></adp-form-field-factory>
     </div>
   </div>
 </ng-form>

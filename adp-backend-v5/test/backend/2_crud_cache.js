@@ -59,7 +59,7 @@ describe('V5 Backend Cache', function () {
       const { dba, cache } = this.appLib;
       this.getItemsUsingCacheSpy = sinon.spy(dba, 'getItemsUsingCache');
       this.getCacheSpy = sinon.spy(cache, 'getCache');
-      this.getPreparedItemsSpy = sinon.spy(dba, 'getPreparedItems');
+      this.aggregateItemsSpy = sinon.spy(dba, 'aggregateItems');
       this.setCacheSpy = sinon.spy(cache, 'setCache');
 
       const res = await apiRequest(this.appLib.app)
@@ -72,7 +72,7 @@ describe('V5 Backend Cache', function () {
       checkForEqualityConsideringInjectedFields(data, sampleDataToCompare0);
 
       this.getItemsUsingCacheSpy.callCount.should.equal(1);
-      this.getPreparedItemsSpy.callCount.should.equal(1);
+      this.aggregateItemsSpy.callCount.should.equal(1);
 
       this.getCacheSpy.callCount.should.equal(2);
 
@@ -102,7 +102,7 @@ describe('V5 Backend Cache', function () {
 
       this.getItemsUsingCacheSpy.callCount.should.equal(2);
       // db call count is not increased
-      this.getPreparedItemsSpy.callCount.should.equal(1);
+      this.aggregateItemsSpy.callCount.should.equal(1);
 
       // 1st and 3rd for rolesAndPermissions and 2nd and 4th for model1s
       this.getCacheSpy.callCount.should.equal(4);
@@ -117,7 +117,7 @@ describe('V5 Backend Cache', function () {
       const { dba, cache } = this.appLib;
       this.getItemsUsingCacheSpy = sinon.spy(dba, 'getItemsUsingCache');
       this.getCacheSpy = sinon.spy(cache, 'getCache');
-      this.getPreparedItemsSpy = sinon.spy(dba, 'getPreparedItems');
+      this.aggregateItemsSpy = sinon.spy(dba, 'aggregateItems');
       this.setCacheSpy = sinon.spy(cache, 'setCache');
 
       const res = await apiRequest(this.appLib.app)
@@ -130,7 +130,7 @@ describe('V5 Backend Cache', function () {
 
       this.getItemsUsingCacheSpy.callCount.should.equal(1);
       this.getCacheSpy.callCount.should.equal(2);
-      this.getPreparedItemsSpy.callCount.should.equal(1);
+      this.aggregateItemsSpy.callCount.should.equal(1);
       // due to disabled cache app unsuccessfully tries to cache every call after cache miss
       // so there are 2 tries: rolesAndPermission and model1s
       this.setCacheSpy.callCount.should.equal(2);
@@ -146,7 +146,7 @@ describe('V5 Backend Cache', function () {
 
       this.getItemsUsingCacheSpy.callCount.should.equal(2);
       this.getCacheSpy.callCount.should.equal(4);
-      this.getPreparedItemsSpy.callCount.should.equal(2);
+      this.aggregateItemsSpy.callCount.should.equal(2);
       this.setCacheSpy.callCount.should.equal(4);
     });
   });
@@ -215,7 +215,7 @@ describe('V5 Backend Cache', function () {
       this.getItemsUsingCacheSpy.callCount.should.equal(1);
       // +2 - rolesAndPermissions and item
       this.getCacheSpy.callCount.should.equal(4);
-      this.getPreparedItemsSpy.callCount.should.equal(1);
+      this.aggregateItemsSpy.callCount.should.equal(1);
       this.setCacheSpy.callCount.should.equal(1);
     };
 
@@ -231,7 +231,7 @@ describe('V5 Backend Cache', function () {
       this.getItemsUsingCacheSpy.callCount.should.equal(2);
       this.getCacheSpy.callCount.should.equal(6);
 
-      this.getPreparedItemsSpy.callCount.should.equal(1);
+      this.aggregateItemsSpy.callCount.should.equal(1);
       this.setCacheSpy.callCount.should.equal(1);
     };
 
@@ -239,7 +239,7 @@ describe('V5 Backend Cache', function () {
       // no cache - all functions must be called
       const beforeGetItemsCallCount = this.getItemsUsingCacheSpy.callCount;
       const beforeGetCacheSpy = this.getCacheSpy.callCount;
-      const beforeAggregateItemsSpy = this.getPreparedItemsSpy.callCount;
+      const beforeAggregateItemsSpy = this.aggregateItemsSpy.callCount;
       const beforeSetCacheSpy = this.setCacheSpy.callCount;
 
       await apiRequest(this.appLib.app)
@@ -249,7 +249,7 @@ describe('V5 Backend Cache', function () {
       // res is ignored because of different format of update/create/delete
       this.getItemsUsingCacheSpy.callCount.should.equal(beforeGetItemsCallCount + 1);
       this.getCacheSpy.callCount.should.equal(beforeGetCacheSpy + 2);
-      this.getPreparedItemsSpy.callCount.should.equal(beforeAggregateItemsSpy + 1);
+      this.aggregateItemsSpy.callCount.should.equal(beforeAggregateItemsSpy + 1);
       this.setCacheSpy.callCount.should.equal(beforeSetCacheSpy + 1);
     };
 
@@ -257,7 +257,7 @@ describe('V5 Backend Cache', function () {
       const { dba, cache } = this.appLib;
       this.getItemsUsingCacheSpy = sinon.spy(dba, 'getItemsUsingCache');
       this.getCacheSpy = sinon.spy(cache, 'getCache');
-      this.getPreparedItemsSpy = sinon.spy(dba, 'getPreparedItems');
+      this.aggregateItemsSpy = sinon.spy(dba, 'aggregateItems');
       this.setCacheSpy = sinon.spy(cache, 'setCache');
 
       await step0.call(this);

@@ -8,8 +8,9 @@ const { getEventManager } = require('./event-manager');
 module.exports = ({ appLib, socketIoOpts, namespace, redisUrl, keyPrefix, log }) => {
   const m = {};
 
-  let ioServer = null;
-  let eventManager = null;
+  m.ioServer = null;
+  const eventManager = getEventManager(appLib);
+  m.addEvent = eventManager.addEvent.bind(eventManager);
 
   m.build = async (server) => {
     try {
@@ -17,25 +18,38 @@ module.exports = ({ appLib, socketIoOpts, namespace, redisUrl, keyPrefix, log })
         getRedisConnection({ redisUrl, log, redisConnectionName: 'Socket.io_Redis_Pub' }),
         getRedisConnection({ redisUrl, log, redisConnectionName: 'Socket.io_Redis_Sub' }),
       ]);
-      ioServer = getSocketIoServer(server, socketIoOpts);
-      ioServer.adapter(redisAdapter({ pubClient, subClient, key: keyPrefix }));
+      m.ioServer = getSocketIoServer(server, socketIoOpts);
+      m.ioServer.adapter(redisAdapter({ pubClient, subClient, key: keyPrefix }));
     } catch (e) {
       throw new Error(`Unable to connect Socket.io_Redis by url '${redisUrl}'.`);
     }
 
-    addAuthentication({ appLib, io: ioServer, log });
-
-    eventManager = getEventManager(appLib);
-    m.addEvent = eventManager.addEvent;
-    const { eventSpecs } = eventManager;
+    addAuthentication({ appLib, io: m.ioServer, log });
 
     buildCustomHookForEvents();
-    m.sendRequest = sendRequest;
+
+    m.sendRequest = async (type, data) => {
+      const eventSpec = eventManager.eventSpecs[type];
+      if (!eventSpec) {
+        throw new Error(`Invalid event type '${type}'`);
+      }
+
+      return new Promise((resolve, reject) => {
+        m.ioServer.of(namespace).adapter.customRequest({ type, data }, function (err, replies) {
+          try {
+            const result = eventSpec.repliesHandler(err, replies);
+            resolve(result);
+          } catch (e) {
+            reject(e);
+          }
+        });
+      });
+    };
 
     function buildCustomHookForEvents() {
-      ioServer.of(namespace).adapter.customHook = async function (requestData, cb) {
+      m.ioServer.of(namespace).adapter.customHook = async function (requestData, cb) {
         const eventType = _.get(requestData, 'type');
-        const eventSpec = eventSpecs[eventType];
+        const eventSpec = eventManager.eventSpecs[eventType];
         if (!eventSpec) {
           throw new Error(`Invalid event type '${eventType}'`);
         }
@@ -48,23 +62,6 @@ module.exports = ({ appLib, socketIoOpts, namespace, redisUrl, keyPrefix, log })
           throw new Error(`Error occurred in customHook for data ${requestData}'`);
         }
       };
-    }
-    async function sendRequest(type, data) {
-      const eventSpec = eventSpecs[type];
-      if (!eventSpec) {
-        throw new Error(`Invalid event type '${type}'`);
-      }
-
-      return new Promise((resolve, reject) => {
-        ioServer.of(namespace).adapter.customRequest({ type, data }, function (err, replies) {
-          try {
-            const result = eventSpec.repliesHandler(err, replies);
-            resolve(result);
-          } catch (e) {
-            reject(e);
-          }
-        });
-      });
     }
   };
 

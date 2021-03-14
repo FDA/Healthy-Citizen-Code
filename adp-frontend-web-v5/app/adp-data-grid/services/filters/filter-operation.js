@@ -38,6 +38,7 @@
       'List[]': commonOperations.equality,
 
       Boolean: commonOperations.equalityOnly,
+      TriStateBoolean: commonOperations.equalityOnly,
 
       File: commonOperations.string,
       Image: commonOperations.string,
@@ -56,6 +57,7 @@
 
       LookupObjectID: commonOperations.equality,
       'LookupObjectID[]': commonOperations.equality,
+      Html: commonOperations.string,
     };
 
     function get(field) {

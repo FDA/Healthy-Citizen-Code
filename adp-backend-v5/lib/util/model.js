@@ -12,7 +12,7 @@ const { getTransformedInterfaceAppPermissions } = require('../access/transform-p
 const schemaKeyRegExp = /^[_a-zA-Z][_a-zA-Z0-9]*$/;
 
 // We need to distinguish backend and frontend delimiters used in app schema to leave frontend ejs code as is and let frontend evaluate it
-const EJS_BACKEND_APP_SCHEMA_DELIMETER = '@';
+const EJS_BACKEND_APP_SCHEMA_DELIMITER = '@';
 
 function getMacrosSchemeChange(schemeBefore, schemeAfter) {
   if (schemeBefore === schemeAfter) {
@@ -33,17 +33,17 @@ function getMacrosSchemeChange(schemeBefore, schemeAfter) {
 
 async function updateMacros({ macrosSchemeChange, macros, macrosDirPaths, functionContext }) {
   await Promise.mapSeries(_.entries(macrosSchemeChange), async ([macrosName, macrosSpec]) => {
-    macros[macrosName] = {};
-    const macro = macros[macrosName];
-    macro.parameters = getMacrosParameters(macrosSpec.parameters);
-    macro.func = await getMacrosFunc(macrosSpec, functionContext);
+    macros[macrosName] = {
+      parameters: getMacrosParameters(macrosSpec.parameters),
+      func: await getMacrosFunc(macrosSpec, functionContext),
+    };
   });
 
   return macros;
 
   async function getMacrosFunc(macrosSpec, context) {
     // specify ejs context to make context functions visible for ejs when called recursively
-    const ejsOptions = { context, delimiter: EJS_BACKEND_APP_SCHEMA_DELIMETER };
+    const ejsOptions = { context, delimiter: EJS_BACKEND_APP_SCHEMA_DELIMITER };
     if (macrosSpec.inline) {
       return ejs.compile(macrosSpec.inline, ejsOptions).bind(context);
     }
@@ -83,6 +83,11 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
   const macros = {};
   const errors = [];
 
+  const macrosFunctionContext = { ...appModelProcessors, macros };
+  if (_.isFunction(appModelProcessors.M)) {
+    appModelProcessors.M = appModelProcessors.M.bind(macrosFunctionContext);
+  }
+
   await Promise.mapSeries(modelSources, (modelSource, index) => {
     if (_.isPlainObject(modelSource)) {
       log(`Merging modelSources object with index ${index}`);
@@ -98,11 +103,6 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
       jsonFiles = globSyncAsciiOrder(`${modelSource}/**/*.json`);
     } else {
       jsonFiles = globSyncAsciiOrder(modelSource);
-    }
-
-    const macrosFunctionContext = { ...appModelProcessors, macros };
-    if (_.isFunction(appModelProcessors.M)) {
-      appModelProcessors.M = appModelProcessors.M.bind(macrosFunctionContext);
     }
 
     return Promise.mapSeries(jsonFiles, async (jsonFile) => {
@@ -126,7 +126,7 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
           });
         }
 
-        const ejsOptions = { async: true, context: macrosFunctionContext, delimiter: EJS_BACKEND_APP_SCHEMA_DELIMETER };
+        const ejsOptions = { async: true, context: macrosFunctionContext, delimiter: EJS_BACKEND_APP_SCHEMA_DELIMITER };
         const expandedModel = await ejs.render(modelContent, {}, ejsOptions);
 
         const { part: expandedModelPart, error: modelError } = parseModel(expandedModel);
@@ -150,7 +150,7 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
     throw new Error(`Errors occurred during model combine:\n${errors.join('\n')}`);
   }
 
-  return model;
+  return { model, macros, macrosFunctionContext };
 
   function getErrorDescription(source, lineNumber, columnNumber) {
     const errorRow = getStringRow(source, lineNumber);
@@ -203,7 +203,22 @@ async function combineModels({ modelSources, log = () => {}, appModelProcessors,
   }
 }
 
+function removeNullsFromObj(obj) {
+  _.forIn(obj, (val, key) => {
+    if (val && typeof val === 'object') {
+      return removeNullsFromObj(val);
+    }
+
+    if (val === null) {
+      delete obj[key];
+    }
+  });
+  return obj;
+}
+
 module.exports = {
   combineModels,
+  removeNullsFromObj,
   schemaKeyRegExp,
+  EJS_BACKEND_APP_SCHEMA_DELIMITER,
 };

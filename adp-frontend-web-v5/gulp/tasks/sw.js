@@ -20,7 +20,7 @@ gulp.task('sw:manifest', () => {
     ],
     globIgnores: ['workers/**/*', 'lib/**/*'],
     // vendors.js is > 2MB :(
-    maximumFileSizeToCacheInBytes: 4 * 1024 * 1024
+    maximumFileSizeToCacheInBytes: 4 * 1024 * 1024,
   });
 });
 

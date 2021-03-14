@@ -42,7 +42,7 @@ describe('complex objects', () => {
         await clickSubmit(this.page);
 
         const boolean1MsgSelector = getFieldErrorSelector('object', 'boolean1');
-        await this.page.waitFor(boolean1MsgSelector, {
+        await this.page.waitForSelector(boolean1MsgSelector, {
           timeout: SELECTOR_TIMEOUT,
         });
 
@@ -59,7 +59,7 @@ describe('complex objects', () => {
 
         await clickSubmit(this.page);
         const boolean1ErrSelector = getFieldErrorSelector('object', 'boolean1');
-        await this.page.waitFor(boolean1ErrSelector, {
+        await this.page.waitForSelector(boolean1ErrSelector, {
           timeout: SELECTOR_TIMEOUT,
         });
 
@@ -71,7 +71,7 @@ describe('complex objects', () => {
       'should submit object with filled required fields',
       async () => {
         await this.page.click(`[name="object"] [ng-field-name="boolean1"] .dx-switch-handle`);
-        await this.page.waitFor(200);
+        await this.page.waitForTimeout(200);
 
         await clickSubmit(this.page);
         const submitMsg = await getSubmitMsg(this.page);

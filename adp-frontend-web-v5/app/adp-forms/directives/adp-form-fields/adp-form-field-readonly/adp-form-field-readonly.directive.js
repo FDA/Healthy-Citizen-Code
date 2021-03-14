@@ -9,10 +9,8 @@
     return {
       restrict: 'E',
       scope: {
-        adpField: '<',
-        adpFormData: '<',
-        adpFieldUiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-fields/adp-form-field-readonly/adp-form-field-readonly.html',
     }

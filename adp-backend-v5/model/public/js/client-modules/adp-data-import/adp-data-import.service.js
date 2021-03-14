@@ -14,7 +14,7 @@
   ) {
     return function (toolbarWidgetRegister) {
       var actionOptions = this.actionOptions;
-      var schema = this.schema;
+      var schema = this.modelSchema;
 
       return toolbarWidgetRegister(function (gridComponent) {
         return {

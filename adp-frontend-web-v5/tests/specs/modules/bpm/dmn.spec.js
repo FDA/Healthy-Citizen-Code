@@ -7,6 +7,7 @@ const {
   getUrlFor,
   form: {
     clickCreateNewButton,
+    clickTableAction,
   },
   submit: {
     clickSubmit,
@@ -14,7 +15,7 @@ const {
 } = require("../../../utils");
 
 const PAGE_TO_TEST = "businessRules";
-const waitForGridLoaded = async (page) => page.waitFor(2000);
+const waitForGridLoaded = async (page) => page.waitForTimeout(2000);
 const ensureAtLeastOneRecordExistToDisplayActions = async (page) => {
   const hasData = await page.$(".dx-data-row td");
   if (hasData) {
@@ -23,7 +24,7 @@ const ensureAtLeastOneRecordExistToDisplayActions = async (page) => {
 
   const nameInputSelector = "#name input";
   await clickCreateNewButton(page);
-  await page.waitFor(nameInputSelector);
+  await page.waitForSelector(nameInputSelector);
   await page.type(nameInputSelector, "autoTestingDmn_" + (new Date).getTime());
   await clickSubmit(page);
 }
@@ -52,20 +53,14 @@ describe("DMN business processes page", () => {
   test(
     "should open diagram editor by action click with svg and tools panel",
     async () => {
-      const ruleEditorSelector = ".dx-data-row:first-child [data-action-name=\"rulesEditor\"]"
-      await this.page.waitFor(ruleEditorSelector);
-      const linkAction = await this.page.$(ruleEditorSelector);
-
-      expect(linkAction).toBeTruthy();
-
-      await this.page.click(ruleEditorSelector);
+      await clickTableAction(null, 'rulesEditor', this.page);
 
       const editorSvgSelector = "#editor-container #bpm-canvas svg";
       const toolPaletteSelector = "#editor-container #bpm-canvas .djs-palette";
       const diagramElementSelector = editorSvgSelector + " .djs-group .djs-element"
 
-      await this.page.waitFor(editorSvgSelector);
-      await this.page.waitFor(toolPaletteSelector);
-      await this.page.waitFor(diagramElementSelector);  // This test requires at least one element to be present on diagram!
+      await this.page.waitForSelector(editorSvgSelector);
+      await this.page.waitForSelector(toolPaletteSelector);
+      await this.page.waitForSelector(diagramElementSelector);  // This test requires at least one element to be present on diagram!
     });
 });

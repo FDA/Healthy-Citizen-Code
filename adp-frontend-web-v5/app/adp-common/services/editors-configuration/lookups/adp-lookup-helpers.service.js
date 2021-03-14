@@ -14,64 +14,58 @@
     }
 
     function createLabel(lookupData, args) {
-      return $('<div class="adp-lookup-item-label">').append(formatLabel(lookupData, args));
+      var labelHtml = [
+        '<div ',
+        'class="adp-lookup-item-label"',
+        'adp-qaid-control-dropdown-item="' + args.path + '"',
+        '>'
+      ].join(' ');
+
+      return $(labelHtml).append(formatLabel(lookupData, args));
     }
 
     function formatLabel(lookupData, args) {
-      var params = getLookupParams(lookupData, args);
-
-      return getLabelRenderer(params);
+      var labelFromExpr = evalLabelExpr(lookupData, args);
+      return labelFromExpr || lookupData.label;
     }
 
     function selectionLabel(lookupData, args) {
-      var params = getLookupParams(lookupData, args);
-      var label = evalLabelExpr(params);
-      if (label) {
+      var label = evalLabelExpr(lookupData, args);
+      if (!_.isNull(label)) {
         return label;
       }
 
       var isMultipleTable = _.keys(args.fieldSchema.lookup.table).length > 1;
       return isMultipleTable ?
-        [_.startCase(params.lookup.table), params.lookup.label].join(' | ') :
-        params.lookup.label;
+        [_.startCase(lookupData.table), lookupData.label].join(' | ') :
+        lookupData.label;
     }
 
-    function getLookupParams(lookupData, args) {
-      return {
-        lookup: lookupData,
-        fieldData: lookupData,
-        formData: args.row,
-        fieldSchema: args.fieldSchema,
-      };
-    }
-
-    function getLabelRenderer(params) {
-      var label = evalLabelExpr(params);
-
-      return _.isNil(label) ? params.lookup.label : label;
-    }
-
-    function evalLabelExpr(params) {
-      var renderName = params.fieldSchema.lookupLabelRender;
-      var renderFn = appModelHelpers.LookupLabelRenderers[renderName];
-
-      if (renderFn) {
-        return renderFn(params);
-      } else if (renderName) {
-        return labelExpression(renderName, params);
-      } else {
+    function evalLabelExpr(lookupData, unifiedArgs) {
+      var args = _.assign({}, unifiedArgs, { lookup: lookupData });
+      var labelRenderer = getLabelRenderFn(args);
+      if (_.isNull(labelRenderer)) {
         return null;
+      }
+
+      var compatibilityArgs = [args.lookup, args.data, args.row, args.fieldSchema];
+      try {
+        return labelRenderer.apply(args, compatibilityArgs);
+      } catch (e) {
+        console.log('Error executing lookup label expression', e);
       }
     }
 
-    function labelExpression(expression, params) {
-      var fn = new Function('lookup, fieldData, formData, fieldSchema', 'return ' + expression);
+    function getLabelRenderFn(args) {
+      var renderNameOrExpression = _.get(args, 'fieldSchema.lookupLabelRender', null);
+      var renderFn = _.get(window, 'appModelHelpers.LookupLabelRenderers.' + renderNameOrExpression, null);
 
-      try {
-        return fn(params.lookup, params.fieldData, params.formData, params.fieldSchema);
-      } catch (e) {
-        console.log('Error executing lookup label expression', e);
-        return params.lookup.label;
+      if (_.isFunction(renderFn)) {
+        return renderFn;
+      } else if (renderNameOrExpression) {
+        return new Function('lookup, fieldData, formData, fieldSchema', 'return ' + renderNameOrExpression);
+      } else {
+        return null;
       }
     }
 

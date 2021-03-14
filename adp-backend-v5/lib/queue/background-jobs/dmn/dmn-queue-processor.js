@@ -19,7 +19,7 @@ module.exports = (context) => {
     // since job.data is valid json
     creator._id = ObjectID(creator._id);
 
-    const { dmnUtilInstance, db, cache, log, backgroundJobsUtil } = context.get(jobContextId);
+    const { dmnUtilInstance, db, cache, backgroundJobsUtil } = context.get(jobContextId);
     const { flattenObject, getPercentage, processDataMapping, upsertResultRecords } = backgroundJobsUtil;
     const now = new Date();
 
@@ -53,7 +53,7 @@ module.exports = (context) => {
       await processVariables();
       await cache.clearCacheForModel(outputCollection);
     } catch (e) {
-      log.error(`Unable to process a job with id ${job.id}`, e.stack);
+      throw new Error(`Unable to process a job with id ${job.id}. ${e.stack}`);
     }
 
     async function processVariables() {

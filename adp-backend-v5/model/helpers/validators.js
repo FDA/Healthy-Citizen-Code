@@ -34,7 +34,9 @@
 
 module.exports = (appLib) => {
   const _ = require('lodash');
+  const log = require('log4js').getLogger('helpers/validators');
   const { getParentInfo } = require('../../lib/util/unified-approach');
+  const { difference } = require('../../lib/util/set-helpers');
   const Decimal128 = require('bson/lib/decimal128.js');
   const decimalFromString = Decimal128.fromString;
   const { schemaKeyRegExp } = require('../../lib/util/model');
@@ -51,6 +53,20 @@ module.exports = (appLib) => {
     return true;
   };
   const vutil = appLib.appModelHelpers.ValidatorUtils;
+
+  function isArrayWithTwoIntegers(arr) {
+    return _.isArray(arr) && arr.length === 2 && arr.findIndex((val) => !Number.isInteger(val)) === -1;
+  }
+
+  function isValidDate(cb) {
+    const { path, handlerSpec, fieldSchema, modelSchema, data, row } = this;
+    const { schemaName } = modelSchema;
+    const date = new Date(data);
+    if (date === 'Invalid Date') {
+      return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, data, row, path, fieldSchema));
+    }
+    return cb();
+  }
 
   const m = {
     minLength(cb) {
@@ -203,26 +219,62 @@ module.exports = (appLib) => {
       const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
       const { schemaName } = modelSchema;
       const val = _.get(row, lodashPath);
-      const limit = _.get(handlerSpec, 'arguments');
-      if (
-        Array.isArray(val) &&
-        Array.isArray(limit.from) &&
-        Array.isArray(limit.to) &&
-        val.length === 2 &&
-        limit.from.length === 2 &&
-        limit.to.length === 2
-      ) {
-        // TODO: also check if these are integers?
-        const valInIn = val[0] * 12 + val[1];
-        const fromInIn = limit.from[0] * 12 + limit.from[1];
-        const toInIn = limit.to[0] * 12 + limit.to[1];
-        if (valInIn >= fromInIn && valInIn <= toInIn) {
-          cb();
-        } else {
-          cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
-        }
-      } else {
+      if (!val) {
+        return cb();
+      }
+
+      if (!isArrayWithTwoIntegers(val)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
+      }
+
+      const limit = _.get(handlerSpec, 'arguments', []);
+      const { from, to } = limit;
+      if (!isArrayWithTwoIntegers(from) || !isArrayWithTwoIntegers(to)) {
+        return cb();
+      }
+
+      const [valFeet, valInches] = val;
+      const [fromFeet, fromInches] = from;
+      const [toFeet, toInches] = to;
+      const valInInches = valFeet * 12 + valInches;
+      const fromInInches = fromFeet * 12 + fromInches;
+      const toInInches = toFeet * 12 + toInches;
+
+      if (valInInches >= fromInInches && valInInches <= toInInches) {
         cb();
+      } else {
+        cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
+      }
+    },
+    imperialWeightWithOz(cb) {
+      const { path: lodashPath, fieldSchema: appModelPart, handlerSpec, modelSchema, row } = this;
+      const { schemaName } = modelSchema;
+      const val = _.get(row, lodashPath);
+      if (!val) {
+        return cb();
+      }
+
+      if (!isArrayWithTwoIntegers(val)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
+      }
+
+      const limit = _.get(handlerSpec, 'arguments', []);
+      const { from, to } = limit;
+      if (!isArrayWithTwoIntegers(from) || !isArrayWithTwoIntegers(to)) {
+        return cb();
+      }
+
+      const [valPounds, valOunces] = val;
+      const [fromPounds, fromOunces] = from;
+      const [toPounds, toOunces] = to;
+      const valInOunces = valPounds * 16 + valOunces;
+      const fromInOunces = fromPounds * 16 + fromOunces;
+      const toInOunces = toPounds * 16 + toOunces;
+
+      if (valInOunces >= fromInOunces && valInOunces <= toInOunces) {
+        cb();
+      } else {
+        cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, val, row, lodashPath, appModelPart));
       }
     },
     /**
@@ -255,9 +307,9 @@ module.exports = (appLib) => {
       let isRequired;
 
       if (_.isBoolean(appModelPart.required)) {
-        const pathToParent = lodashPath.split('.').slice(-1);
+        const pathToParent = lodashPath.split('.').slice(0, -1);
         // if lodashPath is of 1 length, i.e. in root then count as parent presented
-        const isParentPresented = _.isEmpty(pathToParent) ? true : _.get(row, pathToParent);
+        const isParentPresented = _.isEmpty(pathToParent) ? true : !!_.get(row, pathToParent);
         isRequired = isParentPresented && appModelPart.required;
       } else if (_.isString(appModelPart.required)) {
         try {
@@ -314,23 +366,25 @@ module.exports = (appLib) => {
       const isMultiple = appModelPart.type.endsWith('[]');
       if (isMultiple) {
         for (const elem of val) {
-          if (!Number.isInteger(elem)) {
-            return cb(getErrorForValue(elem));
+          const elemNum = Number(elem);
+          if (!Number.isInteger(elemNum)) {
+            return cb(getErrorForValue(elemNum));
           }
-          if (elem < INT32_MIN || elem > INT32_MAX) {
+          if (elemNum < INT32_MIN || elemNum > INT32_MAX) {
             // outside of the range
-            return cb(getErrorForValue(elem));
+            return cb(getErrorForValue(elemNum));
           }
         }
         return cb();
       }
 
-      if (!Number.isInteger(val)) {
-        return cb(getErrorForValue(val));
+      const valNum = Number(val);
+      if (!Number.isInteger(valNum)) {
+        return cb(getErrorForValue(valNum));
       }
-      if (val < INT32_MIN || val > INT32_MAX) {
+      if (valNum < INT32_MIN || valNum > INT32_MAX) {
         // outside of the range
-        return cb(getErrorForValue(val));
+        return cb(getErrorForValue(valNum));
       }
 
       cb();
@@ -409,6 +463,111 @@ module.exports = (appLib) => {
         return cb(`${keyMsg}. Every key must start with _a-zA-Z and contain only _a-zA-Z0-9 characters`);
       }
       return cb();
+    },
+    array(cb) {
+      const { path, fieldSchema: appModelPart, handlerSpec, modelSchema, data, row } = this;
+      const { schemaName } = modelSchema;
+      if (!_.isNil(data) && !_.isArray(data)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, data, row, path, appModelPart));
+      }
+      const hasInvalidElem = _.find(data, (elem) => !_.isPlainObject(elem));
+      if (hasInvalidElem) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, data, row, path, appModelPart));
+      }
+      return cb();
+    },
+    object(cb) {
+      const { path, handlerSpec, fieldSchema, modelSchema, data, row } = this;
+      const { schemaName } = modelSchema;
+      if (!_.isNil(data) && !_.isPlainObject(data)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, data, row, path, fieldSchema));
+      }
+      const schemaFieldNames = _.keys(fieldSchema.fields);
+      const dataFieldNames = _.keys(data);
+      const invalidFieldNames = difference(dataFieldNames, schemaFieldNames);
+      if (invalidFieldNames.size > 0) {
+        let msg = invalidFieldNames.size === 1 ? `Invalid object field name ` : `Invalid object field names: `;
+        msg += [...invalidFieldNames].map((f) => `'${f}'`).join(', ');
+        return cb(msg);
+      }
+
+      return cb();
+    },
+    string(cb) {
+      const { path, handlerSpec, fieldSchema, modelSchema, data, row } = this;
+      const { schemaName } = modelSchema;
+      if (!_.isNil(data) && !_.isString(data)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, data, row, path, fieldSchema));
+      }
+      return cb();
+    },
+    objectId(cb) {
+      const { path, handlerSpec, fieldSchema, modelSchema, data, row } = this;
+      const { schemaName } = modelSchema;
+      if (!appLib.butil.isValidObjectId(data)) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, data, row, path, fieldSchema));
+      }
+      return cb();
+    },
+    date(cb) {
+      return isValidDate.call(this, cb);
+    },
+    dateTime(cb) {
+      return isValidDate.call(this, cb);
+    },
+    location(cb) {
+      const { path, handlerSpec, fieldSchema, modelSchema, data, row } = this;
+      const { schemaName } = modelSchema;
+
+      if (_.isNil(data)) {
+        return cb();
+      }
+      const [longitude, latitude] = data.coordinates || [];
+      const isValidLongitude = _.isNumber(longitude) && Math.abs(longitude) <= 180;
+      const isValidLatitude = _.isNumber(latitude) && Math.abs(latitude) <= 90;
+
+      if (!isValidLongitude || !isValidLatitude) {
+        return cb(vutil.replaceErrorTemplatePlaceholders(schemaName, handlerSpec, data, row, path, fieldSchema));
+      }
+      return cb();
+    },
+    validateScheme(cb) {
+      const { data, action } = this;
+      const { schemaName } = data;
+      if (!schemaName) {
+        return cb(`Scheme must have 'schemaName' field`);
+      }
+      const isActionsCreatesScheme = action === 'create' || action === 'clone';
+      if (isActionsCreatesScheme && appLib.appModel.models[schemaName]) {
+        return cb(`Scheme with schemaName '${schemaName}' already exists`);
+      }
+
+      try {
+        const { errors } = appLib.mutil.validateNewModel(data, schemaName);
+        if (errors.length) {
+          return cb(`Scheme has errors:\n${errors.join('\n')}`);
+        }
+      } catch (e) {
+        const msg = 'Unable to validate scheme';
+        log.error(msg, e.stack);
+        return cb(msg);
+      }
+
+      cb();
+    },
+    boolean(cb) {
+      const { data } = this;
+      if (_.isUndefined(data) || _.isBoolean(data)) {
+        return cb();
+      }
+      cb(`Invalid value`);
+    },
+    triStateBoolean(cb) {
+      const { data } = this;
+      if (_.isUndefined(data) || _.isNull(data) || _.isBoolean(data)) {
+        return cb();
+      }
+      cb(`Invalid value`);
     },
   };
 

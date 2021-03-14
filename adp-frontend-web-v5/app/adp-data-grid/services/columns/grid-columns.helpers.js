@@ -55,22 +55,22 @@
       var minWidth = parseWidth(_.get(field, 'parameters.minWidth'));
       if (!_.isNaN(minWidth) && (typeof minWidth === 'number')) {
         column.minWidth = minWidth;
+      } else if (!_.isNaN(width) && (typeof width === 'number')) {
+        column.minWidth = width;
+      } else {
+        column.minWidth = 100;
       }
     }
 
     function getTemplateForField(field, schema, rowData) {
       var args = getTemplateArguments(field, schema, rowData);
-      var templateFn = HtmlCellRenderer(args);
-
-      return templateFn(args);
+      return HtmlCellRenderer(args);
     }
 
     function getTextTemplateForField(field, schema, rowData) {
       var args = getTemplateArguments(field, schema, rowData);
       args.params = { asText: true };
-      var templateFn = HtmlCellRenderer(args);
-
-      return templateFn(args);
+      return HtmlCellRenderer(args);
     }
 
     function getTemplateArguments(field, schema, recordData) {

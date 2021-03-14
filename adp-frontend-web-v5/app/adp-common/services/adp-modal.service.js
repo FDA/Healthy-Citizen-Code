@@ -59,10 +59,10 @@
       ).result;
     }
 
-    function passwordUpdate(field) {
+    function passwordUpdate(args) {
       var modalOptions = {
         actionType: "passwordUpdate",
-        field: field,
+        args: args,
       };
 
       return createModal("adpPasswordModal", modalOptions)
@@ -91,9 +91,10 @@
         resolve: {
           options: function () {
             return options;
-          }
-        }
+          },
+        },
       });
+
       _addActionClass(options);
       _handleOnClose(modalInstance);
 

@@ -6,7 +6,7 @@
     .controller('LayoutController', LayoutController);
 
   /** @ngInject */
-  function LayoutController($rootScope, AdpFullscreenService) {
+  function LayoutController($rootScope, AdpFullscreenService, APP_CONFIG) {
     var INTERFACE = window.adpAppStore.appInterface();
     var vm = this;
     vm.interface = INTERFACE;
@@ -15,6 +15,10 @@
     vm.toggleFullScreen = function () {
       $rootScope.isFullscreen = !$rootScope.isFullscreen;
     };
+
+    vm.assetUrl = function (assetPath) {
+      return !!APP_CONFIG.appSuffix ? '/' + APP_CONFIG.appSuffix + assetPath : assetPath;
+    }
 
     $rootScope.$watch(function () {
       return $rootScope.isFullscreen;

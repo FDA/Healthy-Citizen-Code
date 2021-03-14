@@ -9,25 +9,25 @@
     AdpValidationUtils,
     AdpFieldsService,
     AdpListsService,
-    AdpUnifiedArgs
+    ControlSetterGetter
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<',
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/list-control/list-control.html',
       require: '^^form',
       link: function (scope, element, attrs, formCtrl) {
-        (function init() {
-          scope.args = unifiedApproachArgs();
-          scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
-          scope.isMultiple = scope.field.type.includes('[]');
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.getterSetter = getterSetterFn;
 
-          bindWatcher(scope.field);
+        (function init() {
+          scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
+          scope.isMultiple = scope.args.fieldSchema.type.includes('[]');
+
+          bindWatcher(scope.args.fieldSchema);
 
           (function init() {
             var config = getConfig(scope.args);
@@ -46,7 +46,7 @@
 
         function getDefaults(args) {
           return {
-            value: scope.adpFormData[scope.field.fieldName] || null,
+            value: getterSetterFn() || null,
             onInitialized: function(e) {
               scope.instance = e.component;
             },
@@ -56,15 +56,40 @@
               class: 'adp-select-box',
               id: 'list_id_' + args.fieldSchema.fieldName,
             },
+            inputAttr: { 'adp-qaid-field-control': scope.args.path },
+            itemTemplate: function (data, index, element) {
+              element
+                .attr('adp-qaid-control-dropdown-item', scope.args.path)
+                .attr('list-control-item', scope.args.path); // deprecated
+
+              return data.label;
+            },
             showClearButton: true,
             dataSource: AdpListsService.getDataSource(args),
             onOpened: function (e) {
-              var ds = getDataSource();
+              var ds = e.component.option('dataSource');
               (ds instanceof DevExpress.data.DataSource) && ds.reload();
             },
             onValueChanged: function (e) {
-              scope.adpFormData[scope.field.fieldName] = e.value;
+              getterSetterFn(e.value);
               setAngularFormProps();
+            },
+            tagTemplate: function tagTemplate(data, tagElement) {
+              var component = this;
+              var removeBtn = $('<div class="dx-tag-remove-button">');
+
+              removeBtn.on('click', function () {
+                var ids = component.option('value').slice();
+                _.pull(ids, data.value);
+
+                component.option('value', ids);
+                removeBtn.off('click');
+              });
+
+              $('<div class="dx-tag-content">')
+                .attr('adp-qaid-field-tag', args.path)
+                .append('<span>' + data.label + '</span>', removeBtn)
+                .appendTo(tagElement);
             },
           };
         }
@@ -77,13 +102,8 @@
           return scope.isMultiple ? 'dxTagBox' : 'dxSelectBox';
         }
 
-        function getDataSource() {
-          var instance = getInstance();
-          return instance.option('dataSource');
-        }
-
         function setAngularFormProps() {
-          var formField = formCtrl[scope.field.fieldName];
+          var formField = formCtrl[scope.args.fieldSchema.fieldName];
 
           !formField.$dirty && formField.$setDirty();
           !formField.$touched && formField.$setTouched();
@@ -108,17 +128,6 @@
               }
             }
           );
-        }
-
-        function unifiedApproachArgs() {
-          var formParams = scope.validationParams.formParams;
-
-          return AdpUnifiedArgs.getHelperParamsWithConfig({
-            path: formParams.path,
-            formData: formParams.row,
-            action: formParams.action,
-            schema: formParams.modelSchema,
-          });
         }
       }
     }

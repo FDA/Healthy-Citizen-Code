@@ -18,7 +18,7 @@
     vm.INTERFACE = window.adpAppStore.appInterface();
 
     var pathParts = $location.$$path.split('/');
-    if (pathParts[2]) {
+    if (pathParts[2] && !APP_CONFIG.appSuffix) {
       var id = pathParts[2];
       vm.data.id = id;
       vm.loading = true;

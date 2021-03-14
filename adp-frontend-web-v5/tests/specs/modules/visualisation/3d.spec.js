@@ -34,8 +34,8 @@ describe("3D visualisaton page", () => {
       const configSelector = "#fg3d-container .fg3d-left-panel .fg3d-config";
       const lenegSelector = "#fg3d-container .fg3d-left-panel .fg3d-legend";
 
-      await this.page.waitFor(canvasSelector);
-      await this.page.waitFor(configSelector);
-      await this.page.waitFor(lenegSelector);
+      await this.page.waitForSelector(canvasSelector);
+      await this.page.waitForSelector(configSelector);
+      await this.page.waitForSelector(lenegSelector);
     });
 });

@@ -17,7 +17,7 @@ function getRelativePath(req) {
 
 function serveDirs(dirs, opts = {}) {
   const { fileMatcher = () => true } = opts;
-  const dirFullPaths = dirs.map(dir => path.resolve(dir));
+  const dirFullPaths = dirs.map((dir) => path.resolve(dir));
 
   return async (req, res, next) => {
     if (req.method !== 'GET' && req.method !== 'HEAD') {
@@ -37,10 +37,10 @@ function serveDirs(dirs, opts = {}) {
       return serveFile(file, req, res, next);
     }
 
+    const filteredFiles = files.filter((file) => fileMatcher({ file, accessType, relativePath }));
     if (accessType === 'directory') {
-      const filteredFiles = files.filter(file => fileMatcher({ file, accessType, relativePath }));
       if (filteredFiles.length) {
-        const preparedFiles = filteredFiles.map(file => _.pick(file, ['type', 'size', 'name', 'mimeType']));
+        const preparedFiles = filteredFiles.map((file) => _.pick(file, ['type', 'size', 'name', 'mimeType']));
         return res.status(200).json({ success: true, data: preparedFiles });
       }
       return res.status(403).json({ success: false, message: 'Forbidden to access directory' });
@@ -69,8 +69,8 @@ async function mergeFiles(dirsPaths, relativePath) {
   for (const dirPath of dirsPaths) {
     const filePath = path.join(dirPath, relativePath);
     const stats = await getStats(filePath, relativePath);
-    if (stats === null) {
-      // file not found
+    const isFileNotFound = stats === null;
+    if (isFileNotFound) {
       continue;
     }
 
@@ -81,7 +81,7 @@ async function mergeFiles(dirsPaths, relativePath) {
     }
 
     const fileNamesInDir = await fs.readdir(filePath);
-    await Promise.map(fileNamesInDir, async fileNameInDir => {
+    await Promise.map(fileNamesInDir, async (fileNameInDir) => {
       if (!files.has(fileNameInDir)) {
         // consider current file only if it does not exist in previous directories
         const dirFilePath = path.join(filePath, fileNameInDir);
@@ -115,8 +115,8 @@ async function mergeNestedFilesWithoutDirs(
   for (const dirPath of dirsPaths) {
     const filePath = path.join(dirPath, relativePath);
     const stats = await getStats(filePath, relativePath);
-    const isFileExist = stats === null;
-    if (isFileExist) {
+    const isFileNotFound = stats === null;
+    if (isFileNotFound) {
       continue;
     }
 
@@ -131,7 +131,7 @@ async function mergeNestedFilesWithoutDirs(
     }
 
     const fileNamesInDir = await fs.readdir(filePath);
-    await Promise.map(fileNamesInDir, async fileNameInDir => {
+    await Promise.map(fileNamesInDir, async (fileNameInDir) => {
       const nestedRelativePath = path.join(relativePath, fileNameInDir);
       return mergeNestedFilesWithoutDirs(dirsPaths, nestedRelativePath, relativePathToResolveName, files);
     });

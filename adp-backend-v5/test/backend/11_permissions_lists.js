@@ -25,6 +25,8 @@ describe('V5 Backend List Permissions', function () {
     this.appLib = require('../../lib/app')();
     const db = await getMongoConnection();
     this.db = db;
+
+    await this.db.createCollection(modelName);
   });
 
   after(async function () {
@@ -34,7 +36,6 @@ describe('V5 Backend List Permissions', function () {
 
   beforeEach(async function () {
     await Promise.all([
-      this.db.createCollection(modelName),
       this.db.collection('users').deleteMany({}),
       this.db.collection('mongoMigrateChangeLog').deleteMany({}),
     ]);

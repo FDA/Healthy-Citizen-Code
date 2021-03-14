@@ -5,7 +5,6 @@
 require('should');
 const assert = require('assert');
 const _ = require('lodash');
-const mongoose = require('mongoose');
 const { ObjectID } = require('mongodb');
 const { prepareEnv, getMongoConnection } = require('../test-util');
 
@@ -54,8 +53,10 @@ describe('V5 Backend Validators', function () {
     this.appLib = require('../../lib/app')();
     await this.appLib.setup();
     this.dba = require('../../lib/database-abstraction')(this.appLib);
-    this.M6 = mongoose.model('model6s');
-    this.M12 = mongoose.model('model12required');
+    this.m6ModelName = 'model6s';
+    this.m12ModelName = 'model12required';
+    this.M6 = this.appLib.db.collection(this.m6ModelName);
+    this.M12 = this.appLib.db.collection(this.m12ModelName);
     this.appLib.authenticationCheck = (req, res, next) => next(); // disable authentication
   });
 
@@ -75,12 +76,12 @@ describe('V5 Backend Validators', function () {
     it('creates record with correct input', function () {
       const data = _.cloneDeep(sampleData0);
       data.n = 11;
-      return this.dba.createItem(this.M6, userContext, data);
+      return this.dba.createItem(this.m6ModelName, userContext, data);
     });
     it('does not create record with too small numeric input', function () {
       const data = _.cloneDeep(sampleData0);
       data.n = 4;
-      return this.dba.createItem(this.M6, userContext, data).catch((err) => {
+      return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null);
         err.message.should.equal('Error: Number1: Value 4 is too small, should be greater than 6');
       });
@@ -88,7 +89,7 @@ describe('V5 Backend Validators', function () {
     it('does not create record with too large numeric input', function () {
       const data = _.cloneDeep(sampleData0);
       data.n = 26;
-      return this.dba.createItem(this.M6, userContext, data).catch((err) => {
+      return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null);
         err.message.should.equal('Error: Number1: Value 26 is too large, should be less than or equal to 25');
       });
@@ -97,7 +98,7 @@ describe('V5 Backend Validators', function () {
       // triggers "notEqual(9)"
       const data = _.cloneDeep(sampleData0);
       data.n = 9;
-      return this.dba.createItem(this.M6, userContext, data).catch((err) => {
+      return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null, data);
         err.message.should.equal("Error: Number1: Value should not be equal to '9' (9)");
       });
@@ -107,7 +108,7 @@ describe('V5 Backend Validators', function () {
       const data = _.cloneDeep(sampleData0);
       data.n = 10;
       data.n2 = 10;
-      return this.dba.createItem(this.M6, userContext, data).catch((err) => {
+      return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null, data);
         err.message.should.equal('Error: Number2: This number should not be the same as Number1');
       });
@@ -116,7 +117,7 @@ describe('V5 Backend Validators', function () {
       // triggers minLength
       const data = _.cloneDeep(sampleData0);
       data.s = 'a';
-      return this.dba.createItem(this.M6, userContext, data).catch((err) => {
+      return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null);
         err.message.should.equal('Error: String: Value is too short, should be at least 3 characters long');
       });
@@ -125,7 +126,7 @@ describe('V5 Backend Validators', function () {
       // triggers maxLength
       const data = _.cloneDeep(sampleData0);
       data.s = '0123456789123';
-      return this.dba.createItem(this.M6, userContext, data).catch((err) => {
+      return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null);
         err.message.should.equal('Error: String: Value is too long, should be at most 12 characters long');
       });
@@ -135,7 +136,7 @@ describe('V5 Backend Validators', function () {
       const data = {
         a1: [{ s1: 'o11' }],
       };
-      return this.dba.createItem(this.M12, userContext, data).catch((err) => {
+      return this.dba.createItem(this.m12ModelName, userContext, data).catch((err) => {
         assert(err != null);
         err.message.should.equal('Error: A 2: Field is required');
       });
@@ -154,7 +155,7 @@ describe('V5 Backend Validators', function () {
           },
         ],
       };
-      return this.dba.createItem(this.M12, userContext, data).catch((err) => {
+      return this.dba.createItem(this.m12ModelName, userContext, data).catch((err) => {
         assert(err != null);
         err.message.should.equal('Error: A 3: Field is required');
       });
@@ -174,7 +175,7 @@ describe('V5 Backend Validators', function () {
           },
         ],
       };
-      return this.dba.createItem(this.M12, userContext, data);
+      return this.dba.createItem(this.m12ModelName, userContext, data);
     });
   });
 
@@ -183,13 +184,13 @@ describe('V5 Backend Validators', function () {
       const data = _.cloneDeep(sampleData0);
       data.email = 'www';
       await this.dba
-        .createItem(this.M6, userContext, data)
+        .createItem(this.m6ModelName, userContext, data)
         .should.be.rejectedWith(`Error: Email: Please enter correct email`);
     });
     it('creates record with correct email', async function () {
       const data = _.cloneDeep(sampleData0);
       data.email = 'test@test.com';
-      const record = await this.dba.createItem(this.M6, userContext, data);
+      const record = await this.dba.createItem(this.m6ModelName, userContext, data);
       assert(record);
       record.email.should.equal(data.email);
     });
@@ -197,13 +198,13 @@ describe('V5 Backend Validators', function () {
       const data = _.cloneDeep(sampleData0);
       data.phone = 'www';
       await this.dba
-        .createItem(this.M6, userContext, data)
+        .createItem(this.m6ModelName, userContext, data)
         .should.be.rejectedWith(`Error: Phone: Please provide correct US phone number`);
     });
     it('creates record with correct phone', async function () {
       const data = _.cloneDeep(sampleData0);
       data.phone = '2122345678';
-      const record = await this.dba.createItem(this.M6, userContext, data);
+      const record = await this.dba.createItem(this.m6ModelName, userContext, data);
       record.phone.should.equal(data.phone);
     });
     it('does not create record with incorrect url', async function () {
@@ -211,27 +212,27 @@ describe('V5 Backend Validators', function () {
       data.url = 'www';
 
       await this.dba
-        .createItem(this.M6, userContext, data)
+        .createItem(this.m6ModelName, userContext, data)
         .should.be.rejectedWith(`Error: Url: Please enter correct URL`);
     });
     it('creates record with correct url', async function () {
       const data = _.cloneDeep(sampleData0);
       data.url = 'http://www.www.com';
-      const record = await this.dba.createItem(this.M6, userContext, data);
+      const record = await this.dba.createItem(this.m6ModelName, userContext, data);
       record.url.should.equal(data.url);
     });
     it('does not create record with incorrect string inside array', async function () {
       const data = _.cloneDeep(sampleData0);
       data.as[0].ss = '123';
       await this.dba
-        .createItem(this.M6, userContext, data)
+        .createItem(this.m6ModelName, userContext, data)
         .should.be.rejectedWith(`Error: Array String: This value doesn't seem right`);
     });
     it('does not create record with incorrect string inside associative array', async function () {
       const data = _.cloneDeep(sampleData0);
       data.assocArray.key1.ss = '123';
       await this.dba
-        .createItem(this.M6, userContext, data)
+        .createItem(this.m6ModelName, userContext, data)
         .should.be.rejectedWith(`Error: Associative Array String: This value doesn't seem right`);
     });
   });

@@ -1,9 +1,10 @@
 <div></div>
 
 <input
-  name="{{field.fieldName}}"
-  adp-validate="validationParams"
+  name="{{args.fieldSchema.fieldName}}"
+  adp-validate="args"
   ng-required="isRequired()"
-  ng-model="adpFormData[field.fieldName]"
   type="hidden"
+  ng-model="getterSetter"
+  ng-model-options="{ getterSetter: true }"
 >
