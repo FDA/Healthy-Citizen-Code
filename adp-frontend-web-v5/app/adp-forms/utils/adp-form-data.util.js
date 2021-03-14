@@ -13,23 +13,21 @@
       cleanFormDataAndKeepArraysPositions: cleanFormDataAndKeepArraysPositions,
     };
 
-    function transformDataBeforeSending(formData, schema) {
+    function transformDataBeforeSending(rootArgs) {
       var cleanUpStrategies = {
         'Object': _cleanObjectBeforeSending,
         'Array': _cleanArrayItem,
         'AssociativeArray': _cleanAssociativeArrayItemBeforeSending,
         'AssociativeArrayRoot': _cleanAssociativeArrayRootBeforeSending,
         'ArrayRoot': _cleanArrayRootBeforeSending,
-        'Schema': function (args) {
-          _cleanObjectInPlace(args.formData);
-        },
-        'TreeSelector': _cleanTreeSelector,
+        'Schema': _cleanObjectInPlace,
+        'TreeSelector': _cleanTreeSelectorBeforeSending,
         'LookupObjectID': _cleanLookup,
         'LookupObjectID[]': _cleanLookup,
         'default': _cleanPrimitiveValue,
       };
 
-      return cleanFormData(formData, schema, cleanUpStrategies);
+      return cleanFormData(rootArgs, cleanUpStrategies);
     }
 
     // using option clearEmptyOnly to keep items in positions
@@ -37,118 +35,92 @@
     // real data: { array: [{...}, {object: {...}}, {...}] }
     // cleaned copy: { array: [null, null, {}] }
     // to check if item in path 'array[2]' is empty, we need to keep empty items in its positions
-    function cleanFormDataAndKeepArraysPositions(formData, schema) {
+    function cleanFormDataAndKeepArraysPositions(rootArgs) {
       var cleanUpStrategies = {
         'Object': _cleanObject,
         'Array': _cleanArrayItem,
         'ArrayRoot': _cleanArrayRoot,
         'AssociativeArray': _cleanAssociativeArrayItem,
         'AssociativeArrayRoot': _cleanArrayRoot,
-        'Schema': function (args) {
-          _cleanObjectInPlace(args.formData);
-        },
+        'Schema': _cleanObjectInPlace,
         'TreeSelector': _cleanTreeSelector,
         'default': _cleanPrimitiveValue,
       };
 
-      return cleanFormData(formData, schema, cleanUpStrategies);
+      return cleanFormData(rootArgs, cleanUpStrategies);
     }
 
-    function cleanFormData(formData, schema, cleanUpStrategies) {
-      if (_.isNil(formData)) {
+    function cleanFormData(rootArgs, cleanUpStrategies) {
+      if (_.isNil(rootArgs.row)) {
         return;
       }
 
-      var formDataCopy = _.cloneDeep(formData);
+      var rootArgsCopy = _.assign({}, rootArgs, { row: _.cloneDeep(rootArgs.row) });
 
-      var cleanUpCb = function (formDataRef, currentField, path) {
-        var cleanupStrategy = cleanUpStrategies[currentField.type] ||
-          cleanUpStrategies.default;
+      var cleanUpCb = function (currArgs) {
+        var type = currArgs.fieldSchema.type;
+        var cleanupStrategy = cleanUpStrategies[type] || cleanUpStrategies.default;
 
-        var args = getArgs(formDataRef, currentField, path);
-        cleanupStrategy(args);
+        cleanupStrategy(currArgs);
 
-        // workaround: current iterator does not call cb for Array Root
-        if (currentField.type === 'Array' && isLastArrayItem(args.path, formData)) {
-          cleanUpStrategies.ArrayRoot(args);
+        if (type === 'Array' && isLastArrayItem(currArgs)) {
+          cleanUpStrategies.ArrayRoot(currArgs);
         }
 
-        if (currentField.type === 'AssociativeArray' && isLastArrayItem(args.path, formData)) {
-          cleanUpStrategies.AssociativeArrayRoot(args);
+        if (type === 'AssociativeArray' && isLastArrayItem(currArgs)) {
+          cleanUpStrategies.AssociativeArrayRoot(currArgs);
         }
       };
 
-      AdpFormIteratorUtils.traverseFormDataPostOrder(formDataCopy, schema, '', cleanUpCb);
+      AdpFormIteratorUtils.traverseFormDataPostOrder(rootArgsCopy, cleanUpCb);
 
-      return formDataCopy;
-    }
-
-    function getArgs(formData, currentField, path) {
-      return {
-        value: _.get(formData, path, selectDefaultValue(currentField.type)),
-        field: currentField,
-        formData: formData,
-        parentFormData: _.get(formData, _parentPath(path), formData),
-        path: path,
-        parentPath: _parentPath(path),
-      }
-
-      // --------------
-      function selectDefaultValue(type) {
-        var defaults = {
-          'Object': formData,
-          'Array': undefined,
-        }
-
-        return _.hasIn(type, defaults) ? defaults[type] : null;
-      }
+      return rootArgsCopy;
     }
 
     function _cleanObjectBeforeSending(args) {
-      if (_.isNil(args.parentFormData)) {
+      if (_.isNil(args.parentData)) {
         return;
       }
 
-      _cleanObjectInPlace(args.value);
+      _cleanObjectInPlace(args);
 
-      if (!_.isEmpty(args.value)) {
+      if (!_.isEmpty(args.data)) {
         return;
       }
-      var isRoot = args.parentPath === '';
-      var objEmptyValue = args.field.required && isRoot ? {} : null;
-      _.set(args.parentFormData, args.field.fieldName, objEmptyValue);
+
+      var objEmptyValue = args.fieldSchema.required ? {} : null;
+      _.set(args.row, args.path, objEmptyValue);
     }
 
     function _cleanObject(args) {
-      if (_.isNil(args.parentFormData)) {
-        return;
-      }
-      _cleanObjectInPlace(args.value);
-
-      if (!_.isEmpty(args.value)) {
+      if (_.isNil(args.parentData)) {
         return;
       }
 
-      _.set(args.parentFormData, args.field.fieldName, null);
+      _cleanObjectInPlace(args);
+
+      if (!_.isEmpty(args.data)) {
+        return;
+      }
+
+      _.set(args.row, args.path, null);
     }
 
     function _cleanArrayItem(args) {
-      _.unset(args.value, '_id');
-      _cleanObjectInPlace(args.value);
+      _.unset(args.row, args.path + '._id');
+      _cleanObjectInPlace(args);
 
-      if (_.isEmpty(args.value)) {
-        _.set(args.formData, args.path, null);
+      if (_.isEmpty(args.data)) {
+        _.set(args.row, args.path, null)
       }
     }
 
     function _cleanAssociativeArrayItem(args) {
-      _.unset(args.value, '_id');
-      _cleanObjectInPlace(args.value);
+      _.unset(args.row, args.path + '._id');
+      _cleanObjectInPlace(args);
 
-      var isEmpty =_.isEmpty(args.value) || hasOnlyKey(args.value);
-      if (isEmpty) {
-        _.set(args.formData, args.path, null);
-      }
+      var isEmpty =_.isEmpty(args.data) || hasOnlyKey(args.data);
+      isEmpty && _.set(args.row, args.path, null);
 
       // ------------
       function hasOnlyKey(value) {
@@ -158,22 +130,16 @@
     }
 
     function _cleanAssociativeArrayItemBeforeSending(args) {
-      _.unset(args.value, '_id');
-      _cleanObjectInPlace(args.value);
+      _.unset(args.row, args.path + '._id');
+      _cleanObjectInPlace(args);
 
-      var isEmpty =_.isEmpty(args.value) || hasOnlyKey(args.value);
+      var isEmpty =_.isEmpty(args.data) || hasOnlyKey(args.data);
       if (!isEmpty) {
         return;
       }
 
-      var emptyValue;
-      if (args.field.required && hasOnlyKey(args.value)) {
-        emptyValue = args.value;
-      } else {
-        emptyValue = null;
-      }
-
-      _.set(args.formData, args.path, emptyValue);
+      var emptyValue = args.fieldSchema.required && hasOnlyKey(args.data) ? args.data : null;
+      _.set(args.row, args.path, emptyValue);
 
       // ------------
       function hasOnlyKey(value) {
@@ -184,93 +150,88 @@
 
     function _cleanArrayRootBeforeSending(args) {
       var arrayPath = getArrayPath(args.path);
-      var arrayFormData = _.get(args.formData, arrayPath);
-
+      var arrayFormData = _.get(args.row, arrayPath);
       _.pull(arrayFormData, null);
+
       if (_.isEmpty(arrayFormData)) {
-        var emptyValue = args.field.required ? [{}] : null;
-        _.set(args.formData, arrayPath, emptyValue);
+        var emptyValue = args.fieldSchema.required ? [{}] : null;
+        _.set(args.row, arrayPath, emptyValue);
       }
     }
 
     function _cleanArrayRoot(args) {
       var arrayPath = getArrayPath(args.path);
-      var arrayFormData = _.get(args.formData, arrayPath);
+      var arrayFormData = _.get(args.row, arrayPath);
 
       var containsNullsOnly = _.every(arrayFormData, _.isNull);
-      containsNullsOnly && _.set(args.formData, arrayPath, null);
+      containsNullsOnly && _.set(args.row, arrayPath, null);
     }
 
     function _cleanAssociativeArrayRootBeforeSending(args) {
       var arrayPath = getArrayPath(args.path);
-      var arrayData = _.get(args.formData, arrayPath);
-
+      var arrayData = _.get(args.row, arrayPath);
       _.pull(arrayData, null);
 
       if (_.isEmpty(arrayData)) {
-        var emptyValue = args.field.required ? {} : null;
-        _.set(args.formData, arrayPath, emptyValue);
+        var emptyValue = args.fieldSchema.required ? {} : null;
+        _.set(args.row, arrayPath, emptyValue);
       } else {
         var result = {};
         arrayData.forEach(function (item) {
           result[item.$key] = _.omit(item, ['$key']);
         });
 
-        _.set(args.formData, arrayPath, result);
+        _.set(args.row, arrayPath, result);
       }
     }
 
-    function _cleanTreeSelector(args) {
-      var value = _.filter(args.value, function (v) {
+    function _cleanTreeSelectorBeforeSending(args) {
+      var value = _.filter(args.data, function (v) {
         return !_.isEmpty(v);
       });
 
       var valueToSet = value.length ? value : null;
-      args.parentFormData && _.set(args.parentFormData, args.field.fieldName, valueToSet);
+      args.parentData && _.set(args.row, args.path, valueToSet);
+    }
+
+    function _cleanTreeSelector(args) {
+      var valueToSet = _.last(args.data).isLeaf ? args.data : null;
+      args.parentData && _.set(args.row, args.path, valueToSet);
     }
 
     function _cleanLookup(args) {
-      var value = args.value;
+      var value = args.data;
+      var cleanSingle = _.partialRight(_.unset, 'data');
       _.isArray(value) && value.forEach(cleanSingle);
-      _.isPlainObject(value) && cleanSingle(value)
-
-      function cleanSingle(val) {
-        _.unset(val, 'data');
-      }
+      _.isPlainObject(value) && cleanSingle(value);
     }
 
     function _cleanPrimitiveValue(args) {
-      var media = ['File', 'Image', 'Audio', 'Video', 'File[]', 'Image[]', 'Audio[]', 'Video[]'];
-      if (_.includes(media, args.field.type) && _.isEmpty(args.value)) {
-        args.parentFormData && _.set(args.parentFormData, args.field.fieldName, null);
-      }
+      var mediaTypes = ['File', 'Image', 'Audio', 'Video', 'File[]', 'Image[]', 'Audio[]', 'Video[]'];
+      var isMedia = _.includes(mediaTypes, args.fieldSchema.type);
 
-      if (_.isNil(args.value) || args.value === '') {
-        args.parentFormData && _.set(args.parentFormData, args.field.fieldName, null);
-      }
+      var isEmpty = isMedia ?
+        _.isEmpty(args.data) :
+        _.isNil(args.data) || args.data === '';
+
+      (isEmpty && args.parentData) && _.set(args.row, args.path, null);
     }
 
-    function _cleanObjectInPlace(object) {
+    function _cleanObjectInPlace(args) {
+      var object = _.get(args.row, args.path, args.row);
+
       _.each(object, function (v, k) {
         _.isNull(v) && _.unset(object, k);
       });
     }
 
-    function _parentPath(path) {
-      var pathArray = path.split('.');
-      var parentPathArray = _.take(pathArray, pathArray.length - 1);
-
-      return parentPathArray.join('.');
-    }
-
     function getArrayPath(path) {
       var indexRe = /\[\d+\]$/;
-
       return path.replace(indexRe, '');
     }
 
-    function isLastArrayItem(path, formData) {
-      var matches = path.match(/\[(\d+)\]$/);
+    function isLastArrayItem(args) {
+      var matches = args.path.match(/\[(\d+)\]$/);
       if (matches === null) {
         return false;
       }
@@ -278,8 +239,8 @@
       var index = Number(matches[1]);
       var indexRe = /\[\d+\]$/;
 
-      var arrayPath = path.replace(indexRe, '');
-      var arrayFormData = _.get(formData, arrayPath);
+      var arrayPath = args.path.replace(indexRe, '');
+      var arrayFormData = _.get(args.row, arrayPath);
 
       return arrayFormData.length === index + 1;
     }

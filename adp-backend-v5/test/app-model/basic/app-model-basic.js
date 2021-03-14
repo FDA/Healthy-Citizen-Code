@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const nodePath = require('path');
-require('should');
+const should = require('should');
 const assert = require('assert');
 
 describe('App Model Routes', function () {
@@ -16,10 +16,10 @@ describe('App Model Routes', function () {
   });
 
   it('Generates core models', function () {
-    this.appLib.db.readyState.should.equal(1);
-    assert(_.indexOf(this.appLib.db.modelNames(), 'users') >= 0);
-    assert(_.keys(_.get(this.appLib.appModel, 'metaschema').length > 0));
-    assert(_.keys(_.get(this.appLib.appModel, 'interface').length > 0));
-    assert(_.keys(_.get(this.appLib.appModel, 'interface.mainMenu').length > 0));
+    should(this.appLib.db).not.be.undefined();
+    should(this.appLib.appModel.models.users).not.be.undefined();
+    assert(_.keys(_.get(this.appLib.appModel, 'metaschema')).length > 0);
+    assert(_.keys(_.get(this.appLib.appModel, 'interface')).length > 0);
+    assert(_.keys(_.get(this.appLib.appModel, 'interface.mainMenu')).length > 0);
   });
 });

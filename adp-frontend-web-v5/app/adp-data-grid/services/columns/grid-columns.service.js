@@ -47,7 +47,7 @@
     function createColumn(field, schema) {
       var isFilteringAllowed = GridFilterHelpers.filteringAllowedForField(field);
       var column = {
-        cssClass: 'name-' + field.fieldName,
+        cssClass: ['name-' + field.fieldName, 'adp-grid-cell-' + _.kebabCase(field.type)].join(' '),
         caption: field.fullName || field.fieldName,
         dataField: field.fieldName,
         visible: field.showInDatatable && _.get(field, 'parameters.visible', true),
@@ -83,11 +83,8 @@
             var rowData = {};
             rowData[fieldSchema.fieldName] = val;
             var argsArray = [fieldSchema, schema, rowData];
-            var templateFn = fieldSchema.type === 'TreeSelector' ?
-              GridColumnsHelpers.getTextTemplateForField :
-              GridColumnsHelpers.getTemplateForField;
 
-            return templateFn.apply(null, argsArray);
+            return GridColumnsHelpers.getTextTemplateForField.apply(null, argsArray);
           };
 
           if (cellInfo.summaryItems) {

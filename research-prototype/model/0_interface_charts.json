@@ -12,7 +12,7 @@
           grid: {
             left: '3%',
             right: '4%',
-            bottom: '3%',
+            bottom: '10%',
             containLabel: true
           },
           legend: {
@@ -28,7 +28,7 @@
           },
           yAxis: {
             type: 'category',
-            "name": 'Number of Users',
+            "name": 'Number of Users'
           },
           series: [
             {
@@ -65,7 +65,7 @@
         "description": "Average time spent on questionnaire vs anticipated time",
         "specification": {
           title: {
-            text: 'Average Time Spent on Questionnaire',
+            text: 'Average Time Spent on Questionnaire'
           },
           tooltip: {
             trigger: 'axis',
@@ -90,10 +90,10 @@
           },
           "series": [
             {
-              "type": 'bar',
+              "type": 'bar'
             },
             {
-              "type": 'bar',
+              "type": 'bar'
             }
           ]
         }
@@ -106,13 +106,22 @@
         "specification": {
           title: {
             text: 'Questionnaires Completed in the Last 30 Days',
-            left: 'center'
+            left: 'left'
           },
           tooltip: {
-            trigger: 'axis'
+            trigger: 'axis',
+            formatter: {
+              "type": "function",
+              "arguments": ["params"],
+              "code": "var axisValueLabel = params[0].axisValueLabel;\nvar data = params[0].data[1];\n\n              return axisValueLabel + '</br> Questionnaires Completed: ' + data;"
+            }
           },
           legend: {
-            "bottom": 5
+            "bottom": 5,
+            "formatter": "Questionnaires Completed in the Last 30 Days",
+          },
+          grid: {
+            bottom: '25%'
           },
           xAxis: {
             type: 'time',

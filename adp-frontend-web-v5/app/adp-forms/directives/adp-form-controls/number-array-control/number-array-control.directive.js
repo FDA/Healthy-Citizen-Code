@@ -7,34 +7,38 @@
 
   function numberArrayControl(
     AdpValidationUtils,
-    AdpValidationRules,
     AdpFieldsService,
-    NumberArrayEditorConfig
+    NumberArrayEditorConfig,
+    ControlSetterGetter
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/number-array-control/number-array-control.html',
       require: '^^form',
       link: function (scope) {
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
-        scope.config = getConfig(scope.field);
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.getterSetter = function (val) {
+          if (arguments.length) {
+            var formattedVal = (val.value || []).map(_.toNumber);
+            getterSetterFn(formattedVal);
+          }
+
+          return getterSetterFn();
+        }
+
+        scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
+        scope.config = getConfig(scope.args.fieldSchema);
 
         function getConfig(field) {
-          var fieldData = scope.adpFormData[scope.field.fieldName];
-          var baseConfig = NumberArrayEditorConfig(fieldData, updateModel);
+          var fieldData = scope.getterSetter();
+          var baseConfig = NumberArrayEditorConfig(scope.args, fieldData, scope.getterSetter);
           baseConfig.fieldTemplate = fieldTemplate;
 
           return AdpFieldsService.configFromParameters(field, baseConfig);
-        }
-
-        function updateModel(valueObj) {
-          scope.adpFormData[scope.field.fieldName] = (valueObj.value || []).map(_.toNumber);
         }
 
         function fieldTemplate(data, container) {
@@ -45,14 +49,16 @@
         }
 
         function getNumberBoxConfig() {
-          var isInt = _.includes(['Int32[]', 'Int64[]'], scope.field.type);
+          var isInt = _.includes(['Int32[]', 'Int64[]'], scope.args.fieldSchema.type);
 
           return {
             value: null,
             placeholder: 'Type in new value and press Enter',
-            mode: 'number',
             format: isInt ? '#' : '',
             valueChangeEvent: 'blur keyup change',
+            inputAttr: {
+              'adp-qaid-field-control': scope.args.path,
+            }
           };
         }
       }

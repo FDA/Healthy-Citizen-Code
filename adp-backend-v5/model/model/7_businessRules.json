@@ -9,19 +9,22 @@
       "actions": {
         "fields": {
           "update": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBusinessRules"
           },
           "delete": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBusinessRules"
           },
           "clone": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBusinessRules"
           },
           "view": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBusinessRules"
+          },
+          "viewDetails": {
+            "permissions": "accessBusinessRules"
           },
           "create": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBusinessRules"
           },
           "rulesEditor": {
             "fullName": "Rules editor",
@@ -36,7 +39,7 @@
               "type": "link",
               "link": "/#/dmnRulesEditor/:_id"
             },
-            "permissions": "accessAsUser"
+            "permissions": "accessBusinessRules"
           },
           // standalone launch is not supported for now
 //          "runRules": {
@@ -60,8 +63,7 @@
       },
       "scopes": {
         "own": {
-          "permissions": "accessAsUser",
-          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+          "permissions": "accessBusinessRules"
         }
       },
       "fields": {

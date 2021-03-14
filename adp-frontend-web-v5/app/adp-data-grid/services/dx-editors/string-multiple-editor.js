@@ -13,7 +13,7 @@
   ) {
     function getOptions(init) {
       var fieldData = init.args.data;
-      var defaults = StringArrayEditorConfig(fieldData, init.onValueChanged);
+      var defaults = StringArrayEditorConfig(init.args, fieldData, init.onValueChanged);
       return AdpFieldsService.configFromParameters(init.args.fieldSchema, defaults);
     }
 

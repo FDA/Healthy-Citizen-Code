@@ -1,4 +1,3 @@
-const JSON5 = require('json5');
 const GraphQlContext = require('./GraphQlContext');
 const { getQuickFilterConditions } = require('../../graphql/quick-filter/util');
 
@@ -15,7 +14,7 @@ module.exports = class DevExtremeContext extends GraphQlContext {
     const quickFilterConditions = await getQuickFilterConditions(this.appLib, quickFilterId, this.userContext);
     this.mongoParams = {
       conditions: MONGO.and(dxConditions, quickFilterConditions),
-      sort: JSON5.parse(sort),
+      sort: this._getSort(sort),
       perPage: limit,
       limit: limitPlusOne,
       skip,

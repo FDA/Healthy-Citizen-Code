@@ -1,45 +1,48 @@
-const mongoose = require('mongoose');
 const _ = require('lodash');
 const Promise = require('bluebird');
+const { ObjectId } = require('mongodb');
+const mem = require('mem');
 const log = require('log4js').getLogger('lib/database-abstraction');
 const { AccessError, ValidationError } = require('./errors');
-const { getMongoDuplicateErrorMessage } = require('./util/util');
+const { getMongoDuplicateErrorMessage, MONGO } = require('./util/util');
+const { hashObject } = require('./util/hash');
 
 /**
  * @module database-abstraction
  * This module was create in an attempt to abstract database access from the rest of the code.
- * The primary reason is that mongoose is doing terrible job with middleware, so we need to call
- * pre and post hooks manually.
- * Overall it would be great to get rid of mongoose completely and work directly with the driver.
- * This will be possible with further expansion of this module.
  */
 module.exports = (appLib) => {
   const { transformers } = appLib;
-  const { hashObject, MONGO } = appLib.butil;
 
   const m = {};
 
-  m.getConditionForActualRecord = () => ({ deletedAt: new Date(0) });
+  m.isModelSoftDelete = mem((modelName) => !!_.get(appLib.appModel.models, `${modelName}.softDelete`));
+
+  m.getConditionForActualRecord = (modelName) => {
+    return m.isModelSoftDelete(modelName) ? { deletedAt: new Date(0) } : {};
+  };
 
   /**
    * Updates ONE document based on mongoConditions
    * This method is tricky because it needs to call transformers and validations on the portion of the document
    * That only sits in the req.body.data
-   * @param model
+   * @param modelName
    * @param userContext
    * @param mongoConditions
    * @param data
-   * @param path the path to the element of appModel that's being updated ("" if the entire record is being updated)
+   * @param session
    */
-  m.updateItem = async ({ model, userContext, mongoConditions, data, session }) => {
-    const newConditions = MONGO.and(mongoConditions, m.getConditionForActualRecord());
+  m.updateItem = async ({ modelName, userContext, mongoConditions, data, session }) => {
+    const newConditions = MONGO.and(mongoConditions, m.getConditionForActualRecord(modelName));
     try {
-      await transformers.preSaveTransformData(model.modelName, userContext, data, []);
-      const stats = await model.replaceOne(newConditions, data, { session });
-      if (stats.ok !== 1 || stats.nModified < 1) {
+      await transformers.preSaveTransformData(modelName, userContext, data, []);
+      const { opResult } = await appLib.db
+        .collection(modelName)
+        .hookQuery('replaceOne', newConditions, data, { session });
+      if (opResult.modifiedCount !== 1) {
         throw new Error(`Unable to update item`);
       }
-      await appLib.cache.clearCacheForModel(model.modelName);
+      await appLib.cache.clearCacheForModel(modelName);
       return data;
     } catch (e) {
       const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
@@ -47,7 +50,7 @@ module.exports = (appLib) => {
         log.error(duplicateErrMsg);
         throw new Error(duplicateErrMsg);
       }
-      log.error(`Unable to replace '${model.modelName}' item by conditions: `, newConditions, e.stack);
+      log.error(`Unable to replace '${modelName}' item by conditions: `, newConditions, e.stack);
       if (e instanceof ValidationError) {
         throw e;
       }
@@ -55,32 +58,64 @@ module.exports = (appLib) => {
     }
   };
 
-  m.upsertItem = async ({ model, userContext, mongoConditions, data, session }) => {
-    const doc = await model.findOne(mongoConditions);
-    if (doc) {
+  m.updateItems = async ({ modelName, userContext, items, session }) => {
+    const errors = {};
+
+    await Promise.map(items, async (item) => {
+      const itemId = item._id.toString();
+      const newConditions = MONGO.and({ _id: ObjectId(itemId) }, m.getConditionForActualRecord(modelName));
+      try {
+        await transformers.preSaveTransformData(modelName, userContext, item, []);
+        const { opResult } = await appLib.db
+          .collection(modelName)
+          .hookQuery('replaceOne', newConditions, item, { session });
+        if (opResult.modifiedCount !== 1) {
+          errors[itemId] = `Unable to update item`;
+        }
+      } catch (e) {
+        const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+        if (duplicateErrMsg) {
+          log.error(duplicateErrMsg);
+          errors[itemId] = duplicateErrMsg;
+          return;
+        }
+        log.error(`Unable to replace '${modelName}' item by conditions: `, newConditions, e.stack);
+        if (e instanceof ValidationError) {
+          errors[itemId] = e.message;
+          return;
+        }
+        errors[itemId] = 'You are not allowed to update the items';
+      }
+    });
+
+    await appLib.cache.clearCacheForModel(modelName);
+
+    return errors;
+  };
+
+  m.upsertItem = async ({ modelName, userContext, mongoConditions, data, session }) => {
+    const { record } = await appLib.db.collection(modelName).hookQuery('findOne', mongoConditions);
+    if (record) {
       return m.updateItem({
-        model,
+        modelName,
         userContext,
         mongoConditions,
         data,
         session,
       });
     }
-    return m.createItemCheckingConditions(model, mongoConditions, userContext, data, session);
+    return m.createItemCheckingConditions(modelName, mongoConditions, userContext, data, session);
   };
 
   /**
    * Creates/saves new item.
    * This creates whole new item, not just a submodel of existin element, so the transformers and validators should be applied to the whole item
    */
-  m.createItem = async (Model, userContext, origData) => {
+  m.createItem = async (modelName, userContext, origData) => {
     const data = _.cloneDeep(origData);
-    await transformers.preSaveTransformData(Model.modelName, userContext, data, []);
-    // Used for preserving key order in objects.
-    // Recommendation from one of authors: https://github.com/Automattic/mongoose/issues/2749#issuecomment-234737744
-    Model.schema.options.retainKeyOrder = true;
-    const record = new Model(data);
-    return record.save({ checkKeys: false });
+    await transformers.preSaveTransformData(modelName, userContext, data, []);
+    const { record } = await appLib.db.collection(modelName).hookQuery('insertOne', data);
+    return record;
   };
 
   /**
@@ -89,66 +124,95 @@ module.exports = (appLib) => {
    * 2) Check whether created item is allowed to be created for current user by searching with conditions.
    * This is done in this way because permission scopes contain mongo conditions.
    * Otherwise we would have to implement own condition parser.
-   * @param Model
+   * @param modelName
    * @param data
    * @param mongoConditions
    * @param session
    * @returns {Promise<*>}
    */
-  async function saveDocCheckingConditions(Model, data, mongoConditions, session) {
-    const record = new Model(data);
-    record.$session(session);
-    // set { checkFalse: false } to be able to save Mixed objects with keys containing dots (for example a list { "20.001": "20.001" })
-    // More info:
-    // https://github.com/Automattic/mongoose/issues/5667
-    // https://github.com/Automattic/mongoose/issues/7144
-    await record.save({ checkKeys: false });
+  async function saveDocCheckingConditions(modelName, data, mongoConditions, session) {
+    const { record } = await appLib.db
+      .collection(modelName)
+      .hookQuery('insertOne', data, { session, checkKeys: false });
 
     if (mongoConditions === true) {
-      return record.toObject();
+      return record;
     }
 
     const savedItemId = record._id;
 
-    const createdDoc = await Model.findOne({ ...mongoConditions, _id: savedItemId }, {}, { session });
+    const { record: createdDoc } = await appLib.db
+      .collection(modelName)
+      .hookQuery('findOne', { ...mongoConditions, _id: savedItemId }, { session });
 
     if (!createdDoc) {
       throw new AccessError(
         `Not enough permissions to create the item. Conditions: ${JSON.stringify(mongoConditions)}`
       );
     }
-    return createdDoc.toObject();
+    return createdDoc;
   }
 
-  m.createItemCheckingConditions = async (Model, mongoConditions, userContext, origData, session) => {
+  m.createItemCheckingConditions = async (modelName, mongoConditions, userContext, origData, session) => {
     if (mongoConditions === false) {
       throw new AccessError(`Not enough permissions to create the item.`);
     }
 
     const data = _.cloneDeep(origData);
-    await transformers.preSaveTransformData(Model.modelName, userContext, data, []);
-    // Used for preserving key order in objects.
-    // Recommendation from one of authors: https://github.com/Automattic/mongoose/issues/2749#issuecomment-234737744
-    Model.schema.options.retainKeyOrder = true;
-    const createdDoc = await saveDocCheckingConditions(Model, data, mongoConditions, session);
-    await appLib.cache.clearCacheForModel(Model.modelName);
+    await transformers.preSaveTransformData(modelName, userContext, data, []);
+
+    const createdDoc = await saveDocCheckingConditions(modelName, data, mongoConditions, session);
+    await appLib.cache.clearCacheForModel(modelName);
     return createdDoc;
   };
 
-  m.removeItem = async (Model, conditions, session) => {
-    const newConditions = MONGO.and(conditions, m.getConditionForActualRecord());
-    const updatedDoc = await Model.findOneAndUpdate(
-      newConditions,
-      { $set: { deletedAt: new Date() } },
-      { session, new: true }
-    );
-    await appLib.cache.clearCacheForModel(Model.modelName);
-    return updatedDoc;
+  m.removeItem = async (modelName, conditions, session) => {
+    const isModelSoftDelete = m.isModelSoftDelete(modelName);
+    let record;
+    if (isModelSoftDelete) {
+      const newConditions = MONGO.and(conditions, m.getConditionForActualRecord(modelName));
+      const result = await appLib.db
+        .collection(modelName)
+        .hookQuery(
+          'findOneAndUpdate',
+          newConditions,
+          { $set: { deletedAt: new Date() } },
+          { session, returnOriginal: false, checkKeys: false }
+        );
+      record = result.record;
+    } else {
+      const result = await appLib.db
+        .collection(modelName)
+        .hookQuery('findOneAndDelete', conditions, { session, checkKeys: false });
+      record = result.record;
+    }
+
+    await appLib.cache.clearCacheForModel(modelName);
+    return record;
   };
 
-  m.aggregateItems = async ({ model, mongoParams = {} }) => {
+  m.removeItems = async (modelName, conditions, session) => {
+    const isModelSoftDelete = m.isModelSoftDelete(modelName);
+    if (isModelSoftDelete) {
+      const newConditions = MONGO.and(conditions, m.getConditionForActualRecord(modelName));
+      const result = await appLib.db
+        .collection(modelName)
+        .hookQuery('updateMany', newConditions, { $set: { deletedAt: new Date() } }, { session, checkKeys: false });
+      return result.opResult.modifiedCount;
+    }
+
+    const result = await appLib.db
+      .collection(modelName)
+      .hookQuery('deleteMany', conditions, { session, checkKeys: false });
+
+    await appLib.cache.clearCacheForModel(modelName);
+
+    return result.opResult.deletedCount;
+  };
+
+  m.aggregateItems = async ({ modelName, mongoParams = {} }) => {
     let { conditions = {} } = mongoParams;
-    const conditionForActualRecord = m.getConditionForActualRecord();
+    const conditionForActualRecord = m.getConditionForActualRecord(modelName);
     conditions = MONGO.and(conditions, conditionForActualRecord);
     if (conditions === false) {
       return [];
@@ -157,77 +221,81 @@ module.exports = (appLib) => {
       conditions = {};
     }
 
-    const aggregate = model.aggregate().match(conditions);
-
-    // issue with using index for match: https://jira.mongodb.org/browse/SERVER-7568
-    // workaround is to use $addFields or $project between $match and $sort: https://jira.mongodb.org/browse/SERVER-7568?focusedCommentId=814169&page=com.atlassian.jira.plugin.system.issuetabpanels%3Acomment-tabpanel#comment-814169
-    if (!_.isEqual(conditions, conditionForActualRecord)) {
-      // if conditions are more complicated than conditionForActualRecord, then split $match and $sort with $addFields to use index for $match
-      aggregate.addFields({ _addFields_: 1 });
-    }
+    const pipeline = [{ $match: conditions }];
 
     const { projections = {}, sort = {}, skip = 0, limit = -1 } = mongoParams;
     if (!_.isEmpty(sort)) {
-      aggregate.sort(sort);
+      pipeline.push({ $sort: sort });
     }
-    aggregate.skip(skip);
+    pipeline.push({ $skip: skip });
     if (limit > 0) {
-      aggregate.limit(limit);
+      pipeline.push({ $limit: limit });
     }
 
     if (!_.isEmpty(projections)) {
-      aggregate.project(projections);
-    } else {
-      aggregate.project({ _addFields_: 0 });
+      pipeline.push({ $project: projections });
     }
-    return aggregate.exec();
+
+    // add allowDiskUse for sorting big collections
+    return appLib.db.collection(modelName).aggregate(pipeline, { allowDiskUse: true }).toArray();
   };
 
-  m.aggregatePipeline = ({ model, pipeline }) => {
-    return model.aggregate(pipeline).exec();
+  m.aggregatePipeline = ({ modelName, pipeline }) => {
+    return appLib.db.collection(modelName).aggregate(pipeline, { allowDiskUse: true }).toArray();
   };
 
-  m.getPreparedItems = async ({ model, userContext, mongoParams, actionFuncs }) => {
-    const docs = await m.aggregateItems({ model, mongoParams });
+  m.getPreparedItems = async ({ modelName, userContext, mongoParams, actionFuncs }) => {
+    const docs = await m.aggregateItems({ modelName, mongoParams });
     const docsWithActions = appLib.accessUtil.addActionsToDocs(docs, actionFuncs);
-    return m.postTransform(docsWithActions, model.modelName, userContext);
+    return m.postTransform(docsWithActions, modelName, userContext);
   };
 
-  m.getItemsUsingCache = ({ model, userContext, mongoParams, actionFuncs }) => {
-    const getPromise = () =>
-      m.getPreparedItems({
-        model,
-        userContext,
-        mongoParams,
-        actionFuncs,
-      });
+  m.getItemsUsingCache = async ({ modelName, userContext, mongoParams, actionFuncs }) => {
+    const getPromise = () => m.aggregateItems({ modelName, mongoParams });
 
-    let cacheKey;
+    let docs;
     try {
       const paramHash = hashObject(mongoParams);
-      cacheKey = `${model.modelName}:${paramHash}`;
+      const cacheKey = `${modelName}:get:${paramHash}`;
+      docs = await appLib.cache.getUsingCache(getPromise, cacheKey);
     } catch (e) {
       log.warn(`Unable to hash params to get hash key. Cache will not be used.`, mongoParams, e.stack);
-      return getPromise();
+      docs = await getPromise();
     }
 
-    return appLib.cache.getUsingCache(getPromise, cacheKey);
+    const docsWithActions = appLib.accessUtil.addActionsToDocs(docs, actionFuncs);
+    return m.postTransform(docsWithActions, modelName, userContext);
   };
 
-  m.postTransform = async (data, modelName, userContext) => {
+  m.postTransform = async (data, modelName, userContext, changesPath) => {
     if (_.isEmpty(data)) {
       return data;
     }
-    await Promise.mapSeries(data, (el) => transformers.postInitTransformData(modelName, userContext, el));
+    await Promise.mapSeries(data, (el) => transformers.postInitTransformData(modelName, userContext, el, changesPath));
     return data;
   };
 
-  m.getCountDocuments = (model, conditions) => {
-    const finalConditions = MONGO.and(conditions, m.getConditionForActualRecord());
-    if (!finalConditions) {
+  m.getDocumentsCount = (modelName, conditions) => {
+    const countConditions = MONGO.and(conditions, m.getConditionForActualRecord(modelName));
+    if (countConditions === false) {
       return 0;
     }
-    return model.collection.countDocuments(finalConditions);
+    const finalConditions = countConditions === true ? {} : countConditions;
+    return appLib.db.collection(modelName).countDocuments(finalConditions);
+  };
+
+  m.getDocumentsCountUsingCache = (modelName, conditions) => {
+    let cacheKey;
+    try {
+      const paramHash = hashObject(conditions);
+      cacheKey = `${modelName}:count:${paramHash}`;
+    } catch (e) {
+      log.warn(`Unable to hash params to get hash key. Cache will not be used.`, conditions, e.stack);
+      return m.getDocumentsCount(modelName, conditions);
+    }
+
+    const getPromise = () => m.getDocumentsCount(modelName, conditions);
+    return appLib.cache.getUsingCache(getPromise, cacheKey);
   };
 
   /**
@@ -235,22 +303,22 @@ module.exports = (appLib) => {
    * @param fn - function returning Promise
    */
   m.withTransaction = async (fn) => {
-    if (!appLib.isMongoReplicaSet) {
+    if (!appLib.isMongoSupportsSessions) {
       return fn();
     }
 
-    const session = await mongoose.startSession();
+    const session = await appLib.connection.startSession();
     session.startTransaction();
 
     try {
       const result = await fn(session);
       await session.commitTransaction();
-      session.endSession();
       return result;
     } catch (e) {
       await session.abortTransaction();
-      session.endSession();
       throw e;
+    } finally {
+      session.endSession();
     }
   };
 

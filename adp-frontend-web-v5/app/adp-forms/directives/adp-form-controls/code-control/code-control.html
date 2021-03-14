@@ -1,8 +1,9 @@
 <adp-ace
   editors-config="editorsConfig"
-  editor-id="validationParams.formParams.path"
-  ng-model="adpFormData[field.fieldName]"
+  editor-id="args.path"
   ng-required="isRequired()"
-  name="{{field.fieldName}}"
+  name="{{args.fieldSchema.fieldName}}"
+  ng-model="getterSetter"
+  ng-model-options="{ getterSetter: true }"
 >
 </adp-ace>

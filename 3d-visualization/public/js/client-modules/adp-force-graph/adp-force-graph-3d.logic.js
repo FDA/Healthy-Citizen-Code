@@ -36,7 +36,7 @@
       return new Three.TorusKnotGeometry(size * 0.6, size * 0.2, 48, 6);
     },
     Sphere: function (size) {
-      return new Three.SphereGeometry(size);
+      return new Three.SphereGeometry(size, 16, 12);
     },
   };
 
@@ -59,16 +59,16 @@
       AdpFullscreenService,
       APP_CONFIG,
       tagBoxCreator,
-      initialConfig
+      doLoadData,
+      doLoadConfig,
+      visualisationSetup
     ) {
       var vm = this;
-      var $box = null;
       var forceGraph;
-      var relData = null;
-      var hlLinks = []; /* todo: refactor this into Set once we migrate to ES6 */
-      var hlNodes = [];
+      var graphData = null;
       var proms = [];
-      var $container = null;
+      var $container = $('#fg3d-container');
+      var $box = $('#fg3d-box');
       var orbitInterval = null;
       var camOrbiter = null;
       var tagsFilterInstance = null;
@@ -76,6 +76,7 @@
       var touchData = {};
       var scrollbars = {};
       var nothingIsMarked = true;
+      var selectiveGlowPass;
       var keysConf = [
         {key: 'r', attr: 'labelLinks'},
         {key: 'e', attr: 'labelNodes'},
@@ -101,94 +102,136 @@
       ];
       var configFieldsLimits = {
         hlColorize: {min: 0, max: 100},
+        hlGlow: {min: 0, max: 100},
         hlBrightness: {min: 0, max: 100},
         hlDim: {min: 0, max: 100},
         linkCurvature: {min: 0, max: 100},
         linkDistance: {min: 1},
-        particleSize: {min: 1, max: 10},
-        arrowSize: {min: 1, max: 10},
+        particleSize: {
+          min: 1, max: 10,
+          onChange:
+            function (val, vm) {
+              if (val === '0') {
+                vm.config.showParticles = false;
+              }
+            }
+        },
+        arrowSize: {
+          min: 1, max: 10,
+          onChange:
+            function (val, vm) {
+              if (val === '0') {
+                vm.config.showArrows = false;
+              }
+            }
+        },
       };
+
+      if (APP_CONFIG.ALLOW_PERFORMANCE_MONITOR === 'true') {
+        vm.performanceMonitor = {
+          show: false,
+          run: false,
+          toggle: function () {
+            if (vm.performanceMonitor.show && !vm.performanceMonitor.run) {
+              renderStats();
+            }
+          }
+        };
+      }
 
       vm.apiUrl = APP_CONFIG.apiUrl;
       vm.isLoading = true;
-      vm.savedConfig = null;
+      vm.cachedConfig = null;
       vm.selectedNodes = [];
-      vm.config = Object.assign(
-        {
-          showOptions: false,
-          showLegend: false,
-          hlLabelNodes: false,
-          hlLabelLinks: false,
-          hlColorize: 50,
-          hlBrightness: 75,
-          hlDim: 50,
-          labelLinks: false,
-          labelNodes: false,
-          showArrows: true,
-          arrowSize: 4,
-          showParticles: true,
-          particleSize: 1,
-          animCamera: false,
-          fixDragged: false,
-          linkCurvature: (LINK_MAX_CURVATURE * 100) / 2,
-          linkDistance: DEFAULT_LINK_DISTANCE,
-          nodeFilter: '',
-          linkFilter: '',
-          tagsFilter: [],
-        },
-        initialConfig || {}
-      );
+      vm.config = {
+        showOptions: false,
+        showLegend: false,
+        hlLabelNodes: false,
+        hlLabelLinks: false,
+        hlColorize: 50,
+        hlBrightness: 75,
+        hlGlow: 50,
+        hlDim: 50,
+        labelLinks: false,
+        labelNodes: false,
+        showArrows: true,
+        arrowSize: 4,
+        showParticles: true,
+        particleSize: 1,
+        animCamera: false,
+        fixDragged: false,
+        linkCurvature: (LINK_MAX_CURVATURE * 100) / 2,
+        linkDistance: DEFAULT_LINK_DISTANCE,
+        nodeFilter: '',
+        linkFilter: '',
+        tagsFilter: [],
+        highlightAdjacent: false,
+      };
 
       if (typeof ForceGraph === 'undefined') {
+        var jsCodePath = APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/force-graph/index.js';
+        var cssStylesPath = APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/force-graph/css/style.css?v1';
+
         // This polyfill is to fix pure WebXR support in Chrome 79
         if (navigator && navigator.xr && !_.isFunction(navigator.xr.requestDevice)) {
           navigator.xr.requestDevice = function () {
             return new $.Deferred().resolve(null);
           };
         }
-        proms.push(AdpClientCommonHelper.loadScript(APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/force-graph/index.js'));
-
-        AdpClientCommonHelper.loadCss(APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/force-graph/css/style.css?v1');
+        proms.push(
+          AdpClientCommonHelper.loadScript(jsCodePath)
+            .then(initScrollbars)
+        );
+        AdpClientCommonHelper.loadCss(cssStylesPath);
+      } else {
+        initScrollbars();
       }
 
-      if (!relData) {
+      if (!graphData) {
         proms.push(
-          $http
-            .get(APP_CONFIG.serverBaseUrl + APP_CONFIG.apiPrefix + '/getFdaVipFgData')
-            .then(function (res) {
-              relData = pickNodesAndLinks(res);
-              vm.legend = res.data.legend;
-              vm.tags = res.data.tags;
-            })
-            .catch(function () {
+          doLoadData()
+            .then(
+              function (data) {
+                graphData = _.pick(data, ['nodes', 'links']);
+                vm.selectedNodes = getPreselectedSubjects(graphData);
+                vm.legend = data.legend;
+                vm.tags = data.tags;
+              })
+            .catch(function (error) {
               vm.error_message = 'Data load error';
+              console.error(error)
             })
         );
       }
 
-      doLoadConfig();
+      proms.push(
+        getConfig()
+          .then(function (conf) {
+            applyConfig(conf, true);
+          })
+          .catch(function (e) {
+            handleHttpError(e, 'Config load error');
+          })
+      );
 
-      $.when
-        .apply(this, proms)
-        .done(function () {
-          relData &&
-          $timeout(function () {
-            vm.isLoading = false;
-            doInitGraph();
-          }, 0);
-          $document.on('keypress', function (e) {
-            onKeyPress(e);
-          });
+      Promise.all(proms)
+        .then(function () {
+          if (graphData && graphData.nodes) {
+            $timeout(
+              function () {
+                vm.isLoading = false;
+                doInitGraph();
+              }, 0);
+          }
+          $document.on('keypress', onKeyPress);
         })
         .catch(function (e) {
-          AdpNotificationService.notifyError('Error while loading code and data: ' + e.message);
+          handleError(e, 'Error while loading code and data');
         });
 
       /* Methods, available from page interface, is put into vm.### */
 
-      vm.doRefreshGraph = function () {
-        doRefreshGraph();
-      };
+      vm.doRefreshGraph = doRefreshGraph;
 
       vm.toggleConfig = function () {
         vm.config.showOptions = !vm.config.showOptions;
@@ -217,9 +260,8 @@
 
       vm.resetFixDragged = function () {
         if (!vm.config.fixDragged) {
-          _.each(relData.nodes, function (node) {
-            node.fx = undefined;
-            node.fy = undefined;
+          _.each(graphData.nodes, function (node) {
+            node.fx = node.fz = node.fy = undefined;
           });
         }
         doRefreshGraph();
@@ -228,118 +270,130 @@
       vm.toggleCameraOrbit = function () {
         var camera = forceGraph.camera();
 
-        if (!camOrbiter) {
-          camOrbiter = new OrbitControls(camera, $box[0]);
+        forceGraph
+          .enableNodeDrag(!vm.config.animCamera);
 
-          camOrbiter.autoRotateSpeed = 5; // default is 2.0
-        }
+        orbitInterval && $interval.cancel(orbitInterval);
+        orbitInterval = null;
 
         if (vm.config.animCamera) {
           var data = sightOnCenter();
 
+          camOrbiter = new OrbitControls(camera, $box[0]);
+          camOrbiter.autoRotateSpeed = 5; // default is 2.0
           camOrbiter.target = data.lookAtPoint;
 
           $timeout(function () {
             camOrbiter.autoRotate = true;
           }, CAMERA_FLY_INTERVAL);
 
-          if (!orbitInterval) {
-            orbitInterval = $interval(cameraOrbitAnimation, CAMERA_ANIMATION_INTERVAL);
-          }
+          orbitInterval = $interval(cameraOrbitAnimation, CAMERA_ANIMATION_INTERVAL);
         } else {
-          camOrbiter.autoRotate = false;
-
-          orbitInterval && $interval.cancel(orbitInterval);
-          orbitInterval = null;
+          if (camOrbiter) {
+            camOrbiter.dispose();
+            camOrbiter = null;
+          }
         }
-
-        camOrbiter.update();
       };
 
       vm.saveConfig = function () {
-        vm.savedConfig = Object.assign({}, vm.config);
+        vm.cachedConfig = Object.assign({}, vm.config);
 
         doSaveConfig();
       };
 
       vm.loadConfig = function () {
-        if (vm.savedConfig) {
-          var prevLinkDistance = vm.config.linkDistance;
-          var prevTagsFilter = vm.config.tagsFilter;
+        getConfig()
+          .then(function (conf) {
+            AdpNotificationService.notifySuccess('Config is restored');
 
-          AdpNotificationService.notifySuccess('Config is restored');
-
-          Object.assign(vm.config, vm.savedConfig);
-
-          if (prevLinkDistance !== vm.config.linkDistance) {
-            vm.reheatSimulation();
-          }
-
-          if (
-            tagsFilterInstance &&
-            _.intersection(prevTagsFilter, vm.config.tagsFilter).length < vm.config.tagsFilter.length
-          ) {
-            tagsFilterInstance.option('value', getTagsByFilterValue(vm.config.tagsFilter));
-          }
-
-          vm.resetFixDragged();
-
-          doRefreshGraph();
-          vm.toggleCameraOrbit();
-        }
+            applyConfig(conf);
+          })
       };
 
       vm.screenCapture = function () {
-        vm.exportingImage = true;
+        if (vm.exportingImage) {
+          return;
+        }
 
-        var renderer = new Three.WebGLRenderer({preserveDrawingBuffer: true});
+        var renderer;
         var sx = forceGraph.width();
         var sy = forceGraph.height();
         var originalRatio = sx / sy;
-        var gl = renderer.getContext();
 
-        // Calculating maximum screen shot dimensions available.
-        var maxRenderBufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
-        var maxViewportDimensions = gl.getParameter(gl.MAX_VIEWPORT_DIMS);
+        vm.exportingImage = true;
 
-        // 2000 is practically discovered constant which is very close to a limit.  2048 is already too much!
-        // However, for IE11 it should be less as 'out-of-memory' error throw is common for microsoft beast...
-        var zoomFactor = renderer.domElement.msToBlob ? 1000 : 2000;
-        var maximumFactor = Math.sqrt((maxRenderBufferSize * zoomFactor) / (sx * sy));
-        sx *= maximumFactor;
-        sy *= maximumFactor;
+        try {
+          renderer = new Three.WebGLRenderer({preserveDrawingBuffer: true});
+          var gl = renderer.getContext();
 
-        if (sx > maxViewportDimensions[0]) {
-          sx = maxViewportDimensions[0];
-          sy = sx / originalRatio;
+          // Calculating maximum screen shot dimensions available.
+          var maxRenderBufferSize = gl.getParameter(gl.MAX_RENDERBUFFER_SIZE);
+          var maxViewportDimensions = gl.getParameter(gl.MAX_VIEWPORT_DIMS);
+
+          // 2000 is practically discovered constant which is very close to a limit.  2048 is already too much!
+          // However, for IE11 it should be less as 'out-of-memory' error throw is common for microsoft beast...
+          var zoomFactor = renderer.domElement.msToBlob ? 1000 : 2000;
+          var maximumFactor = Math.sqrt((maxRenderBufferSize * zoomFactor) / (sx * sy));
+          sx *= maximumFactor;
+          sy *= maximumFactor;
+
+          if (sx > maxViewportDimensions[0]) {
+            sx = maxViewportDimensions[0];
+            sy = sx / originalRatio;
+          }
+
+          if (sy > maxViewportDimensions[1]) {
+            sy = maxViewportDimensions[1];
+            sx = sy * originalRatio;
+          }
+
+          renderer.setSize(sx, sy);
+
+          var composer = new window.EffectComposer(renderer);
+          var scene = forceGraph.scene();
+          var camera = forceGraph.camera();
+
+          var selectiveGlowPass = new window.SelectiveGlowPass(scene, camera, renderer);
+
+          updateBloomPass(extractBloomPass(selectiveGlowPass));
+
+          var sceneRenderPass = new window.RenderPass(scene, camera);
+          sceneRenderPass.renderToScreen = false;
+          selectiveGlowPass.renderToScreen = false;
+
+          composer.addPass(sceneRenderPass);
+          composer.addPass(selectiveGlowPass);
+
+          composer.render();
+
+          if (renderer.domElement.msToBlob) {
+            //for IE
+            var blob = renderer.domElement.msToBlob();
+
+            getFile(blob);
+          } else {
+            renderer.domElement.toBlob(getFile);
+          }
+        } catch(error) {
+          handleError(error + '. Reload page and try again.', 'Export to PNG failed' );
+
+          finalizeExport();
         }
 
-        if (sy > maxViewportDimensions[1]) {
-          sy = maxViewportDimensions[1];
-          sx = sy * originalRatio;
-        }
-
-        renderer.setSize(sx, sy);
-        renderer.render(forceGraph.scene(), forceGraph.camera());
-
-        var getFile = function (blob) {
+        function getFile(blob) {
           if (blob) {
             downloadFile({blob: blob, fileName: genExportFileName('png'), mimeType: 'image/png'});
           } else {
-            AdpNotificationService.notifyError('Failed to export. Seems like not enough memory');
+            handleError('Seems like not enough memory', 'Export to PNG failed');
           }
 
+          finalizeExport();
+        }
+
+        function finalizeExport(){
           vm.exportingImage = false;
           renderer.dispose();
-        };
-
-        if (renderer.domElement.msToBlob) {
-          //for IE
-          var blob = renderer.domElement.msToBlob();
-
-          getFile(blob);
-        } else {
-          renderer.domElement.toBlob(getFile);
         }
       };
 
@@ -347,12 +401,11 @@
         vm.exportingHtml = true;
         $.when
           .apply(this, [
-            $http.get(APP_CONFIG.apiUrl + '/public/js/lib/force-graph/export-template.html'),
-            $http.get(APP_CONFIG.apiUrl + '/getFdaVipFgData'),
+            $http.get(APP_CONFIG.serverBaseUrl + APP_CONFIG.apiPrefix + '/public/js/lib/force-graph/export-template.html'),
+            doLoadData()
           ])
-          .then(function (res1, res2) {
+          .then(function (res1, graphRawData) {
             var templateBody = res1.data;
-            var graphRawData = res2.data;
 
             templateBody = templateBody
               .replace(/(window[.\w\s=]+)['"]__fg_data__['"]/, '$1' + JSON.stringify(graphRawData))
@@ -368,7 +421,7 @@
             });
           })
           .catch(function (e) {
-            AdpNotificationService.notifyError('Error while loading export template: ' + e.message);
+            handleHttpError(e, 'Error while loading export template');
           })
           .always(function () {
             vm.exportingHtml = false;
@@ -390,6 +443,16 @@
       vm.navigationCenter = function () {
         sightOnCenter();
       };
+
+      vm.getTagNamesByIds = function (tagIds) {
+        return _.join(
+          _.reduce(vm.tags, function (stack, item) {
+            if (tagIds.indexOf(item.id) >= 0) {
+              stack.push(item.text);
+            }
+            return stack;
+          }, []), ', ');
+      }
 
       function moveCameraAlongDirection(zoomIn) {
         var camera = forceGraph.camera();
@@ -438,16 +501,16 @@
         }
       }
 
-      function getAttentionNodes(){
+      function getAttentionNodes() {
         var lookAtPoint = new Three.Vector3();
-        var nodes = relData.nodes ;
+        var nodes = graphData.nodes;
         var radius = 0;
 
         if (vm.selectedNodes.length || vm.config.nodeFilter || vm.config.linkFilter) {
           var nodesToCheck = nodes;
           nodes = [];
 
-          if (vm.selectedNodes.length){
+          if (vm.selectedNodes.length) {
             nodesToCheck = vm.selectedNodes;
           }
 
@@ -481,7 +544,7 @@
         });
 
         return {
-          radius:  Math.max(70, radius),
+          radius: Math.max(70, radius),
           lookAtPoint: lookAtPoint
         };
       }
@@ -503,15 +566,19 @@
         return a.distanceTo(b);
       }
 
+      function initScrollbars() {
+        scrollbars.config = new SimpleBar($('#fg3d-config-form', $container)[0]);
+        scrollbars.legend = new SimpleBar($('#fg3d-legend-box', $container)[0]);
+        scrollbars.infobox = new SimpleBar($('#fg3d-info-box', $container)[0]);
+      }
+
       function doInitGraph() {
         var $tagBox = $('.fg3d-tags-container');
-
-        $container = $('#fg3d-container');
-        $box = $('#fg3d-box');
 
         forceGraph = new ForceGraph();
 
         forceGraph($box[0])
+          .backgroundColor('#000000')
           .onNodeClick(function (node, e) {
             onGraphClick(e, node);
           })
@@ -521,32 +588,32 @@
           .linkOpacity(LINK_OPACITY)
           .linkDirectionalParticleColor(AdpForceGraphHelpers.linkParticleColor)
           .linkDirectionalParticleResolution(8)
-          .linkDirectionalArrowRelPos(0.5)
+          .linkDirectionalArrowRelPos(0.7)
           .linkDirectionalParticleSpeed(AdpForceGraphHelpers.linkSpeed)
           .onBackgroundClick(function (e) {
             onGraphClick(e);
           })
           .showNavInfo(false)
-          .graphData(relData);
+          .onNodeHover(onNodeHover)
+          .onNodeDragEnd(onNodeDragEnd)
+          .nodeThreeObject(nodeGeometry)
+          .linkWidth(linkWidth)
+          .linkMaterial(linkMaterial)
+          .linkDirectionalArrowColor(linkArrowColor)
+          .linkCurvature(linkCurvature)
+          .linkCurveRotation(linkCurveRotation)
+          .graphData(graphData);
 
         forceGraph.d3Force('link').distance(linkDistance);
 
-        if (vm.savedConfig) {
-          vm.loadConfig();
-        } else {
-          doRefreshGraph();
-          vm.toggleCameraOrbit();
-        }
+        setTimeout(doRefreshGraph, 0);
+        vm.toggleCameraOrbit();
 
         $(window).on('resize', fitSize);
         $box.on('touchstart', onTouchStart);
         $box.on('touchend', onTouchEnd);
         $box.on('mouseenter', onCanvasMouseEnter);
         $box.on('mouseleave', onCanvasMouseLeave);
-
-        scrollbars.config = new SimpleBar($('#fg3d-config-form', $container)[0]);
-        scrollbars.legend = new SimpleBar($('#fg3d-legend-box', $container)[0]);
-        scrollbars.infobox = new SimpleBar($('#fg3d-info-box', $container)[0]);
 
         if ($scope) {
           // this code should work only in Angular version, not standalone (exported)
@@ -598,43 +665,112 @@
           });
         }
 
+        if (APP_CONFIG.ALLOW_PERFORMANCE_MONITOR === 'true') {
+          vm.performanceMonitor.component = createStats();
+          $('#fg3d-performance-monitor').append(vm.performanceMonitor.component.domElement);
+          renderStats();
+        }
+
         fitSize();
+
+        selectiveGlowPass = new window.SelectiveGlowPass(forceGraph.scene(), forceGraph.camera(), forceGraph.renderer());
+
+        refreshGlowParams();
       }
 
       function doRefreshGraph() {
-        var linkSprites = vm.config.labelLinks || vm.config.hlLabelLinks;
+        var showLinkLabels = vm.config.labelLinks || vm.config.hlLabelLinks;
 
         doCheckConfigFields();
+        updateNodesState();
 
         nothingIsMarked =
-          !hlLinks.length &&
-          !hlNodes.length &&
           !vm.config.nodeFilter &&
           !vm.config.linkFilter &&
-          !vm.selectedNodes.length;
+          !vm.selectedNodes.length &&
+          !vm.config.tagsFilter.length;
 
         forceGraph
-          .linkColor(linkColor)
-          .linkWidth(linkWidth)
-          .linkVisibility(linkVisibility)
-          .linkCurvature(linkCurvature)
+          .linkThreeObjectExtend(showLinkLabels)
+          .linkThreeObject(showLinkLabels ? linkSprite : undefined)
+          .linkPositionUpdate(showLinkLabels ? linkCustomPositionUpdate : undefined)
           .linkDirectionalArrowLength(vm.config.showArrows ? vm.config.arrowSize * 4 : 0)
           .linkDirectionalParticleWidth(vm.config.showParticles ? linkParticleSize : 0)
           .linkDirectionalParticles(vm.config.showParticles ?
             function (link) {
               return link.trf || 0;
             } : 0)
-          .nodeThreeObject(nodeGeometry)
-          .onNodeDragEnd(vm.config.fixDragged ? onNodeDragEnd : undefined)
-          .linkThreeObjectExtend(linkSprites)
-          .linkThreeObject(linkSprites ? linkSprite : undefined)
-          .linkPositionUpdate(linkSprites ? linkCustomPositionUpdate : undefined);
 
         onInterfaceUpdate && onInterfaceUpdate(vm);
+
+        refreshGlowParams();
+
+        forceGraph.refresh();
+      }
+
+      function createStats() {
+        if (APP_CONFIG.ALLOW_PERFORMANCE_MONITOR === 'true') {
+          var stats = new window.Stats;
+          stats.setMode(0);
+
+          stats.domElement.style.position = 'absolute';
+          stats.domElement.style.right =
+            stats.domElement.style.bottom = '0';
+          stats.domElement.style.left =
+            stats.domElement.style.top = 'auto';
+
+          return stats;
+        }
+      }
+
+      function renderStats() {
+        if (APP_CONFIG.ALLOW_PERFORMANCE_MONITOR === 'true') {
+          if (vm.performanceMonitor.show) {
+            requestAnimationFrame(renderStats);
+            vm.performanceMonitor.component.update();
+          }
+
+          vm.performanceMonitor.run = vm.performanceMonitor.show;
+        }
+      }
+
+      function refreshGlowParams() {
+        if (!selectiveGlowPass) {
+          return
+        }
+
+        if (vm.config.hlGlow > 0 && !nothingIsMarked) {
+          var currentPasses = forceGraph.postProcessingComposer().passes;
+
+          if (currentPasses.length === 1) {
+            forceGraph.postProcessingComposer().addPass(selectiveGlowPass);
+          }
+
+          updateBloomPass(extractBloomPass(selectiveGlowPass));
+
+        } else {
+          forceGraph.postProcessingComposer().passes.splice(1);
+          forceGraph.postProcessingComposer().passes[0].renderToScreen = true;
+        }
+      }
+
+      function extractBloomPass(selectiveGlowPass) {
+        return _.get(selectiveGlowPass, 'bloomComposer.passes.1');
+      }
+
+      function updateBloomPass(bloomPass) {
+        if (bloomPass) {
+          bloomPass.threshold = 0.01;
+          bloomPass.strength = vm.config.hlGlow / 12;
+          bloomPass.radius = vm.config.hlGlow / 40;
+        }
       }
 
       function doCheckConfigFields() {
         _.each(configFieldsLimits, function (obj, field) {
+          if (obj.onChange) {
+            obj.onChange(vm.config[field], vm);
+          }
           if (!_.isUndefined(obj.min) && vm.config[field] < obj.min) {
             vm.config[field] = obj.min;
           }
@@ -670,28 +806,30 @@
           }
         }
 
-        hlLinks = [];
-        hlNodes = [];
+        doRefreshGraph();
+      }
 
-        _.each(vm.selectedNodes, function (obj) {
-          if (isNode(obj)) {
-            _.each(relData.links, function (link) {
-              if (link.source === obj) {
-                hlLinks.push(link);
-                hlNodes.push(link.target);
-              } else if (link.target === obj) {
-                hlLinks.push(link);
-                hlNodes.push(link.source);
-              }
-            });
-            hlNodes.push(obj);
-          } else {
-            hlLinks = [obj];
-            hlNodes = [obj.source, obj.target];
-          }
+      function updateNodesState() {
+        _.each(graphData.nodes, function (node) {
+          node.isFiltered = isNodeFiltered(node) || isFilteredByTags(node);
+          node.isLit = false;
         });
 
-        doRefreshGraph();
+        _.each(graphData.links, function (link) {
+          link.isFiltered = isLinkFiltered(link) || isFilteredByTags(link);
+
+          var toFiltered = link.source.isFiltered || link.target.isFiltered || link.isFiltered;
+          var toSelected = link.source.isSelected || link.target.isSelected || link.isSelected;
+
+          if (vm.config.highlightAdjacent && (toFiltered || toSelected)
+            || (!vm.config.highlightAdjacent && toSelected)) {
+            link.isLit = !link.isFiltered;
+            link.source.isLit = !link.source.isFiltered;
+            link.target.isLit = !link.target.isFiltered;
+          } else {
+            link.isLit = false;
+          }
+        });
       }
 
       function onKeyPress(e) {
@@ -761,7 +899,7 @@
       }
 
       function cameraOrbitAnimation() {
-        camOrbiter.update();
+        camOrbiter && camOrbiter.update();
       }
 
       function getInitialLayersSelection() {
@@ -779,9 +917,17 @@
         );
       }
 
-      function getNodeMaterial(color, opacity) {
+      function getLambertMaterial(color, opacity) {
         return new Three.MeshLambertMaterial({
-          color: color,
+          color: Color(color).hex(),
+          transparent: true,
+          opacity: opacity,
+        });
+      }
+
+      function getLineBasicMaterial(color, opacity) {
+        return new Three.LineBasicMaterial({
+          color: Color(color).hex(),
           transparent: true,
           opacity: opacity,
         });
@@ -790,74 +936,95 @@
       function nodeGeometry(node) {
         var geometry = geometryCreator(node);
 
-        if (geometry) {
-          var mesh;
-
-          if (!isLayerVisible(node)) {
-            // just minimal mesh with 100% opacity as we dont have option to simply hide node
-            mesh = new Three.Mesh(geometryCreators.Tetrahedron(1), getNodeMaterial(DEFAULT_COLOR, 0));
-          } else {
-            var isLit = isNodeLit(node);
-            var isFiltered = isNodeFiltered(node);
-            var isSelected = node.isSelected;
-            var isMarked = isLit || isFiltered || isSelected;
-
-            var color = isSelected
-              ? SELECTED_COLOR
-              : isLit
-                ? AdpForceGraphHelpers.mixColors(node.col, HIGHLIGHT_COLOR, vm.config.hlColorize / 100, vm.config.hlBrightness / 100)
-                : isFiltered
-                  ? AdpForceGraphHelpers.mixColors(node.col, FILTERED_COLOR, vm.config.hlColorize / 100, vm.config.hlBrightness / 100)
-                  : (node.col || DEFAULT_COLOR).toLowerCase();
-
-            var opacity =
-              isMarked || nothingIsMarked ? NODE_COMMON_OPACITY : NODE_COMMON_OPACITY * (1 - vm.config.hlDim / 100);
-
-            mesh = new Three.Mesh(geometry, new getNodeMaterial(color, opacity));
-
-            // Adding text sprite with label in few cases
-            if ((vm.config.labelNodes || (vm.config.hlLabelNodes && isLit) || isFiltered || isSelected) && node.l) {
-              var size = node.size || DEFAULT_NODE_SIZE;
-              var labelText = shortLabelText(node.l, MAX_LABEL_LENGTH);
-              var sprite = new SpriteText(labelText);
-
-              sprite.color = AdpForceGraphHelpers.mixColors(color, 'white');
-              sprite.textHeight = size;
-              sprite.position.x = size;
-              sprite.position.y = size;
-              sprite.material.opacity = opacity;
-
-              mesh.add(sprite);
-            }
-          }
-
-          return mesh;
+        if (!geometry) {
+          return null;
         }
-        return null;
+
+        var isMarked = node.isLit || node.isFiltered || node.isSelected;
+        var mesh;
+        var color;
+
+        if (isMarked) {
+          var colorizeColor = vm.config.highlightAdjacent ? SELECTED_COLOR :
+            node.isSelected ? SELECTED_COLOR : node.isLit ? HIGHLIGHT_COLOR : node.isFiltered ? FILTERED_COLOR : 'white';
+          var brightness = vm.config.hlBrightness / 100;
+
+          color = AdpForceGraphHelpers.mixColors(node.col, colorizeColor, vm.config.hlColorize / 100, brightness);
+        } else {
+          color = (node.col || DEFAULT_COLOR).toLowerCase();
+        }
+
+        var opacity =
+          isMarked || nothingIsMarked ? NODE_COMMON_OPACITY : NODE_COMMON_OPACITY * (1 - vm.config.hlDim / 100);
+
+        var material = getLambertMaterial(color, opacity);
+
+        node.isGlow = isMarked;
+        geometry.renderOrder = 10;
+        mesh = new Three.Mesh(geometry, material);
+        mesh.renderOrder = 10;
+
+        // Adding text sprite with label in few cases
+        var showNodeLabel = node.l &&
+          (vm.config.labelNodes ||
+            (vm.config.hlLabelNodes && isMarked)
+          );
+
+        if (showNodeLabel) {
+          var size = node.size || DEFAULT_NODE_SIZE;
+          var labelText = shortLabelText(node.l, MAX_LABEL_LENGTH);
+          var sprite = new SpriteText(labelText);
+
+          sprite.color = AdpForceGraphHelpers.mixColors(color, 'white');
+          sprite.textHeight = size;
+          sprite.position.x = size;
+          sprite.position.y = size;
+          sprite.material.opacity = opacity;
+          sprite.material.depthWrite = false;
+          sprite.renderOrder = 10;
+
+          mesh.add(sprite);
+        }
+
+        return mesh;
       }
 
       function linkSprite(link) {
-        if ((vm.config.labelLinks || (vm.config.hlLabelLinks && isLinkLit(link))) && link.n) {
-          var labelText = shortLabelText(link.n, MAX_LABEL_LENGTH);
-          var sprite = new SpriteText(labelText);
-
-          sprite.color = AdpForceGraphHelpers.mixColors(link.col, 'white');
-          sprite.textHeight = link.fsize || DEFAULT_LINK_LABEL_SIZE;
-
-          return sprite;
+        if (!link.n) {
+          return null;
         }
-        return null;
+
+        var isMarked = link.isLit || link.isFiltered || link.isSelected;
+        var showLinkLabel = vm.config.labelLinks || (vm.config.hlLabelLinks && isMarked);
+
+        if (!showLinkLabel) {
+          return null;
+        }
+
+        var labelText = shortLabelText(link.n, MAX_LABEL_LENGTH);
+        var sprite = new SpriteText(labelText);
+        var linkOpacity =
+          (nothingIsMarked || isMarked) ? 1 : ((100 - vm.config.hlDim) / 100)
+
+        sprite.color = AdpForceGraphHelpers.mixColors(link.col, 'white')
+        sprite.material.opacity = linkOpacity;
+
+        sprite.textHeight = link.fsize || DEFAULT_LINK_LABEL_SIZE;
+
+        return sprite;
       }
 
-      function linkCustomPositionUpdate(sprite, p) {
+      function linkCustomPositionUpdate(sprite, p, link) {
         if (!sprite) {
           return;
         }
 
+        var mid = link.__curve.v1;
+        var midWeight = 1.3;
         var midPos = {
-          x: p.start.x + (p.end.x - p.start.x) / 2.2,
-          y: p.start.y + (p.end.y - p.start.y) / 2.2,
-          z: p.start.z + (p.end.z - p.start.z) / 2.2,
+          x: (p.start.x + p.end.x + mid.x * midWeight) / 3,
+          y: (p.start.y + p.end.y + mid.y * midWeight) / 3,
+          z: (p.start.z + p.end.z + mid.z * midWeight) / 3,
         };
 
         Object.assign(sprite.position, midPos);
@@ -872,72 +1039,117 @@
       }
 
       function linkColor(link) {
-        var color = vm.config.hlColorize / 100;
-        var bright = vm.config.hlBrightness / 100;
+        var colorizeColor;
+        var brightness = vm.config.hlBrightness / 100;
+        var linkColor;
 
-        if (link.isSelected) {
-          return SELECTED_COLOR;
-        } else if (isLinkFiltered(link)) {
-          return AdpForceGraphHelpers
-            .mixColors(link.col, FILTERED_COLOR, color, bright);
-        } else if (isLinkLit(link)) {
-          AdpForceGraphHelpers
-            .mixColors(link.col, HIGHLIGHT_COLOR, color, bright)
+        if (link.isSelected || (vm.config.highlightAdjacent && (link.isFiltered || link.isLit))) {
+          colorizeColor = SELECTED_COLOR;
+        } else if (link.isFiltered) {
+          colorizeColor = FILTERED_COLOR;
+        } else if (link.isLit) {
+          colorizeColor = HIGHLIGHT_COLOR;
+        }
+
+        if (colorizeColor) {
+          linkColor = AdpForceGraphHelpers.mixColors(link.col, colorizeColor, vm.config.hlColorize / 100, brightness);
         } else {
-          return link.col || DEFAULT_COLOR
+          linkColor = link.col || DEFAULT_COLOR;
+        }
+
+        return linkColor;
+      }
+
+      function linkArrowColor(link) {
+        var isMarked = link.isLit || link.isFiltered || link.isSelected;
+        var color = linkColor(link);
+        var opacity = (nothingIsMarked || isMarked) ? 1 : ((100 - vm.config.hlDim) / 100);
+
+        if (opacity === 1) {
+          return color;
+        } else {
+          return AdpForceGraphHelpers.mixColors('black', color, opacity)
         }
       }
 
-      function linkVisibility(link) {
-        return (
-          isLayerVisible(link) &&
-          (nothingIsMarked || isLinkLit(link) || link.isSelected || isLinkFiltered(link) || vm.config.hlDim < 50)
-        );
+      function linkMaterial(link) {
+        var isMarked = link.isLit || link.isFiltered || link.isSelected;
+        var color = linkColor(link);
+        var width = linkWidth(link);
+        var opacity = (nothingIsMarked || isMarked) ? 1 : ((100 - vm.config.hlDim) / 100)
+        var material = (width ? getLambertMaterial : getLineBasicMaterial)(color, opacity);
+
+        link.isGlow = isMarked;
+
+        return material;
       }
 
       function linkParticleSize(link) {
         return (link.pw || 0) * vm.config.particleSize;
       }
 
+      function onNodeHover(hoveredObject) {
+        forceGraph.controls().enabled = !hoveredObject;
+      }
+
       function onNodeDragEnd(node) {
-        node.fx = node.x;
-        node.fy = node.y;
-        node.fz = node.z;
+        if (vm.config.fixDragged) {
+          node.fx = node.x;
+          node.fy = node.y;
+          node.fz = node.z;
+        }
       }
 
-      function isNodeLit(node) {
-        return !!hlNodes.find(function (n) {
-          return node === n;
-        });
-      }
+      function isFilteredByTags(subj) {
+        if (subj.tags) {
+          return _.findIndex(subj.tags, isTagIsSelected) >= 0;
+        }
 
-      function isLinkLit(link) {
-        return !!hlLinks.find(function (n) {
-          return link === n;
-        });
-      }
+        return false;
 
-      function isLayerVisible(subj) {
-        return (
-          (vm.config.tagsFilter.length && _.intersection(subj.tags, vm.config.tagsFilter).length) ||
-          !vm.config.tagsFilter.length
-        );
+        function isTagIsSelected(tag) {
+          return vm.config.tagsFilter.indexOf(tag) >= 0;
+        }
       }
 
       function isNodeFiltered(node) {
-        return (
-          vm.config.nodeFilter &&
-          ((node.n && node.n.toLowerCase().indexOf(vm.config.nodeFilter.toLowerCase()) >= 0) ||
-            (node.obj.Acronym && node.obj.Acronym.toLowerCase().indexOf(vm.config.nodeFilter.toLowerCase()) >= 0))
-        );
+        return isObjectFiltered(node, 'node', 'n,Acronym');
       }
 
       function isLinkFiltered(link) {
-        return vm.config.linkFilter && link.n && link.n.toLowerCase().indexOf(vm.config.linkFilter.toLowerCase()) >= 0;
+        return isObjectFiltered(link, 'link', 'n');
+      }
+
+      function isObjectFiltered(obj, type, defaultFields) {
+        var filterVal = vm.config[type + 'Filter'];
+
+        if (!filterVal) {
+          return false;
+        }
+
+        var searchBy = _.get(visualisationSetup, type + 'SearchBy', defaultFields).split(',');
+        filterVal = filterVal.toLowerCase();
+
+        return !!_.find(searchBy,
+          function (fieldName) {
+            var value = _.get(obj, fieldName);
+
+            return value && value.toLowerCase().indexOf(filterVal) >= 0;
+          });
       }
 
       function linkDistance(link) {
         return ((link.dst || DEFAULT_LINK_DISTANCE) * vm.config.linkDistance) / 100;
+      }
+
+      function linkCurveRotation(link) {
+        var angle = 0;
+
+        if (link.linkTotal > 1) {
+          angle = 2 * Math.PI * link.linkNumber / link.linkTotal;
+        }
+
+        return angle;
       }
 
       function changeLinksDistance(factor) {
@@ -947,81 +1159,102 @@
         vm.reheatSimulation();
       }
 
-      function pickNodesAndLinks(res) {
-        var data = _.pick(res.data, ['nodes', 'links']);
-        var doTimes = function (obj) {
-          obj.createdAt = obj.crtd;
-          obj.updatedAt = obj.uptd;
-          delete obj.crtd;
-          delete obj.uptd;
-        };
-
-        _.each(data.nodes, function (node) {
-          node.l = node.obj.Acronym || node.n;
-          node.__type = 'node';
-          doTimes(node);
-        });
-
-        _.each(data.links, function (node) {
-          node.__type = 'link';
-          if (!node.pw) {
-            node.trf = 0;
-          }
-          doTimes(node);
-        });
-
-        return data;
-      }
-
-      function doLoadConfig() {
-        return $http
-          .post(APP_CONFIG.apiUrl + '/graphql', {
-            query: 'query q( $filter: mongoQueryInput ) {userSettings( filter: $filter ) { items { settings } }}',
-            variables: {
-              filter: {'mongoQuery': '{ type: { $eq: \'fg3d\'} }'},
-            }
-          })
-          .then(function (resp) {
-            vm.savedConfig = _.get(resp, 'data.data.userSettings.items[0].settings', null);
-          })
-          .catch(function (e) {
-            AdpNotificationService.notifyError('Error while loading settings: ' + e.message);
-          });
-      }
-
       function doSaveConfig() {
         return $http
           .post(APP_CONFIG.apiUrl + '/graphql', {
             query: 'mutation m( $filter: userSettingsInputWithoutId, $record: userSettingsInputWithoutId ){ userSettingsUpsertOne( filter: $filter, record: $record) { settings } }',
             variables: {
               filter: {type: 'fg3d'},
-              record: {settings: vm.savedConfig, type: 'fg3d'},
+              record: {settings: vm.cachedConfig, type: 'fg3d'},
             },
           })
           .then(function (resp) {
             if (resp.data.errors) {
-              AdpNotificationService.notifyError(
-                'Config save failed: ' +
-                _.map(resp.data.errors, function (err) {
-                  return err.message;
-                }).join('; ')
-              );
+              var message = _.map(resp.data.errors, function (err) {
+                return err.message;
+              }).join('; ');
+
+              handleError(message, 'Config save failed');
             } else {
               AdpNotificationService.notifySuccess('Config is saved');
             }
           })
           .catch(function (e) {
-            AdpNotificationService.notifyError('Error while saving settings: ' + e.message);
+            handleHttpError(e, 'Error while saving settings');
           });
       }
 
-      function isNode(obj) { return obj.__type === 'node'}
+      function getConfig() {
+        if (vm.cachedConfig) {
+          return Promise.resolve(vm.cachedConfig)
+        } else {
+          return doLoadConfig();
+        }
+      }
 
-      function isLink(obj) { return obj.__type === 'link'}
+      function applyConfig(conf, omitRefresh) {
+        if (conf && _.values(conf).length) {
+          var prevLinkDistance = vm.config.linkDistance;
+          var prevTagsFilter = vm.config.tagsFilter;
+
+          Object.assign(vm.config, conf);
+
+          if (!omitRefresh) {
+            if (prevLinkDistance !== vm.config.linkDistance) {
+              vm.reheatSimulation();
+            }
+
+            vm.resetFixDragged();
+
+            doRefreshGraph();
+            vm.toggleCameraOrbit();
+
+            if (tagsFilterInstance &&
+              _.intersection(prevTagsFilter, vm.config.tagsFilter).length < vm.config.tagsFilter.length
+            ) {
+              tagsFilterInstance.option('value', getTagsByFilterValue(vm.config.tagsFilter));
+            }
+          }
+        }
+      }
+
+      function handleHttpError(e, description) {
+        var xhrCodes = {
+          error: 'Network error or server is down',
+          timeout: 'Connection timeout',
+          abort: 'Aborted'
+        };
+        var message = e.xhrStatus === 'complete' ? (e.statusText || e.message) : xhrCodes[e.xhrStatus];
+
+        handleError(message, description);
+      }
+
+      function handleError(message, description) {
+        AdpNotificationService.notifyError((description ? description + ': ' : '') + message);
+      }
+
+      function isNode(obj) {
+        return obj.__type === 'node'
+      }
+
+      function isLink(obj) {
+        return obj.__type === 'link'
+      }
+
+      function getPreselectedSubjects(data) {
+        return _.union(getPreselected(data.nodes), getPreselected(data.links));
+
+        function getPreselected(items) {
+          return items ? _.filter(items, function (item) {
+            return item.isSelected
+          }) : [];
+        }
+      }
     };
 
     function geometryCreator(node) {
-      var geomShape = geometryCreators[node.shp || DEFAULT_NODE_SHAPE];
+      var shape = geometryCreators[node.shp] ? node.shp : DEFAULT_NODE_SHAPE;
+      var geomShape = geometryCreators[shape];
 
       if (geomShape) {
         return geomShape(node.size || DEFAULT_NODE_SIZE);

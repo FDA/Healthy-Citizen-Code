@@ -61,7 +61,7 @@ describe('lookup types', () => {
         expect(actualLookupValue).toEqual(expect.stringContaining(lastLabel));
 
         await clickSubmit(this.page);
-        await this.page.waitFor(2000);
+        await this.page.waitForTimeout(2000);
 
         const gridCellSelector = `tr.dx-data-row:first-child .name-${lookupNames.lookup}`;
         const labelFromGridCell = await this.page.evaluate(s => document.querySelector(s).innerText.trim(), gridCellSelector);

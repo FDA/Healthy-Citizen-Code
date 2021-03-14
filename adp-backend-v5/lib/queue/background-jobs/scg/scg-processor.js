@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const { getPercentage } = require('../util');
-const { getFunctions } = require('../../../synthetic-content-generator/start-helpers');
+const { getGenerators } = require('../../../synthetic-content-generator/start-helpers');
 const { generateDocs } = require('../../../synthetic-content-generator/generate-data');
 
 module.exports = (context) => {
@@ -12,7 +12,7 @@ module.exports = (context) => {
     const _paramsForGeneratorFiles = _.cloneDeep(paramsForGeneratorFiles);
     _paramsForGeneratorFiles.batchName = batchName;
 
-    const functions = await getFunctions({ generatorFiles, paramsForGeneratorFiles: _paramsForGeneratorFiles });
+    const generators = await getGenerators({ generatorFiles, paramsForGeneratorFiles: _paramsForGeneratorFiles });
 
     let generatedDocs = 0;
     const onDocInsert = function (_args) {
@@ -25,7 +25,10 @@ module.exports = (context) => {
       }
     };
 
-    await generateDocs({ appLib, env: process.env, functions, collectionName, count, log, onDocInsert });
-    await appLib.cache.clearCacheForModel(collectionName);
+    try {
+      await generateDocs({ appLib, env: process.env, generators, collectionName, count, log, onDocInsert });
+    } finally {
+      await appLib.cache.clearCacheForModel(collectionName);
+    }
   };
 };

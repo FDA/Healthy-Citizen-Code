@@ -7,9 +7,9 @@
 
   function AdpPath() {
     function next(path, key, index) {
-      var _path = _.isNil(index) ? path : path + '[' + index + ']';
-
       if (path) {
+        var _path = _.isNil(index) ? path : path + '[' + index + ']';
+
         return [_path, key].join('.');
       } else {
         return key;

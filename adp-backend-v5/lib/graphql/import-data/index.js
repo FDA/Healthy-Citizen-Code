@@ -18,7 +18,7 @@ module.exports = (appLib) => {
     }
 
     // TODO: check permissions for file creator?
-    const file = await appLib.db.model('files').findById(fileId).lean();
+    const { record: file } = await appLib.db.collection('files').hookQuery('findOne', { _id: ObjectId(fileId) });
     if (!file) {
       return null;
     }

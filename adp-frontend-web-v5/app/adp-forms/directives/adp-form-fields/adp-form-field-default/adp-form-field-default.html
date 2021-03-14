@@ -1,0 +1,18 @@
+<adp-form-field-container args="::args">
+  <label
+    ng-attr-adp-qaid-field-label="{{args.path}}"
+    class="label">
+    {{args.fieldSchema.fullName}}
+
+    <adp-required-mark
+      args="::args"
+      form-context="::formContext"
+    ></adp-required-mark>
+
+    <adp-tooltip adp-field="::args.fieldSchema"></adp-tooltip>
+  </label>
+
+  <default-control-factory args="::args"></default-control-factory>
+
+  <adp-messages ng-attr-adp-qaid-field-error-messages="{{args.path}}" args="::args"></adp-messages>
+</adp-form-field-container>

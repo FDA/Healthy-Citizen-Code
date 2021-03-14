@@ -39,8 +39,14 @@
 
       lookupInstance.close();
       ActionsHandlers.create(schema)
-        .then(function () {
-          getDataSource(args).reload();
+        .then(function (resp) {
+          return getDataSource(args).reload()
+            .then(function () {
+              return resp.data;
+            })
+        })
+        .then(function (respData) {
+          updateLookupValue({ _id: respData._id, table: schema.schemaName }, args);
         });
     }
 
@@ -58,6 +64,10 @@
             getDataSource(args).reload();
           })
           .then(function () {
+            if (!inSelectedValue(data, args)) {
+              return;
+            }
+
             updateLookupValue(data, args);
           });
       });
@@ -68,7 +78,7 @@
     function updateLookupHandler(data) {
       var schema = AdpSchemaService.getSchemaByName(data.table);
 
-      return GraphqlCollectionQuery(schema, {filter: ['_id', '=', data._id]})
+      return GraphqlCollectionQuery(schema, { filter: ['_id', '=', data._id] })
         .then(function (records) {
           return ActionsHandlers.update(schema, records.items[0]);
         });
@@ -88,10 +98,6 @@
     }
 
     function updateLookupValue(data, args) {
-      if (!inSelectedValue(data, args)) {
-        return;
-      }
-
       var requestParams = {
         selectedTable: args.fieldSchema.lookup.table[data.table],
         dxQuery: ['_id', '=', data._id],
@@ -123,7 +129,12 @@
         var prevValue = getLookupValue(args);
         var updateIndex = _.findIndex(prevValue, ['_id', newValue._id]);
 
-        prevValue[updateIndex] = newValue;
+        if (updateIndex < 0) {
+          prevValue.push(newValue);
+        } else {
+          prevValue[updateIndex] = newValue;
+        }
+
         lookupInstance.option('value', prevValue);
       }
 

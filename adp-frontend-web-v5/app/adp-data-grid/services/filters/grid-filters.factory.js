@@ -34,6 +34,7 @@
       time: DateFilter,
       dateTime: DateFilter,
       boolean: BooleanFilter,
+      triStateBoolean: BooleanFilter,
       imperialWeight: ImperialUnitSingleFilter,
       imperialWeightWithOz: ImperialUnitMultipleFilter,
       imperialHeight: ImperialUnitMultipleFilter,

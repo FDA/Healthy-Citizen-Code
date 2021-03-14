@@ -4,6 +4,7 @@
   angular.module('SmartAdmin.Layout')
     .directive('smartMenuItems', function (
       AdpSchemaService,
+      AdpUnifiedArgs,
       AdpIconsHelper,
       $rootScope,
       $compile
@@ -11,12 +12,8 @@
       return {
         restrict: 'A',
         compile: function (element, attrs) {
-          var appSchema = window.adpAppStore.appModel();
           var menuItems = window.adpAppStore.menuItems();
           var groupName = attrs.smartMenuItems;
-          var iconTypes = {
-            'font-awesome': 'fa fa-lg fa-fw fa-'
-          };
           var user = lsService.getUser();
           var ul = $('<ul />', {
             'smart-menu': ''
@@ -25,7 +22,7 @@
           menuItems.sort( AdpSchemaService.getSorter('order') )
 
           _.forEach(menuItems, function (item) {
-            createMenuItem(item, ul, 1);
+            createMenuItem(item, ul, 1, '');
           });
 
           var $scope = $rootScope.$new();
@@ -42,11 +39,11 @@
             }
           }
 
-          function createMenuItem(item, parent, level) {
+          function createMenuItem(item, parent, level, path) {
             if (groupFilter(item)) {
               var $li = item.type === 'MenuSeparator'
                 ? createSeparator()
-                : createItem(item, parent, level);
+                : createItem(item, parent, level, path);
 
               if (item.css) {
                 $li.addClass(item.css);
@@ -56,11 +53,16 @@
             }
           }
 
-          function createItem(item, parent, level) {
+          function createItem(item, parent, level, path) {
             var li = $('<li />', {'ui-sref-active-eq': 'active'});
             var a = $('<a />');
             var itemBody = null;
-            var unifiedParams = {appSchema: appSchema, menuLevel: level};
+            var currentPath = path + (path ? '.' : '') + item.fieldName;
+            var unifiedParams = AdpUnifiedArgs.getHelperParamsWithConfig({
+              path: currentPath,
+              formData: null,
+              schema: item.fieldSchema,
+            });
 
             li.append(a);
 
@@ -78,7 +80,7 @@
 
             if (_.isFunction(item.action)) {
               a.on("click", function (e) {
-                item.action(Object.assign({event:e}, unifiedParams))
+                item.action(Object.assign(unifiedParams, {event: e, action: "menuClick"}))
               });
             }
 
@@ -89,7 +91,7 @@
             }
 
             if (_.isFunction(item.render)) {
-              itemBody = item.render(unifiedParams);
+              itemBody = item.render(Object.assign(unifiedParams, {action: "menuRender"}));
             }
 
             if (item.title) {
@@ -114,7 +116,7 @@
               item.items.sort( AdpSchemaService.getSorter('order') )
 
               _.forEach(item.items, function (child) {
-                createMenuItem(child, ul, level + 1);
+                createMenuItem(child, ul, level + 1, currentPath);
               })
             }
 

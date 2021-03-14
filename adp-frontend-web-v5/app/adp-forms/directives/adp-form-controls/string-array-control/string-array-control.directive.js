@@ -8,30 +8,33 @@
   function stringArrayControl(
     StringArrayEditorConfig,
     AdpValidationUtils,
-    AdpFieldsService
+    AdpFieldsService,
+    ControlSetterGetter
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/string-array-control/string-array-control.html',
       require: '^^form',
       link: function (scope) {
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.getterSetter = function (e) {
+          if (arguments.length) {
+            getterSetterFn(e.value);
+          }
+          return getterSetterFn();
+        };
+
+        scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
         scope.config = getConfig(scope.field);
 
         function getConfig(field) {
-          var fieldData = scope.adpFormData[scope.field.fieldName];
-          var defaults = StringArrayEditorConfig(fieldData, updateModel);
+          var fieldData = getterSetterFn();
+          var defaults = StringArrayEditorConfig(scope.args, fieldData, scope.getterSetter);
           return AdpFieldsService.configFromParameters(field, defaults);
-        }
-
-        function updateModel(valueObj) {
-          scope.adpFormData[scope.field.fieldName] = valueObj.value;
         }
       }
     }

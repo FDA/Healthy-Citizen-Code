@@ -1,0 +1,14 @@
+
+<input
+  type="hidden"
+  name="{{args.fieldSchema.fieldName}}"
+  id="{{$id + args.fieldSchema.fieldName}}"
+  adp-validate="args"
+  ng-required="isRequired()"
+  ng-model="getterSetter"
+  ng-model-options="{ getterSetter: true }"
+>
+<div class="adp-form-fieldset">
+<div class="col col-6" ng-attr-adp-qaid-field-control="{{args.path}}"></div>
+<div class="col col-6 adp-human-readable"></div>
+</div>

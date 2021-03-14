@@ -4,7 +4,7 @@ const { schemaComposer } = require('graphql-compose');
 const log = require('log4js').getLogger('graphql/dev-extreme-group-resolver');
 const { getOrCreateEnum, dxQueryWithQuickFilterInput } = require('../type/common');
 const { handleGraphQlError } = require('../util');
-const { getQuickFilterConditions } = require('../../graphql/quick-filter/util');
+const { getQuickFilterConditions } = require('../quick-filter/util');
 const GraphQlContext = require('../../request-context/graphql/GraphQlContext');
 const { ValidationError } = require('../../errors');
 
@@ -56,7 +56,6 @@ function addDevExtremeGroupResolver(model, modelName) {
     },
   };
   const type = schemaComposer.createObjectTC(config);
-  // const type = getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT_WITH_ACTIONS);
 
   type.addResolver({
     kind: 'query',
@@ -82,7 +81,7 @@ function addDevExtremeGroupResolver(model, modelName) {
       const { appLib, req } = context;
       try {
         const graphQlContext = new GraphQlContext(appLib, req, modelName, args);
-        const { appModel, userPermissions, inlineContext, userContext, model: dbModel } = graphQlContext;
+        const { appModel, userPermissions, inlineContext, userContext } = graphQlContext;
         args.take = graphQlContext._getLimit(args.take);
 
         const {
@@ -101,8 +100,8 @@ function addDevExtremeGroupResolver(model, modelName) {
           getActionFuncsMeta(appModel, userPermissions, inlineContext, true),
         ]);
         const scopeConditions = scopeConditionsMeta.overallConditions;
-        const conditions = MONGO.and(
-          getConditionForActualRecord(),
+        let conditions = MONGO.and(
+          getConditionForActualRecord(modelName),
           dxConditions,
           quickFilterConditions,
           scopeConditions
@@ -111,15 +110,18 @@ function addDevExtremeGroupResolver(model, modelName) {
           // no data is retrieved with false condition
           return getCommonResponse({}, args);
         }
+        if (conditions === true) {
+          conditions = {};
+        }
 
         const { actionFuncs } = actionFuncsMeta;
         const isEmptyGroup = _.isEmpty(args.group);
 
         if (isEmptyGroup) {
-          return await getData({ args, model: dbModel, conditions, appLib, actionFuncs, userContext });
+          return await getData({ args, modelName, conditions, appLib, actionFuncs, userContext });
         }
 
-        return await getGroups({ args, model: dbModel, conditions, appLib, actionFuncs, userContext, appModel });
+        return await getGroups({ args, modelName, conditions, appLib, actionFuncs, userContext, appModel });
       } catch (e) {
         handleGraphQlError(e, `Unable to find requested elements`, log, appLib);
       }
@@ -129,7 +131,7 @@ function addDevExtremeGroupResolver(model, modelName) {
   return { type, resolver: type.getResolver(devExtremeGroupResolverName) };
 }
 
-async function getData({ args, model, conditions, appLib, actionFuncs, userContext }) {
+async function getData({ args, modelName, conditions, appLib, actionFuncs, userContext }) {
   const pipeline = [{ $match: conditions }];
   const { requireTotalCount, totalSummary, groupSummary, group, skip, take, sort } = args;
 
@@ -139,10 +141,10 @@ async function getData({ args, model, conditions, appLib, actionFuncs, userConte
       data: [{ $sort: getItemsSort(sort) }, { $skip: skip }, { $limit: take }],
     },
   });
-  const dbData = (await appLib.dba.aggregatePipeline({ model, pipeline }))[0];
+  const dbData = (await appLib.dba.aggregatePipeline({ modelName, pipeline }))[0];
 
   const response = getCommonResponse(dbData, args);
-  response.data = await transformData({ data: dbData.data, appLib, actionFuncs, model, userContext });
+  response.data = await transformData({ data: dbData.data, appLib, actionFuncs, modelName, userContext });
 
   return response;
 }
@@ -161,7 +163,7 @@ function validateGroups(group, appModel) {
   }
 }
 
-async function getGroups({ args, model, conditions, appLib, actionFuncs, userContext, appModel }) {
+async function getGroups({ args, modelName, conditions, appLib, actionFuncs, userContext, appModel }) {
   const { requireGroupCount, requireTotalCount, totalSummary, groupSummary, group, skip, take } = args;
   validateGroups(group, appModel);
   transformGroupOptions(group, appModel);
@@ -187,7 +189,7 @@ async function getGroups({ args, model, conditions, appLib, actionFuncs, userCon
     },
   });
 
-  const dbData = (await appLib.dba.aggregatePipeline({ model, pipeline }))[0];
+  const dbData = (await appLib.dba.aggregatePipeline({ modelName, pipeline }))[0];
 
   const response = getCommonResponse(dbData, args);
   const allGroupsData = dbData.data;
@@ -198,7 +200,7 @@ async function getGroups({ args, model, conditions, appLib, actionFuncs, userCon
     groupSummary,
     appLib,
     actionFuncs,
-    model,
+    modelName,
     userContext,
     currentGroupFilter: conditions,
     appModel,
@@ -314,7 +316,7 @@ async function getGroupData({
   dbGroupData,
   appLib,
   actionFuncs,
-  model,
+  modelName,
   userContext,
   currentGroupFilter,
   appModel,
@@ -340,7 +342,7 @@ async function getGroupData({
         data: dbGroupData.items,
         appLib,
         actionFuncs,
-        model,
+        modelName,
         userContext,
       });
     } else {
@@ -367,7 +369,7 @@ async function getGroupData({
       ...postTransformPipeline,
     ];
 
-    const nestedDbGroupData = await appLib.dba.aggregatePipeline({ model, pipeline });
+    const nestedDbGroupData = await appLib.dba.aggregatePipeline({ modelName, pipeline });
     transformedGroup.items = await transformGroups({
       allGroupsData: nestedDbGroupData,
       group,
@@ -375,7 +377,7 @@ async function getGroupData({
       groupSummary,
       appLib,
       actionFuncs,
-      model,
+      modelName,
       userContext,
       currentGroupFilter: filterForNextGroups,
       appModel,
@@ -392,7 +394,7 @@ function transformGroups({
   groupSummary,
   appLib,
   actionFuncs,
-  model,
+  modelName,
   userContext,
   currentGroupFilter,
   appModel,
@@ -405,7 +407,7 @@ function transformGroups({
       dbGroupData,
       appLib,
       actionFuncs,
-      model,
+      modelName,
       userContext,
       currentGroupFilter,
       appModel,
@@ -413,9 +415,9 @@ function transformGroups({
   );
 }
 
-async function transformData({ data, appLib, actionFuncs, model, userContext }) {
+async function transformData({ data, appLib, actionFuncs, modelName, userContext }) {
   appLib.accessUtil.addActionsToDocs(data, actionFuncs);
-  await appLib.dba.postTransform(data, model.modelName, userContext);
+  await appLib.dba.postTransform(data, modelName, userContext);
 
   return data;
 }

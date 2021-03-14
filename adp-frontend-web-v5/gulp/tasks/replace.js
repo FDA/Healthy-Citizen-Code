@@ -14,29 +14,40 @@ gulp.task('html:replace', function () {
   var options = {
     url: endpoint,
     method: 'GET',
-    json: true
+    json: true,
   };
 
   return requestPromise(options)
-    .then(function (body) {
-      body.data.socketIoClientPath = [APP_CONFIG.apiUrl, 'socket.io', 'socket.io.js'].join('/');
-      return replaceMeta(body, `${conf.paths.tmp}/index.html`, 'index.html')
+    .then(function ({ data }) {
+      const socketIoClientPath = `${APP_CONFIG.apiUrl}/socket.io/socket.io.js`;
+      const { APP_SUFFIX } = process.env;
+      const appSuffix = !!APP_SUFFIX ? '/' + APP_SUFFIX : '';
+      const baseUrl = !!APP_SUFFIX ? '/' + APP_SUFFIX : '/';
+
+      return replaceMeta({
+        data: { ...data, socketIoClientPath, appSuffix, baseUrl },
+        srcFileName: `${conf.paths.tmp}/index.html`,
+        dstFileName: 'index.html',
+      });
     });
 });
 
 gulp.task('sw:replace', function () {
-  var endpoint = [APP_CONFIG.apiUrl, 'build-app-model'].join('/');
+  const endpoint = [APP_CONFIG.apiUrl, 'build-app-model'].join('/');
 
-  var options = {
+  const options = {
     url: endpoint,
     method: 'GET',
     json: true
   };
 
+  const { APP_SUFFIX } = process.env;
   return requestPromise(options)
-    .then(function (body) {
-      return replaceMeta(body, `${conf.paths.src}/sw-manager.js.template`, 'sw-manager.js')
-    });
+    .then(({ data }) => replaceMeta({
+      data: { ...data, baseUrl: !!APP_SUFFIX ? '/' + APP_SUFFIX : '' },
+      srcFileName: `${conf.paths.src}/sw-manager.js.template`,
+      dstFileName: 'sw-manager.js',
+    }));
 });
 
 gulp.task('clientModules:replace', async () => {
@@ -56,20 +67,20 @@ gulp.task('clientModules:replace', async () => {
     })
     .filter(v => !!v);
 
-  return replaceMeta(
-    { data: { moduleList: JSON.stringify(moduleNames) } },
-    `${conf.paths.src}/app-client.module.js.template`,
-    'app-client.module.js'
-  );
+  return replaceMeta({
+    data: { moduleList: JSON.stringify(moduleNames) },
+    srcFileName: `${conf.paths.src}/app-client.module.js.template`,
+    dstFileName: 'app-client.module.js',
+  });
 });
 
-function replaceMeta(body, src, newName) {
-  let re = /<!-- (.+) -->/g;
+function replaceMeta({ data, srcFileName, dstFileName }) {
+  let re = /{{ (.+) }}/g;
 
   return new Promise((resolve, reject) => {
-    gulp.src(path.join(src))
-      .pipe(replace(re, replaceCb.bind(this, body.data)))
-      .pipe(rename(newName))
+    gulp.src(path.join(srcFileName))
+      .pipe(replace(re, replaceCb.bind(this, data)))
+      .pipe(rename(dstFileName))
       .pipe(gulp.dest(conf.paths.tmp))
       .on('end', resolve)
       .on('error', reject);

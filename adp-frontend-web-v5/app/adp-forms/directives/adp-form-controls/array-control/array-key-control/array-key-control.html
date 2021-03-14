@@ -1,7 +1,10 @@
+<div class="adp-form-fieldset">
 <adp-form-field-container
-  adp-field="keyField"
-  class="col col-12">
-
+  args="arrayKeyArgs"
+  ng-if="arrayKeyArgs"
+  class="col col-12"
+  ng-attr-adp-qaid-field="{{arrayKeyArgs.path}}"
+>
   <label class="label">
     Key
     <span class="text-danger" ng-show="isKeyRequired()">&nbsp;*</span>
@@ -11,12 +14,15 @@
     type="text"
     name="{{keyField.fieldName}}"
     ng-required="isKeyRequired()"
-    ng-model="formData[keyField.fieldName]"
+    ng-model="arrayItem[keyField.fieldName]"
+    ng-model-options="{ allowInvalid: true }"
     class="form-control"
     adp-autocomplete="keyField"
-    ng-required="isKeyRequired()"
-    adp-validate="arrayKeyValidationParams"
+    schema-key-reg-exp
+    associative-array-key-unique
+    ng-attr-adp-qaid-field-control="{{arrayKeyArgs.path}}"
   >
 
-  <adp-messages adp-field="keyField"></adp-messages>
+  <adp-messages ng-attr-adp-qaid-field-error-messages="{{arrayKeyArgs.path}}"  args="arrayKeyArgs"></adp-messages>
 </adp-form-field-container>
+</div>

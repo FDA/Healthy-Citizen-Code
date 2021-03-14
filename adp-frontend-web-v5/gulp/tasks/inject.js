@@ -10,7 +10,7 @@ const gulpFilter = require('gulp-filter');
 // todo: move overides here
 // todo: add files from package not found
 gulpInject.transform.html.js = function (path) {
-  return '<script type="application/javascript" src="'+path+'"></script>';
+  return `<script type="application/javascript" src="/${path}"></script>`;
 };
 
 const conf = require('../config');
@@ -97,9 +97,7 @@ function injectNpmJs() {
       '**/jquery.js',
       '**/bootstrap.js',
       '**/angular.js',
-      '**/highcharts.js',
       '**/wavesurfer*.js',
-      '**/moment*.js',
       '**/jszip*.js',
       '**/exceljs*.js',
       '**/*.js'
@@ -139,17 +137,6 @@ function getMainBowerFiles() {
       "ngmap": {
         "main": "./build/scripts/ng-map.js",
       },
-      "angularjs-bootstrap-datetimepicker": {
-        "main": [
-          "src/js/datetimepicker.js",
-          "src/js/datetimepicker.templates.js",
-          "src/css/datetimepicker.css",
-        ],
-        "dependencies": {
-          "angular": "^1.x",
-          "moment": "^2.x"
-        }
-      },
       "jszip": {
         "main": [
           "./dist/jszip.js"
@@ -179,14 +166,6 @@ function getMainBowerFiles() {
       },
       "jquery-ui-dist": {
         "main": "./jquery-ui.js"
-      },
-      "highcharts": {
-        "main": [
-          "highcharts.js",
-          "highcharts-more.js",
-          "modules/solid-gauge.src.js"
-        ],
-        "dependencies": {}
       },
 
       "videojs-record": {
@@ -231,13 +210,6 @@ function getMainBowerFiles() {
       "jquery-migrate": {
         "main": "./dist/jquery-migrate.min.js",
       },
-      "@shopify/draggable": {
-        "main": [
-          "./lib/es5/draggable.js",
-          "./lib/es5/plugins.js",
-          "./lib/es5/sortable.js",
-        ]
-      },
       "ace-builds": {
         "ignore": true,
       },
@@ -245,7 +217,10 @@ function getMainBowerFiles() {
         "ignore": true,
       },
       "echarts": {
-        "main": ['./dist/echarts.common.min.js']
+        "main": [
+          './dist/echarts-en.common.min.js',
+          './dist/echarts.common.min.js',
+        ]
       },
       "js-yaml": {
         "main": ['./dist/js-yaml.js']
@@ -258,6 +233,14 @@ function getMainBowerFiles() {
       },
       "minimist": {
         "ignore": true,
+      },
+      "dayjs": {
+        "main": [
+          "./dayjs.min.js",
+          "./plugin/isSameOrAfter.js",
+          "./plugin/isSameOrBefore.js",
+          "./plugin/customParseFormat.js",
+        ],
       },
     }
   });

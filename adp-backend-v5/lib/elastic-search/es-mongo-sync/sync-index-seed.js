@@ -69,12 +69,13 @@ async function getAllCollecitonNames(appRoot) {
   appLib.helperUtil = await require('../../helper-util')(appLib, helperDirPaths, buildAppModelCodeOnStart);
 
   const { combineModels } = require('../../util/model');
-  appLib.appModel = await combineModels({
+  const { model } = await combineModels({
     modelSources: [`${appRoot}/model/model`, ...getSchemaNestedPaths('model')],
     log: console.log.bind(console),
     appModelProcessors: appLib.appModelHelpers.appModelProcessors,
     macrosDirPaths: [...getSchemaNestedPaths('macros'), `${appRoot}/model/macros`],
   });
+  appLib.appModel = model;
 
   return _.keys(appLib.appModel.models);
 }

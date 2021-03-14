@@ -13,7 +13,7 @@ const {
 
 const clickCheckboxForArrayIndex = async (index, name) => {
   await this.page.click(`[name="array[${index}]"] [ng-field-name="${name}"] .dx-switch-handle`);
-  await this.page.waitFor(200);
+  await this.page.waitForTimeout(200);
 }
 
 describe('complex objects', () => {
@@ -47,7 +47,7 @@ describe('complex objects', () => {
         await clickSubmit(this.page);
 
         const boolean1MsgSelector = getArrayFieldErrorSelector('array', 0, 'boolean1');
-        await this.page.waitFor(boolean1MsgSelector, {
+        await this.page.waitForSelector(boolean1MsgSelector, {
           timeout: SELECTOR_TIMEOUT,
         });
 
@@ -79,7 +79,7 @@ describe('complex objects', () => {
       });
 
     test(
-      'should submit with valid array elems',
+      'should submit with valid array elements',
       async () => {
         // valid elem
         const firstElemString1Selector = getArrayFieldSelector('array', 0, 'string1');

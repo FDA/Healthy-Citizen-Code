@@ -40,7 +40,7 @@ const evalFieldsExistInForm = (names) => {
 };
 
 const evalFieldsInDatable = (id, names) => {
-  let parentSelector = `[adp-${id}][data-action="update"]`;
+  let parentSelector = `[adp-${id}]`;
   let parent = document.querySelector(parentSelector).closest('tr');
 
   const hasDomElement = (name) => {
@@ -129,7 +129,7 @@ describe('page functionality', () => {
           "hiddenInTables": false,
         };
 
-        await this.page.waitFor(`[adp-${_id}][data-action="update"]`, { timeout: SELECTOR_TIMEOUT });
+        await this.page.waitForSelector(`.actions-column-container[adp-${_id}]`, { timeout: SELECTOR_TIMEOUT });
         const actualVisibility = await this.page.evaluate(evalFieldsInDatable, _id, fieldNames);
 
         expect(expectedVisibility).toEqual(actualVisibility);
@@ -153,7 +153,7 @@ describe('page functionality', () => {
           "hiddenInTables": true,
         };
 
-        await this.page.waitFor(ACTIONS_COLUMN_SELECTOR, { timeout: SELECTOR_TIMEOUT });
+        await this.page.waitForSelector(ACTIONS_COLUMN_SELECTOR, { timeout: SELECTOR_TIMEOUT });
         await clickViewDetailsButton(_id, this.page);
 
         const actualVisibility = await this.page.evaluate(evalFieldsInViewDetails, _id, fieldNames, VIEW_DETAILS_SELECTOR);

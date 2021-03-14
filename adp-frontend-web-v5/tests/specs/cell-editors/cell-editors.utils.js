@@ -52,7 +52,7 @@ async function fillArrayEditors(data, page) {
 async function fillLookupEditors(data, page) {
   for await (const [fieldName, values] of Object.entries(data)) {
     for await (const value of values.split(', ')) {
-      await page.waitFor(200);
+      await page.waitForTimeout(200);
       await selectLookupValue(value, fieldName, page, '.dx-data-row');
     }
 
@@ -76,7 +76,7 @@ async function fillImperialUnitsEditors(data, page) {
 }
 
 async function waitForGridLoaded(page) {
-  await page.waitFor(2000);
+  await page.waitForTimeout(2000);
 }
 
 async function clickOutsideOfGridToTriggerSubmit(page) {

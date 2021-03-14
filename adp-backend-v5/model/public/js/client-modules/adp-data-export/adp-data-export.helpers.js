@@ -15,6 +15,7 @@
     GridExportGenerators,
     $timeout,
     GraphqlCollectionMutator,
+    GraphqlHelper,
     ErrorHelpers
   ) {
     var PREF_TYPE_LS_KEY = 'gridPrefExportFormat';
@@ -51,13 +52,14 @@
       },
     };
 
-    function getExporter(gridComponent, schema) {
+    function getExporter(gridComponent, schema, customGridOptions) {
       return function (options) {
         var method = getExportMethod(options.format);
         setPrefType(options.format);
 
         options.grid = gridComponent;
         options.schema = schema;
+        options.customGridOptions = customGridOptions;
 
         return method(options);
       };
@@ -100,11 +102,13 @@
 
     function serverSideExport(options) {
       var datasetsSchema = AdpSchemaService.getSchemaByName('datasets');
+
       var params = {
         parentCollectionName: options.schema.schemaName,
-        filter: gridFilterCondition(options.grid, options.rowsToExport === 'selected'),
+        filter: gridFilterCondition(options),
         projections: gridVisibleColumns(options.grid),
       };
+
       var record = {
         name: options.name,
         description: options.description,
@@ -128,10 +132,14 @@
       );
     }
 
-    function gridFilterCondition(grid, getSelected) {
+    function gridFilterCondition(options) {
+      var grid = options.grid;
+      var customGridOptions = options.customGridOptions;
+      var schema = options.schema;
+      var hasRowSelection = options.rowsToExport === 'selected';
       var filter = [];
 
-      if (getSelected) {
+      if (hasRowSelection) {
         var selectedRows = grid.getSelectedRowKeys();
 
         if (selectedRows.length) {
@@ -142,7 +150,9 @@
           filter.pop();
         }
       } else {
-        filter = grid.getCombinedFilter();
+        var buildFilter = customGridOptions && _.clone(customGridOptions.value('filterBuilder'));
+
+        filter = GraphqlHelper.combineFilters(schema, grid.getCombinedFilter(), buildFilter);
       }
 
       return filter;
@@ -203,13 +213,12 @@
             path: gridCell.column.dataField,
             formData: gridCell.data,
             schema: schema,
+            action: 'export',
           });
 
           args.params = getHtmlRenderersParameters(exportFormat);
-
-          var renderer = HtmlCellRenderer(args);
-
-          options.excelCell.value = renderer(args);
+          options.excelCell.value = HtmlCellRenderer(args);
+          options.excelCell.alignment = { vertical: 'top', horizontal: 'left' };
         }
       };
     }

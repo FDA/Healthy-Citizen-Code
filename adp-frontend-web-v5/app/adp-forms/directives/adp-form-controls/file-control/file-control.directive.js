@@ -5,31 +5,37 @@
     .module('app.adpForms')
     .directive('fileControl', fileControl);
 
-  function fileControl(AdpValidationUtils) {
+  function fileControl(
+    AdpValidationUtils,
+    ControlSetterGetter
+  ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/file-control/file-control.html',
       require: '^^form',
       link: function (scope, el, attrs, formCtrl) {
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.getterSetter = getterSetterFn;
         scope.form = formCtrl;
         scope.fakeModel = null;
+        scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
 
-        if (scope.field.type.indexOf('[]') > -1) {
-          scope.field['arguments'] = scope.field['arguments'] || {};
-          scope.field['arguments'].multiple = true;
-        }
+        (function init() {
+          var controlOptions = _.get(scope, 'args.fieldSchema.arguments', {});
+          if (_.isNil(controlOptions)) {
+            _.set(scope, 'args.fieldSchema.arguments', {});
+          }
 
-        if (_.isNil(scope.adpFormData[scope.field.fieldName])) {
-          scope.adpFormData[scope.field.fieldName] = [];
-        }
+          _.set(scope, 'args.fieldSchema.arguments.multiple', scope.args.fieldSchema.type.includes('[]'));
 
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+          if (_.isNil(getterSetterFn())) {
+            getterSetterFn([]);
+          }
+        })();
       }
     }
   }

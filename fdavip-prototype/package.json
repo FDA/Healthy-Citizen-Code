@@ -1,0 +1,28 @@
+{
+  "name": "fdavip-prototype",
+  "version": "0.0.1",
+  "description": "fdavip-prototype",
+  "author": "Andrey Mikhalchuk",
+  "license": "UNLICENSED",
+  "dependencies": {
+    "async": "^2.4.1",
+    "dotenv": "^4.0.0",
+    "lodash": "^4.17.4",
+    "log4js": "^5.2.2",
+    "request": "^2.83.0"
+  },
+  "devDependencies": {},
+  "husky": {
+    "hooks": {
+      "pre-commit": "lint-staged",
+      "post-commit": "git update-index -g"
+    }
+  },
+  "lint-staged": {
+    "*.js": [
+      "eslint --fix",
+      "prettier --write",
+      "git add"
+    ]
+  }
+}

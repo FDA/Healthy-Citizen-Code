@@ -23,7 +23,8 @@
         placeholder: '(All)',
         items: getDataSource(),
         onValueChanged: init.onValueChanged,
-        valueChangeEvent: 'change blur',
+        valueChangeEvent: 'change',
+        showClearButton: true,
       };
     }
 

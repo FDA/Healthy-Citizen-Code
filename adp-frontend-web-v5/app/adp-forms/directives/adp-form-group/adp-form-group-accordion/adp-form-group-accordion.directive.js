@@ -14,10 +14,8 @@
       restrict: 'E',
       scope: {
         fields: '<',
-        formData: '<',
-        formParams: '<',
-        schema: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-group/adp-form-group-accordion/adp-form-group-accordion.html',
       require: '^^form',
@@ -25,32 +23,42 @@
         scope.groupHasErrors = AdpFormService.groupHasErrors;
         scope.groupCompleted = AdpFormService.groupCompleted;
         scope.form = form;
+        scope.formParams = _.assign(
+          {},
+          _.get(scope, 'args.modelSchema.parameters', {}),
+          { heightStyle: 'content', collapsible: true }
+        );
+
+        scope.listOfFieldsForEachGroup = _.mapValues(scope.fields.groups, function (group) {
+          return group.fields.map(function (field) {
+            return AdpUnifiedArgs.next(scope.args, field.fieldName);
+          });
+        });
+
+        scope.display = function(path) {
+          return scope.formContext.visibilityMap[path];
+        };
 
         scope.getHeader = function (group) {
-          var args = AdpUnifiedArgs.getHelperParamsWithConfig({
-            path: group.fieldName,
-            action: scope.validationParams.formParams.action,
-            formData: scope.formData,
-            schema: scope.schema,
-          });
-          args.data = getData(group);
-
+          var args = getArgsForGroup(group);
           return AdpFieldsService.getHeaderRenderer(args);
         };
 
-        scope.display = function(path) {
-          var visibilityMap = scope.validationParams.formParams.visibilityMap;
-          return visibilityMap[path];
-        };
-
         function getData(group) {
-          var data = {};
+          var fieldNames = _.map(group.fields, function (f) { return f.fieldName });
+          return _.pick(scope.args.row, fieldNames);
+        }
 
-          _.each(group.fields, function (f) {
-            data[f.fieldName] = scope.formData[f.fieldName];
+        function getArgsForGroup(group) {
+          var args = AdpUnifiedArgs.getHelperParamsWithConfig({
+            path: group.fieldName,
+            action: scope.args.action,
+            formData: scope.args.row,
+            schema: scope.args.modelSchema,
           });
+          args.data = getData(group);
 
-          return data;
+          return args;
         }
       }
     }

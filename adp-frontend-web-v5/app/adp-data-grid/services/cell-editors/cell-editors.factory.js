@@ -32,6 +32,7 @@
       Double: NumberEditor,
       Text: TextEditor,
       Boolean: BooleanEditor,
+      TriStateBoolean: BooleanEditor,
 
       List: ListEditorFactory.single,
       'List[]': ListEditorFactory.multiple,

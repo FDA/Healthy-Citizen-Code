@@ -9,7 +9,8 @@
   function CurrencyEditor(
     DX_ACCOUNTING_FORMAT,
     AdpFieldsService,
-    DxEditorMixin
+    DxEditorMixin,
+    DxNumberHelper
   ) {
     return function () {
       return DxEditorMixin({
@@ -21,8 +22,14 @@
         },
 
         getOptions: function (init) {
+          var preventWheelCb = DxNumberHelper.preventMouseWheel();
+
           var defaults = {
             onValueChanged: function (e) {
+              if (preventWheelCb(e) !== undefined) {
+                return false;
+              }
+
               if (e.value === 0 && _.isNumber(e.previousValue)) {
                 // update on next change event fired
                 e.component.option('value', null);

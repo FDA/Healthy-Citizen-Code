@@ -105,7 +105,7 @@ describe('lookup types', () => {
 
         expect(basicTypesForm).toBeTruthy();
 
-        await this.page.click(`${basicTypesFormSelector} [data-actions-name="cancelSubmit"]`);
+        await this.page.click(`${basicTypesFormSelector} [data-action-name="cancelSubmit"]`);
         await this.page.waitForSelector(basicTypesFormSelector, { hidden: true });
 
         const basicTypesDateFormSelector = '.basicTypesDates';

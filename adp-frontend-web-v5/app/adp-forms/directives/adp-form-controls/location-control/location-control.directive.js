@@ -9,20 +9,31 @@
     AdpValidationUtils,
     AdpGeoLocationService,
     NgMap,
-    $q
+    $q,
+    ControlSetterGetter
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/location-control/location-control.html',
       require: '^^form',
       link: function (scope, el, attrs, formCtrl) {
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.getterSetter = getterSetterFn;
+        scope.getterSetterForLabel = function (value) {
+          var currentValue = getterSetterFn();
+          if (arguments.length) {
+            currentValue.label = value;
+            return getterSetterFn(currentValue);
+          }
+
+          return currentValue.label;
+        }
+
+        scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
 
         var mapDefaults = {
           center: [37.753344,-122.409668],
@@ -36,7 +47,7 @@
         };
 
         if (_.isEmpty(getData())) {
-          scope.adpFormData[scope.field.fieldName] = fieldDataDefaults;
+          getterSetterFn(fieldDataDefaults);
         }
 
         var fieldParamsDefaults = {
@@ -51,10 +62,10 @@
         scope.detecting = false;
         scope.isReady = false;
 
-        scope.fieldParams = _.extend(fieldParamsDefaults, scope.field.parameters);
+        scope.fieldParams = _.extend(fieldParamsDefaults, _.get(scope, 'args.fieldSchema.parameters'));
         scope.map = {};
 
-        function init() {
+        (function init() {
           var setupMapPromise = scope.fieldParams.showMap ? setupMap : $q.when;
 
           AdpGeoLocationService.isReady()
@@ -63,11 +74,10 @@
             })
             .then(setupMapPromise)
             .then(setInitialValuePromise);
-        }
-        init();
+        })();
 
         function getData() {
-          return scope.adpFormData[scope.field.fieldName];
+          return getterSetterFn();
         }
 
         function setInitialValuePromise() {
@@ -146,8 +156,9 @@
         }
 
         function setFormValidity(status) {
-          scope.form[scope.field.fieldName].$setValidity('location', status);
-          scope.form[scope.field.fieldName].$setDirty();
+          var fieldName = scope.args.fieldSchema.fieldName;
+          scope.form[fieldName].$setValidity('location', status);
+          scope.form[fieldName].$setDirty();
         }
 
         // events

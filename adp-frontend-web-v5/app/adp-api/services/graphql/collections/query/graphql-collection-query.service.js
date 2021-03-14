@@ -19,7 +19,7 @@
       return GraphqlRequest({
         name: queryName,
         query: GraphqlCollectionQueryBuilder(queryName, schema, params),
-        variables: GraphqlCollectionQueryVariables(params),
+        variables: GraphqlCollectionQueryVariables(schema, params),
       });
     };
   }

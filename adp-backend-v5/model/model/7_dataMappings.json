@@ -6,22 +6,22 @@
       "actions": {
         "fields": {
           "update": {
-            "permissions": "accessAsUser"
+            "permissions": "accessDataMappings"
           },
           "delete": {
-            "permissions": "accessAsUser"
+            "permissions": "accessDataMappings"
           },
           "clone": {
-            "permissions": "accessAsUser"
+            "permissions": "accessDataMappings"
           },
           "viewDetails": {
-            "permissions": "accessAsUser"
+            "permissions": "accessDataMappings"
           },
           "view": {
-            "permissions": "accessAsUser"
+            "permissions": "accessDataMappings"
           },
           "create": {
-            "permissions": "accessAsUser"
+            "permissions": "accessDataMappings"
           }
         }
       },
@@ -31,7 +31,7 @@
           "where": "{ 'creator._id': { $eq: this.req.user._id } }"
         },
         "admin": {
-          "permissions": "accessAsSuperAdmin",
+          "permissions": "accessDataMappings",
           "where": "{$eq:[1,1]}"
         }
       },

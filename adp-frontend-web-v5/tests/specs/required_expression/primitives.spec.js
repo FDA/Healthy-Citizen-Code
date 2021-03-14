@@ -100,7 +100,7 @@ describe('required expression', () => {
         expect(actualRequiredSnapshot1).toEqual(expectedRequiredSnapshot1);
 
         await this.page.click('[ng-field-name="b1"] .dx-switch-handle');
-        await this.page.waitFor(200);
+        await this.page.waitForTimeout(200);
 
         await clickSubmit(this.page);
 
@@ -134,7 +134,7 @@ describe('required expression', () => {
         expect(initial).toBe('');
 
         await this.page.click('[ng-field-name="b1"] .dx-switch-handle');
-        await this.page.waitFor(200);
+        await this.page.waitForTimeout(200);
 
         let autoSelected = await singleSelectValue(fieldSelector, this.page);
 

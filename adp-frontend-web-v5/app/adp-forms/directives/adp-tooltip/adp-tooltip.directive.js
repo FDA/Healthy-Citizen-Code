@@ -14,6 +14,7 @@
       replace: true,
       templateUrl: 'app/adp-forms/directives/adp-tooltip/adp-tooltip.template.html',
       link: function (scope) {
+        scope.hasDescription = !_.isUndefined(scope.adpField.description);
         scope.tooltipHtml = function (field) {
           return $sce.trustAsHtml(
             '<span class="fa- fa fa-warning"></span> ' + field.description

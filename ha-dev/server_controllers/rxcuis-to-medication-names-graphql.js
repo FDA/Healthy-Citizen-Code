@@ -36,7 +36,7 @@ function getDrugsRxnormConsoSingleMedicationNames(schemaComposer) {
     args: {
       rxcuis: '[String]!',
     },
-    type: type,
+    type,
     resolve: async ({ args, context }) => {
       try {
         const { appLib, req } = context;
@@ -45,7 +45,7 @@ function getDrugsRxnormConsoSingleMedicationNames(schemaComposer) {
         const action = 'view';
         const inlineContext = appLib.accessUtil.getInlineContext(req);
         const userPermissions = appLib.accessUtil.getReqPermissions(req);
-        const conditionForActualRecord = appLib.dba.getConditionForActualRecord();
+        const conditionForActualRecord = appLib.dba.getConditionForActualRecord(consoCollectionName);
 
         // check permissions for modelNames
         const scopeConditionsMeta = await appLib.accessUtil.getScopeConditionsMeta(
@@ -60,7 +60,7 @@ function getDrugsRxnormConsoSingleMedicationNames(schemaComposer) {
         // TODO: add filtering input rxcuis on existence in consoCollectionName?
         const rxcuiToMedicationName = {};
         await Promise.map(rxcuis, async rxcui => {
-          const doc = await appLib.db.models[consoCollectionName].findOne({ ...consoConditions, rxcui }, { str: 1}).lean().exec();
+          const doc = await appLib.db.collection(consoCollectionName).findOne({ ...consoConditions, rxcui }, { str: 1});
           const medicationName = doc ? doc.str : null;
           rxcuiToMedicationName[rxcui] = medicationName;
         });

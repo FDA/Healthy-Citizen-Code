@@ -57,7 +57,15 @@
         iconName = 'square-o';
       }
 
-      return '<i class="fa fa-' + iconName + '"></i>';
+      return '<div class="adp-boolean-cell"><i class="fa fa-' + iconName + '"></i></div>';
+    }
+
+    function trisStateBoolean(args) {
+      if (args.data === null) {
+        return GRID_FORMAT.EMPTY_VALUE;
+      }
+
+      return boolean(args);
     }
 
     function string(args) {
@@ -112,7 +120,7 @@
       }
 
       if (FormattersHelper.asText(args)) {
-        return rawValue;
+        return args.action === 'export' ? rawValue.replace(/\n+/g, ' ').trim() : rawValue;
       } else {
         var renderAsHtml = _.get(args, 'fieldSchema.parameters.renderAsHtml', false);
         return renderAsHtml ? htmlCellContent(args) : stripHtml(rawValue);
@@ -151,6 +159,7 @@
       number: number,
       stringArray: stringArray,
       boolean: boolean,
+      trisStateBoolean: trisStateBoolean,
       string: string,
       phone: phone,
       currency: currency,

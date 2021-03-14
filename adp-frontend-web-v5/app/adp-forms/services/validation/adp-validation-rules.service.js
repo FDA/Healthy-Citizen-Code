@@ -10,84 +10,90 @@
     function noopValidator() { return true; }
 
     var minMaxValidators = {
-      minString: function (value, field, validationRule) {
-        var limit = parseInt(validationRule.arguments.limit);
-        return AdpValidationUtils.minString(value, limit);
+      minString: function (args) {
+        var limitStr = _.get(args, 'validationRule.arguments.limit');
+        var limit = parseInt(limitStr);
+        return AdpValidationUtils.minString(args.data, limit);
       },
 
-      maxString: function (value, field, validationRule) {
-        var limit = parseInt(validationRule.arguments.limit);
-        return AdpValidationUtils.maxString(value, limit);
+      maxString: function (args) {
+        var limitStr = _.get(args, 'validationRule.arguments.limit');
+        var limit = parseInt(limitStr);
+        return AdpValidationUtils.maxString(args.data, limit);
       },
 
-      minNumber: function (value, field, validationRule) {
-        var limit = parseFloat(validationRule.arguments.limit);
-        return value >= limit;
+      minNumber: function (args) {
+        var limitStr = _.get(args, 'validationRule.arguments.limit');
+        var limit = parseFloat(limitStr);
+
+        return args.data >= limit;
       },
 
-      maxNumber: function (value, field, validationRule) {
-        var limit = parseFloat(validationRule.arguments.limit);
-        return value <= limit;
+      maxNumber: function (args) {
+        var limitStr = _.get(args, 'validationRule.arguments.limit');
+        var limit = parseFloat(limitStr);
+
+        return args.data <= limit;
       },
 
-      minDate: function (value, field, validationRule) {
-        var dates = prepareDateForComparision(value, validationRule.arguments.limit, field.type);
+      minDate: function (args) {
+        var dates = prepareDateForComparison(args);
         if (_.isNil(dates)) {
           return true;
         }
 
-        return moment(dates.value).isSameOrAfter(dates.comparisionDate, 'day');
+        return dayjs(dates.value).isSameOrAfter(dates.comparisonDate, 'day');
       },
 
-      maxDate: function (value, field, validationRule) {
-        var dates = prepareDateForComparision(value, validationRule.arguments.limit, field.type);
+      maxDate: function (args) {
+        var dates = prepareDateForComparison(args);
         if (_.isNil(dates)) {
           return true;
         }
 
-        return moment(dates.value).isSameOrBefore(dates.comparisionDate, 'day');
+        return dayjs(dates.value).isSameOrBefore(dates.comparisonDate, 'day');
       },
 
-      minTime: function (value, field, validationRule) {
-        var dates = prepareDateForComparision(value, validationRule.arguments.limit, field.type);
+      minTime: function (args) {
+        var dates = prepareDateForComparison(args);
         if (_.isNil(dates)) {
           return true;
         }
 
         var lhs = AdpValidationUtils.getMinutesOfDay(dates.value);
-        var rhs = AdpValidationUtils.getMinutesOfDay(dates.comparisionDate);
+        var rhs = AdpValidationUtils.getMinutesOfDay(dates.comparisonDate);
 
         return lhs >= rhs;
       },
 
-      maxTime: function (value, field, validationRule) {
-        var dates = prepareDateForComparision(value, validationRule.arguments.limit, field.type);
+      maxTime: function (args) {
+        var dates = prepareDateForComparison(args);
         if (_.isNil(dates)) {
           return true;
         }
 
         var lhs = AdpValidationUtils.getMinutesOfDay(dates.value);
-        var rhs = AdpValidationUtils.getMinutesOfDay(dates.comparisionDate);
+        var rhs = AdpValidationUtils.getMinutesOfDay(dates.comparisonDate);
 
         return lhs <= rhs;
       },
 
-      minDateTime: function (value, field, validationRule) {
-        var dates = prepareDateForComparision(value, validationRule.arguments.limit, field.type);
+      minDateTime: function (args) {
+        var dates = prepareDateForComparison(args);
         if (_.isNil(dates)) {
           return true;
         }
 
-        return moment(dates.value).isSameOrAfter(dates.comparisionDate);
+        return dayjs(dates.value).isSameOrAfter(dates.comparisonDate);
       },
 
-      maxDateTime: function (value, field, validationRule) {
-        var dates = prepareDateForComparision(value, validationRule.arguments.limit, field.type);
+      maxDateTime: function (args) {
+        var dates = prepareDateForComparison(args);
         if (_.isNil(dates)) {
           return true;
         }
 
-        return moment(dates.value).isSameOrBefore(dates.comparisionDate);
+        return dayjs(dates.value).isSameOrBefore(dates.comparisonDate);
       },
       minImperialHeight: noopValidator,
       minImperialWeightWithOz: noopValidator,
@@ -95,15 +101,17 @@
       maxImperialHeight: noopValidator,
       maxImperialWeightWithOz: noopValidator,
       maxImperialWeight: noopValidator,
+      boolean: noopValidator,
+      triStateBoolean: noopValidator,
     };
 
-    function validateNumberRange(value, field, validationRule) {
-      var isMultiple = field.type.includes('[]');
-      var range = selectRange(validationRule);
+    function validateNumberRange(args) {
+      var isMultiple = args.fieldSchema.type.includes('[]');
+      var range = selectRange(args.validationRule);
 
       return isMultiple ?
-        validateNumberRangeMultiple(value, range) :
-        validateNumberRangeSingle(value, range);
+        validateNumberRangeMultiple(args.data, range) :
+        validateNumberRangeSingle(args.data, range);
     }
 
     function selectRange(validationRule) {
@@ -127,78 +135,79 @@
     }
 
     return {
-      regex: function (value, field, validationRule) {
-        var regexPart = validationRule.arguments.regex;
-        var regexOptionsPart = validationRule.arguments.regexOptions;
+      regex: function (args) {
+        var regexPart = _.get(args, 'validationRule.arguments.regex');
+        var regexOptionsPart = _.get(args, 'validationRule.arguments.regexOptions');
         var regex = new RegExp(regexPart, regexOptionsPart);
 
-        return regex.test(value);
+        return regex.test(args.data);
       },
 
-      maxLength: function (value, field, validationRule) {
-        var limit = parseInt(validationRule.arguments.length);
-        return AdpValidationUtils.maxString(value.length, limit);
+      maxLength: function (args) {
+        var limit = parseInt(args.validationRule.arguments.length);
+        return AdpValidationUtils.maxString(args.data.length, limit);
       },
 
-      minLength: function (value, field, validationRule) {
-        var limit = parseInt(validationRule.arguments.length);
-        return AdpValidationUtils.minString(value.length, limit);
+      minLength: function (args) {
+        var limit = parseInt(args.validationRule.arguments.length);
+        return AdpValidationUtils.minString(args.data.length, limit);
       },
 
-      passwordMatch: function(value, field, validationRule, formData) {
-        var matchedFieldName = validationRule.arguments.matchedField;
-        var matchedValue = formData[matchedFieldName];
+      passwordMatch: function(args) {
+        var matchedFieldName = args.validationRule.arguments.matchedField;
+        var matchedValue = args.formData[matchedFieldName];
 
-        return value === matchedValue;
+        return args.data === matchedValue;
       },
 
-      min: function(value, field, validationRule) {
-        var ruleName = 'min' + field.type;
+      min: function(args) {
+        var ruleName = 'min' + args.fieldSchema.type;
         return minMaxValidators[ruleName].apply(null, arguments);
       },
 
-      max: function(value, field, validationRule) {
-        var ruleName = 'max' + field.type;
+      max: function(args) {
+        var ruleName = 'max' + args.fieldSchema.type;
         return minMaxValidators[ruleName].apply(null, arguments);
       },
 
-      notInFuture: function(value, field) {
-        var dates = prepareDateForComparision(value, today(), field.type);
+      notInFuture: function(args) {
+        var dates = prepareDateForComparison(args, today());
         if (_.isNil(dates)) {
           return true;
         }
 
-        return moment(dates.value).isSameOrBefore(dates.comparisionDate);
+        return dayjs(dates.value).isSameOrBefore(dates.comparisonDate);
       },
 
-      notInPast: function(value, field) {
-        var dates = prepareDateForComparision(value, today(), field.type);
+      notInPast: function(args) {
+        var dates = prepareDateForComparison(args, today());
         if (_.isNil(dates)) {
           return true;
         }
 
-        return moment(dates.value).isSameOrAfter(dates.comparisionDate);
+        return dayjs(dates.value).isSameOrAfter(dates.comparisonDate);
       },
-      imperialHeightRange: noopValidator,
       int32: validateNumberRange,
       int64: validateNumberRange,
+      imperialHeightRange: noopValidator,
       decimal128: noopValidator,
     };
 
     /**
-     *
-     * @param value {String|Date}
-     * @param comparisionDate {String|Date}
-     * @param fieldType {String}
-     * @return {null|{value: moment.Moment, comparisionDate: moment.Moment}}
+     * @return {null|{value: dayjs.dayjs, comparisonDate: String}}
      */
-    function prepareDateForComparision(value, comparisionDate, fieldType) {
+    function prepareDateForComparison(args, comparisonDate) {
+      var format = AdpValidationUtils.getDateFormat(args.fieldSchema.type);
+      var limitDate = comparisonDate ?
+        dayjs(comparisonDate) :
+        dayjs(args.validationRule.arguments.limit, format);
+
       var dates = {
-        value: AdpValidationUtils.dateToMoment(new Date(value), fieldType),
-        comparisionDate: AdpValidationUtils.dateToMoment(comparisionDate, fieldType),
+        value: dayjs(args.data),
+        comparisonDate: limitDate,
       };
 
-      if (!dates.value.isValid() || !dates.comparisionDate.isValid()) {
+      if (!dates.value.isValid() || !dates.comparisonDate.isValid()) {
         return null;
       }
 

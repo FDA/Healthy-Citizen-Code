@@ -3,6 +3,30 @@
     "roles": {
       "type": "Schema",
       "description": "This collection solely serves the purpose of user authentication.",
+      "other": {
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessRolesAndPermissions"
+            },
+            "delete": {
+              "permissions": "accessRolesAndPermissions"
+            },
+            "clone": {
+              "permissions": "accessRolesAndPermissions"
+            },
+            "viewDetails": {
+              "permissions": "accessRolesAndPermissions"
+            },
+            "view": {
+              "permissions": "accessRolesAndPermissions"
+            },
+            "create": {
+              "permissions": "accessRolesAndPermissions"
+            }
+          }
+        }
+      },
       "fields": {
         "name": {
           "type": "String",
@@ -26,13 +50,24 @@
       },
       "hooks": {
         "post": ["cacheRolesToPermissions"]
+      },
+      "scopes": {
+        "viewScope": {
+          "permissions": {
+            "view": "accessRolesAndPermissions",
+            "viewDetails": "accessRolesAndPermissions"
+          },
+          "where": true
+        },
+        "allowed": {
+          "permissions": "accessRolesAndPermissions",
+          "where": "{ system: { $ne: true } }"
+        },
+        "superAdminScope": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "{ system: { $ne: true } }"
+        }
       }
-      //      "scopes": {
-      //        "superAdminScope": {
-      //          "permissions": "accessAsSuperAdmin",
-      //          "where": "{$eq: ['$system', false]}"
-      //        }
-      //      }
     }
   }
 }

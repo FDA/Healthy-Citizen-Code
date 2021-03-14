@@ -1,3 +1,10 @@
+<div
+  ng-if="vm.options.title"
+  class="modal-header"
+>
+  <h3 class="modal-title">{{vm.options.title}}</h3>
+</div>
+
 <div class="modal-body" ng-bind-html="vm.options.message"></div>
 
 <div class="modal-footer">

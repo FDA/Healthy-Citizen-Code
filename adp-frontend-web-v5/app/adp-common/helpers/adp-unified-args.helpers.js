@@ -31,6 +31,7 @@
         action: options.action,
 
         parentData: _getParentData(options.path, options.formData),
+
         path: options.path,
         schemaPath: schemaPath,
         index: _getItemIndex(options.path),
@@ -55,11 +56,27 @@
       return params;
     }
 
+    /**
+     *
+     * @param args - unified args
+     * @param fieldName
+     * @param [index]
+     * @return {{path, appSchema: *, data: *, indexes, parentData, schemaPath, fieldSchema: *, action, index, row: *, modelSchema: *}}
+     */
+    function next(args, fieldName, index) {
+      var fn = _.isNil(args.config) ? getHelperParams : getHelperParamsWithConfig;
+
+      return fn({
+        path: AdpPath.next(args.path, fieldName, index),
+        formData: args.row,
+        action: args.action,
+        schema: args.modelSchema,
+      });
+    }
+
     function _getParentData(path, formData) {
       var parentPath = AdpPath.parent(path);
-      var data =_.get(formData, parentPath, null);
-
-      return data;
+      return _.get(formData, parentPath, formData);
     }
 
     function _getItemIndexes(path) {
@@ -89,7 +106,8 @@
 
     return {
       getHelperParams: getHelperParams,
-      getHelperParamsWithConfig: getHelperParamsWithConfig
+      getHelperParamsWithConfig: getHelperParamsWithConfig,
+      next: next,
     }
   }
 })();

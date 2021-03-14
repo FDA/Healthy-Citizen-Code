@@ -7,34 +7,37 @@
 
   function decimalArrayControl(
     AdpValidationUtils,
-    AdpValidationRules,
     AdpFieldsService,
-    NumberArrayEditorConfig
+    NumberArrayEditorConfig,
+    ControlSetterGetter
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/decimal-array-control/decimal-array-control.html',
       require: '^^form',
       link: function (scope) {
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
-        scope.config = getConfig(scope.field);
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.getterSetter = function (e) {
+          if (arguments.length) {
+            getterSetterFn(e.value);
+          }
+
+          return getterSetterFn();
+        };
+
+        scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
+        scope.config = getConfig(scope.args.fieldSchema);
 
         function getConfig(field) {
-          var fieldData = scope.adpFormData[scope.field.fieldName];
-          var baseConfig = NumberArrayEditorConfig(fieldData, updateModel);
+          var fieldData = scope.getterSetter();
+          var baseConfig = NumberArrayEditorConfig(scope.args, fieldData, scope.getterSetter);
           baseConfig.fieldTemplate = fieldTemplate;
 
           return AdpFieldsService.configFromParameters(field, baseConfig);
-        }
-
-        function updateModel(valueObj) {
-          scope.adpFormData[scope.field.fieldName] = valueObj.value;
         }
 
         function fieldTemplate(data, container) {
@@ -43,6 +46,9 @@
               placeholder: 'Type in new value and press Enter',
               mode: 'text',
               valueChangeEvent: 'blur input',
+              inputAttr: {
+                'adp-qaid-field-control': scope.args.path,
+              },
               onKeyPress: function (e) {
                 var isDecimalChar = /(\+|-|\.|(\d|e))/.test(e.event.key);
                 if (!isDecimalChar) {

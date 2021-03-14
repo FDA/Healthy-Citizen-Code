@@ -5,36 +5,30 @@
     .module('app.adpForms')
     .directive('codeControl', codeControl);
 
-  function codeControl(AdpValidationUtils) {
+  function codeControl(
+    AdpValidationUtils,
+    ControlSetterGetter
+  ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/code-control/code-control.html',
       require: '^^form',
       link: function (scope) {
-        if (_.isNil(getData())) {
-          setData('');
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.getterSetter = getterSetterFn;
+        if (_.isNil(getterSetterFn())) {
+          getterSetterFn('');
         }
 
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
-        scope.getData = getData;
-        scope.editorsConfig = _.get(scope, 'field.parameters.codeEditor', {});
+        scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
+        scope.editorsConfig = _.get(scope, 'args.fieldSchema.parameters.codeEditor', {});
 
-        if (scope.field.type === 'Mixed') {
+        if (scope.args.fieldSchema.type === 'Mixed') {
           scope.editorsConfig.mode = 'ace/mode/json5';
-        }
-
-        function getData() {
-          return scope.adpFormData[scope.field.fieldName];
-        }
-
-        function setData(value) {
-          return scope.adpFormData[scope.field.fieldName] = value;
         }
       }
     }

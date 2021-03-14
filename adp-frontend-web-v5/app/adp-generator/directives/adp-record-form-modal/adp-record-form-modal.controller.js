@@ -14,8 +14,8 @@
 
       vm.formOptions = {
         schemaActionsStrategy: {
-          onComplete: function () {
-            vm.close();
+          onComplete: function (args, data) {
+            return vm.close({ $value: { args: args, data: data }});
           },
           onCancel: function () {
             vm.close();

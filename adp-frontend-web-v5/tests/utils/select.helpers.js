@@ -24,7 +24,7 @@ async function selectLookupValue(value, lookupName, page, parentSelector) {
   const inputSelector = `${lookupSelector} .dx-texteditor-input`;
   await page.$eval(inputSelector, el => el.value = '');
   await page.type(inputSelector, value);
-  await page.waitFor(1000);
+  await page.waitForTimeout(1000);
 
   await clickDxOptionByText(value, lookupSelector, page);
 }
@@ -38,6 +38,9 @@ async function selectLookupTable(tableName, lookupName, page) {
 
 async function getSingleLookupValue(lookupName, page) {
   const lookupSelector = `.lookup-name-${lookupName} .adp-lookup-selector .adp-text-box-label`;
+
+  await page.waitForSelector(lookupSelector);
+
   return page.$eval(lookupSelector, el => el.innerText);
 }
 
@@ -82,6 +85,8 @@ async function getImperialUnitMultipleValue(fieldName, page) {
 
 async function selectDxListValue(value, fieldName, page, idPrefix = 'list_id') {
   const listSelector = `#${idPrefix}_${fieldName}`;
+
+  await page.waitForSelector(listSelector);
   await page.click(listSelector);
 
   await clickDxOptionByText(value, listSelector, page);
@@ -89,9 +94,11 @@ async function selectDxListValue(value, fieldName, page, idPrefix = 'list_id') {
 
 async function getDxSingleListValue(fieldName, page, idPrefix = 'list_id') {
   const listSelector = `#${idPrefix}_${fieldName}`;
+  const inputSelector = `${listSelector} .dx-texteditor-input`;
 
-  return await page.$eval(
-    `${listSelector} .dx-texteditor-input`,
+  await page.waitForSelector(inputSelector);
+
+  return await page.$eval(inputSelector,
     el => el.value
   )
 }

@@ -8,13 +8,16 @@
   /** @ngInject */
   function AdpSessionService(
     $http,
+    $timeout,
     APP_CONFIG,
     $state,
     $location,
     AdpNotificationService,
     AdpAppModel,
     AdpSocketIoService,
-    ResponseError
+    AdpSessionHelper,
+    ResponseError,
+    $rootScope
   ) {
     return {
       login: login,
@@ -24,7 +27,7 @@
       handleUnauthorized: handleUnauthorized,
       setAuthHeaders: setAuthHeaders,
       setAjaxAuthHeaders: setAjaxAuthHeaders,
-      getAuthHeaders: getAuthHeaders
+      getAuthHeaders: getAuthHeaders,
     };
 
     function login(credentials) {
@@ -39,26 +42,44 @@
     }
 
     function setupAppForUser(userData) {
-      lsService.setUserData(userData.data.data);
+      var loginData = userData.data.data;
+      lsService.setUserData(loginData);
+      $rootScope.avatar = loginData.user.avatar;
+
+      AdpSessionHelper.setTokenRefreshTimeout();
+      AdpSessionHelper.setSessionRemainingTimeout();
 
       return AdpAppModel.getAppModel(userData)
         .then(afterLoginRedirect);
     }
 
     function logout() {
-      AdpSocketIoService.logout();
       lsService.removeUserData();
       lsService.setGuestUserData();
 
-      return AdpAppModel.getAppModel()
+      AdpSocketIoService.socketLogout();
+      AdpSessionHelper.cancelAllTimers();
+
+      $http.post(APP_CONFIG.apiUrl + '/logout');
+      // Because this is just notification for fellow tabs, there is no reason to process any results...
+
+      return AdpAppModel
+        .getAppModel()
         .then(function () {
           var authSetting = window.adpAppStore.appInterface().app.auth;
           if (authSetting.requireAuthentication) {
-            return $state.go('auth.login', { returnUrl: encodeURI($location.url()) });
+            return forceLoginPage();
           } else {
             $state.go($state.current.name, {}, {reload: 'app'});
           }
         })
+        .catch(forceLoginPage)
+
+      function forceLoginPage() {
+        var params = $location.path()==='/login' ? {} : {returnUrl: encodeURI($location.url())};
+
+        return $state.go('auth.login', params);
+      }
     }
 
     function forgot(params) {

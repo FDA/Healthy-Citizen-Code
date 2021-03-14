@@ -9,88 +9,94 @@
     AdpValidationUtils,
     AdpFormIteratorUtils,
     AdpFormDataUtils,
+    AdpUnifiedArgs,
     AdpPath
   ) {
     return {
       eval: evaluateRequiredStatus,
     }
 
-    function evaluateRequiredStatus(formParams, form) {
-      var formData = formParams.row;
-      var schema = formParams.modelSchema;
+    // TODO: refactor to unified args
+    function evaluateRequiredStatus(options) {
+      var args = options.args;
+      var form = options.form;
+      var requiredMap = options.requiredMap;
 
-      var cleanedFormData = AdpFormDataUtils.cleanFormDataAndKeepArraysPositions(formData, schema);
+      var argsWithCleanedRow = AdpFormDataUtils.cleanFormDataAndKeepArraysPositions(args);
 
       AdpFormIteratorUtils.traverseFormDataPostOrder(
-        formData, schema, '',
-        function (_formDataRef, field, path) {
-          if (field.type === 'Schema') {
+        args,
+        function (currArgs) {
+          if (currArgs.fieldSchema.type === 'Schema') {
             return;
           }
 
-          // shallow copy only, does not mutate any object inside please
-          var currentFormParams = _.clone(formParams);
-          currentFormParams.path = path;
+          var currentArgsForRequired = AdpUnifiedArgs.getHelperParamsWithConfig({
+            formData: argsWithCleanedRow.row,
+            schema: currArgs.modelSchema,
+            path: currArgs.path,
+            action: currArgs.action,
+          });
+          _evalRequiredStatus(currentArgsForRequired, requiredMap);
 
-          _evalRequiredStatus(currentFormParams);
-
-          if (field.type === 'Array' || field.type === 'Object') {
-            var objectData = _.get(cleanedFormData, path, null);
-            _evalRequiredStatusForObjectChildren(currentFormParams, objectData, form);
-          } else if (field.type === 'AssociativeArray') {
-            var arrayData = _.get(cleanedFormData, path, null);
-            _evalRequiredStatusForAssociativeArrayChildren(currentFormParams, arrayData, form);
+          if (['Array', 'Object'].includes(currentArgsForRequired.fieldSchema.type)) {
+            _evalRequiredStatusForObjectChildren(currentArgsForRequired, form, requiredMap);
+          } else if (currArgs.fieldSchema.type === 'AssociativeArray') {
+            _evalRequiredStatusForAssociativeArrayChildren(currentArgsForRequired, form, requiredMap);
           }
         });
     }
 
-    function _evalRequiredStatusForObjectChildren(formParams, objectData, form) {
-      var isObjectRequired = formParams.requiredMap[formParams.path];
+    function _evalRequiredStatus(args, requiredMap) {
+      var requiredFn = AdpValidationUtils.getRequiredFn(args);
+
+      try {
+        requiredMap[args.path] = requiredFn();
+      } catch (e) {
+        requiredMap[args.path] = false;
+        console.error('Error while evaluating required condition for: ', args, e);
+      }
+    }
+
+    function _evalRequiredStatusForObjectChildren(args, form, requiredMap) {
+      var isObjectRequired = requiredMap[args.path];
       if (isObjectRequired) {
         return;
       }
 
-      if (_.isNull(objectData) && _hasRequiredFieldsInObject(formParams, objectData)) {
-        _skipRequiredValidationForChildFields(formParams, form);
+      if (_.isNull(args.data) && _hasRequiredFieldsInObject(args, requiredMap)) {
+        _skipRequiredValidationForChildFields(args, form);
       }
     }
 
-    function _hasRequiredFieldsInObject(formParams) {
-      var schemaPath = AdpPath.schemaPath(formParams.path);
-      var field = _.get(formParams.modelSchema.fields, schemaPath, null);
-      var result = _findRequiredFieldInObject(field, formParams);
+    function _hasRequiredFieldsInObject(args, requiredMap) {
+      var objectFieldSchema = _.get(args.modelSchema.fields, args.schemaPath, {});
 
-      return !!result;
-    }
-
-    function _findRequiredFieldInObject(objectSchema, formParams) {
-      var result = _.find(objectSchema.fields, function (field, name) {
-        var isComplexType = field.type === 'Object' || field.type === 'Array';
-        if (isComplexType && field.showInForm) {
+      var result = _.find(objectFieldSchema.fields, function (field, name) {
+        if (field.showInForm && ['Array', 'Object'].includes(field.type)) {
           return false;
         }
 
-        var nextPath = AdpPath.next(formParams.path, name);
-        return formParams.requiredMap[nextPath];
+        var nextPath = AdpPath.next(args.path, name);
+        return requiredMap[nextPath];
       });
 
-      return result;
+      return Boolean(result);
     }
 
-    function _skipRequiredValidationForChildFields(formParams, form) {
-      var schemaPath = AdpPath.schemaPath(formParams.path);
-      var field = _.get(formParams.modelSchema.fields, schemaPath, null);
+    function _skipRequiredValidationForChildFields(args, form) {
+      var objectFieldSchema = _.get(args.modelSchema.fields, args.schemaPath, {});
 
-      _.each(field.fields, function (field, name) {
+      _.each(objectFieldSchema.fields, function (field, name) {
         var isComplexType = ['Object', 'Array', 'AssociativeArray'].includes(field.type);
-        if (isComplexType && field.showInForm) {
+        if (field.showInForm && isComplexType) {
           return;
         }
 
-        var childPath = AdpPath.next(formParams.path, name);
+        var childPath = AdpPath.next(args.path, name);
         var formField = _.get(form, childPath.split('.'), null);
-        var notInDOM = formField === null;
 
+        var notInDOM = formField === null;
         if (notInDOM) {
           return;
         }
@@ -99,44 +105,35 @@
       });
     }
 
-    function _evalRequiredStatus(formParams) {
-      var requiredFn = AdpValidationUtils.getRequiredFn(formParams);
-      try {
-        formParams.requiredMap[formParams.path] = requiredFn();
-      } catch (e) {
-        formParams.requiredMap[formParams.path] = false;
-        console.error('Error while evaluating required condition for: ', formParams, e);
-      }
-    }
-
-    function _evalRequiredStatusForAssociativeArrayChildren(formParams, objectData, form) {
-      var isRequired = formParams.requiredMap[formParams.path];
+    function _evalRequiredStatusForAssociativeArrayChildren(args, form, requiredMap) {
+      var isRequired = requiredMap[args.path];
 
       if (isRequired) {
         return;
       }
 
-      setKeyFieldRequiredStatus(formParams.path, objectData, form);
+      setKeyFieldRequiredStatus(args, form);
 
-      if (_.isNull(objectData) && _hasRequiredFieldsInObject(formParams, objectData)) {
-        _skipRequiredValidationForChildFields(formParams, form);
+      if (_.isNull(args.data) && _hasRequiredFieldsInObject(args, requiredMap)) {
+        _skipRequiredValidationForChildFields(args, form);
       }
     }
 
-    function setKeyFieldRequiredStatus(path, arrayItemData, form) {
-      var fieldPath = path.split('.').concat('$key');
-      var formField = _.get(form, fieldPath, null);
+    function setKeyFieldRequiredStatus(args, form) {
+      var fieldPathInForm = args.path.split('.').concat('$key');
+      var formField = _.get(form, fieldPathInForm, null);
 
-      if (formField === null) {
+      var notInDOM = formField === null;
+      if (notInDOM) {
         return;
       }
 
       if (formField.$viewValue) {
         formField.$setValidity('required', true);
-        return ;
+        return;
       }
 
-      formField.$setValidity('required', _.isEmpty(arrayItemData));
+      formField.$setValidity('required', _.isEmpty(args.data));
     }
   }
 })();

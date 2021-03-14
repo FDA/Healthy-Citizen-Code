@@ -16,12 +16,11 @@ async function testQuickFilter({ appLib, filterString, modelName, userContext, p
     throw new ValidationError(`Invalid filter string. ${e.message}`);
   }
 
-  const model = appLib.db.model(modelName);
   if (projection.items) {
-    const items = await appLib.dba.getItemsUsingCache({ model, mongoParams: { conditions }, userContext });
+    const items = await appLib.dba.getItemsUsingCache({ modelName, mongoParams: { conditions }, userContext });
     return { items, count: items.length };
   }
-  const count = await appLib.dba.getCountDocuments(model, conditions);
+  const count = await appLib.dba.getDocumentsCountUsingCache(modelName, conditions);
   return { count };
 }
 

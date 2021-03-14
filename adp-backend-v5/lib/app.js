@@ -1,10 +1,9 @@
 const Promise = require('bluebird');
 
 const express = require('express');
+const ms = require('ms');
 const http = require('http');
 const fs = require('fs-extra');
-const session = require('express-session');
-const MongoStore = require('connect-mongo')(session); // TODO: switch to redis before going to high-performance production
 const bodyParser = require('body-parser');
 const fileUpload = require('express-fileupload');
 const compression = require('compression');
@@ -12,27 +11,26 @@ const cookieParser = require('cookie-parser');
 const cors = require('cors');
 const device = require('express-device');
 const nodePath = require('path');
-const mongoose = require('mongoose');
 const _ = require('lodash');
-const passport = require('passport');
-const JwtStrategy = require('passport-jwt').Strategy;
-const LocalStrategy = require('passport-local').Strategy;
-const { ExtractJwt } = require('passport-jwt');
 const pEvent = require('p-event');
 const { MigrateMongo } = require('migrate-mongo');
-const expressLog = require('log4js').getLogger('express');
-const mongooseLog = require('log4js').getLogger('mongoose');
-const requestId = require('express-request-id');
+const log4js = require('log4js');
+const JSON5 = require('json5');
+const expressSession = require('express-session');
+const RedisStore = require('connect-redis')(expressSession);
 
 const getMigrateConfig = require('../migrate/config.js');
-const { InvalidTokenError, ExpiredTokenError } = require('./errors');
 const { serveDirs } = require('./public-files-controller');
 const { version: APP_VERSION, name: APP_NAME } = require('../package.json');
-const { comparePassword } = require('./util/password');
 const { prepareEnv, getSchemaNestedPaths } = require('./util/env');
 const { globSyncAsciiOrder } = require('./util/glob');
 const connectSwagger = require('./swagger');
 const { appRoot, getSchemaPaths } = require('./util/env');
+const { requestLogMiddleware } = require('./util/audit-log');
+const { mongoConnect } = require('./util/mongo');
+const { getRedisConnection } = require('./util/redis');
+const { cookieOpts } = require('./util/cookie');
+const { asyncLocalStorage } = require('./async-local-storage');
 
 module.exports = () => {
   const m = {};
@@ -61,66 +59,13 @@ module.exports = () => {
    * Connects to DB and sets various DB parameters
    */
   m.connectAppDb = async () => {
-    if (mongoose.connection.readyState === 1) {
-      return mongoose.connection;
-    }
-
-    mongoose.Promise = Promise;
-    mongoose.set('useNewUrlParser', true);
-    mongoose.set('useFindAndModify', false);
-    mongoose.set('useCreateIndex', true);
-    mongoose.set('useUnifiedTopology', true);
-    if (process.env.DEVELOPMENT === 'true') {
-      const getMessage = (args) => {
-        function getOptsWithoutSession(opts) {
-          if (opts && opts.session) {
-            return _.omit(opts, 'session');
-          }
-          return opts;
-        }
-        const { stringifyLog } = m.butil;
-
-        if (args.length === 2) {
-          const [coll, method] = args;
-          return `${method} ${coll}`;
-        }
-        if (args.length === 3) {
-          const [coll, method, doc] = args;
-          return `${method} ${coll}, ${stringifyLog(doc)}`;
-        }
-        if (args.length === 4) {
-          const [coll, method, doc, opts] = args;
-          return `${method} ${coll}, ${stringifyLog(doc)}, OPTIONS:${stringifyLog(getOptsWithoutSession(opts))}`;
-        }
-        if (args.length === 5) {
-          const [coll, method, query, doc, opts] = args;
-          return `${method} ${coll}, ${stringifyLog(query)}, ${stringifyLog(doc)}, OPTIONS:${getOptsWithoutSession(
-            opts
-          )}`;
-        }
-        return args.toString();
-      };
-
-      mongoose.set('debug', (...args) => {
-        try {
-          mongooseLog.debug(getMessage(args));
-        } catch (e) {
-          mongooseLog.debug(args.toString());
-        }
-      });
-    }
-
     try {
-      const connected = await mongoose.connect(process.env.MONGODB_URI);
-      if (mongoose.connection.readyState !== 1) {
-        throw new Error(connected);
-      }
-      return mongoose.connection;
+      return await mongoConnect(process.env.MONGODB_URI);
     } catch (e) {
       m.log.error(
         `LAP003: MongoDB connection error. Please make sure MongoDB is running at ${process.env.MONGODB_URI}`
       );
-      throw new Error(e);
+      throw e;
     }
   };
 
@@ -135,11 +80,17 @@ module.exports = () => {
     } else {
       errMsg += _.get(err, 'stack', _.get(err, 'message', err));
     }
-    expressLog.error(`${req.method} ${req.url} -> ${res.statusCode} ${errMsg}`);
+    m.expressLog.error(`${req.method} ${req.url} -> ${res.statusCode} ${errMsg}`);
   };
 
-  m.configureApp = (app) => {
+  m.configureApp = async (app) => {
     m.app = app;
+    // remove exposing server info
+    app.disable('x-powered-by');
+
+    // Running an Express app behind a proxy. If true, the req.ip is the left-most entry in the X-Forwarded-* header.
+    app.set('trust proxy', true);
+
     app.on('uncaughtException', (req, res, route, err) => {
       m.log.error(`LAP001: Uncaught exception`, err.stack);
       res.status(500).json({ success: false, code: 'LAP001', message: `${err}` });
@@ -153,12 +104,64 @@ module.exports = () => {
       res.status(500).json({ success: false, code: 'LAP003', message: `${err}` });
     });
     process.on('uncaughtException', procUncaughtExListener);
+
+    const { COOKIE_SECRET, USER_SESSION_ID_TIMEOUT = '1d', REDIS_URL, REDIS_KEY_PREFIX } = process.env;
+
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json({ limit: '100mb' }));
     app.use(compression());
     app.use(device.capture());
-    app.use(cookieParser());
-    app.use(requestId());
+    app.use(cookieParser(COOKIE_SECRET));
+    app.use(require('request-received'));
+    app.use(require('response-time')());
+    app.use(require('express-request-id')());
+
+    const expressSessionOpts = {
+      secret: COOKIE_SECRET,
+      resave: false,
+      saveUninitialized: true,
+      rolling: true, // reset maxAge on every request
+      cookie: { ...cookieOpts, maxAge: ms(USER_SESSION_ID_TIMEOUT), httpOnly: true },
+    };
+    if (REDIS_URL) {
+      const redisConnection = await getRedisConnection({
+        redisUrl: REDIS_URL,
+        log: m.log,
+        redisConnectionName: 'Session_Redis',
+      });
+      expressSessionOpts.store = new RedisStore({ client: redisConnection, prefix: `${REDIS_KEY_PREFIX}_sessions_` });
+    }
+    const sessionMiddleware = expressSession(expressSessionOpts);
+    app.use((req, res, next) => {
+      if (req.method === 'OPTIONS') {
+        // Exclude options (preflight) requests which do not contain cookies thus a new sessionID is created on every such request
+        return next();
+      }
+      return sessionMiddleware(req, res, next);
+    });
+
+    const alsMiddleware = (req, res, next) => {
+      asyncLocalStorage.run({}, () => {
+        const store = asyncLocalStorage.getStore();
+        store.clientIp = req.ip;
+        store.requestId = req.id;
+        store.sessionId = req.sessionID;
+        next();
+      });
+    };
+    app.use(alsMiddleware);
+
+    const maxResponseBodySize = parseInt(process.env.AUDIT_LOG_MAX_RESPONSE_SIZE, 10) || 10000;
+    app.use(
+      requestLogMiddleware({
+        appLogger: m.expressLog,
+        persistLogger: m.auditPersistLogger,
+        opts: {
+          isLogOptionsRequests: false,
+          maxResponseBodySize,
+        },
+      })
+    );
     app.use(
       fileUpload({
         useTempFiles: true,
@@ -180,32 +183,29 @@ module.exports = () => {
       })
     );
 
-    app.use(
-      session({
-        secret: process.env.JWT_SECRET,
-        resave: false,
-        saveUninitialized: true,
-        sameSite: false,
-        secure: 'auto',
-        name: 'adp.sid',
-        proxy: true,
-        store: new MongoStore({ mongooseConnection: mongoose.connection }),
-      })
-    );
+    const responseBodyMiddleware = (req, res, next) => {
+      const defaultWrite = res.write;
+      const defaultEnd = res.end;
+      const chunks = [];
 
-    app.use((req, res, next) => {
-      expressLog.info(`${req.method} ${req.url}`);
+      res.write = (...restArgs) => {
+        chunks.push(Buffer.from(restArgs[0]));
+        defaultWrite.apply(res, restArgs);
+      };
+
+      res.end = (...restArgs) => {
+        if (restArgs[0]) {
+          chunks.push(Buffer.from(restArgs[0]));
+        }
+        res.body = Buffer.concat(chunks).toString('utf8');
+
+        defaultEnd.apply(res, restArgs);
+      };
+
       next();
-    });
-  };
+    };
 
-  /**
-   * Generates mongoose models according to the appModel
-   */
-  m.generateMongooseModels = async () => {
-    await m.mutil.generateMongooseModels(m.db, m.appModel.models);
-    await m.mutil.handleIndexes();
-    m.log.info('Generated Mongoose models');
+    app.use(responseBodyMiddleware);
   };
 
   m.getFullRoute = (routePrefix, route) => {
@@ -286,18 +286,6 @@ module.exports = () => {
           m.addRoute('del', `${qualifiedPath}${name}`, callbacks.concat([mainController.deleteItem]));
       }
       */
-
-      // TODO: this is to be depriciated in favor of server_controllers
-      if (schema.controller) {
-        // add custom routes
-        const controllerPath = nodePath.resolve(appRoot, 'lib', `${schema.controller}-controller`);
-        try {
-          m.controllers[schema.controller] = require(controllerPath)(m);
-        } catch (e) {
-          m.log.error(`Unable to load custom controller '${controllerPath}'`, e.stack);
-          process.exit(1);
-        }
-      }
     }
 
     /**
@@ -373,22 +361,6 @@ module.exports = () => {
     }
   };
 
-  /**
-   * Returns the list of routes this server provides. Should be protected with isDevelopmentMode
-   * @param req
-   * @param res
-   * @param next
-   */
-  m.getRoutesJson = (req, res, next) => {
-    const routesList = m.expressUtil.getRoutes(m.app, m.isAuthenticated);
-
-    res.json({
-      success: true,
-      data: { brief: routesList },
-    });
-    next();
-  };
-
   // TODO: delete after mobile app refactoring, only required for mobile app framework backward compatibility
   m.addDashboardEndpoints = () => {
     m.addRoute('get', '/dashboards/:id', [m.isAuthenticated, m.controllers.main.getDashboardJson]);
@@ -404,122 +376,13 @@ module.exports = () => {
       const files = [...coreControllers, ...appSchemaControllersFiles];
       return await Promise.mapSeries(files, (file) => {
         m.log.trace(` ∟ ${file}`);
-        const lib = require(file)(mongoose);
+        const lib = require(file)(m);
         return lib.init(m);
       });
     } catch (e) {
       m.log.error(`Unable to load custom controllers`, e.stack);
       process.exit(2);
     }
-  };
-
-  /**
-   * Adds user authentication via passport.js
-   * Note that this should run after mongoose models and the server are created, but before any routes are set up
-   */
-  m.addUserAuthentication = () => {
-    const User = mongoose.model('users');
-
-    passport.use(
-      new LocalStrategy({ usernameField: 'login', passwordField: 'password' }, async (login, password, cb) => {
-        try {
-          const user = await User.findOne({ $or: [{ login }, { email: login }] });
-          if (!user) {
-            return cb('Invalid login or password');
-          }
-
-          const isMatched = await comparePassword(password, user.password);
-          if (!isMatched) {
-            return cb('Invalid login or password');
-          }
-          return cb(null, user);
-        } catch (e) {
-          return cb(e);
-        }
-      })
-    );
-
-    passport.use(
-      'jwt',
-      new JwtStrategy(
-        {
-          jwtFromRequest: ExtractJwt.fromAuthHeaderWithScheme('JWT'),
-          secretOrKey: process.env.JWT_SECRET,
-        },
-        async (jwtPayload, done) => {
-          try {
-            const user = await User.findOne({ _id: jwtPayload.id }).lean().exec();
-            if (user) {
-              done(null, user);
-            } else {
-              done(null, false);
-            }
-          } catch (e) {
-            done(e, false);
-          }
-        }
-      )
-    );
-
-    passport.serializeUser((user, cb) => cb(null, user._id));
-    passport.deserializeUser(async (id, cb) => {
-      const user = await User.findById(id);
-      if (user) {
-        return cb(null, user);
-      }
-      return cb(new Error(`User with id ${id} is not found`));
-    });
-    m.app.use(passport.initialize());
-    m.app.use(passport.session());
-  };
-
-  /* eslint-disable promise/avoid-new, prefer-promise-reject-errors */
-  m.authenticationCheck = (req) =>
-    new Promise((resolve, reject) => {
-      passport.authenticate('jwt', { session: false }, (err, user, info) => {
-        if (err) {
-          return reject(`ERR: ${err} INFO:${info}`);
-        }
-
-        const jwtErrorName = _.get(info, 'name');
-        const isInvalidToken = jwtErrorName === 'JsonWebTokenError';
-        const jwtMsg = _.get(info, 'message');
-        const isEmptyToken = jwtMsg === 'No auth token';
-        const isRequiredAuth = m.getAuthSettings().requireAuthentication === true;
-        if (isInvalidToken || (isEmptyToken && isRequiredAuth)) {
-          return reject(new InvalidTokenError());
-        }
-        const isExpiredToken = jwtErrorName === 'TokenExpiredError';
-        if (isExpiredToken) {
-          return reject(new ExpiredTokenError());
-        }
-        if (!info && !user) {
-          // if token payload is valid but user is not found by that payload
-          return reject(new InvalidTokenError());
-        }
-        return m.accessUtil.getRolesAndPermissionsForUser(user, req.device.type).then(({ roles, permissions }) => {
-          resolve({ user, roles, permissions });
-        });
-      })(req);
-    });
-  /* eslint-enable promise/avoid-new, prefer-promise-reject-errors */
-
-  m.isAuthenticated = (req, res, next) => {
-    m.authenticationCheck(req)
-      .then(({ user, roles, permissions }) => {
-        m.accessUtil.setReqAuth({ req, user, roles, permissions });
-        next();
-      })
-      .catch(InvalidTokenError, () => {
-        res.status(401).json({ success: false, message: 'Invalid user session, please login' });
-      })
-      .catch(ExpiredTokenError, () => {
-        res.status(401).json({ success: false, message: 'User session expired, please login again' });
-      })
-      .catch((err) => {
-        m.log.error(err.stack);
-        res.status(500).json({ success: false, message: `Error occurred during authentication process` });
-      });
   };
 
   m.removeAllRoutes = () => {
@@ -547,34 +410,6 @@ module.exports = () => {
      */
 
     // m.addRoute('get', /\/helpers\/?.*/, [express.serveStatic({directory: `${process.env.APP_MODEL_DIR}/model`})]);
-    m.addRoute('get', '/routes', [mainController.isDevelopmentMode, m.getRoutesJson]);
-    /**
-     * @swagger
-     * /routes:
-     *   get:
-     *     summary: Get info about routes and whether it requires AUTH or not.
-     *     description: This route is only available in development mode
-     *     tags:
-     *       - Meta
-     *     responses:
-     *       200:
-     *          schema:
-     *            type: object
-     *            properties:
-     *              data:
-     *                type: object
-     *                properties:
-     *                  brief:
-     *                    type: array
-     *                    items:
-     *                      type: string
-     *                      example: "GET /is-authenticated AUTH"
-     *                  full:
-     *                    type: object
-     *                    description: contains express info about route
-     *              success:
-     *                type: boolean
-     */
 
     m.addRoute('get', '/metaschema', [mainController.getMetaschemaJson]);
     /**
@@ -931,7 +766,7 @@ module.exports = () => {
     /** Reference to the express application */
     m.app = null;
 
-    /** Mongoose db connection */
+    /** Db connection */
     m.db = null;
   }
 
@@ -940,7 +775,55 @@ module.exports = () => {
     m.controllerUtil = require('./default-controller-util')(m);
     m.controllers.main = require('./default-controller')(m);
     m.fileController = require('./file-controller')(m);
-    m.fileControllerUtil = require('./file-controller-util')();
+    m.fileControllerUtil = require('./file-controller-util')(m.db);
+  }
+
+  function addMongoHooks() {
+    const { keys, clearCacheByKeyPattern } = m.cache;
+    const usersWithPermissionsKeyPattern = `${keys.usersWithPermissions()}:*`;
+    const rolesToPermissionsKey = keys.rolesToPermissions();
+
+    m.db.collection('roles').after('write', function (/* { args, method, result } */) {
+      clearCacheByKeyPattern(usersWithPermissionsKeyPattern);
+      clearCacheByKeyPattern(rolesToPermissionsKey);
+    });
+    m.db.collection('users').after('write', function (/* { args, method, result } */) {
+      clearCacheByKeyPattern(usersWithPermissionsKeyPattern);
+      clearCacheByKeyPattern(rolesToPermissionsKey);
+    });
+  }
+
+  function configureLog4js() {
+    const log4jsConfig = {
+      appenders: { out: { type: 'stdout' } },
+      categories: { default: { appenders: ['out'], level: 'OFF' } },
+    };
+    try {
+      const log4jsConfigContent = process.env.LOG4JS_CONFIG ? fs.readFileSync(process.env.LOG4JS_CONFIG, 'utf8') : '{}';
+      _.merge(log4jsConfig, JSON5.parse(log4jsConfigContent));
+    } catch (e) {
+      console.error(`Unable to read log4js config by path '${process.env.LOG4JS_CONFIG}'`);
+      throw e;
+    }
+
+    const mongoDbAppender = require('./util/log4js-mongodb-appender')({
+      connectionString: process.env.LOG_DB_URI,
+      collectionName: process.env.LOG_DB_COLLECTION,
+    });
+
+    const isLogAuditEnabled = process.env.LOG_AUDIT === 'true';
+    _.set(log4jsConfig, 'appenders.audit', { type: mongoDbAppender });
+    _.set(log4jsConfig, 'categories.audit', {
+      appenders: ['audit'],
+      level: isLogAuditEnabled ? 'trace' : 'off',
+    });
+
+    log4js.configure(log4jsConfig);
+
+    m.log = log4js.getLogger('lib/app');
+    m.auditPersistLogger = log4js.getLogger('audit');
+    m.expressLog = log4js.getLogger('express');
+    m.dbAppLogger = log4js.getLogger('db');
   }
 
   /**
@@ -950,8 +833,11 @@ module.exports = () => {
    */
   m.setup = async () => {
     prepareEnv(appRoot);
-    m.log = require('log4js').getLogger('lib/app');
-    m.log.info('Using logger settings from', process.env.LOG4JS_CONFIG);
+    configureLog4js();
+
+    if (!process.env.APP_SCHEMA) {
+      m.log.warn(`Env APP_SCHEMA not specified. Proceeding with built-in models only.`);
+    }
 
     const nonExistingSchemaPaths = getSchemaPaths()
       .map((p) => (fs.existsSync(p) ? null : p))
@@ -960,9 +846,21 @@ module.exports = () => {
       m.log.warn(`Found non-existing schema paths: ${nonExistingSchemaPaths.join(', ')}. Check your .env file.`);
     }
 
+    // mongo-wrapper patches mongodb so calling require('mongodb') will get patched version in any other place
+    require('./mongo-wrapper')({
+      appLogger: m.dbAppLogger,
+      persistLogger: m.auditPersistLogger,
+      logCollectionName: process.env.LOG_DB_COLLECTION,
+    });
+
     setInitProperties();
-    m.db = await m.connectAppDb();
-    m.isMongoReplicaSet = m.butil.isMongoReplicaSet(m.db);
+
+    const { db, connection } = await m.connectAppDb();
+    m.db = db;
+    m.connection = connection;
+    addMongoHooks();
+
+    m.isMongoSupportsSessions = m.butil.isMongoSupportsSessions(m.db);
 
     await m.cache.init();
     await m.cache.clearCacheByKeyPattern('*'); // clear all keys on startup
@@ -970,7 +868,7 @@ module.exports = () => {
     await m.migrateMongo();
 
     // use to exclude it from /app-model
-    m.datasetsModelsNames = new Set();
+    m.datasetModelNames = new Set();
 
     const coreModelPath = nodePath.resolve(__dirname, '../model');
     const helperDirPaths = [`${coreModelPath}/helpers`, ...getSchemaNestedPaths('helpers')];
@@ -978,13 +876,13 @@ module.exports = () => {
     m.helperUtil = await require('./helper-util')(m, helperDirPaths, buildAppModelCodeOnStart);
     m.allActionsNames = [...m.accessCfg.DEFAULT_ACTIONS, ..._.keys(m.appModelHelpers.CustomActions)];
 
-    m.appModel = await m.mutil.getCombinedModel({
+    const { model, macrosFunctionContext } = await m.mutil.getCombinedModel({
       appModelSources: options.appModelSources,
       appModelProcessors: m.appModelHelpers.appModelProcessors,
       macrosDirPaths: [...getSchemaNestedPaths('macros'), `${coreModelPath}/macros`],
     });
-
-    m.accessUtil.setAvailablePermissions();
+    m.appModel = model;
+    m.macrosFunctionContext = macrosFunctionContext;
 
     const { errors, warnings } = m.mutil.validateAndCleanupAppModel(m.appModel.models);
     if (warnings.length) {
@@ -994,23 +892,32 @@ module.exports = () => {
     if (errors.length) {
       throw new Error(errors.join('\n'));
     }
-    await m.generateMongooseModels();
+
+    await m.mutil.handleIndexes();
     await cacheRolesToPermissions();
 
     m.log.info('Executing prestart scripts...');
     await m.executePrestartScripts();
     m.log.info('Finished executing prestart scripts.');
 
+    m.auth = require('./auth')(m);
+
+    m.appModel.interface.app.isInactivityLogoutEnabled = m.auth.isInactivityLogoutEnabled;
+    m.appModel.interface.app.inactivityLogoutNotificationAppearsFromSessionEnd =
+      m.auth.inactivityLogoutNotificationAppearsFromSessionEnd;
+    m.isAuthenticated = m.auth.isAuthenticated;
+    m.authenticationCheck = m.auth.authenticationCheck;
+
     const esConfig = m.elasticSearch.getEsConfig();
     if (esConfig) {
       m.log.info('Starting real-time Mongo-ES sync...');
       const mongoUrl = process.env.MONGODB_URI;
-      await m.elasticSearch.startRealTimeSync(m.isMongoReplicaSet, m.appModel.models, mongoUrl, esConfig, true);
+      await m.elasticSearch.startRealTimeSync(m.isMongoSupportsSessions, m.appModel.models, mongoUrl, esConfig, true);
     }
 
     const app = express();
-    m.configureApp(app);
-    m.addUserAuthentication();
+    await m.configureApp(app);
+    m.auth.addUserAuthentication(app);
 
     // build baseAppModel once to reuse it in models responses for specific users
     m.baseAppModel = m.accessUtil.getBaseAppModel();
@@ -1058,18 +965,15 @@ module.exports = () => {
   m.start = () => {
     m.httpInstance = m.server.listen(process.env.APP_PORT);
     m.log.info('App is listening on port', process.env.APP_PORT);
+    m.auditPersistLogger.info({
+      type: 'system',
+      message: 'System backend is running',
+      timestamp: new Date(),
+    });
   };
 
   m.shutdown = () => {
-    const models = _.get(mongoose, 'connection.models');
-    _.each(models, (val, key) => {
-      delete models[key];
-    });
-    m.log.trace(`Deleted mongoose models`);
-    return Promise.all([
-      getCloseAppPromise(),
-      mongoose.connection.close().then(() => m.log.trace('Closed mongoose.connection')),
-    ]);
+    return Promise.all([getCloseAppPromise(), m.db.close().then(() => m.log.trace('Closed mongo connection'))]);
 
     async function getCloseAppPromise() {
       process.removeListener('uncaughtException', procUncaughtExListener);

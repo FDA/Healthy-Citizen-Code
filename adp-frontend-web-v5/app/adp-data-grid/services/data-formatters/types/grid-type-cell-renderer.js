@@ -34,7 +34,7 @@
           return;
         }
 
-        var mergedSchema = GridControlHelper.mergeSchema(args.fieldSchema.table);
+        var mergedSchema = GridControlHelper.mergeSchema(args.fieldSchema, args.modelSchema);
         var columnsToRender = getVisibleColumns(mergedSchema);
         var $thead = $("<thead>");
         var $tbody = $("<tbody>");

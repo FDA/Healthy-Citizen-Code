@@ -1,0 +1,60 @@
+<style>
+    #ribbon {
+        display: none;
+    }
+
+    #rp-wrapper {
+        position: relative;
+        height: calc(100vh - 80px);
+        min-height: 100px;
+        display: flex;
+        flex-direction: column;
+    }
+
+    #rp-header, #rp-footer {
+        position: relative;
+        flex: 0 0 auto;
+    }
+
+    #rp-grid-container {
+        position: relative;
+        height: calc(100vh - 80px);
+        min-height: 100px;
+        flex: 1 1 auto;
+    }
+
+    #rp-footer {
+        display: flex;
+        justify-content: flex-end;
+        padding: 14px;
+    }
+
+    #rp-footer button {
+        margin-left:2px;
+        padding: 0 18px;
+        font: 300 15px/29px Open Sans,Helvetica,Arial,sans-serif;
+        cursor: pointer;
+    }
+</style>
+<div id="rp-wrapper">
+    <div id="rp-header"><h1>User Roles Editor</h1></div>
+    <div id="rp-grid-container"></div>
+    <div id="rp-footer">
+        <button
+                class="btn adp-action-b-tertiary"
+                ng-click="vm.createRole()"
+                ng-if="!!vm.createRole"
+        >
+            New Role
+        </button>
+        <button id="rp-save-button"
+                class="btn adp-action-b-primary"
+                ng-disabled="vm.isSaving"
+                ng-click="vm.onSave()"
+                ng-if="!!vm.onSave"
+        >
+            {{vm.isSaving ? "Saving...." : "Save"}}
+        </button>
+    </div>
+</div>
+

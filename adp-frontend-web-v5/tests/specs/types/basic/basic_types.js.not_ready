@@ -18,9 +18,9 @@ describe('basic types', () => {
     async () => {
       await this.page.goto(getUrlFor('basicTypes'));
       const createButtonSelector = '.btn.page-action';
-      await this.page.waitFor(createButtonSelector);
+      await this.page.waitForSelector(createButtonSelector);
       await this.page.click(createButtonSelector);
-      await this.page.waitFor('form');
+      await this.page.waitForSelector('form');
 
       const selectors = {
         string: 'input#string',

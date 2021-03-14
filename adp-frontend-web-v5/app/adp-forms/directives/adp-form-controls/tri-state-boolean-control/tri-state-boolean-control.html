@@ -1,0 +1,15 @@
+<div
+  dx-check-box="config"
+  ng-if="config"
+  field-name="{{args.fieldSchema.fieldName}}"
+>
+</div>
+
+<input
+  type="hidden"
+  adp-validate="args"
+  name="{{args.fieldSchema.fieldName}}"
+  ng-model="getterSetter"
+  ng-model-options="{ getterSetter: true }"
+>
+

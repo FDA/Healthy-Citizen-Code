@@ -61,7 +61,7 @@ describe('login', () => {
       ]);
 
       const errorMessageText = await errorNode.evaluate(node => node.innerText)
-      expect(errorMessageText).toBe('Invalid credentials.');
+      expect(errorMessageText).toBe('Invalid login or password');
       expect(formWithError).toBeTruthy();
     });
 });

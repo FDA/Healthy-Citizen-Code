@@ -5,15 +5,19 @@
     .run(setupUserData)
     .run(runBlock)
     .run(setupSocketIo)
-    .run(handleReturnUrlForUnauthorizedUsers);
+    .run(handleReturnUrlForUnauthorizedUsers)
+    .run(setupTimers);
 
   /** @ngInject */
-  function setupUserData() {
+  function setupUserData($rootScope) {
     var user = lsService.getUser();
 
     if (_.isNull(user)) {
       lsService.setGuestUserData();
+      return;
     }
+
+    $rootScope.avatar = user.avatar;
   }
 
   /** @ngInject */
@@ -35,6 +39,13 @@
     AdpSocketIoService.login();
   }
 
+  function setupTimers(    AdpSchemaService, AdpSessionHelper) {
+    if (!lsService.isGuest()) {
+      AdpSessionHelper.setTokenRefreshTimeout();
+      AdpSessionHelper.setSessionRemainingTimeout();
+    }
+  }
+
   function handleReturnUrlForUnauthorizedUsers(
     $urlService,
     $rootScope,
@@ -52,13 +63,13 @@
       });
 
       if (!registeredRoutes.length && lsService.isGuest()) {
-        return $state.go('auth.login', { returnUrl: getReturnUrl($location.url()) });
+        return $state.go('auth.login', { returnUrl: getReturnUrl($location) });
       }
     });
 
-    function getReturnUrl(url) {
-      var returnUrl = encodeURI(url);
-      var isEmpty = returnUrl === '/' || returnUrl === '';
+    function getReturnUrl(location) {
+      var returnUrl = encodeURI(location.url());
+      var isEmpty = returnUrl === '/' || returnUrl === '' || location.path === '/login';
 
       return isEmpty ? '' : returnUrl;
     }

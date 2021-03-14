@@ -24,9 +24,9 @@ describe('synthetic types', () => {
       await this.page.goto(getUrlFor('syntheticTypes'));
       await clickCreateNewButton(this.page)
       const createButtonSelector = '.btn.page-action';
-      await this.page.waitFor(createButtonSelector);
+      await this.page.waitForSelector(createButtonSelector);
       await this.page.click(createButtonSelector);
-      await this.page.waitFor('form');
+      await this.page.waitForSelector('form');
 
       const selectors = {
         number1Selector: '[field-name-input="number1"]',
@@ -63,7 +63,7 @@ describe('synthetic types', () => {
       expect(snapshot1).toEqual(expectedSnapshot1);
 
       await this.page.type(selectors.number1Selector, '1');
-      await this.page.waitFor(300);
+      await this.page.waitForTimeout(300);
       const snapshot2 = await this.page.evaluate(getSnapshot, selectors);
       const expectedSnapshot2 = expect.objectContaining({
         ...expectedSnapshot1.sample,
@@ -76,7 +76,7 @@ describe('synthetic types', () => {
       expect(snapshot2).toEqual(expectedSnapshot2);
 
       await this.page.type(selectors.number2Selector, '1');
-      await this.page.waitFor(300);
+      await this.page.waitForTimeout(300);
       const snapshot3 = await this.page.evaluate(getSnapshot, selectors);
       const expectedSnapshot3 = expect.objectContaining({
         ...expectedSnapshot2.sample,

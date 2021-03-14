@@ -54,7 +54,6 @@
   function adpForm(
     AdpFieldsService,
     AdpFormService,
-    AdpFormDataUtils,
     RequiredExpression,
     ShowExpression,
     $timeout,
@@ -63,7 +62,6 @@
     $q,
     AdpFormActionHandler
   ) {
-    // todo: add comments about formOptions and action strats
     return {
       restrict: 'E',
       scope: {
@@ -81,7 +79,7 @@
 
         function init() {
           scope.args.row = _.cloneDeep(scope.args.row) || {};
-          scope.formData = scope.args.row;
+          // TODO: need to keep args updated for any arg mutation, so it need a better abstraction
 
           scope.groupingType = AdpFormService.getGroupingType(scope.args);
           scope.topScopeFields = scope.groupingType ?
@@ -95,38 +93,15 @@
           scope.hasFooter = _.hasIn(scope, 'formOptions.submitCb');
           scope.cloneParams = scope.formOptions.cloneParams;
 
-          bindEvents();
-
-          // todo: refactor to args
-          var formParams = {
-            path: null,
-            row: scope.args.row,
-            fieldSchema: scope.args.fieldSchema,
-            modelSchema: scope.args.modelSchema,
-            action: scope.args.action,
+          scope.formContext = {
             visibilityMap: {},
             requiredMap: {},
+            rootForm: scope.form,
           };
 
           _.each(scope.topScopeFields.groups, function (group, name) {
-            formParams.visibilityMap[name] = true;
+            scope.formContext.visibilityMap[name] = true;
           });
-
-          // DEPRECATED: will be replaced with formParams
-          // validationParams fields naming is wrong, use formParams instead
-          // fieldSchema - grouped fields
-          // schema - original ungrouped schema
-          scope.validationParams = {
-            field: scope.args.fieldSchema,
-            fields: scope.args.fieldSchema.fields,
-            formData: scope.args.row,
-            fieldSchema: scope.args.fieldSchema,
-            modelSchema: scope.args.modelSchema,
-            schema: scope.args.fieldSchema,
-            $action: scope.args.action,
-
-            formParams: formParams,
-          };
 
           applyActionClass(scope.args.action);
           bindEvents();
@@ -253,14 +228,16 @@
           AdpFormService.forceValidation(scope.form);
 
           ShowExpression.eval({
-            formData: scope.args.row,
-            schema: scope.args.modelSchema,
-            actionType: scope.args.action,
+            args: scope.args,
+            visibilityMap: scope.formContext.visibilityMap,
             groups: scope.topScopeFields.groups,
-            visibilityMap: scope.validationParams.formParams.visibilityMap,
           });
 
-          RequiredExpression.eval(scope.validationParams.formParams, scope.form);
+          RequiredExpression.eval({
+            args: scope.args,
+            requiredMap: scope.formContext.requiredMap,
+            form: scope.form,
+          });
 
           if (scope.form.$submitted) {
             scope.errorCount = AdpFormService.countErrors(scope.form);

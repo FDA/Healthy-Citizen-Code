@@ -16,7 +16,7 @@
       var listValue = args.fieldSchema.list;
 
       if (_.isPlainObject(listValue)) {
-        return getListOfOptions(listValue);
+        return getListOfOptions(listValue, args.fieldSchema.type);
       } else {
         return getDynamicListDataSource(args);
       }
@@ -24,10 +24,22 @@
 
     function getDynamicListDataSource(args) {
       return new DevExpress.data.DataSource({
-        load: function () {
+        key: 'value',
+        load: function (loadOptions) {
           return requestDynamicList(args)
-            .then(function (data) {
-              return getListOfOptions(data);
+            .then(function (remoteList) {
+              var list = getListOfOptions(remoteList);
+
+              // load first trigger to resolve labels for initial values
+              if (loadOptions.filter && args.data) {
+                return args.data.map(function (v) {
+                  var item = _.find(list, ['value', v]);
+                  return { value: v, label: _.get(item, 'label', v) };
+                });
+              }
+
+              // load second trigger to fetch list of values
+              return list;
             })
             .catch(function (error) {
               ErrorHelpers.handleError(error, 'Error trying to get list value from remote.');
@@ -35,7 +47,7 @@
         },
         byKey: function (key) {
           return { key: key, value: key };
-        }
+        },
       });
     }
 
@@ -132,9 +144,13 @@
       cacheStore && cacheStore.removeAll();
     }
 
-    function getListOfOptions(list) {
+    function getListOfOptions(list, type) {
       return _.map(list, function (value, key) {
-        return { value: key, label: value };
+        return {
+          // WORKAROUND for https://jira.conceptant.com/browse/UNI-1053
+          value: _.includes(type, 'Number') ? _.toNumber(key) : key,
+          label: value,
+        };
       });
     }
 

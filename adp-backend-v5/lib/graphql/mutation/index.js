@@ -1,16 +1,20 @@
+const { ObjectId } = require('mongodb');
+const _ = require('lodash');
 const log = require('log4js').getLogger('graphql/mutation');
-const { MongoIdITC, COMPOSER_TYPES } = require('../type/common');
+const { MongoIdArrayITC, MongoIdITC, COMPOSER_TYPES } = require('../type/common');
 const { getOrCreateTypeByModel } = require('../type/model');
 const GraphQlContext = require('../../request-context/graphql/GraphQlContext');
 const { handleGraphQlError } = require('../util');
 
 const deleteOutputType = `type DeleteType {
-      deletedCount: Int
-    }`;
+  deletedCount: Int
+}`;
 
 const createOneResolverName = 'createOne';
 const deleteOneResolverName = 'deleteOne';
+const deleteManyResolverName = 'deleteMany';
 const updateOneResolverName = 'updateOne';
+const updateManyResolverName = 'updateMany';
 const upsertOneResolverName = 'upsertOne';
 
 function addCreateOneResolver(model, modelName) {
@@ -67,7 +71,12 @@ function addDeleteOneResolver(model, modelName) {
       try {
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
-        await appLib.dba.withTransaction((session) => appLib.controllerUtil.deleteItem(graphQlContext, session));
+        const deletedRecord = await appLib.dba.withTransaction((session) =>
+          appLib.controllerUtil.deleteItem(graphQlContext, session)
+        );
+        // add deletedRecord to make it available in wrapMutation
+        context.deletedRecord = deletedRecord;
+
         return { deletedCount: 1 };
       } catch (e) {
         handleGraphQlError(e, `Unable to delete record`, log, appLib);
@@ -76,6 +85,34 @@ function addDeleteOneResolver(model, modelName) {
   });
 
   return { type, resolver: type.getResolver(deleteOneResolverName) };
+}
+
+function addDeleteManyResolver(model, modelName) {
+  const type = getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT);
+  type.addResolver({
+    kind: 'mutation',
+    name: deleteManyResolverName,
+    args: {
+      filter: MongoIdArrayITC.getTypeNonNull(),
+    },
+    type: deleteOutputType,
+    resolve: async ({ args, context }) => {
+      const { req, appLib } = context;
+      try {
+        const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
+        graphQlContext.mongoParams = { conditions: { _id: { $in: args.filter._ids } } };
+        const deletedCount = await appLib.dba.withTransaction((session) =>
+          appLib.controllerUtil.deleteItems(graphQlContext, session)
+        );
+
+        return { deletedCount };
+      } catch (e) {
+        handleGraphQlError(e, `Unable to delete records`, log, appLib);
+      }
+    },
+  });
+
+  return { type, resolver: type.getResolver(deleteManyResolverName) };
 }
 
 function addUpdateOneResolver(model, modelName) {
@@ -103,6 +140,33 @@ function addUpdateOneResolver(model, modelName) {
   });
 
   return { type, resolver: type.getResolver(updateOneResolverName) };
+}
+
+function addUpdateManyResolver(model, modelName) {
+  const type = getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.OUTPUT);
+  type.addResolver({
+    kind: 'mutation',
+    name: updateManyResolverName,
+    args: {
+      records: getOrCreateTypeByModel(model, modelName, COMPOSER_TYPES.INPUT_UPDATE_MANY),
+    },
+    type: `type UpdateManyErrors { errors: JSON }`,
+    resolve: async ({ args, context }) => {
+      const { req, appLib } = context;
+      try {
+        const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
+        graphQlContext.mongoParams = { _id: { $in: _.map(args.records, (r) => ObjectId(r._id)) } };
+        const errors = await appLib.dba.withTransaction((session) =>
+          appLib.controllerUtil.putItems(graphQlContext, args.records, session)
+        );
+        return { errors };
+      } catch (e) {
+        handleGraphQlError(e, `Unable to update record`, log, appLib);
+      }
+    },
+  });
+
+  return { type, resolver: type.getResolver(updateManyResolverName) };
 }
 
 function addUpsertOneResolver(model, modelName, filterType) {
@@ -136,11 +200,15 @@ function addUpsertOneResolver(model, modelName, filterType) {
 module.exports = {
   addCreateOneResolver,
   addUpdateOneResolver,
+  addUpdateManyResolver,
   addDeleteOneResolver,
+  addDeleteManyResolver,
   addUpsertOneResolver,
   createOneResolverName,
   deleteOneResolverName,
+  deleteManyResolverName,
   updateOneResolverName,
+  updateManyResolverName,
   upsertOneResolverName,
   deleteOutputType,
   getMongoParams,

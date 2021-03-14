@@ -11,6 +11,7 @@
     <button
       ng-click="uploader.callAddFileWindows()"
       class="btn btn-primary"
+      ng-attr-adp-qaid-fileupload-btn="{{args.path}}"
       type="button">
       <span ng-show="options.enableDragAndDrop">
         Drop file or click to upload
@@ -25,6 +26,7 @@
       ng-if="options.enableMicrophone"
       ng-click="callAudioModal()"
       type="button"
+      ng-attr-adp-qaid-audio-record-btn="{{args.path}}"
       class="btn btn-primary">
       Record audio
     </button>
@@ -33,6 +35,7 @@
       ng-if="options.enableWebcam"
       ng-click="callVideoModal()"
       type="button"
+      ng-attr-adp-qaid-video-record-btn="{{args.path}}"
       class="btn btn-primary">
       Record video
     </button>
@@ -41,6 +44,7 @@
       ng-if="options.enablePhotoCapture"
       ng-click="callPhotoModal()"
       type="button"
+      ng-attr-adp-qaid-photo-record-btn="{{args.path}}"
       class="btn btn-primary">
       Take a photo
     </div>

@@ -1,10 +1,14 @@
 const _ = require('lodash');
+const mem = require('mem');
+const LRUCache = require('lru-cache');
 const axios = require('axios');
 const log = require('log4js').getLogger('lib/access-util');
 const Promise = require('bluebird');
 const { default: sift } = require('sift');
 const { getDefaultArgsAndValuesForInlineCode, MONGO } = require('../util/util');
-const { expandPermissionsForScope } = require('./transform-permissions');
+const { getFunction } = require('../util/memoize');
+const { hashObject } = require('../util/hash');
+const { ValidationError } = require('../errors');
 
 module.exports = (appLib) => {
   const m = {};
@@ -18,15 +22,17 @@ module.exports = (appLib) => {
     car: [appPermissions.accessFromCar],
   };
 
-  function getEvaluatedScopeCondition(scopeCondition, inlineContext) {
+  function getEvaluatedWhereCondition(where, inlineContext) {
+    if (_.isBoolean(where)) {
+      return where;
+    }
+
     try {
       const { args, values } = getDefaultArgsAndValuesForInlineCode();
-      const func = new Function(args, `return ${scopeCondition}`);
+      const func = getFunction(args, `return ${where}`);
       return func.apply(inlineContext, values);
     } catch (e) {
-      appLib.log.error(
-        `Error occurred while evaluating scopeCondition (${scopeCondition}), will be resolved as FALSE. ${e}`
-      );
+      appLib.log.error(`Error occurred while evaluating scopeCondition (${where}), will be resolved as FALSE. ${e}`);
       return false;
     }
   }
@@ -57,7 +63,9 @@ module.exports = (appLib) => {
    * @param req
    * @returns {*}
    */
-  m.getInlineContext = (req) => ({ req });
+  m.getInlineContext = (req, projections = ['user', 'session', 'params', 'body']) => {
+    return { req: _.pick(req, projections) };
+  };
 
   /**
    * Retrieves user context by request
@@ -81,28 +89,35 @@ module.exports = (appLib) => {
   m.getWhereConditionPromise = async (where, preparationName, inlineContext) => {
     const preparationPromiseFunc = appLib.appModelHelpers.Preparations[preparationName];
     if (!preparationPromiseFunc) {
-      return getEvaluatedScopeCondition(where, inlineContext);
+      return getEvaluatedWhereCondition(where, inlineContext);
     }
     const scopeVars = await preparationPromiseFunc();
     const newInlineContext = _.clone(inlineContext);
     newInlineContext.scopeVars = scopeVars || {};
-    return getEvaluatedScopeCondition(where, newInlineContext);
+    return getEvaluatedWhereCondition(where, newInlineContext);
   };
 
   /**
    * Gets scope conditions from actionsObj for one specified action with explanation.
-   * @param actionsObj could be any object with correct format of 'actions' and 'scopes' fields and its entries.
    * Schema or lookup can be passed here.
+   * @param actionPermissions
+   * @param actionScopes
    * @param userPermissions
    * @param action to retrieve conditions for
    * @param inlineContext needed for preparation specified in 'prepare' field
    * @param isCheckActionPermissions needed to handle actions for model and skip it for other things
    */
-  m.getObjScopeMetaForAction = async (actionsObj, userPermissions, action, inlineContext, isCheckActionPermissions) => {
+  const getObjScopeMetaForAction = async (
+    actionPermissions,
+    actionScopes,
+    userPermissions,
+    action,
+    inlineContext,
+    isCheckActionPermissions
+  ) => {
     const meta = { action };
 
     if (isCheckActionPermissions) {
-      const actionPermissions = _.get(actionsObj, `actions.fields[${action}].permissions`);
       meta.isActionPermissionGranted = m.isPermissionGranted(actionPermissions, userPermissions);
       if (!meta.isActionPermissionGranted) {
         meta.overallConditions = false;
@@ -111,7 +126,7 @@ module.exports = (appLib) => {
     }
 
     meta.scopeConditions = {};
-    await Promise.map(Object.entries(actionsObj.scopes), async ([scopeName, modelScope]) => {
+    await Promise.map(Object.entries(actionScopes), async ([scopeName, modelScope]) => {
       const scopePermission = _.get(modelScope, `permissions.${action}`);
       const isScopePermissionGranted = m.isPermissionGranted(scopePermission, userPermissions);
       const { where, prepare } = modelScope;
@@ -126,9 +141,12 @@ module.exports = (appLib) => {
     return meta;
   };
 
+  m.getObjScopeMetaForAction = mem(getObjScopeMetaForAction, { cacheKey: hashObject });
+
   /**
    * Multiple handler for getObjScopeMetaForAction. Aggregates all scope conditions for actions.
-   * @param actionsObj
+   * @param actionsObj could be any object with correct format of 'actions' and 'scopes' fields and its entries.
+   * Schema or lookup can be passed here.
    * @param userPermissions
    * @param actions
    * @param inlineContext
@@ -141,9 +159,18 @@ module.exports = (appLib) => {
     inlineContext,
     isCheckActionPermissions
   ) => {
-    const allActionsMeta = await Promise.map(_.castArray(actions), (action) =>
-      m.getObjScopeMetaForAction(actionsObj, userPermissions, action, inlineContext, isCheckActionPermissions)
-    );
+    const actionScopes = actionsObj.scopes;
+    const allActionsMeta = await Promise.map(_.castArray(actions), (action) => {
+      const actionPermissions = _.get(actionsObj, `actions.fields[${action}].permissions`);
+      return m.getObjScopeMetaForAction(
+        actionPermissions,
+        actionScopes,
+        userPermissions,
+        action,
+        inlineContext,
+        isCheckActionPermissions
+      );
+    });
     return {
       meta: allActionsMeta,
       overallConditions: MONGO.or(...allActionsMeta.map((meta) => meta.overallConditions)),
@@ -196,7 +223,9 @@ module.exports = (appLib) => {
 
   m.getRolesToPermissions = async () => {
     try {
-      const roles = await appLib.db.collection('roles').find(appLib.dba.getConditionForActualRecord()).toArray();
+      const rolesCollectionName = 'roles';
+      const rolesActualRecordCondition = appLib.dba.getConditionForActualRecord(rolesCollectionName);
+      const roles = await appLib.db.collection(rolesCollectionName).find(rolesActualRecordCondition).toArray();
 
       const rolesToPermissions = {};
       roles.forEach((role) => {
@@ -292,9 +321,11 @@ module.exports = (appLib) => {
   };
 
   m.getAllAppPermissionsSet = () => {
-    // SuperAdmin has all default permissions + declaredPermissions by user
+    // SuperAdmin has all default permissions + declaredPermissions by user except 'accessForbidden' permission
     const defaultPermissions = Object.values(appPermissions);
-    return new Set([...defaultPermissions, ...appLib.declaredPermissionNames]);
+    const appPermissionsSet = new Set([...defaultPermissions, ...appLib.declaredPermissionNames]);
+    appPermissionsSet.delete('accessForbidden');
+    return appPermissionsSet;
   };
 
   m.getViewConditionsByPermissionsForLookup = async (userPermissions, inlineContext, lookup, mongoConditions) => {
@@ -334,9 +365,18 @@ module.exports = (appLib) => {
       chosenActions = shownModelActionsNames.filter((action) => actions.includes(action));
     }
 
-    const allChosenActionsMeta = await Promise.map(chosenActions, (modelAction) =>
-      m.getObjScopeMetaForAction(appModel, userPermissions, modelAction, inlineContext, true)
-    );
+    const actionScopes = appModel.scopes;
+    const allChosenActionsMeta = await Promise.map(chosenActions, (modelAction) => {
+      const actionPermissions = _.get(appModel, `actions.fields[${modelAction}].permissions`);
+      return m.getObjScopeMetaForAction(
+        actionPermissions,
+        actionScopes,
+        userPermissions,
+        modelAction,
+        inlineContext,
+        true
+      );
+    });
 
     const actionFuncs = {};
     _.each(allChosenActionsMeta, (meta) => {
@@ -459,6 +499,13 @@ module.exports = (appLib) => {
         return setVal(result, fieldPath, dbValue);
       }
 
+      const isPasswordField = field.type === 'Password';
+      if (isPasswordField) {
+        // do not let user set empty password
+        const valueToSet = userValue || dbValue;
+        return setVal(result, fieldPath, valueToSet);
+      }
+
       const isArrayField = field.type === 'Array';
       const isObjectField = field.type === 'Object';
       if (!isArrayField && !isObjectField) {
@@ -466,6 +513,10 @@ module.exports = (appLib) => {
       }
 
       if (isObjectField) {
+        if (_.isEmpty(userValue) && _.isEmpty(dbValue)) {
+          return setVal(result, fieldPath, userValue);
+        }
+
         return m.mergeDocs({
           appModel: field,
           path: fieldPath,
@@ -514,6 +565,112 @@ module.exports = (appLib) => {
     }
   };
 
+  m.mergeDocUsingFieldActions = ({ appModel, path = [], result = {}, dbDoc, userData, action, userPermissions }) => {
+    // copy _id from dbDoc only for root level
+    if (path.length === 0) {
+      result._id = dbDoc._id;
+    }
+
+    if (!appLib.getAuthSettings().enablePermissions) {
+      return _.merge({}, userData, result);
+    }
+
+    _.each(appModel.fields, (field, fieldKey) => {
+      const fieldPath = path.concat(fieldKey);
+
+      const fieldPermissions = _.get(field, `permissions.${action}`);
+      const isPermissionGranted = m.isPermissionGranted(fieldPermissions, userPermissions);
+
+      const fieldAction = _.get(userData, fieldPath.concat('action'));
+      let userValue = _.get(userData, fieldPath.concat('value'));
+      const dbValue = _.get(dbDoc, fieldPath);
+
+      if (!isPermissionGranted) {
+        return setVal({ result, fieldPath, fieldAction, dbValue, userValue });
+      }
+
+      const isPasswordField = field.type === 'Password';
+      if (isPasswordField) {
+        if (fieldAction === 'delete') {
+          throw new ValidationError(`Field action ${fieldAction} is not supported on 'Password' field`);
+        }
+        // do not let user set empty password
+        userValue = userValue || dbValue;
+        return setVal({ result, fieldPath, fieldAction, dbValue, userValue });
+      }
+
+      const isArrayField = field.type === 'Array';
+      const isObjectField = field.type === 'Object';
+      if (!isArrayField && !isObjectField) {
+        return setVal({ result, fieldPath, fieldAction, dbValue, userValue });
+      }
+
+      if (isObjectField) {
+        if (_.isEmpty(userValue) && _.isEmpty(dbValue)) {
+          return _.set(result, fieldPath, {});
+        }
+
+        return m.mergeDocs({
+          appModel: field,
+          path: fieldPath,
+          result,
+          dbDoc,
+          userData,
+          action,
+          userPermissions,
+        });
+      }
+
+      if (isArrayField) {
+        // if user value for array is not set it should be written as empty
+        const userArrValue = userValue || [];
+
+        // map by object id no matter whether its String or ObjectID instance
+        const mappedDbArray = _.map(userArrValue, (userObj) => {
+          if (!userObj._id) {
+            return {};
+          }
+          const matchedDbDoc = _.find(dbValue, (doc) => doc._id && userObj._id.toString() === doc._id.toString());
+          return matchedDbDoc || {};
+        });
+        // rewrite mapped array to merge db and user objects 1 to 1
+        _.set(dbDoc, fieldPath, mappedDbArray);
+
+        for (let i = 0; i < userArrValue.length; i++) {
+          const elemPath = fieldPath.concat(i);
+          m.mergeDocs({
+            appModel: field,
+            path: elemPath,
+            result,
+            dbDoc,
+            userData,
+            action,
+            userPermissions,
+          });
+        }
+      }
+    });
+
+    return result;
+
+    // eslint-disable-next-line no-shadow
+    function setVal({ result, fieldPath, fieldAction, dbValue, userValue }) {
+      if (_.isUndefined(fieldAction) || fieldAction === 'doNotChange') {
+        return _.set(result, fieldPath, dbValue);
+      }
+
+      if (fieldAction === 'delete') {
+        return _.unset(result, fieldPath);
+      }
+      if (fieldAction === 'update') {
+        !_.isUndefined(userValue) && _.set(result, fieldPath, userValue);
+        return;
+      }
+
+      throw new ValidationError(`Unknown field action found: ${fieldAction}`);
+    }
+  };
+
   function getFieldVerbByAction(action) {
     if (action === 'view') {
       return 'read';
@@ -552,7 +709,7 @@ module.exports = (appLib) => {
     return filteringInfo;
   };
 
-  async function getListValues(list, dynamicListRequestConfig) {
+  m.getListValues = async (list, dynamicListRequestConfig) => {
     if (list.isDynamicList) {
       const { name: endpoint } = list;
       const response = await axios.get(endpoint, dynamicListRequestConfig);
@@ -565,7 +722,7 @@ module.exports = (appLib) => {
       return listValue();
     }
     return listValue || builtInList;
-  }
+  };
 
   m.getListForUser = async (
     userPermissions,
@@ -590,7 +747,7 @@ module.exports = (appLib) => {
 
     let listValues;
     try {
-      listValues = await getListValues(list, dynamicListRequestConfig);
+      listValues = await m.getListValues(list, dynamicListRequestConfig);
     } catch (e) {
       log.error(`Unable to get list values for '${listPath}', list name: '${list.name}'`);
       listValues = {};
@@ -614,9 +771,17 @@ module.exports = (appLib) => {
       const scopePermission = _.get(listScope, `permissions.${action}`);
       const isScopePermissionGranted = m.isPermissionGranted(scopePermission, userPermissions);
 
+      if (!isScopePermissionGranted || listScope.where === false) {
+        return;
+      }
+
       const whereList = {};
-      if (isScopePermissionGranted) {
-        const whereFunc = new Function(`val, key, ${args}`, listScope.where);
+      if (listScope.where === true) {
+        _.each(listValues, (val, key) => {
+          whereList[key] = val;
+        });
+      } else {
+        const whereFunc = getFunction(`val, key, ${args}`, listScope.where);
         _.each(listValues, (val, key) => {
           try {
             const isWherePassed = whereFunc.apply(inlineContext, [val, key, ...values]);
@@ -636,7 +801,7 @@ module.exports = (appLib) => {
 
       let returnedListForScope;
       try {
-        const formListFunc = new Function(`$list, ${args}`, listScope.return);
+        const formListFunc = getFunction(`$list, ${args}`, listScope.return);
         returnedListForScope = formListFunc.apply(inlineContext, [whereList, ...values]);
       } catch (e) {
         returnedListForScope = {};
@@ -649,6 +814,7 @@ module.exports = (appLib) => {
 
       listsForScopes.push(returnedListForScope);
     });
+
     const mergedListForScopes = listsForScopes.reduce((result, current) => _.merge(result, current), {});
 
     return {
@@ -746,7 +912,7 @@ module.exports = (appLib) => {
 
     const fieldsPathInAppModel = `${modelName}.fields`;
 
-    // transform relative paths of req.body to absolute paths
+    // transform relative paths of data to absolute paths
     const userData = _.reduce(
       data,
       (result, val, key) => {
@@ -773,9 +939,6 @@ module.exports = (appLib) => {
 
       const fieldPathWithoutFields = fieldPath.split('.fields.').join('.');
       if (_.isEmpty(userVal)) {
-        if (list.required) {
-          listsErrors.push(`Required value must be set for '${fieldPathWithoutFields}'.`);
-        }
         return;
       }
 
@@ -833,9 +996,15 @@ module.exports = (appLib) => {
 
   m.getBaseAppModel = () => {
     const baseAppModel = _.cloneDeep(appLib.appModel);
-    for (const modelName of appLib.datasetsModelsNames.entries()) {
-      delete baseAppModel.appModel.models[modelName];
+    for (const modelName of appLib.datasetModelNames.entries()) {
+      delete baseAppModel.models[modelName];
     }
+
+    _.each(baseAppModel.models, (model) => {
+      delete model.limitReturnedRecords;
+      delete model.indexes;
+      delete model.softDelete;
+    });
 
     const app = _.get(baseAppModel, 'interface.app');
     if (app) {
@@ -861,9 +1030,18 @@ module.exports = (appLib) => {
   };
 
   m.removeBaseAppModelPart = (part, path = []) => {
+    if (part.synthesize) {
+      part.showInForm = false;
+    }
+    if (part.synthesize && part.formRender) {
+      part.showInForm = true;
+    }
+
     delete part.generatorSpecification;
     delete part.synthesize;
     delete part.transform;
+    delete part.softDelete;
+    delete part.indexes;
 
     if (['LookupObjectID', 'LookupObjectID[]'].includes(part.type)) {
       return _.each(part.lookup.table, (lookupSpec) => {
@@ -940,40 +1118,107 @@ module.exports = (appLib) => {
     });
   };
 
-  m.getAuthorizedAppModel = async (req) => {
-    const authorizedModel = _.cloneDeep(appLib.baseAppModel);
-    const userPermissions = m.getReqPermissions(req);
-    _.each(authorizedModel.models, (model) => {
-      m.handleModelByPermissions(model, userPermissions);
+  const getAuthorizedAppModel = mem(
+    async (userPermissions, inlineContext, deviceType) => {
+      // appLib.baseAppModel is static since app start, this is why it's not an argument
+      const authorizedModel = _.cloneDeep(appLib.baseAppModel);
+      _.each(authorizedModel.models, (model) => {
+        m.handleModelByPermissions(model, userPermissions);
+      });
+
+      await m.injectListValues(userPermissions, inlineContext, authorizedModel.models);
+      authorizedModel.interface.mainMenu = m.getMenuForUser(userPermissions, authorizedModel);
+      authorizedModel.interface.pages = m.getPagesForUser(userPermissions, authorizedModel);
+      _.set(authorizedModel, 'interface.app.deviceType', deviceType);
+
+      return authorizedModel;
+    },
+    { cacheKey: hashObject, cache: new LRUCache({ max: 1000 }) }
+  );
+
+  async function getUserSettings(userContext) {
+    const [settings = {}] = await appLib.dba.getItemsUsingCache({
+      modelName: '_userSettings',
+      userContext,
+      mongoParams: { conditions: { 'creator._id': userContext.user._id } },
     });
+    return settings;
+  }
 
-    const inlineContext = m.getInlineContext(req);
-    await m.injectListValues(userPermissions, inlineContext, authorizedModel.models);
-    authorizedModel.interface.mainMenu = m.getMenuForUser(userPermissions, authorizedModel);
-    authorizedModel.interface.pages = m.getPagesForUser(userPermissions, authorizedModel);
-    _.set(authorizedModel, 'interface.app.deviceType', req.device.type);
+  m.getUserSettingsMergedWithDefaults = (settings = {}, returnAsInterface = true) => {
+    const recordPathToInterfacePath = {
+      skin: 'skin',
+      menuPosition: 'layout.menuPosition',
+      fullScreenToggle: 'app.header.components.fullScreenToggle',
+      headerVisible: 'app.header.visible',
+      footerVisible: 'app.footer.visible',
+      fixedHeader: 'layout.fixed.header',
+      fixedNavigation: 'layout.fixed.navigation',
+      fixedFooter: 'layout.fixed.footer',
+      fixedWidth: 'layout.fixedWidth',
+    };
 
-    return authorizedModel;
+    const resultSettings = {};
+    _.each(recordPathToInterfacePath, (interfacePath, recordPath) => {
+      const resultPath = returnAsInterface ? interfacePath : recordPath;
+      const recordValue = settings[recordPath];
+      if (recordValue) {
+        return _.set(resultSettings, resultPath, recordValue);
+      }
+      const interfaceValue = _.get(appLib.appModel.interface, interfacePath);
+      _.set(resultSettings, resultPath, interfaceValue);
+    });
+    return resultSettings;
   };
+
+  async function getThemeSettingsForAppModel(userContext) {
+    const settings = await getUserSettings(userContext);
+    return m.getUserSettingsMergedWithDefaults(settings);
+  }
+
+  m.getAuthorizedAppModel = async (req) => {
+    const userPermissions = m.getReqPermissions(req);
+    const userContext = m.getUserContext(req);
+    const inlineContext = m.getInlineContext(req);
+    const deviceType = req.device.type;
+
+    const [model, themeSettings] = await Promise.all([
+      getAuthorizedAppModel(userPermissions, inlineContext, deviceType),
+      getThemeSettingsForAppModel(userContext),
+    ]);
+    _.merge(model.interface, themeSettings);
+
+    return model;
+  };
+
+  const getUnauthorizedAppModel = mem(
+    (userPermissions, deviceType) => {
+      // appLib.baseAppModel is static since app start, this is why it's not an argument
+      const unauthorizedModel = _.cloneDeep(appLib.baseAppModel);
+      // actions for read and write
+      const actions = ['view', 'update'];
+      const { models } = unauthorizedModel;
+      unauthorizedModel.models = { users: models.users };
+      _.each(unauthorizedModel.models, (model) => {
+        m.injectFieldsInfo(model, actions, userPermissions);
+      });
+
+      const menuFields = unauthorizedModel.interface.mainMenu.fields;
+      unauthorizedModel.interface.mainMenu.fields = { home: menuFields.home };
+      const { pages } = unauthorizedModel.interface;
+      unauthorizedModel.interface.pages = { home: pages.home };
+      _.set(unauthorizedModel, 'interface.app.deviceType', deviceType);
+
+      return unauthorizedModel;
+    },
+    { cacheKey: hashObject }
+  );
 
   m.getUnauthorizedAppModel = (req) => {
     const userPermissions = m.getReqPermissions(req);
-    const unauthorizedModel = _.cloneDeep(appLib.baseAppModel);
-    // actions for read and write
-    const actions = ['view', 'update'];
-    const { models } = unauthorizedModel;
-    unauthorizedModel.models = { users: models.users };
-    _.each(unauthorizedModel.models, (model) => {
-      m.injectFieldsInfo(model, actions, userPermissions);
-    });
+    const deviceType = req.device.type;
 
-    const menuFields = unauthorizedModel.interface.mainMenu.fields;
-    unauthorizedModel.interface.mainMenu.fields = { home: menuFields.home };
-    const { pages } = unauthorizedModel.interface;
-    unauthorizedModel.interface.pages = { home: pages.home };
-    _.set(unauthorizedModel, 'interface.app.deviceType', req.device.type);
-
-    return unauthorizedModel;
+    return getUnauthorizedAppModel(userPermissions, deviceType);
   };
 
   m.getAdminLookupScopeForViewAction = () => ({
@@ -985,30 +1230,34 @@ module.exports = (appLib) => {
     },
   });
 
-  m.getAnyoneListScope = (actions) => {
-    const anyoneScope = {
+  m.getAnyoneListScope = () => {
+    const permissions = {};
+    _.each(appLib.accessCfg.DEFAULT_ACTIONS, (action) => {
+      permissions[action] = appPermissions.accessAsAnyone;
+    });
+
+    return {
       anyoneScope: {
-        permissions: appPermissions.accessAsAnyone,
-        where: 'return true',
+        permissions,
+        where: true,
         return: 'return $list',
       },
     };
-
-    expandPermissionsForScope(anyoneScope, actions);
-    return anyoneScope;
   };
 
-  m.getAdminListScope = (actions) => {
-    const adminScope = {
+  m.getAdminListScope = () => {
+    const permissions = {};
+    _.each(appLib.accessCfg.DEFAULT_ACTIONS, (action) => {
+      permissions[action] = appPermissions.accessAsSuperAdmin;
+    });
+
+    return {
       superAdminScope: {
-        permissions: appPermissions.accessAsSuperAdmin,
-        where: 'return true',
+        permissions,
+        where: true,
         return: 'return $list',
       },
     };
-
-    expandPermissionsForScope(adminScope, actions);
-    return adminScope;
   };
 
   m.getFieldActionByModelAction = (action) => {

@@ -1,13 +1,15 @@
- <input
-    type="hidden"
-    name="{{field.fieldName}}"
-    id="{{$id + field.fieldName}}"
-    adp-validate="validationParams"
-    ng-required="isRequired()"
-    ng-model="adpFormData[field.fieldName]"
-  >
+<input
+  type="hidden"
+  name="{{args.fieldSchema.fieldName}}"
+  id="{{$id + args.fieldSchema.fieldName}}"
+  adp-validate="args"
+  ng-required="isRequired()"
+  ng-model="getterSetter"
+  ng-model-options="{ getterSetter: true }"
+>
 
-  <div
-    dx-switch="config"
-    class="adp-switch"
-  ></div>
+<div
+  dx-switch="config"
+  class="adp-switch"
+  ng-attr-adp-qaid-field-control="{{args.path}}"
+></div>

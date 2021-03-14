@@ -4,7 +4,7 @@
   /** @ngInject */
   function AdpGridViewManager(AdpClientCommonHelper, AdpGridViewManagerService) {
     return function (toolbarWidgetRegister) {
-      var schema = this.schema;
+      var schema = this.modelSchema;
       var actionOptions = this.actionOptions;
       var customGridOptions = this.customGridOptions;
 

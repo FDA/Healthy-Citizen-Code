@@ -1,9 +1,10 @@
 const { ObjectID } = require('mongodb');
 const Promise = require('bluebird');
-const _ = require('lodash');
 const { Engine } = require('bpmn-engine');
-const { EventEmitter } = require('events');
+const NP = require('number-precision');
 const { getServices } = require('./services');
+
+NP.enableBoundaryChecking(false);
 
 module.exports = (context) => {
   return async (job) => {
@@ -23,21 +24,8 @@ module.exports = (context) => {
     creator._id = ObjectID(creator._id);
 
     const { db, cache, log, backgroundJobsUtil } = context.getCommonContext();
-    const { flattenObject, getPercentage, processDataMapping, upsertResultRecords } = backgroundJobsUtil;
+    const { flattenObject, processDataMapping, upsertResultRecords } = backgroundJobsUtil;
     const now = new Date();
-
-    const engine = Engine({
-      source: xml,
-      moddleOptions: {
-        camunda: require('camunda-bpmn-moddle/resources/camunda'),
-      },
-    });
-    const listener = new EventEmitter();
-    listener.on('activity.end', (elementApi, engineApi) => {
-      if (elementApi.content.output) {
-        engineApi.environment.output[elementApi.id] = elementApi.content.output;
-      }
-    });
 
     const cursor = db.collection(inputCollectionName).aggregate([
       {
@@ -49,60 +37,69 @@ module.exports = (context) => {
         },
       },
     ]);
-
-    const services = getServices(db, log);
-    let results = [];
-    let initDocs = [];
-    let processedVariables = 0;
+    const execState = {
+      docs: [],
+      processedDocsCount: 0,
+      services: getServices(db, log),
+    };
 
     try {
       while (await cursor.hasNext()) {
         const doc = await cursor.next();
-        initDocs.push(doc);
-        const mappedData = processDataMapping({ input: doc, dataMapping: inputDataMapping });
+        execState.docs.push(doc);
 
-        // Besides passed value variables contains following meta info:
-        // { "fields":{"routingKey":"run.execute","exchange":"run","consumerTag":"_process-run"},"content":{"id":"theProcess","type":"bpmn:Process","parent":{"type":"bpmn:Definitions"},"executionId":"theProcess_2a87960a"},"properties":{"messageId":"smq.mid-2b7178","timestamp":1587200146135}}
-        const output = await new Promise((resolve, reject) => {
-          engine.execute({ listener, variables: { data: mappedData, parameters }, services }, (err, _execution) => {
-            if (err) {
-              return reject(err);
-            }
-            resolve(_execution.environment.output);
-          });
-        });
-
-        results.push(_.cloneDeep(output));
-        if (results.length >= batchSize) {
-          await processResults();
+        if (execState.docs.length >= batchSize) {
+          await processDocs();
         }
       }
-      results.length && (await processResults());
+      execState.docs.length && (await processDocs());
 
       await cache.clearCacheForModel(outputCollection);
     } catch (e) {
-      log.error(`Unable to process a job with id ${job.id}`, e.stack);
+      throw new Error(`Unable to process a job with id ${job.id}. ${e.stack}`);
     }
 
-    async function processResults() {
+    async function processDocs() {
       const resultRecords = [];
 
-      _.each(results, (result, index) => {
-        const initDoc = initDocs[index];
-        const { _id } = initDoc;
-        delete initDoc._id;
+      const { docs, services } = execState;
+      await Promise.map(
+        docs,
+        async (initDoc) => {
+          // Create new Engine for every document since in case of using one engine for all executions "JavaScript heap out of memory" error occurred
+          const engine = Engine({
+            source: xml,
+            moddleOptions: {
+              camunda: require('camunda-bpmn-moddle/resources/camunda'),
+            },
+          });
 
-        const flattenVariables = flattenObject(initDoc, '');
-        const mappedResult = processDataMapping({ input: result, dataMapping: outputDataMapping });
-        const flattenMappedResult = flattenObject(mappedResult, outputPrefix);
-        resultRecords.push({
-          _id,
-          updatedAt: now,
-          deletedAt: new Date(0),
-          ...flattenVariables,
-          ...flattenMappedResult,
-        });
-      });
+          const mappedData = processDataMapping({ input: initDoc, dataMapping: inputDataMapping });
+          const result = await new Promise((resolve, reject) => {
+            engine.execute({ variables: { data: mappedData, parameters }, services }, (err, _execution) => {
+              if (err) {
+                return reject(err);
+              }
+              resolve(_execution.environment.output);
+            });
+          });
+
+          const { _id } = initDoc;
+          delete initDoc._id;
+
+          const flattenVariables = flattenObject(initDoc, '');
+          const mappedResult = processDataMapping({ input: result, dataMapping: outputDataMapping });
+          const flattenMappedResult = flattenObject(mappedResult, outputPrefix);
+          resultRecords.push({
+            _id,
+            updatedAt: now,
+            deletedAt: new Date(0),
+            ...flattenVariables,
+            ...flattenMappedResult,
+          });
+        },
+        { concurrency: 10 }
+      );
 
       await upsertResultRecords({
         db,
@@ -111,10 +108,10 @@ module.exports = (context) => {
         $setOnInsert: { creator, createdAt: now },
       });
 
-      processedVariables += initDocs.length;
-      initDocs = [];
-      results = [];
-      const percentage = getPercentage(processedVariables, inputRecordsCount);
+      execState.processedDocsCount += execState.docs.length;
+      execState.docs = [];
+      const roundedRatio = NP.round(execState.processedDocsCount / inputRecordsCount, 5);
+      const percentage = NP.round(roundedRatio * 100, 2);
       job.progress(percentage);
     }
   };

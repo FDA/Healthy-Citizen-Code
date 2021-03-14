@@ -8,14 +8,15 @@ module.exports = () => {
   const m = {};
 
   m.init = async (appLib) => {
+    const route = '/scgRun';
     if (!appLib.queue.isReady()) {
-      log.warn(`SCG runner is disabled due to required Bull queue is disabled`);
+      log.warn(`SCG runner (${route}) is disabled due to required Bull queue is disabled`);
       return;
     }
     m.appLib = appLib;
 
     await createScgQueue({ appLib, log });
-    appLib.addRoute('post', `/scgRun`, [appLib.isAuthenticated, m.runScg]);
+    appLib.addRoute('post', route, [appLib.isAuthenticated, m.runScg]);
   };
 
   m.runScg = async (req, res) => {

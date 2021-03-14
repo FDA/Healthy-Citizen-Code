@@ -4,7 +4,7 @@
   ng-if="fieldModel.$dirty"
   class="note note-error">
 
-  <span ng-message="required">{{field.fullName}} is required.</span>
+  <span ng-message="required">{{args.fieldSchema.fullName}} is required.</span>
 
   <span ng-message="regex">{{messages['regex']}}</span>
 
@@ -29,22 +29,22 @@
   <span ng-message="int64">{{messages.int64 || "Value is not a valid int32 number."}}</span>
 
   <span ng-message="number">
-    <span ng-if="['Int32', 'Int64'].includes(field.type)">
-      "{{field.fullName}}" is not a valid integer number.
+    <span ng-if="['Int32', 'Int64'].includes(args.fieldSchema.type)">
+      "{{args.fieldSchema.fullName}}" is not a valid integer number.
     </span>
 
-    <span ng-if="!['Int32', 'Int64'].includes(field.type)">
-      "{{field.fullName}}" is not a valid number.
+    <span ng-if="!['Int32', 'Int64'].includes(args.fieldSchema.type)">
+      "{{args.fieldSchema.fullName}}" is not a valid number.
     </span>
   </span>
 
   <span ng-message="pattern">
-    <span ng-if="field.type === 'Decimal128'">
-      "{{field.fullName}}" is not a decimal valid number.
+    <span ng-if="args.fieldSchema.type === 'Decimal128'">
+      "{{args.fieldSchema.fullName}}" is not a decimal valid number.
     </span>
 
-    <span ng-if="['Int32', 'Int64'].includes(field.type)">
-      "{{field.fullName}}" is not a valid integer number.
+    <span ng-if="['Int32', 'Int64'].includes(args.fieldSchema.type)">
+      "{{args.fieldSchema.fullName}}" is not a valid integer number.
     </span>
   </span>
 

@@ -1,0 +1,24 @@
+{
+  "interface": {
+    "pages": {
+      "dataGraph3d": {
+        "fullName": "Force Graph",
+        "link": "/dataGraph3d",
+        "template": {
+          "type": "file",
+          "link": "page_force_graph3d_template.ejs"
+        },
+        "controller": "ForceGraphController"
+      },
+      "dataGraphVr": {
+        "fullName": "VR Force Graph",
+        "link": "/dataGraphVr",
+        "template": {
+          "type": "file",
+          "link": "page_force_graph_vr_template.ejs"
+        },
+        "controller": "ForceGraphControllerVr"
+      }
+    }
+  }
+}

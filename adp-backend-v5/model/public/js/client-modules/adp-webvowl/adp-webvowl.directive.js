@@ -41,6 +41,7 @@
           showZoom: false,
           showFooter: false,
           token: lsService.getToken(),
+          apiUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix,
         };
 
         var options = _.pick(scope, _.keys(defaults));
@@ -48,7 +49,7 @@
 
         function getOptions(opts) {
           return _.map(opts, function (value, key) {
-            if (['title', 'token', 'subtitle'].includes(key)) {
+            if (['title', 'token', 'subtitle', 'apiUrl'].includes(key)) {
               return key + '=' + value;
             }
             return key + '=' + (value ? '1' : '0');

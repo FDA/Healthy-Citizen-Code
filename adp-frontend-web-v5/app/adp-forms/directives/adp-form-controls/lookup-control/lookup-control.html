@@ -26,10 +26,11 @@
     type="text"
     class="hidden"
     style="width:100%"
-    adp-validate="validationParams"
+    adp-validate="args"
     ng-required="isRequired()"
-    name="{{field.fieldName}}"
-    ng-model="adpFormData[field.fieldName]"
-    id="{{field.fieldName}}"
+    name="{{args.fieldSchema.fieldName}}"
+    id="{{args.fieldSchema.fieldName}}"
+    ng-model="getterSetter"
+    ng-model-options="{ getterSetter: true }"
   >
 </div>

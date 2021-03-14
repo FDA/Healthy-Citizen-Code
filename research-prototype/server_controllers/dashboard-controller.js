@@ -9,14 +9,19 @@ module.exports = function () {
   m.init = (appLib) => {
     m.appLib = appLib;
     m.db = m.appLib.db;
-    m.conditionForActualRecord = m.appLib.dba.getConditionForActualRecord();
+
+    m.participantsCollectionName = 'participants';
+    m.questionnairesCollectionName = 'questionnaires';
+    m.questionnairesActualConditions = m.appLib.dba.getConditionForActualRecord(m.questionnairesCollectionName);
+    m.participantsActualConditions = m.appLib.dba.getConditionForActualRecord(m.participantsCollectionName);
+
 
     appLib.addRoute('get', `/dashboards/dashboard/data`, [appLib.isAuthenticated, m.dashboard]);
   };
 
   const getNotStartedQuestionnaires = (userId) => {
     const pipeline = [
-      { $match: { ...m.conditionForActualRecord, 'creator._id': userId } },
+      { $match: { ...m.questionnairesActualConditions, 'creator._id': userId } },
       {
         $project: {
           _id: 1,
@@ -99,12 +104,12 @@ module.exports = function () {
       },
     ];
 
-    return m.db.model('questionnaires').aggregate(pipeline);
+    return m.db.collection(m.questionnairesCollectionName).aggregate(pipeline).toArray();
   };
 
   const getInProgressAndCompletedQuestionnaires = async (userId) => {
     const pipeline = [
-      { $match: m.conditionForActualRecord },
+      { $match: m.participantsActualConditions },
       {
         $project: {
           answersToQuestionnaires: 1,
@@ -164,7 +169,7 @@ module.exports = function () {
       },
     ];
 
-    const docs = await m.db.model('participants').aggregate(pipeline);
+    const docs = await m.db.collection(m.participantsCollectionName).aggregate(pipeline).toArray();
     _.forEach(docs, (doc) => {
       const newStats = {};
       _.forEach(doc.stats, (stat) => {
@@ -205,7 +210,7 @@ module.exports = function () {
 
   const getQuestionnaireSpentTimeChart = (userId) => {
     const pipeline = [
-      { $match: m.conditionForActualRecord },
+      { $match: m.participantsActualConditions },
       {
         $unwind: '$answersToQuestionnaires',
       },
@@ -251,7 +256,7 @@ module.exports = function () {
         },
       },
     ];
-    return m.db.model('participants').aggregate(pipeline);
+    return m.db.collection(m.participantsCollectionName).aggregate(pipeline).toArray();
   };
 
   const getQuestionnaireDayChart = async (days = 30, userId) => {
@@ -273,7 +278,7 @@ module.exports = function () {
 
     const day0 = new Date(0);
     const pipeline = [
-      { $match: m.conditionForActualRecord },
+      { $match: m.participantsActualConditions },
       {
         $unwind: '$answersToQuestionnaires',
       },
@@ -318,8 +323,10 @@ module.exports = function () {
       },
     ];
 
-    const doc = await m.db.model('participants').aggregate(pipeline);
-    _.forEach(doc, (stat) => {
+    const docs = await m.db.collection(m.participantsCollectionName).aggregate(pipeline).toArray();
+    console.log('m.participantsActualConditions', m.participantsActualConditions);
+    console.log('docs', docs);
+    _.forEach(docs, (stat) => {
       results[stat._id.toISOString()] = stat.count;
     });
 
@@ -333,13 +340,13 @@ module.exports = function () {
 
   const getQuestionnairesCount = (userId) => {
     // TODO: scope to the current user only
-    return m.db.model('questionnaires').countDocuments({ ...m.conditionForActualRecord, 'creator._id': userId });
+    return m.db.collection(m.questionnairesCollectionName).countDocuments({ ...m.questionnairesActualConditions, 'creator._id': userId });
   };
 
   const getAnswersCount = async (userId) => {
     // TODO: scope to the current user only
-    const allAnswersToQuestionnaires = await m.db.model('participants').aggregate([
-      { $match: m.conditionForActualRecord },
+    const allAnswersToQuestionnaires = await m.db.collection(m.participantsCollectionName).aggregate([
+      { $match: m.participantsActualConditions },
       {
         $project: {
           answersToQuestionnaires: 1,
@@ -359,7 +366,7 @@ module.exports = function () {
       },
       { $match: { 'questionnaires.creator._id': userId } },
       { $project: { 'answersToQuestionnaires.answers': 1, _id: 0 } },
-    ]);
+    ]).toArray();
 
     let allAnswersCnt = 0;
     _.forEach(allAnswersToQuestionnaires, (answerToQuestionnaire) => {
@@ -371,7 +378,7 @@ module.exports = function () {
   };
 
   const getParticipantsCount = () => {
-    return m.db.model('participants').countDocuments(m.conditionForActualRecord);
+    return m.db.collection(m.participantsCollectionName).countDocuments(m.participantsActualConditions);
   };
 
   m.dashboard = async (req, res) => {
@@ -413,11 +420,9 @@ module.exports = function () {
       return [];
     }
 
-    let result = [
-      ['questionnaireName', 'Completed', 'Not started', 'In Progress'],
-    ];
+    let result = [['questionnaireName', 'Completed', 'Not started', 'In Progress']];
 
-    const getValue = v => v === 0 ? null : v;
+    const getValue = (v) => (v === 0 ? null : v);
 
     data.forEach((item) => {
       result.push([
@@ -429,47 +434,32 @@ module.exports = function () {
     });
 
     return result;
-  }
+  };
 
   const mapDataSpentTimeChart = (data) => {
     if (data.length === 0) {
       return [];
     }
 
-    let result = [
-      [
-        "questionnaireName",
-        "average seconds spent",
-        "anticipated seconds spent"
-      ],
-    ];
+    let result = [['questionnaireName', 'average seconds spent', 'anticipated seconds spent']];
 
     data.forEach((item) => {
-      result.push([
-        item.questionnaire.questionnaireName,
-        item.stats.average,
-        item.stats.anticipated,
-      ]);
+      result.push([item.questionnaire.questionnaireName, item.stats.average, item.stats.anticipated]);
     });
 
     return result;
-  }
+  };
 
   const mapDataToDayChart = (data) => {
     if (_.isEmpty(data)) {
       return [];
     }
 
-    let result = [
-      ['Questionnaires', 'Questionnaires Completed in the Last 30 Days'],
-    ];
+    let result = [['Questionnaires', 'Questionnaires Completed in the Last 30 Days']];
     let answers = data[0].data;
 
     Object.keys(answers).forEach((date) => {
-      result.push([
-        date,
-        answers[date],
-      ]);
+      result.push([date, answers[date]]);
     });
 
     return result;

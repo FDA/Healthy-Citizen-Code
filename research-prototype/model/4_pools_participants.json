@@ -42,7 +42,7 @@
         "poolId": {
           "fullName": "Pool",
           "type": "LookupObjectID",
-          "required": false,
+          "required": true,
           "description": "Pool Name",
           "lookup": {
             "table": {

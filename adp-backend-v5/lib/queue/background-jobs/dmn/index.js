@@ -5,7 +5,7 @@ const { initJavaInstance, getValidatedDmnUtilInstance } = require('./dmn-util');
 
 const dmnContextName = 'dmnContext';
 const DMN_QUEUE_NAME = 'dmnRunner';
-const dmnBatchSize = +process.env.DMN_BATCH_SIZE || 10000;
+const dmnBatchSize = +process.env.DMN_BATCH_SIZE || 50;
 const dmnRunnerConcurrency = +process.env.DMN_RUNNER_CONCURRENCY || 1;
 const ruleCollectionName = 'businessRules';
 
@@ -22,7 +22,7 @@ async function createDmnQueue({ appLib, log }) {
   dmnContext.setCommonContext({ db: appLib.db, cache: appLib.cache, log, backgroundJobsUtil: util });
 
   const dmnRunnerQueue = appLib.queue.createQueue(DMN_QUEUE_NAME);
-  util.addLogsAndNotificationsForQueueEvents(appLib, dmnRunnerQueue, log);
+  util.addQueueEventHandlers({ appLib, bullQueue: dmnRunnerQueue, log });
 
   dmnRunnerQueue.process(dmnRunnerConcurrency, require('./dmn-queue-processor')(dmnContext));
 
@@ -44,7 +44,9 @@ async function runDmnRule({
 }) {
   try {
     const dmnRunnerQueue = appLib.queue.getQueue(DMN_QUEUE_NAME);
-    const rule = await appLib.db.collection(ruleCollectionName).findOne({ _id: ObjectID(_id) });
+    const { record: rule } = await appLib.db
+      .collection(ruleCollectionName)
+      .hookQuery('findOne', { _id: ObjectID(_id) });
     const { dmnXml, decisionId } = _.get(rule, 'definition', {});
     if (!dmnXml || !decisionId) {
       return {

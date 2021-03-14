@@ -16,7 +16,6 @@ describe('V5 Backend Schema Routes', function () {
     this.expected = {
       type: 'Schema',
       fullName: 'model1s',
-      limitReturnedRecords: 1,
       fields: {
         string: {
           type: 'String',
@@ -38,6 +37,14 @@ describe('V5 Backend Schema Routes', function () {
             filterType: 'include',
             allowSearch: true,
           },
+          validate: [
+            {
+              validator: 'string',
+              errorMessages: {
+                default: 'Please enter correct String value',
+              },
+            },
+          ],
           fullName: 'String',
           responsivePriority: 100,
           width: 100,
@@ -83,6 +90,14 @@ describe('V5 Backend Schema Routes', function () {
                     filterType: 'include',
                     allowSearch: true,
                   },
+                  validate: [
+                    {
+                      validator: 'string',
+                      errorMessages: {
+                        default: 'Please enter correct String value',
+                      },
+                    },
+                  ],
                   responsivePriority: 100,
                   width: 100,
                   showInDatatable: true,
@@ -104,8 +119,16 @@ describe('V5 Backend Schema Routes', function () {
                   allowGrouping: false,
                 },
                 allowSearch: false,
-                maxDatagridCellHeight: 200,
+                maxDatagridCellHeight: 70,
               },
+              validate: [
+                {
+                  validator: 'array',
+                  errorMessages: {
+                    default: 'Please enter correct Array value',
+                  },
+                },
+              ],
               responsivePriority: 100,
               showInDatatable: true,
               showInViewDetails: true,
@@ -144,6 +167,14 @@ describe('V5 Backend Schema Routes', function () {
                     filterType: 'include',
                     allowSearch: true,
                   },
+                  validate: [
+                    {
+                      validator: 'string',
+                      errorMessages: {
+                        default: 'Please enter correct String value',
+                      },
+                    },
+                  ],
                   responsivePriority: 100,
                   width: 100,
                   showInDatatable: true,
@@ -196,8 +227,16 @@ describe('V5 Backend Schema Routes', function () {
                   allowGrouping: false,
                 },
                 allowSearch: false,
-                maxDatagridCellHeight: 200,
+                maxDatagridCellHeight: 70,
               },
+              validate: [
+                {
+                  validator: 'array',
+                  errorMessages: {
+                    default: 'Please enter correct Array value',
+                  },
+                },
+              ],
               responsivePriority: 100,
               showInDatatable: true,
               showInViewDetails: true,
@@ -218,8 +257,16 @@ describe('V5 Backend Schema Routes', function () {
               allowGrouping: false,
             },
             allowSearch: false,
-            maxDatagridCellHeight: 200,
+            maxDatagridCellHeight: 70,
           },
+          validate: [
+            {
+              validator: 'array',
+              errorMessages: {
+                default: 'Please enter correct Array value',
+              },
+            },
+          ],
           responsivePriority: 100,
           showInDatatable: true,
           showInViewDetails: true,
@@ -244,10 +291,10 @@ describe('V5 Backend Schema Routes', function () {
           },
           fieldName: '_id',
           width: 120,
+          showInForm: false,
           responsivePriority: 100,
           showInDatatable: true,
           showInViewDetails: true,
-          showInForm: true,
           showInGraphql: true,
           filter: 'objectId',
           fieldInfo: {
@@ -267,6 +314,7 @@ describe('V5 Backend Schema Routes', function () {
             },
             id: 'Model1sCreator',
           },
+          index: true,
           fullName: 'Creator',
           description: 'Record Creator',
           showInDatatable: true,
@@ -310,9 +358,19 @@ describe('V5 Backend Schema Routes', function () {
             },
             filterType: 'include',
             allowSearch: true,
+            pickerType: 'rollers',
+            openOnFieldClick: false,
           },
           fieldName: 'createdAt',
           width: 150,
+          validate: [
+            {
+              validator: 'dateTime',
+              errorMessages: {
+                default: 'Please enter correct DateTime value',
+              },
+            },
+          ],
           responsivePriority: 100,
           showInForm: false,
           filter: 'dateTime',
@@ -338,9 +396,19 @@ describe('V5 Backend Schema Routes', function () {
             },
             filterType: 'include',
             allowSearch: true,
+            pickerType: 'rollers',
+            openOnFieldClick: false,
           },
           fieldName: 'updatedAt',
           width: 150,
+          validate: [
+            {
+              validator: 'dateTime',
+              errorMessages: {
+                default: 'Please enter correct DateTime value',
+              },
+            },
+          ],
           responsivePriority: 100,
           showInForm: false,
           filter: 'dateTime',
@@ -357,6 +425,7 @@ describe('V5 Backend Schema Routes', function () {
           showInDatatable: true,
           showInViewDetails: true,
           showInGraphql: true,
+          showInForm: false,
           parameters: {
             enableInCellEditing: false,
             visible: false,
@@ -366,13 +435,21 @@ describe('V5 Backend Schema Routes', function () {
             },
             filterType: 'include',
             allowSearch: true,
+            pickerType: 'rollers',
+            openOnFieldClick: false,
           },
           fieldName: 'deletedAt',
           width: 150,
+          validate: [
+            {
+              validator: 'dateTime',
+              errorMessages: {
+                default: 'Please enter correct DateTime value',
+              },
+            },
+          ],
           responsivePriority: 100,
-          showInForm: false,
           filter: 'dateTime',
-          default: '1970-01-01T00:00:00.000Z',
           fieldInfo: {
             read: true,
             write: true,
@@ -384,9 +461,38 @@ describe('V5 Backend Schema Routes', function () {
           showInViewDetails: false,
           showInForm: false,
           showInGraphql: false,
+          searchable: false,
           generated: true,
           fullName: 'Generator Batch Name',
           description: 'Set to the ID of generator batch for synthetic records',
+          fieldName: 'generatorBatchName',
+          autocomplete: 'enable',
+          parameters: {
+            renderAsHtml: false,
+            enableInCellEditing: true,
+            grouping: {
+              allowGrouping: true,
+              allowExpandGroup: true,
+            },
+            minWidth: 100,
+            allowHeaderFiltering: true,
+            headerFilter: {
+              allowSearch: true,
+            },
+            filterType: 'include',
+            allowSearch: true,
+          },
+          validate: [
+            {
+              validator: 'string',
+              errorMessages: {
+                default: 'Please enter correct String value',
+              },
+            },
+          ],
+          responsivePriority: 100,
+          width: 100,
+          filter: 'string',
           fieldInfo: {
             read: true,
             write: true,
@@ -394,8 +500,9 @@ describe('V5 Backend Schema Routes', function () {
         },
       },
       schemaName: 'model1s',
+      recordActionsLayout: 'menu',
       actions: {
-        width: 160,
+        width: 60,
         responsivePriority: -1,
         fields: {
           update: {
@@ -411,6 +518,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'action',
               link: 'update',
             },
+            actionOrder: 1,
+            actionName: 'update',
           },
           delete: {
             description: 'Delete record',
@@ -425,6 +534,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'action',
               link: 'delete',
             },
+            actionOrder: 2,
+            actionName: 'delete',
           },
           clone: {
             description: 'Clone record',
@@ -439,6 +550,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'action',
               link: 'clone',
             },
+            actionOrder: 3,
+            actionName: 'clone',
           },
           viewDetails: {
             description: 'View record details',
@@ -453,12 +566,16 @@ describe('V5 Backend Schema Routes', function () {
               type: 'action',
               link: 'viewDetails',
             },
+            actionOrder: 4,
+            actionName: 'viewDetails',
           },
           view: {
             showInTable: false,
+            actionName: 'view',
           },
           upsert: {
             showInTable: false,
+            actionName: 'upsert',
           },
           create: {
             fullName: 'Create Record',
@@ -472,6 +589,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'action',
               link: 'create',
             },
+            actionOrder: 7,
+            actionName: 'create',
           },
           group: {
             position: 'grid.top.left',
@@ -480,6 +599,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'action',
               link: 'group',
             },
+            actionOrder: 8,
+            actionName: 'group',
           },
           search: {
             position: 'grid.top.right',
@@ -489,6 +610,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'action',
               link: 'search',
             },
+            actionOrder: 9,
+            actionName: 'search',
           },
           print: {
             position: 'grid.top.right',
@@ -501,6 +624,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'module',
               link: 'AdpGridPrint',
             },
+            actionOrder: 10,
+            actionName: 'print',
           },
           manageViews: {
             position: 'grid.top.right',
@@ -514,6 +639,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'module',
               link: 'AdpGridViewManager',
             },
+            actionOrder: 11,
+            actionName: 'manageViews',
           },
           quickFilter: {
             position: 'grid.top.right',
@@ -526,6 +653,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'module',
               link: 'AdpGridQuickFilter',
             },
+            actionOrder: 12,
+            actionName: 'quickFilter',
           },
           export: {
             position: 'grid.top.right',
@@ -539,6 +668,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'module',
               link: 'AdpDataExport',
             },
+            actionOrder: 13,
+            actionName: 'export',
           },
           import: {
             position: 'grid.top.right',
@@ -552,6 +683,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'module',
               link: 'AdpDataImport',
             },
+            actionOrder: 14,
+            actionName: 'import',
           },
           syntheticGenerate: {
             position: 'grid.top.right',
@@ -565,6 +698,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'module',
               link: 'AdpSyntheticGenerate',
             },
+            actionOrder: 15,
+            actionName: 'syntheticGenerate',
           },
           chooseColumns: {
             position: 'grid.top.right',
@@ -577,6 +712,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'module',
               link: 'AdpGridColumnChooser',
             },
+            actionOrder: 16,
+            actionName: 'chooseColumns',
           },
           filterBuilder: {
             position: 'grid.top.right',
@@ -590,6 +727,8 @@ describe('V5 Backend Schema Routes', function () {
               type: 'module',
               link: 'AdpFilterBuilder',
             },
+            actionOrder: 17,
+            actionName: 'filterBuilder',
           },
           submit: {
             fullName: {
@@ -609,6 +748,7 @@ describe('V5 Backend Schema Routes', function () {
               className: 'adp-action-b-primary',
             },
             showInTable: false,
+            actionName: 'submit',
           },
           apply: {
             fullName: 'Apply',
@@ -625,6 +765,7 @@ describe('V5 Backend Schema Routes', function () {
               className: 'adp-action-b-tertiary',
             },
             showInTable: false,
+            actionName: 'apply',
           },
           cancelSubmit: {
             fullName: 'Cancel',
@@ -640,8 +781,22 @@ describe('V5 Backend Schema Routes', function () {
             htmlAttributes: {
               className: 'adp-action-b-secondary',
             },
+            actionName: 'cancelSubmit',
           },
-          listFilter: {},
+          gridDbChangeNotification: {
+            position: 'rtc',
+            action: {
+              type: 'module',
+              link: 'AdpRtcActions',
+              method: 'gridDbChangeNotification',
+              params: {
+                minTimeBetweenReloads: 3000,
+              },
+            },
+            showInTable: false,
+            actionOrder: 1,
+            actionName: 'gridDbChangeNotification',
+          },
         },
       },
       parameters: {
@@ -669,7 +824,10 @@ describe('V5 Backend Schema Routes', function () {
         },
         pager: {
           showPageSizeSelector: true,
-          allowedPageSizes: [10, 15, 20],
+          allowedPageSizes: [10, 50, 100],
+          showInfo: true,
+          showNavigationButtons: true,
+          visible: true,
         },
         sorting: {
           mode: 'multiple',
@@ -703,6 +861,30 @@ describe('V5 Backend Schema Routes', function () {
         fieldInfo: {
           read: true,
           write: true,
+        },
+      },
+    };
+    this.notWritableFields = {
+      fields: {
+        creator: {
+          fieldInfo: {
+            write: false,
+          },
+        },
+        createdAt: {
+          fieldInfo: {
+            write: false,
+          },
+        },
+        updatedAt: {
+          fieldInfo: {
+            write: false,
+          },
+        },
+        deletedAt: {
+          fieldInfo: {
+            write: false,
+          },
         },
       },
     };
@@ -758,7 +940,7 @@ describe('V5 Backend Schema Routes', function () {
     });
     await this.appLib.setup();
     const additionalData = { fields: this.batchNumberField };
-    this.expectedData = _.merge({}, this.expected, additionalData);
+    this.expectedData = _.merge({}, this.expected, additionalData, this.notWritableFields);
     const token = await loginWithUser(this.appLib, admin);
     const res = await apiRequest(this.appLib.app)
       .get('/schema/model1s')

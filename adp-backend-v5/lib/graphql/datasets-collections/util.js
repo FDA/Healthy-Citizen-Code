@@ -1,52 +1,36 @@
 const _ = require('lodash');
 const { updateOutputAndInputTypesByModel } = require('../type/model');
+const { AccessError } = require('../../errors');
 
-function getExternalDatasetsMongooseModelName(datasetsRecordId) {
+function getExternalDatasetsModelName(datasetsRecordId) {
   return `_ds_${datasetsRecordId}`;
 }
 
 async function addQueriesAndMutationsForDatasetsRecord(record, appLib, addDefaultQueries, addDefaultMutations) {
   // make a clone to protect changing stored scheme in memory by record ref
   const recordClone = _.cloneDeep(record);
-  const { _id, scheme } = recordClone;
-  const mongooseModelName = getExternalDatasetsMongooseModelName(_id);
-  await addMongooseSchemaForDatasetsRecord(recordClone, appLib, mongooseModelName);
+  const { scheme, collectionName } = recordClone;
 
-  appLib.appModel.models[mongooseModelName] = scheme;
-  appLib.datasetsModelsNames.add(mongooseModelName);
+  appLib.appModel.models[collectionName] = scheme;
+  // create indexes with 'await', since { background: true } option might be specified
+  await appLib.mutil.createIndexes(collectionName);
+  appLib.datasetModelNames.add(collectionName);
 
-  updateOutputAndInputTypesByModel(scheme, mongooseModelName);
+  updateOutputAndInputTypesByModel(scheme, collectionName);
 
-  const modelInfo = { [mongooseModelName]: scheme };
+  const modelInfo = { [collectionName]: scheme };
   addDefaultQueries(modelInfo);
   addDefaultMutations(modelInfo);
 }
 
-async function addMongooseSchemaForDatasetsRecord(datasetsRecord, appLib, mongooseModelName) {
-  try {
-    const { scheme, collectionName } = datasetsRecord;
-    const mongooseModel = appLib.mutil.getMongooseModel(scheme, collectionName);
-    if (appLib.db.models[mongooseModelName]) {
-      delete appLib.db.models[mongooseModelName];
-    }
-    appLib.db.model(mongooseModelName, mongooseModel);
-  } catch (e) {
-    throw new Error(`Unable to build mongoose schema for ${datasetsRecord._id}. ${e.message}`);
-  }
-}
-
-function removeMongooseSchemaForDatasetsRecord(db, modelName) {
-  delete db.models[modelName];
-}
 function removeQueriesAndMutationsForDatasetsRecord(appLib, recordId, removeDefaultQueries, removeDefaultMutations) {
-  const mongooseModelName = getExternalDatasetsMongooseModelName(recordId);
+  const collectionName = getExternalDatasetsModelName(recordId);
 
-  removeDefaultQueries(mongooseModelName);
-  removeDefaultMutations(mongooseModelName);
+  removeDefaultQueries(collectionName);
+  removeDefaultMutations(collectionName);
 
-  removeMongooseSchemaForDatasetsRecord(appLib.db, mongooseModelName);
-  delete appLib.appModel.models[mongooseModelName];
-  appLib.datasetsModelsNames.delete(mongooseModelName);
+  delete appLib.appModel.models[collectionName];
+  appLib.datasetModelNames.delete(collectionName);
 
   appLib.graphQl.connect.rebuildGraphQlSchema();
 }
@@ -55,7 +39,7 @@ function removeQueriesAndMutationsForDatasetsRecord(appLib, recordId, removeDefa
 /* async function checkCloneRecordsFromId(cloneRecordsFromId, datasetsModelName) {
   const record = await appLib.db
     .collection(datasetsModelName)
-    .findOne({ _id: cloneRecordsFromId, ...appLib.dba.getConditionForActualRecord() }, { _id: 1 });
+    .findOne({ _id: cloneRecordsFromId, ...appLib.dba.getConditionForActualRecord(datasetsModelName) }, { _id: 1 });
   if (!record) {
     throw new Error(`Unable to find record with id ${cloneRecordsFromId} for cloning record from it`);
   }
@@ -72,22 +56,33 @@ async function getParentCollectionScheme(appLib, parentCollectionName, datasetsM
     return schemeFromModels;
   }
 
-  const parentDatasetRecord = await appLib.db
-    .collection(datasetsModelName)
-    .findOne({ collectionName: parentCollectionName, ...appLib.dba.getConditionForActualRecord() });
+  const { record: parentDatasetRecord } = await appLib.db.collection(datasetsModelName).hookQuery('findOne', {
+    collectionName: parentCollectionName,
+    ...appLib.dba.getConditionForActualRecord(datasetsModelName),
+  });
   if (parentDatasetRecord) {
     return parentDatasetRecord.scheme;
   }
   throw new Error(`Parent collection scheme for name ${parentCollectionName} is not found`);
 }
 
-async function getNewSchemeByProjections(datasetsModelName, appLib, parentCollectionName, projections) {
+async function getNewSchemeByProjections({
+  datasetsModelName,
+  externalDatasetModelName,
+  appLib,
+  parentCollectionName,
+  projections,
+  fixLookupIdDuplicates,
+}) {
   const parentCollectionScheme = await getParentCollectionScheme(appLib, parentCollectionName, datasetsModelName);
   const newScheme = _.cloneDeep(parentCollectionScheme);
   const fieldPaths = _.map(projections, (projection) => projection.split('.').join('.fields.'));
   const defaultFieldPaths = _.keys(_.get(appLib.appModel, 'typeDefaults.fields.Schema.fields', {}));
   const newSchemeFields = [...fieldPaths, ...defaultFieldPaths];
   newScheme.fields = _.pick(parentCollectionScheme.fields, newSchemeFields);
+  newScheme.schemaName = externalDatasetModelName;
+
+  fixLookupIdDuplicates(newScheme, [externalDatasetModelName]);
   return { newScheme, newSchemeFields, parentCollectionScheme };
 }
 
@@ -110,10 +105,14 @@ async function getCloneRecordsPipeline({
   const { conditions: filterConditions } = appLib.filterParser.parse(filter.dxQuery, parentCollectionScheme);
   const scopeConditions = scopeConditionsMeta.overallConditions;
   const cloneConditions = appLib.butil.MONGO.and(
-    appLib.dba.getConditionForActualRecord(),
+    appLib.dba.getConditionForActualRecord(parentCollectionScheme.schemaName),
     scopeConditions,
     filterConditions
   );
+
+  if (cloneConditions === false) {
+    throw new AccessError(`Not enough permissions to perform operation.`);
+  }
 
   const project = _.reduce(
     newSchemeFields,
@@ -127,7 +126,7 @@ async function getCloneRecordsPipeline({
 }
 
 module.exports = {
-  getExternalDatasetsMongooseModelName,
+  getExternalDatasetsModelName,
   addQueriesAndMutationsForDatasetsRecord,
   getNewSchemeByProjections,
   getCloneRecordsPipeline,

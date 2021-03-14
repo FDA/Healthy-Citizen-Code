@@ -11,102 +11,27 @@
     $http,
     $log,
     IMPERIAL_UNITS_DEFAULTS,
-    AdpBrowserService
+    AdpBrowserService,
+    DX_CONTROLS,
+    FIELDS_WITH_UNIQUE_WRAPPER
   ) {
-    var DX_FACTORY = { directiveType: 'dx-field' };
-    var typeMap = {
-      'String': DX_FACTORY,
-      'Phone': DX_FACTORY,
-      'Url': DX_FACTORY,
-      'Email': DX_FACTORY,
-      'PasswordAuth': DX_FACTORY,
-
-      'Number': DX_FACTORY,
-      'Double': DX_FACTORY,
-      'Int32': DX_FACTORY,
-      'Int64': DX_FACTORY,
-      'Decimal128': DX_FACTORY,
-
-      'Date': DX_FACTORY,
-      'Time': DX_FACTORY,
-      'DateTime': DX_FACTORY,
-      'Text': DX_FACTORY,
-
-      'Password': { directiveType: 'password' },
-
-      Currency: { directiveType: 'currency' },
-
-      'String[]': { directiveType: 'string-array' },
-      'Number[]': { directiveType: 'number-array' },
-      'Double[]': { directiveType: 'number-array' },
-      'Int32[]': { directiveType: 'number-array' },
-      'Int64[]': { directiveType: 'number-array' },
-      'Decimal128[]': { directiveType: 'decimal-array' },
-      'Recaptcha': { directiveType: 'recaptcha' },
-
-      'Boolean': { directiveType: 'boolean' },
-
-      'ImperialHeight': { directiveType: 'imperial-units' },
-      'ImperialWeightWithOz': { directiveType: 'imperial-units' },
-      'ImperialWeight': { directiveType: 'imperial-weight' },
-
-      'LookupObjectID': { directiveType: 'lookup' },
-      'LookupObjectID[]': { directiveType: 'lookup' },
-
-      'ObjectID': { directiveType: 'parent-select' },
-      'File': { directiveType: 'file' },
-      'Image': { directiveType: 'file' },
-      'Audio': { directiveType: 'file' },
-      'Video': { directiveType: 'file' },
-      'File[]': { directiveType: 'file' },
-      'Image[]': { directiveType: 'file' },
-      'Audio[]': { directiveType: 'file' },
-      'Video[]': { directiveType: 'file' },
-      'Location': { directiveType: 'location' },
-
-      'List': { directiveType: 'list' },
-      'List[]': { directiveType: 'list' },
-
-      'FormRender': { directiveType: 'form-render' },
-      'Object': { directiveType: 'object' },
-      'Array': { directiveType: 'array' },
-      'AssociativeArray': { directiveType: 'array' },
-      'Readonly': { directiveType: 'readonly' },
-      'TreeSelector': { directiveType: 'tree-selector' },
-      'Html': { directiveType: 'html' },
-      'Code': { directiveType: 'code' },
-      'Grid': { directiveType: 'grid' },
-      'Mixed': { directiveType: 'code' },
-      'Blank': { directiveType: 'blank' },
-    };
-
-    // public
-    function getUiProps(field) {
-      var fieldType = AdpSchemaService.getFieldType(field);
+    function getDirectiveType(field) {
       var fieldInfo = _.get(field, 'fieldInfo', {});
-
-      // render as Readonly and keep field.type
-      if (fieldInfo.read && !fieldInfo.write) {
-        return typeMap['Readonly'];
+      var isReadonly = fieldInfo.read && !fieldInfo.write;
+      if (isReadonly) {
+        return 'readonly';
       }
 
-      // render as FormRender and keep field.type
-      if ('formRender' in field) {
-        return typeMap['FormRender'];
+      if (field.formRender) {
+        return 'default';
       }
 
-      if (typeMap[fieldType]) {
-        return typeMap[fieldType];
-      } else {
-        $log.debug(
-          field.fullName,
-          ' field is rendered as default String field. \n',
-          field.fullName, ' is not implemented yet. \n',
-          'Field model ', field
-        );
-
-        return typeMap['String'];
+      var isComplex = FIELDS_WITH_UNIQUE_WRAPPER.includes(field.type);
+      if (isComplex) {
+        return field.type === 'AssociativeArray' ? 'array' : _.kebabCase(field.type);
       }
+
+      return 'default';
     }
 
     // public
@@ -144,14 +69,6 @@
     function prepareData(field) {
       if (!_.isString(field.required)) {
         field.required = !!field.required;
-      }
-
-      if (field.synthesize) {
-        field.showInForm = false;
-      }
-
-      if (field.synthesize && field.formRender) {
-        field.showInForm = true;
       }
 
       return field;
@@ -349,7 +266,7 @@
     return {
       getUnits: getUnits,
       getUnitsList: getUnitsList,
-      getUiProps: getUiProps,
+      getDirectiveType: getDirectiveType,
       getFormFields: getFormFields,
       getFormGroupFields: getFormGroupFields,
       autocompleteValue: autocompleteValue,

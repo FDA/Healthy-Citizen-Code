@@ -2,7 +2,7 @@ const { ObjectID } = require('mongodb');
 
 const AIML_QUEUE_NAME = 'aimlRunner';
 const aimlRunnerConcurrency = +process.env.AIML_RUNNER_CONCURRENCY || 1;
-const aimlConcurrentRequestNumber = +process.env.AIML_CONCURRENT_REQEUST_NUMBER || 5;
+const aimlConcurrentRequestNumber = +process.env.AIML_CONCURRENT_REQUEST_NUMBER || 5;
 const aimlModelsCollectionName = 'aimlModels';
 
 async function createAimlQueue({ appLib, log }) {
@@ -11,7 +11,7 @@ async function createAimlQueue({ appLib, log }) {
   aimlContext.setCommonContext({ db: appLib.db, cache: appLib.cache, log, backgroundJobsUtil: util });
 
   const aimlRunnerQueue = appLib.queue.createQueue(AIML_QUEUE_NAME);
-  util.addLogsAndNotificationsForQueueEvents(appLib, aimlRunnerQueue, log);
+  util.addQueueEventHandlers({ appLib, bullQueue: aimlRunnerQueue, log });
 
   aimlRunnerQueue.process(aimlRunnerConcurrency, require('./aiml-queue-processor')(aimlContext));
 
@@ -33,7 +33,9 @@ async function runAimlModel({
 }) {
   try {
     const aimlRunnerQueue = appLib.queue.getQueue(AIML_QUEUE_NAME);
-    const record = await appLib.db.collection(aimlModelsCollectionName).findOne({ _id: ObjectID(_id) });
+    const { record } = await appLib.db
+      .collection(aimlModelsCollectionName)
+      .hookQuery('findOne', { _id: ObjectID(_id) });
     const { endpoint } = record || {};
     if (!endpoint) {
       return {

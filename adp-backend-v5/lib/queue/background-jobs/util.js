@@ -2,8 +2,9 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const { ObjectID } = require('mongodb');
 const { getDocValueForExpression } = require('../../util/util');
+const { getFunction } = require('../../util/memoize');
 const { ValidationError } = require('../../errors');
-const { PERMISSIONS } = require('../../../lib/access/access-config');
+const { PERMISSIONS } = require('../../access/access-config');
 
 function getCreator(appLib, user) {
   const userLabel = _.get(appLib.appModel.models.backgroundJobs, 'creator.lookup.table.users.label');
@@ -78,7 +79,7 @@ function processDataMapping({ input, dataMapping, response }) {
     return output;
   }
   const values = [flattenObject, _, ObjectID];
-  return new Function(`flattenObject, _, ObjectID`, postProcessingCode).apply(context, values);
+  return getFunction(`flattenObject, _, ObjectID`, postProcessingCode).apply(context, values);
 }
 
 function getSchemeFieldsByOutputs(outputs, prefix = '', delimiter = '_') {
@@ -124,13 +125,15 @@ function upsertResultRecords({ db, collection, resultRecords, $setOnInsert, conc
     resultRecords,
     (resultRecord) => {
       const { _id } = resultRecord;
-      return db.collection(collection).updateOne({ _id }, { $set: resultRecord, $setOnInsert }, { upsert: true });
+      return db
+        .collection(collection)
+        .hookQuery('updateOne', { _id }, { $set: resultRecord, $setOnInsert }, { upsert: true, checkKeys: false });
     },
     { concurrency }
   );
 }
 
-function getLookupDoc(appLib, lookup, projections = {}) {
+async function getLookupDoc(appLib, lookup, projections = {}) {
   if (!_.isPlainObject(lookup)) {
     return null;
   }
@@ -139,9 +142,10 @@ function getLookupDoc(appLib, lookup, projections = {}) {
   if (!_id || !table) {
     return null;
   }
-  return appLib.db
+  const { record } = await appLib.db
     .collection(table)
-    .findOne({ _id: ObjectID(_id), ...appLib.dba.getConditionForActualRecord() }, projections);
+    .hookQuery('findOne', { _id: ObjectID(_id), ...appLib.dba.getConditionForActualRecord(table) }, projections);
+  return record;
 }
 
 async function getUserIdsToNotifyAboutBgJobs(appLib, jobCreatorId) {
@@ -164,7 +168,7 @@ async function getUserIdsToNotifyAboutBgJobs(appLib, jobCreatorId) {
 
     const getPromise = async () => {
       const result = await appLib.db
-        .model('roles')
+        .collection('roles')
         .aggregate([
           { $match: { $or: [{ permissions: { $in: permissions } }, { name: { $in: roleNames } }] } },
           {
@@ -210,7 +214,7 @@ async function getUserIdsToNotifyAboutBgJobs(appLib, jobCreatorId) {
           },
           { $project: { _id: 0, users: 1 } },
         ])
-        .exec();
+        .toArray();
       return result[0].users.map((u) => u._id.toString());
     };
 
@@ -219,7 +223,7 @@ async function getUserIdsToNotifyAboutBgJobs(appLib, jobCreatorId) {
   }
 
   async function isJobCreatorAllowedToSeeJobStatus(creatorId) {
-    const user = await appLib.db.model('users').findOne({ _id: creatorId }).lean();
+    const { record: user } = await appLib.db.collection('users').hookQuery('findOne', { _id: creatorId });
     if (!user) {
       return false;
     }
@@ -239,9 +243,9 @@ async function getUserIdsToNotifyAboutBgJobs(appLib, jobCreatorId) {
     // then check non-default roles
     const userRoleIds = user.roles.map((r) => r._id);
     const roles = await appLib.db
-      .model('roles')
+      .collection('roles')
       .find({ $and: [{ _id: { $in: userRoleIds } }, { permissions: wsViewOwnJobsStatusPermission }] })
-      .exec();
+      .toArray();
 
     const isAllowed = !!roles.length;
     return isAllowed;
@@ -262,7 +266,10 @@ async function emitBackgroundJobEvent(appLib, { creatorId, level, message, data 
   });
 }
 
-function addLogsAndNotificationsForQueueEvents(appLib, bullQueue, log) {
+function addQueueEventHandlers({ appLib, bullQueue, log, enableNotifications = false }) {
+  log = log || { info: _.noop, error: _.noop, warn: _.noop };
+  const emitMessage = enableNotifications ? emitBackgroundJobEvent : _.noop;
+
   bullQueue
     .on('progress', (job, progress) => {
       const queueName = job.queue.name;
@@ -273,7 +280,7 @@ function addLogsAndNotificationsForQueueEvents(appLib, bullQueue, log) {
       const queueName = job.queue.name;
       const message = `'${queueName}' Job with id ${job.id} successfully completed`;
       log.info(message);
-      emitBackgroundJobEvent(appLib, {
+      emitMessage(appLib, {
         creatorId: job.data.creator._id,
         level: 'info',
         message: `Job with id ${job.id} successfully completed`,
@@ -283,17 +290,19 @@ function addLogsAndNotificationsForQueueEvents(appLib, bullQueue, log) {
     .on('failed', async (job, error) => {
       const queueName = job.queue.name;
       log.error(`Error occurred in queue '${queueName}', job id ${job.id}.`, error.stack);
-      emitBackgroundJobEvent(appLib, {
+      const baseMessage = `Error occurred for job with id ${job.id}`;
+      const message = error instanceof ValidationError ? `${baseMessage}. ${error.message}` : baseMessage;
+      emitMessage(appLib, {
         creatorId: job.data.creator._id,
         level: 'error',
-        message: `Error occurred for job with id ${job.id}. ${error.message}`,
+        message,
         data: { jobId: job.id, queueName, status: 'error' },
       });
     })
     .on('stalled', (job) => {
       const queueName = job.queue.name;
       log.warn(`'${queueName}' Job with id ${job.id} is stalled`);
-      emitBackgroundJobEvent(appLib, {
+      emitMessage(appLib, {
         creatorId: job.data.creator._id,
         level: 'warning',
         message: `Job with id ${job.id} is stalled`,
@@ -303,7 +312,7 @@ function addLogsAndNotificationsForQueueEvents(appLib, bullQueue, log) {
     .on('active', (job) => {
       const queueName = job.queue.name;
       log.info(`'${queueName}' Job with id ${job.id} has started`);
-      emitBackgroundJobEvent(appLib, {
+      emitMessage(appLib, {
         creatorId: job.data.creator._id,
         level: 'info',
         message: `Job with id ${job.id} has started`,
@@ -323,5 +332,5 @@ module.exports = {
   getLookupDoc,
   getUserIdsToNotifyAboutBgJobs,
   emitBackgroundJobEvent,
-  addLogsAndNotificationsForQueueEvents,
+  addQueueEventHandlers,
 };

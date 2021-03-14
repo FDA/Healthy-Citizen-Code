@@ -8,7 +8,7 @@
   function GridControlHelper(GraphqlMultipleSchemasQuery) {
     return {
       getMergedData: getMergedData,
-      mergeSchema:mergeSchema,
+      mergeSchema: mergeSchema,
     };
 
     function getMergedData(table, row, action) {
@@ -27,13 +27,16 @@
         })
     }
 
-    function mergeSchema(tableDefinition, initialSchema) {
+    function mergeSchema(fieldSchema, initialSchema) {
+      var tableDefinition = fieldSchema.table;
       var resultedSchema = initialSchema ? _.cloneDeep(initialSchema) : {};
+      resultedSchema.fullName = fieldSchema.fullName;
+      resultedSchema.schemaName = fieldSchema.fieldName;
 
       resultedSchema.fields = {
         $meta_table: {
           type: 'String',
-          description: 'Service column. Holds original schema name.',
+          description: 'Service column. Holds original modelSchemaForGrid name.',
           showInDatatable: false,
           fieldName: '$meta_table',
         }

@@ -7,53 +7,64 @@
 
   function formRenderControl(
     AdpValidationUtils,
-    $sce
+    $sce,
+    ControlSetterGetter,
+    $timeout
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/form-render-control/form-render-control.html',
       require: '^^form',
-      link: function (scope) {
-        scope.adpFormData[scope.field.fieldName] = scope.adpFormData[scope.field.fieldName] || '';
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+      link: function (scope, el) {
+        var getterSetterFn = ControlSetterGetter(scope.args);
+        scope.getterSetter = getterSetterFn;
+
+        if (_.isUndefined(getterSetterFn())) {
+          getterSetterFn(null);
+        }
 
         (function init() {
-          renderField();
-
-          if (!_.isUndefined(scope.field.formRender.watch)) {
-            addWatcher();
+          $timeout(renderField);
+          var observablePaths = _.get(scope, 'args.fieldSchema.formRender.watch', []);
+          if (_.isEmpty(observablePaths)) {
+            return;
           }
+
+          var watchExpr = observablePaths.map(getViewValueFn);
+          scope.$watchGroup(watchExpr, renderField);
         })();
 
         function renderField() {
-          var field = scope.field;
-          var renderName = field.formRender.formRenderer;
+          var field = scope.args.fieldSchema;
+          var renderName = _.get(field, 'formRender.formRenderer');
+          var renderFn = _.get(window, 'appModelHelpers.FormRenderers.' + renderName);
 
-          var renderFn = appModelHelpers.FormRenderers[renderName];
+          var compatibilityArgs = [scope.args.data, scope.args.row, scope.args.modelSchema];
+          var contents = $('<div class="render-content">')
+            .append(renderFn.apply(scope.args, compatibilityArgs));
 
-          scope.fieldView = $sce.trustAsHtml(
-            renderFn(getFieldData(), scope.adpFormData, field)
-          );
+          var contentEl = el.find('.render-content');
+          if (contentEl.length) {
+            contentEl.replaceWith(contents);
+          } else {
+            el.find('[form-render-view="' + scope.args.path + '"]')
+              .append(contents);
+          }
         }
 
-        function getFieldData() {
-          return scope.adpFormData[scope.field.fieldName];
+        function getViewValueFn(path) {
+          return function () {
+            var pathToValue = path + '.$viewValue';
+            return _.get(scope.formContext.rootForm, toFormPath(pathToValue), null);
+          }
         }
 
-        function addWatcher() {
-          scope.$watchGroup(formRenderWatcherCondition(), renderField)
-        }
-
-        function formRenderWatcherCondition() {
-          return scope.field.formRender.watch.map(function (fieldName) {
-            return ['adpFormData', fieldName].join('.');
-          });
+        function toFormPath(path) {
+          return path.split('.');
         }
       }
     }

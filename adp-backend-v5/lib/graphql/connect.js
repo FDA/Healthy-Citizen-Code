@@ -54,7 +54,7 @@ module.exports = (appLib, graphQlRoute, altairRoute, adpGraphQl) => {
             .collection(datasetsModelName)
             .find({
               _id: { $in: absentDatasetIds.map((id) => ObjectID(id)) },
-              ...appLib.dba.getConditionForActualRecord(),
+              ...appLib.dba.getConditionForActualRecord(datasetsModelName),
             })
             .toArray();
           delete m.requestIdToAbsentDatasets[req.id];
@@ -84,7 +84,6 @@ module.exports = (appLib, graphQlRoute, altairRoute, adpGraphQl) => {
 
   m.rebuildGraphQlSchema = () => {
     m.graphQLSchema = schemaComposer.buildSchema();
-    // console.log(`graphQLSchema types`, Object.keys(m.graphQLSchema._typeMap).length);
   };
 
   return m;

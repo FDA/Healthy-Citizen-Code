@@ -8,13 +8,16 @@ const COMPOSER_TYPES = {
   OUTPUT_WITH_ACTIONS: 'OutputWithActions',
   INPUT: 'Input',
   INPUT_WITHOUT_ID: 'InputWithoutId',
+  INPUT_UPDATE_MANY: 'InputUpdateMany',
 };
 
 function isInputType(composerType) {
-  if (!Object.values(COMPOSER_TYPES).includes(composerType)) {
+  if (!_.values(COMPOSER_TYPES).includes(composerType)) {
     throw new Error(`Invalid composer type ${composerType}`);
   }
-  return [COMPOSER_TYPES.INPUT, COMPOSER_TYPES.INPUT_WITHOUT_ID].includes(composerType);
+  return [COMPOSER_TYPES.INPUT, COMPOSER_TYPES.INPUT_WITHOUT_ID, COMPOSER_TYPES.INPUT_UPDATE_MANY].includes(
+    composerType
+  );
 }
 
 const MongoIdScalarTC = schemaComposer.createScalarTC({
@@ -29,6 +32,13 @@ const MongoIdITC = schemaComposer.createInputTC({
   name: 'MongoIdInput',
   fields: {
     _id: MongoIdScalarTC,
+  },
+});
+
+const MongoIdArrayITC = schemaComposer.createInputTC({
+  name: 'MongoArrayIdInput',
+  fields: {
+    _ids: MongoIdScalarTC.getTypePlural(),
   },
 });
 
@@ -127,6 +137,7 @@ module.exports = {
   isInputType,
   MongoIdScalarTC,
   MongoIdITC,
+  MongoIdArrayITC,
   AnythingType,
   getLocationType,
   getOrCreateEnum,

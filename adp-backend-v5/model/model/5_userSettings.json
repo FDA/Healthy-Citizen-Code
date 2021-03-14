@@ -1,0 +1,97 @@
+{
+  "models": {
+    "_userSettings": {
+      "fullName": "User's theme settings",
+      "type": "Schema",
+      "description": "IMPORTANT: Most changes done to User Settings will be applied only after the page reload.",
+      "singleRecord": true,
+      "indexes": {
+        "primaryIndex": {
+          "keys": {
+            "creator._id": 1
+          },
+          "options": {
+            "unique": true
+          }
+        }
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
+          },
+          "delete": null,
+          "clone": null
+        }
+      },
+      "fields": {
+        "skin": {
+          "type": "List",
+          "list": {
+            "values": {
+              "smart-style-0": "Smart style 0",
+              "smart-style-1": "Smart style 1",
+              "smart-style-2": "Smart style 2",
+              "smart-style-3": "Smart style 3",
+              "smart-style-4": "Smart style 4",
+              "smart-style-5": "Smart style 5",
+              "smart-style-6": "Smart style 6"
+            }
+          }
+        },
+        "menuPosition": {
+          "type": "List",
+          "list": {
+            "values": {
+              "top": "Menu on top",
+              "left": "Menu on left side"
+            }
+          }
+        },
+        "headerVisible": {
+          "type": "TriStateBoolean",
+          "fullName": "Header visibility"
+        },
+        "fullScreenToggle": {
+          "fullName": "Fullscreen button visibility",
+          "type": "TriStateBoolean"
+        },
+        "footerVisible": {
+          "fullName": "Footer visibility",
+          "type": "TriStateBoolean"
+        },
+        "fixedHeader": {
+          "type": "TriStateBoolean"
+        },
+        "fixedNavigation": {
+          "type": "TriStateBoolean"
+        },
+        "fixedFooter": {
+          "type": "TriStateBoolean"
+        },
+        "fixedWidth": {
+          "type": "TriStateBoolean"
+        }
+      },
+      "scopes": {
+        "own": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        },
+        "superAdminScope": {
+          "permissions": "accessAsSuperAdmin",
+          "where": false
+        }
+      }
+    }
+  }
+}

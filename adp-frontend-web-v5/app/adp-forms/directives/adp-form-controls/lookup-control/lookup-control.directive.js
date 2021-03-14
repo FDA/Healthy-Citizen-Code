@@ -8,25 +8,23 @@
   function lookupControl(
     AdpSchemaService,
     AdpValidationUtils,
-    AdpUnifiedArgs
+    ControlSetterGetter
   ) {
     return {
       restrict: 'E',
       scope: {
-        field: '<',
-        adpFormData: '<',
-        uiProps: '<',
-        validationParams: '<'
+        args: '<',
+        formContext: '<',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/lookup-control/lookup-control.html',
       require: '^^form',
       link: function (scope) {
         (function init() {
-          scope.args = unifiedApproachArgs();
+          scope.getterSetter = ControlSetterGetter(scope.args);
           scope.props = {
             args: scope.args,
             onValueChanged: function(e) {
-              scope.adpFormData[scope.args.fieldSchema.fieldName] = e.value;
+              scope.getterSetter(e.value);
             },
             onTableChanged: function(e) {
               scope.props.selectedTableName = e.value;
@@ -54,18 +52,7 @@
           return _.get(scope, 'args.fieldSchema.lookup.table');
         }
 
-        function unifiedApproachArgs() {
-          var formParams = scope.validationParams.formParams;
-
-          return AdpUnifiedArgs.getHelperParamsWithConfig({
-            path: formParams.path,
-            formData: formParams.row,
-            action: formParams.action,
-            schema: formParams.modelSchema,
-          });
-        }
-
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+        scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
       }
     }
   }

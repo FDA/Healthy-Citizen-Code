@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const { ValidationError } = require('../../../lib/errors');
-const { createFilter, parseRelativeDateValue } = require('../../../lib/filter/util');
+const { createFilter } = require('../../../lib/filter/util');
 
 const oneDayInMillis = 86400000; // 1000 * 60 * 60 * 24
 
@@ -16,28 +16,28 @@ function date() {
     return { [fieldPath]: null };
   }
 
-  const midnight = parseRelativeDateValue(value) || new Date(value); // frontend must send a midnight date in user timezone
-  if (Number.isNaN(midnight.getTime())) {
+  const dateValue = new Date(value);
+  if (Number.isNaN(dateValue.getTime())) {
     throw new ValidationError(`Invalid value '${value}' for filter by path '${fieldPath}'`);
   }
 
-  const nextDay = getShiftDate(midnight, 1);
+  const nextDay = getShiftDate(dateValue, 1);
 
   return createFilter(this, {
     any: () => {},
     undefined: () => ({ [fieldPath]: { $exists: false } }),
-    '=': () => ({ [fieldPath]: { $lt: nextDay, $gte: midnight } }),
+    '=': () => ({ [fieldPath]: { $lt: nextDay, $gte: dateValue } }),
     '<>': () => ({
-      $or: [{ [fieldPath]: { $lt: midnight } }, { [fieldPath]: { $gte: nextDay } }],
+      $or: [{ [fieldPath]: { $lt: dateValue } }, { [fieldPath]: { $gte: nextDay } }],
     }),
-    '<': () => ({ [fieldPath]: { $lt: midnight } }),
+    '<': () => ({ [fieldPath]: { $lt: dateValue } }),
     '<=': () => ({
       [fieldPath]: {
         $lt: nextDay, // since [midnight-nextDay) is still today.
       },
     }),
     '>': () => ({ [fieldPath]: { $gte: nextDay } }),
-    '>=': () => ({ [fieldPath]: { $gte: midnight } }),
+    '>=': () => ({ [fieldPath]: { $gte: dateValue } }),
   });
 }
 

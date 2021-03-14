@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const mongoose = require('mongoose');
 const { getUrlParts, getUrlWithoutPrefix, MONGO, updateSearchConditions } = require('../../util/util');
 const { getLimit, getSkip } = require('../util');
 const BaseContext = require('../BaseContext');
@@ -11,18 +10,13 @@ module.exports = class LookupContext extends BaseContext {
       this.inlineContext.form = this.req.body;
     }
     this.tableSpec = this._getTableSpec();
-    this.model = this._getModel();
+    if (!this.appLib.appModel.models[this.tableSpec.table]) {
+      throw new ValidationError(`Invalid model name in the URL: ${this.req.url}`);
+    }
+    this.modelName = this.tableSpec.table;
     this.filteringCondition = await this._getFilteringCondition();
     this.mongoParams = this._getLookupMongoParams();
     return this;
-  }
-
-  _getModel() {
-    const model = mongoose.model(this.tableSpec.table);
-    if (!model) {
-      throw new ValidationError(`Invalid model name in the URL: ${this.req.url}`);
-    }
-    return model;
   }
 
   _getTableSpec() {

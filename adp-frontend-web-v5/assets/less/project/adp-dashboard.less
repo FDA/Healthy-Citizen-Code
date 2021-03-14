@@ -8,35 +8,75 @@
 
 .adp-dashboard__item {
     display: flex;
-    flex-basis: 25%;
+    min-width: 25%;
+    max-width: 25%;
     min-height: 300px;
     padding: 0 7px;
     box-sizing: border-box;
 }
-.adp-dashboard__item-x2 { flex-basis: 50%; }
-.adp-dashboard__item-x3 { flex-basis: 75%; }
-.adp-dashboard__item-x4 { flex-basis: 100%; }
+.adp-dashboard__item-x2 {
+    min-width: 50%;
+    max-width: 50%;
+}
+.adp-dashboard__item-x3 {
+    min-width: 75%;
+    max-width: 75%;
+}
+.adp-dashboard__item-x4 {
+    min-width: 100%;
+    max-width: 100%;
+}
 
 .adp-dashboard__item-33 {
     max-width: 33.33333333%;
 }
 
 @media (max-width: 1024px) {
-    .adp-dashboard__item { flex-basis: 50%; }
-    .adp-dashboard__item-x2 { flex-basis: 50%; }
-    .adp-dashboard__item-x3 { flex-basis: 50%; }
-    .adp-dashboard__item-x4 { flex-basis: 50%; }
+    .adp-dashboard__item {
+        min-width: 50%;
+        max-width: 50%;
+    }
+    .adp-dashboard__item-x2 {
+        min-width: 50%;
+        max-width: 50%;
+    }
+    .adp-dashboard__item-x3 {
+        min-width: 50%;
+        max-width: 50%;
+    }
+    .adp-dashboard__item-x4 {
+        min-width: 50%;
+        max-width: 50%;
+    }
 
-    .adp-dashboard__item-33 { max-width: 33.33333333%; }
+    .adp-dashboard__item-33 {
+        min-width: 33.33333333%;
+        max-width: 33.33333333%;
+    }
 }
 
 @media (max-width: 768px) {
-    .adp-dashboard__item { flex-basis: 100%; }
-    .adp-dashboard__item-x2 { flex-basis: 100%; }
-    .adp-dashboard__item-x3 { flex-basis: 100%; }
-    .adp-dashboard__item-x4 { flex-basis: 100%; }
+    .adp-dashboard__item {
+        min-width: 100%;
+        max-width: 100%;
+    }
+    .adp-dashboard__item-x2 {
+        min-width: 100%;
+        max-width: 100%;
+    }
+    .adp-dashboard__item-x3 {
+        min-width: 100%;
+        max-width: 100%;
+    }
+    .adp-dashboard__item-x4 {
+        min-width: 100%;
+        max-width: 100%;
+    }
 
-    .adp-dashboard__item-33 { max-width: 33.33333333%; }
+    .adp-dashboard__item-33 {
+        min-width: 33.33333333%;
+        max-width: 33.33333333%;
+    }
 }
 
 .adp-dashboard__tile {
@@ -45,7 +85,7 @@
     flex-direction: column;
 }
 
-.adp-dashboard__tile > [class^='panel-']{ width: 100%; }
+.adp-dashboard__tile > [class^='panel-'] { width: 100%; }
 .adp-dashboard__tile .panel-body {
     flex: 1 0 auto;
 }
@@ -70,7 +110,8 @@
     overflow: hidden;
     text-overflow: ellipsis;
 }
-dashboard__p--centered {
+
+.dashboard__p--centered {
   text-align: center;
 }
 .dashboard__p--centered-number {

@@ -9,18 +9,14 @@
     return {
       restrict: 'E',
       scope: {
-        field: '=',
-        formData: '=',
-        validationParams: '=',
-        index: '='
+        args: '=',
+        arrayItem: '=',
+        index: '=',
+        formContext: '=',
       },
       templateUrl: 'app/adp-forms/directives/adp-form-controls/array-control/array-key-control/array-key-control.html',
       require: '^^form',
       link: function (scope) {
-        var arrayFieldFormParams = scope.validationParams.formParams;
-        var requiredMap = arrayFieldFormParams.requiredMap;
-        requiredMap[arrayKeyPath()] = true;
-
         scope.keyField = {
           type: 'String',
           fieldName: '$key',
@@ -39,22 +35,20 @@
           }],
         };
 
-        scope.arrayKeyValidationParams = {
-          field: scope.keyField,
-          formData: scope.formData,
-          formParams: {
-            path: scope.validationParams.formParams.path,
-          }
+        scope.arrayKeyArgs = {
+          fieldSchema: scope.keyField,
+          row: scope.args.row,
+          path: getPath(),
         }
 
+        scope.formContext.requiredMap[getPath()] = true;
 
-        // use required map here
         scope.isKeyRequired = function () {
-          return requiredMap[arrayKeyPath()];
+          return scope.formContext.requiredMap[getPath()];
         }
 
-        function arrayKeyPath() {
-          return arrayFieldFormParams.path + '[' + scope.index + '].$key';
+        function getPath() {
+          return scope.args.path + '[' + scope.index + '].$key';
         }
       }
     }

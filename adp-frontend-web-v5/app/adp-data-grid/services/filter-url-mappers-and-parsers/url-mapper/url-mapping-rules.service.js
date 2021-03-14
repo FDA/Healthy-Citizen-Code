@@ -37,7 +37,7 @@
       if (filter.operation === 'between') {
         return getRangeValue(filter.value, filter.fieldName);
       } else {
-        return [filter.fieldName, moment(filter.value).format(AdpValidationUtils.getDateFormat(filter.field.type))].join('=');
+        return [filter.fieldName, dayjs(filter.value).format(AdpValidationUtils.getDateFormat(filter.field.type))].join('=');
       }
     }
 
@@ -73,20 +73,23 @@
       }
     }
 
+    function booleanMapper(filter) {
+      var valueMap = {};
+      valueMap[BOOLEAN_FILTER_VALUES.TRUE] = 'true';
+      valueMap[BOOLEAN_FILTER_VALUES.FALSE] = 'false';
+
+      var filterValueToSet = valueMap[filter.value];
+      return [filter.fieldName, filterValueToSet].join('=');
+    }
+
     return {
       string: function (filter) {
         return [filter.fieldName, filter.value].join('=');
       },
       list: listMapper,
       dynamicList: listMapper,
-      boolean: function (filter) {
-        var valueMap = {};
-        valueMap[BOOLEAN_FILTER_VALUES.TRUE] = 'true';
-        valueMap[BOOLEAN_FILTER_VALUES.FALSE] = 'false';
-
-        var filterValueToSet = valueMap[filter.value];
-        return [filter.fieldName, filterValueToSet].join('=');
-      },
+      boolean: booleanMapper,
+      triStateBoolean: booleanMapper,
       currency: numberMapper,
       number: numberMapper,
       date: datetimeMapper,

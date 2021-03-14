@@ -24,7 +24,6 @@
     "log4js": "^6.1.0",
     "moment": "^2.22.2",
     "mongodb": "^3.1.13",
-    "mongoose": "^5.7.5",
     "restify-cookies": "^0.2.5"
   },
   "devDependencies": {

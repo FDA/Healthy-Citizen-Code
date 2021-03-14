@@ -95,7 +95,7 @@
 
         column.allowEditing = isFieldEditable(field);
         if (column.allowEditing) {
-          column.validationRules = CellEditorsValidationService.getValidators(field);
+          column.validationRules = CellEditorsValidationService.getValidators(schema, field.fieldName);
         }
       });
     }

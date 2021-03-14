@@ -22,6 +22,8 @@ module.exports = () => {
   m.stringMultiple = m.string;
   m.password = require('./filters/password');
   m.boolean = require('./filters/boolean');
+  m.triStateBoolean = require('./filters/triStateBoolean');
+  m.html = require('./filters/html');
   m.none = require('./filters/none');
   m.file = require('./filters/file');
   m.fileMultiple = m.file;

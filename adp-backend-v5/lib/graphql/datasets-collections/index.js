@@ -14,7 +14,7 @@ const {
 const GraphQlContext = require('../../request-context/graphql/GraphQlContext');
 const { COMPOSER_TYPES, MongoIdITC, dxQueryInputRequired } = require('../type/common');
 const {
-  getExternalDatasetsMongooseModelName,
+  getExternalDatasetsModelName,
   addQueriesAndMutationsForDatasetsRecord,
   getNewSchemeByProjections,
   getCloneRecordsPipeline,
@@ -47,7 +47,7 @@ module.exports = ({ appLib, datasetsModelName }) => {
         datasetExpirationTimeMs
       ),
     };
-    log.info(`Added a timeout(${datasetExpirationTime}) for removing resolvers for ${datasetId}`);
+    log.info(`Added a timeout(${datasetExpirationTime}) for removing dataset resolvers with id ${datasetId}`);
   };
 
   m.transformDatasetsRecord = async (datasetsRecord, userPermissions, inlineContext) => {
@@ -67,7 +67,7 @@ module.exports = ({ appLib, datasetsModelName }) => {
     // create resolvers for the datasets collections "pretending" that they are normal collections
     const datasetsRecordsCursor = appLib.db
       .collection(datasetsModelName)
-      .find({ scheme: { $ne: null }, ...appLib.dba.getConditionForActualRecord() });
+      .find({ scheme: { $ne: null }, ...appLib.dba.getConditionForActualRecord(datasetsModelName) });
 
     let datasetRecords = [];
     for await (const record of datasetsRecordsCursor) {
@@ -105,16 +105,17 @@ module.exports = ({ appLib, datasetsModelName }) => {
         graphQlContext.mongoParams = { conditions: {} };
         // nullify scheme since we can't check if it's valid for now
         const datasetsId = ObjectID();
-        args.record.collectionName = getExternalDatasetsMongooseModelName(datasetsId);
-        const datasetsRecord = { _id: datasetsId, ...args.record, scheme: null };
+        args.record.collectionName = getExternalDatasetsModelName(datasetsId);
+        const datasetsRecord = { ...args.record, _id: datasetsId };
 
         const createdDatasetsRecord = await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.postItem(graphQlContext, datasetsRecord, session)
         );
+
         await appLib.db.createCollection(datasetsRecord.collectionName);
 
         m.updateDatasetExpirationTimeout(datasetsId);
-        return await m.transformDatasetsRecord(createdDatasetsRecord, graphQlContext.userPermissions);
+        return createdDatasetsRecord;
       } catch (e) {
         handleGraphQlError(e, `Unable to create record`, log, appLib);
       }
@@ -135,21 +136,25 @@ module.exports = ({ appLib, datasetsModelName }) => {
     resolve: async ({ args, context }) => {
       const { req } = context;
       const { record, projections, parentCollectionName, filter } = args;
-      const { parentCollectionScheme, newScheme, newSchemeFields } = await getNewSchemeByProjections(
-        datasetsModelName,
-        appLib,
-        parentCollectionName,
-        projections
-      );
 
       try {
         const graphQlContext = await new GraphQlContext(appLib, req, datasetsModelName, args).init();
         // no filtering for create record
         graphQlContext.mongoParams = { conditions: {} };
 
-        const datasetsId = ObjectID();
-        record.collectionName = getExternalDatasetsMongooseModelName(datasetsId);
-        const datasetsItem = { _id: datasetsId, ...record, scheme: newScheme };
+        const datasetsObjectId = ObjectID();
+        const datasetId = datasetsObjectId.toString();
+        const externalDatasetModelName = getExternalDatasetsModelName(datasetId);
+        record.collectionName = externalDatasetModelName;
+        const { parentCollectionScheme, newScheme, newSchemeFields } = await getNewSchemeByProjections({
+          datasetsModelName,
+          externalDatasetModelName,
+          appLib,
+          parentCollectionName,
+          projections,
+          fixLookupIdDuplicates: appLib.mutil.fixLookupIdDuplicates,
+        });
+        const datasetsItem = { _id: datasetsObjectId, ...record, scheme: newScheme };
 
         const { userPermissions, inlineContext } = graphQlContext;
         const pipeline = await getCloneRecordsPipeline({
@@ -163,14 +168,14 @@ module.exports = ({ appLib, datasetsModelName }) => {
         });
 
         const createdDatasetsRecord = await appLib.dba.withTransaction((session) =>
-          appLib.controllerUtil.postItem(graphQlContext, datasetsItem, session)
+          appLib.controllerUtil.cloneItem(graphQlContext, datasetsItem, session)
         );
 
-        const cloneRecordsPromise = appLib.db.collection(parentCollectionName).aggregate(pipeline).next();
+        const cloneRecordsPromise = appLib.db.collection(parentCollectionName).aggregate(pipeline).toArray();
 
         // Error occurred if cloning records is in process simultaneously with creating indexes:
-        // Unhandled rejection MongoError: indexes of target collection oraimports-prototype.testDataset_asd changed during processing.
-        // So add graphql and mongoose scheme(with indexes) after cloning
+        // "Unhandled rejection MongoError: indexes of target collection oraimports-prototype.testDataset_asd changed during processing."
+        // So add graphql and prepare scheme(create indexes etc) after cloning
         // TODO: do not await in future since it may take much time. add it to job queue?
         await cloneRecordsPromise;
         await addQueriesAndMutationsForDatasetsRecord(
@@ -179,10 +184,10 @@ module.exports = ({ appLib, datasetsModelName }) => {
           addDefaultQueries,
           addDefaultMutations
         );
-        m.updateDatasetExpirationTimeout(datasetsId);
+        m.updateDatasetExpirationTimeout(datasetId);
         appLib.graphQl.connect.rebuildGraphQlSchema();
 
-        return await m.transformDatasetsRecord(createdDatasetsRecord, userPermissions);
+        return createdDatasetsRecord;
       } catch (e) {
         handleGraphQlError(e, `Unable to clone record`, log, appLib);
       }
@@ -236,29 +241,54 @@ module.exports = ({ appLib, datasetsModelName }) => {
         const { req } = context;
         const graphQlContext = await new GraphQlContext(appLib, req, datasetsModelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
-
-        const { userContext, mongoParams, userPermissions } = graphQlContext;
-        const recordInDb = (
-          await appLib.dba.getItemsUsingCache({
-            model: appLib.db.model(datasetsModelName),
-            userContext,
-            mongoParams,
-          })
-        )[0];
-        const { name, description } = args.record;
-        const newRecord = { ...recordInDb, name, description };
         const datasetRecord = await appLib.dba.withTransaction((session) =>
-          appLib.controllerUtil.putItem(graphQlContext, newRecord, session)
+          appLib.controllerUtil.putItem(graphQlContext, args.record, session)
         );
-        m.updateDatasetExpirationTimeout(datasetRecord._id);
 
-        return await m.transformDatasetsRecord(datasetRecord, userPermissions);
+        await addQueriesAndMutationsForDatasetsRecord(datasetRecord, appLib, addDefaultQueries, addDefaultMutations);
+        const datasetId = datasetRecord._id.toString();
+        m.updateDatasetExpirationTimeout(datasetId);
+        appLib.graphQl.connect.rebuildGraphQlSchema();
+
+        return datasetRecord;
       } catch (e) {
         handleGraphQlError(e, `Unable to update record`, log, appLib);
       }
     },
   });
   m.datasetsResolvers.updateOne = type.getResolver(updateOneResolverName);
+
+  const getSingleDatasetResolverName = 'getSingleDataset';
+  type.addResolver({
+    kind: 'query',
+    name: getSingleDatasetResolverName,
+    args: {
+      filter: MongoIdITC.getTypeNonNull(),
+    },
+    type,
+    resolve: async ({ args, context }) => {
+      try {
+        const { req } = context;
+
+        const { controllerUtil } = appLib;
+        const graphQlContext = new GraphQlContext(appLib, req, datasetsModelName, args).init();
+        graphQlContext.mongoParams = { conditions: { _id: args.filter._id } };
+
+        const { items } = await controllerUtil.getItems(graphQlContext);
+        const dataset = items[0];
+
+        if (dataset) {
+          const { userPermissions, inlineContext } = graphQlContext;
+          await m.transformDatasetsRecord(dataset, userPermissions, inlineContext);
+        }
+
+        return dataset;
+      } catch (e) {
+        handleGraphQlError(e, `Unable to get requested dataset`, log, appLib);
+      }
+    },
+  });
+  m.datasetsResolvers.getSingleDataset = type.getResolver(getSingleDatasetResolverName);
 
   return m;
 };

@@ -4,9 +4,9 @@ const fs = require('fs-extra');
 const path = require('path');
 const dotenv = require('dotenv');
 const JSON5 = require('json5');
-const mongoose = require('mongoose');
 
 const { combineModels } = require('../util/model');
+const { mongoConnect } = require('../util/mongo');
 const { getAbsolutePath } = require('../util/env');
 const { globSyncAsciiOrder } = require('../util/glob');
 
@@ -34,13 +34,17 @@ async function getParamsForGeneratorFiles({ appLib, pregeneratorFiles, batchName
     _.merge(pregeneratorFunctions, require(file));
   });
 
+  // create new connection since reusing appLib.db causes weird low-level 'ERR_MULTIPLE_CALLBACK' errors
+  const { db } = await mongoConnect(process.env.MONGODB_URI);
   // default params
   const paramsForGeneratorFiles = {
     random: require('../util/random').random,
     chance: require('../util/random').chance,
     ScgError: require('./errors/scg-error'),
     batchName,
-    handleUpload: (file) => appLib.fileControllerUtil.handleSingleFileUpload(file, null, null, uploadDir),
+    handleUpload: (file) => appLib.fileControllerUtil.handleUpload(file, null, null, uploadDir),
+    db,
+    dba: appLib.dba,
   };
 
   const invalidPregeneratorNames = [];
@@ -75,14 +79,14 @@ function getHelperFiles(corePath, schemaPath, helperName) {
   );
 }
 
-function getFunctions({ generatorFiles, paramsForGeneratorFiles }) {
-  const functions = {};
+function getGenerators({ generatorFiles, paramsForGeneratorFiles }) {
+  const generators = {};
 
   _.each(generatorFiles, (file) => {
-    _.merge(functions, require(file)(paramsForGeneratorFiles));
+    _.merge(generators, require(file)(paramsForGeneratorFiles));
   });
 
-  return functions;
+  return generators;
 }
 
 function validateArgs(args) {
@@ -179,13 +183,15 @@ async function prepareAppLib(corePath, schemaPath) {
   const helperDirPaths = [`${corePath}/model/helpers`, ...schemaPath.map((p) => `${p}/helpers`)];
   const buildAppModelCodeOnStart = false;
   appLib.helperUtil = await require('../helper-util')(appLib, helperDirPaths, buildAppModelCodeOnStart);
+  appLib.dba = require('../database-abstraction')(appLib);
 
-  appLib.appModel = await combineModels({
+  const { model } = await combineModels({
     modelSources: [`${corePath}/model/model`, ...schemaPath.map((p) => `${p}/model`)],
     log: console.log.bind(console),
     appModelProcessors: appLib.appModelHelpers.appModelProcessors,
     macrosDirPaths: [...schemaPath.map((p) => `${p}/macros`), `${corePath}/model/macros`],
   });
+  appLib.appModel = model;
   mergePregenerators(appLib.appModel);
 
   appLib.accessCfg = require('../access/access-config');
@@ -193,9 +199,8 @@ async function prepareAppLib(corePath, schemaPath) {
 
   appLib.accessUtil = require('../access/access-util')(appLib);
   appLib.filterUtil = require('../filter/util');
-  appLib.fileControllerUtil = require('../file-controller-util')();
+  appLib.fileControllerUtil = require('../file-controller-util')(appLib);
   appLib.getAuthSettings = () => appLib.appModel.interface.app.auth;
-  appLib.accessUtil.setAvailablePermissions();
   return appLib;
 
   function mergePregenerators(appModel) {
@@ -223,14 +228,6 @@ async function prepareAppLib(corePath, schemaPath) {
   }
 }
 
-async function connectMongoose(appLib, mongoUrl) {
-  mongoose.set('useNewUrlParser', true);
-  mongoose.set('useFindAndModify', false);
-  mongoose.set('useCreateIndex', true);
-  mongoose.set('useUnifiedTopology', true);
-  appLib.db = await mongoose.connect(mongoUrl);
-}
-
 function injectListValues(appLib) {
   const userPermissions = new Set(Object.values(appLib.accessCfg.PERMISSIONS));
   const inlineContext = {};
@@ -240,10 +237,10 @@ function injectListValues(appLib) {
 module.exports = {
   validateArgs,
   prepareAppLib,
-  connectMongoose,
+  mongoConnect,
   injectListValues,
   getParamsForGeneratorFiles,
-  getFunctions,
+  getGenerators,
   getHelperFiles,
   getEnv,
 };

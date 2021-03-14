@@ -1,46 +1,46 @@
 <fieldset>
-  <adp-form-field-factory
-    ng-repeat="field in fields.notGrouped track by $index"
-    adp-field="::field"
-    adp-fields="::fields"
-    adp-form-data="::formData"
-    schema="::schema"
-    validation-params="::validationParams"
-  >
-  </adp-form-field-factory>
+  <div class="adp-form-fieldset">
+    <adp-form-field-factory
+      ng-repeat="field in fields.notGrouped track by $index"
+      field-name="::field.fieldName"
+      args="::args"
+      form-context="::$parent.formContext"
+    ></adp-form-field-factory>
+  </div>
 </fieldset>
 
 <fiedlset
+  class="adp-accordion"
   adp-accordion
-  adp-accordion-options="formParams">
+  adp-accordion-options="formParams"
+>
   <div>
     <div
       ng-show="display(groupName)"
       ng-group-name="{{groupName}}"
-      class="adp-form-fieldset"
       ng-class="{'has-errors': groupHasErrors(group.fields, form) }"
       ng-repeat="(groupName, group) in ::fields.groups track by $index"
+      ng-attr-adp-qaid-group-name="{{groupName}}"
     >
 
       <div class="adp-form-group-head">
-        <h4 ng-bind-html="$parent.getHeader(group)"></h4>
+        <h4 ng-attr-adp-qaid-group-header="{{groupName}}">
+          <span ng-bind-html="$parent.getHeader(group)"></span>
 
-        <adp-form-group-messages
-          form-group="group.fields">
-        </adp-form-group-messages>
+          <adp-tooltip adp-field="group"></adp-tooltip>
+        </h4>
+        <adp-form-group-messages args-list="listOfFieldsForEachGroup[groupName]"></adp-form-group-messages>
       </div>
 
       <div class="adp-form-group-body padding-10">
-        <adp-form-field-factory
-          ng-repeat="field in ::group.fields track by $index"
-          adp-field="::field"
-          adp-fields="::fields"
-          adp-form-params="::$parent.formParams"
-          adp-form-data="::$parent.formData"
-          schema="::$parent.schema"
-          validation-params="::$parent.validationParams"
-        >
-        </adp-form-field-factory>
+        <div class="adp-form-fieldset">
+          <adp-form-field-factory
+            ng-repeat="field in ::group.fields track by $index"
+            field-name="::field.fieldName"
+            args="::$parent.args"
+            form-context="::$parent.formContext"
+          ></adp-form-field-factory>
+        </div>
       </div>
     </div>
   </div>

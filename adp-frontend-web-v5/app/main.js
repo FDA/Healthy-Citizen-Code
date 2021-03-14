@@ -1,6 +1,10 @@
 ;(function (window) {
   'use strict';
 
+  dayjs.extend(window.dayjs_plugin_isSameOrAfter);
+  dayjs.extend(window.dayjs_plugin_isSameOrBefore);
+  dayjs.extend(window.dayjs_plugin_customParseFormat);
+
   var $http = angular.injector(['ng']).get('$http');
   var APP_CONFIG = getAppConfig();
 

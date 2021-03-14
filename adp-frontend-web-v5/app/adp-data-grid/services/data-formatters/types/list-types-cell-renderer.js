@@ -11,12 +11,13 @@
     AdpListsService
   ) {
     return function cellRenderer(args) {
-      if (_.isNil(args.data) || _.isEmpty(args.data)) {
+      var isEmpty = _.isObject(args.data) ? _.isEmpty(args.data) : _.isNil(args.data);
+      if (isEmpty) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
       var list = getList(args);
-      return args.fieldSchema.type.includes('[]') ?
+      return _.isArray(args.data)  ?
         getMultipleValues(list, args.data) :
         getSingleValueForList(list, args.data);
     }

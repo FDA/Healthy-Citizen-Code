@@ -6,21 +6,22 @@
     .factory('visibilityUtils', visibilityUtils);
 
   function visibilityUtils() {
-    function arrayHasVisibleChild(arrayData, validationParams) {
+    function arrayHasVisibleChild(args, formContext) {
+      var arrayData = _.get(args.row, args.path);
       if (!_.isArray(arrayData)) {
         return false;
       }
 
-      var visibilityMap = validationParams.formParams.visibilityMap;
-      var path = validationParams.formParams.path;
-      var found = _.find(visibilityMap, function (visibility, key) {
-        var re = new RegExp('^' + _.escapeRegExp(path) + '\\[\\d+\\]$');
-        var isArrayItem = re.test(key);
-
-        return isArrayItem ? visibility : false;
+      var found = _.find(formContext.visibilityMap, function (visibility, arrayItemPath) {
+        return isArrayItem(args.path, arrayItemPath) ? visibility : false;
       });
 
       return !!found;
+    }
+
+    function isArrayItem(currentArrayPath, arrayPathToCompare) {
+      var re = new RegExp('^' + _.escapeRegExp(currentArrayPath) + '\\[\\d+\\]$');
+      return re.test(arrayPathToCompare);
     }
 
     return {

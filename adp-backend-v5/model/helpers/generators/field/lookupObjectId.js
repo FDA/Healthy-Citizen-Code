@@ -1,20 +1,24 @@
-const mongoose = require('mongoose');
 const _ = require('lodash');
 const { buildLookupFromDoc } = require('../../../../lib/util/lookups');
 
-module.exports = ({ random }) => {
+module.exports = ({ random, db, dba }) => {
   async function getLookup(lookupTableSpec) {
     // ignore where in each table lookup for now
     const lookupTable = lookupTableSpec.table;
-    const docs = await mongoose
-      .model(lookupTable)
+    const docs = await db
+      .collection(lookupTable)
       .aggregate([{ $sample: { size: 1 } }])
-      .exec();
+      .toArray();
 
     if (!docs.length) {
       return;
     }
-    return buildLookupFromDoc(docs[0], lookupTableSpec);
+
+    const userContext = {};
+    await dba.postTransform(docs, lookupTable, userContext);
+
+    const doc = docs[0];
+    return buildLookupFromDoc(doc, lookupTableSpec);
   }
 
   return {

@@ -3,19 +3,19 @@
  * They are only executed on the server side and set value for a field that is not directly based on user input
  */
 const _ = require('lodash');
-const generate = require('nanoid/async/generate');
+const { customAlphabet } = require('nanoid/async');
+// excluding "confusing characters": "Il1O08B"
+const alphabet = '2345679ACDEFGHJKMNOPQRSTUVWXYZ';
+const generate = customAlphabet(alphabet, 24);
 
 module.exports = () => {
-  // excluding "confusing characters": "Il1O08B"
-  const alphabet = '2345679ACDEFGHJKMNOPQRSTUVWXYZ';
-
   const m = {
     id24(next) {
       const { row, path } = this;
       if (_.get(row, path)) {
         return next();
       }
-      return generate(alphabet, 24).then(id => {
+      return generate().then(id => {
         _.set(row, path, id);
         next();
       });

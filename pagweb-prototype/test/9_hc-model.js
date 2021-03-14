@@ -1,10 +1,10 @@
 // test public folder
 // test model validation (try to feed incorrect model spec)
 // TODO: test validator on various strings
-const _ = require('lodash');
-const assert = require('assert');
+const _ = require("lodash");
+const assert = require("assert");
 
-describe('V3 HC Schema Routes', () => {
+describe("V5 Schema Routes", () => {
   before(function () {
     this.appLib = require(process.env.APP_LIB_MODULE_PATH)();
     return this.appLib.setup();
@@ -14,14 +14,16 @@ describe('V3 HC Schema Routes', () => {
     return this.appLib.shutdown();
   });
 
-  it('Generates core models', function (done) {
-    assert(this.appLib.db.readyState === 1);
-    const models = this.appLib.db.modelNames();
-    assert(models.includes('users'));
-    assert(models.includes('connections'));
-    assert(_.keys(_.get(this.appLib.appModel, 'metaschema').length > 0));
-    assert(_.keys(_.get(this.appLib.appModel, 'interface').length > 0));
-    assert(_.keys(_.get(this.appLib.appModel, 'interface.mainMenu').length > 0));
+  it("Generates core models", function (done) {
+    const { appModel } = this.appLib;
+    assert(!_.isEmpty(appModel.metaschema));
+    assert(!_.isEmpty(appModel.interface));
+    assert(!_.isEmpty(appModel.interface.mainMenu));
+
+    const { models } = appModel;
+    assert(!_.isEmpty(models.users));
+    assert(!_.isEmpty(models.connections));
+
     done();
   });
 });

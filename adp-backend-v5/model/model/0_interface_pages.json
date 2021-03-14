@@ -39,7 +39,12 @@ Try to avoid using numbers or any non-alpha characters in the names
           "type": "file",
           "link": "page_rule_editor.ejs"
         },
-        "controller": "DmnEditorController"
+        "controller": "DmnEditorController",
+        "scopes": {
+          "view": {
+            "permissions": {"view":"accessBusinessRules"}
+          }
+        }
       },
       "bpmnRulesEditor": {
         "fullName": "BPMN Process Editor",
@@ -48,7 +53,12 @@ Try to avoid using numbers or any non-alpha characters in the names
           "type": "file",
           "link": "page_rule_editor.ejs"
         },
-        "controller": "BpmnEditorController"
+        "controller": "BpmnEditorController",
+        "scopes": {
+          "view": {
+            "permissions": {"view":"accessBpmnProcesses"}
+          }
+        }
       },
       "dataGraph2d": {
         "fullName": "Visualization Page",
@@ -59,23 +69,29 @@ Try to avoid using numbers or any non-alpha characters in the names
         },
         "controller": "OntologyController"
       },
-      "dataGraph3d": {
-        "fullName": "Force Graph",
-        "link": "/dataGraph3d",
+      "profile": {
+        "fullName": "User profile",
+        "link": "/profile",
         "template": {
           "type": "file",
-          "link": "page_force_graph3d_template.ejs"
+          "link": "page_profile_template.ejs"
         },
-        "controller": "ForceGraphController"
+        "controller": "ProfileController"
       },
-      "dataGraphVr": {
-        "fullName": "VR Force Graph",
-        "link": "/dataGraphVr",
+      "rolesPermissionsEditor": {
+        "link": "/roleEditor",
+        "fullName": "Roles-Permissions editor",
+        "description": "Roles-Permissions editor grid",
         "template": {
           "type": "file",
-          "link": "page_force_graph_vr_template.ejs"
+          "link": "rolesPermissionsEditor.template.ejs"
         },
-        "controller": "ForceGraphControllerVr"
+        "controller": "AdpRolesPermissionsEditor",
+        "scopes": {
+          "view": {
+            "permissions": {"view":"accessRolesAndPermissions"}
+          }
+        }
       }
     }
   }

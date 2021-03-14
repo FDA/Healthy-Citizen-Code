@@ -151,6 +151,16 @@
           "value": "boolean"
         }
       },
+      "triStateBoolean": {
+        "renderer": {
+          "type": "function",
+          "value": "triStateBoolean"
+        },
+        "where": {
+          "type": "function",
+          "value": "triStateBoolean"
+        }
+      },
       "none": {
         "renderer": {
           "type": "function",
@@ -317,6 +327,16 @@
         "where": {
           "type": "function",
           "value": "treeSelectorForSift"
+        }
+      },
+      "html": {
+        "renderer": {
+          "type": "function",
+          "value": "string"
+        },
+        "where": {
+          "type": "function",
+          "value": "html"
         }
       }
     }

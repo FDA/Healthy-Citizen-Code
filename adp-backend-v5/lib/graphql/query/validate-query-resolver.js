@@ -30,13 +30,10 @@ function getValidateFilterResolver() {
     }),
     resolve: async ({ args, context }) => {
       const { appLib } = context;
-      const { db, dba, filterParser } = appLib;
+      const { appModel, dba, filterParser } = appLib;
       const { modelName, filter } = args;
 
-      let model;
-      try {
-        model = db.model(modelName);
-      } catch (e) {
+      if (!appModel.models[modelName]) {
         return { isValidFilter: false, errors: `Invalid modelName specified, '${modelName}' does not exist.` };
       }
 
@@ -62,7 +59,7 @@ function getValidateFilterResolver() {
 
       try {
         const mongoParams = { conditions, limit: -1 };
-        await dba.aggregateItems({ model, mongoParams });
+        await dba.aggregateItems({ modelName, mongoParams });
         return { isValidFilter: true };
       } catch (e) {
         if (e.name === 'MongoError') {

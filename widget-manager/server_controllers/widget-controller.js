@@ -36,8 +36,7 @@ const WIDGET_TYPE_FALLBACK = process.env.WIDGET_TYPE_FALLBACK || 'recalls';
 // const AUTHORIZE_URL_COOKIE_NAME = 'authorize_url';
 const TOKEN_URL_COOKIE_NAME = 'token_url';
 
-module.exports = function(globalMongoose) {
-  const mongoose = globalMongoose;
+module.exports = function() {
   const m = {};
 
   function getLogInfo() {
@@ -84,8 +83,8 @@ module.exports = function(globalMongoose) {
 
   m.getWidget = (req, res, next) => {
     const widgetId = req.params.id;
-    return mongoose
-      .model('widgets')
+    return m.appLib.db
+      .collection('widgets')
       .findOne({ id: widgetId })
       .then(widgetData => {
         if (!widgetData) {
@@ -106,8 +105,8 @@ module.exports = function(globalMongoose) {
       return res.send(getNotFoundWidgetHtml());
     }
 
-    return mongoose
-      .model('widgets')
+    return this.appLib.db
+      .collection('widgets')
       .findOne({ id: widgetId })
       .lean()
       .then(widgetData => {
@@ -145,8 +144,8 @@ module.exports = function(globalMongoose) {
       return res.send({ success: false, message: 'not found' });
     }
 
-    return mongoose
-      .model('widgets')
+    return this.appLib.db
+      .collection('widgets')
       .findOne({ id: widgetId })
       .lean()
       .then(widgetData => {
@@ -186,8 +185,8 @@ module.exports = function(globalMongoose) {
       return res.send(getNotFoundWidgetHtml());
     }
 
-    return mongoose
-      .model('widgets')
+    return this.appLib.db
+      .collection('widgets')
       .findOne({ id: widgetId })
       .lean()
       .then(widgetData => {
@@ -212,8 +211,8 @@ module.exports = function(globalMongoose) {
       return res.send(getNotFoundWidgetHtml());
     }
 
-    return mongoose
-      .model('widgets')
+    return this.appLib.db
+      .collection('widgets')
       .findOne({ id: widgetId })
       .lean()
       .then(widgetData => {

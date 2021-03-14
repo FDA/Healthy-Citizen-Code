@@ -7,7 +7,7 @@ async function getQuickFilterConditions(appLib, quickFilterId, userContext) {
   }
   const quickFilter = (
     await appLib.dba.getItemsUsingCache({
-      model: appLib.db.model('quickFilters'),
+      modelName: 'quickFilters',
       userContext,
       mongoParams: { conditions: { _id: quickFilterId } },
     })

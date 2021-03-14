@@ -16,7 +16,7 @@
     FilterUrlParser
   ) {
     function create(options, schema) {
-      if (!options.filterRow.visible) {
+      if (!_.get(options, 'filterRow.visible', false)) {
         return;
       }
 

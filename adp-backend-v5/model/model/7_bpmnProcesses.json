@@ -10,19 +10,22 @@
       "actions": {
         "fields": {
           "update": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBpmnProcesses"
           },
           "delete": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBpmnProcesses"
           },
           "clone": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBpmnProcesses"
           },
           "view": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBpmnProcesses"
+          },
+          "viewDetails": {
+            "permissions": "accessBpmnProcesses"
           },
           "create": {
-            "permissions": "accessAsUser"
+            "permissions": "accessBpmnProcesses"
           },
           "rulesEditor": {
             "fullName": "Process diagram editor",
@@ -37,7 +40,7 @@
               "type": "link",
               "link": "/#/bpmnDiagramEditor/:_id"
             },
-            "permissions": "accessAsUser"
+            "permissions": "accessBpmnProcesses"
           },
           // standalone launch is not supported for now
 //          "runRules": {
@@ -61,8 +64,7 @@
       },
       "scopes": {
         "own": {
-          "permissions": "accessAsUser",
-          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+          "permissions": "accessBpmnProcesses"
         }
       },
       "fields": {

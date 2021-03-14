@@ -56,42 +56,51 @@
     APP_CONFIG
   ) {
     var vm = this;
-    var questionnaireProps = {
-      'questionnaireName': {
+    var columns = {
+      questionnaireName: {
         head: 'Questionnaire Name',
-        type: 'string'
+        type: 'string',
+        path: 'questionnaireName',
       },
-      'guid': {
+      guid: {
         head: 'User Guid',
-        type: 'string'
-      }
-    }
-
-    var questionProps = {
-      'fullName': {
+        type: 'string',
+        path: 'guid',
+      },
+      fullName: {
         head: 'Question Name',
-        type: 'string'
+        type: 'string',
+        path: 'fullName',
+        questionPart: true,
       },
-      'question': {
+      question: {
         head: 'Question',
-        type: 'html'
+        type: 'html',
+        path: 'fullName',
+        questionPart: true,
       },
-      'answer': {
+      answer: {
         head: 'Answer',
-        type: 'string'
+        type: 'string',
+        path: 'answer',
+        questionPart: true,
       },
-      'required': {
+      required: {
         head: 'Required',
-        type: 'boolean'
+        type: 'boolean',
+        path: 'required',
+        questionPart: true,
       },
-      'readonly': {
+      readonly: {
         head: 'Readonly',
-        type: 'boolean'
-      }
+        type: 'boolean',
+        path: 'immutable',
+        questionPart: true,
+      },
     }
-
+    // firstQuestion from dataItem.questionnaire
     var formatters = {
-      'string': function (v) {
+      string: function (v) {
         if (_.isNil(v) || _.isEmpty(v)) {
           return '-';
         }
@@ -100,66 +109,64 @@
           return v.join('');
         }
 
-        return v.toString();
+        return _.toString(v);
       },
-      'html': function (v) {
+      html: function (v) {
         return _.isArray(v) ? v.join('') : v;
       },
-      'boolean': function (v) {
-        return v === '1';
-      }
+      boolean: function (v) {
+        return v === true;
+      },
     }
 
     vm.data = $state.current.data;
     vm.loading = true;
     getPageData()
-      .then(onSuccess);
+      .then(function (resp) {
+        return onSuccess(resp.data.data, columns);
+      });
 
     function getPageData() {
       var endpoint = [APP_CONFIG.apiUrl, 'questionnaires-answers'].join('/');
       return $http.get(endpoint);
     }
 
-    function onSuccess(response) {
+    function onSuccess(respData, columnProps) {
       vm.loading = false;
-      vm.tableData = formatData(response.data.data);
+      vm.tableData = formatData(respData, columnProps);
 
       vm.tableConfig = {
         filterRow: { visible: true },
         dataSource: vm.tableData,
-        columns: Object.keys(vm.tableData[0]).map(function (columnName) {
-          var columnProps = questionnaireProps[columnName] || questionProps[columnName];
-
+        columns: _.map(columnProps, function (column, name) {
           return {
-            caption: columnProps.head,
-            dataField: columnName,
-            dataType: columnProps.type === 'boolean' ? 'boolean' : 'string',
-          }
+            caption: column.head,
+            dataField: name,
+            dataType: column.type === 'boolean' ? 'boolean' : 'string',
+          };
         }),
         wordWrapEnabled: true,
+        pager: {
+          allowedPageSizes: [10, 50, 100],
+          showInfo: true,
+          showNavigationButtons: true,
+          showPageSizeSelector: true,
+          visible: true,
+        },
+        paging: { pageSize: 10 },
       };
 
-      console.log(vm.tableConfig)
       vm.isEmpty = _.isEmpty(vm.tableData);
     }
 
-    function formatData(data) {
+    function formatData(data, columns) {
       return _.map(data, function (dataItem) {
-        var newItem = {};
         var questionKey = _.keys(dataItem.questionnaire)[0];
-        var question = dataItem.questionnaire[questionKey];
 
-        _.each(questionnaireProps, function (field, key) {
-          var value = formatters[field.type](dataItem[key]);
-          newItem[key] = value;
+        return _.mapValues(columns, function (column) {
+          var path = column.questionPart ? ['questionnaire', questionKey, column.path] : column.path;
+          return formatters[column.type](_.get(dataItem, path));
         });
-
-        _.each(questionProps, function (field, key) {
-          var value = formatters[field.type](question[key]);
-          newItem[key] = value;
-        });
-
-        return newItem;
       });
     }
   }
@@ -191,69 +198,59 @@
       vm.icdData = response.data;
     }
 
-    vm.onSelectChange = function (data) {
-      // WORKAROUND: to redraw table
-      if (data.length) {
-        vm.tableData = [];
-      }
-      $timeout(function () {
-        vm.tableData = data
-      });
+    vm.onSelectChange = createTableConfig;
+
+    function createTableConfig(data) {
+      vm.tableData = data;
+      vm.tableConfig = {
+        filterRow: { visible: true },
+        dataSource: vm.tableData,
+        wordWrapEnabled: true,
+        pager: {
+          allowedPageSizes: [10, 50, 100],
+          showInfo: true,
+          showNavigationButtons: true,
+          showPageSizeSelector: true,
+          visible: true,
+        },
+        paging: { pageSize: 10 },
+      };
     }
   }
 
   function MultiLevelSelectDirective($compile) {
-    var template = [
-      '<div>' +
-      '<select',
-      'adp-select2',
-      'class="form-control"',
-      'style="width: 100%; padding: 0; margin-bottom: 10px; height: 34px;"',
-      'ng-model="selected">',
-      '<option value=""></option>',
-      '<option',
-      'ng-repeat="item in listOfValues track by $index"',
-      'value="{{item.value}}">',
-      '{{item.label}}',
-      '</option>',
-      '</select>',
-      '</div>'
-    ].join(' ');
-
     return {
       restrict: 'E',
-      template: template,
+      template: '<div ng-model="selected" dx-select-box="config"></div>',
       scope: {
         onChange: '=?',
         collection: '=?'
       },
       link: function (scope, element) {
         var childScope;
-        var template = '<multi-level-select data-child></multi-level-select>';
+        var childTemplate = '<multi-level-select data-child></multi-level-select>';
 
         (function init() {
-          scope.selected = '';
+          scope.selected = null;
           scope.collection = scope.collection || scope.$parent.collection;
           scope.onChange = scope.onChange || scope.$parent.onChange;
 
-          scope.listOfValues = scope.collection.map(function (v, i) {
-            return {
-              value: i,
-              label: v.name
-            }
-          });
-
-          // hiding search input
-          // https://github.com/select2/select2/issues/489#issuecomment-100602293
-          if (scope.listOfValues.length < 10) {
-            scope.options = {minimumResultsForSearch: -1}
-          }
+          scope.config = {
+            items: scope.collection.map(function (v, i) {
+              return { value: i, label: v.name };
+            }),
+            valueExpr: 'value',
+            displayExpr: 'label',
+            elementAttr: {
+              'class': 'adp-select-box',
+            },
+          };
 
           scope.$watch('selected', onChange)
         })();
 
-        function onChange() {
-          if (!scope.selected) return;
+        function onChange(oldVal, newVal) {
+          if (_.isNil(scope.selected)) return;
           scope.next = scope.collection[scope.selected].next;
 
           if (scope.next.type === 'leaf') {
@@ -273,7 +270,7 @@
           childScope.collection = scope.next;
           childScope.onChange = scope.onChange;
 
-          element.append($compile(template)(childScope));
+          element.append($compile(childTemplate)(childScope));
         }
 
         function destroyChildScope() {

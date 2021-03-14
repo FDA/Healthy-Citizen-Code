@@ -7,9 +7,9 @@
 
   /** @ngInject */
   function adpChart(
+    AdpChartService,
     $compile,
-    $q,
-    AdpChartService
+    $q
   ) {
     return {
       restrict: 'E',
@@ -22,7 +22,7 @@
       link: function (scope, element) {
         var INTERFACE = window.adpAppStore.appInterface();
         var chartDefinition = INTERFACE.charts[scope.item.parameters.chartId];
-        scope.chartOptions = AdpChartService.evalOptions(chartDefinition.specification);
+        scope.chartOptions = chartDefinition.specification;
 
         var requestParams = chartDefinition.data;
         var type = chartDefinition.subtype.toLowerCase();

@@ -1,0 +1,160 @@
+*, :after, :before {
+  -ms-box-sizing: border-box;
+  -webkit-box-sizing: border-box;
+  box-sizing: border-box;
+}
+
+body {
+  font-family: Open Sans, Arial, Helvetica, Sans-Serif, serif;
+  font-size: 13px;
+  color: #333;
+  background-color: #fff;
+  margin: 0;
+}
+
+body ::-webkit-scrollbar {
+  width: 6px;
+}
+
+body ::-webkit-scrollbar-thumb {
+  border-radius: 6px;
+  background-color: #ffffff55;
+}
+
+button, input, optgroup, select, textarea {
+  color: inherit;
+  font: inherit;
+}
+
+a:link, .btn, button {
+  -webkit-tap-highlight-color: rgba(169, 3, 41, 0.5);
+}
+
+.btn-primary {
+  color: #fff;
+  background-color: #3276B1;
+  border-color: #2c699d;
+  margin-top: 2px;
+}
+
+.btn {
+  border-radius: 2px;
+  -webkit-border-radius: 2px;
+  -moz-border-radius: 2px;
+  box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.05);
+  -moz-box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.05);
+  -webkit-box-shadow: inset 0 -2px 0 rgba(0, 0, 0, 0.05);
+  display: inline-block;
+  margin-bottom: 0;
+  font-weight: normal;
+  text-align: center;
+  vertical-align: middle;
+  -ms-touch-action: manipulation;
+  touch-action: manipulation;
+  cursor: pointer;
+  background-image: none;
+  border: 1px solid transparent;
+  white-space: nowrap;
+  padding: 6px 12px;
+  font-size: 13px;
+  line-height: 1.42857143;
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+  outline: none;
+}
+
+#adpd-wrapper {
+  position:absolute;
+  width:100%;
+  height:100%;
+  display:flex;
+  flex-direction:column;
+  background-color: black;
+}
+
+#adpd-header {
+  flex:0 0 70px;
+  background: #2196f3;
+  padding:5px 10px;
+  display: flex;
+  align-items: center;
+}
+
+#adpd-logo {
+  background: transparent url('../../../public/logo/60x70-dark-glow.png') no-repeat center center;
+  width:80px;
+  height:70px;
+}
+
+#adpd-title {
+  color:white;
+  font-size:18pt;
+  margin: 0 10px;
+}
+
+#adpd-content {
+  flex:1 1 auto;
+  position: relative;
+  overflow: hidden;
+}
+
+#adpd-footer {
+  flex:0 0 35px;
+  background: #455a64;
+  color:white;
+  padding: 5px 15px;
+  line-height: 25px;
+}
+
+#fg3d-container {
+  height:100% !important;
+  max-height:100%;
+}
+
+
+//------------
+//  tag list mocking styles
+.fg3d-tagbox {
+  cursor:pointer;
+  text-align:right;
+}
+
+.fg3d-tagbox-dropbox {
+  position: absolute;
+  width: 170px;
+  right: 0;
+  background: #555;
+  color: white;
+  max-height: 200px;
+  overflow: auto;
+  border: 1px solid gray;
+  box-shadow: 2px 2px 5px black;
+  cursor:pointer;
+  text-align:left;
+  z-index:1;
+}
+
+.fg3d-tagbox-list {
+}
+
+.fg3d-tagbox-listitem {
+  line-height: 20px;
+  padding: 0 0 0 25px;
+  margin: 6px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  background: transparent no-repeat;
+
+  &.selected {
+    background-image:url('./checkbox.svg');
+   background-size: contain;
+  }
+
+  &:hover {
+    opacity: .8;
+  }
+}
+

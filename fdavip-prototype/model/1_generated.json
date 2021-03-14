@@ -1,0 +1,1879 @@
+{
+  models: {
+    entities: {
+      type: 'Schema',
+      fullName: 'Entities',
+      parameters: {
+        enableInCellEditing: true,
+        columnResizingMode: "nextColumn",
+        columnAutoWidth: true,
+        summary: {
+          groupItems: [
+            {
+              column: "name",
+              summaryType: "count",
+              displayFormat: "Count: {0}",
+              alignByColumn: true
+            }
+          ]
+        }
+      },
+      other: {
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsUser"
+            },
+            "delete": {
+              "permissions": "accessAsUser"
+            },
+            "clone": {
+              "permissions": "accessAsUser"
+            },
+            "viewDetails": {
+              "permissions": "accessAsUser"
+            },
+            "view": {
+              "permissions": "accessAsUser"
+            },
+            "create": {
+              "permissions": "accessAsUser"
+            }
+          }
+        },
+        "scopes": {
+          "own": {
+            "permissions": "accessAsUser",
+            "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+          },
+          "admin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq:[1,1]}"
+          }
+        }
+      },
+      fields: {
+        type: {
+          type: 'LookupObjectID',
+          fullName: 'Entity Type',
+          description: 'Entity Type',
+          required: true,
+          lookup: {
+            "table": {
+              "entityTypes": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {"name": 1},
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          },
+          formOrder: '1',
+          other: {
+            formWidth: '4'
+          }
+        },
+        name: {
+          type: 'String',
+          fullName: 'Entity Name',
+          description: 'Entity Name',
+          required: true,
+          formOrder: '2',
+          other: {
+            formWidth: '6'
+          }
+        },
+        acronym: {
+          type: 'String',
+          fullName: 'Acronym',
+          description: 'Acronym',
+          formOrder: '3',
+          other: {
+            formWidth: '2'
+          }
+        },
+        projectId: {
+          type: 'String',
+          fullName: 'Project ID',
+          description: 'Project ID',
+          parameters: {
+            visible: false
+          },
+          formOrder: '4',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\'',
+            formWidth: '6'
+          }
+        },
+        iaaAgreementAmount: {
+          type: 'Number',
+          fullName: 'IAA Agreement Dollar Amount',
+          description: 'IAA Agreement Dollar Amount',
+          parameters: {
+            visible: false
+          },
+          formOrder: '5',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInForm: true,
+            formWidth: '6'
+          }
+        },
+        cersiDirect: {
+          type: 'Number',
+          fullName: 'CERSI Direct Agreement Dollar Amount',
+          description: 'CERSI Direct Agreement Dollar Amount',
+          parameters: {
+            visible: false
+          },
+          formOrder: '6',
+          other: {
+            show: '_.get(row, \'type.label\') === \'CERSI\'',
+            showInForm: true,
+            formWidth: '6'
+          }
+        },
+        cersiTotal: {
+          type: 'Number',
+          fullName: 'CERSI Total Agreement Dollar Amount',
+          description: 'CERSI Total Agreement Dollar Amount',
+          parameters: {
+            visible: false
+          },
+          formOrder: '7',
+          other: {
+            show: '_.get(row, \'type.label\') === \'CERSI\'',
+            showInForm: true,
+            formWidth: '6'
+          }
+        },
+        status: {
+          type: 'String',
+          fullName: 'Project Status',
+          description: 'Project Status',
+          parameters: {
+            visible: false
+          },
+          formOrder: '8',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\'',
+            formWidth: '3'
+          }
+        },
+        fy: {
+          type: 'String',
+          fullName: 'Project FY',
+          description: 'Project FY',
+          parameters: {
+            visible: false
+          },
+          formOrder: '9',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\'',
+            formWidth: '3'
+          }
+        },
+        startDate: {
+          type: 'Date',
+          fullName: 'Start Date',
+          description: 'Start Date',
+          parameters: {
+            visible: false
+          },
+          formOrder: '10',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\'',
+            formWidth: '3'
+          }
+        },
+        endDate: {
+          type: 'Date',
+          fullName: 'End Date',
+          description: 'End Date',
+          parameters: {
+            visible: false
+          },
+          formOrder: '11',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\'',
+            formWidth: '3'
+          }
+        },
+        hidden: {
+          type: 'Boolean',
+          fullName: 'Ready for Review',
+          description: 'Ready for Review',
+          formOrder: '12',
+          other: {
+            formWidth: '4'
+          }
+        },
+        entitySize: {
+          type: 'Number',
+          fullName: 'Custom Size in Visualization',
+          description: 'Entity Size in Visualization',
+          formOrder: '13',
+          other: {
+            formWidth: '4',
+            showInDatatable: false
+          }
+        },
+        tags: {
+          type: 'LookupObjectID[]',
+          fullName: 'Tags',
+          lookup: {
+                      "table": {
+                        "tags": {
+                          "foreignKey": "_id",
+                          "label": "name",
+                          "sortBy": {"name": 1},
+                          "scopes": {
+                            "specialScope": {
+                              "permissions": {
+                                "view": "accessAsUser"
+                              },
+                              "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+                            }
+                          }
+                        }
+                      }
+                    },
+          formOrder: '14',
+          other: {
+            formWidth: '12'
+          }
+        },
+        authorativeData: {
+          type: 'String[]',
+          fullName: 'Authoritative Data Source(s)',
+          description: 'Authoritative Data Source(s)',
+          parameters: {
+            visible: false
+          },
+          formOrder: '15',
+          other: {
+          show: "_.get(row, 'type.label') === 'System'",
+          showInViewDetails: "_.get(row, 'type.label') === 'System'"
+          }
+        },
+        description: {
+          type: 'Text',
+          fullName: 'Description of the Entity',
+          description: 'Description of the Entity',
+          parameters: {
+            visible: false,
+            enableInCellEditing: true
+          },
+          formOrder: '16',
+          other: {
+            show: '_.get(row, \'type.label\') === \'External Organization\'',
+            showInDatatable: false,
+            showInForm: true
+          }
+        },
+        locationData: {
+          type: 'String',
+          fullName: 'Data Location',
+          description: 'Data Location',
+          parameters: {
+            visible: false
+          },
+          formOrder: '17',
+          other: {
+          show: "_.get(row, 'type.label') === 'Data Entity'",
+          showInViewDetails: "_.get(row, 'type.label') === 'Data Entity'"
+          }
+        },
+        dataOwner: {
+          type: 'String',
+          fullName: 'Data Entity Owner',
+          description: 'Center or Office that owns data entity',
+          parameters: {
+            visible: false
+          },
+          formOrder: '18',
+          other: {
+          show: "_.get(row, 'type.label') === 'Data Entity'",
+          showInViewDetails: "_.get(row, 'type.label') === 'Data Entity'"
+          }
+        },
+        locationSystem: {
+          type: 'String',
+          fullName: 'System Location',
+          description: 'System Location',
+          parameters: {
+            visible: false
+          },
+          formOrder: '19',
+          other: {
+          show: "_.get(row, 'type.label') === 'System'",
+          showInViewDetails: "_.get(row, 'type.label') === 'System'"
+          }
+        },
+        providesData: {
+          type: 'String[]',
+          fullName: 'Provides data to (Systems, Offices)',
+          description: 'Provides data to (Systems, Offices)',
+          parameters: {
+            visible: false
+          },
+          formOrder: '20',
+          other: {
+          show: "_.get(row, 'type.label') === 'System'",
+          showInViewDetails: "_.get(row, 'type.label') === 'System'"
+          }
+        },
+        systemOwner: {
+          type: 'String',
+          fullName: 'System Owner',
+          description: 'Center or Office that owns system',
+          parameters: {
+            visible: false
+          },
+          formOrder: '21',
+          other: {
+          show: "_.get(row, 'type.label') === 'System'",
+          showInViewDetails: "_.get(row, 'type.label') === 'System'"
+          }
+        },
+        poc: {
+          type: 'String',
+          fullName: 'System POC',
+          description: 'System Point of Contact',
+          parameters: {
+            visible: false
+          },
+          formOrder: '22',
+          other: {
+          show: "_.get(row, 'type.label') === 'System'",
+          showInViewDetails: "_.get(row, 'type.label') === 'System'"
+          }
+        },
+        investment: {
+          type: 'String',
+          fullName: 'Investment',
+          description: 'Investment',
+          parameters: {
+            visible: false
+          },
+          formOrder: '23',
+          other: {
+            show: '_.get(row, \'type.label\') === \'System\'',
+            formWidth: '3',
+            showInDatatable: false,
+            showInForm: true
+          }
+        },
+        missionSupport: {
+          type: 'String',
+          fullName: 'Mission Support',
+          description: 'Mission Support',
+          parameters: {
+            visible: false
+          },
+          formOrder: '24',
+          other: {
+            show: '_.get(row, \'type.label\') === \'System\'',
+            formWidth: '3',
+            showInDatatable: false,
+            showInForm: true
+          }
+        },
+        businessCapability: {
+          type: 'String',
+          fullName: 'Business Capability',
+          description: 'Business Capability',
+          parameters: {
+            visible: false
+          },
+          formOrder: '25',
+          other: {
+            show: '_.get(row, \'type.label\') === \'System\'',
+            formWidth: '3',
+            showInDatatable: false,
+            showInForm: true
+          }
+        },
+        userCenters: {
+          type: 'String',
+          fullName: 'Center Users',
+          description: 'Center Users',
+          parameters: {
+            visible: false
+          },
+          formOrder: '26',
+          other: {
+            show: '_.get(row, \'type.label\') === \'System\'',
+            formWidth: '6',
+            showInDatatable: false,
+            showInForm: true
+          }
+        },
+        user: {
+          type: 'String',
+          fullName: 'Types of Users',
+          description: 'Types of Users',
+          parameters: {
+            visible: false
+          },
+          formOrder: '27',
+          other: {
+            show: '_.get(row, \'type.label\') === \'System\'',
+            formWidth: '6',
+            showInDatatable: false,
+            showInForm: true
+          }
+        },
+        numberUsers: {
+          type: 'Number',
+          fullName: 'Number of Users',
+          description: 'Number of Users',
+          parameters: {
+            visible: false
+          },
+          formOrder: '28',
+          other: {
+            show: '_.get(row, \'type.label\') === \'System\'',
+            formWidth: '6',
+            showInDatatable: false,
+            showInForm: true
+          }
+        },
+        interfaces: {
+          type: 'String',
+          fullName: 'System Interfaces',
+          description: 'System Interfaces',
+          parameters: {
+            visible: false
+          },
+          formOrder: '29',
+          other: {
+            show: '_.get(row, \'type.label\') === \'System\'',
+            showInDatatable: false,
+            showInForm: true
+          }
+        },
+        fundingSource: {
+          type: 'String',
+          fullName: 'CERSI Funding Source',
+          description: 'CERSI Funding Source',
+          parameters: {
+            visible: false,
+            enableInCellEditing: true
+          },
+          formOrder: '30',
+          other: {
+            show: '_.get(row, \'type.label\') === \'CERSI\'',
+            showInDatatable: false
+          }
+        },
+        publications: {
+          type: 'String',
+          fullName: 'CERSI Publications',
+          description: 'CERSI Publications',
+          parameters: {
+            visible: false,
+            enableInCellEditing: true
+          },
+          formOrder: '31',
+          other: {
+            show: '_.get(row, \'type.label\') === \'CERSI\'',
+            showInDatatable: false
+          }
+        },
+        docLinks: {
+          type: 'String',
+          fullName: 'CERSI Document Link',
+          description: 'CERSI Document Link',
+          parameters: {
+            visible: false,
+            enableInCellEditing: true
+          },
+          formOrder: '32',
+          other: {
+            show: '_.get(row, \'type.label\') === \'CERSI\'',
+            showInDatatable: false
+          }
+        },
+        duration: {
+          type: 'String',
+          fullName: 'CRADA Duration',
+          description: 'CRADA Duration',
+          parameters: {
+            visible: false,
+            enableInCellEditing: true
+          },
+          formOrder: '33',
+          other: {
+            show: '_.get(row, \'type.label\') === \'CRADA\'',
+            showInDatatable: false,
+            formWidth: '3'
+          }
+        },
+        iaaPurpose: {
+          type: 'Html',
+          fullName: 'IAA Purpose',
+          description: 'IAA Purpose',
+          parameters: {
+            visible: false,
+            enableInCellEditing: true
+          },
+          formOrder: '34',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\''
+          }
+        },
+        iaaBackground: {
+          type: 'Html',
+          fullName: 'IAA Background',
+          description: 'IAA Background',
+          parameters: {
+            visible: false
+          },
+          formOrder: '35',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: true,
+            showInForm: true
+          }
+        },
+        iaaAuthority: {
+          type: 'Html',
+          fullName: 'IAA Authority',
+          description: 'IAA Authority',
+          parameters: {
+            visible: false
+          },
+          formOrder: '36',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: true,
+            showInForm: true
+          }
+        },
+        iaaSow: {
+          type: 'Html',
+          fullName: 'IAA Scope of Work',
+          description: 'IAA Scope of Work',
+          parameters: {
+            visible: false
+          },
+          formOrder: '37',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: true,
+            showInForm: true
+          }
+        },
+        mouPurpose: {
+          type: 'Html',
+          fullName: 'MOU Purpose',
+          description: 'MOU Purpose',
+          parameters: {
+            visible: false,
+            enableInCellEditing: true
+          },
+          formOrder: '38',
+          other: {
+            show: '_.get(row, \'type.label\') === \'MOU\''
+          }
+        },
+        mouBackground: {
+          type: 'Html',
+          fullName: 'MOU Background',
+          description: 'MOU Background',
+          parameters: {
+            visible: false
+          },
+          formOrder: '39',
+          other: {
+            show: '_.get(row, \'type.label\') === \'MOU\'',
+            showInDatatable: true,
+            showInForm: true
+          }
+        },
+        mouAuthority: {
+          type: 'Html',
+          fullName: 'MOU Authority',
+          description: 'MOU Authority',
+          parameters: {
+            visible: false
+          },
+          formOrder: '40',
+          other: {
+            show: '_.get(row, \'type.label\') === \'MOU\'',
+            showInDatatable: true,
+            showInForm: true
+          }
+        },
+        mouSow: {
+          type: 'Html',
+          fullName: 'MOU Scope of Work',
+          description: 'MOU Scope of Work',
+          parameters: {
+            visible: false
+          },
+          formOrder: '41',
+          other: {
+            show: '_.get(row, \'type.label\') === \'MOU\'',
+            showInDatatable: true,
+            showInForm: true
+          }
+        },
+        fdaCenter: {
+          type: 'String',
+          fullName: 'FDA Center',
+          description: 'FDA Center',
+          parameters: {
+            visible: false
+          },
+          formOrder: '42',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\' || _.get(row, \'type.label\') !== \'FDA Center\'',
+            formWidth: '6'
+          }
+        },
+        fdaPocs: {
+          type: 'Html',
+          fullName: 'FDA POCs',
+          description: 'FDA POCs',
+          parameters: {
+            visible: false
+          },
+          formOrder: '43',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\'',
+            formWidth: '6'
+          }
+        },
+        externalOrg: {
+          type: 'String',
+          fullName: 'External Organization',
+          description: 'External Organization',
+          parameters: {
+            visible: false
+          },
+          formOrder: '44',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\'',
+            formWidth: '6'
+          }
+        },
+        externalPocs: {
+          type: 'Html',
+          fullName: 'External Organization POCs',
+          description: 'EXternal Organization POCs',
+          parameters: {
+            visible: false
+          },
+          formOrder: '45',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\'',
+            formWidth: '6'
+          }
+        },
+        relatedDocs: {
+          type: 'File[]',
+          fullName: 'Related Documents',
+          description: 'Related Documents',
+          parameters: {
+            visible: false
+          },
+          formOrder: '46',
+          other: {
+            show: '_.get(row, \'type.label\') !== \'External Organization\'',
+            showInDatatable: true,
+            showInForm: true
+          }
+        },
+        iaaReqNumber: {
+          type: 'String',
+          fullName: 'Requisition Number',
+          description: 'RequisitionNumber',
+          parameters: {
+            visible: false
+          },
+          formOrder: '47',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: false,
+            showInForm: true,
+            formWidth: '6'
+          }
+        },
+        iaaChargeType: {
+          type: 'String',
+          fullName: 'Charge Type',
+          description: 'ChargeType',
+          parameters: {
+            visible: false
+          },
+          formOrder: '48',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: false,
+            showInForm: true,
+            formWidth: '6'
+          }
+        },
+        iaa7600aStart: {
+          type: 'Date',
+          fullName: '7600A_POP_Start',
+          description: '7600A_POP_Start',
+          parameters: {
+            visible: false
+          },
+          formOrder: '49',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: false,
+            showInForm: true,
+            formWidth: '3'
+          }
+        },
+        iaa7600aEnd: {
+          type: 'Date',
+          fullName: '7600A_POP_End',
+          description: '7600A_POP_End',
+          parameters: {
+            visible: false
+          },
+          formOrder: '50',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: false,
+            showInForm: true,
+            formWidth: '3'
+          }
+        },
+        iaa7600bStart: {
+          type: 'Date',
+          fullName: '7600B_POP_Start',
+          description: '7600B_POP_Start',
+          parameters: {
+            visible: false
+          },
+          formOrder: '51',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: false,
+            showInForm: true,
+            formWidth: '3'
+          }
+        },
+        iaa7600bEnd: {
+          type: 'Date',
+          fullName: '7600B_POP_End',
+          description: '7600B_POP_End',
+          parameters: {
+            visible: false
+          },
+          formOrder: '52',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: false,
+            showInForm: true,
+            formWidth: '3'
+          }
+        },
+        iaaServerability: {
+          type: 'String',
+          fullName: 'Severability Name',
+          description: 'Severability_Name',
+          parameters: {
+            visible: false
+          },
+          formOrder: '53',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: false,
+            showInForm: true,
+            formWidth: '4'
+          }
+        },
+        iaaModeName: {
+          type: 'String',
+          fullName: 'Base Mod Name',
+          description: 'Base_Mod_Name',
+          parameters: {
+            visible: false
+          },
+          formOrder: '54',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: false,
+            showInForm: true,
+            formWidth: '4'
+          }
+        },
+        iaaAssisted: {
+          type: 'String',
+          fullName: 'Assisted',
+          description: 'Assisted',
+          parameters: {
+            visible: false
+          },
+          formOrder: '55',
+          other: {
+            show: '_.get(row, \'type.label\') === \'IAA\'',
+            showInDatatable: false,
+            showInForm: true,
+            formWidth: '4'
+          }
+        },
+        batch: {
+          type: 'String',
+          fullName: 'Seed Batch',
+          description: 'Batch number assigned by the seed data loader',
+          parameters: {
+            visible: false
+          }
+        }
+      }
+    },
+    relationships: {
+      type: 'Schema',
+      fullName: 'Relationships',
+      parameters: {
+        enableInCellEditing: true,
+        columnResizingMode: "nextColumn",
+        columnAutoWidth: true,
+        summary: {
+          groupItems: [
+            {
+              column: "name",
+              summaryType: "count",
+              displayFormat: "Count: {0}",
+              alignByColumn: true
+            }
+          ]
+        }
+      },
+      other: {
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsUser"
+            },
+            "delete": {
+              "permissions": "accessAsUser"
+            },
+            "clone": {
+              "permissions": "accessAsUser"
+            },
+            "viewDetails": {
+              "permissions": "accessAsUser"
+            },
+            "view": {
+              "permissions": "accessAsUser"
+            },
+            "create": {
+              "permissions": "accessAsUser"
+            }
+          }
+        },
+        "scopes": {
+          "own": {
+            "permissions": "accessAsUser",
+            "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+          },
+          "admin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq:[1,1]}"
+          }
+        }
+      },
+      fields: {
+        hidden: {
+          type: 'Boolean',
+          fullName: 'Hidden',
+          other: {
+          width: 60,
+          order: 1
+          }
+        },
+        name: {
+          type: 'String',
+          fullName: 'Relationship Name',
+          description: 'The name/label of the relationship',
+          required: false,
+          other: {
+          width: 200,
+          order: 2
+          }
+        },
+        domain: {
+          type: 'LookupObjectID',
+          fullName: 'From Entity ',
+          description: 'From Entity (i.e. Domain)',
+          required: true,
+          lookup: {
+            "table": {
+              "entities": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {"name": 1},
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          },
+          other: {
+          order: 3
+          }
+        },
+        range: {
+          type: 'LookupObjectID',
+          fullName: 'To Entity',
+          description: 'To Entity (i.e. Range)',
+          required: true,
+          lookup: {
+            "table": {
+              "entities": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {"name": 1},
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          },
+          other: {
+          order: 4
+          }
+        },
+        type: {
+          type: 'LookupObjectID',
+          fullName: 'Relationship Type',
+          description: 'Relationship Type',
+          required: false,
+          lookup: {
+            "table": {
+              "relationshipTypes": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {"name": 1},
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          },
+          other: {
+          width: 100,
+          order: 5
+          }
+        },
+        description: {
+          type: 'Text',
+          fullName: 'Description',
+          parameters: {
+            enableInCellEditing: true
+          },
+          other: {
+            width: 'null'
+          }
+        },
+        trafficIntensity: {
+          type: 'Number',
+          fullName: 'Traffic Intensity',
+          required: false,
+          parameters: {
+            visible: false
+          }
+        },
+        particleSize: {
+          type: 'Number',
+          fullName: 'Particle Size',
+          required: false,
+          parameters: {
+            visible: false
+          }
+        },
+        particleSpeed: {
+          type: 'Number',
+          fullName: 'Particle Speed',
+          required: false,
+          parameters: {
+            visible: false
+          }
+        },
+        linkDistance: {
+          type: 'Number',
+          fullName: 'Length',
+          description: 'Default is 100',
+          required: false,
+          parameters: {
+            visible: false
+          },
+          other: {validate: ["min(1)"]}
+        },
+        linkCurvature: {
+          type: 'Number',
+          fullName: 'Curvature',
+          description: 'Default is 50',
+          required: false,
+          parameters: {
+            visible: false
+          },
+          other: {validate: ["min(0)", "max(100)"]}
+        },
+        batch: {
+          type: 'String',
+          fullName: 'Seed Batch',
+          description: 'Batch number assigned by the seed data loader',
+          parameters: {
+            visible: false
+          }
+        }
+      }
+    },
+    entityTypes: {
+      type: 'Schema',
+      fullName: 'Entity Types',
+      parameters: {
+        enableInCellEditing: true,
+        columnResizingMode: "nextColumn",
+        columnAutoWidth: true,
+        summary: {
+          groupItems: [
+            {
+              column: "name",
+              summaryType: "count",
+              displayFormat: "Count: {0}",
+              alignByColumn: true
+            }
+          ]
+        }
+      },
+      other: {
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsUser"
+            },
+            "delete": {
+              "permissions": "accessAsUser"
+            },
+            "clone": {
+              "permissions": "accessAsUser"
+            },
+            "viewDetails": {
+              "permissions": "accessAsUser"
+            },
+            "view": {
+              "permissions": "accessAsUser"
+            },
+            "create": {
+              "permissions": "accessAsUser"
+            }
+          }
+        },
+        "scopes": {
+          "own": {
+            "permissions": "accessAsUser",
+            "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+          },
+          "admin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq:[1,1]}"
+          }
+        }
+      },
+      fields: {
+        hidden: {
+          type: 'Boolean',
+          fullName: 'Hidden'
+        },
+        name: {
+          type: 'String',
+          fullName: 'Name',
+          required: true
+        },
+        ontologyElement: {
+          type: 'String',
+          fullName: 'Ontology Element',
+          required: true,
+          list: {
+            values: {
+              owlClass: 'owl:Class',
+              rdfsClass: 'rdfs:Class',
+              owlDeprecatedClass: 'owl:DeprecatedClass',
+              owlThing: 'owl:Thing',
+              rdfsResource: 'rdfs:Resource',
+              externalClass: 'ExternalClass'
+            },
+            scopes: {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list" 
+              }
+            }
+          }
+        },
+        nodeColor: {
+          type: 'String',
+          fullName: 'Color',
+          description: 'Default is white',
+          required: false,
+          list: {
+            values: {
+              red: 'Red',
+              blue: 'Blue',
+              green: 'Green',
+              yellow: 'Yellow',
+              purple: 'Purple',
+              lime: 'Lime',
+              white: 'White'
+            },
+            scopes: {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list" 
+              }
+            }
+          }
+        },
+        nodeShape: {
+          type: 'String',
+          fullName: 'Shape',
+          description: 'Default is sphere',
+          required: false,
+          list: {
+            values: {
+              Sphere: 'Sphere',
+              Box: 'Cube',
+              Tetrahedron: 'Pyramid',
+              Torus: 'Torus',
+              Octahedron: 'Diamond',
+              Cone: 'Cone',
+              TorusKnot: 'Torus knot'
+            },
+            scopes: {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list" 
+              }
+            }
+          }
+        },
+        entitySize: {
+          type: 'Number',
+          fullName: 'Size',
+          description: 'Default is 10',
+          required: false
+        },
+        description: {
+          type: 'Text',
+          fullName: 'Description',
+          other: {
+            width: 'null'
+          }
+        }
+      }
+    },
+    relationshipTypes: {
+      type: 'Schema',
+      fullName: 'Relationship Types',
+      parameters: {
+        enableInCellEditing: true,
+        columnResizingMode: "nextColumn",
+        columnAutoWidth: true,
+        summary: {
+          groupItems: [
+            {
+              column: "name",
+              summaryType: "count",
+              displayFormat: "Count: {0}",
+              alignByColumn: true
+            }
+          ]
+        }
+      },
+      other: {
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": "accessAsUser"
+            },
+            "delete": {
+              "permissions": "accessAsUser"
+            },
+            "clone": {
+              "permissions": "accessAsUser"
+            },
+            "viewDetails": {
+              "permissions": "accessAsUser"
+            },
+            "view": {
+              "permissions": "accessAsUser"
+            },
+            "create": {
+              "permissions": "accessAsUser"
+            }
+          }
+        },
+        "scopes": {
+          "own": {
+            "permissions": "accessAsUser",
+            "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+          },
+          "admin": {
+            "permissions": "accessAsSuperAdmin",
+            "where": "{$eq:[1,1]}"
+          }
+        }
+      },
+      fields: {
+        hidden: {
+          type: 'Boolean',
+          fullName: 'Hidden'
+        },
+        name: {
+          type: 'String',
+          fullName: 'Name',
+          required: true
+        },
+        ontologyElement: {
+          type: 'String',
+          fullName: 'Ontology Element',
+          required: true,
+          list: {
+            values: {
+              owlObjectProperty: 'owl:ObjectProperty',
+              owlDatatypeProperty: 'owl:DatatypeProperty',
+              owlDeprecatedProperty: 'owl:DeprecatedProperty',
+              owlFunctionalProperty: 'owl:FunctionalProperty',
+              rdfProperty: 'rdf:Property'
+            },
+            scopes: {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list" 
+              }
+            }
+          }
+        },
+        trafficIntensity: {
+          type: 'Number',
+          fullName: 'Traffic Intensity',
+          required: false,
+          parameters: {
+            visible: false
+          }
+        },
+        linkColor: {
+          type: 'String',
+          fullName: 'Color',
+          required: false,
+          list: {
+            values: {
+              red: 'Red',
+              blue: 'Blue',
+              green: 'Green',
+              yellow: 'Yellow',
+              purple: 'Purple',
+              lime: 'Lime'
+            },
+            scopes: {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list" 
+              }
+            }
+          },
+          parameters: {
+            visible: false
+          }
+        },
+        linkWidth: {
+          type: 'Number',
+          fullName: 'Width',
+          description: 'Default is 0 – hairline',
+          required: false,
+          parameters: {
+            visible: false
+          },
+          other: {validate: ["min(0)"]}
+        },
+        linkDistance: {
+          type: 'Number',
+          fullName: 'Distance',
+          description: 'Default is 100',
+          required: false,
+          parameters: {
+            visible: false
+          },
+          other: {validate: ["min(1)"]}
+        },
+        linkCurvature: {
+          type: 'Number',
+          fullName: 'Curvature',
+          description: 'Default is set by graph options',
+          required: false,
+          parameters: {
+            visible: false
+          },
+          other: {validate: ["min(0)", "max(100)"]}
+        },
+        particleSize: {
+          type: 'Number',
+          fullName: 'Particle Size',
+          required: false,
+          parameters: {
+            visible: false
+          }
+        },
+        particleSpeed: {
+          type: 'Number',
+          fullName: 'Particle Speed',
+          description: 'Default is 5',
+          required: false,
+          parameters: {
+            visible: false
+          }
+        },
+        particleColor: {
+          type: 'String',
+          fullName: 'Particle Color',
+          required: false,
+          list: {
+            values: {
+              red: 'Red',
+              blue: 'Blue',
+              green: 'Green',
+              yellow: 'Yellow',
+              purple: 'Purple',
+              lime: 'Lime'
+            },
+            scopes: {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list" 
+              }
+            }
+          }
+        },
+        description: {
+          type: 'Text',
+          fullName: 'Description',
+          other: {
+            width: 'null'
+          }
+        },
+        fontSize: {
+          type: 'Number',
+          fullName: 'Font Size',
+          description: 'Default is 5',
+          required: false,
+          other: {validate: ["min(1)"]}
+        }
+      }
+    },
+    userConfig: {
+      type: 'Schema',
+      fullName: 'User preferences',
+      other: {
+        "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': this.req.user._id }"
+        }
+      },
+      "actions": {
+        "fields": {
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "upsert": {
+            "permissions": "accessAsUser"
+          }
+        }
+      }
+      },
+      fields: {
+        fg3d_config: {
+          type: 'Mixed',
+          fullName: 'Force graph config',
+          required: false
+        }
+      }
+    },
+    tags: {
+      type: 'Schema',
+      fullName: 'Tags',
+      parameters: {
+        enableInCellEditing: true,
+        columnResizingMode: "nextColumn",
+        columnAutoWidth: true,
+        summary: {
+          groupItems: [
+            {
+              column: "name",
+              summaryType: "count",
+              displayFormat: "Count: {0}",
+              alignByColumn: true
+            }
+          ]
+        }
+      },
+      other: {
+              "scopes": {
+                "updateOwn": {
+                  "permissions": {
+                    update: "accessAsUser",
+                    delete: "accessAsUser"
+                  },
+                  "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+                },
+                "viewAll": {
+                  "permissions": {
+                    view: "accessAsUser",
+                    create: "accessAsUser",
+                    viewDetails: "accessAsUser",
+                    clone: "accessAsUser",
+                  },
+                  "where": true
+                }
+              }
+            },
+      fields: {
+        description: {
+          other: {
+            width: 'null',
+            showInViewDetails: true
+          }
+        }
+      }
+    },
+    roles: {
+      type: 'Schema',
+      fullName: 'Roles',
+      parameters: {
+        enableInCellEditing: true,
+        columnResizingMode: "nextColumn",
+        columnAutoWidth: true,
+        summary: {
+          groupItems: [
+            {
+              column: "name",
+              summaryType: "count",
+              displayFormat: "Count: {0}",
+              alignByColumn: true
+            }
+          ]
+        }
+      },
+      fields: {
+        permissions: {
+          type: 'String[]',
+          fullName: 'Permissions',
+          other: {
+            width: 'null'
+          }
+        }
+      }
+    },
+    quickFilters: {
+      type: 'Schema',
+      fullName: 'Quick Filters',
+      parameters: {
+        enableInCellEditing: true,
+        columnResizingMode: "nextColumn",
+        columnAutoWidth: true,
+        summary: {
+          groupItems: [
+            {
+              column: "name",
+              summaryType: "count",
+              displayFormat: "Count: {0}",
+              alignByColumn: true
+            }
+          ]
+        }
+      },
+      fields: {
+        description: {
+          other: {
+            width: 'null'
+          }
+        }
+      }
+    }
+  },
+  'interface': {
+    skin: {
+      other: 'smart-style-6'
+    },
+    app: {
+      title: {
+        other: 'FDA VIP'
+      },
+      slogan: {
+        other: 'Visualizing Interconnected Projects (VIP)'
+      },
+      name: {
+        other: 'Visualizing Interconnected Projects (VIP)'
+      },
+      description: {
+        other: 'FDA VIP'
+      },
+      keywords: {
+        other: 'FDA'
+      },
+      theme: {
+        other: 'default'
+      },
+      auth: {
+        requireAuthentication: {
+          other: true
+        },
+        enableAuthentication: {
+          other: true
+        },
+        enableRegistration: {
+          other: true
+        },
+        enablePermissions: {
+          other: true
+        },
+        enableUserPasswordReset: {
+          other: false
+        },
+        enableMfa: {
+          other: false
+        },
+        requireMfa: {
+          other: false
+        }
+      },
+      logo: {
+        tiny: {
+          other: 'none'
+        },
+        small: {
+          other: 'none'
+        },
+        large: {
+          other: 'none'
+        }
+      },
+      favicon: {
+        '180x180': {},
+        '32x32': {},
+        '16x16': {},
+        manifest: {},
+        maskIcon: {}
+      },
+      header: {
+        visible: {
+          other: true
+        },
+        components: {
+          logo: {
+            other: false
+          },
+          alerts: {
+            other: false
+          },
+          projectSelector: {
+            other: false
+          },
+          languageSelector: {
+            other: false
+          },
+          fullScreenToggle: {
+            other: true
+          },
+          search: {
+            other: false
+          },
+          logoutButton: {
+            other: true
+          },
+          menuToggle: {
+            other: false
+          }
+        }
+      },
+      footer: {
+        visible: {
+          other: true
+        },
+        components: {
+          copyright: {
+            other: true
+          },
+          copyrightText: {
+            other: '© 2020 FDA'
+          },
+          lastAccountActivity: {
+            other: false
+          },
+          status: {
+            other: false
+          }
+        }
+      }
+    },
+    layout: {
+      fixed: {
+        header: {
+          other: false
+        },
+        navigation: {
+          other: true
+        },
+        ribbon: {
+          other: false
+        },
+        footer: {
+          other: false
+        }
+      },
+      fixedWidth: {
+        other: false
+      },
+      rtlSupport: {
+        other: false
+      },
+      menuPosition: {
+        other: 'top'
+      },
+      fixedNavigation: {
+        other: true
+      },
+      showDemoControls: {
+        other: false
+      }
+    },
+    mainMenu: {
+      type: 'Menu',
+      fullName: 'Main Menu',
+      'default': '/entities',
+      fields: {
+        home: {
+          other: 'null'
+        },
+        visualization: {
+          type: 'MenuGroup',
+          fullName: 'Visualization',
+          icon: {
+            type: 'font-awesome',
+            link: 'eye'
+          },
+          fields: {
+            forceGraph3d: {
+              other: 'null'
+            },
+            forceGraphVr: {
+              other: 'null'
+            },
+            webvowl2d: {
+              type: 'MenuItem',
+              fullName: 'Detailed',
+              link: '/dataGraph2d',
+              icon: {
+                type: 'font-awesome',
+                link: 'sitemap'
+              }
+            },
+            forcegraph3d: {
+              type: 'MenuItem',
+              fullName: 'Force Graph',
+              link: '/dataGraph3d',
+              icon: {
+                type: 'font-awesome',
+                link: 'cube'
+              }
+            },
+            forcegraphVr: {
+              type: 'MenuItem',
+              fullName: 'VR Force Graph',
+              link: '/dataGraphVr',
+              icon: {
+                type: 'font-awesome',
+                link: 'cubes'
+              }
+            }
+          }
+        },
+        entities: {
+          type: 'MenuItem',
+          fullName: 'Entities',
+          link: '/entities',
+          icon: {
+            type: 'font-awesome',
+            link: 'circle'
+          }
+        },
+        relationships: {
+          type: 'MenuItem',
+          fullName: 'Relationships',
+          link: '/relationships',
+          icon: {
+            type: 'font-awesome',
+            link: 'link'
+          }
+        },
+        settings: {
+          type: 'MenuGroup',
+          fullName: 'Settings',
+          icon: {
+            type: 'font-awesome',
+            link: 'cogs'
+          },
+          fields: {
+            tags: {
+              type: 'MenuItem',
+              fullName: 'Tags',
+              link: '/tags',
+              icon: {
+                type: 'font-awesome',
+                link: 'tags'
+              }
+            },
+            entityTypes: {
+              type: 'MenuItem',
+              fullName: 'Entity Types',
+              link: '/entityTypes',
+              icon: {
+                type: 'font-awesome',
+                link: 'circle'
+              }
+            },
+            relationshipTypes: {
+              type: 'MenuGroup',
+              fullName: 'Relationship Types',
+              link: '/relationshipTypes',
+              icon: {
+                type: 'font-awesome',
+                link: 'link'
+              }
+            },
+            roles: {
+              type: 'MenuItem',
+              fullName: 'Roles',
+              link: '/roles',
+              icon: {
+                type: 'font-awesome',
+                link: 'users'
+              }
+            },
+            quickFilters: {
+              type: 'MenuItem',
+              fullName: 'Quick Filters',
+              link: '/quickFilters',
+              icon: {
+                type: 'font-awesome',
+                link: 'filter'
+              }
+            }
+          }
+        },
+        profile: {
+          type: 'MenuItem',
+          fullName: 'Profile',
+          link: '/users',
+          icon: {
+            type: 'font-awesome',
+            link: 'user'
+          }
+        },
+        faqs: {
+          type: 'MenuItem',
+          fullName: 'FAQs',
+          other: { 
+            "scopes": {
+              "user": {
+                "permissions": "accessAsUser"
+              }
+            }
+          },
+          link: '/faqPage',
+          icon: {
+            type: 'font-awesome',
+            link: 'question'
+          }
+        }
+      }
+    },
+    pages: {
+      faqPage: {
+        fullName: 'FAQ',
+        link: '/faq',
+        template: {
+          type: 'file',
+          link: 'page_faq.ejs'
+        }
+      },
+      dataGraph2d: {
+        other: {
+          controller: 'OntologyController'
+        },
+        fullName: 'Visualization Page',
+        link: '/visualization2d',
+        template: {
+          type: 'file',
+          link: 'page_vowl_template.ejs'
+        }
+      },
+      dataGraph3d: {
+        other: {
+          controller: 'ForceGraphController'
+        },
+        fullName: 'Force Graph',
+        link: '/visualization3d',
+        template: {
+          type: 'file',
+          link: 'page_force_graph3d_template.ejs'
+        }
+      },
+      dataGraphVr: {
+        other: {
+          controller: 'ForceGraphControllerVr'
+        },
+        fullName: 'VR Force Graph',
+        link: '/visualizationVr',
+        template: {
+          type: 'file',
+          link: 'page_force_graph_vr_template.ejs'
+        }
+      }
+    }
+  }
+}

@@ -201,7 +201,6 @@ function addDeleteResolver(type, backgroundJobsModelName) {
 
 module.exports = ({ appLib, backgroundJobsModelName }) => {
   const m = {};
-  backgroundJobsModelName = 'backgroundJobs';
   const backgroundJobsModel = appLib.appModel.models[backgroundJobsModelName];
 
   m.backgroundJobsResolvers = {};

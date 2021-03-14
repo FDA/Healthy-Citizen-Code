@@ -1,6 +1,7 @@
 const config = require('../test_config')();
 const appConfig = require('../app_config')();
 const fetch = require("node-fetch");
+const _ = require("lodash");
 
 const SELECTOR_TIMEOUT = 15000;
 
@@ -94,7 +95,7 @@ function getCollapseSelector(name) {
 
 async function clickObject(name, page) {
   const objectSelector = getCollapseSelector(name);
-  await page.waitFor(objectSelector, { timeout: SELECTOR_TIMEOUT });
+  await page.waitForSelector(objectSelector, { timeout: SELECTOR_TIMEOUT });
   await page.click(objectSelector);
 }
 
@@ -110,46 +111,87 @@ function getFieldSelector(obj, field) {
   return `[name='${obj}'] [field-name-input='${field}']`;
 }
 
+async function clickButton(page, selector) {
+  await page.waitForSelector(selector, { timeout: SELECTOR_TIMEOUT });
+  await page.waitForTimeout(700);
+  await page.click(selector);
+}
+
 async function clickCreateNewButton(page) {
   const createBtnSelector = '.btn.page-action';
 
-  await page.waitFor(createBtnSelector, { timeout: SELECTOR_TIMEOUT });
-  await page.waitFor(350);
-  await page.click(createBtnSelector);
-  await page.waitFor('form', { timeout: SELECTOR_TIMEOUT });
+  await clickButton(page, createBtnSelector);
+  await page.waitForSelector('form', { timeout: SELECTOR_TIMEOUT });
 }
 
 async function clickViewDetailsButton(recordId, page) {
-  const btnSelector = `[adp-${recordId}][data-action="viewDetails"]`;
-  await page.waitFor(btnSelector, { timeout: SELECTOR_TIMEOUT });
+  await clickTableAction(recordId, 'viewDetails', page)
 
-  await page.evaluate(
-    selector => document.querySelector(selector).click(),
-    btnSelector
-  );
-
-  await page.waitFor(VIEW_DETAILS_SELECTOR, { timeout: SELECTOR_TIMEOUT });
+  await page.waitForSelector(VIEW_DETAILS_SELECTOR, { timeout: SELECTOR_TIMEOUT });
 }
 
 async function clickEditButton(recordId, page) {
-  let btnSelector = `[adp-${recordId}][data-action="update"]`;
-  await page.waitFor(btnSelector, { timeout: SELECTOR_TIMEOUT });
+  await clickTableAction(recordId, 'update', page)
 
-  await page.evaluate(
-    selector => document.querySelector(selector).click(),
-    btnSelector
-  );
+  await page.waitForSelector('form', { timeout: SELECTOR_TIMEOUT });
+}
 
-  await page.waitFor('form', { timeout: SELECTOR_TIMEOUT });
+async function evaluateTableAction(recordId, actionName, page) {
+  const containerSelector = recordId ?
+    `.actions-column-container[adp-${recordId}]` :
+    `.dx-data-row:first-child .actions-column-container`;
+
+  await page.waitForSelector(containerSelector, { timeout: SELECTOR_TIMEOUT });
+
+  const layoutName = await page.$eval(containerSelector,
+    el => {
+      const layoutTypeSignature = 'actions-layout-';
+      let strStart = el.className.indexOf(layoutTypeSignature);
+
+      if (strStart < 0) {
+        return ''
+      }
+
+      strStart += layoutTypeSignature.length;
+
+      return el.className.substr(strStart).split(' ')[0];
+    });
+
+  let btnSelector;
+  const actionSelectorPart = actionName ? `[data-action-name="${actionName}"]` : '[data-action-name]';
+
+  if (layoutName === 'menu' ) {
+    const menuSelector = `${containerSelector} .dx-menu-item`;
+    await page.waitForSelector(menuSelector, { timeout: SELECTOR_TIMEOUT });
+    await page.click(menuSelector);
+
+    btnSelector = `.dx-context-menu.adp-table-actions-menu ${actionSelectorPart}`;
+  } else { // 'spread'
+    btnSelector = `${containerSelector} > ${actionSelectorPart}`;
+  }
+
+  await page.waitForSelector(btnSelector, { timeout: SELECTOR_TIMEOUT });
+
+  return btnSelector;
+}
+
+async function clickTableAction(recordId, actionName, page) {
+  const confirmedActionSelector = await evaluateTableAction(recordId, actionName, page);
+
+  await page.click(confirmedActionSelector);
+  // await page.evaluate(
+  //   selector => document.querySelector(selector).click(),
+  //   confirmedActionSelector
+  // );
 }
 
 async function clickSubmit(page, parentSelector = '') {
-  await page.click(`${parentSelector} [type=submit][data-actions-name="submit"]`);
+  await page.click(`${parentSelector} [type=submit][data-action-name="submit"]`);
 }
 
 async function getSubmitMsg(page) {
   const successfulSubmitMsgSelector = `.toast-success .toast-message`;
-  await page.waitFor(successfulSubmitMsgSelector, { timeout: SELECTOR_TIMEOUT });
+  await page.waitForSelector(successfulSubmitMsgSelector, { timeout: SELECTOR_TIMEOUT });
 
   return getTextForSelector(successfulSubmitMsgSelector, page);
 }
@@ -160,7 +202,7 @@ async function getTextForSelector(selector, page) {
 
 async function clickArrayItem(name, index, page) {
   const selector = getCollapseSelector(`${name}[${index}]`);
-  await page.waitFor(selector, { timeout: SELECTOR_TIMEOUT });
+  await page.waitForSelector(selector, { timeout: SELECTOR_TIMEOUT });
   await page.click(selector);
 }
 
@@ -191,11 +233,17 @@ async function addArrayItem(arr, page) {
   );
 }
 
-async function getResponseForCreatedRecord(collectionName, page) {
-  const response = await page.waitForResponse(`${appConfig.apiUrl}/graphql`);
-  const json = await response.json();
+async function getResponseByPath(page, path, url = "graphql") {
+  const response = await page.waitForResponse(
+    response => response.url() === `${appConfig.apiUrl}/${url}` && response.request().method() === "POST"
+  );
 
-  return json.data[`${collectionName}Create`];
+  const json = await response.json();
+  return _.get(json.data, path);
+}
+
+async function getResponseForCreatedRecord(collectionName, page) {
+  return await getResponseByPath(page,`${collectionName}Create`);
 }
 
 async function getRequestForCreatedRecord(page) {
@@ -214,7 +262,7 @@ async function toggleGroup(groupSelector, type, page) {
   let collapseSelector = types[type];
   let toggleBtnSelector = `${groupSelector} ${collapseSelector}`;
   await page.click(toggleBtnSelector);
-  await page.waitFor(210);
+  await page.waitForTimeout(210);
 }
 
 async function isGroupCollapsed(groupSelector, page) {
@@ -239,15 +287,15 @@ async function dragGroupDown(groupSelector, page) {
   // magic to prevent to fast movements
   await page.mouse.move(x, y);
   await page.mouse.down();
-  await page.waitFor(100);
+  await page.waitForTimeout(100);
   await page.mouse.move(x + 0, y + 120);
-  await page.waitFor(100);
+  await page.waitForTimeout(100);
   await page.mouse.move(x + 0, y + 240);
-  await page.waitFor(100);
+  await page.waitForTimeout(100);
   await page.mouse.move(x + 0, y + 360);
   await page.mouse.up();
   // wait for debounce animation for group
-  await page.waitFor(600);
+  await page.waitForTimeout(600);
 }
 
 async function getFormErrorCountMessage(page) {
@@ -301,6 +349,14 @@ async function gqlEmptyRecord(token, collectionName, id) {
   return fetchPost(token, post);
 }
 
+async function fillInputById(page, text, id, tagName = "input") {
+  const selector = tagName + "#" + id;
+  await page.waitForSelector(selector);
+  const input = await page.$(selector);
+  await input.click({clickCount: 3})
+  await input.type("" + text);
+}
+
 module.exports = {
   getLaunchOptions,
   getUrlFor,
@@ -332,9 +388,13 @@ module.exports = {
   },
   form: {
     FORM_SELECTOR: '.smart-form',
+    clickButton,
+    evaluateTableAction,
+    clickTableAction,
     clickCreateNewButton,
     clickEditButton,
     getFormErrorCountMessage,
+    fillInputById,
   },
   submit: {
     clickSubmit,
@@ -346,6 +406,7 @@ module.exports = {
     clickViewDetailsButton,
   },
   interceptor: {
+    getResponseByPath,
     getRequestForCreatedRecord,
     getResponseForCreatedRecord,
   },

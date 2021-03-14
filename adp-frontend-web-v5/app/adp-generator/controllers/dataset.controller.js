@@ -1,13 +1,14 @@
-;(function () {
+(function () {
   "use strict";
 
   angular
-    .module('app.adpGenerator')
-    .controller('DatasetController', DatasetController);
+    .module("app.adpGenerator")
+    .controller("DatasetController", DatasetController);
 
   /** @ngInject */
   function DatasetController(
-    GraphqlCollectionQuery,
+    GraphqlRequest,
+    GraphqlCollectionFields,
     MultiRecordPageService,
     AdpSchemaService,
     ResponseError,
@@ -20,13 +21,11 @@
     vm.success = false;
 
     (function init() {
-      var datasetsSchema = AdpSchemaService.getSchemaByName('datasets');
-
-      getRecordById($stateParams._id, datasetsSchema)
-        .then(function (data) {
+      getDatasetSchema($stateParams._id)
+        .then(function (schema) {
           vm.success = true;
-          vm.schema = _.cloneDeep(data.scheme);
-          vm.schema.schemaName = '_ds_' + $stateParams._id;
+          vm.schema = _.cloneDeep(schema);
+          vm.schema.schemaName = "_ds_" + $stateParams._id;
           MultiRecordPageService(vm.schema, $location.search());
         })
         .catch(function (error) {
@@ -40,25 +39,52 @@
         })
         .finally(function () {
           vm.loaded = true;
-        })
+        });
     })();
 
-    function getRecordById(id, schema) {
+    function getDatasetSchema(id) {
       vm.loaded = false;
 
-      return GraphqlCollectionQuery(schema, { filter: ['_id', '=', id] })
-        .then(function (data) {
-          if (_.isNil(data)) {
-            throw new ResponseError(ResponseError.RECORD_NOT_FOUND);
-          }
+      return GraphqlRequest({
+        name: "getSingleDataset",
+        query: [
+          "query q($id: MongoId) {",
+            "getSingleDataset(filter: { _id: $id }) {",
+              "scheme",
+            "}",
+          "}",
+        ].join("\n"),
+        variables: { id: id },
+      }).then(function (data) {
+        if (_.isNil(data)) {
+          throw new ResponseError(ResponseError.RECORD_NOT_FOUND);
+        }
 
-          var schemeEmpty = _.get(data, 'items[0].scheme', null) === null;
-          if (schemeEmpty) {
-            throw new ResponseError(ResponseError.SCHEMA_IS_EMPTY);
-          }
+        var scheme = _.get(data, "scheme", null);
+        if (scheme  === null) {
+          throw new ResponseError(ResponseError.SCHEMA_IS_EMPTY);
+        }
 
-          return data.items[0];
+        return scheme;
+      });
+    }
+
+    function GraphqlSingleDatasetQuery(
+      GraphqlCollectionQueryBuilder,
+      GraphqlCollectionQueryVariables,
+      GraphqlRequest,
+      GraphqlHelper
+    ) {
+      return function (schema, params) {
+        var params = params || {};
+        var queryName = GraphqlHelper.collectionQueryName(schema, params);
+
+        return GraphqlRequest({
+          name: getSingleDataset,
+          query: GraphqlCollectionQueryBuilder(queryName, schema, params),
+          variables: GraphqlCollectionQueryVariables(schema, params),
         });
+      };
     }
   }
 })();

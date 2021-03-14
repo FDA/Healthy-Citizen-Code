@@ -9,15 +9,17 @@
     ) {
       return {
         submit: function (args, formHooks, cloneParams) {
-          return callSubmit.apply(args, arguments)
-            .then(function () {
-              formHooks.onComplete && formHooks.onComplete(args);
+          return callSubmit(args, cloneParams)
+            .then(function (respData) {
+              formHooks.onComplete && formHooks.onComplete(args, respData);
               notifySuccess(args);
+
+              return respData;
             });
         },
 
-        apply: function (args, cloneParams, onComplete) {
-          return callSubmit.apply(args, arguments)
+        apply: function (args, formHooks, cloneParams) {
+          return callSubmit(args, cloneParams)
             .then(function (responseData) {
               notifySuccess(args);
 
@@ -35,8 +37,8 @@
       };
 
       function callSubmit(args, cloneParams) {
-        var cleanedFormData = AdpFormDataUtils.transformDataBeforeSending(args.row, args.modelSchema);
-        return GraphqlCollectionMutator[args.action](args.modelSchema, cleanedFormData, cloneParams);
+        var argsWithCleanedRow = AdpFormDataUtils.transformDataBeforeSending(args);
+        return GraphqlCollectionMutator[args.action](args.modelSchema, argsWithCleanedRow.row, cloneParams);
       }
 
       function notifySuccess(args) {

@@ -1,5 +1,5 @@
 const { ObjectID } = require('mongodb');
-const { addLogsAndNotificationsForQueueEvents } = require('../util');
+const { addQueueEventHandlers } = require('../util');
 const { getOrCreateContext } = require('../processor-context');
 const { ValidationError } = require('../../../errors');
 
@@ -14,7 +14,7 @@ async function createExternalCommandQueue({ appLib, log }) {
   setCommonContext({ log });
 
   const externalCommandRunnerQueue = appLib.queue.createQueue(EXTERNAL_COMMANDS_QUEUE_NAME);
-  addLogsAndNotificationsForQueueEvents(appLib, externalCommandRunnerQueue, log);
+  addQueueEventHandlers({ appLib, bullQueue: externalCommandRunnerQueue, log, enableNotifications: true });
 
   externalCommandRunnerQueue.process(runnerConcurrency, require('./external-command-processor')(processorContext));
 
@@ -24,7 +24,9 @@ async function createExternalCommandQueue({ appLib, log }) {
 async function runExternalCommand({ commandId, creator, appLib, log }) {
   try {
     const externalCommandRunnerQueue = appLib.queue.getQueue(EXTERNAL_COMMANDS_QUEUE_NAME);
-    const externalCommand = await appLib.db.collection(commandsCollectionName).findOne({ _id: ObjectID(commandId) });
+    const { record: externalCommand } = await appLib.db
+      .collection(commandsCollectionName)
+      .hookQuery('findOne', { _id: ObjectID(commandId) });
     const { name, command, progressRegex, logRegex } = externalCommand || {};
     if (!name || !command) {
       return {
@@ -62,4 +64,5 @@ async function runExternalCommand({ commandId, creator, appLib, log }) {
 module.exports = {
   runExternalCommand,
   createExternalCommandQueue,
+  EXTERNAL_COMMANDS_QUEUE_NAME,
 };

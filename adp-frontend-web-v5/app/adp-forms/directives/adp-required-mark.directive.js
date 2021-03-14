@@ -9,12 +9,13 @@
     return {
       restrict: 'E',
       scope: {
-        validationParams: '='
+        args: '<',
+        formContext: '<',
       },
       template: '<span class="text-danger" ng-show="isRequired()">&nbsp;*</span>',
       require: '^^form',
       link: function (scope) {
-        scope.isRequired = AdpValidationUtils.isRequired(scope.validationParams.formParams);
+        scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
       }
     }
   }

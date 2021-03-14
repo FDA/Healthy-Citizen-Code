@@ -8,7 +8,8 @@
   /** @ngInject */
   function NumberEditor(
     DxEditorMixin,
-    AdpFieldsService
+    AdpFieldsService,
+    DxNumberHelper
   ) {
     return function () {
       return DxEditorMixin({
@@ -21,6 +22,7 @@
 
         getOptions: function (init) {
           var self = this;
+          var preventWheelCb = DxNumberHelper.preventMouseWheel();
 
           var defaults = {
             onKeyDown: function (e) {
@@ -29,7 +31,12 @@
                 self.reset();
               }
             },
-            onValueChanged: init.onValueChanged,
+            onValueChanged: function (e) {
+              if (preventWheelCb(e) !== undefined) {
+                return;
+              }
+              init.onValueChanged(e);
+            },
             value: init.args.data,
             valueChangeEvent: 'blur input',
             placeholder: init.placeholder,

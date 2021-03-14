@@ -1,6 +1,21 @@
 const path = require('path');
-const { getFilesFromPaths } = require('../../../../lib/file-controller-util')();
+const _ = require('lodash');
+const mime = require('mime');
+const fs = require('fs-extra');
 const { globSyncAsciiOrder } = require('../../../../lib/util/glob');
+
+function getFilesFromPaths(files) {
+  return _.castArray(files).map((f) => {
+    const filePath = path.resolve(f);
+    const fileName = path.basename(filePath);
+    return {
+      path: filePath,
+      name: fileName,
+      type: mime.getType(filePath),
+      size: fs.statSync(filePath).size,
+    };
+  });
+}
 
 const filesDirPath = path.join(__dirname, 'file-examples');
 

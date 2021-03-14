@@ -9,16 +9,9 @@ module.exports = (options) => {
 
   m.init = async () => {
     const { keyPrefix, redisUrl } = options;
-    m.keyPrefix = getKeyPrefix(keyPrefix);
+    m.keyPrefix = keyPrefix;
     m.cacheStorage = await m.getCacheStorage(redisUrl);
   };
-
-  function getKeyPrefix(prefix) {
-    if (!prefix) {
-      return '';
-    }
-    return prefix.endsWith(':') ? prefix : `${prefix}:`;
-  }
 
   m.getKeyWithPrefix = (key) => `${m.keyPrefix}${key}`;
 
@@ -40,7 +33,7 @@ module.exports = (options) => {
   };
 
   m.isReady = () => {
-    // RedisMock has field 'status', but has field cache.connected
+    // RedisMock has field 'status', but has not field 'connected'
     return m.cacheStorage && (m.cacheStorage.status === 'ready' || m.cacheStorage.connected);
   };
 
@@ -132,6 +125,9 @@ module.exports = (options) => {
 
   m.keys = {
     usersWithPermissions(permissions) {
+      if (!permissions) {
+        return 'usersWithPermissions';
+      }
       const sortedPermissions = [...permissions].sort();
       return `usersWithPermissions:${sortedPermissions.join(',')}`;
     },

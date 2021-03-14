@@ -1,0 +1,3 @@
+This directory contains .xls specifications for some files in the model directory.
+Please do not edit these files directly, regenerate them by running the databridge
+against the latest version of the core .xls in this directory.

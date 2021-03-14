@@ -89,7 +89,7 @@ describe('data presetting', () => {
 
         const dataToPreset = {
           _id: fixtureData._id,
-          action: 'update',
+          action: 'clone',
         };
 
         await presetDataAndWaitForSelector(dataToPreset, FORM_SELECTOR, this.page);
@@ -108,7 +108,6 @@ describe('data presetting', () => {
         };
 
         await presetDataAndWaitForSelector(dataToPreset, VIEW_DETAILS_SELECTOR, this.page);
-        await clickViewDetailsButton(fixtureData._id, this.page, VIEW_DETAILS_SELECTOR);
 
         const [viewDetailsModal, stringFieldValue] = await Promise.all([
           this.page.$(VIEW_DETAILS_SELECTOR),

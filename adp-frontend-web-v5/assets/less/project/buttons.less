@@ -29,6 +29,8 @@
   &:first-child {
     margin-left: auto !important;
   }
+
+  &[disabled] { cursor: not-allowed !important; }
 }
 
 .adp-action-b-secondary {
@@ -38,16 +40,37 @@
   & + :not(&) {
     margin-left: auto !important;
   }
+
+  &[disabled] { cursor: not-allowed !important; }
 }
 
 .adp-action-b-tertiary {
-
   &:extend(.btn all);
   &:extend(.btn-default all);
 
   &:first-child {
     margin-left: auto !important;
   }
+
+  &[disabled] { cursor: not-allowed !important; }
 }
 
+.adp-grid-action {
+  .btn();
+  .btn-primary();
+}
 
+.dx-button.dx-state-disabled {
+  cursor: not-allowed !important;
+  pointer-events: all;
+}
+
+.dx-state-disabled .dx-widget,
+.dx-state-disabled.dx-widget {
+  cursor: not-allowed !important;
+  pointer-events: all;
+}
+
+.dx-state-disabled .dx-menu-item {
+  cursor: not-allowed !important;
+}

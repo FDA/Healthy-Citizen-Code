@@ -14,14 +14,14 @@
           var dateFormat = AdpValidationUtils.getDateFormat(type);
 
           ngModel.$formatters.push(function(date) {
-            return date ? moment(date).format(dateFormat) : '';
+            return date ? dayjs(date).format(dateFormat) : '';
           });
 
           ngModel.$parsers.push(function(dateString) {
             if (dateString === '') {
               return dateString;
             }
-            var d = moment(dateString, dateFormat, true);
+            var d = dayjs(dateString, dateFormat, true);
             return d.toDate();
           });
 

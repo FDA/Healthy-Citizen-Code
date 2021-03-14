@@ -1,5 +1,4 @@
 const _ = require('lodash');
-const JSON5 = require('json5');
 const { MONGO, updateSearchConditions } = require('../../util/util');
 const GraphQlContext = require('./GraphQlContext');
 
@@ -48,7 +47,7 @@ module.exports = class LookupContext extends GraphQlContext {
 
     return {
       conditions,
-      sort: sort ? JSON5.parse(sort) : this.tableSpec.sortBy,
+      sort: this._getSort(sort || this.tableSpec.sortBy),
       perPage: limit,
       limit: limitPlusOne,
       skip,

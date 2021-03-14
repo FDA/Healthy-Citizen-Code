@@ -12,14 +12,15 @@
     AdpClientCommonHelper,
     ActionsHandlers,
     AdpIconsHelper,
-    AdpSchemaService,
+    AdpUnifiedArgs,
+    ActionsHelpers,
     GridActionsTemplate,
     GridOptionsHelpers
   ) {
     var actionFactoriesByType = {
       "action": getForHelperType,
       "link": getForLinkType,
-      "module": getForModuleType,
+      "module": ActionsHelpers.getForModuleType,
     };
     var toolbarActions = {
       "create": createAddAction,
@@ -28,7 +29,10 @@
     };
 
     return function (gridOptions, schema, customGridOptions) {
-      var actions = getToolbarActions(schema);
+      var actions = ActionsHelpers.getActionsByPosition(schema, function (action) {
+        var position = _.get(action, 'position', '');
+        return _.startsWith(position, TOOLBAR_POSITION_SIGNATURE);
+      });
 
       GridOptionsHelpers.addToolbarHandler(gridOptions, function (e) {
         removeUnnecessary(e);
@@ -38,7 +42,7 @@
         var actionType = _.get(action, "action.type", "")
         var actionLink = _.get(action, "action.link", "")
         var actionFactory = actionFactoriesByType[actionType];
-        var actionMethod = actionFactory(actionLink, action);
+        var actionMethod = actionFactory && actionFactory(actionLink, action);
 
         if (_.isFunction(actionMethod)) {
           var actionOptions = {
@@ -52,19 +56,29 @@
             table: action.table,
             params: action.params,
           };
-          var context = {
+          var context = AdpUnifiedArgs.getHelperParamsWithConfig({
+            path: "",
+            formData: null,
+            action: "toolbarAction",
             schema: schema,
-            customGridOptions: customGridOptions,
-            gridOptions: gridOptions,
-            actionOptions: actionOptions
-          };
+          });
 
-          actionMethod.call(context, getWidgetRegistrator(gridOptions, actionOptions, action));
+          context.fieldSchema = action;
+          context.customGridOptions = customGridOptions;
+          context.gridOptions = gridOptions;
+          context.actionOptions = actionOptions;
+
+          actionMethod.call(context, getWidgetRegistrator(context));
         }
       })
     }
 
-    function getWidgetRegistrator(gridOptions, actionOptions, action) {
+    function getWidgetRegistrator(widgetArgs) {
+      var gridOptions = widgetArgs.gridOptions;
+      var actionOptions = widgetArgs.actionOptions;
+      var action = widgetArgs.fieldSchema;
+      var schema = widgetArgs.modelSchema;
+
       return function (getWidgetOptions) {
         GridOptionsHelpers.addToolbarHandler(gridOptions, function (e) {
           var itemOptions = getWidgetOptions(e.component, e);
@@ -74,6 +88,10 @@
 
             widgetOptions.cssClass = (widgetOptions.cssClass || "") + " adp-toolbar-action-" + action.__name;
 
+            if (widgetOptions.options) {
+              widgetOptions.options.disabled = ActionsHelpers.evalDisabledAttr(action, null, schema);
+            }
+
             e.toolbarOptions.items.unshift(widgetOptions);
           }
         });
@@ -81,49 +99,26 @@
     }
 
     function getForHelperType(actionName) {
-      var defaultAction = toolbarActions[actionName];
+      var actionMethod = toolbarActions[actionName];
 
-      if (defaultAction) {
-        return defaultAction;
+      if (actionMethod) {
+        return actionMethod;
       }
 
-      var helperAction = _.get(appModelHelpers, "CustomActions." + actionName);
-      if (helperAction) {
-        return getHelperButtonFactory(helperAction);
+      actionMethod = ActionsHelpers.getForHelperType(actionName);
+
+      if (actionMethod) {
+        return getHelperButtonFactory(actionMethod);
       }
     }
 
     function getForLinkType(linkUrl) {
-      return getLinkButton(linkUrl);
-    }
-
-    function getForModuleType(moduleName, action) {
-      var injector = angular.element(document)
-                            .injector();
-
-      if (injector.has(moduleName)) {
-        var methodName = _.get(action, "action.method");
-        var moduleReturn = injector.get(moduleName);
-
-        if (methodName) {
-          return moduleReturn[methodName]();
-        } else {
-          return moduleReturn;
-        }
-      } else {
-        console.error("No module found for grid-top action:", moduleName);
-      }
-    }
-
-    function getLinkButton(linkUrl) {
       return function (widgetRegistator) {
         var actionOptions = this.actionOptions;
         var className = "adp-toolbar-menu grid-view-menu " + (actionOptions.className || "");
         var buttonSpec;
 
         if (actionOptions.icon) {
-          // buttonSpec = {icon: AdpIconsHelper.getIconClass(actionOptions.icon), hint: actionOptions.title, cssClass: className}
-          // buttonSpec = {template: AdpIconsHelper.getIconHtml(actionOptions.icon, {className:className, hint:actionOptions.title})};
           buttonSpec = {template: AdpClientCommonHelper.getMenuItemTemplate(actionOptions, {className: className})};
         } else {
           buttonSpec = {text: actionOptions.title}
@@ -145,22 +140,26 @@
     }
 
     function createAddAction(toolbarWidgetRegister) {
-      var schema = this.schema;
+      var schema = this.modelSchema;
       var actionOptions = this.actionOptions;
       var buttonText = actionOptions.title || "Create New";
-      var className = "btn page-action btn-primary " + actionOptions.className;
+      var className = "btn page-action btn-primary " + (actionOptions.className || "");
       var customOptions = this.customGridOptions;
+      var row = this.row;
+      var actionItem = this.fieldSchema;
+      var disabled = ActionsHelpers.evalDisabledAttr(actionItem, row, schema) ? ' disabled' : '';
+
       return toolbarWidgetRegister(function () {
         return {
-          name: "createButton",
-          widget: "dxButton",
-          template: "<button type=\"button\" class=\"" + className + "\">" + buttonText + "</button>",
+          name: 'createButton',
+          widget: 'dxButton',
+          template: '<button type="button" class="' + className + '" ' + disabled + '>' + buttonText + '</button>',
           onClick: function () {
             ActionsHandlers.create(schema)
-                           .then(function () {
-                             GridOptionsHelpers.refreshGrid(customOptions.gridComponent);
-                           });
-          }
+              .then(function () {
+                GridOptionsHelpers.refreshGrid(customOptions.gridComponent);
+              });
+          },
         }
       })
     }
@@ -190,7 +189,7 @@
       var self = this;
 
       gridOptions.columns.forEach(function (column) {
-        var field = self.schema.fields[column.dataField];
+        var field = self.modelSchema.fields[column.dataField];
         if (!field) {
           return;
         }
@@ -229,22 +228,6 @@
       if (found.length) {
         return Object.assign(found[0], actionOptions);
       }
-    }
-
-    function getToolbarActions(schema) {
-      var actions = _.chain(schema)
-        .get('actions.fields', {})
-        .pickBy(function (action) {
-          var position = _.get(action, 'position', '');
-          return _.startsWith(position, TOOLBAR_POSITION_SIGNATURE);
-        })
-        .map(function (action, name) {
-          action.__name = name;
-          return action;
-        })
-        .value();
-
-      return actions.sort(AdpSchemaService.getSorter('actionOrder'));
     }
 
     function getLocalPosition(position) {

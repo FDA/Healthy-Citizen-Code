@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const nodeUrl = require('url');
-const { addToSet } = require('../../lib/util/set-helpers');
+const { addToSet } = require('../util/set-helpers');
 
 function getConfiguration(appTitle) {
   return [
@@ -31,11 +31,11 @@ function getDirectiveTypes() {
   return ['// directive types', '#.list: dashed visual=class bold'].join('\n');
 }
 
-function getDiagramCode(models, appLists, appTitle) {
+function getDiagramCode(models, appLists, appTitle, parseOptions = {}) {
   const entities = {};
   const relationships = {};
   _.each(models, (model) => {
-    parseModel(model, entities, relationships, appLists);
+    parseModel(model, entities, relationships, appLists, parseOptions);
   });
 
   return [
@@ -51,7 +51,7 @@ function getDiagramCode(models, appLists, appTitle) {
   ].join('\n');
 }
 
-function parseModel(model, entities, relationships, appLists) {
+function parseModel(model, entities, relationships, appLists, parseOptions = {}) {
   const entityName = model.schemaName;
   const fieldCodePieces = [];
   const modelRelationships = new Set();
@@ -64,7 +64,11 @@ function parseModel(model, entities, relationships, appLists) {
     for (const listName of listsUsed) {
       const list = appLists[listName];
       if (list) {
-        entities[listName] = `[ <list> ${listName} | ${_.keys(list).join(' | ')} ]`;
+        if (parseOptions.expandListValues) {
+          entities[listName] = `[ <list> ${listName} | ${_.keys(list).join(' | ')} ]`;
+        } else {
+          entities[listName] = `[ <list> ${listName} ]`;
+        }
       } else {
         // dynamic list contains full URL or just path
         const urlObj = nodeUrl.parse(listName);
@@ -75,7 +79,11 @@ function parseModel(model, entities, relationships, appLists) {
     }
   });
 
-  entities[entityName] = [`[ ${entityName} |`, fieldCodePieces.join(' |\n'), `]`].join('\n');
+  if (parseOptions.expandModelFields) {
+    entities[entityName] = [`[ ${entityName} |`, fieldCodePieces.join(' |\n'), `]`].join('\n');
+  } else {
+    entities[entityName] = [`[ ${entityName} ]`].join('\n');
+  }
   relationships[entityName] = [...modelRelationships].join('\n');
 }
 

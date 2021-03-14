@@ -28,7 +28,12 @@
           "view": {
             "permissions": "accessAsAnyone"
           },
-          "group": false,
+          "group": null,
+          "create": null,
+          "syntheticGenerate": null,
+          "viewDetails": {
+            "permissions": "accessAsAnyone"
+          }
         }
       },
       "scopes": {

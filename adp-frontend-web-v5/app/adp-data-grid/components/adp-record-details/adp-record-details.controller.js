@@ -18,18 +18,23 @@
       vm.fields = GridSchema.getFieldsForDetailedView(vm.schema);
 
       vm.formattedData = _.chain(vm.fields)
-        .filter(function (f) { return f.showInViewDetails; })
+        .filter(evalShowExpr)
         .map(getRowTemplate)
         .value();
     };
 
+    function evalShowExpr(field) {
+      var args = getArgs(field);
+
+      try {
+        return new Function('return ' + field.showInViewDetails).call(args);
+      } catch (e) {
+        console.error('Error while evaluating show attribute for: ', e, args.path);
+      }
+    }
+
     function getRowTemplate(field) {
-      var args = AdpUnifiedArgs.getHelperParamsWithConfig({
-        path: field.fieldName,
-        formData: vm.data,
-        action: ACTIONS.VIEW_DETAILS,
-        schema: vm.schema
-      });
+      var args = getArgs(field);
 
       return {
         name: field.fullName,
@@ -37,14 +42,22 @@
       }
     }
 
-    function template(args) {
-      var wrapper = $('<div>', {
-        'class': 'name-' + args.fieldSchema.fieldName,
+    function getArgs(field) {
+      return AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: field.fieldName,
+        formData: vm.data,
+        action: ACTIONS.VIEW_DETAILS,
+        schema: vm.schema,
       });
+    }
 
-      var template = HtmlCellRenderer(args)(args);
-      wrapper.append(template);
-      return wrapper;
+     function template(args) {
+      var $wrapper = $('<div>', {
+        'class': ['name-' + args.fieldSchema.fieldName, 'view-details-cell-type-' + args.fieldSchema.type.toLowerCase()].join(' '),
+      });
+      $wrapper.append(HtmlCellRenderer(args));
+
+      return $wrapper;
     }
   }
 })();

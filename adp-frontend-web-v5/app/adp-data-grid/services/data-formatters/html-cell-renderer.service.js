@@ -17,7 +17,9 @@
     ListTypesCellRenderer,
     ComplexTypesCellRenderer,
     GridTypeCellRenderer,
-    GRID_FORMAT
+    GRID_FORMAT,
+    AdpAttrs,
+    FormattersHelper
   ) {
     var htmlCellRenderers = {
       'Phone': BasicTypesCellRenderer.phone,
@@ -31,6 +33,7 @@
       'Number': BasicTypesCellRenderer.number,
       'Currency': BasicTypesCellRenderer.currency,
       'Boolean': BasicTypesCellRenderer.boolean,
+      'TriStateBoolean': BasicTypesCellRenderer.trisStateBoolean,
 
       'Date': DateTypesCellRenderer.date,
       'Time': DateTypesCellRenderer.date,
@@ -72,18 +75,39 @@
     };
 
     function CellRenderer(args) {
-      if (hasCustomRenderer(args.fieldSchema)) {
-        return htmlCellRenderers.custom;
+      var t = getRendererType(args);
+      var renderFn = htmlCellRenderers[t];
+      var content = renderFn(args);
+
+      var asHtml = !FormattersHelper.asText(args);
+      if (asHtml) {
+        return wrapContent(content, args);
+      }
+
+      return content;
+    }
+
+    function getRendererType(args) {
+      if (hasCustomRenderer(args)) {
+        return 'custom';
       }
 
       var fieldType = AdpSchemaService.getFieldType(args.fieldSchema);
-      var fallbackCellRenderer = BasicTypesCellRenderer.string;
+      var fallbackCellRenderer = 'String';
 
-      return htmlCellRenderers[fieldType] || fallbackCellRenderer;
+      return !!htmlCellRenderers[fieldType] ? fieldType : fallbackCellRenderer;
+    }
+
+    function wrapContent(content, args) {
+      var div = $('<div>').append(content);
+      AdpAttrs(div[0], args);
+
+      return div;
     }
 
     function complexType(args) {
-      if (_.isNil(args.data) || _.isEmpty(args.data)) {
+      var isEmpty = _.isObject(args.data) ? _.isEmpty(args.data) : _.isNil(args.data);
+      if (isEmpty) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
@@ -91,31 +115,61 @@
     }
 
     function mixedType(args) {
-      if (_.isObject(args.data)) {
-        return complexType(args);
+      function mixedTypeViewDetails(args) {
+        var YAML = complexType(args);
+        var content = function (contentStr) {
+          var maxHeight = 200 + 'px';
+
+          return '<div style="max-height: ' + maxHeight + '" class="adp-tab-content"><div>' + contentStr + '</div></div>';
+        };
+
+        var tabsEl = $('<div>');
+        setTimeout(function () {
+          var tabsInstance = tabsEl.dxTabPanel({
+            selectedIndex: 0,
+            items: [{
+              title: 'YAML',
+              html: content(!!YAML.html ? YAML.html() : YAML),
+            }, {
+              title: 'JSON',
+              html: content(JSON.stringify(args.data, null, 4)),
+            }],
+            scrollingEnabled: true,
+          }).dxTabPanel("instance");
+
+          tabsEl.on('remove', function () {
+            tabsInstance.dispose();
+          })
+        }, 0);
+
+        return tabsEl;
       }
 
-      return _.isNil(args.data) ? GRID_FORMAT.EMPTY_VALUE : args.data;
-    }
-
-    function CustomRender(args) {
-      if (_.isNil(args.data) || _.isEmpty(args.data)) {
+      if (_.isNil(args.data)) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
-      var renderFn = _.get(appModelHelpers, customRendererPath(args.fieldSchema));
-
-      var argsForBackwardCompatibility = [args.data, args.fieldSchema.type, args.row];
-      return renderFn.apply(args, argsForBackwardCompatibility);
+      return args.action === 'viewDetails' ? mixedTypeViewDetails(args) : complexType(args);
     }
 
-    function hasCustomRenderer(field) {
-      var rendererPath = customRendererPath(field);
+    function CustomRender(args) {
+      var renderFn = _.get(appModelHelpers, customRendererPath(args));
+      var argsForBackwardCompatibility = [args.data, args.fieldSchema.type, args.row];
+      var content = renderFn.apply(args, argsForBackwardCompatibility);
+
+      var isEmpty = _.isObject(args.data) ? _.isEmpty(args.data) : _.isNil(args.data);
+      return (isEmpty && !content) ? GRID_FORMAT.EMPTY_VALUE : content;
+    }
+
+    function hasCustomRenderer(args) {
+      var rendererPath = customRendererPath(args);
       return _.hasIn(appModelHelpers, rendererPath);
     }
 
-    function customRendererPath(field) {
-      var rendererName = field.render;
+    function customRendererPath(args) {
+      var rendererType = args.action === 'export' ? 'exportRender' : 'render';
+      var rendererName = _.get(args, 'fieldSchema.' + rendererType);
+
       return 'Renderers.' + rendererName;
     }
 

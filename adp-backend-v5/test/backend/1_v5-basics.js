@@ -1,7 +1,4 @@
 require('should');
-const assert = require('assert');
-const _ = require('lodash');
-const mongoose = require('mongoose');
 
 const { prepareEnv, getMongoConnection } = require('../test-util');
 
@@ -32,13 +29,6 @@ describe('V5 Backend Basics', function () {
       this.appLib.appModel.models.model1s.fields.should.have.property('encounters');
       this.appLib.appModel.models.model1s.fields.encounters.fields.should.have.property('vitalSigns');
       this.appLib.appModel.models.model1s.fields.encounters.fields.should.have.property('diagnoses');
-      done();
-    });
-  });
-
-  describe('Model builder', function () {
-    it('builds mongoose model', (done) => {
-      assert(_.indexOf(mongoose.modelNames(), 'model1s') >= 0);
       done();
     });
   });

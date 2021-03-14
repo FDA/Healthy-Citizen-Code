@@ -1,13 +1,14 @@
 const fs = require('fs-extra');
 const path = require('path');
 const _ = require('lodash');
+const { ObjectId } = require('mongodb');
 const log = require('log4js').getLogger('lib/file-controller');
-const mongoose = require('mongoose');
-const { updateCrop, handleUpload, getCropParams } = require('./file-controller-util')();
 
 module.exports = (appLib) => {
   const m = {};
+  const { updateCrop, handleUpload, getCropParams } = require('./file-controller-util')(appLib.db);
   const mainController = require('./default-controller')(appLib);
+  const File = appLib.db.collection('files');
 
   /**
    * Test method for uploading files, will be replaced with methods specified for each field
@@ -63,25 +64,23 @@ module.exports = (appLib) => {
 
   async function getFile(cropped, req, res, next) {
     const { id } = req.params;
-    const { ObjectId } = mongoose.Types;
     if (!ObjectId.isValid(id)) {
       const errMessage = `Invalid id ${id}`;
       return mainController.error(req, res, next, new Error(errMessage), errMessage);
     }
 
     try {
-      const File = mongoose.model('files');
-      const data = await File.findById(id);
-      if (!data) {
+      const { record } = await File.hookQuery('findOne', { _id: ObjectId(id) });
+      if (!record) {
         const errMessage = 'File not found in the database';
         return mainController.error(req, res, next, new Error(errMessage), errMessage);
       }
 
-      const initFilePath = path.resolve(data.filePath);
+      const initFilePath = path.resolve(record.filePath);
       const requestedFilePath = cropped ? `${initFilePath}_cropped` : initFilePath;
       const exists = await fs.pathExists(requestedFilePath);
       if (exists) {
-        return sendFile(requestedFilePath, data, req, res, next);
+        return sendFile(requestedFilePath, record, req, res, next);
       }
       const errMessage = 'File not found on the server';
       mainController.error(req, res, next, new Error(errMessage), errMessage);
@@ -134,21 +133,15 @@ module.exports = (appLib) => {
    * @param res
    * @param next
    */
-  m.getFileThumbnail = (req, res, next) => {
+  m.getFileThumbnail = async (req, res, next) => {
     const { id } = req.params;
-    const { ObjectId } = mongoose.Types;
     if (!ObjectId.isValid(id)) {
       const errMessage = `Invalid id ${id}`;
       return mainController.error(req, res, next, new Error(errMessage), errMessage);
     }
 
-    const File = mongoose.model('files');
-
-    File.findById(id, (err, data) => {
-      if (err) {
-        mainController.error(req, res, next, err, 'Error occurred while retrieving the file');
-        return;
-      }
+    try {
+      const { record: data } = await File.hookQuery('findOne', { _id: ObjectId(id) });
 
       if (!data) {
         mainController.error(req, res, next, new Error('File not found in the database'));
@@ -164,24 +157,27 @@ module.exports = (appLib) => {
         const stream = fs.createReadStream(fullPath);
         stream.on('end', next);
         stream.pipe(res);
-      } else {
-        const newFullPath = `./model/public/default-thumbnails/${data.mimeType.replace(/\//g, '-')}.png`;
+        return;
+      }
 
-        if (fs.pathExistsSync(newFullPath)) {
-          sendFile(newFullPath, { mimeType: 'image/png', originalName: 'default.png' }, req, res, next);
-        } else if (fs.pathExistsSync('./model/public/default-thumbnails/default.png')) {
-          sendFile(
-            './model/public/default-thumbnails/default.png',
-            { mimeType: 'image/png', originalName: 'default.png' },
-            req,
-            res,
-            next
-          );
-        } else {
-          mainController.error(req, res, next, err, 'No thumbnail available');
-        }
-      } // TODO: also check in app model
-    });
+      const newFullPath = `./model/public/default-thumbnails/${data.mimeType.replace(/\//g, '-')}.png`;
+      if (fs.pathExistsSync(newFullPath)) {
+        return sendFile(newFullPath, { mimeType: 'image/png', originalName: 'default.png' }, req, res, next);
+      }
+      if (fs.pathExistsSync('./model/public/default-thumbnails/default.png')) {
+        return sendFile(
+          './model/public/default-thumbnails/default.png',
+          { mimeType: 'image/png', originalName: 'default.png' },
+          req,
+          res,
+          next
+        );
+      }
+
+      mainController.error(req, res, next, new Error('No thumbnail available'));
+    } catch (error) {
+      mainController.error(req, res, next, error, 'Error occurred while retrieving the file');
+    }
   };
 
   return m;

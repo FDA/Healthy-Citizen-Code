@@ -2,16 +2,15 @@
  * Implements endpoints for questionnaire widget
  * @returns {{}}
  */
-module.exports = function (globalMongoose) {
+module.exports = function () {
   const Promise = require('bluebird');
   const JSON5 = require('json5');
   const _ = require('lodash');
+  const { ObjectID } = require('mongodb');
   const crypto = require('crypto');
   const exec = Promise.promisify(require('child_process').exec);
   const log = require('log4js').getLogger('research-app-model/questionnaire-controller');
   const questionnaireStatuses = require('../helpers/questionnaire_helper').statuses;
-
-  const mongoose = globalMongoose;
 
   const m = {};
 
@@ -28,14 +27,17 @@ module.exports = function (globalMongoose) {
     const { wrapMutation } = m.appLib.graphQl;
     const { ValidationError } = m.appLib.errors;
 
-    m.conditionForActualRecord = m.appLib.dba.getConditionForActualRecord();
+    m.participantsCollectionName = 'participants';
+    m.questionnairesCollectionName = 'questionnaires';
+    m.questionnairesActualConditions = m.appLib.dba.getConditionForActualRecord(m.questionnairesCollectionName);
+    m.participantsActualConditions = m.appLib.dba.getConditionForActualRecord(m.participantsCollectionName);
 
     const parseQuestionnaireFileWrapper = (next) => async (rp) => {
       try {
         const tmpfile = `${getRandomString()}.json`;
         const uploadedFileId = _.get(rp.args.record, 'questionnaireDefinitionFile.0.id');
 
-        const data = await mongoose.model('files').findById(uploadedFileId).lean().exec();
+        const data = await appLib.db.collection('files').findOne({ _id: ObjectID(uploadedFileId) });
         if (!data) {
           throw new ValidationError('Unable to find questionnaire file');
         }
@@ -77,7 +79,7 @@ module.exports = function (globalMongoose) {
   async function getInProgressQuestionnaire(fhirId) {
     const pipeline = [
       {
-        $match: m.conditionForActualRecord,
+        $match: m.questionnairesActualConditions,
       },
       {
         $project: {
@@ -156,7 +158,7 @@ module.exports = function (globalMongoose) {
       },
     ];
 
-    const inProgressQuestionnaires = await mongoose.model('questionnaires').aggregate(pipeline);
+    const inProgressQuestionnaires = await m.appLib.db.collection(m.questionnairesCollectionName).aggregate(pipeline).toArray();
 
     if (!_.isEmpty(inProgressQuestionnaires)) {
       return inProgressQuestionnaires[0];
@@ -167,7 +169,7 @@ module.exports = function (globalMongoose) {
   async function getNotStartedQuestionnaire(fhirId) {
     const pipeline = [
       {
-        $match: m.conditionForActualRecord,
+        $match: m.questionnairesActualConditions,
       },
       {
         $project: {
@@ -242,7 +244,7 @@ module.exports = function (globalMongoose) {
       },
     ];
 
-    const notStartedQuestionnaires = await mongoose.model('questionnaires').aggregate(pipeline);
+    const notStartedQuestionnaires = await m.appLib.db.collection(m.questionnairesCollectionName).aggregate(pipeline).toArray();
 
     if (!_.isEmpty(notStartedQuestionnaires)) {
       return notStartedQuestionnaires[0];
@@ -299,17 +301,17 @@ module.exports = function (globalMongoose) {
 
     const fhirId = req.params.id;
     const questionnaireId = _.get(req, 'body.data.questionnaireId');
-    if (!questionnaireId || !mongoose.Types.ObjectId.isValid(questionnaireId)) {
+    if (!questionnaireId || !ObjectID.isValid(questionnaireId)) {
       return res.json({
         success: false,
         message: 'Invalid data.questionnaireId. It should be a string represented as valid ObjectID.',
       });
     }
-    const questionnaireObjectId = mongoose.Types.ObjectId(questionnaireId);
+    const questionnaireObjectId = ObjectID(questionnaireId);
 
     try {
-      const participant = await mongoose.model('participants').findOne({
-        ...m.conditionForActualRecord,
+      const participant = await m.appLib.db.collection(m.participantsCollectionName).findOne({
+        ...m.participantsActualConditions,
         guid: fhirId,
         'answersToQuestionnaires.questionnaireId._id': questionnaireObjectId,
       });
@@ -326,13 +328,13 @@ module.exports = function (globalMongoose) {
       );
       const answersToQ = participant.answersToQuestionnaires[answersToQIndex];
 
-      if (answersToQ.get('status') === questionnaireStatuses.completed) {
+      if (answersToQ.status === questionnaireStatuses.completed) {
         return res.json({
           success: false,
           message: 'Unable to record answers for completed questionnaire.',
         });
       }
-      const startTime = answersToQ.get('startTime');
+      const startTime = answersToQ.startTime;
       if (!startTime) {
         return res.json({
           success: false,
@@ -344,7 +346,7 @@ module.exports = function (globalMongoose) {
       const clientAnswers = _.get(req, 'body.data.answers', {});
       const newAnswers = _.assign({}, dbAnswers, clientAnswers);
 
-      const questionnaire = await mongoose.model('questionnaires').findOne(questionnaireObjectId).lean().exec();
+      const questionnaire = await m.appLib.db.collection('questionnaires').findOne(questionnaireObjectId);
       const questionsObj = questionnaire.questionnaireDefinition.questionnaire;
       const nextQuestion = getNextQuestion(questionsObj, newAnswers);
 
@@ -358,21 +360,20 @@ module.exports = function (globalMongoose) {
         return res.json(successfulResponse);
       }
 
-      answersToQ.set('answers', newAnswers);
-      answersToQ.set('nextQuestion', nextQuestion);
+      answersToQ.answers = newAnswers;
+      answersToQ.nextQuestion = nextQuestion;
 
       const status = nextQuestion ? questionnaireStatuses.inProgress : questionnaireStatuses.completed;
-      answersToQ.set('status', status);
+      answersToQ.status = status;
 
       if (status === questionnaireStatuses.completed) {
         const spentTimeInSeconds = parseInt(0.001 * (requestTime.getTime() - new Date(startTime).getTime()), 10);
 
-        answersToQ.set('endTime', requestTime);
-        answersToQ.set('spentTime', spentTimeInSeconds);
+        answersToQ.endTime = requestTime;
+        answersToQ.spentTime = spentTimeInSeconds;
       }
 
-      participant.markModified(`answersToQuestionnaires.${answersToQIndex}`);
-      await participant.save();
+      m.appLib.db.collection('participants').replaceOne({ _id: participant._id }, participant);
 
       res.json(successfulResponse);
     } catch (e) {
@@ -384,17 +385,17 @@ module.exports = function (globalMongoose) {
   m.startQuestionnaire = async (req, res, next) => {
     const fhirId = req.params.id;
     const questionnaireId = _.get(req, 'body.data.questionnaireId');
-    if (!questionnaireId || !mongoose.Types.ObjectId.isValid(questionnaireId)) {
+    if (!questionnaireId || !ObjectID.isValid(questionnaireId)) {
       return res.json({
         success: false,
         message: 'Invalid questionnaireId. It should be a string represented as valid ObjectID.',
       });
     }
 
-    const questionnaireObjectID = mongoose.Types.ObjectId(questionnaireId);
-    const questionnaire = await mongoose
-      .model('questionnaires')
-      .findOne({ ...m.conditionForActualRecord, _id: questionnaireObjectID });
+    const questionnaireObjectID = ObjectID(questionnaireId);
+    const questionnaire = await m.appLib.db
+      .collection(m.questionnairesCollectionName)
+      .findOne({ ...m.questionnairesActualConditions, _id: questionnaireObjectID });
     if (!questionnaire) {
       return res.json({
         success: false,
@@ -402,7 +403,9 @@ module.exports = function (globalMongoose) {
       });
     }
 
-    const participant = await mongoose.model('participants').findOne({ ...m.conditionForActualRecord, guid: fhirId });
+    const participant = await m.appLib.db
+      .collection(m.participantsCollectionName)
+      .findOne({ ...m.participantsActualConditions, guid: fhirId });
     if (!participant) {
       return res.json({
         success: false,
@@ -411,7 +414,7 @@ module.exports = function (globalMongoose) {
     }
 
     try {
-      const response = await mongoose.model('participants').updateOne(
+      const commandResult = await m.appLib.db.collection('participants').updateOne(
         {
           _id: participant._id,
           'answersToQuestionnaires.questionnaireId._id': {
@@ -421,6 +424,7 @@ module.exports = function (globalMongoose) {
         {
           $addToSet: {
             // TODO: mongoose runs this query twice, possibly because of this: https://stackoverflow.com/questions/36822745/node-workaround-for-mongoose-pushing-twice-after-saving-twice, replaced with $addToSet. Need to get rid of Mongoose
+            // TODO: check if problem is actual since mongoose is removed
             answersToQuestionnaires: {
               questionnaireId: {
                 label: questionnaireId, // not real
@@ -434,7 +438,7 @@ module.exports = function (globalMongoose) {
         }
       );
 
-      const { nModified } = response;
+      const { nModified } = commandResult.result;
       if (nModified === 1) {
         return res.json({
           success: true,
@@ -447,6 +451,10 @@ module.exports = function (globalMongoose) {
           message: 'Cannot start already started questionnaire.',
         });
       }
+      return res.json({
+        success: true,
+        message: `Questionnaire has been started, but nModified is ${nModified}`,
+      });
     } catch (e) {
       log.error(e.stack);
       res.json({ success: false, message: 'Unable to start questionnaire' });
@@ -457,7 +465,7 @@ module.exports = function (globalMongoose) {
     const pipeline = [
       {
         $match: {
-          ...m.conditionForActualRecord,
+          ...m.participantsActualConditions,
           answersToQuestionnaires: { $ne: null },
         },
       },
@@ -496,7 +504,7 @@ module.exports = function (globalMongoose) {
     ];
 
     try {
-      const data = await mongoose.model('participants').aggregate(pipeline);
+      const data = await m.appLib.db.collection(m.participantsCollectionName).aggregate(pipeline).toArray();
       const results = [];
       _.forEach(data, (questionnaireAnswersObj) => {
         const singleAnswerTemplate = _.pick(questionnaireAnswersObj, [

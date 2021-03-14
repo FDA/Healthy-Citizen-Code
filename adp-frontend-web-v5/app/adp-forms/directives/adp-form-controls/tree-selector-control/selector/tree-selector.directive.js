@@ -26,7 +26,7 @@
       link: function (scope, element) {
         var childScope;
         (function init() {
-          scope.rootData = scope.formData[scope.args.fieldSchema.fieldName];
+          scope.rootData = _.get(scope.args.row, scope.args.path);
           scope.currentData = scope.rootData[scope.indexOfLevel];
 
           if (_.isNil(scope.currentData)) {
@@ -74,15 +74,20 @@
                   });
               },
               key: '_id',
-              byKey: function () {
-                return Promise.resolve(initialData);
-              }
+              byKey: function () { return Promise.resolve(initialData); },
             }),
             valueExpr: 'this',
             displayExpr: 'label',
             onValueChanged: onChange,
             multiline: true,
-            wrapItemText: true
+            wrapItemText: true,
+            inputAttr: {
+              'adp-qaid-field-control': scope.args.path + '_' + scope.indexOfLevel
+            },
+            itemTemplate: function (data, index, element) {
+              element.attr('adp-qaid-tree-selector-item', scope.args.path + '_' + scope.indexOfLevel);
+              return data.label;
+            },
           };
 
           scope.config = AdpFieldsService.configFromParameters(scope.args.fieldSchema, defaults);
@@ -100,9 +105,7 @@
         }
 
         function setData(value) {
-          scope.currentData._id = value._id;
-          scope.currentData.table = value.table;
-          scope.currentData.label = value.label;
+          _.assign(scope.currentData, value);
         }
 
         function removeData() {
@@ -129,8 +132,7 @@
               "form-data=formData",
               "index-of-level=indexOfLevel",
               'data-child',
-            '>',
-            '</tree-selector>',
+            '></tree-selector>',
           ].join('\n');
 
           element.find('> div').append($compile(template)(childScope));

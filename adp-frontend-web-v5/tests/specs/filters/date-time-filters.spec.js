@@ -1,6 +1,12 @@
 const puppeteer = require("puppeteer");
 const _ = require("lodash");
-const moment = require("moment");
+const dayjs = require('dayjs');
+const isSameOrAfterPlugin = require('dayjs/plugin/isSameOrAfter');
+const isSameOrBeforePlugin = require('dayjs/plugin/isSameOrBefore');
+
+dayjs.extend(isSameOrAfterPlugin);
+dayjs.extend(isSameOrBeforePlugin);
+
 const {
   getLaunchOptions,
   loginWithUser,
@@ -83,7 +89,7 @@ function generateTimeData(baseTime) {
     _.each(DATA_FIELDS, field => {
       const time = baseTime.clone()
         .add(field.interval[0] * i, field.interval[1]);
-      sample[field.name] = moment(time.format(field.format), field.format);
+      sample[field.name] = dayjs(time.format(field.format), field.format);
     });
     presets.push(sample)
   }
@@ -91,7 +97,7 @@ function generateTimeData(baseTime) {
 }
 
 async function waitForDateToLoad(page) {
-  await page.waitFor(2000);
+  await page.waitForTimeout(2000);
 }
 
 async function selectFilterOperation(page, field_name, operation_selector) {
@@ -131,7 +137,7 @@ function toPrint(preset) {
 describe("filtering by date/time columns", () => {
   expect.extend({
     async toBeRow(preset, page) {
-      const row_selector = "button.table-action[adp-" + preset._id + "]";
+      const row_selector = ".actions-column-container[adp-" + preset._id + "]";
       const row = await page.$(row_selector, QUICK_TIMEOUT);
 
       if (row) {
@@ -152,7 +158,7 @@ describe("filtering by date/time columns", () => {
     this.browser = await puppeteer.launch(getLaunchOptions());
     this.context = await this.browser.createIncognitoBrowserContext();
     const page = await this.context.newPage();
-    const base_time = moment("01/01/2021 00:15 am", DATETIME_FORMAT);
+    const base_time = dayjs("01/01/2021 00:15 am", DATETIME_FORMAT);
     // .add(Math.random() * 100, "d")
     // .add(Math.random() * 500, "m");
 
@@ -239,11 +245,11 @@ describe("filtering by date/time columns", () => {
         const search_end_selector =   ".dx-datagrid-filter-range-end   input.dx-texteditor-input";
 
         await selectFilterOperation(this.page, field.name, "between");
-        await this.page.waitFor(1000);
+        await this.page.waitForTimeout(1000);
         await typeIntoFilter(this.page, search_start_selector, filter_moment1.format(field.format));
-        await this.page.waitFor(1000);
+        await this.page.waitForTimeout(1000);
         await typeIntoFilter(this.page, search_end_selector, filter_moment2.format(field.format));
-        await this.page.waitFor(1000);
+        await this.page.waitForTimeout(1000);
       }
 
       await waitForDateToLoad(this.page);

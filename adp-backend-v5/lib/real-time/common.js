@@ -9,9 +9,23 @@ function addAuthentication({ appLib, io, log }) {
     debug: log.debug.bind(log),
     async authenticate(socket, cb) {
       try {
+        const isWebsocketUpgradeRequest = socket.request.headers.upgrade === 'websocket';
+        if (isWebsocketUpgradeRequest) {
+          // According to socket.io docs (https://socket.io/docs/client-api/#With-extraHeaders):
+          // "Custom headers will not be appended when using websocket as the transport."
+          // This is why token is send in query for websocket handshake.
+          socket.request.headers.authorization = socket.request._query.token;
+        }
+
         addDeviceToSocketRequest(socket.request);
-        const { user } = await appLib.authenticationCheck(socket.request);
+
+        const { user, roles, permissions } = await appLib.authenticationCheck(socket.request);
         socket.userId = _.get(user, '_id', '').toString();
+        socket.user = user;
+        socket.roles = roles;
+        socket.permissions = permissions;
+        socket.accessToken = appLib.auth.extractJwtFromRequest(socket.request);
+
         log.trace(`User with id '${socket.userId}' connected via socket '${socket.id}'`);
         return cb(null, true);
       } catch (e) {

@@ -45,11 +45,11 @@
         }
 
         function setHtmlForEditor() {
-          element[0].innerHTML = '<pre id="' + scope.editorId + '">\n</pre>';
+          element[0].innerHTML = '<pre adp-qaid-field-control="' + scope.editorId + '" adp-editor-id="' + scope.editorId + '">\n</pre>';
         }
 
         function enableEditor() {
-          var editorElement = element[0].querySelector('#' + scope.editorId);
+          var editorElement = element[0].querySelector('[adp-editor-id="' + scope.editorId + '"]');
           return window.ace.edit(editorElement);
         }
 

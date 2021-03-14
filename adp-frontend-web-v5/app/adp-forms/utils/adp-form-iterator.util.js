@@ -5,29 +5,30 @@
     .module('app.adpForms')
     .factory('AdpFormIteratorUtils', AdpFormIteratorUtils);
 
-  function AdpFormIteratorUtils(AdpPath) {
-    function traverseFormDataPostOrder(formData, schema, path, callback) {
-      var _path = path || '';
+  function AdpFormIteratorUtils(
+    AdpUnifiedArgs
+  ) {
+    function traverseFormDataPostOrder(args, callback) {
+      _.each(args.fieldSchema.fields, function (currentField) {
+        var currArgs = AdpUnifiedArgs.next(args, currentField.fieldName);
 
-      _.each(schema.fields, function (currentField, key) {
-        var _nextPath = AdpPath.next(_path, key);
+        if (_typeOfObject(currArgs.fieldSchema)) {
+          traverseFormDataPostOrder(currArgs, callback);
+        } else if (_typeOfArray(currArgs.fieldSchema)) {
+          _.each(currArgs.data, function (_d, index) {
+            var currArrayArgs = _.assign({}, currArgs, {
+              path: currArgs.path + '[' + index + ']',
+            });
+            currArrayArgs.data = _.get(currArrayArgs.row, currArrayArgs.path);
 
-        if (_typeOfObject(currentField)) {
-          traverseFormDataPostOrder(formData, currentField, _nextPath, callback);
-        } else if (_typeOfArray(currentField)) {
-          var arrayFormData = _.get(formData, _nextPath, []);
-
-          _.each(arrayFormData, function (_data, i) {
-            var nextArrayItemPath = _nextPath + '[' + i + ']';
-            traverseFormDataPostOrder(formData, currentField, nextArrayItemPath, callback);
+            traverseFormDataPostOrder(currArrayArgs, callback);
           });
         } else {
-          // refactor: use method from schema service
-          _isFieldVisible(currentField) && callback(formData, currentField, _nextPath, _path);
+          _isFieldVisible(currentField) && callback(currArgs);
         }
       });
 
-      callback(formData, schema, _path);
+      callback(args);
     }
 
     function _isFieldVisible(field) {
@@ -43,7 +44,7 @@
     }
 
     return {
-      traverseFormDataPostOrder: traverseFormDataPostOrder
+      traverseFormDataPostOrder: traverseFormDataPostOrder,
     };
   }
 })();

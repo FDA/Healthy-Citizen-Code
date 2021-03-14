@@ -1,6 +1,7 @@
 const Promise = require('bluebird');
 const { ValidationError } = require('./errors');
 const { getParentInfo } = require('./util/unified-approach');
+const { getFunction } = require('./util/memoize');
 
 /**
  * @module transformers
@@ -8,7 +9,6 @@ const { getParentInfo } = require('./util/unified-approach');
  * NOTE: leaving log.trace calls commented out here because debugging those is very slow in WebStorm
  */
 module.exports = (appLib) => {
-  const log = require('log4js').getLogger('lib/transformers');
   const async = require('async');
   const _ = require('lodash');
   const m = {};
@@ -75,7 +75,7 @@ module.exports = (appLib) => {
       } else if (type === 'synthesize') {
         const synthesizerCode = _.get(handler, 'code');
         if (synthesizerCode) {
-          const synthesizerFunc = new Function(`return ${synthesizerCode}`);
+          const synthesizerFunc = getFunction(`return ${synthesizerCode}`);
           // TODO: transformers should not depend on ValidatorUtils, as option move out 'getValue' from ValidatorsUtils
           // const val = appLib.appModelHelpers.ValidatorUtils.getValue(data, appModelPart, lodashPath);
           // const val = data;
@@ -119,12 +119,35 @@ module.exports = (appLib) => {
     } else {
       const head = path.slice(0, 1)[0];
       const changesHead = changesPath.length > 0 ? changesPath.slice(0, 1)[0] : false;
-      if (head === 'fields') {
-        if (appModelPart.type === 'AssociativeArray') {
-          const assocArray = _.entries(lodashPath === '' ? data : _.get(data, lodashPath));
-          async.eachOfSeries(
-            assocArray,
-            ([key], idx, arrayCb) => {
+
+      if (appModelPart.type === 'AssociativeArray') {
+        const assocArray = _.entries(lodashPath === '' ? data : _.get(data, lodashPath));
+        async.eachOfSeries(
+          assocArray,
+          ([key], idx, arrayCb) => {
+            m.traverseDocAndCallProcessor(
+              type,
+              modelName,
+              userContext,
+              handler,
+              appModelPart[head],
+              wholeModel,
+              data,
+              `${lodashPath}.${key}`,
+              path.slice(1),
+              changesPath.slice(1),
+              arrayCb
+            );
+          },
+          cb
+        );
+      } else if (appModelPart.type === 'Array') {
+        async.eachOfSeries(
+          lodashPath === '' ? data : _.get(data, lodashPath),
+          (el, idx, arrayCb) => {
+            // log.trace( `>>>> Iterating head: ${head} lodashPath: ${lodashPath} idx: ${idx} changesHead: ${changesHead} el._id: ${el._id}` );
+            if (!changesHead || `${el._id}` === changesHead) {
+              // changesHead narrows array iteration to just specific ID
               m.traverseDocAndCallProcessor(
                 type,
                 modelName,
@@ -133,73 +156,31 @@ module.exports = (appLib) => {
                 appModelPart[head],
                 wholeModel,
                 data,
-                `${lodashPath}.${key}`,
+                `${lodashPath}.${idx}`,
                 path.slice(1),
                 changesPath.slice(1),
                 arrayCb
               );
-            },
-            cb
-          );
-        } else if (appModelPart.type === 'Array') {
-          async.eachOfSeries(
-            lodashPath === '' ? data : _.get(data, lodashPath),
-            (el, idx, arrayCb) => {
-              // log.trace( `>>>> Iterating head: ${head} lodashPath: ${lodashPath} idx: ${idx} changesHead: ${changesHead} el._id: ${el._id}` );
-              if (!changesHead || `${el._id}` === changesHead) {
-                // changesHead narrows array iteration to just specific ID
-                m.traverseDocAndCallProcessor(
-                  type,
-                  modelName,
-                  userContext,
-                  handler,
-                  appModelPart[head],
-                  wholeModel,
-                  data,
-                  `${lodashPath}.${idx}`,
-                  path.slice(1),
-                  changesPath.slice(1),
-                  arrayCb
-                );
-              } else {
-                arrayCb();
-              }
-            },
-            cb
-          );
-        } else if (appModelPart.type === 'Schema') {
-          m.traverseDocAndCallProcessor(
-            type,
-            modelName,
-            userContext,
-            handler,
-            appModelPart[head],
-            wholeModel,
-            data,
-            lodashPath,
-            path.slice(1),
-            changesPath.slice(1),
-            cb
-          );
-        } else if (appModelPart.type === 'Object') {
-          m.traverseDocAndCallProcessor(
-            type,
-            modelName,
-            userContext,
-            handler,
-            appModelPart[head],
-            wholeModel,
-            data,
-            lodashPath,
-            path.slice(1),
-            changesPath.slice(1),
-            cb
-          );
-        } else {
-          const error = `Inconsistent App Model path ${path.join('.')} at data path ${lodashPath}`;
-          log.error(error);
-          cb(error);
-        }
+            } else {
+              arrayCb();
+            }
+          },
+          cb
+        );
+      } else if (appModelPart.type === 'Schema' || appModelPart.type === 'Object') {
+        m.traverseDocAndCallProcessor(
+          type,
+          modelName,
+          userContext,
+          handler,
+          appModelPart[head],
+          wholeModel,
+          data,
+          lodashPath,
+          path.slice(1),
+          changesPath.slice(1),
+          cb
+        );
       } else {
         m.traverseDocAndCallProcessor(
           type,
@@ -333,8 +314,7 @@ module.exports = (appLib) => {
 
   /**
    * Runs Transformations on data before saving data to the database.
-   * This method is called as mongoose 'document pre', it traverses the entire model definition and calls
-   * transformation methods as specified in the app model
+   * This traverses the entire model definition and calls transformation methods as specified in the app model
    * @param modelName modelName
    * @param userContext context for retrieving info about user
    * @param data the data to traverse. This method may need traverse only part of the document data specified by changesPath
@@ -392,10 +372,11 @@ module.exports = (appLib) => {
    * @param data the data (regular object) to run post-processing for. Post-=processing always runs for the entire document data
    * @param modelName
    * @param userContext
+   * @param changesPath
    */
-  m.postInitTransformData = (modelName, userContext, data) =>
+  m.postInitTransformData = (modelName, userContext, data, changesPath = []) =>
     // log.trace(`postInitTransformData model ${modelName} data: ${JSON.stringify(data)}`);
-    m.processAppModelPromisified(['transform', 'synthesize'], modelName, [], (type, handler, val, path) => {
+    m.processAppModelPromisified(['transform', 'synthesize'], modelName, changesPath, (type, handler, val, path) => {
       // for example in "transform": [["heightImperialToMetric", "heightMetricToImperial"]]
       // heightImperialToMetric - input handler, called before saving into db
       // heightMetricToImperial - output handler, called before sending response to client

@@ -7,15 +7,20 @@
 
   function AdpValidationMessages(
     AdpSchemaService,
-    AdpValidationRules,
     AdpValidationUtils
   ) {
     function updateAll(field, formData) {
       var messages = {};
+      var validatorWithMessages = (field.validate || []).filter(function (validationRule) {
+        return !_.isNil(validationRule.errorMessages)
+      });
 
-      (field.validate ||[]).forEach(function (validationRule) {
+      validatorWithMessages.forEach(function (validationRule) {
         var value = formData[field.fieldName];
-        messages[validationRule.validator] = update(value, field, validationRule, formData);
+        var message = update(value, field, validationRule, formData);
+        if (message) {
+          messages[validationRule.validator] = message;
+        }
       });
 
       return messages;
@@ -55,7 +60,9 @@
         messageName = field.type.toLowerCase();
       }
 
-      return validator.errorMessages[messageName] || validator.errorMessages['default'];
+      var message = validator.errorMessages[messageName] || validator.errorMessages['default'];
+
+      return message;
     }
 
     function _replaceByValue(value, field) {

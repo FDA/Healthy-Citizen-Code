@@ -1,14 +1,14 @@
 const { schemaComposer } = require('graphql-compose');
 const _ = require('lodash');
 const { getLookupType, getTreeSelectorType } = require('./lookup');
-const { COMPOSER_TYPES, MongoIdScalarTC, isInputType, getLocationType } = require('./common');
+const { COMPOSER_TYPES, MongoIdScalarTC, isInputType, getLocationType, getOrCreateEnum } = require('./common');
 
 function resolveGraphQLType(field, modelName, fieldPath, composerType) {
   if (!field.showInGraphql) {
     return;
   }
   const type = field.type.replace('[]', '');
-  if (type === 'Group') {
+  if (['Group', 'StaticHtml'].includes(type)) {
     return;
   }
 
@@ -18,7 +18,6 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
     [
       'String',
       'Barcode',
-      'ObjectID',
       'Password',
       'Email',
       'Phone',
@@ -27,9 +26,12 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
       'Decimal128',
       'Html',
       'Code',
+      'CronExpression',
     ].includes(type)
   ) {
     graphqlType = 'String';
+  } else if (type === 'ObjectID') {
+    graphqlType = MongoIdScalarTC;
   } else if (['Date', 'Time', 'DateTime'].includes(type)) {
     graphqlType = 'Date';
   } else if (type === 'Boolean') {
@@ -77,9 +79,19 @@ function resolveGraphQLType(field, modelName, fieldPath, composerType) {
   return graphqlType;
 }
 
-function getObjectType(field, modelName, fieldPath, composerType) {
+function getObjectTCName(modelName, fieldPath, composerType) {
   const objTypePath = `${modelName}_${fieldPath.join('_')}`;
+  return getTypeName(objTypePath, composerType);
+}
+
+function getObjectTCNameForUpdateMany(modelName, fieldPath, composerType) {
+  const objTypePath = `${modelName}_${fieldPath.join('_')}UpdateManyObj`;
   const typeName = getTypeName(objTypePath, composerType);
+  return `${typeName}_`;
+}
+
+function getObjectType(field, modelName, fieldPath, composerType) {
+  const typeName = getObjectTCName(modelName, fieldPath, composerType);
   const objType = isInputType(composerType)
     ? schemaComposer.createInputTC(typeName)
     : schemaComposer.createObjectTC(typeName);
@@ -91,8 +103,7 @@ function getObjectType(field, modelName, fieldPath, composerType) {
 }
 
 function getArrayType(field, modelName, fieldPath, composerType) {
-  const objTypePath = `${modelName}_${fieldPath.join('_')}`;
-  const typeName = getTypeName(objTypePath, composerType);
+  const typeName = getObjectTCName(modelName, fieldPath, composerType);
   const objType = isInputType(composerType)
     ? schemaComposer.createInputTC(typeName)
     : schemaComposer.createObjectTC(typeName);
@@ -107,36 +118,97 @@ function getArrayType(field, modelName, fieldPath, composerType) {
 }
 
 function getTypeName(modelName, composerType) {
-  const { INPUT, INPUT_WITHOUT_ID, OUTPUT_WITH_ACTIONS, OUTPUT } = COMPOSER_TYPES;
-  if (composerType === OUTPUT) {
+  if (!_.values(COMPOSER_TYPES).includes(composerType)) {
+    throw new Error(`Invalid composerType: ${composerType}`);
+  }
+
+  if (composerType === COMPOSER_TYPES.OUTPUT) {
     return modelName;
   }
-  if ([INPUT, INPUT_WITHOUT_ID, OUTPUT_WITH_ACTIONS].includes(composerType)) {
-    return `${modelName}${composerType}`;
-  }
-  throw new Error(`Invalid composerType: ${composerType}`);
+  return `${modelName}${composerType}`;
 }
 
-function createType(model, modelName, composerType, typeName) {
-  const config = {
+function getBaseTypeDef(model, modelName, composerType, typeName) {
+  return {
     name: typeName || getTypeName(modelName, composerType),
     fields: {},
   };
+}
+
+function addFieldsToTypeDef(typeDef, model, modelName, composerType) {
   _.forEach(model.fields, (field, fieldName) => {
     const fieldConfig = resolveGraphQLType(field, modelName, [fieldName], composerType);
     if (fieldConfig) {
-      config.fields[fieldName] = fieldConfig;
+      typeDef.fields[fieldName] = fieldConfig;
     }
   });
-  if (composerType === COMPOSER_TYPES.OUTPUT_WITH_ACTIONS) {
-    config.fields._actions = 'JSON';
-  }
-  if (composerType !== COMPOSER_TYPES.INPUT_WITHOUT_ID) {
-    config.fields._id = MongoIdScalarTC;
-  }
+  return typeDef;
+}
 
-  // it overrides type with name=config.name if exists
-  return isInputType(composerType) ? schemaComposer.createInputTC(config) : schemaComposer.createObjectTC(config);
+const typeBuilders = {
+  [COMPOSER_TYPES.INPUT]: (model, modelName, typeName) => {
+    const composerType = COMPOSER_TYPES.INPUT;
+    const typeDef = getBaseTypeDef(model, modelName, composerType, typeName);
+    addFieldsToTypeDef(typeDef, model, modelName, composerType);
+
+    return schemaComposer.createInputTC(typeDef);
+  },
+  [COMPOSER_TYPES.INPUT_WITHOUT_ID]: (model, modelName, typeName) => {
+    const composerType = COMPOSER_TYPES.INPUT_WITHOUT_ID;
+    const typeDef = getBaseTypeDef(model, modelName, composerType, typeName);
+    addFieldsToTypeDef(typeDef, model, modelName, composerType);
+    delete typeDef.fields._id;
+
+    return schemaComposer.createInputTC(typeDef);
+  },
+  [COMPOSER_TYPES.INPUT_UPDATE_MANY]: (model, modelName, typeName) => {
+    const composerType = COMPOSER_TYPES.INPUT_UPDATE_MANY;
+    const typeDef = getBaseTypeDef(model, modelName, composerType, typeName);
+
+    const fieldActionType = getOrCreateEnum('fieldAction', ['delete', 'update', 'doNotChange']);
+    _.forEach(model.fields, (field, fieldName) => {
+      const fieldConfig = resolveGraphQLType(field, modelName, [fieldName], composerType);
+      if (!fieldConfig) {
+        return;
+      }
+      if (fieldName === '_id') {
+        typeDef.fields[fieldName] = fieldConfig.getTypeNonNull();
+      } else {
+        typeDef.fields[fieldName] = schemaComposer.createInputTC({
+          name: getObjectTCNameForUpdateMany(modelName, [fieldName], composerType),
+          fields: {
+            value: fieldConfig,
+            action: fieldActionType,
+          },
+        });
+      }
+    });
+
+    return schemaComposer.createInputTC(typeDef).getTypePlural();
+  },
+  [COMPOSER_TYPES.OUTPUT]: (model, modelName, typeName) => {
+    const composerType = COMPOSER_TYPES.OUTPUT;
+    const typeDef = getBaseTypeDef(model, modelName, composerType, typeName);
+    addFieldsToTypeDef(typeDef, model, modelName, composerType);
+
+    return schemaComposer.createObjectTC(typeDef);
+  },
+  [COMPOSER_TYPES.OUTPUT_WITH_ACTIONS]: (model, modelName, typeName) => {
+    const composerType = COMPOSER_TYPES.OUTPUT;
+    const typeDef = getBaseTypeDef(model, modelName, composerType, typeName);
+    addFieldsToTypeDef(typeDef, model, modelName, composerType);
+    typeDef.fields._actions = 'JSON';
+
+    return schemaComposer.createObjectTC(typeDef);
+  },
+};
+
+function createType(model, modelName, composerType, typeName) {
+  const typeBuilder = typeBuilders[composerType];
+  if (!typeBuilder) {
+    throw new Error(`Invalid composerType ${composerType}`);
+  }
+  return typeBuilder(model, modelName, typeName);
 }
 
 function getOrCreateTypeByModel(model, modelName, composerType) {

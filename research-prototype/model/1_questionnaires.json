@@ -24,7 +24,8 @@
           },
           "create": {
             "permissions": "accessAsUser"
-          }
+          },
+          "syntheticGenerate": null
         }
       },
       "scopes": {
@@ -37,6 +38,7 @@
         "questionnaireName": {
           "type": "String",
           "unique": true,
+          "required": true,
           "fullName": "Questionnaire Name",
           "description": "Name of the full questionnaire",
           "width": "200"

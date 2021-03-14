@@ -1,0 +1,35 @@
+<adp-page-loader loading="vm.loading"></adp-page-loader>
+
+<adp-content-container
+        class="single-record"
+        ng-if="!vm.loading">
+
+    <adp-section-container>
+        <adp-page-title>User preferences</adp-page-title>
+        <button
+                type="button"
+                ng-if="!vm.editing"
+                ng-click="vm.enterEditMode()"
+                class="btn btn-primary page-action">
+            Edit
+        </button>
+    </adp-section-container>
+
+    <adp-section-container
+            ng-if="!vm.editing">
+
+        <adp-record-details
+                schema="vm.args.modelSchema"
+                data="vm.args.row">
+        </adp-record-details>
+
+    </adp-section-container>
+
+    <adp-form
+            class="single-record-form"
+            ng-if="vm.editing"
+            args="::vm.editArgs"
+            form-options="::vm.formOptions"
+    >
+    </adp-form>
+</adp-content-container>

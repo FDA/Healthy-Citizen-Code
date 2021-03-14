@@ -7,6 +7,7 @@
 
   /** @ngInject */
   function adpChartEcharts(
+    AdpChartService,
     $timeout
   ) {
     return {
@@ -22,13 +23,18 @@
 
         function init() {
           var chart = echarts.init(element[0]);
-          if (_.isEmpty(scope.data)) {
-            scope.options = setNoDataMessageOptions(scope.options.title.text);
-          } else {
-            _.set(scope.options, 'dataset.source', scope.data);
+          var chartOptions = AdpChartService.evalOptions(scope.options);
+          var dataFromOptions = _.get(chartOptions, 'dataset.source', scope.data);
+
+          if (scope.data) {
+            if (_.isEmpty(dataFromOptions)) {
+              scope.options = setNoDataMessageOptions(chartOptions.title.text);
+            } else {
+              _.set(chartOptions, 'dataset.source', scope.data);
+            }
           }
 
-          chart.setOption(scope.options);
+          chart.setOption(chartOptions);
           chart.resize();
           bindEvents(chart);
         }
@@ -36,7 +42,7 @@
         function bindEvents(chart) {
           $(window).on('resize.echarts', _.debounce(function () {
             chart.resize();
-          }, 100));
+          }, 200));
 
           scope.$watch(
             function () {

@@ -4,15 +4,15 @@ const commandLineArgs = require('command-line-args');
 const {
   validateArgs,
   prepareAppLib,
-  connectMongoose,
   injectListValues,
   getParamsForGeneratorFiles,
-  getFunctions,
+  getGenerators,
   getHelperFiles,
   getEnv,
 } = require('./start-helpers');
 const { getCollectionOrder } = require('./build-collection-order-to-generate');
 const { generateDocs } = require('./generate-data');
+const { mongoConnect } = require('../util/mongo');
 
 const optionDefinitions = [
   { name: 'corePath', type: String },
@@ -79,8 +79,7 @@ async function run() {
     );
   }
 
-  await connectMongoose(appLib, mongoUrl);
-  await mutil.generateMongooseModels(appLib.db, appLib.appModel.models);
+  appLib.db = await mongoConnect(mongoUrl);
   await injectListValues(appLib);
 
   const pregeneratorFiles = getHelperFiles(corePath, schemaPath, 'pregenerators');
@@ -91,7 +90,7 @@ async function run() {
     uploadDir: args.uploadDir,
   });
   const generatorFiles = getHelperFiles(corePath, schemaPath, 'generators');
-  const functions = getFunctions({ generatorFiles, paramsForGeneratorFiles });
+  const generators = getGenerators({ generatorFiles, paramsForGeneratorFiles });
 
   const collections = includeCollections || allCollections;
   const collectionOrder = getCollectionOrder(collections, appLib.lookupFieldsMeta, excludeCollections);
@@ -100,6 +99,6 @@ async function run() {
     console.log(`> Inserted record in '${collectionName}':`, JSON.stringify(insertedDoc, null, 2));
   };
   for (const collectionName of collectionOrder) {
-    await generateDocs({ appLib, env, functions, collectionName, count, log: console, onDocInsert });
+    await generateDocs({ appLib, env, generators, collectionName, count, log: console, onDocInsert });
   }
 }

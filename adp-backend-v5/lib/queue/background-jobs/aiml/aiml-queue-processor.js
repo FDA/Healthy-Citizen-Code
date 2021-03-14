@@ -20,7 +20,7 @@ module.exports = (context) => {
     // since job.data is valid json
     creator._id = ObjectID(creator._id);
 
-    const { db, cache, log, backgroundJobsUtil } = context.getCommonContext();
+    const { db, cache, backgroundJobsUtil } = context.getCommonContext();
     const { flattenObject, getPercentage, processDataMapping, upsertResultRecords } = backgroundJobsUtil;
     const now = new Date();
 
@@ -54,11 +54,11 @@ module.exports = (context) => {
 
       await cache.clearCacheForModel(outputCollection);
     } catch (e) {
-      log.error(`Unable to process a job with id ${job.id}`, e.stack);
+      throw new Error(`Unable to process a job with id ${job.id}. ${e.stack}`);
     }
 
     async function processVariables() {
-      const results = await Promise.map(data, ({ mappedData }) => getAimlResult(endpoint, mappedData, log));
+      const results = await Promise.map(data, ({ mappedData }) => getAimlResult(endpoint, mappedData));
       const resultRecords = [];
 
       _.each(results, (result, index) => {

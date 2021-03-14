@@ -35,9 +35,10 @@ function getParentInfo(appModel, row, lodashPath) {
       const assocArrayKey = lodashPathArr[i];
       curPath.push(assocArrayKey);
     } else if (type === 'Array') {
-      const isLastElem = i !== lodashPathArr.length - 1;
-      if (isLastElem) {
-        // if last elem is array then lastArrPath for it is penultimate array in the whole sequence
+      const isNotLastElem = i !== lodashPathArr.length - 1;
+      if (isNotLastElem) {
+        // For path [ 'arr1', '0', 'arr2', '1', 'str' ] lastArrPath will be [ 'arr1', '0', 'arr2']
+        // For path [ 'arr1', '0', 'arr2'] lastArrPath will be [ 'arr1']
         lastArrPath = curPath.slice(0);
       }
 
@@ -53,7 +54,7 @@ function getParentInfo(appModel, row, lodashPath) {
   return {
     indexes: arrIndexes.length ? arrIndexes : null,
     index: lastArrPath ? +lodashPathArr[lastArrPath.length] : null,
-    parentData: _.get(row, lastArrPath, null),
+    parentData: lastArrPath ? _.get(row, lastArrPath, null) : _.get(row, lodashPathArr.slice(0, -1), row),
   };
 }
 

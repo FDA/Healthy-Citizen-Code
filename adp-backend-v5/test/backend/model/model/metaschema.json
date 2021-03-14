@@ -4,21 +4,32 @@
       "required": true,
       "default": "String",
       "list": [
-        "String",
-        "Number",
-        "Date",
-        "Boolean",
-        "Mixed", // mongoose type Mixed, i.e. any object with any structure
-        "Array",
-        "Object", // something with defined structure
         "Schema",
+        "String",
+        "Html",
+        "Code",
+        "Date",
+        "Number",
+        "Double",
+        "Int32",
+        "Int64",
+        "Decimal128",
+        "Boolean",
+        "Mixed", // any structure, might be either primitive type or Object/Array
+        "Object", // something with defined structure,
+        "AssociativeArray",
         "ObjectID",
         "LookupObjectID",
+        "Array",
         "TreeSelector",
 
         "String[]",
         "Date[]",
         "Number[]",
+        "Double[]",
+        "Int32[]",
+        "Int64[]",
+        "Decimal128[]",
         "Boolean[]",
         "Mixed[]",
         "Object[]",
@@ -41,14 +52,34 @@
         "Dashboard",
         "DashboardItem",
         "Group",
-        "Location"
-        // "Barcode" - this is a subtype
+        "Location",
+        "Grid",
+        "Password",
+        "Email",
+        "Phone",
+        "Url",
+        "Text",
+        "ImperialHeight",
+        "ImperialWeight",
+        "ImperialWeightWithOz",
+        "BloodPressure",
+        "Time",
+        "DateTime",
+        "DynamicList",
+        "Barcode",
+        "Currency",
+        "List",
+        "List[]",
+        "Blank",
+        "StaticHtml",
+        "CronExpression"
       ],
       "fullName": "Type",
       "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Some types are only available for interface elements and not the model"
     },
     "subtype": {
       "list": [
+        "Location",
         "Password",
         "Email",
         "Phone",
@@ -86,7 +117,7 @@
     "responsivePriority": {
       "default": 100,
       "fullName": "Responsive Priority",
-      "description": "Defines the priority of this field being hidden in datatables as described here: https://datatables.net/extensions/responsive/priority (the higher the priority, the sooner the column will be hidden in narrow windows)"
+      "description": "Defines the priority of this field being hidden in datatables as described here: https://js.devexpress.com/Documentation/ApiReference/UI_Widgets/dxDataGrid/Configuration/columns/#hidingPriority (the lower the priority, the sooner the column will be hidden in narrow windows)"
     },
     "labelRenderer": {
       "fullName": "Label Renderer",
@@ -108,7 +139,7 @@
       "fields": {
         "type": {
           "description": "Icon type: font-awesome, in the future: image etc",
-          "list": ["font-awesome"],
+          "list": ["font-awesome", "image", "class"],
           "default": "font-awesome"
         }
       }
@@ -119,7 +150,7 @@
     },
     "linkLabel": {
       "fullName": "View All",
-      "description": "The label of the link in a dashbaord item or a tile"
+      "description": "The label of the link in a dashboard item or a tile"
     },
     "template": {
       "fullName": "Template",
@@ -140,6 +171,10 @@
       "fullName": "Description",
       "description": "Description of the field meaning. This will be sent to the front-end"
     },
+    "singleRecordName": {
+      "fullName": "Single Record Name",
+      "description": "Singular form of one record in the collection"
+    },
     "permissions": {
       "fullName": "Permissions",
       "description": "Field permissions"
@@ -148,18 +183,13 @@
       "fullName": "Temporary",
       "description": "If temporary then it should not be listed as a part of dictionary as this attribute is only used for MVP demo"
     },
-    //    "temporary": {
-    //      "fullName": "Temporary",
-    //      "type": "Boolean",
-    //      "description": "If temporary then it should not be listed as a part of dictionary as this attribute is only used for MVP demo"
-    //    },
     "default": {
       "fullName": "Default Value",
       "description": "Specifies the default value for this field if no value is provided"
     },
     "list": {
       "fullName": "List",
-      "comment": "Lists all possible values of this attribute"
+      "comment": "Lists all possible values of this attribute. List values may be retrieved asynchronously"
     },
     "comment": {
       "fullName": "Comment",
@@ -229,6 +259,10 @@
       "fullName": "Field Renderer",
       "description": "Renderers provide a way to render the data in a non-default way"
     },
+    "exportRender": {
+      "fullName": "Field Export Renderer",
+      "description": "Same as 'render' but used then exporting to XLSX & CSV"
+    },
     "formRender": {
       "fullName": "Field Renderer for the forms",
       "description": "Unlike 'render' this one is used in forms, not in datatables"
@@ -250,11 +284,11 @@
       "description": "Arguments to be used in the validator"
     },
     "transform": {
-      "fullName": "Trasform",
+      "fullName": "Transform",
       "description": "Lists array functions to be called to transform the data before storing it in the database. You can provide a 2-element array instead of one function to perform transformation before storing value into the database and after retrieving value from the database"
     },
     "schemaTransform": {
-      "fullName": "Schema Trasform",
+      "fullName": "Schema Transform",
       "description": "Lists array functions to be called to transform the model schema"
     },
     "fields": {
@@ -287,12 +321,7 @@
     },
     "parameters": {
       "fulName": "Parameters",
-      "description": "Various parameters specific for the givern type of field"
-    },
-    "generatorSpecification": {
-      "default": "2",
-      "fullName": "Specification for the generator",
-      "description": "See synthetic_generator.js#get_model_records in CorpUtil for examples of how the spec may look like"
+      "description": "Various parameters specific for the given type of field"
     },
     "generatorDistribution": {
       "default": "random",
@@ -334,9 +363,23 @@
       "comment": "different actions may require different roles",
       "fields": {
         // TODO: move fields underneath fields
-        "showInTable": {
+        "showInTable": { // Deprecated! replaced with showPosition
           "description": "Used in actions. If true then there should be a button in the datatables view linked to this action",
           "default": true
+        },
+        "position": {
+          "list": ["grid.row", "grid.top.left", "grid.top.right"],
+          "description": "Position, where to show action button",
+          "default": "gridRow"
+        },
+        "actionOrder": {
+          "type": "Number",
+          "description": "Number to help order actions by",
+          "default": 0
+        },
+        "locateInMenu": {
+          "type": "String",
+          "description": "Determine collapsing of the toolbar action button into drop menu, in case of narrow grid"
         },
         "permissions": {
           "type": "String[]",
@@ -361,18 +404,36 @@
         "fullName": {
           "description": "If set then this name will be displayed on the button as a label"
         },
+        "description": {
+          "description": "If set then this text will be displayed as hint for action button"
+        },
         "action": {
           "fields": {
             "type": {
-              "list": ["action", "link"],
+              "list": ["action", "link", "module"],
               "default": "action"
             },
             "link": {
               "type": "String"
             }
           }
+        },
+        "enabled": {
+          "type": "Boolean",
+          "description": "If set to false, disables action in UI",
+          "default": true,
+          "required": false
         }
       }
+    },
+    "recordActionsLayout": {
+      "default": "spread",
+      "list": [
+        "spread",
+        "menu"
+      ],
+      "fullName": "Record actions layout",
+      "description": "The way actions appear in data grid row"
     },
     "scopes": {
       "fullName": "Scopes",
@@ -414,6 +475,38 @@
     "filter": {
       "fullName": "Filter name, i.e. one of keys used in 'metaschema.filters' object",
       "description": "Includes renderer (visual part) and where (mongodb query part)"
+    },
+    "generatorSpecification": {
+      "fullName": "Generator Specification",
+      "description": "Used in Synthetic Content Generator"
+    },
+    "order": {
+      "type": "Number",
+      "fullName": "Order",
+      "description": "Sets value for formOrder, datagridOrder, detailedViewOrder fields if according field is not specified."
+    },
+    "formOrder": {
+      "type": "Number",
+      "fullName": "Form Order",
+      "description": "Determines field order in form."
+    },
+    "datagridOrder": {
+      "type": "Number",
+      "fullName": "Datagrid Order",
+      "description": "Determines field order in datagrid."
+    },
+    "detailedViewOrder": {
+      "type": "Number",
+      "fullName": "Detailed View Order",
+      "description": "Determines field order in detailed view."
+    },
+    "indexes": {
+      "fullName": "Indexes specification",
+      "description": "Specification in format { 'anyKeyJustToDistinguishIndexSpecs': { keys, options } } is passed as createIndex(keys, options) for current collection. More info - https://docs.mongodb.com/manual/reference/method/db.collection.createIndex"
+    },
+    "showHeader": {
+      "fullName": "Height Attribute of type=Grid",
+      "description": "Allows to specify height of rendered table. Number, px"
     }
   }
 }

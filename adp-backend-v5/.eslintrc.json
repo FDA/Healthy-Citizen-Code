@@ -7,7 +7,7 @@
   "plugins": ["promise", "mocha", "security"],
   "extends": ["airbnb-base", "prettier"],
   "parserOptions": {
-    "ecmaVersion": 2018
+    "ecmaVersion": 2020
   },
   "overrides": [
     {
@@ -42,13 +42,16 @@
     "no-underscore-dangle": 0,
     "no-plusplus": 0,
     "no-dynamic-require": 0,
-    "comma-dangle": ["error", {
-      "arrays": "always-multiline",
-      "exports": "always-multiline",
-      "functions": "never",
-      "imports": "always-multiline",
-      "objects": "always-multiline"
-    }],
+    "comma-dangle": [
+      "error",
+      {
+        "arrays": "always-multiline",
+        "exports": "always-multiline",
+        "functions": "never",
+        "imports": "always-multiline",
+        "objects": "always-multiline"
+      }
+    ],
     "object-curly-newline": ["error", { "consistent": true }],
     "newline-per-chained-call": ["error", { "ignoreChainWithDepth": 2 }],
     // allow use functions before its declaration
@@ -85,6 +88,22 @@
       }
     ],
     "no-return-await": "error",
+    "prefer-destructuring": [
+      "error",
+      {
+        "VariableDeclarator": {
+          "object": true,
+          "array": false
+        },
+        "AssignmentExpression": {
+          "object": false,
+          "array": false
+        }
+      },
+      {
+        "enforceForRenamedProperties": false
+      }
+    ],
 
     // Promise config
     // blubird catch can receive 2 params
