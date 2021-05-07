@@ -14,7 +14,7 @@
     "http-proxy-agent": "^4.0.1",
     "https-proxy-agent": "^5.0.0",
     "js-base64": "^2.5.1",
-    "lodash": "^4.17.15",
+    "lodash": "^4.17.21",
     "log4js": "^6.1.0",
     "nanoid": "^3.1.16",
     "querystring": "^0.2.0",
