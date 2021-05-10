@@ -10,7 +10,7 @@
   "license": "UNLICENSED",
   "dependencies": {
     "async": "^2.6.1",
-    "axios": "^0.19.1",
+    "axios": "^0.21.1",
     "bluebird": "^3.5.1",
     "fs": "0.0.1-security",
     "json5": "^2.1.3",
