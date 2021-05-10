@@ -11,7 +11,7 @@
   "dependencies": {
     "async": "^2.4.1",
     "fs": "0.0.1-security",
-    "lodash": "^4.17.4",
+    "lodash": "^4.17.21",
     "log4js": "^1.1.1",
     "moment": "^2.18.1",
     "mongoose": "^4.10.8"
