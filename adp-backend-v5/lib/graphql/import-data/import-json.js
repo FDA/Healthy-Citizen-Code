@@ -64,7 +64,7 @@ async function importItems({ items, context, log }) {
     await appLib.cache.clearCacheForModel(modelName);
     return getSuccessfulResponse(res.insertedCount);
   } catch (e) {
-    const mongoDuplicateErrorMessage = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+    const mongoDuplicateErrorMessage = getMongoDuplicateErrorMessage(e, appLib.appModel.models[modelName]);
     const errorKey = e.index || 'overall';
     if (mongoDuplicateErrorMessage) {
       errors[errorKey] = mongoDuplicateErrorMessage;

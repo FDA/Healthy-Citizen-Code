@@ -1,0 +1,180 @@
+{
+  "interface": {
+    "mainMenu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "iconType": "font-awesome",
+      "fields": {
+        "home": {
+          "type": "MenuItem",
+          "fullName": "Home",
+          "link": "/",
+          "iconType": "font-awesome",
+          "iconLink": "home"
+        },
+        "coaches": {
+          "type": "MenuItem",
+          "fullName": "Coaches",
+          "link": "/coaches",
+          "iconType": "font-awesome",
+          "iconLink": "user"
+        },
+        "employees": {
+          "type": "MenuItem",
+          "fullName": "Employees",
+          "link": "/employees",
+          "iconType": "font-awesome",
+          "iconLink": "group"
+        },
+        "tasks": {
+          "type": "MenuItem",
+          "fullName": "Tasks",
+          "link": "/tasks",
+          "iconType": "font-awesome",
+          "iconLink": "task"
+        },
+        "logs": {
+          "type": "MenuItem",
+          "fullName": "Logs",
+          "link": "/logs",
+          "iconType": "font-awesome",
+          "iconLink": "log"
+        },
+        "image": {
+          "type": "MenuItem",
+          "fullName": "Image Gallery",
+          "link": "/image-gallery",
+          "iconType": "font-awesome",
+          "iconLink": "image"
+        }
+      }
+    },
+    "pages": {
+      "employeeSummaryPage": {
+        "type": "String",
+        "fullName": "Employee Summary Page",
+        "link": "/employee/:employeeid/summary-page",
+        "template": {
+          "type": "file",
+          "link": "employee_parsonal_summary_page.ejs"
+        },
+        "controller": "LetsCafeController",
+        "parameters": {
+          "method": "GET"
+        }
+      },
+      "coachSummaryPage": {
+        "type": "String",
+        "fullName": "Coach Summary Page",
+        "link": "/coach/:coachid/summary-page",
+        "template": {
+          "type": "file",
+          "link": "coach_parsonal_summary_page.ejs"
+        },
+        "controller": "LetsCafeController",
+        "parameters": {
+          "test": "test"
+        },
+        "comment": "This parameter is fake"
+      }
+    }
+  },
+  "models": {
+    "tasks": {
+      "type": "String",
+      "fullName": "Tasks",
+      "fields": {
+        "name": {
+          "type": "String",
+          "fullName": "Name"
+        },
+        "description": {
+          "type": "String",
+          "fullName": "Description"
+        },
+        "pictures": {
+          "type": "Image[]",
+          "fullName": "Pictures"
+        }
+      }
+    },
+    "coaches": {
+      "type": "Schema",
+      "fullName": "Coaches",
+      "fields": {
+        "name": {
+          "type": "String",
+          "fullName": "Name"
+        },
+        "title": {
+          "type": "String",
+          "fullName": "Title"
+        },
+        "picture": {
+          "type": "Image",
+          "fullName": "Picture"
+        }
+      }
+    },
+    "employees": {
+      "type": "Schema",
+      "fullName": "Employees",
+      "fields": {
+        "photo": {
+          "type": "Image[]",
+          "fullName": "Photo"
+        },
+        "coach": {
+          "type": "ObjectID",
+          "fullName": "Coach",
+          "lookup": {
+            "table": "Coaches",
+            "foreignKey": "_id",
+            "label": "Name",
+            "id": "employeeCoach"
+          }
+        },
+        "log": {
+          "type": "Subschema",
+          "fullName": "Log",
+          "fields": {
+            "reminders": {
+              "type": "Number",
+              "fullName": "Reminders Required"
+            }
+          }
+        },
+        "pictures": {
+          "type": "Image[]",
+          "fullName": "Pictures"
+        },
+        "task": {
+          "type": "ObjectID",
+          "fullName": "Task",
+          "lookup": {
+            "table": "Tasks",
+            "foreignKey": "_id",
+            "label": "Name",
+            "id": "employeeLogTask"
+          }
+        },
+        "date": {
+          "type": "Date",
+          "fullName": "Date"
+        },
+        "completed": {
+          "type": "Boolean",
+          "fullName": "Completed"
+        },
+        "rating": {
+          "type": "Number",
+          "fullName": "Rating"
+        },
+        "duration": {
+          "type": "Number",
+          "fullName": "Duration"
+        }
+      }
+    }
+  }
+}

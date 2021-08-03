@@ -5,7 +5,6 @@
 
 require('dotenv').load({ path: require('path').join(__dirname, '../.env') });
 const _ = require('lodash');
-const log = require('log4js').getLogger('widget-manager/widget-controller');
 const querystring = require('querystring');
 const {
   getNotFoundWidgetHtml,
@@ -41,7 +40,7 @@ module.exports = function() {
 
   function getLogInfo() {
     if (process.env.DEVELOPMENT === 'true') {
-      return msg => log.info(msg);
+      return msg => m.log.info(msg);
     }
     return () => {};
   }
@@ -55,6 +54,7 @@ module.exports = function() {
 
   m.init = appLib => {
     m.appLib = appLib;
+    m.log = appLib.getLogger('widget-manager/widget-controller');
 
     // for backward compatibility with EPIC
     if (!process.env.EPIC_CLIENT_ID_UCSF_RECALLS) {
@@ -93,7 +93,7 @@ module.exports = function() {
         res.json({ success: true, data: widgetData });
       })
       .catch(err => {
-        log.log(err.message);
+        m.log.error(err.message);
         res.json({ success: false, message: 'Unable to get widget params.' });
       });
   };
@@ -133,7 +133,7 @@ module.exports = function() {
         res.send(getWidgetHtml(widgetId, params));
       })
       .catch(err => {
-        handleAxiosError(err, log);
+        handleAxiosError(err, m.log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -174,7 +174,7 @@ module.exports = function() {
         res.json({ success: true, data: params });
       })
       .catch(err => {
-        handleAxiosError(err, log);
+        handleAxiosError(err, m.log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -200,7 +200,7 @@ module.exports = function() {
         res.send(getPreparedWidgetHtml({ iss: ISS, patient, fhir_access_token, widgetType: WIDGET_TYPE_FALLBACK }));
       })
       .catch(err => {
-        handleAxiosError(err, log);
+        handleAxiosError(err, m.log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -228,7 +228,7 @@ module.exports = function() {
         res.send(getPreparedWidgetHtmlWithRxcuis(rxcuis));
       })
       .catch(err => {
-        handleAxiosError(err, log);
+        handleAxiosError(err, m.log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -255,7 +255,7 @@ module.exports = function() {
         res.send(getPreparedWidgetHtml({ iss, fhir_access_token, patient, widgetType }));
       })
       .catch(err => {
-        handleAxiosError(err, log);
+        handleAxiosError(err, m.log);
         res.send(getNotFoundWidgetHtml());
       });
   };
@@ -272,7 +272,7 @@ module.exports = function() {
     const { widgetType } = req.params;
     const isValidWidgetName = m.validWidgetTypes.includes(widgetType);
     if (!isValidWidgetName) {
-      log.error(`Invalid widget type: ${widgetType}`);
+      m.log.error(`Invalid widget type: ${widgetType}`);
       const supportedWidgetTypesMsg = `Supported widget types: ${m.validWidgetTypes.join(', ')}`;
       const message = widgetType
         ? `Unable to find widget '${widgetType}'. ${supportedWidgetTypesMsg}`
@@ -307,11 +307,11 @@ module.exports = function() {
           scope: 'launch',
         });
         const authroizeRedirectUrl = `${authorizeUrl}?${authParams}`;
-        log.info(`Redirecting to ${authroizeRedirectUrl}`);
+        m.log.info(`Redirecting to ${authroizeRedirectUrl}`);
         res.redirect(302, authroizeRedirectUrl);
       })
       .catch(err => {
-        handleAxiosError(err, log);
+        handleAxiosError(err, m.log);
         res.send(getNotFoundWidgetHtml());
       });
   };

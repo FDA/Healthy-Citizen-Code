@@ -1,0 +1,923 @@
+{
+  "resources": {
+    "capabilityStatement": {
+      "type": "Resource",
+      "fullName": "Capability Statement",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "structureDefinition": {
+      "type": "Resource",
+      "fullName": "Structure Definition",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "implementationGuide": {
+      "type": "Resource",
+      "fullName": "Implementation Guide",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "searchParameter": {
+      "type": "Resource",
+      "fullName": "Search Parameter",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "messageDefinition": {
+      "type": "Resource",
+      "fullName": "Message Definition",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "operationDefinition": {
+      "type": "Resource",
+      "fullName": "Operation Definition",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "compartmentDefinition": {
+      "type": "Resource",
+      "fullName": "Compartment Definition",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "structureMap": {
+      "type": "Resource",
+      "fullName": "Structure Map",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "graphDefinition": {
+      "type": "Resource",
+      "fullName": "Graph Definition",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "dataElement": {
+      "type": "Resource",
+      "fullName": "Data Element",
+      "menuId": "FC",
+      "include": "0"
+    },
+    "codeSystem": {
+      "type": "Resource",
+      "fullName": "Code System",
+      "menuId": "FT",
+      "include": "1"
+    },
+    "valueSet": {
+      "type": "Resource",
+      "fullName": "Value Set",
+      "menuId": "FT",
+      "include": "1"
+    },
+    "conceptMap": {
+      "type": "Resource",
+      "fullName": "Concept Map",
+      "menuId": "FT",
+      "include": "1"
+    },
+    "expansionProfile": {
+      "type": "Resource",
+      "fullName": "Expansion Profile",
+      "menuId": "FT",
+      "include": "1"
+    },
+    "namingSystem": {
+      "type": "Resource",
+      "fullName": "Naming System",
+      "menuId": "FT",
+      "include": "1"
+    },
+    "provenance": {
+      "type": "Resource",
+      "fullName": "Provenance",
+      "menuId": "FS",
+      "include": "1"
+    },
+    "auditEvent": {
+      "type": "Resource",
+      "fullName": "Audit Event",
+      "menuId": "FS",
+      "include": "0"
+    },
+    "consent": {
+      "type": "Resource",
+      "fullName": "Consent",
+      "menuId": "FS",
+      "include": "1"
+    },
+    "composition": {
+      "type": "Resource",
+      "fullName": "Composition",
+      "menuId": "FD",
+      "include": "0"
+    },
+    "documentManifest": {
+      "type": "Resource",
+      "fullName": "Document Manifest",
+      "menuId": "FD",
+      "include": "0"
+    },
+    "documentReference": {
+      "type": "Resource",
+      "fullName": "Document Reference",
+      "menuId": "FD",
+      "include": "0"
+    },
+    "basic": {
+      "type": "Resource",
+      "fullName": "Basic",
+      "menuId": "FO",
+      "include": "1"
+    },
+    "binary": {
+      "type": "Resource",
+      "fullName": "Binary",
+      "menuId": "FO",
+      "include": "1"
+    },
+    "bundle": {
+      "type": "Resource",
+      "fullName": "Bundle",
+      "menuId": "FO",
+      "include": "1"
+    },
+    "linkage": {
+      "type": "Resource",
+      "fullName": "Linkage",
+      "menuId": "FO",
+      "include": "1"
+    },
+    "media": {
+      "type": "Resource",
+      "fullName": "Media",
+      "menuId": "FO",
+      "include": "1"
+    },
+    "messageHeader": {
+      "type": "Resource",
+      "fullName": "Message Header",
+      "menuId": "FO",
+      "include": "0"
+    },
+    "operationOutcome": {
+      "type": "Resource",
+      "fullName": "Operation Outcome",
+      "menuId": "FO",
+      "include": "0"
+    },
+    "parameters": {
+      "type": "Resource",
+      "fullName": "Parameters",
+      "menuId": "FO",
+      "include": "0"
+    },
+    "subscription": {
+      "type": "Resource",
+      "fullName": "Subscription",
+      "menuId": "FO",
+      "include": "0"
+    },
+    "patient": {
+      "type": "Resource",
+      "fullName": "Patient",
+      "menuId": "BI",
+      "include": "1"
+    },
+    "practitioner": {
+      "type": "Resource",
+      "fullName": "Practitioner",
+      "menuId": "BI",
+      "include": "1"
+    },
+    "practitionerRole": {
+      "type": "Resource",
+      "fullName": "Practitioner Role",
+      "menuId": "BI",
+      "include": "1"
+    },
+    "relatedPerson": {
+      "type": "Resource",
+      "fullName": "Related Person",
+      "menuId": "BI",
+      "include": "1"
+    },
+    "person": {
+      "type": "Resource",
+      "fullName": "Person",
+      "menuId": "BI",
+      "include": "1"
+    },
+    "group": {
+      "type": "Resource",
+      "fullName": "Group",
+      "menuId": "BI",
+      "include": "1"
+    },
+    "organization": {
+      "type": "Resource",
+      "fullName": "Organization",
+      "menuId": "BE",
+      "include": "1"
+    },
+    "healthcareService": {
+      "type": "Resource",
+      "fullName": "Healthcare Service",
+      "menuId": "BE",
+      "include": "1"
+    },
+    "endpoint": {
+      "type": "Resource",
+      "fullName": "Endpoint",
+      "menuId": "BE",
+      "include": "1"
+    },
+    "location": {
+      "type": "Resource",
+      "fullName": "Location",
+      "menuId": "BE",
+      "include": "1"
+    },
+    "substance": {
+      "type": "Resource",
+      "fullName": "Substance",
+      "menuId": "BE",
+      "include": "1"
+    },
+    "device": {
+      "type": "Resource",
+      "fullName": "Device",
+      "menuId": "BE",
+      "include": "1"
+    },
+    "deviceComponent": {
+      "type": "Resource",
+      "fullName": "Device Component",
+      "menuId": "BE",
+      "include": "1"
+    },
+    "deviceMetric": {
+      "type": "Resource",
+      "fullName": "Device Metric",
+      "menuId": "BE",
+      "include": "1"
+    },
+    "task": {
+      "type": "Resource",
+      "fullName": "Task",
+      "menuId": "BW",
+      "include": "0"
+    },
+    "appointment": {
+      "type": "Resource",
+      "fullName": "Appointment",
+      "menuId": "BW",
+      "include": "0"
+    },
+    "appointmentResponse": {
+      "type": "Resource",
+      "fullName": "Appointment Response",
+      "menuId": "BW",
+      "include": "0"
+    },
+    "schedule": {
+      "type": "Resource",
+      "fullName": "Schedule",
+      "menuId": "BW",
+      "include": "0"
+    },
+    "slot": {
+      "type": "Resource",
+      "fullName": "Slot",
+      "menuId": "BW",
+      "include": "0"
+    },
+    "processRequest": {
+      "type": "Resource",
+      "fullName": "Process Request",
+      "menuId": "BW",
+      "include": "0"
+    },
+    "processResponse": {
+      "type": "Resource",
+      "fullName": "Process Response",
+      "menuId": "BW",
+      "include": "0"
+    },
+    "encounter": {
+      "type": "Resource",
+      "fullName": "Encounter",
+      "menuId": "BM",
+      "include": "1"
+    },
+    "episodeOfCare": {
+      "type": "Resource",
+      "fullName": "Episode Of Care",
+      "menuId": "BM",
+      "include": "1"
+    },
+    "flag": {
+      "type": "Resource",
+      "fullName": "Flag",
+      "menuId": "BM",
+      "include": "0"
+    },
+    "list": {
+      "type": "Resource",
+      "fullName": "List",
+      "menuId": "BM",
+      "include": "0"
+    },
+    "library": {
+      "type": "Resource",
+      "fullName": "Library",
+      "menuId": "BM",
+      "include": "0"
+    },
+    "allergyIntolerance": {
+      "type": "Resource",
+      "fullName": "Allergy Intolerance",
+      "menuId": "CS",
+      "include": "1"
+    },
+    "adverseEvent": {
+      "type": "Resource",
+      "fullName": "Adverse Event",
+      "menuId": "CS",
+      "include": "1"
+    },
+    "condition": {
+      "type": "Resource",
+      "fullName": "Condition",
+      "menuId": "CS",
+      "include": "1"
+    },
+    "procedure": {
+      "type": "Resource",
+      "fullName": "Procedure",
+      "menuId": "CS",
+      "include": "1"
+    },
+    "familyMemberHistory": {
+      "type": "Resource",
+      "fullName": "Family Member History",
+      "menuId": "CS",
+      "include": "1"
+    },
+    "clinicalImpression": {
+      "type": "Resource",
+      "fullName": "Clinical Impression",
+      "menuId": "CS",
+      "include": "1"
+    },
+    "detectedIssue": {
+      "type": "Resource",
+      "fullName": "Detected Issue",
+      "menuId": "CS",
+      "include": "1"
+    },
+    "observation": {
+      "type": "Resource",
+      "fullName": "Observation",
+      "menuId": "CD",
+      "include": "1"
+    },
+    "diagnosticReport": {
+      "type": "Resource",
+      "fullName": "Diagnostic Report",
+      "menuId": "CD",
+      "include": "1"
+    },
+    "specimen": {
+      "type": "Resource",
+      "fullName": "Specimen",
+      "menuId": "CD",
+      "include": "1"
+    },
+    "bodySite": {
+      "type": "Resource",
+      "fullName": "Body Site",
+      "menuId": "CD",
+      "include": "1"
+    },
+    "imagingStudy": {
+      "type": "Resource",
+      "fullName": "Imaging Study",
+      "menuId": "CD",
+      "include": "1"
+    },
+    "imagingManifest": {
+      "type": "Resource",
+      "fullName": "Imaging Manifest",
+      "menuId": "CD",
+      "include": "1"
+    },
+    "questionnaireResponse": {
+      "type": "Resource",
+      "fullName": "Questionnaire Response",
+      "menuId": "CD",
+      "include": "1"
+    },
+    "sequence": {
+      "type": "Resource",
+      "fullName": "Sequence",
+      "menuId": "CD",
+      "include": "1"
+    },
+    "medicationRequest": {
+      "type": "Resource",
+      "fullName": "Medication Request",
+      "menuId": "CM",
+      "include": "1"
+    },
+    "medicationAdministration": {
+      "type": "Resource",
+      "fullName": "Medication Administration",
+      "menuId": "CM",
+      "include": "1"
+    },
+    "medicationDispense": {
+      "type": "Resource",
+      "fullName": "Medication Dispense",
+      "menuId": "CM",
+      "include": "1"
+    },
+    "medicationStatement": {
+      "type": "Resource",
+      "fullName": "Medication Statement",
+      "menuId": "CM",
+      "include": "1"
+    },
+    "medication": {
+      "type": "Resource",
+      "fullName": "Medication",
+      "menuId": "CM",
+      "include": "1"
+    },
+    "immunization": {
+      "type": "Resource",
+      "fullName": "Immunization",
+      "menuId": "CM",
+      "include": "1"
+    },
+    "immunizationRecommendation": {
+      "type": "Resource",
+      "fullName": "Immunization Recommendation",
+      "menuId": "CM",
+      "include": "0"
+    },
+    "carePlan": {
+      "type": "Resource",
+      "fullName": "Care Plan",
+      "menuId": "CC",
+      "include": "0"
+    },
+    "careTeam": {
+      "type": "Resource",
+      "fullName": "Care Team",
+      "menuId": "CC",
+      "include": "0"
+    },
+    "goal": {
+      "type": "Resource",
+      "fullName": "Goal",
+      "menuId": "CC",
+      "include": "0"
+    },
+    "referralRequest": {
+      "type": "Resource",
+      "fullName": "Referral Request",
+      "menuId": "CC",
+      "include": "0"
+    },
+    "procedureRequest": {
+      "type": "Resource",
+      "fullName": "Procedure Request",
+      "menuId": "CC",
+      "include": "0"
+    },
+    "nutritionOrder": {
+      "type": "Resource",
+      "fullName": "Nutrition Order",
+      "menuId": "CC",
+      "include": "1"
+    },
+    "visionPrescription": {
+      "type": "Resource",
+      "fullName": "Vision Prescription",
+      "menuId": "CC",
+      "include": "0"
+    },
+    "riskAssessment": {
+      "type": "Resource",
+      "fullName": "Risk Assessment",
+      "menuId": "CC",
+      "include": "0"
+    },
+    "requestGroup": {
+      "type": "Resource",
+      "fullName": "Request Group",
+      "menuId": "CC",
+      "include": "0"
+    },
+    "communication": {
+      "type": "Resource",
+      "fullName": "Communication",
+      "menuId": "CR",
+      "include": "1"
+    },
+    "communicationRequest": {
+      "type": "Resource",
+      "fullName": "Communication Request",
+      "menuId": "CR",
+      "include": "1"
+    },
+    "deviceRequest": {
+      "type": "Resource",
+      "fullName": "Device Request",
+      "menuId": "CR",
+      "include": "1"
+    },
+    "deviceUseStatement": {
+      "type": "Resource",
+      "fullName": "Device Use Statement",
+      "menuId": "CR",
+      "include": "1"
+    },
+    "supplyRequest": {
+      "type": "Resource",
+      "fullName": "Supply Request",
+      "menuId": "CR",
+      "include": "1"
+    },
+    "supplyDelivery": {
+      "type": "Resource",
+      "fullName": "Supply Delivery",
+      "menuId": "CR",
+      "include": "1"
+    },
+    "coverage": {
+      "type": "Resource",
+      "fullName": "Coverage",
+      "menuId": "NS",
+      "include": "1"
+    },
+    "eligibilityRequest": {
+      "type": "Resource",
+      "fullName": "Eligibility Request",
+      "menuId": "NS",
+      "include": "0"
+    },
+    "eligibilityResponse": {
+      "type": "Resource",
+      "fullName": "Eligibility Response",
+      "menuId": "NS",
+      "include": "0"
+    },
+    "enrollmentRequest": {
+      "type": "Resource",
+      "fullName": "Enrollment Request",
+      "menuId": "NS",
+      "include": "0"
+    },
+    "enrollmentResponse": {
+      "type": "Resource",
+      "fullName": "Enrollment Response",
+      "menuId": "NS",
+      "include": "0"
+    },
+    "claim": {
+      "type": "Resource",
+      "fullName": "Claim",
+      "menuId": "NB",
+      "include": "0"
+    },
+    "claimResponse": {
+      "type": "Resource",
+      "fullName": "Claim Response",
+      "menuId": "NB",
+      "include": "0"
+    },
+    "paymentNotice": {
+      "type": "Resource",
+      "fullName": "Payment Notice",
+      "menuId": "NP",
+      "include": "0"
+    },
+    "paymentReconciliation": {
+      "type": "Resource",
+      "fullName": "Payment Reconciliation",
+      "menuId": "NP",
+      "include": "0"
+    },
+    "explanationOfBenefit": {
+      "type": "Resource",
+      "fullName": "Explanation Of Benefit",
+      "menuId": "NG",
+      "include": "0"
+    },
+    "contract": {
+      "type": "Resource",
+      "fullName": "Contract",
+      "menuId": "NG",
+      "include": "0"
+    },
+    "account": {
+      "type": "Resource",
+      "fullName": "Account",
+      "menuId": "NG",
+      "include": "0"
+    },
+    "chargeItem": {
+      "type": "Resource",
+      "fullName": "Charge Item",
+      "menuId": "NG",
+      "include": "0"
+    },
+    "researchStudy": {
+      "type": "Resource",
+      "fullName": "Research Study",
+      "menuId": "SP",
+      "include": "1"
+    },
+    "researchSubject": {
+      "type": "Resource",
+      "fullName": "Research Subject",
+      "menuId": "SP",
+      "include": "1"
+    },
+    "questionnaire": {
+      "type": "Resource",
+      "fullName": "Questionnaire",
+      "menuId": "SD",
+      "include": "1"
+    },
+    "activityDefinition": {
+      "type": "Resource",
+      "fullName": "Activity Definition",
+      "menuId": "SD",
+      "include": "0"
+    },
+    "serviceDefinition": {
+      "type": "Resource",
+      "fullName": "Service Definition",
+      "menuId": "SD",
+      "include": "0"
+    },
+    "planDefinition": {
+      "type": "Resource",
+      "fullName": "Plan Definition",
+      "menuId": "SD",
+      "include": "0"
+    },
+    "guidanceResponse": {
+      "type": "Resource",
+      "fullName": "Guidance Response",
+      "menuId": "SC",
+      "include": "0"
+    },
+    "measure": {
+      "type": "Resource",
+      "fullName": "Measure",
+      "menuId": "SQ",
+      "include": "0"
+    },
+    "measureReport": {
+      "type": "Resource",
+      "fullName": "Measure Report",
+      "menuId": "SQ",
+      "include": "0"
+    },
+    "testScript": {
+      "type": "Resource",
+      "fullName": "Test Script",
+      "menuId": "ST",
+      "include": "0"
+    },
+    "testReport": {
+      "type": "Resource",
+      "fullName": "Test Report",
+      "menuId": "ST",
+      "include": "0"
+    }
+  },
+  "menu": {
+    "mainMenu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "fields": {
+        "foundation": {
+          "type": "MenuGroup",
+          "fullName": "Foundation",
+          "menuId": "F",
+          "icon": {
+            "type": "font-awesome",
+            "link": "book"
+          },
+          "fields": {
+            "conformance": {
+              "type": "MenuGroup",
+              "fullName": "Conformance",
+              "menuId": "FC"
+            },
+            "terminology": {
+              "type": "MenuGroup",
+              "fullName": "Terminology",
+              "menuId": "FT"
+            },
+            "security": {
+              "type": "MenuGroup",
+              "fullName": "Security",
+              "menuId": "FS"
+            },
+            "documents": {
+              "type": "MenuGroup",
+              "fullName": "Documents",
+              "menuId": "FD"
+            },
+            "other": {
+              "type": "MenuGroup",
+              "fullName": "Other",
+              "menuId": "FO"
+            }
+          }
+        },
+        "base": {
+          "type": "MenuGroup",
+          "fullName": "Base",
+          "menuId": "B",
+          "icon": {
+            "type": "font-awesome",
+            "link": "address-book"
+          },
+          "fields": {
+            "individuals": {
+              "type": "MenuGroup",
+              "fullName": "Individuals",
+              "menuId": "BI"
+            },
+            "entities": {
+              "type": "MenuGroup",
+              "fullName": "Entities",
+              "menuId": "BE"
+            },
+            "workflow": {
+              "type": "MenuGroup",
+              "fullName": "Workflow",
+              "menuId": "BW"
+            },
+            "management": {
+              "type": "MenuGroup",
+              "fullName": "Management",
+              "menuId": "BM"
+            }
+          }
+        },
+        "clinical": {
+          "type": "MenuGroup",
+          "fullName": "Clinical",
+          "menuId": "C",
+          "icon": {
+            "type": "font-awesome",
+            "link": "medkit"
+          },
+          "fields": {
+            "summary": {
+              "type": "MenuGroup",
+              "fullName": "Summary",
+              "menuId": "CS"
+            },
+            "diagnostics": {
+              "type": "MenuGroup",
+              "fullName": "Diagnostics",
+              "menuId": "CD"
+            },
+            "medications": {
+              "type": "MenuGroup",
+              "fullName": "Medications",
+              "menuId": "CM"
+            },
+            "care": {
+              "type": "MenuGroup",
+              "fullName": "Care Provision",
+              "menuId": "CP"
+            },
+            "request": {
+              "type": "MenuGroup",
+              "fullName": "Request Response",
+              "menuId": "CR"
+            }
+          }
+        },
+        "financial": {
+          "type": "MenuGroup",
+          "fullName": "Financial",
+          "menuId": "N",
+          "icon": {
+            "type": "font-awesome",
+            "link": "usd"
+          },
+          "fields": {
+            "support": {
+              "type": "MenuGroup",
+              "fullName": "Support",
+              "menuId": "NS"
+            },
+            "billing": {
+              "type": "MenuGroup",
+              "fullName": "Billing",
+              "menuId": "NB"
+            },
+            "payment": {
+              "type": "MenuGroup",
+              "fullName": "Payment",
+              "menuId": "NP"
+            },
+            "general": {
+              "type": "MenuGroup",
+              "fullName": "General",
+              "menuId": "NG"
+            }
+          }
+        },
+        "specialized": {
+          "type": "MenuGroup",
+          "fullName": "Specialized",
+          "menuId": "S",
+          "icon": {
+            "type": "font-awesome",
+            "link": "stethoscope"
+          },
+          "fields": {
+            "public": {
+              "type": "MenuGroup",
+              "fullName": "Public Health Research",
+              "menuId": "SP"
+            },
+            "definitional": {
+              "type": "MenuGroup",
+              "fullName": "Definitional Artifacts",
+              "menuId": "SD"
+            },
+            "clinical": {
+              "type": "MenuGroup",
+              "fullName": "Clinical Decision Support",
+              "menuId": "SC"
+            },
+            "quality": {
+              "type": "MenuGroup",
+              "fullName": "Quality Reporting",
+              "menuId": "SQ"
+            },
+            "testing": {
+              "type": "MenuGroup",
+              "fullName": "Testing",
+              "menuId": "ST"
+            }
+          }
+        }
+      }
+    }
+  },
+  "parameters": {
+    "alwaysIgnore": {
+      "type": "Parameter",
+      "fullName": "Always Ignore",
+      "list": [
+        "Parameters",
+        "Bundle",
+        "Binary",
+        "Resource",
+        "Specimen"
+      ]
+    },
+    "substitute": {
+      "type": "Parameter",
+      "fullName": "Substitute",
+      "list": {}
+    },
+    "ignoredFields": {
+      "type": "Parameter",
+      "fullName": "Ignored Fields",
+      "list": [
+      ]
+    },
+    "invisibleFields": {
+      "type": "Parameter",
+      "fullName": "Invisible Fields",
+      "list": [
+        "resourceType",
+        "id",
+        "meta",
+        "implicitRules",
+        "language",
+        "text",
+        "contained",
+        "implicitRules",
+        "language"
+      ]
+    }
+  }
+}

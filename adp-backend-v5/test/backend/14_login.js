@@ -9,16 +9,12 @@ const {
   apiRequest,
 } = require('../test-util');
 
-const modelName = 'model9_dynamic_list_permissions';
-
-describe('V5 Backend Login', function () {
+describe('V5 Backend Login', () => {
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
-    this.db = db;
+    this.appLib = prepareEnv();
 
-    await this.db.createCollection(modelName);
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
+    this.db = db;
   });
 
   after(async function () {
@@ -39,7 +35,7 @@ describe('V5 Backend Login', function () {
   });
 
   async function getLoginData(appLib, login, password) {
-    const res = await apiRequest(appLib.app)
+    const res = await apiRequest(appLib)
       .post('/login')
       .send({ login, password })
       .set('Accept', 'application/json')
@@ -51,7 +47,7 @@ describe('V5 Backend Login', function () {
   const correctPassword = 'Password!1';
   const { login } = user;
 
-  describe('login with different .env params', function () {
+  describe('login with different .env params', () => {
     it('If LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME is equal to 0, then the backend should lock out the user after LOGIN_MAX_FAILED_LOGIN_ATTEMPTS failed attempts disregarding of time. If the user is temporarily locked out, then the user should be shown the error message specified in LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE (by default the same as the message for invalid login)', async function () {
       const { appLib } = this;
       setAppAuthOptions(this.appLib, {
@@ -68,16 +64,16 @@ describe('V5 Backend Login', function () {
       await this.appLib.start();
 
       const {
-        loginMaxFailedLoginAttempts,
-        loginMaxFailedLoginAttemptsTime,
-        loginMaxFailedLoginAttemptsCooldown,
-        loginMaxFailedLoginAttemptsLockoutMessage,
-      } = appLib.auth;
-      should(loginMaxFailedLoginAttempts).be.equal(1);
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE,
+      } = appLib.config;
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS).be.equal(1);
       const tenYearsInMs = 315576000000000;
-      should(loginMaxFailedLoginAttemptsTime).be.equal(tenYearsInMs);
-      should(loginMaxFailedLoginAttemptsCooldown).be.equal(0);
-      should(loginMaxFailedLoginAttemptsLockoutMessage).be.equal(
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME).be.equal(tenYearsInMs);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN).be.equal(0);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE).be.equal(
         'This account was locked due to excessive number of incorrect logins. Please contact the system administrator in order to unlock the account.'
       );
 
@@ -91,7 +87,7 @@ describe('V5 Backend Login', function () {
       const attempt2Timestamp = new Date().getTime();
       const { success: success2, message: message2 } = await getLoginData(appLib, login, incorrectPassword);
       should(success2).be.false();
-      should(message2).be.equal(loginMaxFailedLoginAttemptsLockoutMessage);
+      should(message2).be.equal(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE);
 
       const userData2 = await this.db.collection('users').findOne({ _id: user._id });
       const { disabledAt } = userData2;
@@ -103,7 +99,7 @@ describe('V5 Backend Login', function () {
       // attempt 3
       const { success: success3, message: message3 } = await getLoginData(appLib, login, correctPassword);
       should(success3).be.false();
-      should(message3).be.equal(loginMaxFailedLoginAttemptsLockoutMessage);
+      should(message3).be.equal(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE);
     });
 
     it('If the user made more than LOGIN_MAX_FAILED_LOGIN_ATTEMPTS login attempts within LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME, then the system should temporarily lock out the account for the period of time specified in LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN.', async function () {
@@ -123,17 +119,17 @@ describe('V5 Backend Login', function () {
       await this.appLib.start();
 
       const {
-        loginMaxFailedLoginAttempts,
-        loginMaxFailedLoginAttemptsTime,
-        loginMaxFailedLoginAttemptsCooldown,
-        loginMaxFailedLoginAttemptsLockoutMessage,
-        loginMaxFailedLoginAttemptsCooldownMessage,
-      } = appLib.auth;
-      should(loginMaxFailedLoginAttempts).be.equal(2);
-      should(loginMaxFailedLoginAttemptsTime).be.equal(10000);
-      should(loginMaxFailedLoginAttemptsCooldown).be.equal(1500);
-      should(loginMaxFailedLoginAttemptsLockoutMessage).be.equal('loginMaxFailedLoginAttemptsLockoutMessage');
-      should(loginMaxFailedLoginAttemptsCooldownMessage).be.equal('loginMaxFailedLoginAttemptsCooldownMessage');
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE,
+      } = appLib.config;
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS).be.equal(2);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME).be.equal(10000);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN).be.equal(1500);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE).be.equal('loginMaxFailedLoginAttemptsLockoutMessage');
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE).be.equal('loginMaxFailedLoginAttemptsCooldownMessage');
 
       // attempt 1
       const { success: success1 } = await getLoginData(appLib, login, incorrectPassword);
@@ -155,14 +151,16 @@ describe('V5 Backend Login', function () {
       userData3.failedLoginAttempts.length.should.equal(0);
       should(userData3.loginCooldownAt instanceof Date).be.true();
       const cooldownTimestamp = userData3.loginCooldownAt.getTime();
-      should(cooldownTimestamp > loginCooldownRequestDate.getTime() + loginMaxFailedLoginAttemptsCooldown).be.true();
+      should(
+        cooldownTimestamp > loginCooldownRequestDate.getTime() + LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN
+      ).be.true();
       const nowTimestamp = new Date().getTime();
-      should(cooldownTimestamp < nowTimestamp + loginMaxFailedLoginAttemptsCooldown).be.true();
+      should(cooldownTimestamp < nowTimestamp + LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN).be.true();
 
       // attempt 4, cooldown is working
       const { success: success4, message: message4 } = await getLoginData(appLib, login, correctPassword);
       should(success4).be.false();
-      should(message4).be.equal(loginMaxFailedLoginAttemptsCooldownMessage);
+      should(message4).be.equal(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE);
       const userData4 = await this.db.collection('users').findOne({ _id: user._id });
       userData4.failedLoginAttempts.length.should.equal(0);
 
@@ -194,17 +192,17 @@ describe('V5 Backend Login', function () {
       await this.appLib.start();
 
       const {
-        loginMaxFailedLoginAttempts,
-        loginMaxFailedLoginAttemptsTime,
-        loginMaxFailedLoginAttemptsCooldown,
-        loginMaxFailedLoginAttemptsLockoutMessage,
-        loginMaxFailedLoginAttemptsCooldownMessage,
-      } = appLib.auth;
-      should(loginMaxFailedLoginAttempts).be.equal(2);
-      should(loginMaxFailedLoginAttemptsTime).be.equal(10000);
-      should(loginMaxFailedLoginAttemptsCooldown).be.equal(0);
-      should(loginMaxFailedLoginAttemptsLockoutMessage).be.equal('loginMaxFailedLoginAttemptsLockoutMessage');
-      should(loginMaxFailedLoginAttemptsCooldownMessage).be.equal('loginMaxFailedLoginAttemptsCooldownMessage');
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE,
+      } = appLib.config;
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS).be.equal(2);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME).be.equal(10000);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN).be.equal(0);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE).be.equal('loginMaxFailedLoginAttemptsLockoutMessage');
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE).be.equal('loginMaxFailedLoginAttemptsCooldownMessage');
 
       // attempt 1
       const { success: success1 } = await getLoginData(appLib, login, incorrectPassword);
@@ -235,7 +233,7 @@ describe('V5 Backend Login', function () {
       // attempt 4
       const { success: success4, message: message4 } = await getLoginData(appLib, login, correctPassword);
       should(success4).be.false();
-      should(message4).be.equal(loginMaxFailedLoginAttemptsLockoutMessage);
+      should(message4).be.equal(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE);
     });
 
     it('If LOGIN_MAX_FAILED_LOGIN_ATTEMPTS is equal to 0, then the entire lockout system should be disabled (i.e. no lockouts are required even if the user keeps trying incorrect logins)', async function () {
@@ -253,13 +251,13 @@ describe('V5 Backend Login', function () {
       await this.appLib.start();
 
       const {
-        loginMaxFailedLoginAttempts,
-        loginMaxFailedLoginAttemptsTime,
-        loginMaxFailedLoginAttemptsCooldown,
-      } = appLib.auth;
-      should(loginMaxFailedLoginAttempts).be.equal(0);
-      should(loginMaxFailedLoginAttemptsTime).be.equal(10000);
-      should(loginMaxFailedLoginAttemptsCooldown).be.equal(0);
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME,
+        LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN,
+      } = appLib.config;
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS).be.equal(0);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME).be.equal(10000);
+      should(LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN).be.equal(0);
 
       // attempt 1
       const { success: success1 } = await getLoginData(appLib, login, incorrectPassword);
@@ -279,7 +277,7 @@ describe('V5 Backend Login', function () {
       const { success: success3 } = await getLoginData(appLib, login, incorrectPassword);
       should(success3).be.false();
       const userData3 = await this.db.collection('users').findOne({ _id: user._id });
-      should(userData3.failedLoginAttempts).be.undefined();
+      should(userData3.failedLoginAttempts).be.empty();
     });
   });
 });

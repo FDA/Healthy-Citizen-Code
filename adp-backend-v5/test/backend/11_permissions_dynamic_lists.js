@@ -10,14 +10,12 @@ const {
 
 const modelName = 'model9_dynamic_list_permissions';
 
-describe('V5 Backend Dynamic List Permissions', function () {
+describe('V5 Backend Dynamic List Permissions', () => {
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
-    this.db = db;
+    this.appLib = prepareEnv();
 
-    await this.db.createCollection(modelName);
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
+    this.db = db;
   });
 
   after(async function () {
@@ -37,8 +35,8 @@ describe('V5 Backend Dynamic List Permissions', function () {
     return this.appLib.shutdown();
   });
 
-  describe('lists permissions', function () {
-    describe('check security for writing operations', function () {
+  describe('lists permissions', () => {
+    describe('check security for writing operations', () => {
       it('should allow admin to create item with any valid list values', async function () {
         const model9Sample = {
           dynamicList: 'val1',
@@ -54,7 +52,7 @@ describe('V5 Backend Dynamic List Permissions', function () {
         await this.appLib.setup();
         await this.appLib.start();
         const token = await loginWithUser(appLib, admin);
-        const res = await apiRequest(appLib.app)
+        const res = await apiRequest(appLib)
           .post(`/${modelName}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')
@@ -78,7 +76,7 @@ describe('V5 Backend Dynamic List Permissions', function () {
         await this.appLib.setup();
         await this.appLib.start();
         const token = await loginWithUser(appLib, admin);
-        const res = await apiRequest(appLib.app)
+        const res = await apiRequest(appLib)
           .post(`/${modelName}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')
@@ -110,7 +108,7 @@ describe('V5 Backend Dynamic List Permissions', function () {
         await this.appLib.start();
         const token = await loginWithUser(appLib, user);
 
-        const res = await apiRequest(appLib.app)
+        const res = await apiRequest(appLib)
           .post(`/${modelName}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')
@@ -121,7 +119,7 @@ describe('V5 Backend Dynamic List Permissions', function () {
         const savedId = res.body.id;
         savedId.should.not.be.empty();
 
-        const res2 = await apiRequest(appLib.app)
+        const res2 = await apiRequest(appLib)
           .put(`/${modelName}/${savedId}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')
@@ -145,7 +143,7 @@ describe('V5 Backend Dynamic List Permissions', function () {
         await this.appLib.setup();
         await this.appLib.start();
         const token = await loginWithUser(appLib, user);
-        const res = await apiRequest(appLib.app)
+        const res = await apiRequest(appLib)
           .post(`/${modelName}`)
           .send({ data: model9Sample })
           .set('Accept', 'application/json')

@@ -366,7 +366,8 @@
       "comment": "different actions may require different roles",
       "fields": {
         // TODO: move fields underneath fields
-        "showInTable": { // Deprecated! replaced with showPosition
+        "showInTable": {
+          // Deprecated! replaced with showPosition
           "description": "Used in actions. If true then there should be a button in the datatables view linked to this action",
           "default": true
         },
@@ -422,13 +423,7 @@
             "params": {
               "fields": {
                 "changeType": {
-                  "list": [
-                    "recorddeleted",
-                    "recordupdated",
-                    "recordcreated",
-                    "collectioncreated",
-                    "collectiondeleted"
-                  ]
+                  "list": ["recorddeleted", "recordupdated", "recordcreated", "collectioncreated", "collectiondeleted"]
                 },
                 "minTimeBetweenReloads": {
                   "type": "Number"
@@ -444,10 +439,7 @@
     },
     "recordActionsLayout": {
       "default": "spread",
-      "list": [
-        "spread",
-        "menu"
-      ],
+      "list": ["spread", "menu"],
       "fullName": "Record actions layout",
       "description": "The way actions appear in data grid row"
     },
@@ -529,7 +521,28 @@
       "description": "Allows to specify html attributes and properties, that should be mapped to corresponded field. Presented as key-val map, where key is action and val is map of attributes."
     },
     "softDelete": {
-      "fullName": "Whether to use soft delete for schema records"
+      "description": "Whether to use soft delete for schema records"
+    },
+    "cacheOptions": {
+      "description": "Determines the way cache works for schema records"
+    },
+    "requiresRestart": {
+      "description": "Whether env param requires restart to apply change"
+    },
+    "requiresLogout": {
+      "description": "Whether env param requires user logout to apply change"
+    },
+    "canBeDefinedInDb": {
+      "description": "Whether env param can be defined in db"
+    },
+    "collectionName": {
+      "description": "Overrides collection where records are stored. Used for 'Schema' type."
+    },
+    "canBeDefinedInDatabase": {
+      "description": "Used for _environment params."
+    },
+    "canBeDefinedInEnvironment": {
+      "description": "Used for _environment params."
     }
   }
 }

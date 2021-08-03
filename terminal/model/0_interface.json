@@ -1,0 +1,14 @@
+{
+  "interface": {
+    "app": {
+      "permissions": {
+        "accessWebTerminal": {
+          "description": "Access Web Terminal"
+        },
+        "accessTrinoTerminal": {
+          "description": "Access Trino Terminal"
+        }
+      }
+    }
+  }
+}

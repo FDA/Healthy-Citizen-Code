@@ -11,6 +11,7 @@
 const log = require('fancy-log');
 const colors = require('ansi-colors');
 const ms = require('ms');
+const _ = require('lodash');
 
 exports.APP_CONFIG = APP_CONFIG;
 
@@ -24,6 +25,7 @@ function APP_CONFIG() {
 
   const {
     SERVER_BASE_URL,
+    API_BUILD_URL,
     API_URL,
     API_PREFIX,
     RESOURCE_PREFIX,
@@ -35,11 +37,15 @@ function APP_CONFIG() {
   const apiPrefix = API_PREFIX || configDefaults.apiPrefix;
   const resourcePrefix = RESOURCE_PREFIX || configDefaults.resourcePrefix;
   const serverBaseUrl = SERVER_BASE_URL || API_URL;
-  const appSuffix = APP_SUFFIX || '';
   const showClsCsrInUserMenu = !!SHOW_CLS_CSR_IN_USER_MENU ? (SHOW_CLS_CSR_IN_USER_MENU === 'true') : true;
 
-  const apiUrl = `${serverBaseUrl}${apiPrefix}`;
-  const resourceUrl = `${serverBaseUrl}${resourcePrefix}`;
+  const apiUrlBase = `${serverBaseUrl}${APP_SUFFIX || ''}`;
+  const apiUrl = `${apiUrlBase}${apiPrefix}`;
+  const resourceUrl = `${apiUrlBase}${resourcePrefix}`;
+
+  const baseBuildApiUrl = API_BUILD_URL || serverBaseUrl;
+  const apiBuildUrl = `${baseBuildApiUrl}${apiPrefix}`;
+  const apiBuildUrlForResource = `${baseBuildApiUrl}${resourcePrefix}`;
 
   const envConfig = {
     resourceUrl,
@@ -47,8 +53,10 @@ function APP_CONFIG() {
     apiPrefix,
     resourcePrefix,
     serverBaseUrl,
-    appSuffix,
+    appSuffix: APP_SUFFIX || '',
     showClsCsrInUserMenu,
+    apiBuildUrl,
+    apiBuildUrlForResource,
     removeTestAttributes: REMOVE_TEST_ATTRIBUTES === 'true',
     captchaDisabled: process.env.CAPTCHA_DISABLED === 'true',
     debug: process.env.DEBUG === 'true',

@@ -10,6 +10,13 @@
  */
 
 module.exports = () => {
-  const m = {};
+  const m = {
+    schemaField(args) {
+      const name = _.get(args, `fieldData[${args.index}][$key]`) || '[undefined name]';
+      const type = _.get(args, `fieldData[${args.index}].type`) || '[undefined type]';
+
+      return `${name} : ${type}`;
+    },
+  };
   return m;
 };

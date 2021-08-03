@@ -252,11 +252,11 @@ async function getUserIdsToNotifyAboutBgJobs(appLib, jobCreatorId) {
   }
 }
 
-async function emitBackgroundJobEvent(appLib, { creatorId, level, message, data }) {
+async function emitBackgroundJobEvent(appLib, { type, creatorId, level, message, data }) {
   const userIds = await getUserIdsToNotifyAboutBgJobs(appLib, creatorId);
-  appLib.ws.sendRequest('emitToSockets', {
+  appLib.ws.performAction('emitToSockets', {
     data: {
-      type: 'backgroundJobs',
+      type: type || 'backgroundJobs',
       level: level || 'info',
       message,
       data,

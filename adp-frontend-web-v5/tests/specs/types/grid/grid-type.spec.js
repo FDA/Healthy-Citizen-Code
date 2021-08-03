@@ -1,4 +1,4 @@
-const puppeteer = require("puppeteer");
+const puppeteer = require('puppeteer');
 
 const {
   SELECTOR_TIMEOUT,
@@ -8,17 +8,18 @@ const {
   getToken,
   form: {
     clickCreateNewButton,
+    clickTableAction,
     clickEditButton
   },
   interceptor: {
     getResponseForCreatedRecord,
   },
-  gql:{
+  gql: {
     gqlEmptyRecord
   }
-} = require("../../../utils");
+} = require('../../../utils');
 
-describe("Grid type", () => {
+describe('Grid type', () => {
   beforeAll(async () => {
     this.browser = await puppeteer.launch(getLaunchOptions());
     this.context = await this.browser.createIncognitoBrowserContext();
@@ -26,6 +27,8 @@ describe("Grid type", () => {
     await loginWithUser(page);
     await page.waitForTimeout(700);
     await page.close();
+
+    await openNewPage('gridType');
   });
 
   afterAll(async () => {
@@ -37,74 +40,73 @@ describe("Grid type", () => {
     await this.page.goto(getUrlFor(url));
   }
 
-  afterEach(async () => {
-    await this.page.close();
-  });
-
   test(
-    "basic Grid Control functionality",
+    'basic Grid Control functionality',
     async () => {
 
-
-      await openNewPage("gridType");
       await clickCreateNewButton(this.page);
 
-      await this.page.waitForSelector(".adp-toolbar-action-gridCreateControl.dx-state-disabled", {timeout: SELECTOR_TIMEOUT});
+      await this.page.waitForSelector(`.adp-toolbar-action-gridCreateControl.dx-state-disabled`, {timeout: SELECTOR_TIMEOUT});
 
-      const disabledButtonsCount = await this.page.$$eval("form .dx-state-disabled.dx-toolbar-item.adp-toolbar-action-gridCreateControl  .dx-state-disabled.dx-menu-item button", $els => $els.length);
+      const disabledButtonsCount = await this.page.$$eval(`form .dx-state-disabled.dx-toolbar-item.adp-toolbar-action-gridCreateControl  .dx-state-disabled.dx-menu-item button`, $els => $els.length);
 
       expect(disabledButtonsCount).toBe(2);
 
-      const addBtnSelector = "form.gridType button[data-action-name='submit']";
+      const addBtnSelector = `form.gridType [data-action-name='submit']`;
 
       await this.page.waitForSelector(addBtnSelector, {timeout: SELECTOR_TIMEOUT});
       await this.page.waitForTimeout(350);
 
-      const recordData =
-        await Promise.all([
-          getResponseForCreatedRecord("gridType", this.page),
-          this.page.click(addBtnSelector)
-        ]);
+      const [, recordData] = await Promise.all([
+        this.page.click(addBtnSelector),
+        getResponseForCreatedRecord('gridType', this.page),
+      ]);
 
-      const {_id: mainRecordId} = recordData[0];
-      await clickEditButton(mainRecordId, this.page)
+      this.mainRecordId = recordData._id;
+    });
 
-      await this.page.waitForSelector("form.gridType", {timeout: SELECTOR_TIMEOUT});
-      await this.page.waitForSelector(".adp-toolbar-action-gridCreateControl", {timeout: SELECTOR_TIMEOUT});
+  test(
+    'basic Grid Control - edit existing record',
+    async () => {
+      await clickEditButton(this.mainRecordId, this.page);
 
-      const enabledButtonsCount = await this.page.$$eval("form.gridType .dx-toolbar-item.adp-toolbar-action-gridCreateControl:not(.dx-state-disabled) .dx-menu-item:not(.dx-state-disabled) button", $els => $els.length);
+      await this.page.waitForSelector('form.gridType', {timeout: SELECTOR_TIMEOUT});
+      await this.page.waitForSelector('.adp-toolbar-action-gridCreateControl', {timeout: SELECTOR_TIMEOUT});
+
+      const enabledButtonsCount = await this.page.$$eval('form.gridType .dx-toolbar-item.adp-toolbar-action-gridCreateControl:not(.dx-state-disabled) .dx-menu-item:not(.dx-state-disabled) button', $els => $els.length);
 
       expect(enabledButtonsCount).toBe(2);
 
       const gridTable1button = '.dx-overlay-wrapper .create-grid-control .dx-menu-item';
-      await this.page.click("form.gridType grid-control .dx-toolbar button");
+      await this.page.click(`form.gridType grid-control .dx-toolbar button`);
 
       await this.page.waitForSelector(gridTable1button, {timeout: SELECTOR_TIMEOUT});
       await this.page.click(gridTable1button);
+    });
 
+  test(
+    'basic Grid Control - break exiting relation',
+    async () => {
       const linkedToFieldSelector = 'form.gridTable1 [field-name-input="linkedTo"]';
       await this.page.waitForSelector(linkedToFieldSelector, {timeout: SELECTOR_TIMEOUT});
 
-      const linkedToId = await this.page.$eval(linkedToFieldSelector, el=>el.value);
+      const linkedToId = await this.page.$eval(linkedToFieldSelector, el => el.value);
 
-      expect(linkedToId).toBe(mainRecordId);
+      expect(linkedToId).toBe(this.mainRecordId);
 
       const relatedRecordData =
         await Promise.all([
-          getResponseForCreatedRecord("gridTable1", this.page),
-          this.page.click("form.gridTable1 button[data-action-name='submit']")
+          getResponseForCreatedRecord('gridTable1', this.page),
+          this.page.click(`form.gridTable1 button[data-action-name='submit']`)
         ]);
-
       const {_id: relatedRecordId} = relatedRecordData[0];
-      const gridControlEditButton =
-        `form.gridType section[ng-field-name="multiTableGrid"] table.dx-datagrid-table div.actions-column-container[adp-${relatedRecordId}] button`;
-      await this.page.waitForSelector(gridControlEditButton, {timeout: SELECTOR_TIMEOUT});
-      await this.page.click(gridControlEditButton);
+
+      await clickTableAction(relatedRecordId, 'gridControlEdit', this.page);
 
       await this.page.waitForSelector(linkedToFieldSelector);
       await this.page.type(linkedToFieldSelector, 'smth-wrong');
 
-      await this.page.click("form.gridTable1 button[data-action-name='submit']");
+      await this.page.click(`form.gridTable1 button[data-action-name='submit']`);
       await this.page.waitForTimeout(1000); //wait grid control to reload
 
       const linkedRow = await this.page.$(`form.gridType section[ng-field-name="multiTableGrid"] table.dx-datagrid-table button`);
@@ -113,7 +115,7 @@ describe("Grid type", () => {
 
       const token = await getToken(this.page);
 
-      await gqlEmptyRecord(token, 'gridType', mainRecordId);
+      await gqlEmptyRecord(token, 'gridType', this.mainRecordId);
       await gqlEmptyRecord(token, 'gridTable1', relatedRecordId);
     });
 });

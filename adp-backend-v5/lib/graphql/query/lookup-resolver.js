@@ -71,12 +71,13 @@ function addFindLookupResolver(type, lookupFilter) {
     type: [type],
     resolve: async ({ context, paginationContext }) => {
       const { appLib } = context;
+      const { modelName } = paginationContext;
       try {
         const { controllerUtil } = appLib;
         const { lookups } = await controllerUtil.getSchemaLookups(paginationContext);
         return lookups;
       } catch (e) {
-        handleGraphQlError(e, `Unable to find requested elements`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to find requested elements`, log, appLib, modelName });
       }
     },
   });
@@ -94,12 +95,13 @@ function addCountLookupResolver(type, lookupFilter) {
     type: 'Int!',
     resolve: async ({ context, paginationContext }) => {
       const { appLib } = context;
+      const { modelName } = paginationContext;
       try {
         const { controllerUtil } = appLib;
         paginationContext.action = 'view';
         return await controllerUtil.getElementsCount({ context: paginationContext });
       } catch (e) {
-        handleGraphQlError(e, `Unable to count requested elements`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to count requested elements`, log, appLib, modelName });
       }
     },
   });

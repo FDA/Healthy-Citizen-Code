@@ -21,11 +21,12 @@ async function mongoConnect(url, conOptions = connectionOptions, dbOptions) {
 }
 
 function getOptionsToLog(options) {
-  const clonedOptions = _.cloneDeep(options);
   const hasClientSession = _.get(options, 'session.constructor.name') === 'ClientSession';
-  if (hasClientSession) {
-    delete clonedOptions.session;
+  if (!hasClientSession) {
+    return options;
   }
+  const clonedOptions = _.cloneDeep(options);
+  delete clonedOptions.session;
   return clonedOptions;
 }
 

@@ -1,0 +1,1598 @@
+{
+  "1": {
+    "Question": "Where are you taking this questionnaire?",
+    "Type": null,
+    "Options": [
+      "Home",
+      "Doctor's office",
+      "Other location"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "2": {
+    "Question": "In general, would you say your health is:",
+    "Type": null,
+    "Options": [
+      "Excellent",
+      "Very good",
+      "Good",
+      "Fair",
+      "Poor"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "3": {
+    "Question": "How often do you worry about your eyesight or vision?",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Rarely",
+      "Occasionally",
+      "Sometimes",
+      "All the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "4": {
+    "Question": "How often do you notice or think about your eyesight or vision?",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Rarely",
+      "Occasionally",
+      "Sometimes",
+      "All the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "5": {
+    "Question": "At this time, how clear is your vision using the correction you normally use, including glasses, contact lenses, a magnifier, or nothing at all?",
+    "Type": null,
+    "Options": [
+      "Perfectly clear",
+      "Pretty clear",
+      "Somewhat clear",
+      "Not clear at all"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "6": {
+    "Question": "As long as I could see well enough to drive without wearing glasses or contact lenses, I wouldn't mind having vision that was less than perfect.",
+    "Type": null,
+    "Options": [
+      "Definitely true",
+      "Mostly true",
+      "Don't know",
+      "Mostly false",
+      "Definitely false"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "7": {
+    "Question": "H        ow much of the time do you expect to use glasses or contact lenses to see things in the distance after healing from LASIK surgery?",
+    "Type": null,
+    "Options": [
+      "All of the time",
+      "Most of the time",
+      "Some of the time",
+      "Hardly ever",
+      "Never"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "8": {
+    "Question": "How much of the time do you expect to use glasses or contact lenses to see things up close after healing from LASIK surgery?",
+    "Type": null,
+    "Options": [
+      "All of the time",
+      "Most of the time",
+      "Some of the time",
+      "Hardly ever",
+      "Never"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "9": {
+    "Question": "After healing from LASIK surgery, I expect that I will have clear vision:",
+    "Type": null,
+    "Options": [
+      "(please select all that apply)",
+      "With the aid of glasses to see in the distance",
+      "With the aid of glasses for reading",
+      "With the aid of contact lenses to see in the distance",
+      "With the aid of contact lenses for reading",
+      "Without glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "10": {
+    "Question": "After healing from LASIK surgery, I expect my vision to be perfect.",
+    "Type": null,
+    "Options": [
+      "Definitely true",
+      "Mostly true",
+      "Don't know",
+      "Mostly false",
+      "Definitely false"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "11": {
+    "Question": "I could accept less than perfect vision if I did not need glasses or contact lenses any more after healing from LASIK surgery.",
+    "Type": null,
+    "Options": [
+      "Definitely true",
+      "Mostly true",
+      "Don't know",
+      "Mostly false",
+      "Definitely false"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "12": {
+    "Question": "Have you ever driven a car?",
+    "Type": null,
+    "Options": [
+      "Yes",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "13": {
+    "Question": "Do you currently drive?",
+    "Type": null,
+    "Options": [
+      "Yes",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "14": {
+    "Question": "If you gave up driving, was that mainly because of your vision, mainly for some other reason, or because of both your vision and otherreasons?",
+    "Type": null,
+    "Options": [
+      "Mainly vision",
+      "Mainly other reasons",
+      "Both vision and other reasons"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "15": {
+    "Question": "Because of your vision, how much difficulty do you have driving during the daytime in familiar places? Would you say you have:",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "Never drive during the daytime because of vision",
+      "Never drive during the daytime for other reasons"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "16": {
+    "Question": "Because of your vision, how much difficulty do you have driving at night?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "Never drive at night because of vision",
+      "Never drive at night for other reasons"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "17": {
+    "Question": "Because of your vision, how much difficulty do you have driving in difficult conditions, such as bad weather, during rush hour, on the freeway,or in city traffic?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "Never drive in these conditions because of vision",
+      "Never drive in these conditions for other reasons"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "18": {
+    "Question": "How much difficulty do you have seeing things off to the side, like cars coming out of driveways or site streets or people coming out ofdoorways?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "19": {
+    "Question": "Because of your vision, how much difficulty do you have with your daily activities?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "20": {
+    "Question": "Because of your vision, how much difficulty do you have taking part in active sports or other outdoor activities that you enjoy (like hiking,swimming, aerobics, team sports, or jogging)?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "Never try to do these activities because of vision",
+      "Never do these activities for other reasons"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "21": {
+    "Question": "Because of your vision, do you take part less than you would like in active sports or other outdoor activities (like hiking, swimming, aerobics,team sports, or jogging)?",
+    "Type": null,
+    "Options": [
+      "Yes",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "22": {
+    "Question": "Are there any recreational or sports activities that you don't do because of your vision or the type of vision correction you have?",
+    "Type": null,
+    "Options": [
+      "Yes, many",
+      "Yes, a few",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "23": {
+    "Question": "You have noted that you have difficulty with your daily activities because of your vision. Please list those activities with which you have difficulty",
+    "Type": null,
+    "Options": [
+      "(e.g., watching television, using automated teller machines (ATM), etc.)."
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "24": {
+    "Question": "How much difficulty do you have doing work or hobbies that require you to see well up close, such as cooking, fixing things around the house,sewing, using hand tools, or working with a computer?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "Never try to do these activities because of vision",
+      "Never do these activities for other reasons"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "25": {
+    "Question": "How much difficulty do you have reading ordinary print in newspapers?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "Never try to do this because of vision",
+      "Never try to do this for other reasons"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "26": {
+    "Question": "How much difficulty do you have reading small print in a telephone book, on a medicine bottle, or on legal forms?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "Never try to do these activities because of vision",
+      "Never do these activities for other reasons"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "27": {
+    "Question": "Are there daily activities that you would like to do, but don't do, because of your vision or the type of vision correction you have?",
+    "Type": null,
+    "Options": [
+      "Yes, many",
+      "Yes, one or a few",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "28": {
+    "Question": "How much difficulty do you have judging distances, like walking down stairs or parking a car?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "29": {
+    "Question": "How much difficulty do you have getting used to the dark when you move from a lighted area into a dark place, like walking into a dark movietheater?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "30": {
+    "Question": "How much difficulty do you have seeing because of changes in the clarity of your vision during the course of the day?",
+    "Type": null,
+    "Options": [
+      "Don't have changes in the clarity of my vision",
+      "No difficulty at all",
+      "A little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "31": {
+    "Question": "How often are you bothered by changes in the clarity of your vision over the course of the day?",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Rarely",
+      "Occasionally",
+      "Sometimes",
+      "All the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "32": {
+    "Question": "How often when you are around bright lights at night do you see starbursts or halos that bother you or make it difficult to see.",
+    "Type": null,
+    "Options": [
+      "All of the time",
+      "Most of the time",
+      "Some of the time",
+      "A little of the time",
+      "None of the time",
+      "Not at all"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "33": {
+    "Question": "Have you experienced glare in the last 7 days?",
+    "Type": null,
+    "Options": [
+      "Yes",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "34": {
+    "Question": "Have you experienced distorted vision in the last 7 days?",
+    "Type": null,
+    "Options": [
+      "Yes",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "35": {
+    "Question": "Have you experienced blurry vision in the last 7 days?",
+    "Type": null,
+    "Options": [
+      "Yes",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "36": {
+    "Question": "Have you experienced trouble seeing in the last 7 days?",
+    "Type": null,
+    "Options": [
+      "Yes",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "37": {
+    "Question": "In general, how satisfied or dissatisfied are you with your present vision?",
+    "Type": null,
+    "Options": [
+      "Completely satisfied",
+      "Very satisfied",
+      "Somewhat satisfied",
+      "Somewhat dissatisfied",
+      "Very dissatisfied",
+      "Completely dissatisfied"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "38": {
+    "Question": "Are you currently employed (working for pay)?",
+    "Type": null,
+    "Options": [
+      "Yes",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "39": {
+    "Question": "During the past seven days, how many hours did you miss from work because of any eye problems?",
+    "Type": null,
+    "Options": [
+      "Incl ude hours your missed on sick days, ti mes you went in l ate, left earl y, etc., because of your EYE PROBLEM . Do not incl ude time you missed to",
+      "participate i n this study.",
+      "HOURS"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "40": {
+    "Question": "During the past seven days, how many hours did you miss from work because of any other reason, such as vacation, holidays, time off toparticipate in this study?",
+    "Type": null,
+    "Options": [
+      "HOURS"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "41": {
+    "Question": "During the past seven days, how many hours did you actually work?",
+    "Type": null,
+    "Options": [
+      "HOURS"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "42": {
+    "Question": "During the past seven days, how much did eye problems affect your productivity while you were working?",
+    "Type": null,
+    "Options": [
+      "Think about days you were limi ted i n the amount or kind of work you coul d do, days you accompli shed less than you would like, or days you could",
+      "not do your work as carefully as usual.",
+      "If eye probl ems affected your work onl y a li ttle, choose a l ow number. Choose a hi gh number if eye problems affected your work a great deal.",
+      "Consider only how much eye problems affected productivity while you were working.",
+      "Eye problem(s) 0 1 2 3 4 5 6 7 8 9 10 Eye problem(s)",
+      "had no effect completely",
+      "on my workprevented me from working",
+      "SELECT A NUMBER"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "43": {
+    "Question": "During the past seven days, how much did eye problems affect your ability to do your regular daily activities, other than work at a job?",
+    "Type": null,
+    "Options": [
+      "By regular acti vi ti es, we mean the usual activi ties you do, such as work around the house, shopping, chi ldcare, exerci si ng, studyi ng, etc. Thi nk",
+      "about times you were l imited in the amount",
+      "or ki nd of activities you coul d do and ti mes you accomplished less than you would l ike. If eye problems",
+      "affected your activi ties onl y a li ttle, choose a l ow number. Choose a high number if eye probl ems affected your activities a great deal .",
+      "Consider only how much eye problems affected your ability to do your regular daily activities, other than work at a job.",
+      "Eye problem(s) Eye problem(s)",
+      "had no effect 0 1 2 3 4 5 6 7 8 9 10 completely",
+      "on my daily prevented me from doing my regular",
+      "activities activities",
+      "SELECT A NUMBER"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "44": {
+    "Question": "In a typical day:",
+    "Type": null,
+    "Options": [
+      "(ple ase sele ct all that apply )",
+      "I do not use glasses or contact lenses",
+      "I use glasses to correct my vision for distance",
+      "I use glasses to correct my vision for reading",
+      "I use soft contact lenses to correct my vision for distance",
+      "I use soft contact lenses to correct my vision for reading",
+      "I use hard (rigid gas permeable) contact lenses to correct my vision for distance",
+      "I use hard (rigid gas permeable) contact lenses to correct my vision for reading",
+      "The ne x t se t of que stions will re fe re nce the following im age s and their labels."
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "45": {
+    "Question": "In the last 7 days, have you seen any double im ages?",
+    "Type": null,
+    "Options": [
+      "Yes, but ONLY when NOT wearing glasses or contact lenses",
+      "Yes, but ONLY when wearing glasses or contact lenses",
+      "Yes, when wearing AND when not wearing glasses or contact lenses",
+      "No, not at all"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "49": {
+    "Question": "When you use your best vision correction (glasses or contact lenses) do the double image s you see:",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Go away completely",
+      "Go away mostly",
+      "Go away a little",
+      "Not change",
+      "Get a little worse",
+      "Get a lot worse"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "50": {
+    "Question": "In the last 7 days, have you noticed any glare?",
+    "Type": null,
+    "Options": [
+      "Yes, but ONLY when NOT wearing glasses or contact lenses",
+      "Yes, but ONLY when wearing glasses or contact lenses",
+      "Yes, when wearing AND when not wearing glasses or contact lenses",
+      "No, not at all"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "54": {
+    "Question": "When you use your best vision correction (glasses or contact lenses) does the glare you notice:",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Go away completely",
+      "Go away mostly",
+      "Go away a little",
+      "Not change",
+      "Get a little worse",
+      "Get a lot worse"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "55": {
+    "Question": "In the last 7 days, have you seen any halos?",
+    "Type": null,
+    "Options": [
+      "Yes, but ONLY when NOT wearing glasses or contact lenses",
+      "Yes, but ONLY when wearing glasses or contact lenses",
+      "Yes, when wearing AND when not wearing glasses or contact lenses",
+      "No, not at all"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "59": {
+    "Question": "When you use your best vision correction (glasses or contact lenses) do the halos you see:",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Go away completely",
+      "Go away mostly",
+      "Go away a little",
+      "Not change",
+      "Get a little worse",
+      "Get a lot worse"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "60": {
+    "Question": "In the last 7 days, have you seen any starbursts?",
+    "Type": null,
+    "Options": [
+      "Yes, but ONLY when NOT wearing glasses or contact lenses",
+      "Yes, but ONLY when wearing glasses or contact lenses",
+      "Yes, when wearing AND when not wearing glasses or contact lenses",
+      "No, not at all"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "64": {
+    "Question": "When you use your best vision correction (glasses or contact lenses) do the starbursts you see:",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Go away completely",
+      "Go away mostly",
+      "Go away a little",
+      "Not change",
+      "Get a little worse",
+      "Get a lot worse"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "65": {
+    "Question": "Eyes that are sensitive to light?",
+    "Type": null,
+    "Options": [
+      "None of the time",
+      "Some of the time",
+      "Half of the time",
+      "Most of the time",
+      "All of the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "66": {
+    "Question": "Eyes that feel gritty?",
+    "Type": null,
+    "Options": [
+      "None of the time",
+      "Some of the time",
+      "Half of the time",
+      "Most of the time",
+      "All of the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "67": {
+    "Question": "Painful or sore eyes?",
+    "Type": null,
+    "Options": [
+      "None of the time",
+      "Some of the time",
+      "Half of the time",
+      "Most of the time",
+      "All of the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "68": {
+    "Question": "Blurred vision?",
+    "Type": null,
+    "Options": [
+      "None of the time",
+      "Some of the time",
+      "Half of the time",
+      "Most of the time",
+      "All of the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "69": {
+    "Question": "Poor vision?",
+    "Type": null,
+    "Options": [
+      "None of the time",
+      "Some of the time",
+      "Half of the time",
+      "Most of the time",
+      "All of the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "70": {
+    "Question": "Windy conditions?",
+    "Type": null,
+    "Options": [
+      "None of the time",
+      "Some of the time",
+      "Half of the time",
+      "Most of the time",
+      "All of the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "71": {
+    "Question": "Places or areas with low humidity (very dry)?",
+    "Type": null,
+    "Options": [
+      "None of the time",
+      "Some of the time",
+      "Half of the time",
+      "Most of the time",
+      "All of the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "72": {
+    "Question": "Areas that are air conditioned?",
+    "Type": null,
+    "Options": [
+      "None of the time",
+      "Some of the time",
+      "Half of the time",
+      "Most of the time",
+      "All of the time"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "73": {
+    "Question": "How do you get information about LASIK surgery?",
+    "Type": null,
+    "Options": [
+      "(please se lect all that apply )",
+      "Discussions with LASIK surgeon",
+      "Discussions with any other eye care professional (e.g., ophthalmologist or optometrist)",
+      "Discussions with another physician, not an ophthalmologist",
+      "Eye care professional's office pamphlets",
+      "Eye care professional's office videos",
+      "Internet websites",
+      "Newspaper or magazine articles",
+      "T elevision / Radio",
+      "Discussion with another patient",
+      "Discussions with family or friends who have not had LASIK surgery",
+      "Discussions with family or friends who had LASIK surgery",
+      "Other"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "74": {
+    "Question": "Have you ever been told by a LASIK surgeon or any other eye care professional that you should not have LASIK surgery performed?",
+    "Type": null,
+    "Options": [
+      "Yes",
+      "No"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "75": {
+    "Question": "Over the last 2 weeks, how often have you been bothered by having little interest or pleasure in doing things?",
+    "Type": null,
+    "Options": [
+      "Not at all",
+      "Several days",
+      "More than half the days",
+      "Nearly every day"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "76": {
+    "Question": "Over the last 2 weeks, how often have you been bothered by feeling down, depressed, or hopeless?",
+    "Type": null,
+    "Options": [
+      "Not at all",
+      "Several days",
+      "More than half the days",
+      "Nearly every day"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "77": {
+    "Question": "Over the last 2 weeks, how often have you been bothered by feeling nervous, anxious, or on edge?",
+    "Type": null,
+    "Options": [
+      "Not at all",
+      "Several days",
+      "More than half the days",
+      "Nearly every day"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "78": {
+    "Question": "Over the last 2 weeks, how often have you been bothered by not being able to stop or control worrying?",
+    "Type": null,
+    "Options": [
+      "Not at all",
+      "Several days",
+      "More than half the days",
+      "Nearly every day"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "79": {
+    "Question": "I am always courteous even to people who are disagreeable.",
+    "Type": null,
+    "Options": [
+      "Definitely true",
+      "Mostly true",
+      "Don't know",
+      "Mostly false",
+      "Definitely false"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "80": {
+    "Question": "No Matter whom I'm talking to, I'm always a good listener.",
+    "Type": null,
+    "Options": [
+      "Definitely true",
+      "Mostly true",
+      "Don't know",
+      "Mostly false",
+      "Definitely false"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "81": {
+    "Question": "In uncertain times, I usually expect the best.",
+    "Type": null,
+    "Options": [
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "82": {
+    "Question": "It'",
+    "Type": null,
+    "Options": [
+      "'",
+      "s easy for me to relax.",
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "83": {
+    "Question": "If something can go wrong for me, it will.",
+    "Type": null,
+    "Options": [
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "84": {
+    "Question": "I'm always optimistic about my future.",
+    "Type": null,
+    "Options": [
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "85": {
+    "Question": "I enjoy my friends a lot.",
+    "Type": null,
+    "Options": [
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "86": {
+    "Question": "It s important for me to keep busy.",
+    "Type": null,
+    "Options": [
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "87": {
+    "Question": "I hardly ever expect things to go my way.",
+    "Type": null,
+    "Options": [
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "88": {
+    "Question": "I don't get upset too easily.",
+    "Type": null,
+    "Options": [
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot",
+      "Constantly"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "89": {
+    "Question": "I rarely count on good things happening to me.",
+    "Type": null,
+    "Options": [
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "90": {
+    "Question": "Overall, I expect more good things to happen to me than bad.",
+    "Type": null,
+    "Options": [
+      "I agree a lot",
+      "I agree a little",
+      "I neither agree nor disagree",
+      "I disagree a little",
+      "I disagree a lot"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "91": {
+    "Question": "If I don't master a task right away, I keep trying until I get it right.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often",
+      "Constantly"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "92": {
+    "Question": "I can adapt to new situations.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "93": {
+    "Question": "I am happy and content.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often",
+      "Constantly"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "94": {
+    "Question": "I am willing to take risks.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often",
+      "Constantly",
+      "Constantly"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "95": {
+    "Question": "I look forward to trying a new task.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often",
+      "Constantly"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "96": {
+    "Question": "I feel self-assured and self-confident.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often",
+      "Constantly"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "97": {
+    "Question": "I like to try new places, activities, and situations.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often",
+      "Constantly"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "98": {
+    "Question": "I sleep well at night.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often",
+      "Constantly"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "99": {
+    "Question": "I am sure I can accomplish the tasks before me.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "100": {
+    "Question": "I can usually master a task even if I can't master it right away.",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Sometimes",
+      "Often",
+      "Constantly"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "101": {
+    "Question": "About how many minutes do you think it took you to fill out this questionnaire?",
+    "Type": null,
+    "Options": [
+      "If you completed this survey in multiple sessions, estimate the total time you spent on the survey. Your best estimate is fine.",
+      "Minutes"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "102": {
+    "Question": "How did you feel about the length of the questionnaire?",
+    "Type": null,
+    "Options": [
+      "Much too short",
+      "A little bit too short",
+      "About right",
+      "A little bit too long",
+      "Much too long"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "103": {
+    "Question": "I had no problem using the computer today.",
+    "Type": null,
+    "Options": [
+      "Definitely true",
+      "Mostly true",
+      "Unsure",
+      "Mostly false",
+      "Definitely false"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "104": {
+    "Question": "Imagine you had been asked the same questions you were just asked by an interviewer rather than completing them by computer. Comparedto answering these questions by an interviewer, how was answering them using the computer today?",
+    "Type": null,
+    "Options": [
+      "A lot easier using the computer",
+      "A little easier using the computer",
+      "About the same",
+      "A little harder using the computer",
+      "A lot harder using the computer"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "105": {
+    "Question": "Is there anything you'd like to add regarding the quality, length, or administration of this questionnaire? Are there any questions you felt were",
+    "Type": null,
+    "Options": [
+      "difficult to understand or answer?"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "106": {
+    "Question": "What is the highest level of education you have completed?",
+    "Type": null,
+    "Options": [
+      "8th grade or less",
+      "Some high school, but did not graduate",
+      "High school graduate or GED",
+      "Some college or 2-year degree",
+      "4-year college graduate",
+      "More than 4-year college degree"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "108": {
+    "Question": "Are you Hispanic, Latino, or of Spanish origin?",
+    "Type": null,
+    "Options": [
+      "No, not of Hispanic, Latino, or Spanish origin",
+      "Yes, Mexican, Mexican American, Chicano",
+      "Yes, Puerto Rican",
+      "Yes, Cuban",
+      "Yes, another Hispanic Latino or Spanish origin"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "109": {
+    "Question": "What is your race? Please select all that apply.",
+    "Type": null,
+    "Options": [
+      "White",
+      "Black or African American",
+      "American Indian or Alaskan Native",
+      "Asian Indian",
+      "Asian",
+      "Samoan or Native Hawaiian",
+      "Other Pacific Islander",
+      "Other"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "35a": {
+    "Question": "How bothersome has it been?",
+    "Type": null,
+    "Options": [
+      "Very",
+      "Somewhat",
+      "A little"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "34a": {
+    "Question": "How bothersome has it been?",
+    "Type": null,
+    "Options": [
+      "Very",
+      "Somewhat",
+      "A little",
+      "Not at all"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "33a": {
+    "Question": "How bothersome has it been?",
+    "Type": null,
+    "Options": [
+      "Very",
+      "Somewhat",
+      "A little",
+      "Not at all"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "36a": {
+    "Question": "How bothersome has it been?",
+    "Type": null,
+    "Options": [
+      "Very",
+      "Somewhat",
+      "A little",
+      "Not at all"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "46a": {
+    "Question": "In the last 7 days, how often have you seen double im ages when you are wearing your best vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Never",
+      "Rarely",
+      "Sometimes",
+      "Often",
+      "Always"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "46b": {
+    "Question": "In the last 7 days, how often have you seen double im ages when you are NOT wearing any vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Rarely",
+      "Sometimes",
+      "Often",
+      "Always",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "47a": {
+    "Question": "In the last 7 days, how bothersome have the double image s been when you are wearing your best vision correction (glasses or contactlenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Extremely bothersome",
+      "Very bothersome",
+      "Somewhat bothersome",
+      "A little bothersome",
+      "Not at all bothersome"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "47b": {
+    "Question": "In the last 7 days, how bothersome have the double image s been when you are NOT wearing any vision correction (glasses or contactlenses)?",
+    "Type": null,
+    "Options": [
+      "Extremely bothersome",
+      "Very bothersome",
+      "Somewhat bothersome",
+      "A little bothersome",
+      "Not at all bothersome",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "48a": {
+    "Question": "In the last 7 days, how much difficulty have you had doing your usual activities because you see double image s when you are wearing yourbest vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "No difficulty at all",
+      "Very little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "So much difficulty that I can no longer do some of my usual activities"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "48b": {
+    "Question": "In the last 7 days, how much difficulty have you had doing your usual activities because you see double image s when you are NOT wearingany vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "Very little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "So much difficulty that I can no longer do some of my usual activities",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "51a": {
+    "Question": "In the last 7 days, how often have you noticed glare when you are wearing your best vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Never",
+      "Rarely",
+      "Sometimes",
+      "Often",
+      "Always"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "51b": {
+    "Question": "In the last 7 days, how often have you noticed glare when you are NOT wearing any vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Rarely",
+      "Sometimes",
+      "Often",
+      "Always",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "52a": {
+    "Question": "In the last 7 days, how bothersome has the glare been when you are wearing your best vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Extremely bothersome",
+      "Very bothersome",
+      "Somewhat bothersome",
+      "A little bothersome",
+      "Not at all bothersome"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "52b": {
+    "Question": "In the last 7 days, how bothersome has the glare been when you are NOT wearing any vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "Extremely bothersome",
+      "Very bothersome",
+      "Somewhat bothersome",
+      "A little bothersome",
+      "Not at all bothersome",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "53a": {
+    "Question": "In the last 7 days, how much difficulty have you had doing your usual activities because you noticed glare when you are wearing your bestvision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "No difficulty at all",
+      "Very little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "So much difficulty that I can no longer do some of my usual activities"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "53b": {
+    "Question": "In the last 7 days, how much difficulty have you had doing your usual activities because you notice glare when you are NOT wearing anyvision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "Very little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "So much difficulty that I can no longer do some of my usual activities",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "56a": {
+    "Question": "In the last 7 days, how often have you seen halos when you are wearing your best vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Never",
+      "Rarely",
+      "Sometimes",
+      "Often",
+      "Always"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "56b": {
+    "Question": "In the last 7 days, how often have you seen halos when you are NOT wearing any vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Rarely",
+      "Sometimes",
+      "Often",
+      "Always",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "57a": {
+    "Question": "In the last 7 days, how bothersome have the halos been when you are wearing your best vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Extremely bothersome",
+      "Very bothersome",
+      "Somewhat bothersome",
+      "A little bothersome",
+      "Not at all bothersome"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "57b": {
+    "Question": "In the last 7 days, how bothersome have the halos been when you are NOT wearing any vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "Extremely bothersome",
+      "Very bothersome",
+      "Somewhat bothersome",
+      "A little bothersome",
+      "Not at all bothersome",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "58a": {
+    "Question": "In the last 7 days, how much difficulty have you had doing your usual activities because you see halos when you are wearing your best visioncorrection (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "No difficulty at all",
+      "Very little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "So much difficulty that I can no longer do some of my usual activities"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "58b": {
+    "Question": "In the last 7 days, how much difficulty have you had doing your usual activities because you see halos when you are NOT wearing any visioncorrection (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "Very little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "So much difficulty that I can no longer do some of my usual activities",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "61a": {
+    "Question": "In the last 7 days, how often have you seen starbursts when you are wearing your best vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Never",
+      "Rarely",
+      "Sometimes",
+      "Often",
+      "Always"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "61b": {
+    "Question": "In the last 7 days, how often have you seen starbursts when you are NOT wearing any vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "Never",
+      "Rarely",
+      "Sometimes",
+      "Often",
+      "Always",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "62a": {
+    "Question": "In the last 7 days, how bothersome have the starbursts been when you are wearing your best vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "Extremely bothersome",
+      "Very bothersome",
+      "Somewhat bothersome",
+      "A little bothersome",
+      "Not at all bothersome"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "62b": {
+    "Question": "In the last 7 days, how bothersome have the starbursts been when you are NOT wearing any vision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "Extremely bothersome",
+      "Very bothersome",
+      "Somewhat bothersome",
+      "A little bothersome",
+      "Not at all bothersome",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "63a": {
+    "Question": "In the last 7 days, how much difficulty have you had doing your usual activities because you see starbursts when you are wearing your bestvision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "I do not use glasses or contact lenses",
+      "No difficulty at all",
+      "Very little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "So much difficulty that I can no longer do some of my usual activities"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  },
+  "63b": {
+    "Question": "In the last 7 days, how much difficulty have you had doing your usual activities because you see starbursts when you are NOT wearing anyvision correction (glasses or contact lenses)?",
+    "Type": null,
+    "Options": [
+      "No difficulty at all",
+      "Very little difficulty",
+      "Moderate difficulty",
+      "A lot of difficulty",
+      "So much difficulty that I can no longer do some of my usual activities",
+      "I always use glasses or contact lenses"
+    ],
+    "FHIRResource": null,
+    "FHIRFieldPath": null
+  }
+}

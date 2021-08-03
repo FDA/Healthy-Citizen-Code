@@ -12,13 +12,14 @@ function dateReviver(key, value) {
   return value;
 }
 
-function handleGraphQlError(e, defaultMessage, log, appLib) {
+function handleGraphQlError({ e, message, log, appLib, modelName }) {
   log.error(e.stack);
   if (e instanceof ValidationError || e instanceof AccessError || e instanceof LinkedRecordError) {
     throw e;
   }
 
-  const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+  const schema = appLib.appModel.models[modelName];
+  const duplicateErrMsg = getMongoDuplicateErrorMessage(e, schema);
   const sortParallelArrayErrMsg = getMongoSortParallelArrayErrorMessage(e);
   const mongoError = duplicateErrMsg || sortParallelArrayErrMsg;
   if (mongoError) {
@@ -27,7 +28,7 @@ function handleGraphQlError(e, defaultMessage, log, appLib) {
   }
 
   log.error(e.stack);
-  throw new Error(defaultMessage);
+  throw new Error(message);
 }
 
 module.exports = {

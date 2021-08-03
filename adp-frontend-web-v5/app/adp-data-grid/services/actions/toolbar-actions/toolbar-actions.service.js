@@ -86,7 +86,7 @@
           if (itemOptions) {
             var widgetOptions = Object.assign(itemOptions, actionOptions);
 
-            widgetOptions.cssClass = (widgetOptions.cssClass || "") + " adp-toolbar-action-" + action.__name;
+            widgetOptions.cssClass = (widgetOptions.cssClass || "") + " adp-toolbar-action-" + action.actionName;
 
             if (widgetOptions.options) {
               widgetOptions.options.disabled = ActionsHelpers.evalDisabledAttr(action, null, schema);

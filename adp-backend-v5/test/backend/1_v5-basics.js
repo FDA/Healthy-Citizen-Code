@@ -5,14 +5,14 @@ const { prepareEnv, getMongoConnection } = require('../test-util');
 // NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
 describe('V5 Backend Basics', function () {
   before(function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
+    this.appLib = prepareEnv();
+
     return this.appLib.setup();
   });
 
   after(async function () {
     await this.appLib.shutdown();
-    const db = await getMongoConnection();
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     await db.dropDatabase();
     await db.close();
   });

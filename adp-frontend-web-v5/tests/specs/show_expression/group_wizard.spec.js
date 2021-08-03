@@ -23,12 +23,12 @@ const {
 
 const selectors = {
   fieldSelect: '#list_id_fieldSelect',
-  s1: '[ng-field-name="s1"]',
-  s3: '[ng-field-name="s3"]',
-  b2: '[ng-field-name="b2"]',
+  s1: '[adp-qaid-field-control="s1"]',
+  s3: '[adp-qaid-field-control="s3"]',
+  b2: '[adp-qaid-field-control="b2"]',
   a2: '[name="a2[0]"]',
-  b3: '[ng-field-name="b3"]',
-  s4: '[ng-field-name="s4"]',
+  b3: '[adp-qaid-field-control="b3"]',
+  s4: '[adp-qaid-field-control="s4"]',
 
   g1: '[ng-group-name="g1"]',
   g2: '[ng-group-name="g2"]',
@@ -50,7 +50,7 @@ const getVisibilitySnapshot = selectors => {
       return false;
     }
 
-    return document.querySelector(s).offsetParent !== null;
+    return !!e.offsetParent;
   };
 
   return {
@@ -71,30 +71,6 @@ const getVisibilitySnapshot = selectors => {
     m2: isVisible(selectors.m2),
     m3: isVisible(selectors.m3),
     m4: isVisible(selectors.m4),
-  };
-};
-
-const getDomSnapshot = selectors => {
-  const inDom = s => document.querySelector(s) !== null;
-
-  return {
-    fieldSelect: inDom(selectors.fieldSelect),
-    s1: inDom(selectors.s1),
-    s3: inDom(selectors.s3),
-    b2: inDom(selectors.b2),
-    a2: inDom(selectors.a2),
-    b3: inDom(selectors.b3),
-    s4: inDom(selectors.s4),
-
-    g1: inDom(selectors.g1),
-    g2: inDom(selectors.g2),
-    g3: inDom(selectors.g3),
-    g4: inDom(selectors.g4),
-
-    m1: inDom(selectors.m1),
-    m2: inDom(selectors.m2),
-    m3: inDom(selectors.m3),
-    m4: inDom(selectors.m4),
   };
 };
 
@@ -126,33 +102,6 @@ describe('show expression', () => {
     test(
       'should have same all Groups and related menu items in DOM when form opened',
       async () => {
-        const expectedDomSnapshot = {
-          fieldSelect: true,
-          s1: true,
-          s3: false,
-          b2: false,
-          a2: false,
-          b3: true,
-          s4: false,
-
-          g1: true,
-          g2: true,
-          g3: true,
-          g4: true,
-
-          m1: true,
-          m2: true,
-          m3: true,
-          m4: true,
-        };
-
-        this.page.waitForTimeout(300);
-        const actualDomSnapshot = await this.page.evaluate(
-          getDomSnapshot,
-          selectors
-        );
-        expect(actualDomSnapshot).toEqual(expectedDomSnapshot);
-
         const expectedVisibilitySnapshot = {
           fieldSelect: true,
           s1: true,
@@ -173,10 +122,7 @@ describe('show expression', () => {
           m4: false,
         };
 
-        const actualVisibilitySnapshot = await this.page.evaluate(
-          getVisibilitySnapshot,
-          selectors
-        );
+        const actualVisibilitySnapshot = await this.page.evaluate(getVisibilitySnapshot, selectors);
         expect(actualVisibilitySnapshot).toEqual(expectedVisibilitySnapshot);
       });
 
@@ -184,32 +130,9 @@ describe('show expression', () => {
       'should change visibility and dom presence related Group and its children on menu click',
       async () => {
         await selectDxListValue('Option2', selectName, this.page);
-        await this.page.waitForSelector(selectors.b2);
-        const expectedDomSnapshot = {
-          fieldSelect: true,
-          s1: true,
-          s3: false,
-          b2: true,
-          a2: false,
-          b3: true,
-          s4: false,
-
-          g1: true,
-          g2: true,
-          g3: true,
-          g4: true,
-
-          m1: true,
-          m2: true,
-          m3: true,
-          m4: true,
-        };
-
-        const actualDomSnapshot = await this.page.evaluate(getDomSnapshot, selectors);
-        expect(actualDomSnapshot).toEqual(expectedDomSnapshot);
-
-        await this.page.click(selectors.m2);
-        await this.page.waitForSelector(selectors.b2);
+        const menuBtn = await this.page.waitForSelector(selectors.m2, { visible: true });
+        await menuBtn.click();
+        await this.page.waitForSelector(selectors.b2, { visible: true });
 
         const expectedVisibilitySnapshot = {
           fieldSelect: true,
@@ -231,10 +154,7 @@ describe('show expression', () => {
           m4: false,
         };
 
-        const actualVisibilitySnapshot = await this.page.evaluate(
-          getVisibilitySnapshot,
-          selectors
-        );
+        const actualVisibilitySnapshot = await this.page.evaluate(getVisibilitySnapshot, selectors);
         expect(actualVisibilitySnapshot).toEqual(expectedVisibilitySnapshot);
       });
 
@@ -242,64 +162,28 @@ describe('show expression', () => {
       'should be able to show/hide field inside group',
       async () => {
         await this.page.click(selectors.m3);
-        await this.page.waitForSelector(selectors.b3);
+        const booleanCtrl = await this.page.waitForSelector(selectors.b3, { visible: true });
+        await booleanCtrl.click();
+        const s3Field = await this.page.waitForSelector(selectors.s3, { visible: true });
 
-        await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
-        await this.page.waitForSelector(selectors.s3);
-
-        const isVisible = s => {
-          const e = document.querySelector(s);
-          if (e === null) {
-            return false;
-          }
-
-          return document.querySelector(s).offsetParent !== null;
-        };
-
-        const s3FieldVisibility = await this.page.evaluate(isVisible, selectors.s3);
-        expect(s3FieldVisibility).toBe(true);
+        expect(s3Field).not.toBeNull();
       });
 
     test(
       'should have same all Groups and related menu items in DOM when form opened for editing',
       async () => {
         await this.page.click(selectors.m3);
-        await this.page.waitForSelector(selectors.b3);
-        await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
-        await this.page.waitForTimeout(200);
+        const booleanCtrl = await this.page.waitForSelector(selectors.b3, { visible: true });
+        await booleanCtrl.click();
+
         await selectDxListValue('Option2', selectName, this.page);
 
         await clickSubmit(this.page);
         const { _id } = await getResponseForCreatedRecord('helperMethods_showAttributeWizard', this.page);
         await clickEditButton(_id, this.page);
 
-        const expectedDomSnapshot = {
-          fieldSelect: true,
-          s1: true,
-          b2: true,
-          a2: false,
-          s3: true,
-          b3: true,
-          s4: false,
-
-          g1: true,
-          g2: true,
-          g3: true,
-          g4: true,
-
-          m1: true,
-          m2: true,
-          m3: true,
-          m4: true,
-        };
-
-        const actualDomSnapshot = await this.page.evaluate(getDomSnapshot, selectors);
-        expect(actualDomSnapshot).toEqual(expectedDomSnapshot);
-
         await this.page.click(selectors.m3);
-        await this.page.waitForSelector(selectors.b3);
-        // fix for unstable test: to make sure b3 is visible
-        await this.page.waitForTimeout(1000);
+        await this.page.waitForSelector(selectors.b3, { visible: true });
 
         const expectedVisibilitySnapshot = {
           fieldSelect: true,
@@ -321,10 +205,7 @@ describe('show expression', () => {
           m4: false,
         };
 
-        const actualVisibilitySnapshot = await this.page.evaluate(
-          getVisibilitySnapshot,
-          selectors
-        );
+        const actualVisibilitySnapshot = await this.page.evaluate(getVisibilitySnapshot, selectors);
         expect(actualVisibilitySnapshot).toEqual(expectedVisibilitySnapshot);
       });
 
@@ -332,19 +213,14 @@ describe('show expression', () => {
       'should show Array fields inside Group',
       async () => {
         await selectDxListValue('Option2', selectName, this.page);
-        await this.page.waitForSelector(selectors.b2);
-        await this.page.waitForTimeout(200);
+        const menuItem = await this.page.waitForSelector(selectors.m2, { visible: true });
+        await menuItem.click();
 
-        await this.page.click(selectors.m2);
-        await this.page.click('[ng-field-name="b2"] .dx-switch-handle');
-        await this.page.waitForTimeout(200);
+        const boolCtrl = await this.page.waitForSelector(selectors.b2, { visible: true });
+        await boolCtrl.click();
 
-        let a2IsVisibleActual = await this.page.evaluate(
-          s => document.querySelector(s) !== null,
-          selectors.a2
-        );
-
-        expect(a2IsVisibleActual).toBe(true);
+        const a2Field = await this.page.waitForSelector(selectors.a2, { visible: true });
+        expect(a2Field).not.toBeNull();
       })
   });
 });

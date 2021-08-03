@@ -1,49 +1,52 @@
 const mailer = require('nodemailer');
 
-function getTransportOpts() {
-  const auth = {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
+module.exports = (config) => {
+  const m = {};
+
+  m.sendMail = async (mail) => {
+    const smtpTransport = mailer.createTransport(getTransportOpts());
+
+    try {
+      return await smtpTransport.sendMail(mail);
+    } finally {
+      smtpTransport.close();
+    }
   };
 
-  if (process.env.EMAIL_SERVICE) {
+  function getTransportOpts() {
+    const auth = {
+      user: config.EMAIL_USER,
+      pass: config.EMAIL_PASSWORD,
+    };
+
+    if (config.EMAIL_SERVICE) {
+      return {
+        service: config.EMAIL_SERVICE,
+        auth,
+      };
+    }
+
     return {
-      service: process.env.EMAIL_SERVICE,
+      host: config.EMAIL_HOST,
+      port: config.EMAIL_PORT,
+      secure: config.EMAIL_SECURE,
+      pool: config.EMAIL_POOL,
       auth,
     };
   }
 
-  return {
-    host: process.env.EMAIL_HOST,
-    port: +process.env.EMAIL_PORT,
-    secure: process.env.EMAIL_SECURE === 'true',
-    pool: process.env.EMAIL_POOL === 'true',
-    auth,
+  m.getForgotPasswordMail = (email, token, login) => {
+    const resetUrlWithToken = `${config.FRONTEND_URL}/password/reset?token=${token}&login=${login}`;
+    return {
+      to: email,
+      // TODO: add site name? for example 'Reset your password on ${siteName}'
+      subject: `Reset your ${config.APP_NAME} password`,
+      html: getResetPasswordHtml(resetUrlWithToken),
+    };
   };
-}
 
-async function sendMail(mail) {
-  const smtpTransport = mailer.createTransport(getTransportOpts());
-
-  try {
-    return await smtpTransport.sendMail(mail);
-  } finally {
-    smtpTransport.close();
-  }
-}
-
-function getForgotPasswordMail(email, token, login) {
-  const resetUrlWithToken = `${process.env.FRONTEND_URL}/password/reset?token=${token}&login=${login}`;
-  return {
-    to: email,
-    // TODO: add site name? for example 'Reset your password on ${siteName}'
-    subject: `Reset your ${process.env.APP_NAME} password`,
-    html: getResetPasswordHtml(resetUrlWithToken),
-  };
-}
-
-function getResetPasswordHtml(resetUrlWithToken) {
-  return `
+  function getResetPasswordHtml(resetUrlWithToken) {
+    return `
   <!DOCTYPE html>
   <html>
     <head>
@@ -60,18 +63,16 @@ function getResetPasswordHtml(resetUrlWithToken) {
     </body>
   </html>
   `;
-}
+  }
 
-function getSuccessfulPasswordResetMail(to) {
-  return {
+  m.getSuccessfulPasswordResetMail = (to) => ({
     to,
-    subject: `Your ${process.env.APP_NAME} password has been changed`,
+    subject: `Your ${config.APP_NAME} password has been changed`,
     html: getSuccessfulPasswordResetHtml(to),
-  };
-}
+  });
 
-function getSuccessfulPasswordResetHtml(email) {
-  return `
+  function getSuccessfulPasswordResetHtml(email) {
+    return `
   <!DOCTYPE html>
   <html>
     <head>
@@ -86,10 +87,7 @@ function getSuccessfulPasswordResetHtml(email) {
     </body>
   </html>
   `;
-}
+  }
 
-module.exports = {
-  sendMail,
-  getForgotPasswordMail,
-  getSuccessfulPasswordResetMail,
+  return m;
 };

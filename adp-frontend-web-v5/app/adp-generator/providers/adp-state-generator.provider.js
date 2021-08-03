@@ -371,7 +371,7 @@
     }
 
     function _addBaseUrlSuffix(url, suffix) {
-      return !!suffix ? ['/', suffix, url].join('') : url;
+      return !!suffix ? suffix + url : url;
     }
 
     function _getSchemaPath(schemaName, parentSchemaPath) {

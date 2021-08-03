@@ -16,11 +16,13 @@
       get: get
     };
 
-    function get(schema) {
+    function get(schema, defaultItemsName) {
       var schemaForQuery = _.cloneDeep(schema);
-      addIdAndPermissionFields(schemaForQuery);
+      if (schema.schemaName !== 'datasetSingle') {
+        addIdAndPermissionFields(schemaForQuery);
+      }
 
-      return fieldsForQuery(schemaForQuery);
+      return fieldsForQuery(schemaForQuery, defaultItemsName);
     }
 
     function addIdAndPermissionFields(schema) {

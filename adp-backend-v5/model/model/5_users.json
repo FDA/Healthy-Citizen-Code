@@ -5,11 +5,14 @@
     "users": {
       "type": "Schema",
       "description": "This collection solely serves the purpose of user authentication.",
+      "cacheOptions": {
+        "enabled": false
+      },
       "other": {
         "actions": {
           "fields": {
             "update": {
-              "permissions": "accessUsers"
+              "permissions": [["accessAsUser", "accessAsSuperAdmin"]]
             },
             "delete": {
               "permissions": "accessUsers"
@@ -18,10 +21,10 @@
               "permissions": "accessUsers"
             },
             "viewDetails": {
-              "permissions": "accessUsers"
+              "permissions": [["accessAsUser", "accessAsSuperAdmin"]]
             },
             "view": {
-              "permissions": "accessUsers"
+              "permissions": [["accessAsUser", "accessAsSuperAdmin"]]
             },
             "create": {
               "permissions": "accessUsers"
@@ -37,7 +40,11 @@
           "visible": true,
           "comment": "User login",
           "fullName": "Login",
-          "description": "Unique use login. Could be email or anything else."
+          "description": "Unique use login. Could be email or anything else.",
+          "permissions": {
+            "read": "accessAsUser",
+            "write": "accessAsSuperAdmin"
+          }
         },
         "email": {
           "type": "Email",
@@ -75,14 +82,22 @@
           "visible": false,
           "generated": true,
           "fullName": "Reset Password Token",
-          "description": "The system assigned token that is sent to the citizen when they request a password reset."
+          "description": "The system assigned token that is sent to the citizen when they request a password reset.",
+          "permissions": {
+            "read": "accessAsSuperAdmin",
+            "write": "accessAsSuperAdmin"
+          }
         },
         "resetPasswordExpires": {
           "type": "Date",
           "visible": false,
           "generated": true,
           "fullName": "Reset Password Expires",
-          "description": "The date the password token will expire."
+          "description": "The date the password token will expire.",
+          "permissions": {
+            "read": "accessAsSuperAdmin",
+            "write": "accessAsSuperAdmin"
+          }
         },
         "roles": {
           "type": "LookupObjectID[]",
@@ -120,6 +135,91 @@
           }
         },
         "loginCooldownAt": {
+          "type": "DateTime",
+          "permissions": {
+            "read": "accessAsSuperAdmin",
+            "write": "accessAsSuperAdmin"
+          }
+        },
+        "twoFactorRequirementText": {
+          "type": "StaticHtml",
+          "template": {
+            "type": "inline",
+            "link": "<h3>This system requires two-factor authentication for each user</h3>"
+          },
+          "showInDatatable": false,
+          "showInForm": <@-this.ENV('MFA_REQUIRED')@>,
+          "showInViewDetails": false
+        },
+        "enableTwoFactor": {
+          "type": "Boolean",
+          "fullName": "Two-factor authentication",
+          "default": false,
+          "description": "Two-factor authentication",
+          "formRender": {
+            "formRenderer": "otpAdminFormControl"
+          },
+          "showInDatatable": <@-this.ENV('MFA_ENABLED')@>,
+          "showInForm": <@-this.ENV('MFA_ENABLED')@>,
+          "showInViewDetails": <@-this.ENV('MFA_ENABLED')@>,
+          "required": <@-this.ENV('MFA_REQUIRED')@>
+        },
+
+        "twoFactorSecret": {
+          "type": "String",
+          "description": "AuthSecret",
+          "showInDatatable": false,
+          "showInForm": false,
+          "showInViewDetails": false,
+          "transform": ["keepDbValue"]
+        },
+
+        "twoFactorToken": {
+          "type": "String",
+          "fullName": "2-Factor verification code",
+          "description": "Code from auth app or backup code",
+          "virtual": true,
+          "validate": [
+            {
+              "validator": "regex",
+              "arguments": {
+                "regex": "^(\\d{<@-this.ENV('MFA_OTP_TOTP_TOKEN_LENGTH')@>}|\\d{<@-this.ENV('MFA_OTP_HOTP_TOKEN_LENGTH')@>})$",
+                "regexOptions": ""
+              },
+              "errorMessages": {
+                "default": "Invalid code length"
+              }
+            }
+          ],
+          "showInDatatable": false,
+          "showInForm": false,
+          "showInViewDetails": false
+        },
+        "twoFactorBackupCounter": {
+          "type": "Number",
+          "description": "HOTP counter seed",
+          "showInDatatable": false,
+          "showInForm": false,
+          "showInViewDetails": false
+        },
+        "twoFactorUsedCounters": {
+          "type": "Number[]",
+          "description": "Used HOTP counters",
+          "showInDatatable": false,
+          "showInForm": false,
+          "showInViewDetails": false
+        },
+        "twoFactorLoginCooldownAt": {
+          "type": "DateTime",
+          "permissions": {
+            "read": "accessAsSuperAdmin",
+            "write": "accessAsSuperAdmin"
+          },
+          "showInDatatable": <@-this.ENV('MFA_ENABLED')@>,
+          "showInForm": <@-this.ENV('MFA_ENABLED')@>,
+          "showInViewDetails": <@-this.ENV('MFA_ENABLED')@>
+        },
+        "accountInactivityLockedAt": {
           "type": "DateTime",
           "permissions": {
             "read": "accessAsSuperAdmin",

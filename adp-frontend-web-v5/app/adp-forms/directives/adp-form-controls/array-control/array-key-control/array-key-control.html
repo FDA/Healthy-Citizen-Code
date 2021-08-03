@@ -15,7 +15,7 @@
     name="{{keyField.fieldName}}"
     ng-required="isKeyRequired()"
     ng-model="arrayItem[keyField.fieldName]"
-    ng-model-options="{ allowInvalid: true }"
+    ng-model-options="{ allowInvalid: true, debounce: 200 }"
     class="form-control"
     adp-autocomplete="keyField"
     schema-key-reg-exp

@@ -1,0 +1,6 @@
+logs
+config
+
+# exclude code for client
+model/public
+model/lib

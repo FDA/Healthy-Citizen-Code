@@ -1,11 +1,20 @@
 const assert = require('assert');
+const nodePath = require('path');
 const uuid = require('uuid');
 const _ = require('lodash');
 const request = require('supertest');
 const { ObjectID, MongoClient } = require('mongodb');
 
-const { prepareEnv: prepareAppEnv, getSchemaNestedPaths } = require('../lib/util/env');
 const { generateObjectId, stringifyObjectId } = require('../lib/util/util');
+const {
+  getSchemaNestedPaths,
+  getConfigFromEnv,
+  getAbsolutePathsFromCommaSeparated,
+  getAbsolutePath,
+  appRoot,
+} = require('../config/util');
+
+const testEnvPath = nodePath.resolve(__dirname, './backend/.env.test');
 
 const isDateString = (str) => !Number.isNaN(Date.parse(str));
 
@@ -81,14 +90,15 @@ const checkForEqualityConsideringInjectedFields = (data, sample) => {
   assert(objDiff.missing_from_first.length === 0, `missing_from_first: ${JSON.stringify(objDiff.missing_from_first)}`);
 };
 
-const prepareEnv = (path = './test/backend/.env.test') => {
-  require('dotenv').load({ path });
-  prepareAppEnv();
+const prepareEnv = () => {
+  require('dotenv').load({ path: testEnvPath });
 
+  const appLib = require('../lib/app')();
   // generate random database for every test
-  const slashIndex = process.env.MONGODB_URI.lastIndexOf('/');
-  process.env.MONGODB_URI = `${process.env.MONGODB_URI.substring(0, slashIndex + 1)}~${uuid.v4()}`;
-  console.log(process.env.MONGODB_URI);
+  const { MONGODB_URI } = process.env;
+  const slashIndex = MONGODB_URI.lastIndexOf('/');
+  appLib.setOptions({ MONGODB_URI: `${MONGODB_URI.substring(0, slashIndex + 1)}~${uuid.v4()}` });
+  return appLib;
 };
 
 /**
@@ -259,7 +269,7 @@ const sampleDataToCompare0 = _.cloneDeep(sampleData0);
 fixObjectId(sampleDataToCompare0);
 
 const loginWithUser = async function (appLib, user) {
-  const res = await apiRequest(appLib.app)
+  const res = await apiRequest(appLib)
     .post('/login')
     .send({
       login: user.login,
@@ -272,11 +282,21 @@ const loginWithUser = async function (appLib, user) {
   return res.body.data.token;
 };
 
-const getMongoConnection = async (url = process.env.MONGODB_URI) => {
+const getMongoConnection = async (url) => {
   const client = await MongoClient.connect(url, { useNewUrlParser: true, useUnifiedTopology: true });
   const db = client.db(client.s.options.dbName);
   db.close = client.close.bind(client);
   return db;
+};
+
+const setAppOptions = (appLib, ...options) => {
+  const appSchema = process.env.APP_MODEL_DIR
+    ? [getAbsolutePath(appRoot, process.env.APP_MODEL_DIR)]
+    : getAbsolutePathsFromCommaSeparated(appRoot, process.env.APP_SCHEMA);
+
+  appLib.setOptions({
+    appModelSources: [...getSchemaNestedPaths(appSchema, 'model'), ...options],
+  });
 };
 
 const setAppAuthOptions = (appLib, authOptions) => {
@@ -287,9 +307,24 @@ const setAppAuthOptions = (appLib, authOptions) => {
       },
     },
   };
-  appLib.setOptions({
-    appModelSources: [...getSchemaNestedPaths('model'), overrideAppAuth],
+  setAppOptions(appLib, overrideAppAuth);
+};
+
+const refreshConfig = (appLib, preserveMongoUri = true) => {
+  const mongoDbUri = _.get(appLib, 'config.MONGODB_URI', appLib.options.MONGODB_URI);
+
+  const { config: newConfig } = getConfigFromEnv();
+  // rewrite config saving object reference
+  _.each(appLib.config, (val, key) => {
+    delete appLib.config[key];
   });
+  _.each(newConfig, (val, newKey) => {
+    appLib.config[newKey] = val;
+  });
+
+  if (preserveMongoUri) {
+    appLib.config.MONGODB_URI = mongoDbUri;
+  }
 };
 
 const checkItemSoftDeleted = async (db, modelName, _id) => {
@@ -322,13 +357,10 @@ const sortByIdDesc = (arr) => {
   return [...arr].sort((a, b) => (a._id.toString() <= b._id.toString() ? 1 : -1));
 };
 
-function getAgentWithEnvPrefix(envPrefix, app, envFilePath) {
-  if (!process.env[envPrefix]) {
-    require('dotenv').load({ path: envFilePath });
-  }
-  const prefix = process.env[envPrefix] || '';
+function getAgentWithPrefix(configParam, appLib) {
+  const prefix = appLib.config[configParam];
 
-  const agent = request.agent(app);
+  const agent = request.agent(appLib.app);
   const methods = ['get', 'post', 'put', 'head', 'del', 'options'];
   methods.forEach((method) => {
     const defaultFunc = agent[method];
@@ -337,12 +369,12 @@ function getAgentWithEnvPrefix(envPrefix, app, envFilePath) {
   return agent;
 }
 
-function apiRequest(app, envFilePath = './test/backend/.env.test') {
-  return getAgentWithEnvPrefix('API_PREFIX', app, envFilePath);
+function apiRequest(appLib, envFilePath = testEnvPath) {
+  return getAgentWithPrefix('API_PREFIX', appLib, envFilePath);
 }
 
-function resourceRequest(app, envFilePath = './test/backend/.env.test') {
-  return getAgentWithEnvPrefix('RESOURCE_PREFIX', app, envFilePath);
+function resourceRequest(appLib, envFilePath = testEnvPath) {
+  return getAgentWithPrefix('RESOURCE_PREFIX', appLib, envFilePath);
 }
 
 module.exports = {
@@ -387,7 +419,9 @@ module.exports = {
     loginWithUser,
   },
   getMongoConnection,
+  setAppOptions,
   setAppAuthOptions,
+  refreshConfig,
   stringifyObjectId,
   prepareEnv,
   checkItemSoftDeleted,

@@ -1,16 +1,26 @@
 <div
-  ng-if="vm.formattedData"
-  ng-repeat="item in vm.formattedData track by $index"
+  ng-if="vm.templates"
+  ng-repeat="templateDefinition in vm.templates track by $index"
+  ng-class="[vm.schema.schemaName]"
 >
+  <dl
+    class="view-details-label-row row"
+    ng-class="templateDefinition.rowClass">
+    <dt class="col-md-4">
+      <div class="view-details-label">
+        {{templateDefinition.fieldName}}
+        <adp-tooltip adp-field="::templateDefinition.args.fieldSchema"></adp-tooltip>
 
-  <dl class="row" ng-class="['view-details-row-' + item.name]">
-    <dt class="col-md-4">{{item.name}}</dt>
+        <adp-clipboard-button
+          ng-if="vm.showClipboardBtn(templateDefinition.args)"
+          args="templateDefinition.args"
+        >
+        </adp-clipboard-button>
+      </div>
+    </dt>
 
     <dd class="col-md-8">
-      <adp-record-details-cell
-        template="item.template"
-      ></adp-record-details-cell>
+      <adp-record-details-cell template="templateDefinition.template"></adp-record-details-cell>
     </dd>
   </dl>
-
 </div>

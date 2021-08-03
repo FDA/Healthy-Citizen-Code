@@ -28,7 +28,7 @@ async function initJavaInstance(dependenciesDir) {
   const depDirFullPath = require('path').resolve(__dirname, dependenciesDir);
   const dependencies = await fs.readdir(depDirFullPath);
 
-  dependencies.forEach(function (dependency) {
+  dependencies.forEach((dependency) => {
     java.classpath.push(`${depDirFullPath}/${dependency}`);
   });
 

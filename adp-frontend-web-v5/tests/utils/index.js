@@ -13,6 +13,7 @@ function getLaunchOptions() {
     return {
       headless: false,
       defaultViewport: null,
+      devtools: true,
       slowMo: 20,
       args: [
         '--no-sandbox',
@@ -179,14 +180,11 @@ async function clickTableAction(recordId, actionName, page) {
   const confirmedActionSelector = await evaluateTableAction(recordId, actionName, page);
 
   await page.click(confirmedActionSelector);
-  // await page.evaluate(
-  //   selector => document.querySelector(selector).click(),
-  //   confirmedActionSelector
-  // );
 }
 
 async function clickSubmit(page, parentSelector = '') {
-  await page.click(`${parentSelector} [type=submit][data-action-name="submit"]`);
+  const el = await page.waitForSelector(`${parentSelector} [type=submit][data-action-name="submit"]`, {visible: true});
+  await el.click();
 }
 
 async function getSubmitMsg(page) {
@@ -235,7 +233,10 @@ async function addArrayItem(arr, page) {
 
 async function getResponseByPath(page, path, url = "graphql") {
   const response = await page.waitForResponse(
-    response => response.url() === `${appConfig.apiUrl}/${url}` && response.request().method() === "POST"
+    response => {
+      const req = response.request();
+      return response.url() === `${appConfig.apiUrl}/${url}` && req.method() === "POST";
+    }
   );
 
   const json = await response.json();
@@ -261,8 +262,8 @@ async function toggleGroup(groupSelector, type, page) {
 
   let collapseSelector = types[type];
   let toggleBtnSelector = `${groupSelector} ${collapseSelector}`;
-  await page.click(toggleBtnSelector);
-  await page.waitForTimeout(210);
+  const groupMenuBtn = await page.waitForSelector(toggleBtnSelector, { visible: true });
+  await groupMenuBtn.click(toggleBtnSelector);
 }
 
 async function isGroupCollapsed(groupSelector, page) {
@@ -270,7 +271,10 @@ async function isGroupCollapsed(groupSelector, page) {
 
   // evaluate if hidden
   return await page.evaluate(
-    s => document.querySelector(s).offsetParent === null,
+    s => {
+      const el = document.querySelector(s);
+      return !!(el && el.style.display === 'none');
+    },
     groupBodySelector
   );
 }

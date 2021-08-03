@@ -7,7 +7,7 @@ const ValidationError = require('../../errors/validation-error');
 
 module.exports = class DatatablesContext extends BaseContext {
   init() {
-    this.urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.API_PREFIX));
+    this.urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.config.API_PREFIX));
     this.modelName = this._getModelName();
     if (!this.modelName) {
       throw new ValidationError('No model name');
@@ -16,6 +16,7 @@ module.exports = class DatatablesContext extends BaseContext {
     if (!this.appLib.appModel.models[this.modelName]) {
       throw new ValidationError('Invalid model name');
     }
+    this.collectionName = this.appModel.collectionName || this.modelName;
     this.mongoParams = this._getMongoParams();
     return this;
   }

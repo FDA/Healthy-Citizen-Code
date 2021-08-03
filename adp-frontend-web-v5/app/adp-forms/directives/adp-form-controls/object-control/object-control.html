@@ -33,13 +33,16 @@
         ></adp-tooltip>
       </div>
 
-      <div ng-if="rootForm.$submitted && errorCount > 0">
-        <span ng-show="errorCount == 1">
-          {{errorCount}} error found.
+      <div
+        ng-if="rootForm.$submitted && getErrorCnt() > 0"
+        class="subform-frame__errors-cnt"
+      >
+        <span ng-show="getErrorCnt() == 1">
+          {{getErrorCnt()}} error found.
         </span>
 
-          <span ng-show="errorCount >= 2">
-          {{errorCount}} errors found.
+          <span ng-show="getErrorCnt() >= 2">
+          {{getErrorCnt()}} errors found.
         </span>
       </div>
     </h3>

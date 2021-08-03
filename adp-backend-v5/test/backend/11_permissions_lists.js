@@ -15,18 +15,16 @@ const {
   buildGraphQlUpdateOne,
   checkGraphQlSuccessfulResponse,
   checkGraphQlErrorResponse,
-} = require('../graphql-util.js');
+} = require('../graphql-util');
 
-describe('V5 Backend List Permissions', function () {
+describe('V5 Backend List Permissions', () => {
   const modelName = 'model9list_permissions';
 
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
-    this.db = db;
+    this.appLib = prepareEnv();
 
-    await this.db.createCollection(modelName);
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
+    this.db = db;
   });
 
   after(async function () {
@@ -46,8 +44,8 @@ describe('V5 Backend List Permissions', function () {
     return this.appLib.shutdown();
   });
 
-  describe('lists permissions', function () {
-    describe('check lists in app-model-code', function () {
+  describe('lists permissions', () => {
+    describe('check lists in app-model-code', () => {
       it('should allow admin to access all the lists', async function () {
         const { appLib } = this;
         setAppAuthOptions(this.appLib, {
@@ -57,7 +55,7 @@ describe('V5 Backend List Permissions', function () {
         await this.appLib.setup();
         const token = await loginWithUser(appLib, admin);
 
-        const res = await apiRequest(appLib.app)
+        const res = await apiRequest(appLib)
           .get('/app-model')
           .set('Accept', 'application/json')
           .set('Authorization', `JWT ${token}`)
@@ -100,7 +98,7 @@ describe('V5 Backend List Permissions', function () {
         await this.appLib.setup();
         const token = await loginWithUser(appLib, user);
 
-        const res = await apiRequest(appLib.app)
+        const res = await apiRequest(appLib)
           .get('/app-model')
           .set('Accept', 'application/json')
           .set('Authorization', `JWT ${token}`)
@@ -139,13 +137,13 @@ describe('V5 Backend List Permissions', function () {
         _.isEqual(objectValueList, expectedAvailableList).should.be.true();
       });
 
-      describe('check security for writing operations', function () {
+      describe('check security for writing operations', () => {
         const getCreateItemTestFunc = function (settings) {
           return f;
 
           async function f() {
             const { makeRequest, checkResponse } = settings;
-            const req = makeRequest(apiRequest(this.appLib.app));
+            const req = makeRequest(apiRequest(this.appLib));
             if (this.token) {
               req.set('Authorization', `JWT ${this.token}`);
             }
@@ -155,7 +153,7 @@ describe('V5 Backend List Permissions', function () {
           }
         };
 
-        describe('for admin', function () {
+        describe('for admin', () => {
           beforeEach(async function () {
             const { appLib } = this;
             setAppAuthOptions(this.appLib, {
@@ -166,7 +164,7 @@ describe('V5 Backend List Permissions', function () {
             this.token = await loginWithUser(appLib, admin);
           });
 
-          describe('should allow admin to create item with any valid list values', function () {
+          describe('should allow admin to create item with any valid list values', () => {
             const record = {
               objectValueList: 'val1',
               objectListWithObjectValueList: 'val2',
@@ -192,7 +190,7 @@ describe('V5 Backend List Permissions', function () {
             );
           });
 
-          describe('should not allow admin to create item with invalid list values', function () {
+          describe('should not allow admin to create item with invalid list values', () => {
             const record = {
               objectValueList: 'invalid1',
               objectListWithObjectValueList: 'invalid2',
@@ -220,7 +218,7 @@ describe('V5 Backend List Permissions', function () {
           });
         });
 
-        describe('for user', function () {
+        describe('for user', () => {
           beforeEach(async function () {
             const { appLib } = this;
             setAppAuthOptions(this.appLib, {
@@ -232,7 +230,7 @@ describe('V5 Backend List Permissions', function () {
             this.token = token;
           });
 
-          it('should allow user to create and update item with list values available for that user', function () {
+          it('should allow user to create and update item with list values available for that user', () => {
             const record = {
               objectValueList: '',
               objectListWithObjectValueList: '',
@@ -268,14 +266,14 @@ describe('V5 Backend List Permissions', function () {
 
               async function f() {
                 const { createRequest, getCreatedDocId, updateRequest, checkUpdate } = settings;
-                const createReq = createRequest(apiRequest(this.appLib.app));
+                const createReq = createRequest(apiRequest(this.appLib));
                 if (this.token) {
                   createReq.set('Authorization', `JWT ${this.token}`);
                 }
 
                 const res = await createReq.set('Accept', 'application/json').expect('Content-Type', /json/);
                 const createdDocId = getCreatedDocId(res);
-                const updateReq = updateRequest(apiRequest(this.appLib.app), createdDocId);
+                const updateReq = updateRequest(apiRequest(this.appLib), createdDocId);
                 if (this.token) {
                   updateReq.set('Authorization', `JWT ${this.token}`);
                 }
@@ -295,7 +293,7 @@ describe('V5 Backend List Permissions', function () {
             );
           });
 
-          it('should not allow user to create item with list values not available for that user', function () {
+          it('should not allow user to create item with list values not available for that user', () => {
             const record = {
               objectValueList: 'val1',
               objectListWithObjectValueList: 'val2',

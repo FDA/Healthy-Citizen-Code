@@ -9,10 +9,10 @@ function getCollectionOrder(collections, lookupFieldsMeta, excludedCollections =
 }
 
 function getOverallCollectionOrder(allCollections, dependentCollectionOrder, excludedCollections) {
-  excludedCollections.forEach(t => dependentCollectionOrder.delete(t));
+  excludedCollections.forEach((t) => dependentCollectionOrder.delete(t));
 
   const independentCollections = new Set();
-  _.each(allCollections, collectionName => {
+  _.each(allCollections, (collectionName) => {
     if (!dependentCollectionOrder.has(collectionName) && !excludedCollections.includes(collectionName)) {
       independentCollections.add(collectionName);
     }
@@ -23,7 +23,7 @@ function getOverallCollectionOrder(allCollections, dependentCollectionOrder, exc
 function buildSimpleTree(lookupFieldsMeta) {
   const tree = {};
   _.each(lookupFieldsMeta, (fieldsLookups, sourceCollection) => {
-    _.each(fieldsLookups, lookupInfo => {
+    _.each(fieldsLookups, (lookupInfo) => {
       const { collection } = lookupInfo;
       _.each(collection, (collectionInfo, collectionName) => {
         // There may be multiple fields with same sourceCollection->collection relation
@@ -56,7 +56,7 @@ function makeDeepTreeWithNoLoops(tree) {
 
 function getDependentCollectionOrder(tree) {
   const collectionsByLevels = [];
-  const traverse = obj => {
+  const traverse = (obj) => {
     const collections = Object.keys(obj);
     collections.length && collectionsByLevels.push(collections);
     const nestedObjs = Object.values(obj);
@@ -67,7 +67,7 @@ function getDependentCollectionOrder(tree) {
   const order = new Set();
   // add "deepest" i.e. independent collections first
   for (let i = collectionsByLevels.length - 1; i >= 0; i--) {
-    collectionsByLevels[i].forEach(collection => order.add(collection));
+    collectionsByLevels[i].forEach((collection) => order.add(collection));
   }
 
   return order;

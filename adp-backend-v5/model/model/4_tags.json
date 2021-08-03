@@ -7,32 +7,32 @@
       "actions": {
         "fields": {
           "update": {
-            "permissions": "accessAsUser"
+            "permissions": [["manageOwnTags", "manageAllTags"]]
           },
           "delete": {
-            "permissions": "accessAsUser"
+            "permissions": [["manageOwnTags", "manageAllTags"]]
           },
           "clone": {
-            "permissions": "accessAsUser"
+            "permissions": [["manageOwnTags", "manageAllTags"]]
           },
           "viewDetails": {
-            "permissions": "accessAsUser"
+            "permissions": [["accessOwnTags", "accessAllTags"]]
           },
           "view": {
-            "permissions": "accessAsUser"
+            "permissions": [["accessOwnTags", "accessAllTags"]]
           },
           "create": {
-            "permissions": "accessAsUser"
+            "permissions": [["manageOwnTags", "manageAllTags"]]
           }
         }
       },
       "scopes": {
         "own": {
-          "permissions": "accessAsUser",
+          "permissions": "accessOwnTags",
           "where": "{ 'creator._id': { $eq: this.req.user._id } }"
         },
-        "admin": {
-          "permissions": "accessAsSuperAdmin",
+        "all": {
+          "permissions": "accessAllTags",
           "where": "{$eq:[1,1]}"
         }
       },

@@ -56,9 +56,10 @@
 
         function getDefaults(args) {
           var field = args.fieldSchema;
+          var initialValue = getterSetterFn();
 
           return {
-            value: getterSetterFn() || null,
+            value: _.isNil(initialValue) ? null : initialValue,
             onInitialized: function (e) {
               scope.instance = e.component;
             },

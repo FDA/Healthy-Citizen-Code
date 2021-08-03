@@ -15,7 +15,7 @@
 
       return FormattersHelper.asText(args) ?
         getComplexTypeAsText(data, _.get(args, 'fieldSchema.fieldName')) :
-        getComplexTypeAsYaml(data, _.get(args, 'fieldSchema.parameters', {}), args.action);
+        getComplexTypeAsYaml(data);
     }
 
     function getComplexTypeAsText(data, name) {
@@ -25,7 +25,7 @@
       return name + ': ' + (textValues ? '{ ' + textValues + ' }' : finalValue);
     }
 
-    function getComplexTypeAsYaml(data, parameters) {
+    function getComplexTypeAsYaml(data) {
       var yaml = null;
       try {
         yaml = window.jsyaml.safeDump(data);
@@ -37,19 +37,11 @@
         }
       }
 
-      return htmlContent(yaml, parameters);
+      return htmlContent(yaml);
     }
 
-    function htmlContent(yaml, parameters, action) {
+    function htmlContent(yaml) {
       var container = $('<div class="adp-grid-scroll-container">');
-
-      var maxHeight = action === 'viewDetails' ?
-        200 :
-        parameters.maxDatagridCellHeight;
-
-      container.css({
-        'max-height': maxHeight ? maxHeight + 'px' : 'auto',
-      });
       container.append(yaml);
 
       return container;

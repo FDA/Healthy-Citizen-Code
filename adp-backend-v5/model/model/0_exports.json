@@ -1,0 +1,170 @@
+{
+  "models": {
+    "_exports": {
+      "type": "Schema",
+      "fullName": "Exports",
+      "description": "This collection serves for creating new exports.",
+      "fields": {
+        "name": {
+          "type": "String",
+          "description": "The name of the export",
+          "width": 200
+        },
+        "description": {
+          "type": "Text",
+          "description": "Detailed description of the export",
+          "width": null
+        },
+        "exportSpecification": {
+          "type": "Mixed"
+        },
+        "exportType": {
+          "type": "List",
+          "required": true,
+          "list": {
+            "values": {
+              "csv": "CSV file",
+              "excel": "Excel file",
+              "xml": "XML file",
+              "json": "JSON file",
+              "db": "Database dataset"
+            }
+          }
+        },
+        "queueName": {
+          "type": "String",
+          "permissions": {
+            "read": "accessAsUser",
+            "write": "accessForbidden"
+          },
+          "parameters": {
+            "enableInCellEditing": false,
+            "visible": false
+          }
+        },
+        "jobId": {
+          "type": "String",
+          "permissions": {
+            "read": "accessAsUser",
+            "write": "accessForbidden"
+          },
+          "parameters": {
+            "enableInCellEditing": false,
+            "visible": false
+          }
+        },
+        "file": {
+          "type": "LookupObjectID",
+          "description": "Exported file",
+          "permissions": {
+            "read": "accessAsUser",
+            "write": "accessForbidden"
+          },
+          "showInViewDetails": "['csv', 'excel', 'xml', 'json'].includes(this.row.exportType)",
+          "lookup": {
+            "table": {
+              "_files": {
+                "foreignKey": "_id",
+                "label": "originalName",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsUser"
+                    },
+                    "where": true
+                  }
+                }
+              }
+            }
+          }
+        },
+        "dataset": {
+          "type": "LookupObjectID",
+          "description": "Exported dataset",
+          "permissions": {
+            "read": "accessAsUser",
+            "write": "accessForbidden"
+          },
+          "showInViewDetails": "this.row.exportType === 'db'",
+          "lookup": {
+            "table": {
+              "datasets": {
+                "foreignKey": "_id",
+                "label": "name",
+                "scopes": {
+                  "specialScope": {
+                    "permissions": {
+                      "view": "accessAsUser"
+                    },
+                    "where": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "actions": {
+        "fields": {
+          "update": null,
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": null,
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": null,
+          "downloadFile": {
+            "fullName": "Download file",
+            "description": "Download resulting file",
+            "icon": {
+              "link": "download"
+            },
+            "action": {
+              "type": "action",
+              "link": "downloadFile"
+            }
+          },
+          "viewDataset": {
+            "fullName": "View dataset",
+            "description": "View resulting dataset",
+            "icon": {
+              "link": "eye"
+            },
+            "action": {
+              "type": "link",
+              "link": "/datasets/:dataset._id"
+            }
+          }
+        }
+      },
+      "scopes": {
+        "superAdminScope": {
+          "permissions": {
+            "delete": "accessAsUser",
+            "viewDetails": "accessAsUser",
+            "view": "accessAsUser",
+            "downloadFile": "accessForbidden",
+            "viewDataset": "accessForbidden"
+          }
+        },
+        "allowForFiles": {
+          "permissions": {
+            "downloadFile": "accessAsSuperAdmin"
+          },
+          "where": "{ file: { $ne:null } }"
+        },
+        "allowForDatasets": {
+          "permissions": {
+            "viewDataset": "accessAsSuperAdmin"
+          },
+          "where": "{ dataset: { $ne:null } }"
+        }
+      }
+    }
+  }
+}

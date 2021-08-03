@@ -2,21 +2,25 @@ const Mocha = require('mocha');
 const _ = require('lodash');
 const path = require('path');
 const dotenv = require('dotenv');
-const { prepareEnv, getSchemaNestedPaths, appRoot } = require('../../lib/util/env');
+const { getSchemaNestedPaths, appRoot } = require('../../config/util');
 const { globSyncAsciiOrder } = require('../../lib/util/glob');
 
 // specific tests can import modules by absolute path
 process.env.APP_LIB_MODULE_PATH = path.resolve(appRoot, 'lib/app');
 process.env.APP_DOTENV_FILE_PATH = path.resolve(appRoot, '.env');
 dotenv.load({ path: process.env.APP_DOTENV_FILE_PATH });
-prepareEnv(appRoot);
+const { getConfigFromEnv } = require('../../config/util');
+
+const { config } = getConfigFromEnv();
 
 const mocha = new Mocha({
   reporter: 'spec',
   timeout: 15000,
 });
 
-const files = _.flatten(getSchemaNestedPaths('test/**/*.js').map((pattern) => globSyncAsciiOrder(pattern)));
+const files = _.flatten(
+  getSchemaNestedPaths(config.APP_SCHEMA, 'test/**/*.js').map((pattern) => globSyncAsciiOrder(pattern))
+);
 files.forEach((file) => mocha.addFile(file));
 
 // Run the tests.

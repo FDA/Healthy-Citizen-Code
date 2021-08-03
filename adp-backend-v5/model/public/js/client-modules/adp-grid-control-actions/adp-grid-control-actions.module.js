@@ -16,9 +16,7 @@
       _.unset(dataToUpdate, '_tableLabel');
       _.unset(dataToUpdate, '$meta_table');
 
-      return ActionsHandlers.update(schema, dataToUpdate).then(function () {
-        gridInstance.refresh();
-      });
+      return ActionsHandlers.update(schema, dataToUpdate, gridInstance);
     }
 
     function createAction(toolbarWidgetRegister) {
@@ -45,10 +43,7 @@
               var createDataGetter = _.get(actionOptions, 'params.createDataGetter');
               var createData = _.isFunction(createDataGetter) ? createDataGetter(schemaName) : {}
 
-              ActionsHandlers.create(schema, createData)
-                .then(function () {
-                  gridComponent.refresh();
-                });
+              ActionsHandlers.create(schema, createData, gridComponent);
 
               AdpClientCommonHelper.repaintToolbar(gridComponent);
             }

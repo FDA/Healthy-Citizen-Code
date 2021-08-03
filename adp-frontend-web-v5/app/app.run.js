@@ -39,10 +39,11 @@
     AdpSocketIoService.login();
   }
 
-  function setupTimers(    AdpSchemaService, AdpSessionHelper) {
+  function setupTimers(AdpSchemaService, AdpSessionHelper, AdpUserActivityHelper) {
     if (!lsService.isGuest()) {
       AdpSessionHelper.setTokenRefreshTimeout();
       AdpSessionHelper.setSessionRemainingTimeout();
+      AdpUserActivityHelper.setUserActivityTracker();
     }
   }
 

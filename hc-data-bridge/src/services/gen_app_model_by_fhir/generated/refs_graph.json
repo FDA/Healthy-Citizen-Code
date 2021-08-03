@@ -1,0 +1,3017 @@
+{
+  "Account": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period",
+    "Money",
+    "Account_Coverage",
+    "Account_Guarantor"
+  ],
+  "Account_Coverage": [
+    "Reference",
+    "Element"
+  ],
+  "Account_Guarantor": [
+    "Reference",
+    "Element",
+    "Period"
+  ],
+  "ActivityDefinition": [
+    "Element",
+    "Identifier",
+    "Period",
+    "UsageContext",
+    "CodeableConcept",
+    "Contributor",
+    "ContactDetail",
+    "RelatedArtifact",
+    "Reference",
+    "Timing",
+    "Range",
+    "ActivityDefinition_Participant",
+    "Quantity",
+    "Dosage",
+    "ActivityDefinition_DynamicValue"
+  ],
+  "ActivityDefinition_Participant": [
+    "Element",
+    "CodeableConcept"
+  ],
+  "ActivityDefinition_DynamicValue": [
+    "Element"
+  ],
+  "Address": [
+    "Element",
+    "Period"
+  ],
+  "AdverseEvent": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "AdverseEvent_SuspectEntity"
+  ],
+  "AdverseEvent_SuspectEntity": [
+    "Reference",
+    "Element",
+    "CodeableConcept"
+  ],
+  "AllergyIntolerance": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Age",
+    "Period",
+    "Range",
+    "Annotation",
+    "AllergyIntolerance_Reaction"
+  ],
+  "AllergyIntolerance_Reaction": [
+    "CodeableConcept",
+    "Element",
+    "Annotation"
+  ],
+  "Annotation": [
+    "Reference",
+    "Element"
+  ],
+  "Appointment": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Appointment_Participant",
+    "Period"
+  ],
+  "Appointment_Participant": [
+    "CodeableConcept",
+    "Reference",
+    "Element"
+  ],
+  "AppointmentResponse": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept"
+  ],
+  "Attachment": [
+    "Element"
+  ],
+  "AuditEvent": [
+    "Coding",
+    "Element",
+    "CodeableConcept",
+    "AuditEvent_Agent",
+    "AuditEvent_Source",
+    "AuditEvent_Entity"
+  ],
+  "AuditEvent_Agent": [
+    "CodeableConcept",
+    "Reference",
+    "Identifier",
+    "Element",
+    "Coding",
+    "AuditEvent_Network"
+  ],
+  "AuditEvent_Network": [
+    "Element"
+  ],
+  "AuditEvent_Source": [
+    "Element",
+    "Identifier",
+    "Coding"
+  ],
+  "AuditEvent_Entity": [
+    "Identifier",
+    "Reference",
+    "Coding",
+    "Element",
+    "AuditEvent_Detail"
+  ],
+  "AuditEvent_Detail": [
+    "Element"
+  ],
+  "BackboneElement": [
+    "Extension"
+  ],
+  "Basic": [
+    "Identifier",
+    "CodeableConcept",
+    "Reference",
+    "Element"
+  ],
+  "Binary": [
+    "Element",
+    "Reference"
+  ],
+  "BodySite": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Attachment",
+    "Reference"
+  ],
+  "Bundle": [
+    "Identifier",
+    "Element",
+    "Bundle_Link",
+    "Bundle_Entry",
+    "Signature"
+  ],
+  "Bundle_Link": [
+    "Element"
+  ],
+  "Bundle_Entry": [
+    "Bundle_Link",
+    "Element",
+    "ResourceList",
+    "Bundle_Search",
+    "Bundle_Request",
+    "Bundle_Response"
+  ],
+  "Bundle_Search": [
+    "Element"
+  ],
+  "Bundle_Request": [
+    "Element"
+  ],
+  "Bundle_Response": [
+    "Element",
+    "ResourceList"
+  ],
+  "CapabilityStatement": [
+    "Element",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "CapabilityStatement_Software",
+    "CapabilityStatement_Implementation",
+    "Reference",
+    "CapabilityStatement_Rest",
+    "CapabilityStatement_Messaging",
+    "CapabilityStatement_Document"
+  ],
+  "CapabilityStatement_Software": [
+    "Element"
+  ],
+  "CapabilityStatement_Implementation": [
+    "Element"
+  ],
+  "CapabilityStatement_Rest": [
+    "Element",
+    "CapabilityStatement_Security",
+    "CapabilityStatement_Resource",
+    "CapabilityStatement_Interaction1",
+    "CapabilityStatement_SearchParam",
+    "CapabilityStatement_Operation"
+  ],
+  "CapabilityStatement_Security": [
+    "Element",
+    "CodeableConcept",
+    "CapabilityStatement_Certificate"
+  ],
+  "CapabilityStatement_Certificate": [
+    "Element"
+  ],
+  "CapabilityStatement_Resource": [
+    "Element",
+    "Reference",
+    "CapabilityStatement_Interaction",
+    "CapabilityStatement_SearchParam"
+  ],
+  "CapabilityStatement_Interaction": [
+    "Element"
+  ],
+  "CapabilityStatement_SearchParam": [
+    "Element"
+  ],
+  "CapabilityStatement_Interaction1": [
+    "Element"
+  ],
+  "CapabilityStatement_Operation": [
+    "Element",
+    "Reference"
+  ],
+  "CapabilityStatement_Messaging": [
+    "CapabilityStatement_Endpoint",
+    "Element",
+    "CapabilityStatement_SupportedMessage",
+    "CapabilityStatement_Event"
+  ],
+  "CapabilityStatement_Endpoint": [
+    "Coding",
+    "Element"
+  ],
+  "CapabilityStatement_SupportedMessage": [
+    "Element",
+    "Reference"
+  ],
+  "CapabilityStatement_Event": [
+    "Coding",
+    "Element",
+    "Reference"
+  ],
+  "CapabilityStatement_Document": [
+    "Element",
+    "Reference"
+  ],
+  "CarePlan": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "CarePlan_Activity",
+    "Annotation"
+  ],
+  "CarePlan_Activity": [
+    "CodeableConcept",
+    "Reference",
+    "Annotation",
+    "CarePlan_Detail"
+  ],
+  "CarePlan_Detail": [
+    "CodeableConcept",
+    "Reference",
+    "Element",
+    "Timing",
+    "Period",
+    "Quantity"
+  ],
+  "CareTeam": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period",
+    "CareTeam_Participant",
+    "Annotation"
+  ],
+  "CareTeam_Participant": [
+    "CodeableConcept",
+    "Reference",
+    "Period"
+  ],
+  "ChargeItem": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "Period",
+    "Timing",
+    "ChargeItem_Participant",
+    "Quantity",
+    "Money",
+    "Annotation"
+  ],
+  "ChargeItem_Participant": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "Claim": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period",
+    "Claim_Related",
+    "Claim_Payee",
+    "Claim_CareTeam",
+    "Claim_Information",
+    "Claim_Diagnosis",
+    "Claim_Procedure",
+    "Claim_Insurance",
+    "Claim_Accident",
+    "Claim_Item",
+    "Money"
+  ],
+  "Claim_Related": [
+    "Reference",
+    "CodeableConcept",
+    "Identifier"
+  ],
+  "Claim_Payee": [
+    "CodeableConcept",
+    "Coding",
+    "Reference"
+  ],
+  "Claim_CareTeam": [
+    "Element",
+    "Reference",
+    "CodeableConcept"
+  ],
+  "Claim_Information": [
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Quantity",
+    "Attachment",
+    "Reference"
+  ],
+  "Claim_Diagnosis": [
+    "Element",
+    "CodeableConcept",
+    "Reference"
+  ],
+  "Claim_Procedure": [
+    "Element",
+    "CodeableConcept",
+    "Reference"
+  ],
+  "Claim_Insurance": [
+    "Element",
+    "Reference"
+  ],
+  "Claim_Accident": [
+    "Element",
+    "CodeableConcept",
+    "Address",
+    "Reference"
+  ],
+  "Claim_Item": [
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Address",
+    "Reference",
+    "Quantity",
+    "Money",
+    "Claim_Detail"
+  ],
+  "Claim_Detail": [
+    "Element",
+    "CodeableConcept",
+    "Quantity",
+    "Money",
+    "Reference",
+    "Claim_SubDetail"
+  ],
+  "Claim_SubDetail": [
+    "Element",
+    "CodeableConcept",
+    "Quantity",
+    "Money",
+    "Reference"
+  ],
+  "ClaimResponse": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "ClaimResponse_Item",
+    "ClaimResponse_AddItem",
+    "ClaimResponse_Error",
+    "Money",
+    "ClaimResponse_Payment",
+    "Coding",
+    "ClaimResponse_ProcessNote",
+    "ClaimResponse_Insurance"
+  ],
+  "ClaimResponse_Item": [
+    "Element",
+    "ClaimResponse_Adjudication",
+    "ClaimResponse_Detail"
+  ],
+  "ClaimResponse_Adjudication": [
+    "CodeableConcept",
+    "Money",
+    "Element"
+  ],
+  "ClaimResponse_Detail": [
+    "Element",
+    "ClaimResponse_Adjudication",
+    "ClaimResponse_SubDetail"
+  ],
+  "ClaimResponse_SubDetail": [
+    "Element",
+    "ClaimResponse_Adjudication"
+  ],
+  "ClaimResponse_AddItem": [
+    "Element",
+    "CodeableConcept",
+    "Money",
+    "ClaimResponse_Adjudication",
+    "ClaimResponse_Detail1"
+  ],
+  "ClaimResponse_Detail1": [
+    "CodeableConcept",
+    "Money",
+    "Element",
+    "ClaimResponse_Adjudication"
+  ],
+  "ClaimResponse_Error": [
+    "Element",
+    "CodeableConcept"
+  ],
+  "ClaimResponse_Payment": [
+    "CodeableConcept",
+    "Money",
+    "Element",
+    "Identifier"
+  ],
+  "ClaimResponse_ProcessNote": [
+    "Element",
+    "CodeableConcept"
+  ],
+  "ClaimResponse_Insurance": [
+    "Element",
+    "Reference"
+  ],
+  "ClinicalImpression": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period",
+    "ClinicalImpression_Investigation",
+    "ClinicalImpression_Finding",
+    "Annotation"
+  ],
+  "ClinicalImpression_Investigation": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "ClinicalImpression_Finding": [
+    "CodeableConcept",
+    "Reference",
+    "Element"
+  ],
+  "CodeableConcept": [
+    "Coding",
+    "Element"
+  ],
+  "CodeSystem": [
+    "Element",
+    "Identifier",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "CodeSystem_Filter",
+    "CodeSystem_Property",
+    "CodeSystem_Concept"
+  ],
+  "CodeSystem_Filter": [
+    "Element"
+  ],
+  "CodeSystem_Property": [
+    "Element"
+  ],
+  "CodeSystem_Concept": [
+    "Element",
+    "CodeSystem_Designation",
+    "CodeSystem_Property1",
+    "CodeSystem_Concept"
+  ],
+  "CodeSystem_Designation": [
+    "Element",
+    "Coding"
+  ],
+  "CodeSystem_Property1": [
+    "Element",
+    "Coding"
+  ],
+  "Coding": [
+    "Element"
+  ],
+  "Communication": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Communication_Payload",
+    "Annotation"
+  ],
+  "Communication_Payload": [
+    "Element",
+    "Attachment",
+    "Reference"
+  ],
+  "CommunicationRequest": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "CommunicationRequest_Payload",
+    "Period",
+    "CommunicationRequest_Requester",
+    "Annotation"
+  ],
+  "CommunicationRequest_Payload": [
+    "Element",
+    "Attachment",
+    "Reference"
+  ],
+  "CommunicationRequest_Requester": [
+    "Reference"
+  ],
+  "CompartmentDefinition": [
+    "Element",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "CompartmentDefinition_Resource"
+  ],
+  "CompartmentDefinition_Resource": [
+    "Element"
+  ],
+  "Composition": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Composition_Attester",
+    "Composition_RelatesTo",
+    "Composition_Event",
+    "Composition_Section"
+  ],
+  "Composition_Attester": [
+    "Element",
+    "Reference"
+  ],
+  "Composition_RelatesTo": [
+    "Element",
+    "Identifier",
+    "Reference"
+  ],
+  "Composition_Event": [
+    "CodeableConcept",
+    "Period",
+    "Reference"
+  ],
+  "Composition_Section": [
+    "Element",
+    "CodeableConcept",
+    "Narrative",
+    "Reference",
+    "Composition_Section"
+  ],
+  "ConceptMap": [
+    "Element",
+    "Identifier",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "Reference",
+    "ConceptMap_Group"
+  ],
+  "ConceptMap_Group": [
+    "Element",
+    "ConceptMap_Element",
+    "ConceptMap_Unmapped"
+  ],
+  "ConceptMap_Element": [
+    "Element",
+    "ConceptMap_Target"
+  ],
+  "ConceptMap_Target": [
+    "Element",
+    "ConceptMap_DependsOn"
+  ],
+  "ConceptMap_DependsOn": [
+    "Element"
+  ],
+  "ConceptMap_Unmapped": [
+    "Element"
+  ],
+  "Condition": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Age",
+    "Period",
+    "Range",
+    "Condition_Stage",
+    "Condition_Evidence",
+    "Annotation"
+  ],
+  "Condition_Stage": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "Condition_Evidence": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "Consent": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period",
+    "Consent_Actor",
+    "Attachment",
+    "Consent_Policy",
+    "Coding",
+    "Consent_Data",
+    "Consent_Except"
+  ],
+  "Consent_Actor": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "Consent_Policy": [
+    "Element"
+  ],
+  "Consent_Data": [
+    "Element",
+    "Reference"
+  ],
+  "Consent_Except": [
+    "Element",
+    "Period",
+    "Consent_Actor1",
+    "CodeableConcept",
+    "Coding",
+    "Consent_Data1"
+  ],
+  "Consent_Actor1": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "Consent_Data1": [
+    "Element",
+    "Reference"
+  ],
+  "ContactDetail": [
+    "Element",
+    "ContactPoint"
+  ],
+  "ContactPoint": [
+    "Element",
+    "Period"
+  ],
+  "Contract": [
+    "Identifier",
+    "Element",
+    "Period",
+    "Reference",
+    "CodeableConcept",
+    "Coding",
+    "Contract_Agent",
+    "Contract_Signer",
+    "Contract_ValuedItem",
+    "Contract_Term",
+    "Attachment",
+    "Contract_Friendly",
+    "Contract_Legal",
+    "Contract_Rule"
+  ],
+  "Contract_Agent": [
+    "Reference",
+    "CodeableConcept"
+  ],
+  "Contract_Signer": [
+    "Coding",
+    "Reference",
+    "Signature"
+  ],
+  "Contract_ValuedItem": [
+    "CodeableConcept",
+    "Reference",
+    "Identifier",
+    "Element",
+    "Quantity",
+    "Money"
+  ],
+  "Contract_Term": [
+    "Identifier",
+    "Element",
+    "Period",
+    "CodeableConcept",
+    "Reference",
+    "Coding",
+    "Contract_Agent1",
+    "Contract_ValuedItem1",
+    "Contract_Term"
+  ],
+  "Contract_Agent1": [
+    "Reference",
+    "CodeableConcept"
+  ],
+  "Contract_ValuedItem1": [
+    "CodeableConcept",
+    "Reference",
+    "Identifier",
+    "Element",
+    "Quantity",
+    "Money"
+  ],
+  "Contract_Friendly": [
+    "Attachment",
+    "Reference"
+  ],
+  "Contract_Legal": [
+    "Attachment",
+    "Reference"
+  ],
+  "Contract_Rule": [
+    "Attachment",
+    "Reference"
+  ],
+  "Contributor": [
+    "Element",
+    "ContactDetail"
+  ],
+  "Coverage": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period",
+    "Coverage_Grouping"
+  ],
+  "Coverage_Grouping": [
+    "Element"
+  ],
+  "DataElement": [
+    "Element",
+    "Identifier",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "DataElement_Mapping",
+    "ElementDefinition"
+  ],
+  "DataElement_Mapping": [
+    "Element"
+  ],
+  "DataRequirement": [
+    "Element",
+    "DataRequirement_CodeFilter",
+    "DataRequirement_DateFilter"
+  ],
+  "DataRequirement_CodeFilter": [
+    "Element",
+    "Reference",
+    "Coding",
+    "CodeableConcept"
+  ],
+  "DataRequirement_DateFilter": [
+    "Element",
+    "Period",
+    "Duration"
+  ],
+  "DetectedIssue": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "DetectedIssue_Mitigation"
+  ],
+  "DetectedIssue_Mitigation": [
+    "CodeableConcept",
+    "Element",
+    "Reference"
+  ],
+  "Device": [
+    "Identifier",
+    "Device_Udi",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "ContactPoint",
+    "Annotation"
+  ],
+  "Device_Udi": [
+    "Element"
+  ],
+  "DeviceComponent": [
+    "Identifier",
+    "CodeableConcept",
+    "Element",
+    "Reference",
+    "DeviceComponent_ProductionSpecification"
+  ],
+  "DeviceComponent_ProductionSpecification": [
+    "CodeableConcept",
+    "Identifier",
+    "Element"
+  ],
+  "DeviceMetric": [
+    "Identifier",
+    "CodeableConcept",
+    "Reference",
+    "Element",
+    "Timing",
+    "DeviceMetric_Calibration"
+  ],
+  "DeviceMetric_Calibration": [
+    "Element"
+  ],
+  "DeviceRequest": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Timing",
+    "DeviceRequest_Requester",
+    "Annotation"
+  ],
+  "DeviceRequest_Requester": [
+    "Reference"
+  ],
+  "DeviceUseStatement": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "Period",
+    "Timing",
+    "CodeableConcept",
+    "Annotation"
+  ],
+  "DiagnosticReport": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "DiagnosticReport_Performer",
+    "DiagnosticReport_Image",
+    "Attachment"
+  ],
+  "DiagnosticReport_Performer": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "DiagnosticReport_Image": [
+    "Element",
+    "Reference"
+  ],
+  "DocumentManifest": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "DocumentManifest_Content",
+    "DocumentManifest_Related"
+  ],
+  "DocumentManifest_Content": [
+    "Attachment",
+    "Reference"
+  ],
+  "DocumentManifest_Related": [
+    "Identifier",
+    "Reference"
+  ],
+  "DocumentReference": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "DocumentReference_RelatesTo",
+    "DocumentReference_Content",
+    "DocumentReference_Context"
+  ],
+  "DocumentReference_RelatesTo": [
+    "Element",
+    "Reference"
+  ],
+  "DocumentReference_Content": [
+    "Attachment",
+    "Coding"
+  ],
+  "DocumentReference_Context": [
+    "Reference",
+    "CodeableConcept",
+    "Period",
+    "DocumentReference_Related"
+  ],
+  "DocumentReference_Related": [
+    "Identifier",
+    "Reference"
+  ],
+  "DomainResource": [
+    "Narrative",
+    "ResourceList",
+    "Extension"
+  ],
+  "Dosage": [
+    "Element",
+    "CodeableConcept",
+    "Timing",
+    "Range",
+    "Quantity",
+    "Ratio"
+  ],
+  "Element": [
+    "Element",
+    "Extension"
+  ],
+  "ElementDefinition": [
+    "Element",
+    "Coding",
+    "ElementDefinition_Slicing",
+    "ElementDefinition_Base",
+    "ElementDefinition_Type",
+    "Extension",
+    "BackboneElement",
+    "Narrative",
+    "Annotation",
+    "Attachment",
+    "Identifier",
+    "CodeableConcept",
+    "Quantity",
+    "Duration",
+    "Distance",
+    "Count",
+    "Money",
+    "Age",
+    "Range",
+    "Period",
+    "Ratio",
+    "Reference",
+    "SampledData",
+    "Signature",
+    "HumanName",
+    "Address",
+    "ContactPoint",
+    "Timing",
+    "Meta",
+    "ElementDefinition",
+    "ContactDetail",
+    "Contributor",
+    "Dosage",
+    "RelatedArtifact",
+    "UsageContext",
+    "DataRequirement",
+    "ParameterDefinition",
+    "TriggerDefinition",
+    "ElementDefinition_Example",
+    "ElementDefinition_Constraint",
+    "ElementDefinition_Binding",
+    "ElementDefinition_Mapping"
+  ],
+  "ElementDefinition_Slicing": [
+    "ElementDefinition_Discriminator",
+    "Element"
+  ],
+  "ElementDefinition_Discriminator": [
+    "Element"
+  ],
+  "ElementDefinition_Base": [
+    "Element"
+  ],
+  "ElementDefinition_Type": [
+    "Element"
+  ],
+  "ElementDefinition_Example": [
+    "Element",
+    "Extension",
+    "BackboneElement",
+    "Narrative",
+    "Annotation",
+    "Attachment",
+    "Identifier",
+    "CodeableConcept",
+    "Coding",
+    "Quantity",
+    "Duration",
+    "Distance",
+    "Count",
+    "Money",
+    "Age",
+    "Range",
+    "Period",
+    "Ratio",
+    "Reference",
+    "SampledData",
+    "Signature",
+    "HumanName",
+    "Address",
+    "ContactPoint",
+    "Timing",
+    "Meta",
+    "ElementDefinition",
+    "ContactDetail",
+    "Contributor",
+    "Dosage",
+    "RelatedArtifact",
+    "UsageContext",
+    "DataRequirement",
+    "ParameterDefinition",
+    "TriggerDefinition"
+  ],
+  "ElementDefinition_Constraint": [
+    "Element"
+  ],
+  "ElementDefinition_Binding": [
+    "Element",
+    "Reference"
+  ],
+  "ElementDefinition_Mapping": [
+    "Element"
+  ],
+  "EligibilityRequest": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period"
+  ],
+  "EligibilityResponse": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "EligibilityResponse_Insurance",
+    "EligibilityResponse_Error"
+  ],
+  "EligibilityResponse_Insurance": [
+    "Reference",
+    "EligibilityResponse_BenefitBalance"
+  ],
+  "EligibilityResponse_BenefitBalance": [
+    "CodeableConcept",
+    "Element",
+    "EligibilityResponse_Financial"
+  ],
+  "EligibilityResponse_Financial": [
+    "CodeableConcept",
+    "Element",
+    "Money"
+  ],
+  "EligibilityResponse_Error": [
+    "CodeableConcept"
+  ],
+  "Encounter": [
+    "Identifier",
+    "Element",
+    "Encounter_StatusHistory",
+    "Coding",
+    "Encounter_ClassHistory",
+    "CodeableConcept",
+    "Reference",
+    "Encounter_Participant",
+    "Period",
+    "Duration",
+    "Encounter_Diagnosis",
+    "Encounter_Hospitalization",
+    "Encounter_Location"
+  ],
+  "Encounter_StatusHistory": [
+    "Element",
+    "Period"
+  ],
+  "Encounter_ClassHistory": [
+    "Coding",
+    "Period"
+  ],
+  "Encounter_Participant": [
+    "CodeableConcept",
+    "Period",
+    "Reference"
+  ],
+  "Encounter_Diagnosis": [
+    "Reference",
+    "CodeableConcept",
+    "Element"
+  ],
+  "Encounter_Hospitalization": [
+    "Identifier",
+    "Reference",
+    "CodeableConcept"
+  ],
+  "Encounter_Location": [
+    "Reference",
+    "Element",
+    "Period"
+  ],
+  "Endpoint": [
+    "Identifier",
+    "Element",
+    "Coding",
+    "Reference",
+    "ContactPoint",
+    "Period",
+    "CodeableConcept"
+  ],
+  "EnrollmentRequest": [
+    "Identifier",
+    "Element",
+    "Reference"
+  ],
+  "EnrollmentResponse": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept"
+  ],
+  "EpisodeOfCare": [
+    "Identifier",
+    "Element",
+    "EpisodeOfCare_StatusHistory",
+    "CodeableConcept",
+    "EpisodeOfCare_Diagnosis",
+    "Reference",
+    "Period"
+  ],
+  "EpisodeOfCare_StatusHistory": [
+    "Element",
+    "Period"
+  ],
+  "EpisodeOfCare_Diagnosis": [
+    "Reference",
+    "CodeableConcept",
+    "Element"
+  ],
+  "ExpansionProfile": [
+    "Element",
+    "Identifier",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "ExpansionProfile_FixedVersion",
+    "ExpansionProfile_ExcludedSystem",
+    "ExpansionProfile_Designation"
+  ],
+  "ExpansionProfile_FixedVersion": [
+    "Element"
+  ],
+  "ExpansionProfile_ExcludedSystem": [
+    "Element"
+  ],
+  "ExpansionProfile_Designation": [
+    "ExpansionProfile_Include",
+    "ExpansionProfile_Exclude"
+  ],
+  "ExpansionProfile_Include": [
+    "ExpansionProfile_Designation1"
+  ],
+  "ExpansionProfile_Designation1": [
+    "Element",
+    "Coding"
+  ],
+  "ExpansionProfile_Exclude": [
+    "ExpansionProfile_Designation2"
+  ],
+  "ExpansionProfile_Designation2": [
+    "Element",
+    "Coding"
+  ],
+  "ExplanationOfBenefit": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period",
+    "ExplanationOfBenefit_Related",
+    "ExplanationOfBenefit_Payee",
+    "ExplanationOfBenefit_Information",
+    "ExplanationOfBenefit_CareTeam",
+    "ExplanationOfBenefit_Diagnosis",
+    "ExplanationOfBenefit_Procedure",
+    "ExplanationOfBenefit_Insurance",
+    "ExplanationOfBenefit_Accident",
+    "ExplanationOfBenefit_Item",
+    "ExplanationOfBenefit_AddItem",
+    "Money",
+    "ExplanationOfBenefit_Payment",
+    "ExplanationOfBenefit_ProcessNote",
+    "ExplanationOfBenefit_BenefitBalance"
+  ],
+  "ExplanationOfBenefit_Related": [
+    "Reference",
+    "CodeableConcept",
+    "Identifier"
+  ],
+  "ExplanationOfBenefit_Payee": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "ExplanationOfBenefit_Information": [
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Quantity",
+    "Attachment",
+    "Reference",
+    "Coding"
+  ],
+  "ExplanationOfBenefit_CareTeam": [
+    "Element",
+    "Reference",
+    "CodeableConcept"
+  ],
+  "ExplanationOfBenefit_Diagnosis": [
+    "Element",
+    "CodeableConcept",
+    "Reference"
+  ],
+  "ExplanationOfBenefit_Procedure": [
+    "Element",
+    "CodeableConcept",
+    "Reference"
+  ],
+  "ExplanationOfBenefit_Insurance": [
+    "Reference",
+    "Element"
+  ],
+  "ExplanationOfBenefit_Accident": [
+    "Element",
+    "CodeableConcept",
+    "Address",
+    "Reference"
+  ],
+  "ExplanationOfBenefit_Item": [
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Address",
+    "Reference",
+    "Quantity",
+    "Money",
+    "ExplanationOfBenefit_Adjudication",
+    "ExplanationOfBenefit_Detail"
+  ],
+  "ExplanationOfBenefit_Adjudication": [
+    "CodeableConcept",
+    "Money",
+    "Element"
+  ],
+  "ExplanationOfBenefit_Detail": [
+    "Element",
+    "CodeableConcept",
+    "Quantity",
+    "Money",
+    "Reference",
+    "ExplanationOfBenefit_Adjudication",
+    "ExplanationOfBenefit_SubDetail"
+  ],
+  "ExplanationOfBenefit_SubDetail": [
+    "Element",
+    "CodeableConcept",
+    "Quantity",
+    "Money",
+    "Reference",
+    "ExplanationOfBenefit_Adjudication"
+  ],
+  "ExplanationOfBenefit_AddItem": [
+    "Element",
+    "CodeableConcept",
+    "Money",
+    "ExplanationOfBenefit_Adjudication",
+    "ExplanationOfBenefit_Detail1"
+  ],
+  "ExplanationOfBenefit_Detail1": [
+    "CodeableConcept",
+    "Money",
+    "Element",
+    "ExplanationOfBenefit_Adjudication"
+  ],
+  "ExplanationOfBenefit_Payment": [
+    "CodeableConcept",
+    "Money",
+    "Element",
+    "Identifier"
+  ],
+  "ExplanationOfBenefit_ProcessNote": [
+    "Element",
+    "CodeableConcept"
+  ],
+  "ExplanationOfBenefit_BenefitBalance": [
+    "CodeableConcept",
+    "Element",
+    "ExplanationOfBenefit_Financial"
+  ],
+  "ExplanationOfBenefit_Financial": [
+    "CodeableConcept",
+    "Element",
+    "Money"
+  ],
+  "Extension": [
+    "Element",
+    "Extension",
+    "BackboneElement",
+    "Narrative",
+    "Annotation",
+    "Attachment",
+    "Identifier",
+    "CodeableConcept",
+    "Coding",
+    "Quantity",
+    "Duration",
+    "Distance",
+    "Count",
+    "Money",
+    "Age",
+    "Range",
+    "Period",
+    "Ratio",
+    "Reference",
+    "SampledData",
+    "Signature",
+    "HumanName",
+    "Address",
+    "ContactPoint",
+    "Timing",
+    "Meta",
+    "ElementDefinition",
+    "ContactDetail",
+    "Contributor",
+    "Dosage",
+    "RelatedArtifact",
+    "UsageContext",
+    "DataRequirement",
+    "ParameterDefinition",
+    "TriggerDefinition"
+  ],
+  "FamilyMemberHistory": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Age",
+    "Range",
+    "Annotation",
+    "FamilyMemberHistory_Condition"
+  ],
+  "FamilyMemberHistory_Condition": [
+    "CodeableConcept",
+    "Age",
+    "Range",
+    "Period",
+    "Element",
+    "Annotation"
+  ],
+  "Flag": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period"
+  ],
+  "Goal": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Goal_Target",
+    "Annotation"
+  ],
+  "Goal_Target": [
+    "CodeableConcept",
+    "Quantity",
+    "Range",
+    "Element",
+    "Duration"
+  ],
+  "GraphDefinition": [
+    "Element",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "GraphDefinition_Link"
+  ],
+  "GraphDefinition_Link": [
+    "Element",
+    "GraphDefinition_Target"
+  ],
+  "GraphDefinition_Target": [
+    "Element",
+    "GraphDefinition_Compartment",
+    "GraphDefinition_Link"
+  ],
+  "GraphDefinition_Compartment": [
+    "Element"
+  ],
+  "Group": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Group_Characteristic",
+    "Group_Member"
+  ],
+  "Group_Characteristic": [
+    "CodeableConcept",
+    "Element",
+    "Quantity",
+    "Range",
+    "Period"
+  ],
+  "Group_Member": [
+    "Reference",
+    "Period",
+    "Element"
+  ],
+  "GuidanceResponse": [
+    "Element",
+    "Identifier",
+    "Reference",
+    "CodeableConcept",
+    "Annotation",
+    "DataRequirement"
+  ],
+  "HealthcareService": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "Attachment",
+    "ContactPoint",
+    "HealthcareService_AvailableTime",
+    "HealthcareService_NotAvailable"
+  ],
+  "HealthcareService_AvailableTime": [
+    "Element"
+  ],
+  "HealthcareService_NotAvailable": [
+    "Element",
+    "Period"
+  ],
+  "HumanName": [
+    "Element",
+    "Period"
+  ],
+  "Identifier": [
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Reference"
+  ],
+  "ImagingManifest": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "ImagingManifest_Study"
+  ],
+  "ImagingManifest_Study": [
+    "Element",
+    "Reference",
+    "ImagingManifest_Series"
+  ],
+  "ImagingManifest_Series": [
+    "Element",
+    "Reference",
+    "ImagingManifest_Instance"
+  ],
+  "ImagingManifest_Instance": [
+    "Element"
+  ],
+  "ImagingStudy": [
+    "Element",
+    "Identifier",
+    "Coding",
+    "Reference",
+    "CodeableConcept",
+    "ImagingStudy_Series"
+  ],
+  "ImagingStudy_Series": [
+    "Element",
+    "Coding",
+    "Reference",
+    "ImagingStudy_Instance"
+  ],
+  "ImagingStudy_Instance": [
+    "Element"
+  ],
+  "Immunization": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Quantity",
+    "Immunization_Practitioner",
+    "Annotation",
+    "Immunization_Explanation",
+    "Immunization_Reaction",
+    "Immunization_VaccinationProtocol"
+  ],
+  "Immunization_Practitioner": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "Immunization_Explanation": [
+    "CodeableConcept"
+  ],
+  "Immunization_Reaction": [
+    "Element",
+    "Reference"
+  ],
+  "Immunization_VaccinationProtocol": [
+    "Element",
+    "Reference",
+    "CodeableConcept"
+  ],
+  "ImmunizationRecommendation": [
+    "Identifier",
+    "Reference",
+    "ImmunizationRecommendation_Recommendation"
+  ],
+  "ImmunizationRecommendation_Recommendation": [
+    "Element",
+    "CodeableConcept",
+    "ImmunizationRecommendation_DateCriterion",
+    "ImmunizationRecommendation_Protocol",
+    "Reference"
+  ],
+  "ImmunizationRecommendation_DateCriterion": [
+    "CodeableConcept",
+    "Element"
+  ],
+  "ImmunizationRecommendation_Protocol": [
+    "Element",
+    "Reference"
+  ],
+  "ImplementationGuide": [
+    "Element",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "ImplementationGuide_Dependency",
+    "ImplementationGuide_Package",
+    "ImplementationGuide_Global",
+    "ImplementationGuide_Page"
+  ],
+  "ImplementationGuide_Dependency": [
+    "Element"
+  ],
+  "ImplementationGuide_Package": [
+    "Element",
+    "ImplementationGuide_Resource"
+  ],
+  "ImplementationGuide_Resource": [
+    "Element",
+    "Reference"
+  ],
+  "ImplementationGuide_Global": [
+    "Element",
+    "Reference"
+  ],
+  "ImplementationGuide_Page": [
+    "Element",
+    "ImplementationGuide_Page"
+  ],
+  "Library": [
+    "Element",
+    "Identifier",
+    "CodeableConcept",
+    "Period",
+    "UsageContext",
+    "Contributor",
+    "ContactDetail",
+    "RelatedArtifact",
+    "ParameterDefinition",
+    "DataRequirement",
+    "Attachment"
+  ],
+  "Linkage": [
+    "Element",
+    "Reference",
+    "Linkage_Item"
+  ],
+  "Linkage_Item": [
+    "Element",
+    "Reference"
+  ],
+  "List": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Annotation",
+    "List_Entry"
+  ],
+  "List_Entry": [
+    "CodeableConcept",
+    "Element",
+    "Reference"
+  ],
+  "Location": [
+    "Identifier",
+    "Element",
+    "Coding",
+    "CodeableConcept",
+    "ContactPoint",
+    "Address",
+    "Location_Position",
+    "Reference"
+  ],
+  "Location_Position": [
+    "Element"
+  ],
+  "Measure": [
+    "Element",
+    "Identifier",
+    "Period",
+    "UsageContext",
+    "CodeableConcept",
+    "Contributor",
+    "ContactDetail",
+    "RelatedArtifact",
+    "Reference",
+    "Measure_Group",
+    "Measure_SupplementalData"
+  ],
+  "Measure_Group": [
+    "Identifier",
+    "Element",
+    "Measure_Population",
+    "Measure_Stratifier"
+  ],
+  "Measure_Population": [
+    "Identifier",
+    "CodeableConcept",
+    "Element"
+  ],
+  "Measure_Stratifier": [
+    "Identifier",
+    "Element"
+  ],
+  "Measure_SupplementalData": [
+    "Identifier",
+    "CodeableConcept",
+    "Element"
+  ],
+  "MeasureReport": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "Period",
+    "MeasureReport_Group"
+  ],
+  "MeasureReport_Group": [
+    "Identifier",
+    "MeasureReport_Population",
+    "Element",
+    "MeasureReport_Stratifier"
+  ],
+  "MeasureReport_Population": [
+    "Identifier",
+    "CodeableConcept",
+    "Element",
+    "Reference"
+  ],
+  "MeasureReport_Stratifier": [
+    "Identifier",
+    "MeasureReport_Stratum"
+  ],
+  "MeasureReport_Stratum": [
+    "Element",
+    "MeasureReport_Population1"
+  ],
+  "MeasureReport_Population1": [
+    "Identifier",
+    "CodeableConcept",
+    "Element",
+    "Reference"
+  ],
+  "Media": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Attachment",
+    "Annotation"
+  ],
+  "Medication": [
+    "CodeableConcept",
+    "Element",
+    "Reference",
+    "Medication_Ingredient",
+    "Medication_Package",
+    "Attachment"
+  ],
+  "Medication_Ingredient": [
+    "CodeableConcept",
+    "Reference",
+    "Element",
+    "Ratio"
+  ],
+  "Medication_Package": [
+    "CodeableConcept",
+    "Medication_Content",
+    "Medication_Batch"
+  ],
+  "Medication_Content": [
+    "CodeableConcept",
+    "Reference",
+    "Quantity"
+  ],
+  "Medication_Batch": [
+    "Element"
+  ],
+  "MedicationAdministration": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "MedicationAdministration_Performer",
+    "Annotation",
+    "MedicationAdministration_Dosage"
+  ],
+  "MedicationAdministration_Performer": [
+    "Reference"
+  ],
+  "MedicationAdministration_Dosage": [
+    "Element",
+    "CodeableConcept",
+    "Quantity",
+    "Ratio"
+  ],
+  "MedicationDispense": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "MedicationDispense_Performer",
+    "Quantity",
+    "Annotation",
+    "Dosage",
+    "MedicationDispense_Substitution"
+  ],
+  "MedicationDispense_Performer": [
+    "Reference"
+  ],
+  "MedicationDispense_Substitution": [
+    "Element",
+    "CodeableConcept",
+    "Reference"
+  ],
+  "MedicationRequest": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "MedicationRequest_Requester",
+    "Annotation",
+    "Dosage",
+    "MedicationRequest_DispenseRequest",
+    "MedicationRequest_Substitution"
+  ],
+  "MedicationRequest_Requester": [
+    "Reference"
+  ],
+  "MedicationRequest_DispenseRequest": [
+    "Period",
+    "Element",
+    "Quantity",
+    "Duration",
+    "Reference"
+  ],
+  "MedicationRequest_Substitution": [
+    "Element",
+    "CodeableConcept"
+  ],
+  "MedicationStatement": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Annotation",
+    "Dosage"
+  ],
+  "MessageDefinition": [
+    "Element",
+    "Identifier",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "Reference",
+    "Coding",
+    "MessageDefinition_Focus",
+    "MessageDefinition_AllowedResponse"
+  ],
+  "MessageDefinition_Focus": [
+    "Element",
+    "Reference"
+  ],
+  "MessageDefinition_AllowedResponse": [
+    "Reference",
+    "Element"
+  ],
+  "MessageHeader": [
+    "Coding",
+    "MessageHeader_Destination",
+    "Reference",
+    "Element",
+    "MessageHeader_Source",
+    "CodeableConcept",
+    "MessageHeader_Response"
+  ],
+  "MessageHeader_Destination": [
+    "Element",
+    "Reference"
+  ],
+  "MessageHeader_Source": [
+    "Element",
+    "ContactPoint"
+  ],
+  "MessageHeader_Response": [
+    "Element",
+    "Reference"
+  ],
+  "Meta": [
+    "Element",
+    "Coding"
+  ],
+  "NamingSystem": [
+    "Element",
+    "ContactDetail",
+    "CodeableConcept",
+    "UsageContext",
+    "NamingSystem_UniqueId",
+    "Reference"
+  ],
+  "NamingSystem_UniqueId": [
+    "Element",
+    "Period"
+  ],
+  "Narrative": [
+    "Element"
+  ],
+  "NutritionOrder": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "NutritionOrder_OralDiet",
+    "NutritionOrder_Supplement",
+    "NutritionOrder_EnteralFormula"
+  ],
+  "NutritionOrder_OralDiet": [
+    "CodeableConcept",
+    "Timing",
+    "NutritionOrder_Nutrient",
+    "NutritionOrder_Texture",
+    "Element"
+  ],
+  "NutritionOrder_Nutrient": [
+    "CodeableConcept",
+    "Quantity"
+  ],
+  "NutritionOrder_Texture": [
+    "CodeableConcept"
+  ],
+  "NutritionOrder_Supplement": [
+    "CodeableConcept",
+    "Element",
+    "Timing",
+    "Quantity"
+  ],
+  "NutritionOrder_EnteralFormula": [
+    "CodeableConcept",
+    "Element",
+    "Quantity",
+    "NutritionOrder_Administration"
+  ],
+  "NutritionOrder_Administration": [
+    "Timing",
+    "Quantity",
+    "Ratio"
+  ],
+  "Observation": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Quantity",
+    "Range",
+    "Ratio",
+    "SampledData",
+    "Attachment",
+    "Observation_ReferenceRange",
+    "Observation_Related",
+    "Observation_Component"
+  ],
+  "Observation_ReferenceRange": [
+    "Quantity",
+    "CodeableConcept",
+    "Range",
+    "Element"
+  ],
+  "Observation_Related": [
+    "Element",
+    "Reference"
+  ],
+  "Observation_Component": [
+    "CodeableConcept",
+    "Quantity",
+    "Element",
+    "Range",
+    "Ratio",
+    "SampledData",
+    "Attachment",
+    "Period",
+    "Observation_ReferenceRange"
+  ],
+  "OperationDefinition": [
+    "Element",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "Reference",
+    "OperationDefinition_Parameter",
+    "OperationDefinition_Overload"
+  ],
+  "OperationDefinition_Parameter": [
+    "Element",
+    "Reference",
+    "OperationDefinition_Binding",
+    "OperationDefinition_Parameter"
+  ],
+  "OperationDefinition_Binding": [
+    "Element",
+    "Reference"
+  ],
+  "OperationDefinition_Overload": [
+    "Element"
+  ],
+  "OperationOutcome": [
+    "OperationOutcome_Issue"
+  ],
+  "OperationOutcome_Issue": [
+    "Element",
+    "CodeableConcept"
+  ],
+  "Organization": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "ContactPoint",
+    "Address",
+    "Reference",
+    "Organization_Contact"
+  ],
+  "Organization_Contact": [
+    "CodeableConcept",
+    "HumanName",
+    "ContactPoint",
+    "Address"
+  ],
+  "ParameterDefinition": [
+    "Element",
+    "Reference"
+  ],
+  "Parameters": [
+    "Parameters_Parameter"
+  ],
+  "Parameters_Parameter": [
+    "Element",
+    "Extension",
+    "BackboneElement",
+    "Narrative",
+    "Annotation",
+    "Attachment",
+    "Identifier",
+    "CodeableConcept",
+    "Coding",
+    "Quantity",
+    "Duration",
+    "Distance",
+    "Count",
+    "Money",
+    "Age",
+    "Range",
+    "Period",
+    "Ratio",
+    "Reference",
+    "SampledData",
+    "Signature",
+    "HumanName",
+    "Address",
+    "ContactPoint",
+    "Timing",
+    "Meta",
+    "ElementDefinition",
+    "ContactDetail",
+    "Contributor",
+    "Dosage",
+    "RelatedArtifact",
+    "UsageContext",
+    "DataRequirement",
+    "ParameterDefinition",
+    "TriggerDefinition",
+    "ResourceList",
+    "Parameters_Parameter"
+  ],
+  "Patient": [
+    "Identifier",
+    "Element",
+    "HumanName",
+    "ContactPoint",
+    "Address",
+    "CodeableConcept",
+    "Attachment",
+    "Patient_Contact",
+    "Patient_Animal",
+    "Patient_Communication",
+    "Reference",
+    "Patient_Link"
+  ],
+  "Patient_Contact": [
+    "CodeableConcept",
+    "HumanName",
+    "ContactPoint",
+    "Address",
+    "Element",
+    "Reference",
+    "Period"
+  ],
+  "Patient_Animal": [
+    "CodeableConcept"
+  ],
+  "Patient_Communication": [
+    "CodeableConcept",
+    "Element"
+  ],
+  "Patient_Link": [
+    "Reference",
+    "Element"
+  ],
+  "PaymentNotice": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept"
+  ],
+  "PaymentReconciliation": [
+    "Identifier",
+    "Element",
+    "Period",
+    "Reference",
+    "CodeableConcept",
+    "PaymentReconciliation_Detail",
+    "Money",
+    "PaymentReconciliation_ProcessNote"
+  ],
+  "PaymentReconciliation_Detail": [
+    "CodeableConcept",
+    "Reference",
+    "Element",
+    "Money"
+  ],
+  "PaymentReconciliation_ProcessNote": [
+    "CodeableConcept",
+    "Element"
+  ],
+  "Period": [
+    "Element"
+  ],
+  "Person": [
+    "Identifier",
+    "HumanName",
+    "ContactPoint",
+    "Element",
+    "Address",
+    "Attachment",
+    "Reference",
+    "Person_Link"
+  ],
+  "Person_Link": [
+    "Reference",
+    "Element"
+  ],
+  "PlanDefinition": [
+    "Element",
+    "Identifier",
+    "CodeableConcept",
+    "Period",
+    "UsageContext",
+    "Contributor",
+    "ContactDetail",
+    "RelatedArtifact",
+    "Reference",
+    "PlanDefinition_Goal",
+    "PlanDefinition_Action"
+  ],
+  "PlanDefinition_Goal": [
+    "CodeableConcept",
+    "RelatedArtifact",
+    "PlanDefinition_Target"
+  ],
+  "PlanDefinition_Target": [
+    "CodeableConcept",
+    "Quantity",
+    "Range",
+    "Duration"
+  ],
+  "PlanDefinition_Action": [
+    "Element",
+    "CodeableConcept",
+    "RelatedArtifact",
+    "TriggerDefinition",
+    "PlanDefinition_Condition",
+    "DataRequirement",
+    "PlanDefinition_RelatedAction",
+    "Period",
+    "Duration",
+    "Range",
+    "Timing",
+    "PlanDefinition_Participant",
+    "Coding",
+    "Reference",
+    "PlanDefinition_DynamicValue",
+    "PlanDefinition_Action"
+  ],
+  "PlanDefinition_Condition": [
+    "Element"
+  ],
+  "PlanDefinition_RelatedAction": [
+    "Element",
+    "Duration",
+    "Range"
+  ],
+  "PlanDefinition_Participant": [
+    "Element",
+    "CodeableConcept"
+  ],
+  "PlanDefinition_DynamicValue": [
+    "Element"
+  ],
+  "Practitioner": [
+    "Identifier",
+    "Element",
+    "HumanName",
+    "ContactPoint",
+    "Address",
+    "Attachment",
+    "Practitioner_Qualification",
+    "CodeableConcept"
+  ],
+  "Practitioner_Qualification": [
+    "Identifier",
+    "CodeableConcept",
+    "Period",
+    "Reference"
+  ],
+  "PractitionerRole": [
+    "Identifier",
+    "Element",
+    "Period",
+    "Reference",
+    "CodeableConcept",
+    "ContactPoint",
+    "PractitionerRole_AvailableTime",
+    "PractitionerRole_NotAvailable"
+  ],
+  "PractitionerRole_AvailableTime": [
+    "Element"
+  ],
+  "PractitionerRole_NotAvailable": [
+    "Element",
+    "Period"
+  ],
+  "Procedure": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Procedure_Performer",
+    "Annotation",
+    "Procedure_FocalDevice"
+  ],
+  "Procedure_Performer": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "Procedure_FocalDevice": [
+    "CodeableConcept",
+    "Reference"
+  ],
+  "ProcedureRequest": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "Timing",
+    "ProcedureRequest_Requester",
+    "Annotation"
+  ],
+  "ProcedureRequest_Requester": [
+    "Reference"
+  ],
+  "ProcessRequest": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "ProcessRequest_Item",
+    "Period"
+  ],
+  "ProcessRequest_Item": [
+    "Element"
+  ],
+  "ProcessResponse": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "ProcessResponse_ProcessNote"
+  ],
+  "ProcessResponse_ProcessNote": [
+    "CodeableConcept",
+    "Element"
+  ],
+  "Provenance": [
+    "Reference",
+    "Period",
+    "Element",
+    "Coding",
+    "Provenance_Agent",
+    "Provenance_Entity",
+    "Signature"
+  ],
+  "Provenance_Agent": [
+    "CodeableConcept",
+    "Element",
+    "Reference"
+  ],
+  "Provenance_Entity": [
+    "Element",
+    "Reference",
+    "Identifier",
+    "Provenance_Agent"
+  ],
+  "Quantity": [
+    "Element"
+  ],
+  "Questionnaire": [
+    "Element",
+    "Identifier",
+    "Period",
+    "UsageContext",
+    "CodeableConcept",
+    "ContactDetail",
+    "Coding",
+    "Questionnaire_Item"
+  ],
+  "Questionnaire_Item": [
+    "Element",
+    "Coding",
+    "Questionnaire_EnableWhen",
+    "Reference",
+    "Questionnaire_Option",
+    "Attachment",
+    "Quantity",
+    "Questionnaire_Item"
+  ],
+  "Questionnaire_EnableWhen": [
+    "Element",
+    "Attachment",
+    "Coding",
+    "Quantity",
+    "Reference"
+  ],
+  "Questionnaire_Option": [
+    "Element",
+    "Coding"
+  ],
+  "QuestionnaireResponse": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "QuestionnaireResponse_Item"
+  ],
+  "QuestionnaireResponse_Item": [
+    "Element",
+    "Reference",
+    "QuestionnaireResponse_Answer",
+    "QuestionnaireResponse_Item"
+  ],
+  "QuestionnaireResponse_Answer": [
+    "Element",
+    "Attachment",
+    "Coding",
+    "Quantity",
+    "Reference",
+    "QuestionnaireResponse_Item"
+  ],
+  "Range": [
+    "Quantity"
+  ],
+  "Ratio": [
+    "Quantity"
+  ],
+  "Reference": [
+    "Element",
+    "Identifier"
+  ],
+  "ReferralRequest": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "ReferralRequest_Requester",
+    "Annotation"
+  ],
+  "ReferralRequest_Requester": [
+    "Reference"
+  ],
+  "RelatedArtifact": [
+    "Element",
+    "Attachment",
+    "Reference"
+  ],
+  "RelatedPerson": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "HumanName",
+    "ContactPoint",
+    "Address",
+    "Attachment",
+    "Period"
+  ],
+  "RequestGroup": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Annotation",
+    "RequestGroup_Action"
+  ],
+  "RequestGroup_Action": [
+    "Element",
+    "CodeableConcept",
+    "RelatedArtifact",
+    "RequestGroup_Condition",
+    "RequestGroup_RelatedAction",
+    "Period",
+    "Duration",
+    "Range",
+    "Timing",
+    "Reference",
+    "Coding",
+    "RequestGroup_Action"
+  ],
+  "RequestGroup_Condition": [
+    "Element"
+  ],
+  "RequestGroup_RelatedAction": [
+    "Element",
+    "Duration",
+    "Range"
+  ],
+  "ResearchStudy": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "ContactDetail",
+    "RelatedArtifact",
+    "Period",
+    "Annotation",
+    "ResearchStudy_Arm"
+  ],
+  "ResearchStudy_Arm": [
+    "Element",
+    "CodeableConcept"
+  ],
+  "ResearchSubject": [
+    "Identifier",
+    "Element",
+    "Period",
+    "Reference"
+  ],
+  "Resource": [
+    "Element",
+    "Meta"
+  ],
+  "RiskAssessment": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "Period",
+    "RiskAssessment_Prediction"
+  ],
+  "RiskAssessment_Prediction": [
+    "CodeableConcept",
+    "Element",
+    "Range",
+    "Period"
+  ],
+  "SampledData": [
+    "Quantity",
+    "Element"
+  ],
+  "Schedule": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period"
+  ],
+  "SearchParameter": [
+    "Element",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "SearchParameter_Component"
+  ],
+  "SearchParameter_Component": [
+    "Reference",
+    "Element"
+  ],
+  "Sequence": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "Quantity",
+    "Sequence_ReferenceSeq",
+    "Sequence_Variant",
+    "Sequence_Quality",
+    "Sequence_Repository"
+  ],
+  "Sequence_ReferenceSeq": [
+    "CodeableConcept",
+    "Element",
+    "Reference"
+  ],
+  "Sequence_Variant": [
+    "Element",
+    "Reference"
+  ],
+  "Sequence_Quality": [
+    "Element",
+    "CodeableConcept",
+    "Quantity"
+  ],
+  "Sequence_Repository": [
+    "Element"
+  ],
+  "ServiceDefinition": [
+    "Element",
+    "Identifier",
+    "Period",
+    "UsageContext",
+    "CodeableConcept",
+    "Contributor",
+    "ContactDetail",
+    "RelatedArtifact",
+    "TriggerDefinition",
+    "DataRequirement",
+    "Reference"
+  ],
+  "Signature": [
+    "Coding",
+    "Element",
+    "Reference"
+  ],
+  "Slot": [
+    "Identifier",
+    "CodeableConcept",
+    "Reference",
+    "Element"
+  ],
+  "Specimen": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Specimen_Collection",
+    "Specimen_Processing",
+    "Specimen_Container",
+    "Annotation"
+  ],
+  "Specimen_Collection": [
+    "Reference",
+    "Element",
+    "Period",
+    "Quantity",
+    "CodeableConcept"
+  ],
+  "Specimen_Processing": [
+    "Element",
+    "CodeableConcept",
+    "Reference",
+    "Period"
+  ],
+  "Specimen_Container": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Quantity",
+    "Reference"
+  ],
+  "StructureDefinition": [
+    "Element",
+    "Identifier",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "Coding",
+    "StructureDefinition_Mapping",
+    "StructureDefinition_Snapshot",
+    "StructureDefinition_Differential"
+  ],
+  "StructureDefinition_Mapping": [
+    "Element"
+  ],
+  "StructureDefinition_Snapshot": [
+    "ElementDefinition"
+  ],
+  "StructureDefinition_Differential": [
+    "ElementDefinition"
+  ],
+  "StructureMap": [
+    "Element",
+    "Identifier",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "StructureMap_Structure",
+    "StructureMap_Group"
+  ],
+  "StructureMap_Structure": [
+    "Element"
+  ],
+  "StructureMap_Group": [
+    "Element",
+    "StructureMap_Input",
+    "StructureMap_Rule"
+  ],
+  "StructureMap_Input": [
+    "Element"
+  ],
+  "StructureMap_Rule": [
+    "Element",
+    "StructureMap_Source",
+    "StructureMap_Target",
+    "StructureMap_Rule",
+    "StructureMap_Dependent"
+  ],
+  "StructureMap_Source": [
+    "Element",
+    "Extension",
+    "BackboneElement",
+    "Narrative",
+    "Annotation",
+    "Attachment",
+    "Identifier",
+    "CodeableConcept",
+    "Coding",
+    "Quantity",
+    "Duration",
+    "Distance",
+    "Count",
+    "Money",
+    "Age",
+    "Range",
+    "Period",
+    "Ratio",
+    "Reference",
+    "SampledData",
+    "Signature",
+    "HumanName",
+    "Address",
+    "ContactPoint",
+    "Timing",
+    "Meta",
+    "ElementDefinition",
+    "ContactDetail",
+    "Contributor",
+    "Dosage",
+    "RelatedArtifact",
+    "UsageContext",
+    "DataRequirement",
+    "ParameterDefinition",
+    "TriggerDefinition"
+  ],
+  "StructureMap_Target": [
+    "Element",
+    "StructureMap_Parameter"
+  ],
+  "StructureMap_Parameter": [
+    "Element"
+  ],
+  "StructureMap_Dependent": [
+    "Element"
+  ],
+  "Subscription": [
+    "Element",
+    "ContactPoint",
+    "Subscription_Channel",
+    "Coding"
+  ],
+  "Subscription_Channel": [
+    "Element"
+  ],
+  "Substance": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "Substance_Instance",
+    "Substance_Ingredient"
+  ],
+  "Substance_Instance": [
+    "Identifier",
+    "Element",
+    "Quantity"
+  ],
+  "Substance_Ingredient": [
+    "Ratio",
+    "CodeableConcept",
+    "Reference"
+  ],
+  "SupplyDelivery": [
+    "Identifier",
+    "Reference",
+    "Element",
+    "CodeableConcept",
+    "SupplyDelivery_SuppliedItem",
+    "Period",
+    "Timing"
+  ],
+  "SupplyDelivery_SuppliedItem": [
+    "Quantity",
+    "CodeableConcept",
+    "Reference"
+  ],
+  "SupplyRequest": [
+    "Identifier",
+    "Element",
+    "CodeableConcept",
+    "SupplyRequest_OrderedItem",
+    "Period",
+    "Timing",
+    "SupplyRequest_Requester",
+    "Reference"
+  ],
+  "SupplyRequest_OrderedItem": [
+    "Quantity",
+    "CodeableConcept",
+    "Reference"
+  ],
+  "SupplyRequest_Requester": [
+    "Reference"
+  ],
+  "Task": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "Period",
+    "Task_Requester",
+    "Annotation",
+    "Task_Restriction",
+    "Task_Input",
+    "Task_Output"
+  ],
+  "Task_Requester": [
+    "Reference"
+  ],
+  "Task_Restriction": [
+    "Element",
+    "Period",
+    "Reference"
+  ],
+  "Task_Input": [
+    "CodeableConcept",
+    "Element",
+    "Extension",
+    "BackboneElement",
+    "Narrative",
+    "Annotation",
+    "Attachment",
+    "Identifier",
+    "Coding",
+    "Quantity",
+    "Duration",
+    "Distance",
+    "Count",
+    "Money",
+    "Age",
+    "Range",
+    "Period",
+    "Ratio",
+    "Reference",
+    "SampledData",
+    "Signature",
+    "HumanName",
+    "Address",
+    "ContactPoint",
+    "Timing",
+    "Meta",
+    "ElementDefinition",
+    "ContactDetail",
+    "Contributor",
+    "Dosage",
+    "RelatedArtifact",
+    "UsageContext",
+    "DataRequirement",
+    "ParameterDefinition",
+    "TriggerDefinition"
+  ],
+  "Task_Output": [
+    "CodeableConcept",
+    "Element",
+    "Extension",
+    "BackboneElement",
+    "Narrative",
+    "Annotation",
+    "Attachment",
+    "Identifier",
+    "Coding",
+    "Quantity",
+    "Duration",
+    "Distance",
+    "Count",
+    "Money",
+    "Age",
+    "Range",
+    "Period",
+    "Ratio",
+    "Reference",
+    "SampledData",
+    "Signature",
+    "HumanName",
+    "Address",
+    "ContactPoint",
+    "Timing",
+    "Meta",
+    "ElementDefinition",
+    "ContactDetail",
+    "Contributor",
+    "Dosage",
+    "RelatedArtifact",
+    "UsageContext",
+    "DataRequirement",
+    "ParameterDefinition",
+    "TriggerDefinition"
+  ],
+  "TestReport": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "TestReport_Participant",
+    "TestReport_Setup",
+    "TestReport_Test",
+    "TestReport_Teardown"
+  ],
+  "TestReport_Participant": [
+    "Element"
+  ],
+  "TestReport_Setup": [
+    "TestReport_Action"
+  ],
+  "TestReport_Action": [
+    "TestReport_Operation",
+    "TestReport_Assert"
+  ],
+  "TestReport_Operation": [
+    "Element"
+  ],
+  "TestReport_Assert": [
+    "Element"
+  ],
+  "TestReport_Test": [
+    "Element",
+    "TestReport_Action1"
+  ],
+  "TestReport_Action1": [
+    "TestReport_Operation",
+    "TestReport_Assert"
+  ],
+  "TestReport_Teardown": [
+    "TestReport_Action2"
+  ],
+  "TestReport_Action2": [
+    "TestReport_Operation"
+  ],
+  "TestScript": [
+    "Element",
+    "Identifier",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "TestScript_Origin",
+    "TestScript_Destination",
+    "TestScript_Metadata",
+    "TestScript_Fixture",
+    "Reference",
+    "TestScript_Variable",
+    "TestScript_Rule",
+    "TestScript_Ruleset",
+    "TestScript_Setup",
+    "TestScript_Test",
+    "TestScript_Teardown"
+  ],
+  "TestScript_Origin": [
+    "Element",
+    "Coding"
+  ],
+  "TestScript_Destination": [
+    "Element",
+    "Coding"
+  ],
+  "TestScript_Metadata": [
+    "TestScript_Link",
+    "TestScript_Capability"
+  ],
+  "TestScript_Link": [
+    "Element"
+  ],
+  "TestScript_Capability": [
+    "Element",
+    "Reference"
+  ],
+  "TestScript_Fixture": [
+    "Element",
+    "Reference"
+  ],
+  "TestScript_Variable": [
+    "Element"
+  ],
+  "TestScript_Rule": [
+    "Reference",
+    "TestScript_Param"
+  ],
+  "TestScript_Param": [
+    "Element"
+  ],
+  "TestScript_Ruleset": [
+    "Reference",
+    "TestScript_Rule1"
+  ],
+  "TestScript_Rule1": [
+    "Element",
+    "TestScript_Param1"
+  ],
+  "TestScript_Param1": [
+    "Element"
+  ],
+  "TestScript_Setup": [
+    "TestScript_Action"
+  ],
+  "TestScript_Action": [
+    "TestScript_Operation",
+    "TestScript_Assert"
+  ],
+  "TestScript_Operation": [
+    "Coding",
+    "Element",
+    "TestScript_RequestHeader"
+  ],
+  "TestScript_RequestHeader": [
+    "Element"
+  ],
+  "TestScript_Assert": [
+    "Element",
+    "TestScript_Rule2",
+    "TestScript_Ruleset1"
+  ],
+  "TestScript_Rule2": [
+    "Element",
+    "TestScript_Param2"
+  ],
+  "TestScript_Param2": [
+    "Element"
+  ],
+  "TestScript_Ruleset1": [
+    "Element",
+    "TestScript_Rule3"
+  ],
+  "TestScript_Rule3": [
+    "Element",
+    "TestScript_Param3"
+  ],
+  "TestScript_Param3": [
+    "Element"
+  ],
+  "TestScript_Test": [
+    "Element",
+    "TestScript_Action1"
+  ],
+  "TestScript_Action1": [
+    "TestScript_Operation",
+    "TestScript_Assert"
+  ],
+  "TestScript_Teardown": [
+    "TestScript_Action2"
+  ],
+  "TestScript_Action2": [
+    "TestScript_Operation"
+  ],
+  "Timing": [
+    "Element",
+    "Timing_Repeat",
+    "CodeableConcept"
+  ],
+  "Timing_Repeat": [
+    "Duration",
+    "Range",
+    "Period",
+    "Element"
+  ],
+  "TriggerDefinition": [
+    "Element",
+    "Timing",
+    "Reference",
+    "DataRequirement"
+  ],
+  "UsageContext": [
+    "Coding",
+    "CodeableConcept",
+    "Quantity",
+    "Range"
+  ],
+  "ValueSet": [
+    "Element",
+    "Identifier",
+    "ContactDetail",
+    "UsageContext",
+    "CodeableConcept",
+    "ValueSet_Compose",
+    "ValueSet_Expansion"
+  ],
+  "ValueSet_Compose": [
+    "Element",
+    "ValueSet_Include"
+  ],
+  "ValueSet_Include": [
+    "Element",
+    "ValueSet_Concept",
+    "ValueSet_Filter"
+  ],
+  "ValueSet_Concept": [
+    "Element",
+    "ValueSet_Designation"
+  ],
+  "ValueSet_Designation": [
+    "Element",
+    "Coding"
+  ],
+  "ValueSet_Filter": [
+    "Element"
+  ],
+  "ValueSet_Expansion": [
+    "Element",
+    "ValueSet_Parameter",
+    "ValueSet_Contains"
+  ],
+  "ValueSet_Parameter": [
+    "Element"
+  ],
+  "ValueSet_Contains": [
+    "Element",
+    "ValueSet_Designation",
+    "ValueSet_Contains"
+  ],
+  "VisionPrescription": [
+    "Identifier",
+    "Element",
+    "Reference",
+    "CodeableConcept",
+    "VisionPrescription_Dispense"
+  ],
+  "VisionPrescription_Dispense": [
+    "CodeableConcept",
+    "Element",
+    "Quantity",
+    "Annotation"
+  ]
+}

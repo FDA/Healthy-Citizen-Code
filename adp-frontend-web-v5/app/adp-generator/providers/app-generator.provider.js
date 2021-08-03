@@ -37,7 +37,7 @@
 
         $urlRouterProvider.otherwise(function () {
           var authSetting = window.adpAppStore.appInterface().app.auth;
-          var loginUrl = !!APP_CONFIG.appSuffix ? ('/' + APP_CONFIG.appSuffix + '/login') : '/login';
+          var loginUrl = !!APP_CONFIG.appSuffix ? (APP_CONFIG.appSuffix + '/login') : '/login';
 
           if (authSetting.requireAuthentication && lsService.isGuest()) {
             return loginUrl;

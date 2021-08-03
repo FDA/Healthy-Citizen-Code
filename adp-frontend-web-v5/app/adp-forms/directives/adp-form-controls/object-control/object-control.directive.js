@@ -33,6 +33,10 @@
           return AdpFieldsService.getHeaderRenderer(scope.args);
         };
 
+        scope.getErrorCnt = function () {
+          return AdpFormService.getErrorCounter(scope.formContext.errorCount, scope.args);
+        };
+
         scope.toggle = function () {
           scope.isVisible = !scope.isVisible;
         };
@@ -42,15 +46,6 @@
         }
 
         scope.subFormData = getterSetterFn();
-
-        scope.$watch(
-          function () { return angular.toJson(scope.rootForm); },
-          function () {
-            if (scope.rootForm.$submitted) {
-              var formToCount = scope.form[scope.fieldName];
-              scope.errorCount = AdpFormService.countErrors(formToCount);
-            }
-          });
 
         function isEmpty() {
           var data = getterSetterFn();

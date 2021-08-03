@@ -2,7 +2,6 @@
 const mongodb = require('mongodb');
 const Promise = require('bluebird');
 const _ = require('lodash');
-const { dbLog } = require('./util/audit-log');
 const { handleResult } = require('./util/util');
 const { measureFuncDuration } = require('./util/measure');
 const { asyncLocalStorage } = require('./async-local-storage');
@@ -106,7 +105,7 @@ function addHooks() {
   };
 }
 
-function addLogsForMethods(appLogger, persistLogger, logCollectionName, persistLogIgnoreMethods) {
+function addLogsForMethods(log, logCollectionName, logIgnoreMethods) {
   const allMethods = [
     'aggregate',
     'bulkWrite',
@@ -156,7 +155,7 @@ function addLogsForMethods(appLogger, persistLogger, logCollectionName, persistL
     'updateOne',
     'watch',
   ];
-  const methodsForPersistLogger = _.without(allMethods, ...persistLogIgnoreMethods);
+  const methodsToLog = _.without(allMethods, ...logIgnoreMethods);
 
   _.each(allMethods, (method) => {
     addLogsForMethod(method);
@@ -205,8 +204,10 @@ function addLogsForMethods(appLogger, persistLogger, logCollectionName, persistL
         }
       }
 
-      const isPersistLoggerEnabled = methodsForPersistLogger.includes(method);
-      dbLog({ args, result, duration, timestamp, appLogger, persistLogger, logCollectionName, isPersistLoggerEnabled });
+      const isLoggerEnabled = methodsToLog.includes(method);
+      if (isLoggerEnabled) {
+        log({ args, result, duration, timestamp });
+      }
 
       return result;
     };
@@ -249,11 +250,13 @@ function addLogsForMethods(appLogger, persistLogger, logCollectionName, persistL
           // We are interested in duration of cursor.toArray() (it's covered in wrapToArrayMethod)
           const isCursorResult = result instanceof mongodb.Cursor;
 
-          const isLoggableMethod = methodsForPersistLogger.includes(method);
+          const isLoggableMethod = methodsToLog.includes(method);
 
-          const isPersistLoggerEnabled = !isLogCollection && !isCursorResult && isLoggableMethod;
+          const isLoggerEnabled = !isLogCollection && !isCursorResult && isLoggableMethod;
 
-          dbLog({ args: extendedArgs, result, duration, timestamp, appLogger, persistLogger, isPersistLoggerEnabled });
+          if (isLoggerEnabled) {
+            log({ args: extendedArgs, result, duration, timestamp });
+          }
 
           return result;
         };
@@ -262,7 +265,6 @@ function addLogsForMethods(appLogger, persistLogger, logCollectionName, persistL
       } catch (error) {
         // Collection operation may throw because of max bson size, catch it here
         // The cause is investigated here - https://github.com/Automattic/mongoose/issues/3906
-        appLogger.call(`Mongo wrapper error`, error);
         if (hasCallback) {
           lastArg(error);
         } else {
@@ -274,20 +276,9 @@ function addLogsForMethods(appLogger, persistLogger, logCollectionName, persistL
 }
 
 module.exports = (options) => {
-  const defaultPersistLogIgnoreMethods = [
-    'createIndex',
-    'createIndexes',
-    'ensureIndex',
-    'indexInformation',
-    'listIndexes',
-  ];
-  const {
-    appLogger,
-    persistLogger,
-    logCollectionName,
-    persistLogIgnoreMethods = defaultPersistLogIgnoreMethods,
-  } = options;
-  addLogsForMethods(appLogger, persistLogger, logCollectionName, persistLogIgnoreMethods);
+  const defaultLogIgnoreMethods = ['createIndex', 'createIndexes', 'ensureIndex', 'indexInformation', 'listIndexes'];
+  const { log, logCollectionName, logIgnoreMethods = defaultLogIgnoreMethods } = options;
+  addLogsForMethods(log, logCollectionName, logIgnoreMethods);
   addHooks();
 
   return mongodb;

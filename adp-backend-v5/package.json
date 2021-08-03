@@ -1,7 +1,7 @@
 {
   "name": "adp-backend",
   "description": "Conceptant Accelerated Development Platform Backend",
-  "version": "0.4.0",
+  "version": "5.0.0",
   "repository": {
     "type": "git",
     "url": "https://git@bitbucket.conceptant.com/scm/adp/adp-backend-v5.git"
@@ -15,110 +15,110 @@
     "clear-test-databases": "node test/clear-test-databases.js",
     "sync-es-with-mongo": "node lib/elastic-search/es-mongo-sync/sync-index-seed.js -l",
     "client-libs-build": "parallel-webpack --no-stats --max-retries=3 --config ./model/lib/parallel-webpack.config.js --",
-    "client-libs-compile": "parallel-webpack --max-retries=3 --config ./model/lib/parallel-webpack.config.js -- --env.develop "
+    "client-libs-compile": "parallel-webpack --max-retries=3 --config ./model/lib/parallel-webpack.config.js -- --env.develop ",
+    "prepare": "husky install"
   },
   "dependencies": {
     "@babel/core": "^7.11.6",
     "@babel/plugin-transform-runtime": "^7.11.5",
     "@babel/runtime": "^7.11.2",
-    "@elastic/elasticsearch": "^7.9.0",
     "@google/maps": "^1.1.3",
-    "altair-express-middleware": "^2.5.0",
-    "assert-plus": "^1.0.0",
+    "@vvo/tzdb": "^6.7.0",
+    "altair-express-middleware": "^4.0.6",
     "async": "^2.6.3",
-    "axios": "^0.19.0",
+    "axios": "^0.21.1",
     "bcryptjs": "^2.4.3",
-    "bluebird": "^3.7.0",
+    "bluebird": "^3.7.2",
     "body-parser": "^1.19.0",
     "bpmn-engine": "^9.2.0",
-    "bson": "^4.1.0",
-    "bull": "^3.18.0",
-    "cabin": "^6.1.0",
+    "bson": "^4.4.0",
+    "bull": "^3.22.8",
     "camunda-bpmn-moddle": "^4.4.0",
     "chance": "^1.1.7",
-    "chrono-node": "^2.1.10",
+    "chrono-node": "^2.3.0",
     "command-line-args": "^5.1.1",
     "compression": "^1.7.4",
-    "connect-redis": "^5.1.0",
+    "connect-redis": "^6.0.0",
     "cookie": "^0.4.1",
     "cookie-parser": "^1.4.5",
     "core-js": "^3.6.5",
     "cors": "^2.8.5",
-    "csv-parser": "^2.3.3",
-    "dayjs": "^1.8.36",
+    "csv-parser": "^3.0.0",
+    "dayjs": "^1.10.5",
     "dotenv": "^4.0.0",
-    "ejs": "^3.1.5",
-    "escape-regexp-component": "^1.0.2",
-    "escape-string-regexp": "^2.0.0",
+    "ejs": "^3.1.6",
+    "escape-string-regexp": "^4.0.0",
     "express": "^4.17.1",
     "express-device": "^0.4.2",
     "express-fileupload": "^1.2.0",
-    "express-graphql": "^0.9.0",
+    "express-graphql": "^0.12.0",
     "express-request-id": "^1.4.1",
-    "express-session": "^1.17.1",
-    "farmhash": "^3.1.0",
-    "fast-csv": "^4.3.2",
-    "fs-extra": "^8.1.0",
-    "glob": "^7.1.4",
-    "graphql": "^14.7.0",
-    "graphql-compose": "^7.20.1",
-    "ioredis": "^4.17.3",
-    "ioredis-mock": "^4.21.3",
+    "express-session": "^1.17.2",
+    "farmhash": "^3.2.1",
+    "fast-csv": "^4.3.6",
+    "fs-extra": "^10.0.0",
+    "glob": "^7.1.7",
+    "graphql": "^15.5.0",
+    "graphql-compose": "^9.0.1",
+    "ioredis": "^4.27.6",
+    "ioredis-mock": "^5.6.0",
+    "is-array-buffer": "^1.0.1",
+    "is-buffer": "^1.1.6",
+    "is-circular": "^1.0.2",
+    "is-stream": "^1.1.0",
     "java": "^0.12.1",
-    "jimp": "^0.6.8",
+    "jimp": "^0.16.1",
     "json-stringify-safe": "^5.0.1",
-    "json5": "^2.1.3",
-    "jsonpath-plus": "^1.1.0",
+    "json5": "^2.2.0",
+    "jsonpath-plus": "^5.0.7",
     "jsonwebtoken": "^8.5.1",
-    "lodash": "^4.17.20",
+    "lodash": "^4.17.21",
     "log4js": "^6.3.0",
     "lru-cache": "^6.0.0",
-    "mem": "^6.1.1",
+    "mem": "^8.1.1",
     "memory-fs": "^0.5.0",
     "migrate-mongo": "github:conceptant/migrate-mongo#master",
-    "mime": "^2.4.6",
-    "mongodb": "^3.6.1",
-    "ms": "^2.1.2",
-    "nanoid": "^3.1.12",
-    "node-geocoder": "^3.27.0",
-    "nodemailer": "^6.4.11",
+    "mime": "^2.5.2",
+    "mongodb": "^3.6.9",
+    "ms": "^2.1.3",
+    "nanoid": "^3.1.23",
+    "node-excel-stream": "^1.2.1",
+    "node-object-hash": "^2.3.4",
+    "nodemailer": "^6.6.1",
     "number-precision": "^1.5.0",
     "on-finished": "^2.3.0",
+    "on-headers": "^1.0.2",
+    "otpauth": "^7.0.3",
     "p-event": "^4.2.0",
-    "parse-request": "^2.0.6",
     "parseurl": "^1.3.3",
-    "passport": "^0.4.0",
-    "passport-jwt": "^4.0.0",
-    "passport-local": "^1.0.0",
-    "pm2": "^3.5.1",
-    "query-string": "^6.13.1",
+    "qrcode": "^1.4.4",
+    "query-string": "^7.0.0",
     "randexp": "^0.5.3",
     "random-js": "^2.1.0",
-    "random-location": "^1.1.3",
-    "readline": "^1.3.0",
     "real-address-generator": "github:conceptant/real-address-generator",
     "relaxed-json": "^1.0.3",
-    "request": "^2.88.2",
     "request-received": "0.0.3",
     "response-time": "^2.3.2",
-    "safe-regex": "^2.0.2",
-    "sanitize-html": "^2.1.0",
-    "shortid": "^2.2.15",
-    "sift": "^13.3.1",
-    "sinon": "^7.5.0",
+    "rfdc": "^1.3.0",
+    "safe-regex": "^2.1.1",
+    "sanitize-html": "^2.4.0",
+    "sift": "^13.5.4",
+    "sinon": "^11.1.1",
     "socket.io": "^2.3.0",
     "socket.io-redis": "^5.4.0",
     "stringify-object": "^3.3.0",
     "strip-bom-stream": "^4.0.0",
-    "swagger-jsdoc": "^3.7.0",
-    "swagger-ui-express": "^4.1.4",
-    "to-regex": "^3.0.2",
+    "swagger-jsdoc": "^6.1.0",
+    "swagger-ui-express": "^4.1.6",
     "tomlify": "^0.2.2",
+    "type-is": "^1.6.18",
     "uglify-js": "^3.10.4",
-    "uuid": "^3.3.3",
+    "url-parse": "^1.5.1",
+    "uuid": "^8.3.2",
+    "vm2": "^3.9.3",
     "webpack": "4.42.0",
     "webpack-shell-plugin-next": "^1.2.0",
-    "yaml": "^1.10.0"
+    "yaml": "^1.10.2"
   },
   "devDependencies": {
     "@babel/plugin-transform-classes": "^7.10.4",
@@ -128,70 +128,55 @@
     "babel-polyfill": "^6.26.0",
     "babel-preset-minify": "^0.5.1",
     "base64-inline-loader": "^1.1.1",
-    "benchmark": "^2.1.4",
     "bpmn-js": "^6.5.1",
     "bpmn-js-properties-panel": "^0.33.2",
-    "chai": "^4.2.0",
-    "chai-http": "^4.3.0",
     "copy-webpack-plugin": "^5.1.2",
     "css-loader": "^3.6.0",
     "d3": "^3.5.6",
     "dmn-js": "^7.5.1",
     "dotenv-webpack": "^1.8.0",
-    "eslint": "^6.8.0",
-    "eslint-config-airbnb": "^18.2.0",
-    "eslint-config-airbnb-base": "^14.2.0",
-    "eslint-config-prettier": "^6.11.0",
-    "eslint-plugin-import": "^2.22.0",
-    "eslint-plugin-jsx-a11y": "^6.3.1",
-    "eslint-plugin-mocha": "^6.3.0",
-    "eslint-plugin-prettier": "^3.1.4",
-    "eslint-plugin-promise": "^4.2.1",
-    "eslint-plugin-react": "^7.20.6",
-    "eslint-plugin-react-hooks": "^1.7.0",
+    "eslint": "^7.28.0",
+    "eslint-config-airbnb": "^18.2.1",
+    "eslint-config-airbnb-base": "^14.2.1",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-import": "^2.23.4",
+    "eslint-plugin-jsx-a11y": "^6.4.1",
+    "eslint-plugin-mocha": "^9.0.0",
+    "eslint-plugin-prettier": "^3.4.0",
+    "eslint-plugin-promise": "^5.1.0",
+    "eslint-plugin-react": "^7.24.0",
+    "eslint-plugin-react-hooks": "^4.2.0",
     "eslint-plugin-security": "^1.4.0",
-    "faker": "^5.1.0",
-    "fast-memoize": "^2.5.2",
     "file-loader": "^6.1.0",
     "font-awesome": "^4.7.0",
-    "highwayhash": "^3.0.0",
     "html-webpack-inline-source-plugin": "0.0.10",
     "html-webpack-plugin": "^3.2.0",
-    "husky": "^3.0.8",
-    "jest": "^26.6.3",
+    "husky": "^6.0.0",
+    "jest": "^27.0.4",
     "jest-runner-mocha": "^0.6.0",
     "jquery": "^3.5.1",
     "less": "^3.12.2",
     "less-loader": "^5.0.0",
-    "lint-staged": "^9.4.1",
+    "lint-staged": "^11.0.0",
     "loader-utils": "^1.4.0",
     "mini-css-extract-plugin": "^0.9.0",
     "minimist": "^1.2.5",
-    "mocha": "^8.2.1",
-    "node-object-hash": "^2.0.0",
-    "object-hash": "^1.3.1",
+    "mocha": "^8.4.0",
     "optimize-css-assets-webpack-plugin": "^5.0.4",
     "parallel-webpack": "^2.6.0",
-    "prettier": "2.0.2",
+    "prettier": "^2.3.1",
+    "rewiremock": "^3.14.3",
     "should": "^13.2.3",
     "style-loader": "^1.2.1",
-    "supertest": "^4.0.2",
+    "supertest": "^6.1.3",
     "terser-webpack-plugin": "^2.3.8",
     "three": "^0.112.1",
     "three-spritetext": "^1.5.2",
     "url-loader": "^3.0.0",
-    "webpack-cli": "^3.3.12",
-    "xxhashjs": "^0.2.2"
+    "webpack-cli": "^3.3.12"
   },
   "engines": {
     "node": ">= 14.0.0"
-  },
-  "husky": {
-    "hooks": {
-      "pre-commit": "lint-staged",
-      "post-commit": "git update-index -g",
-      "pre-push": "npm test"
-    }
   },
   "jest": {
     "runner": "jest-runner-mocha",
@@ -206,9 +191,971 @@
   "lint-staged": {
     "*.js": [
       "eslint --fix",
-      "prettier --write",
-      "git add"
+      "prettier --write"
     ]
+  },
+  "adp": {
+    "environment": {
+      "MONGODB_URI": {
+        "fullName": "Mongodb uri",
+        "description": "The URI to be used to connect to the database",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "APP_PORT": {
+        "fullName": "Backend Port",
+        "description": "The port on which the backend should be running",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "8080"
+      },
+      "APP_URL": {
+        "fullName": "Application URL",
+        "description": "The URL of the backend (including HTTP Basic Auth login and password). Used for dynamic lists in case list name starts with '/'",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "JWT_SECRET": {
+        "fullName": "Jwt secret",
+        "description": "The JWT secret used for signing JWT tokens",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "APP_NAME": {
+        "fullName": "App name",
+        "description": "The name of the application. Used in subject for reset mail password",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true
+      },
+      "CREATE_INDEXES": {
+        "fullName": "Create indexes",
+        "description": "If 'true' adds indexes for fields marked as `index: true` + indexes for lookups + '2dsphere' index for Location type, i.e speedup indexes. If 'false' adds only indexes for fields marked as 'unique: true' because unique index affects app logic.",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "true"
+      },
+      "DEVELOPMENT": {
+        "fullName": "Development",
+        "description": "Enables /dev page and other development features",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "false"
+      },
+      "LOG4JS_CONFIG": {
+        "fullName": "Log4js config",
+        "description": "The path to the log4js config",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "APP_MODEL_DIR": {
+        "fullName": "App model dir",
+        "description": "The directory where the app model is located (to be deprecated, use APP_SCHEMA)",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "APP_SCHEMA": {
+        "fullName": "App schema",
+        "description": "Accepts multiple comma-separated directories containing several app schemas",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "REDIS_URL": {
+        "fullName": "Redis url",
+        "description": "Redis url used for caching",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "REDIS_KEY_PREFIX": {
+        "fullName": "Redis key prefix",
+        "description": "Redis key prefix is necessary for splitting keys by purpose in one redis instance",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "cache"
+      },
+      "BULL_REDIS_URL": {
+        "fullName": "Bull redis url",
+        "description": "Bull redis url is used for starting Background Jobs",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "BULL_KEY_PREFIX": {
+        "fullName": "Bull key prefix",
+        "description": "Bull key prefix. Necessary for splitting keys of many apps in one redis instance",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "bull"
+      },
+      "BULL_REMOVE_ON_COMPLETE": {
+        "fullName": "Bull remove on complete",
+        "description": "If true, removes the job when it successfully completes. A number specified the amount of jobs to keep. Default behavior is to keep the job in the completed set",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "10000"
+      },
+      "BULL_REMOVE_ON_FAIL": {
+        "fullName": "Bull remove on fail",
+        "description": "If true, removes the job when it fails after all attempts. A number specified the amount of jobs to keep. Default behavior is to keep the job in the failed set",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "10000"
+      },
+      "SOCKETIO_REDIS_URL": {
+        "fullName": "Socket.io redis url",
+        "description": "Socket.io redis url, these keys used for multi-instance socket communication via redis' pub/sub system",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "SOCKETIO_KEY_PREFIX": {
+        "fullName": "Socket.io key prefix",
+        "description": "Socket.io key prefix",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "socket.io"
+      },
+      "SESSIONS_REDIS_URL": {
+        "fullName": "Sessions redis url",
+        "description": "Used for express-session. If specified the express-session store will be a RedisStore with specified url instead of default MemoryStore",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "SESSIONS_KEY_PREFIX": {
+        "fullName": "Sessions key prefix",
+        "description": "express-session key prefix",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "sessions"
+      },
+      "BUILD_APP_MODEL_CODE_ON_START": {
+        "fullName": "Build app model code on start",
+        "description": "If true launches webpack on app startup and caches the result. If false launches webpack on first /app-model request",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "true"
+      },
+      "ES_NODES": {
+        "fullName": "Es nodes",
+        "description": "Comma-separated URIs of the ElasticSearch server. Note: Mongo-ElasticSearch connector(monstache) requires mongo work in replica set mode.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "ES_MAX_RETRIES": {
+        "fullName": "Es max retries",
+        "description": "ElasticSearch max connection retries",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "4"
+      },
+      "GOOGLE_API_KEY": {
+        "fullName": "Google api key",
+        "description": "Used in address generator for geocoding. Also this key used to provide appLib.googleMapsClient",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "FRONTEND_URL": {
+        "fullName": "Frontend url",
+        "description": "Used for creating reset password email body which contains a link for resetting a token",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "CORS_ORIGIN": {
+        "fullName": "CORS origin",
+        "description": "CORS passed to npmjs.com/package/cors package",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "EMAIL_SERVICE": {
+        "fullName": "Email service",
+        "description": "Name of well-known provider. More info: https://nodemailer.com/smtp/well-known/",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "EMAIL_HOST": {
+        "fullName": "Email host",
+        "description": "Email host. More info: https://nodemailer.com/smtp/",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "EMAIL_PORT": {
+        "fullName": "Email port",
+        "description": "Email port. More info: https://nodemailer.com/smtp/",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "EMAIL_SECURE": {
+        "fullName": "Email secure",
+        "description": "Email secure. More info: https://nodemailer.com/smtp/",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "false"
+      },
+      "EMAIL_POOL": {
+        "fullName": "Email pool",
+        "description": "Email pool. More info: https://nodemailer.com/smtp/",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "false"
+      },
+      "EMAIL_USER": {
+        "fullName": "Email user",
+        "description": "Email address from which reset password emails are sent.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "EMAIL_PASSWORD": {
+        "fullName": "Email password",
+        "description": "Email password for EMAIL_USER",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "DMN_BATCH_SIZE": {
+        "fullName": "Dmn batch size",
+        "description": "Defines how many DMN processed records will be upserted as one piece of job with invoking 'job.progress'",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "50"
+      },
+      "DMN_RUNNER_CONCURRENCY": {
+        "fullName": "Dmn runner concurrency",
+        "description": "DMN processor concurrency - https://github.com/OptimalBits/bull/blob/develop/REFERENCE.md#queueprocess",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "1"
+      },
+      "BPMN_BATCH_SIZE": {
+        "fullName": "Bpmn batch size",
+        "description": "Defines how many BPMN processed records will be upserted as one piece of job with invoking 'job.progress'",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "50"
+      },
+      "BPMN_RUNNER_CONCURRENCY": {
+        "fullName": "Bpmn batch size",
+        "description": "BPMN processor concurrency",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "1"
+      },
+      "AIML_RUNNER_CONCURRENCY": {
+        "fullName": "Aiml runner concurrency",
+        "description": "AIML processor concurrency",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "1"
+      },
+      "AIML_CONCURRENT_REQUEST_NUMBER": {
+        "fullName": "Aiml concurrent request number",
+        "description": "Limits a number of concurrent requests to AIML endpoint during one job execution.",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "5"
+      },
+      "EXTERNAL_COMMANDS_RUNNER_CONCURRENCY": {
+        "fullName": "External commands processor concurrency",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "1"
+      },
+      "SCG_RUNNER_CONCURRENCY": {
+        "fullName": "Scg runner concurrency",
+        "description": "SCG processor concurrency",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "1"
+      },
+      "DATASET_RESOLVERS_EXPIRATION_TIME": {
+        "fullName": "Dataset resolvers expiration time",
+        "description": "Dataset resolvers are lazy. It means that resolvers are added once client requests a dataset. The current parameter defines the time period during which resolvers will be deleted if they were not used during this time period. The parameter value is a string passed to 'ms' package",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "24h"
+      },
+      "API_PREFIX": {
+        "fullName": "Api prefix",
+        "description": "All API endpoints are prefixed with this param. For example if set API_PREFIX=/api , then endpoint /graphql is available as /api/graphql",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "RESOURCE_PREFIX": {
+        "fullName": "Resource prefix",
+        "description": "All resource endpoints are prefixed with this param. For now it's only endpoints starting with '/public'",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "LOG_DESTINATION": {
+        "fullName": "Resource prefix",
+        "description": "Means that the log should be stored in the database specified in LOG_DB_URI",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "LOG_DB_URI": {
+        "fullName": "Log db uri",
+        "description": "The URI of the database to log data into. Default is the main db URI (MONGODB_URI)",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "LOG_DB_COLLECTION": {
+        "fullName": "Log db uri",
+        "description": "The collection to log data into",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "_journal"
+      },
+      "SEND_RTC_ON_MONGODB_CHANGE": {
+        "fullName": "Send rtc on mongodb change",
+        "description": "If true then db hooks sending messages will be added on write operations of each collection in appModel.models.",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "false"
+      },
+      "RESET_PASSWORD_TOKEN_EXPIRES_IN": {
+        "fullName": "Reset password token expires in",
+        "description": "The expiry time of reset password token.",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "1h"
+      },
+      "JWT_ACCESS_TOKEN_EXPIRES_IN": {
+        "fullName": "Jwt access token expires in",
+        "description": "The expiry time of access token.",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "10m"
+      },
+      "JWT_REFRESH_TOKEN_EXPIRES_IN": {
+        "fullName": "Jwt refresh token expires in",
+        "description": "The expiry time of refresh token which is sent as httpOnly cookie with name 'refresh_token'.",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "90d"
+      },
+      "JWT_ACCESS_TOKEN_REFRESH_BEFORE_EXPIRE": {
+        "fullName": "Jwt access token refresh before expire",
+        "description": "How long before ACCESS token expiration to perform token refresh request.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_IN": {
+        "fullName": "Inactivity logout notification appears in",
+        "description": "If access token is not used during specified amount of time then the backend sends a notification about upcoming logout due to inactivity.",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "15m"
+      },
+      "INACTIVITY_LOGOUT_IN": {
+        "fullName": "Inactivity logout in",
+        "description": "If access token is not used during specified amount of time then the backend removes corresponding token pair (refresh+access tokens).",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "20m"
+      },
+      "INACTIVITY_LOGOUT_POLLING_INTERVAL": {
+        "fullName": "Inactivity logout polling interval",
+        "description": "How often to poll BE for session status. Please note - this polling occurs only during the Inactivity Logout Timer dialog is on screen and its aim to catch session prolongation performed from other browser instance. So, this interval period shouldn't be too long.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "INACTIVITY_LOGOUT_FE_PING_INTERVAL": {
+        "fullName": "Inactivity logout front end ping interval",
+        "description": "How often to ping BE with time of last user activity - to inform BE user still active despite there is no GQL requests to refresh inactivity timer.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true
+      },
+      "INACTIVITY_LOGOUT_REMEMBER_OLD_TOKEN_FOR": {
+        "fullName": "Inactivity logout remember old token for",
+        "description": "Caches the response of /refresh-token endpoint for period of time in ms. Thus allows the old refresh token to be accepted (resolves requests race from multiple tabs).",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "10s"
+      },
+      "COOKIE_SECRET": {
+        "fullName": "Cookie secret",
+        "description": "The secret that will be used for cookies to sign its values. If not set JWT_SECRET is used.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "COOKIE_SAME_SITE": {
+        "fullName": "Cookie same site",
+        "description": "Value of the 'SameSite' Set-Cookie attribute",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true
+      },
+      "COOKIE_SECURE": {
+        "fullName": "Cookie secure",
+        "description": "Marks the cookie to be used with HTTPS only.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "false"
+      },
+      "AUDIT_LOG_MAX_RESPONSE_SIZE": {
+        "fullName": "Audit log max response size",
+        "description": "Truncates audit log's 'response.body' field from the 0th to AUDIT_LOG_MAX_RESPONSE_SIZE'th character.",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "10000"
+      },
+      "AUDIT_LOG_OPTIONS_REQUESTS": {
+        "fullName": "Audit log options requests",
+        "description": "If false options requests will not be logged.",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "false"
+      },
+      "AUDIT_LOG_HTTP_CONTENT_TYPES": {
+        "fullName": "Audit log http content types",
+        "description": "Comma separated list of content-types to be logged. The list is parsed with 'type-is' package. If value is set to 'all' then request filtering by content-type is disabled, i.e. files/images/etc requests will be logged with its body (truncated according to AUDIT_LOG_MAX_RESPONSE_SIZE).",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "json"
+      },
+      "USER_SESSION_ID_TIMEOUT": {
+        "fullName": "User session id timeout",
+        "description": "The expiry time of user session to track user activity, i.e. maxAge value of the cookie. Each user request refreshes maxAge.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "1d"
+      },
+      "USE_FARMHASH": {
+        "fullName": "Use farmhash",
+        "description": "If set to true then farmhash hashing mechanism will be used for caching. Farmhash works a lot faster than alternatives, but crashes on older CPUs",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "default": "false"
+      },
+      "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS": {
+        "fullName": "Login max failed login attempts",
+        "description": "If the user made more than LOGIN_MAX_FAILED_LOGIN_ATTEMPTS login attempts within LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME, then the system temporarily locks out the account for the period of time specified in LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN. If LOGIN_MAX_FAILED_LOGIN_ATTEMPTS is equal to 0, then the entire lockout system is disabled (i.e. no lockouts are required even if the user keeps trying incorrect logins)",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "3"
+      },
+      "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME": {
+        "fullName": "Login max failed login attempts time",
+        "description": "If the user made more than LOGIN_MAX_FAILED_LOGIN_ATTEMPTS login attempts within LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME, then the system temporarily locks out the account for the period of time specified in LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN. If LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME is equal to 0, then the backend locks out the user after LOGIN_MAX_FAILED_LOGIN_ATTEMPTS failed attempts disregarding of time (i.e. as if LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME is equal to infinity)",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "30m"
+      },
+      "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN": {
+        "fullName": "Login max failed login attempts cooldown",
+        "description": "If the user made more than LOGIN_MAX_FAILED_LOGIN_ATTEMPTS login attempts within LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME, then the system temporarily locks out the account for the period of time specified in LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN. If LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN is equal to 0, then the backend locks out the user permanently (until the sysadmin has this account unlocked)",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "15m"
+      },
+      "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE": {
+        "fullName": "Login max failed login attempts cooldown message",
+        "description": "If the user is temporarily locked out, then the user should be shown the error message specified in LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "This account is temporarily disabled due to excessive number of invalid login attempts. Please try to login again later."
+      },
+      "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE": {
+        "fullName": "Login max failed login attempts lockout message",
+        "description": "If the user is permanently locked out (when LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN is 0), then the user should be shown the error message specified in LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "This account was locked due to excessive number of incorrect logins. Please contact the system administrator in order to unlock the account."
+      },
+      "ACCOUNT_INACTIVITY_LOCKOUT_TIME": {
+        "fullName": "Account inactivity lockout time",
+        "description": "The period of inactivity after which user is blocked.",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "90d"
+      },
+      "ACCOUNT_INACTIVITY_LOCKOUT_MESSAGE": {
+        "fullName": "Account inactivity lockout message",
+        "description": "This message will be shown on login attempt if user is blocked by inactivity.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "This account is locked due to a long period of inactivity. Please contact the system administrator to unlock your account"
+      },
+      "USER_MAX_SIMULTANEOUS_SESSIONS": {
+        "fullName": "User max simultaneous sessions",
+        "description": "The maximum number of alive jwt tokens for one user. Default is 0, i.e. unlimited.",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "0"
+      },
+      "MFA_REQUIRED": {
+        "fullName": "Mfa required",
+        "description": "If 'true' makes multi-factor authentication mandatory for all users in the system",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "false"
+      },
+      "MFA_ENABLED": {
+        "fullName": "Mfa enabled",
+        "description": "If 'true' makes multi-factor authentication mandatory for all users in the system",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "true"
+      },
+      "MFA_OTP_BACKUP_CODES_NUMBER": {
+        "fullName": "Mfa otp backup codes number",
+        "description": "How many backup MFA codes are generated for user",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "10"
+      },
+      "MFA_OTP_MAX_TOKEN_ATTEMPTS": {
+        "fullName": "Mfa otp max token attempts",
+        "description": "If the user made more than MFA_OTP_MAX_TOKEN_ATTEMPTS within MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_TIME, then the system temporarily locks out the account for the period of time specified in MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN.",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true
+      },
+      "MFA_OTP_TOTP_TOKEN_LENGTH": {
+        "fullName": "Mfa TOTP token length",
+        "description": "Number of digits in OTP token. Must be at least 3 and as max 8 (other lengths is not supported by Authy app)",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "6"
+      },
+      "MFA_OTP_HOTP_TOKEN_LENGTH": {
+        "fullName": "Mfa HOTP token length",
+        "description": "Number of digits in backup, permanent OTP tokens",
+        "validate": [
+          {
+            "validator": "intString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "8"
+      },
+      "MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_TIME": {
+        "fullName": "Mfa otp max failed login attempts time",
+        "description": "If the user made more than MFA_OTP_MAX_TOKEN_ATTEMPTS within MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_TIME, then the system temporarily locks out the account for the period of time specified in MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "3"
+      },
+      "MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN": {
+        "fullName": "Mfa otp max failed login attempts cooldown",
+        "description": "If the user made more than MFA_OTP_MAX_TOKEN_ATTEMPTS within MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_TIME, then the system temporarily locks out the account for the period of time specified in MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true
+      },
+      "ACCOUNT_FORCED_PASSWORD_CHANGE_TIME": {
+        "fullName": "Account forced password change time",
+        "description": "Forces the user to change the password after specified time. Value 0 means do not enforce the password change",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "0"
+      },
+      "ACCOUNT_FORCED_PASSWORD_CHANGE_REMEMBER_PASSWORDS": {
+        "fullName": "Account forced password change remember passwords",
+        "description": "The new user password must not be the same as any of the last ACCOUNT_FORCED_PASSWORD_CHANGE_REMEMBER_PASSWORDS passwords used.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "3"
+      },
+      "FILE_LINK_EXPIRES_IN": {
+        "fullName": "File link expires in",
+        "description": "Personal user's file link expires in",
+        "validate": [
+          {
+            "validator": "msString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "default": "1m"
+      },
+      "CREDENTIALS_PASSWORD": {
+        "fullName": "Credentials password",
+        "description": "The credentials password to be used to crypt the data of _credentials records",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true
+      },
+      "TRINO_SCHEMA_GUESS_ROWS": {
+        "fullName": "Trino schema guess rows",
+        "description": "Number of records by which the schema of other collections (not in schema and not in dataset) is guessed",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true
+      },
+      "TRINO_URI": {
+        "fullName": "TRINO_URI",
+        "description": "TRINO_URI",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true
+      },
+      "TRINO_CATALOG": {
+        "fullName": "TRINO_CATALOG",
+        "description": "TRINO_CATALOG",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true
+      },
+      "TRINO_SCHEMA": {
+        "fullName": "TRINO_SCHEMA",
+        "description": "TRINO_SCHEMA",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true
+      }
+    }
   },
   "license": "UNLICENSED",
   "private": true

@@ -30,6 +30,7 @@ function addFindManyMongoQueryResolver(type) {
     type: [type],
     resolve: async ({ context, paginationContext }) => {
       const { appLib } = context;
+      const { modelName } = paginationContext;
       try {
         const {
           controllerUtil,
@@ -40,7 +41,7 @@ function addFindManyMongoQueryResolver(type) {
         log.debug(`Meta: ${getRequestMeta(paginationContext, meta)}`);
         return items;
       } catch (e) {
-        handleGraphQlError(e, `Unable to get requested elements`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to get requested elements`, log, appLib, modelName });
       }
     },
   });
@@ -58,12 +59,13 @@ function addCountMongoQueryResolver(type) {
     type: 'Int!',
     resolve: async ({ context, paginationContext }) => {
       const { appLib } = context;
+      const { modelName } = paginationContext;
       try {
         const { controllerUtil } = appLib;
         paginationContext.action = 'view';
         return controllerUtil.getElementsCount({ context: paginationContext });
       } catch (e) {
-        handleGraphQlError(e, `Unable to count requested elements`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to count requested elements`, log, appLib, modelName });
       }
     },
   });

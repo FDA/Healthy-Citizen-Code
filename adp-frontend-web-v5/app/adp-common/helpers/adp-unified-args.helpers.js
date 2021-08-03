@@ -104,10 +104,30 @@
       return _.last(indexes);
     }
 
+      function getArgsForGroup(group, rootArgs) {
+      var opts = {
+        path: group.fieldName,
+        formData: rootArgs.row,
+        action: rootArgs.action,
+        schema: rootArgs.modelSchema,
+      };
+
+      var args = getHelperParamsWithConfig(opts);
+      args.data = getGroupData(group, rootArgs);
+
+      return args;
+    }
+
+    function getGroupData(group, args) {
+      var fieldNames = _.map(group.fields, function (f) { return f.fieldName });
+      return _.pick(args.row, fieldNames);
+    }
+
     return {
       getHelperParams: getHelperParams,
       getHelperParamsWithConfig: getHelperParamsWithConfig,
       next: next,
+      getArgsForGroup: getArgsForGroup,
     }
   }
 })();

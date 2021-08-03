@@ -10,8 +10,10 @@ const nodePath = require('path');
 const _ = require('lodash');
 const Promise = require('bluebird');
 const ejs = require('ejs');
-const { appRoot } = require('./util/env');
+const { appRoot } = require('../config/util');
 const { getFunction } = require('./util/memoize');
+const { ValidationError } = require('./errors');
+const { getMongoDuplicateIndexErrorMessage } = require('./util/util');
 
 const {
   getItemPathByFullModelPath,
@@ -35,9 +37,10 @@ const {
   schemaKeyRegExp,
   EJS_BACKEND_APP_SCHEMA_DELIMITER,
 } = require('./util/model');
-const { getSchemaPaths, getSchemaNestedPaths } = require('./util/env');
+const { getSchemaNestedPaths } = require('../config/util');
 
 module.exports = (appLib) => {
+  const { config } = appLib;
   const m = {};
 
   /**
@@ -54,7 +57,7 @@ module.exports = (appLib) => {
   m.getCombinedModel = ({ appModelSources, appModelProcessors, macrosDirPaths } = {}) => {
     let modelSources = [`${appRoot}/model/model/**/*.json`];
     if (!appModelSources) {
-      modelSources.push(...getSchemaNestedPaths('model/**/*.json'));
+      modelSources.push(...getSchemaNestedPaths(config.APP_SCHEMA, 'model/**/*.json'));
     } else if (_.isArray(appModelSources)) {
       modelSources = modelSources.concat(appModelSources);
     } else {
@@ -212,37 +215,36 @@ module.exports = (appLib) => {
       }
       part.type = appLib.appModel.metaschema.type.default;
     }
+
+    // Merging into new object because of _.mergeWith(part, defaults, someCustomFunc) forces to handle reverse merge for each destValue-srcValue pair in someCustomFunc
+    // It's easier to modify default _.merge mechanism, get new object and then assign result into appModel part.
+    // Before that custom merging func in some cases gave [[Primitive Value]] instead of String or Number.
+    const result = {};
+
     const defaults = _.get(appLib.appModel, ['typeDefaults', 'fields', part.type], {});
-    _.mergeWith(part, defaults, customMergeWithArrayConcat);
+    _.mergeWith(result, defaults, part, customMergeWithArrayConcat);
+
     const { subtype } = part;
     const isBackwardCompatibilitySubtype = subtype === part.type;
     if (subtype && !isBackwardCompatibilitySubtype) {
       const subtypeDefaults = _.get(appLib.appModel, `subtypeDefaults.fields.${part.subtype}`, {});
-      _.mergeWith(part, subtypeDefaults, customMergeWithArrayConcat);
+      _.mergeWith(result, subtypeDefaults, part, customMergeWithArrayConcat);
     }
+
+    _.assign(part, result);
     removeNullsFromObj(part);
 
     function customMergeWithArrayConcat(destinationValue, sourceValue) {
-      // destinationValue is the target value, see https://lodash.com/docs/4.17.10#mergeWith
-      if (_.isBoolean(destinationValue)) {
-        return destinationValue;
-      }
       if (_.isArray(destinationValue) && _.isArray(sourceValue)) {
-        return sourceValue.concat(destinationValue);
+        return destinationValue.concat(sourceValue);
       }
       if (_.isString(destinationValue) && _.isArray(sourceValue)) {
-        return sourceValue.concat([destinationValue]);
+        return destinationValue.concat([sourceValue]);
       }
-      if (typeof destinationValue === 'undefined') {
-        return _.cloneDeep(sourceValue);
+
+      if (_.isPlainObject(destinationValue) && _.isPlainObject(sourceValue)) {
+        return _.mergeWith(destinationValue, sourceValue, customMergeWithArrayConcat);
       }
-      if (sourceValue == null || destinationValue == null) {
-        return null;
-      }
-      if (_.isString(sourceValue) && _.isString(destinationValue)) {
-        return destinationValue;
-      }
-      return _.mergeWith(destinationValue, sourceValue, customMergeWithArrayConcat);
     }
   }
 
@@ -252,6 +254,13 @@ module.exports = (appLib) => {
       part.schemaName = key;
     } else {
       part.fieldName = key;
+    }
+  }
+
+  function addCollectionName(part, path) {
+    if (part.type === 'Schema' && !part.collectionName) {
+      const schemaName = path[path.length - 1];
+      part.collectionName = schemaName;
     }
   }
 
@@ -702,6 +711,11 @@ module.exports = (appLib) => {
         }
       });
 
+      if (!_.isUndefined(part.show)) {
+        part.showInForm = part.show;
+      }
+
+      delete part.show;
       delete part.visible;
     }
   }
@@ -841,8 +855,7 @@ module.exports = (appLib) => {
   }
 
   function getFileContentByLink(link) {
-    const schemaPaths = getSchemaPaths();
-    for (const schemaPath of schemaPaths) {
+    for (const schemaPath of config.APP_SCHEMA) {
       const schemaRefFilePath = `${schemaPath}/private/${link}`;
       if (fs.existsSync(schemaRefFilePath)) {
         return fs.readFileSync(schemaRefFilePath, 'utf-8');
@@ -1191,7 +1204,7 @@ module.exports = (appLib) => {
   }
 
   function transformModelsIndexes(part, path, errors) {
-    if (part.type !== 'Schema' || _.isNil(part.indexes)) {
+    if (part.type !== 'Schema') {
       return;
     }
 
@@ -1237,46 +1250,44 @@ module.exports = (appLib) => {
   }
 
   function addIndexesByFields(part, path) {
-    const hasIndex = part.index === true;
-    const hasUnique = part.unique === true;
-    const isLocation = part.type === 'Location';
-    if (!hasIndex && !hasUnique && !isLocation) {
-      return;
-    }
-
     const [modelName, ...fieldPathArray] = path;
     const fieldPath = fieldPathArray.filter((val, key) => key % 2 === 1).join('.');
 
-    const indexSpec = {
-      options: { background: true },
-    };
-
-    if (hasUnique === true) {
-      indexSpec.keys = { [fieldPath]: 1 };
-      indexSpec.options = { unique: true };
-    } else if (hasIndex) {
-      indexSpec.keys = { [fieldPath]: 1 };
-    }
-
-    if (isLocation) {
-      indexSpec.keys = { [fieldPath]: '2dsphere' };
-    }
-
+    const hasIndex = part.index === true;
+    const hasUnique = part.unique === true;
+    const isLocation = part.type === 'Location';
     const isLookupType = ['LookupObjectID', 'LookupObjectID[]', 'TreeSelector'].includes(part.type);
-    if (isLookupType) {
-      indexSpec.keys = { [`${fieldPath}._id`]: 1, [`${fieldPath}.table`]: 1 };
+    const isIndexedField = hasUnique || hasIndex || isLocation || isLookupType;
+
+    let indexKeys = { [fieldPath]: 1 };
+    if (isLocation) {
+      indexKeys = { [fieldPath]: '2dsphere' };
+    } else if (isLookupType) {
+      indexKeys = { [`${fieldPath}._id`]: 1, [`${fieldPath}.table`]: 1 };
     }
 
-    if (indexSpec.keys) {
-      indexSpec.indexSpecName = getIndexSpecNameByKeys(indexSpec.keys);
-      const modelIndexes = _.get(appLib.appModel.models, [modelName, 'indexes'], []);
-      const isIndexForCurrentFieldExist = modelIndexes.find((i) => i.indexSpecName === indexSpec.indexSpecName);
+    const indexSpecNameByKeys = getIndexSpecNameByKeys(indexKeys);
+    const modelIndexes = _.get(appLib.appModel.models, [modelName, 'indexes'], []);
+    const indexForCurrentField = modelIndexes.findIndex((i) => i.indexSpecName === indexSpecNameByKeys);
 
-      if (!isIndexForCurrentFieldExist) {
+    if (isIndexedField) {
+      const indexSpec = {
+        options: { background: true },
+        keys: indexKeys,
+        indexSpecName: indexSpecNameByKeys,
+      };
+      hasUnique && _.set(indexSpec.options, 'unique', true);
+
+      if (indexForCurrentField === -1) {
         modelIndexes.push(indexSpec);
-        _.set(appLib.appModel.models, [modelName, 'indexes'], modelIndexes);
+      } else {
+        modelIndexes[indexForCurrentField] = indexSpec;
       }
+    } else if (indexForCurrentField !== -1) {
+      modelIndexes.splice(indexForCurrentField, 1);
     }
+
+    _.set(appLib.appModel.models, [modelName, 'indexes'], modelIndexes);
   }
 
   /**
@@ -1512,14 +1523,14 @@ module.exports = (appLib) => {
           return url;
         }
 
-        const appUrl = process.env.APP_URL;
-        const isValidAppUrl = appUrl && ['http://', 'https://'].some((b) => appUrl.startsWith(b));
+        const { APP_URL, API_PREFIX } = config;
+        const isValidAppUrl = APP_URL && ['http://', 'https://'].some((b) => APP_URL.startsWith(b));
         if (!isValidAppUrl) {
           errors.push(
             `Param 'APP_URL' must be valid (startsWith 'http://' or 'https://') to build a full url for dynamic list with a short url '${url}'`
           );
         }
-        return `${appUrl}${appLib.getFullRoute(appLib.API_PREFIX, url)}`;
+        return `${APP_URL}${appLib.getFullRoute(API_PREFIX, url)}`;
       }
     }
 
@@ -1533,7 +1544,7 @@ module.exports = (appLib) => {
 
   function validateInterfacePart({ part, path, errors, warnings }) {
     loadExternalData(part, path, warnings);
-    mergeTypeDefaults(part, false, true);
+    mergeTypeDefaults(part, false);
 
     deleteDisabledMenuItems(part);
     collectUsedPermissionNames(part);
@@ -1619,6 +1630,7 @@ module.exports = (appLib) => {
     transformForBackwardCompatibility(part, path);
     validateSchemaKey(part, path, errors);
     addSchemeNameOrFieldName(part, path);
+    addCollectionName(part, path);
     if (mergeDefaults) {
       mergeTypeDefaults(part, true);
     }
@@ -1759,7 +1771,7 @@ module.exports = (appLib) => {
     }
   }
 
-  m.removeUnusedIndexes = async (collectionName) => {
+  m.removeUnusedIndexes = async ({ schemaName, collectionName }) => {
     const collection = appLib.db.collection(collectionName);
     let existingIndexes = [];
     try {
@@ -1770,7 +1782,7 @@ module.exports = (appLib) => {
         return;
       }
     }
-    const schemaIndexSpecs = appLib.appModel.models[collectionName].indexes;
+    const schemaIndexSpecs = appLib.appModel.models[schemaName].indexes;
     const unusedIndexNames = getUnusedIndexNames(schemaIndexSpecs, existingIndexes);
 
     return Promise.map(unusedIndexNames, (unusedIndexName) => {
@@ -1812,16 +1824,16 @@ module.exports = (appLib) => {
     }
   };
 
-  m.createIndexes = (collectionName) => {
-    const createAllIndexes = process.env.CREATE_INDEXES === 'true';
-    const { indexes = [] } = appLib.appModel.models[collectionName];
+  m.createIndexes = ({ schemaName, collectionName }) => {
+    const schema = appLib.appModel.models[schemaName];
+    const { indexes = [] } = schema;
 
     return Promise.map(indexes, (indexSpec) => {
       const { keys, options } = indexSpec;
       // do not generate other indexes(not unique) for tests,
       // since it affects only search speed but consumes time and disk space
       const isUniqueIndex = options.unique === true;
-      if (!isUniqueIndex && !createAllIndexes) {
+      if (!isUniqueIndex && !config.CREATE_INDEXES) {
         return;
       }
 
@@ -1829,21 +1841,42 @@ module.exports = (appLib) => {
         .collection(collectionName)
         .createIndex(keys, options)
         .catch((e) => {
-          throw new Error(
-            `Unable to create index for collection '${collectionName}' and indexSpec '${stringifyObj(indexSpec)}'.\n${
-              e.stack
-            }`
+          const duplicateErrorMessage = getMongoDuplicateIndexErrorMessage(e, schema);
+          if (duplicateErrorMessage) {
+            throw new ValidationError(duplicateErrorMessage);
+          }
+          const specStr = stringifyObj(indexSpec);
+          throw new ValidationError(
+            `Unable to create index for schema ${schemaName}, collection '${collectionName}' and indexSpec '${specStr}'.`
           );
         });
     });
   };
 
-  m.handleIndexes = async () => {
-    const collectionNames = Object.keys(appLib.appModel.models);
-
-    await Promise.map(collectionNames, (collectionName) => m.removeUnusedIndexes(collectionName));
-    await Promise.map(collectionNames, (collectionName) => m.createIndexes(collectionName));
+  m.createCollections = async () => {
+    const collectionNames = _.map(appLib.appModel.models, (schema) => schema.collectionName);
+    await Promise.map(collectionNames, async (collectionName) => {
+      try {
+        return await appLib.db.createCollection(collectionName);
+      } catch (e) {
+        if (e.codeName !== 'NamespaceExists') {
+          throw e;
+        }
+      }
+    });
   };
+
+  m.handleIndexes = async () => {
+    const schemaInfo = _.map(appLib.appModel.models, (schema) => [schema.schemaName, schema.collectionName]);
+
+    await Promise.map(schemaInfo, ([schemaName, collectionName]) =>
+      m.removeUnusedIndexes({ schemaName, collectionName })
+    );
+    await Promise.map(schemaInfo, ([schemaName, collectionName]) => m.createIndexes({ schemaName, collectionName }));
+  };
+
+  m.renameCollection = ({ fromCollection, toCollection, options }) =>
+    appLib.db.renameCollection(fromCollection, toCollection, options);
 
   return m;
 };

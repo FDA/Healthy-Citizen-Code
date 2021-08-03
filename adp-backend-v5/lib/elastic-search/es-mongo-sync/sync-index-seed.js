@@ -6,7 +6,7 @@ const tomlify = require('tomlify');
 const commandLineArgs = require('command-line-args');
 const { checkIsMonstacheCorrect } = require('./util');
 const { getEsConfig } = require('../index');
-const { prepareEnv, getSchemaNestedPaths } = require('../../util/env');
+const { getSchemaNestedPaths, getConfigFromEnv, appRoot, getOrderedList } = require('../../../config/util');
 
 const optionDefinitions = [
   { name: 'log', alias: 'l', type: Boolean },
@@ -54,7 +54,7 @@ function runSeedIndexConfig(configPath, enableLog) {
   });
 }
 
-async function getAllCollecitonNames(appRoot) {
+async function getAllCollecitonNames(appSchemaPaths) {
   const appLib = {};
 
   appLib.errors = require('../../errors');
@@ -63,39 +63,39 @@ async function getAllCollecitonNames(appRoot) {
   appLib.transformers = require('../../transformers')(appLib);
 
   const coreHelpers = path.join(appRoot, '/model/helpers');
-  const modelHelpers = getSchemaNestedPaths('helpers');
+  const modelHelpers = getSchemaNestedPaths(appSchemaPaths, 'helpers');
   const helperDirPaths = [coreHelpers, ...modelHelpers];
   const buildAppModelCodeOnStart = false;
   appLib.helperUtil = await require('../../helper-util')(appLib, helperDirPaths, buildAppModelCodeOnStart);
 
   const { combineModels } = require('../../util/model');
   const { model } = await combineModels({
-    modelSources: [`${appRoot}/model/model`, ...getSchemaNestedPaths('model')],
+    modelSources: [`${appRoot}/model/model`, ...getSchemaNestedPaths(appSchemaPaths, 'model')],
     log: console.log.bind(console),
     appModelProcessors: appLib.appModelHelpers.appModelProcessors,
-    macrosDirPaths: [...getSchemaNestedPaths('macros'), `${appRoot}/model/macros`],
+    macrosDirPaths: [...getSchemaNestedPaths(appSchemaPaths, 'macros'), `${appRoot}/model/macros`],
   });
   appLib.appModel = model;
 
   return _.keys(appLib.appModel.models);
 }
 
-async function startIndexSeedSync(appRoot) {
-  const mongoUrl = process.env.MONGODB_URI;
-  const lastSlashIndex = mongoUrl.lastIndexOf('/');
+async function startIndexSeedSync(config) {
+  const { APP_SCHEMA, MONGODB_URI, ES_NODES, ES_MAX_RETRIES } = config;
+  const lastSlashIndex = MONGODB_URI.lastIndexOf('/');
   // For some reason (probably mongo Golang driver) monstache can't connect to replica set by url 'mongodb://localhost:27017/ha-dev'
   // throwing error "Unable to connect to MongoDB using URL mongodb://localhost:27017/ha-dev: auth error: sasl conversation error: unable to authenticate using mechanism "SCRAM-SHA-1": (AuthenticationFailed) Authentication failed."
   // But monctache can connect to replica set - "mongodb://localhost:27017/?replicaSet=rs0" or simply "mongodb://localhost:27017/"
-  const mongoUrlWithoutDbName = mongoUrl.slice(0, lastSlashIndex);
-  const dbName = mongoUrl.slice(lastSlashIndex + 1);
+  const mongoUrlWithoutDbName = MONGODB_URI.slice(0, lastSlashIndex);
+  const dbName = MONGODB_URI.slice(lastSlashIndex + 1);
 
-  const esConfig = getEsConfig();
+  const esConfig = getEsConfig(ES_NODES, ES_MAX_RETRIES);
   if (!esConfig) {
     throw new Error(`Unable to get Elastic Search config. Make sure environment param 'ES_NODES' is specified.`);
   }
   const esUrls = esConfig.nodes;
 
-  const allCollections = await getAllCollecitonNames(appRoot);
+  const allCollections = await getAllCollecitonNames(APP_SCHEMA);
   if (_.isEmpty(allCollections)) {
     throw new Error(`Unable to get collection names for syncing. Make sure your environment params are correct.`);
   }
@@ -121,12 +121,18 @@ async function startIndexSeedSync(appRoot) {
 }
 
 (async () => {
-  const appRoot = path.resolve(__dirname, `../../../`);
   require('dotenv').load({ path: `${appRoot}/.env` });
-  prepareEnv(appRoot);
+  const { errors, warnings: configWarnings, config } = getConfigFromEnv();
+  if (!_.isEmpty(errors)) {
+    console.error(`Config warnings:\n ${getOrderedList(errors)}`);
+    process.exit(1);
+  }
+
+  const configWarningsList = getOrderedList(configWarnings);
+  configWarningsList && console.warn(`Config warnings:\n ${configWarningsList}`);
 
   try {
-    await startIndexSeedSync(appRoot);
+    await startIndexSeedSync(config);
   } catch (e) {
     console.error(e.stack);
     process.exit(1);

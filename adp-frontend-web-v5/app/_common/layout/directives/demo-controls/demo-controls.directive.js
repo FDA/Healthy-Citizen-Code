@@ -19,45 +19,15 @@ angular.module('SmartAdmin.Layout')
       controller: function ($scope, AdpLayoutConfigService) {
         var $root = $('body');
 
-        $scope.$watch('fixedHeader', function (fixedHeader) {
-          $root.toggleClass('fixed-header', fixedHeader);
-          if (fixedHeader == false) {
-            $scope.fixedRibbon = false;
-            $scope.fixedNavigation = false;
-          }
-        });
-
-
-        $scope.$watch('fixedNavigation', function (fixedNavigation) {
-          $root.toggleClass('fixed-navigation', fixedNavigation);
-          if (fixedNavigation) {
-            $scope.container = false;
-            $scope.fixedHeader = true;
-          } else {
-            $scope.fixedRibbon = false;
-          }
-        });
-
-
         $scope.$watch('fixedRibbon', function (fixedRibbon) {
           $root.toggleClass('fixed-ribbon', fixedRibbon);
           if (fixedRibbon) {
-            $scope.fixedHeader = true;
-            $scope.fixedNavigation = true;
             $scope.container = false;
           }
         });
 
         $scope.$watch('fixedFooter', function (fixedPageFooter) {
           $root.toggleClass('fixed-page-footer', fixedPageFooter);
-        });
-
-        $scope.$watch('container', function (container) {
-          $root.toggleClass('container', container);
-          if (container) {
-            $scope.fixedRibbon = false;
-            $scope.fixedNavigation = false;
-          }
         });
 
         $scope.$watch('rtlSupport', function (rtl) {
@@ -76,14 +46,11 @@ angular.module('SmartAdmin.Layout')
         });
 
         var layoutConfig = AdpLayoutConfigService.get();
-        $scope.fixedHeader = layoutConfig['fixed-header'];
-        $scope.fixedNavigation = layoutConfig['fixed-navigation'];
         $scope.fixedRibbon = layoutConfig['fixed-ribbon'];
         $scope.fixedFooter = layoutConfig['fixed-footer'];
         $scope.rtlSupport = layoutConfig['smart-rtl'];
         $scope.colorblindFriendly = layoutConfig['colorblind-friendly'];
         $scope.menuOnTop = layoutConfig['menu-on-top'];
-        $scope.container = layoutConfig['container'];
 
         $scope.smartSkin = AdpLayoutConfigService.getSkin();
         $scope.skins = appConfig.skins;
@@ -95,7 +62,7 @@ angular.module('SmartAdmin.Layout')
           // $("#logo img").attr('src', skin.logo);
         };
 
-        if ($scope.smartSkin != "smart-style-0") {
+        if ($scope.smartSkin !== "smart-style-0") {
           $scope.setSkin(_.find($scope.skins, {name: $scope.smartSkin}))
         }
 

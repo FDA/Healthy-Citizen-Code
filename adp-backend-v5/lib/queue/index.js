@@ -5,27 +5,17 @@ const QueueError = require('../errors/queue-error');
 const { getRedisConnection } = require('../util/redis');
 const { Queue } = require('./util');
 
-const { BULL_REMOVE_ON_COMPLETE, BULL_REMOVE_ON_FAIL } = process.env;
-const REMOVE_ON_COMPLETE = ['true', 'false'].includes(BULL_REMOVE_ON_COMPLETE)
-  ? JSON.parse(BULL_REMOVE_ON_COMPLETE)
-  : +BULL_REMOVE_ON_COMPLETE || 10000;
-const REMOVE_ON_FAIL = ['true', 'false'].includes(BULL_REMOVE_ON_FAIL)
-  ? JSON.parse(BULL_REMOVE_ON_COMPLETE)
-  : +BULL_REMOVE_ON_COMPLETE || 10000;
-
 module.exports = (options) => {
   const m = {};
   m.redisClient = null;
   m.redisSubscriber = null;
   const queues = new Map();
 
-  const { redisUrl } = options;
-  const keyPrefix = options.keyPrefix || 'bull';
+  const { keyPrefix, redisUrl, removeOnComplete, removeOnFail } = options;
 
-  m.isReady = () => {
+  m.isReady = () =>
     // RedisMock has field 'status', but has field cache.connected
-    return m.redisClient !== null && m.redisSubscriber !== null;
-  };
+    m.redisClient !== null && m.redisSubscriber !== null;
 
   m.init = async () => {
     if (!redisUrl) {
@@ -77,7 +67,7 @@ module.exports = (options) => {
     }
 
     const additionalOptions = {
-      defaultJobOptions: { removeOnComplete: REMOVE_ON_COMPLETE, removeOnFail: REMOVE_ON_FAIL },
+      defaultJobOptions: { removeOnComplete, removeOnFail },
       prefix: keyPrefix,
       createClient,
     };
@@ -135,25 +125,24 @@ module.exports = (options) => {
   }
 
   // Added queueName and state fields to source code of Job.prototype.toJSON
-  m.getJobJson = (job) => {
-    return {
-      id: job.id,
-      name: job.name,
-      data: job.data || {},
-      queueName: job.queueName,
-      state: job.state,
-      opts: { ...job.opts },
-      progress: job._progress,
-      delay: job.delay, // Move to opts
-      timestamp: job.timestamp,
-      attemptsMade: job.attemptsMade,
-      failedReason: job.failedReason,
-      stacktrace: job.stacktrace || null,
-      returnvalue: job.returnvalue || null,
-      finishedOn: job.finishedOn || null,
-      processedOn: job.processedOn || null,
-    };
-  };
+  m.getJobJson = (job) => ({
+    id: job.id,
+    name: job.name,
+    data: job.data || {},
+    queueName: job.queueName,
+    state: job.state,
+    opts: { ...job.opts },
+    progress: job._progress,
+    delay: job.delay, // Move to opts
+    timestamp: job.timestamp,
+    attemptsMade: job.attemptsMade,
+    failedReason: job.failedReason,
+    stacktrace: _.isArray(job.stacktrace) ? job.stacktrace[0] : null,
+    returnvalue: job.returnvalue || null,
+    finishedOn: job.finishedOn || null,
+    processedOn: job.processedOn || null,
+    creator: _.get(job, 'data.creator'),
+  });
 
   m.getJobs = async ({ queueNames, jobTypes } = {}) => {
     const _queueNames = _.isEmpty(queueNames) ? queues.keys() : queueNames;
@@ -240,6 +229,17 @@ module.exports = (options) => {
       return jobToDelete;
     }
     return null;
+  };
+
+  m.getDelayedJob = async ({ queueName, jobId }) => {
+    const queue = m.getQueue(queueName);
+    const delayedJobs = await queue.getJobs(['delayed']);
+    return delayedJobs.find((delayedJob) => {
+      // IDs of repeatable jobs are composite, example: "repeat:2c835288a7a1df36a6c896e4c016a2a5:1564412682000"
+      const tokens1 = String(delayedJob.id).split(':');
+      const tokens2 = String(jobId).split(':');
+      return tokens1[0] === tokens2[0] && tokens1[1] === tokens2[1];
+    });
   };
 
   return m;

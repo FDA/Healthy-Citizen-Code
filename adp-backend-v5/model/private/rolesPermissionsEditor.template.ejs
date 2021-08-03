@@ -11,6 +11,10 @@
         flex-direction: column;
     }
 
+    body.menu-on-top #rp-wrapper {
+        height: calc(100vh - 156px);
+    }
+
     #rp-header, #rp-footer {
         position: relative;
         flex: 0 0 auto;
@@ -23,6 +27,10 @@
         flex: 1 1 auto;
     }
 
+    #rp-grid-container td {
+        padding: 6px 10px !important;
+    }
+
     #rp-footer {
         display: flex;
         justify-content: flex-end;
@@ -30,10 +38,38 @@
     }
 
     #rp-footer button {
-        margin-left:2px;
+        margin-left: 2px;
         padding: 0 18px;
-        font: 300 15px/29px Open Sans,Helvetica,Arial,sans-serif;
+        font: 300 15px/29px Open Sans, Helvetica, Arial, sans-serif;
         cursor: pointer;
+    }
+
+    #rp-grid-container tr.dx-header-row td.perm-td {
+        position: relative;
+        padding: 10px 10px !important;
+    }
+
+    #rp-grid-container tr.dx-header-row td.perm-td .dx-column-indicators {
+        position: absolute;
+        top: 8px;
+        left: 0;
+    }
+
+    #rp-grid-container tr.dx-header-row td.perm-td .dx-datagrid-text-content {
+        max-width: 100% !important;
+        text-align: center;
+    }
+
+    #rp-grid-container tr.dx-header-row td.perm-td:hover .rp-role-actions-dropdown-container {
+        display: block;
+    }
+
+    #rp-grid-container .rp-role-actions-dropdown-container {
+        position: absolute;
+        top: 0;
+        right: 0;
+        z-index: 1000;
+        display: none;
     }
 </style>
 <div id="rp-wrapper">

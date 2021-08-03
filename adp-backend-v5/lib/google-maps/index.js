@@ -1,6 +1,7 @@
-const googleMapsClient = require('@google/maps').createClient({
-  key: process.env.GOOGLE_API_KEY,
-  Promise: require('bluebird'),
-});
+const googleMaps = require('@google/maps');
 
-module.exports = googleMapsClient;
+module.exports = (googleApiKey) =>
+  googleMaps.createClient({
+    key: googleApiKey,
+    Promise: require('bluebird'),
+  });

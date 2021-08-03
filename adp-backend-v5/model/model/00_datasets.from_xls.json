@@ -1,0 +1,976 @@
+{
+  models: {
+    datasets: {
+      type: 'Schema',
+      fullName: 'Datasets',
+      parameters: {
+        grouping: {
+            autoExpandAll: false
+        },
+        selection: {
+          mode: "multiple"
+        }
+      },
+      other: {
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": [["manageOwnDatasets", "manageAllDatasets"]]
+            },
+            "delete": {
+              "permissions": [["manageOwnDatasets", "manageAllDatasets"]]
+            },
+            "clone": {
+              "permissions": [["manageOwnDatasets", "manageAllDatasets"]]
+            },
+            "viewDetails": {
+              "permissions": [["accessOwnDatasets","accessAllDatasets"]]
+            },
+            "view": {
+              "permissions": [["accessOwnDatasets","accessAllDatasets"]]
+            },
+            "create": {
+              "permissions": [["manageOwnDatasets", "manageAllDatasets"]]
+            },
+            "manageDataset": {
+              "fullName": "Manage Dataset",
+              "backgroundColor": "#2196F3",
+              "borderColor": "#0c7cd5",
+              "textColor": "white",
+              "icon": {
+                "link": "table"
+              },
+              "action": {
+                "type": "link",
+                "link": "<@-this.ENV('APP_SUFFIX')@>/datasets/:_id"
+              },
+              "permissions": "manageDatasetContents"
+            }
+          }
+        },
+        "scopes": {
+          "own": {
+            "permissions": "accessOwnDatasets",
+            "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+          },
+          "all": {
+            "permissions": "accessAllDatasets",
+            "where": "{$eq:[1,1]}"
+          }
+        }
+      },
+      fields: {
+        name: {
+          required: true,
+          other: {
+            width: '200'
+          }
+        },
+        collectionName: {
+          required: true,
+          other: {
+            showInDatatable: false,
+            unique: true
+          }
+        },
+        locked: {
+          type: 'Boolean',
+          fullName: 'Locked'
+        },
+        description: {
+          type: 'Text',
+          fullName: 'Description',
+          other: {
+            width: 'null'
+          }
+        },
+        scheme: {
+          type: 'Object',
+          fullName: 'Schema',
+          required: true,
+          other: {
+                  "validate": [{ "validator": "validateScheme" }],
+                  "transform": ["transformScheme"],
+                  "showInDatatable": false
+                },
+          fields: {
+            description: {
+              type: 'Text',
+              fullName: 'Description'
+            },
+            singleRecordName: {
+              type: 'String',
+              fullName: 'Single Record Name'
+            },
+            fields: {
+              type: 'AssociativeArray',
+              fullName: 'Fields',
+              other: {
+                headerRender: 'schemaField'
+              },
+              fields: {
+                type: {
+                  type: 'List',
+                  fullName: 'Type',
+                  required: true,
+                  list: {
+                    values: {
+                      String: 'String',
+                      Html: 'Html',
+                      Code: 'Code',
+                      Date: 'Date',
+                      Number: 'Number',
+                      Double: 'Double',
+                      Int32: 'Int32',
+                      Int64: 'Int64',
+                      Decimal128: 'Decimal128',
+                      Boolean: 'Boolean',
+                      TriStateBoolean: 'TriStateBoolean',
+                      Mixed: 'Mixed',
+                      Object: 'Object',
+                      AssociativeArray: 'AssociativeArray',
+                      ObjectID: 'ObjectID',
+                      LookupObjectID: 'LookupObjectID',
+                      Array: 'Array',
+                      TreeSelector: 'TreeSelector',
+                      'String[]': 'String[]',
+                      'Date[]': 'Date[]',
+                      'Number[]': 'Number[]',
+                      'Double[]': 'Double[]',
+                      'Int32[]': 'Int32[]',
+                      'Int64[]': 'Int64[]',
+                      'Decimal128[]': 'Decimal128[]',
+                      'Boolean[]': 'Boolean[]',
+                      'TriStateBoolean[]': 'TriStateBoolean[]',
+                      'Mixed[]': 'Mixed[]',
+                      'Object[]': 'Object[]',
+                      'ObjectID[]': 'ObjectID[]',
+                      'LookupObjectID[]': 'LookupObjectID[]',
+                      Image: 'Image',
+                      Video: 'Video',
+                      Audio: 'Audio',
+                      File: 'File',
+                      'Image[]': 'Image[]',
+                      'Video[]': 'Video[]',
+                      'Audio[]': 'Audio[]',
+                      'File[]': 'File[]',
+                      Group: 'Group',
+                      Location: 'Location',
+                      Grid: 'Grid',
+                      Password: 'Password',
+                      Email: 'Email',
+                      Phone: 'Phone',
+                      Url: 'Url',
+                      Text: 'Text',
+                      ImperialHeight: 'ImperialHeight',
+                      ImperialWeight: 'ImperialWeight',
+                      ImperialWeightWithOz: 'ImperialWeightWithOz',
+                      BloodPressure: 'BloodPressure',
+                      Time: 'Time',
+                      DateTime: 'DateTime',
+                      'DateTime[]': 'DateTime[]',
+                      DynamicList: 'DynamicList',
+                      Barcode: 'Barcode',
+                      Currency: 'Currency',
+                      List: 'List',
+                      'List[]': 'List[]',
+                      Blank: 'Blank',
+                      StaticHtml: 'StaticHtml',
+                      CronExpression: 'CronExpression'
+                    }
+                  }
+                },
+                fullName: {},
+                description: {
+                  type: 'Text',
+                  fullName: 'Description'
+                },
+                unique: {
+                  type: 'Boolean',
+                  fullName: 'Unique'
+                },
+                headerRender: {
+                  other: {
+                    "show": "['Object', 'Array', 'AssociativeArray', 'Group'].includes(this.type)"
+                  }
+                },
+                lookup: {
+                  type: 'Mixed',
+                  fullName: 'Lookup',
+                  other: {
+                    "show": "['LookupObjectID', 'LookupObjectID[]'].includes(this.type)"
+                  }
+                },
+                labelRenderer: {
+                  other: {
+                    "show": "['LookupObjectID', 'LookupObjectID[]'].includes(this.type)"
+                  }
+                },
+                table: {
+                  type: 'Mixed',
+                  fullName: 'Table',
+                  other: {
+                    "show": "this.type === 'TreeSelector'"
+                  }
+                },
+                index: {
+                  type: 'Boolean',
+                  fullName: 'Index'
+                },
+                fieldName: {},
+                generated: {
+                  type: 'Boolean',
+                  fullName: 'Generated'
+                },
+                searchable: {
+                  type: 'Boolean',
+                  fullName: 'Searchable'
+                },
+                transform: {
+                  type: 'Mixed',
+                  fullName: 'Transform'
+                },
+                autocomplete: {
+                  type: 'List',
+                  fullName: 'Autocomplete',
+                  list: {
+                    values: {
+                      enable: 'Enable',
+                      disable: 'Disable',
+                      disableMobile: 'Disable Mobile'
+                    }
+                  }
+                },
+                responsivePriority: {
+                  type: 'Int32',
+                  fullName: 'Responsive Priority'
+                },
+                formWidth: {
+                  type: 'Number',
+                  fullName: 'Form Width'
+                },
+                width: {
+                  type: 'Number',
+                  fullName: 'Width'
+                },
+                showInDatatable: {
+                  type: 'Mixed',
+                  fullName: 'Show In Datatable'
+                },
+                showInViewDetails: {
+                  type: 'Mixed',
+                  fullName: 'Show In View Details'
+                },
+                showInForm: {
+                  type: 'Mixed',
+                  fullName: 'Show In Form'
+                },
+                showInGraphql: {
+                  type: 'Mixed',
+                  fullName: 'Show In Graphql'
+                },
+                filter: {},
+                render: {},
+                exportRender: {},
+                formRender: {
+                  type: 'Object',
+                  fullName: 'Form Render',
+                  fields: {
+                    formRenderer: {
+                      required: true
+                    },
+                    watch: {
+                      type: 'String[]',
+                      fullName: 'Watch'
+                    },
+                    renderMode: {}
+                  }
+                },
+                order: {
+                  type: 'Int32',
+                  fullName: 'Order'
+                },
+                formOrder: {
+                  type: 'Int32',
+                  fullName: 'Form Order'
+                },
+                datagridOrder: {
+                  type: 'Int32',
+                  fullName: 'Datagrid Order'
+                },
+                detailedViewOrder: {
+                  type: 'Int32',
+                  fullName: 'Detailed View Order'
+                },
+                html: {
+                  type: 'Mixed',
+                  fullName: 'Html'
+                },
+                permissions: {
+                  type: 'Mixed',
+                  fullName: 'Permissions',
+                  other: {
+                    visible: false
+                  }
+                },
+                generatorSpecification: {
+                  type: 'Object',
+                  fullName: 'Generator Specification',
+                  fields: {
+                    generator: {},
+                    params: {
+                      type: 'Mixed',
+                      fullName: 'Params'
+                    }
+                  }
+                },
+                parameters: {
+                  type: 'Object',
+                  fullName: 'Parameters',
+                  fields: {
+                    visible: {
+                      type: 'Boolean',
+                      fullName: 'Visible'
+                    },
+                    enableInCellEditing: {
+                      type: 'Boolean',
+                      fullName: 'Enable In Cell Editing'
+                    },
+                    minWidth: {
+                      type: 'Number',
+                      fullName: 'Min Width'
+                    },
+                    grouping: {
+                      type: 'Object',
+                      fullName: 'Grouping',
+                      fields: {
+                        allowGrouping: {
+                          type: 'Boolean',
+                          fullName: 'Allow Grouping'
+                        },
+                        allowExpandGroup: {
+                          type: 'Boolean',
+                          fullName: 'Allow Expand Group'
+                        }
+                      }
+                    },
+                    renderAsHtml: {
+                      type: 'Boolean',
+                      fullName: 'Render As Html'
+                    },
+                    allowHeaderFiltering: {
+                      type: 'Boolean',
+                      fullName: 'Allow Header Filtering'
+                    },
+                    filter: {
+                      type: 'Object',
+                      fullName: 'Filter'
+                    },
+                    headerFilter: {
+                      type: 'Object',
+                      fullName: 'Header Filter',
+                      fields: {
+                        allowSearch: {
+                          type: 'Boolean',
+                          fullName: 'Allow Search'
+                        },
+                        dataSource: {
+                          type: 'Mixed',
+                          fullName: 'Data Source'
+                        }
+                      }
+                    },
+                    filterType: {
+                      type: 'List',
+                      fullName: 'Filter Type',
+                      list: {
+                        values: {
+                          include: 'include',
+                          exclude: 'exclude'
+                        }
+                      }
+                    },
+                    calculateFilterExpression: {
+                      type: 'Mixed',
+                      fullName: 'Calculate Filter Expression'
+                    },
+                    maxDatagridCellHeight: {
+                      type: 'Number',
+                      fullName: 'Max Datagrid Cell Height'
+                    },
+                    allowSearch: {
+                      type: 'Number',
+                      fullName: 'Allow Search'
+                    },
+                    pickerType: {
+                      type: 'List',
+                      fullName: 'Picker Type',
+                      list: {
+                        values: {
+                          calendar: 'calendar',
+                          list: 'list',
+                          'native': 'native',
+                          rollers: 'rollers'
+                        }
+                      }
+                    },
+                    openOnFieldClick: {
+                      type: 'Boolean',
+                      fullName: 'Open On Field Click'
+                    },
+                    editor: {
+                      type: 'Mixed',
+                      fullName: 'Editor'
+                    },
+                    codeEditor: {
+                      type: 'Mixed',
+                      fullName: 'Code Editor'
+                    }
+                  }
+                }
+              }
+            },
+            singleRecord: {
+              type: 'Boolean',
+              fullName: 'Single Record'
+            },
+            limitReturnedRecords: {
+              type: 'Int32',
+              fullName: 'Limit Returned Records'
+            },
+            softDelete: {
+              type: 'Boolean',
+              fullName: 'Soft Delete'
+            },
+            defaultSortBy: {
+              type: 'Mixed',
+              fullName: 'Default Sort By'
+            },
+            recordActionsLayout: {
+              type: 'List',
+              fullName: 'Record Actions Layout',
+              list: {
+                values: {
+                  spread: 'Spread',
+                  menu: 'Menu'
+                },
+                scopes: {
+                  "userScope": {
+                    "permissions": {
+                      "view": "accessAsUser"
+                    },
+                    "where": "return true",
+                    "return": "return $list"
+                  }
+                }
+              }
+            },
+            scopes: {
+              type: 'AssociativeArray',
+              fullName: 'Scopes',
+              fields: {
+                permissions: {
+                  type: 'Mixed',
+                  fullName: 'Permissions'
+                },
+                where: {
+                  type: 'Mixed',
+                  fullName: 'Where'
+                }
+              }
+            },
+            indexes: {
+              type: 'Mixed',
+              fullName: 'Indexes'
+            },
+            parameters: {
+              type: 'Object',
+              fullName: 'Parameters',
+              fields: {
+                groupingType: {
+                  type: 'List',
+                  fullName: 'Grouping Type',
+                  list: {
+                    values: {
+                      Wizard: 'Wizard',
+                      Accordion: 'Accordion',
+                      Grouping: 'Grouping'
+                    }
+                  }
+                },
+                grouping: {
+                  type: 'Object',
+                  fullName: 'Grouping',
+                  fields: {
+                    autoExpandAll: {
+                      type: 'Boolean',
+                      fullName: 'Auto Expand All'
+                    },
+                    allowCollapsing: {
+                      type: 'Boolean',
+                      fullName: 'Allow Collapsing'
+                    },
+                    contextMenuEnabled: {},
+                    expandMode: {
+                      type: 'List',
+                      fullName: 'Expand Mode',
+                      list: {
+                        values: {
+                          buttonClick: 'Button click',
+                          rowClick: 'Row click (mobile devices)'
+                        },
+                        scopes: {
+                          "userScope": {
+                            "permissions": {
+                              "view": "accessAsUser"
+                            },
+                            "where": "return true",
+                            "return": "return $list"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                selection: {
+                  type: 'Object',
+                  fullName: 'Selection',
+                  fields: {
+                    selectAllMode: {
+                      list: {
+                        values: {
+                          allPages: 'allPages',
+                          page: 'page'
+                        },
+                        scopes: {
+                          "userScope": {
+                            "permissions": {
+                              "view": "accessAsUser"
+                            },
+                            "where": "return true",
+                            "return": "return $list"
+                          }
+                        }
+                      }
+                    },
+                    mode: {
+                      list: {
+                        values: {
+                          multiple: 'Multiple',
+                          single: 'Single',
+                          none: 'None'
+                        },
+                        scopes: {
+                          "userScope": {
+                            "permissions": {
+                              "view": "accessAsUser"
+                            },
+                            "where": "return true",
+                            "return": "return $list"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                allowColumnReordering: {
+                  type: 'Boolean',
+                  fullName: 'Allow Column Reordering'
+                },
+                allowColumnResizing: {
+                  type: 'Boolean',
+                  fullName: 'Allow Column Resizing'
+                },
+                columnResizingMode: {
+                  list: {
+                    values: {
+                      widget: 'Widget',
+                      nextColumn: 'Next Column'
+                    },
+                    scopes: {
+                      "userScope": {
+                        "permissions": {
+                          "view": "accessAsUser"
+                        },
+                        "where": "return true",
+                        "return": "return $list"
+                      }
+                    }
+                  }
+                },
+                columnHidingEnabled: {
+                  type: 'Boolean',
+                  fullName: 'Column Hiding Enabled'
+                },
+                filterRow: {
+                  type: 'Object',
+                  fullName: 'Filter Row',
+                  fields: {
+                    visible: {
+                      type: 'Boolean',
+                      fullName: 'Visible'
+                    },
+                    allowSearch: {
+                      type: 'Boolean',
+                      fullName: 'Allow Search'
+                    },
+                    mode: {
+                      list: {
+                        values: {
+                          select: 'Select',
+                          dragAndDrop: 'Drag And Drop'
+                        },
+                        scopes: {
+                          "userScope": {
+                            "permissions": {
+                              "view": "accessAsUser"
+                            },
+                            "where": "return true",
+                            "return": "return $list"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                columnFixing: {
+                  type: 'Object',
+                  fullName: 'Column Fixing',
+                  fields: {
+                    enabled: {
+                      type: 'Boolean',
+                      fullName: 'Enabled'
+                    }
+                  }
+                },
+                stateStoring: {
+                  type: 'Object',
+                  fullName: 'State Storing',
+                  fields: {
+                    enabled: {
+                      type: 'Boolean',
+                      fullName: 'Enabled'
+                    },
+                    type: {
+                      list: {
+                        values: {
+                          localStorage: 'LocalStorage',
+                          sessionStorage: 'Session Storage'
+                        },
+                        scopes: {
+                          "userScope": {
+                            "permissions": {
+                              "view": "accessAsUser"
+                            },
+                            "where": "return true",
+                            "return": "return $list"
+                          }
+                        }
+                      }
+                    },
+                    storageKey: {}
+                  }
+                },
+                sorting: {
+                  type: 'Object',
+                  fullName: 'Sorting',
+                  fields: {
+                    mode: {
+                      list: {
+                        values: {
+                          multiple: 'Multiple',
+                          single: 'Single',
+                          none: 'None'
+                        },
+                        scopes: {
+                          "userScope": {
+                            "permissions": {
+                              "view": "accessAsUser"
+                            },
+                            "where": "return true",
+                            "return": "return $list"
+                          }
+                        }
+                      }
+                    }
+                  }
+                },
+                pager: {
+                  type: 'Object',
+                  fullName: 'Pager',
+                  fields: {
+                    visible: {
+                      type: 'Boolean',
+                      fullName: 'Visible'
+                    },
+                    showPageSizeSelector: {
+                      type: 'Boolean',
+                      fullName: 'Show Page Size Selector'
+                    },
+                    allowedPageSizes: {
+                      type: 'Int32[]',
+                      fullName: 'Allowed Page Sizes'
+                    },
+                    showInfo: {
+                      type: 'Boolean',
+                      fullName: 'Show Info'
+                    },
+                    showNavigationButtons: {
+                      type: 'Boolean',
+                      fullName: 'Show Navigation Buttons'
+                    }
+                  }
+                },
+                paging: {
+                  type: 'Object',
+                  fullName: 'Paging',
+                  fields: {
+                    enabled: {
+                      type: 'Boolean',
+                      fullName: 'Enabled'
+                    },
+                    pageSize: {
+                      type: 'Int32',
+                      fullName: 'Page Size'
+                    }
+                  }
+                },
+                enableInCellEditing: {
+                  type: 'Boolean',
+                  fullName: 'Enable In Cell Editing'
+                },
+                hoverStateEnabled: {
+                  type: 'Boolean',
+                  fullName: 'Hover State Enabled'
+                },
+                loadInvisibleFields: {
+                  type: 'Boolean',
+                  fullName: 'Load Invisible Fields'
+                },
+                headerFilter: {
+                  type: 'Object',
+                  fullName: 'Header Filter',
+                  fields: {
+                    visible: {
+                      type: 'Boolean',
+                      fullName: 'Visible'
+                    }
+                  }
+                }
+              }
+            },
+            actions: {
+              type: 'Object',
+              fullName: 'Actions',
+              fields: {
+                width: {
+                  type: 'Int32',
+                  fullName: 'Width'
+                },
+                responsivePriority: {
+                  type: 'Int32',
+                  fullName: 'Responsive Priority'
+                },
+                fields: {
+                  type: 'AssociativeArray',
+                  fullName: 'Fields',
+                  fields: {
+                    fullName: {
+                      type: 'Mixed',
+                      fullName: 'Full Name'
+                    },
+                    permissions: {
+                      type: 'Mixed',
+                      fullName: 'Permissions'
+                    },
+                    description: {
+                      type: 'Text',
+                      fullName: 'Description'
+                    },
+                    backgroundColor: {},
+                    borderColor: {},
+                    textColor: {},
+                    icon: {
+                      type: 'Object',
+                      fullName: 'Icon',
+                      fields: {
+                        type: {
+                          list: {
+                            values: {
+                              'font-awesome': 'Font Awesome',
+                              image: 'Image',
+                              'class': 'Class'
+                            },
+                            scopes: {
+                              "userScope": {
+                                "permissions": {
+                                  "view": "accessAsUser"
+                                },
+                                "where": "return true",
+                                "return": "return $list"
+                              }
+                            }
+                          }
+                        },
+                        link: {}
+                      }
+                    },
+                    action: {
+                      type: 'Object',
+                      fullName: 'Action',
+                      fields: {
+                        type: {
+                          list: {
+                            values: {
+                              action: 'Action',
+                              link: 'Link',
+                              module: 'Module'
+                            },
+                            scopes: {
+                              "userScope": {
+                                "permissions": {
+                                  "view": "accessAsUser"
+                                },
+                                "where": "return true",
+                                "return": "return $list"
+                              }
+                            }
+                          }
+                        },
+                        link: {},
+                        redirectUrl: {},
+                        method: {},
+                        params: {
+                          type: 'Mixed',
+                          fullName: 'Params'
+                        }
+                      }
+                    },
+                    actionOrder: {
+                      type: 'Int32',
+                      fullName: 'Action Order'
+                    },
+                    position: {
+                      type: 'List',
+                      fullName: 'Position',
+                      list: {
+                        values: {
+                          'grid.row': 'grid.row',
+                          'grid.top.left': 'grid.top.left',
+                          'grid.top.right': 'grid.top.right',
+                          'form.bottom': 'form.bottom',
+                          rtc: 'rtc'
+                        },
+                        scopes: {
+                          "userScope": {
+                            "permissions": {
+                              "view": "accessAsUser"
+                            },
+                            "where": "return true",
+                            "return": "return $list"
+                          }
+                        }
+                      }
+                    },
+                    showInTable: {
+                      type: 'Boolean',
+                      fullName: 'Show In Table'
+                    }
+                  }
+                }
+              }
+            },
+            schemaTransform: {
+              type: 'String[]',
+              fullName: 'Schema Transform'
+            },
+            generatorSpecification: {
+              type: 'Array',
+              fullName: 'Generator Specification',
+              fields: {
+                generator: {},
+                params: {
+                  type: 'Mixed',
+                  fullName: 'Params'
+                }
+              }
+            },
+            cacheOptions: {
+              type: 'Mixed',
+              fullName: 'Cache Options'
+            },
+            hooks: {
+              type: 'Object',
+              fullName: 'Hooks',
+              fields: {
+                pre: {
+                  type: 'String[]',
+                  fullName: 'Pre'
+                },
+                post: {
+                  type: 'String[]',
+                  fullName: 'Post'
+                }
+              }
+            },
+            type: {
+              required: true,
+              list: {
+                values: {
+                  Schema: 'Schema'
+                },
+                scopes: {
+                  "userScope": {
+                    "permissions": {
+                      "view": "accessAsUser"
+                    },
+                    "where": "return true",
+                    "return": "return $list"
+                  }
+                }
+              }
+            },
+            fullName: {
+              other: { visible: false, synthesize: "datasetSchemaFullName" }
+              
+            },
+            schemaName: {
+              other: {
+                visible: false
+              }
+            },
+            collectionName: {
+              other: {
+                visible: false
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  'interface': {
+    mainMenu: {
+      type: 'Menu',
+      fullName: 'Main Menu',
+      fields: {
+        datasets: {
+          type: 'MenuItem',
+          fullName: 'Datasets',
+          other: { 
+            "scopes": {
+              "user": {
+                "permissions": [["accessOwnDatasets","accessAllDatasets"]]
+              }
+            }
+          },
+          link: '/datasets',
+          icon: {
+            type: 'font-awesome',
+            link: 'table'
+          }
+        }
+      }
+    }
+  }
+}

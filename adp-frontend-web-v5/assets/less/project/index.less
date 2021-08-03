@@ -65,10 +65,14 @@ body.smart-style-6 .input-container.state-success .input input {
   box-shadow: none;
 }
 
-.adp-html-editor {
-  height: auto;
-  padding: 5px 0;
-  overflow-y: scroll;
+adp-ckeditor {
+  ol, ul {
+    display: block !important;
+    padding-left: 40px !important;
+  }
+
+  ol { list-style-type: decimal; }
+  ul { list-style-type: disc; }
 }
 
 .lookup-row .lookup-col {
@@ -88,6 +92,11 @@ body.smart-style-6 .input-container.state-success .input input {
     &.lookup-col--left {padding-right: 0;}
     &.lookup-col--right {padding-left: 0;}
   }
+}
+
+.dx-checkbox-icon:after {
+  margin-top: -15px !important;
+  margin-left: -15px !important;
 }
 
 .note-error {
@@ -139,16 +148,14 @@ body.smart-style-6 .input-container.state-success .input input {
   vertical-align: middle;
 }
 
-.adp-tooltip-tooltip .fa { color: #568a89; }
-.adp-tooltip-trigger { color: #A2A2A2; cursor: pointer; font-size: 14px; margin-left: 10px; }
-
-.adp-tooltip-tooltip.top {  margin-left: -3px; margin-top: -7px; }
-.adp-tooltip-tooltip.top .tooltip-arrow { margin-left: 4px !important; bottom: -5px !important; }
-
-.adp-tooltip-tooltip .tooltip-inner { padding: 3px 8px; }
+.adp-tooltip-trigger {
+  color: #A2A2A2;
+  cursor: help;
+  font-size: 16px;
+  margin-left: 10px;
+}
 
 .smart-style-5 .adp-tooltip-tooltip .fa { color: #fff; }
-.smart-style-5 .adp-tooltip-trigger { color: #fff; }
 
 .smart-form .inline-group .checkbox.checkbox-tooltip { margin: 0; padding: 0;  }
 .smart-form .inline-group .checkbox { padding-left: 0; }
@@ -283,7 +290,7 @@ body.smart-style-6 .input-container.state-success .input input {
 
 /* MENU */
 .menu-on-top #logout { display: block !important; }
-#left-panel nav { overflow-y: scroll; }
+#left-panel nav { overflow-y: hidden; }
 #left-panel nav > ul { max-height: 100vh; }
 
 nav ul[smart-menu] > li > a > i { position: absolute; }
@@ -670,11 +677,6 @@ nav ul span.menu-item-parent {
 
   .draggable-mirror & { margin: 0; }
   .draggable-mirror &--opened { border-bottom: 2px solid #0042ff; }
-
-  .adp-tooltip-trigger {
-    line-height: 36px;
-    margin-right: 10px;
-  }
 }
 
 .subform-frame__content { padding-top: 20px; }
@@ -1037,6 +1039,7 @@ tree-selector[data-child] > div { margin-top: 10px; padding-left: 2%; }
 }
 
 .adp-lookup-drop-down-item {
+  width: 100%;
   display: flex;
   flex-flow: row;
   justify-content: space-between;
@@ -1123,8 +1126,19 @@ tree-selector[data-child] > div { margin-top: 10px; padding-left: 2%; }
   }
 
   .dx-data-row > td {
-    padding: 10px 5px 9px 5px !important;
+    padding: 0 !important;
     vertical-align: top;
+
+    .adp-datagrid-cell-container {
+      padding: 10px 5px 9px 5px;
+      white-space: pre;
+
+      &:hover { overflow: auto; }
+    }
+
+    .adp-datagrid-cell-container-custom-render {
+      padding: 0;
+    }
 
     &.actions-column {
       padding: 1px;
@@ -1389,17 +1403,7 @@ tree-selector[data-child] > div { margin-top: 10px; padding-left: 2%; }
   }
 }
 
-.adp-grid-scroll-container {
-  white-space: pre;
-  overflow: auto;
-
-  & ::-webkit-scrollbar {
-    width: initial;
-    background-color: initial;
-    border-top: initial;
-    border-bottom: initial;
-  }
-}
+.adp-grid-scroll-container { white-space: pre; }
 
 // FIXING STYLES FOR ACE EDITOR
 .ace_gutter-cell {
@@ -1526,6 +1530,8 @@ tree-selector[data-child] > div { margin-top: 10px; padding-left: 2%; }
     box-shadow: none;
     padding: 0 8px;
   }
+
+  .label { display: flex; }
 }
 
 .adp-number-array {
@@ -1892,6 +1898,160 @@ table.adp-grid-control-table {
   overflow: auto;
 }
 
-.view-details-cell-type-string {
-  overflow: auto;
+.dx-list-item-before-bag.dx-list-select-checkbox-container,
+.dx-list-item-before-bag.dx-list-select-radiobutton-container {
+  padding: 6px;
+  flex: 0 0 auto;
+  width: auto;
+  margin: 0 !important;
+}
+
+.dx-list-item-before-bag .dx-list-select-checkbox,
+.dx-list-item-before-bag .dx-list-select-radiobutton {
+  margin: 0 !important;
+}
+
+.dx-list-item-content {
+  padding: 6px;
+  width: auto;
+  flex: 1 1 auto;
+  white-space: normal;
+  word-break: break-word;
+  display: flex;
+}
+
+.adp-lookup-item-label {
+  max-width: 100%;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.dx-list-select-all, .dx-list-item {
+  display: flex;
+  align-items: center;
+  white-space: normal;
+}
+
+.dx-list-select-all {
+  padding: 2px 0 !important;
+}
+
+.dx-list-select-all-checkbox {
+  // display: table-cell;
+}
+
+.dx-list-select-all-checkbox {
+  float: none;
+  margin: 0;
+  padding: 6px;
+}
+
+.dx-list-select-all-label {
+  padding: 6px;
+  margin: 0;
+  white-space: normal;
+}
+
+.view-details-row {
+  .adp-datagrid-cell-container {
+    white-space: pre;
+    overflow: auto;
+    max-height: 200px;
+    background-color: #eee;
+    border-left: 4px solid #2196F3;
+    padding: 8px 5px;
+  }
+}
+
+.view-details-label {
+  display: flex;
+}
+
+.view-details-cell-type-mixed {
+  .adp-datagrid-cell-container {
+    padding: 0;
+    height: auto;
+    max-height: none;
+  }
+
+  .adp-tab-content { height: 200px; }
+
+  &.view-details-cell-type-mixed-as-primitive .adp-datagrid-cell-container {
+    padding: 8px 5px;
+    max-height: 200px;
+  }
+}
+
+
+.smart-form .col.adp-otp-section {
+  padding-right: 25px;
+  padding-left: 35px;
+}
+
+.adp-otp-section-header {
+  position: relative;
+  font-size: 120%;
+  font-weight: bold;
+  color: #268bd2;
+}
+
+.adp-big-number {
+  font-size: 100%;
+  position: absolute;
+  left:-15px;
+
+  &:after {
+    content: '.';
+  }
+}
+
+#adp-otp-qr-code {
+  width:100%;
+  max-width:228px;
+  background:silver;
+  margin-left: -15px;
+}
+
+.adp-otp-secret {
+  display:flex;
+  justify-content: center;
+  flex-wrap: wrap;
+  div {
+    padding: 4px 6px;
+    font-weight: bold;
+  }
+}
+
+.adp-otp-error {
+  text-align: right;
+  color: maroon;
+}
+
+.adp-otp-backup-codes {
+  display: flex;
+  justify-content: center;
+  flex-wrap: wrap;
+}
+.adp-otp-backup-codes-item {
+  flex:1 1 20%;
+  font-size: 120%;
+  padding: 5px 10px;
+  text-align: center;
+  font-weight: bold;
+
+  &.used {
+    text-decoration: line-through;
+    color:gray;
+    font-weight: normal;
+  }
+}
+
+.form-action-register {
+  [adp-qaid-form-render-field-content='enableTwoFactor'] .btn {
+    width: 100%;
+    background-color: #f0f0f0;
+    color: black;
+    border-color: silver !important;
+    padding: 3px 10px;
+  }
 }

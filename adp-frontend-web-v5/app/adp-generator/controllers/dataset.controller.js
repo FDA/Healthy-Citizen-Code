@@ -13,7 +13,8 @@
     AdpSchemaService,
     ResponseError,
     $location,
-    $stateParams
+    $stateParams,
+    GraphqlSingleDatasetQuery
   ) {
     var vm = this;
     vm.schema = null;
@@ -21,7 +22,9 @@
     vm.success = false;
 
     (function init() {
-      getDatasetSchema($stateParams._id)
+      var dataSetSchema = window.adpAppStore.appModel().datasets;
+
+      getDatasetSchema(dataSetSchema, $stateParams._id)
         .then(function (schema) {
           vm.success = true;
           vm.schema = _.cloneDeep(schema);
@@ -42,49 +45,22 @@
         });
     })();
 
-    function getDatasetSchema(id) {
+    function getDatasetSchema(schema, id) {
       vm.loaded = false;
 
-      return GraphqlRequest({
-        name: "getSingleDataset",
-        query: [
-          "query q($id: MongoId) {",
-            "getSingleDataset(filter: { _id: $id }) {",
-              "scheme",
-            "}",
-          "}",
-        ].join("\n"),
-        variables: { id: id },
-      }).then(function (data) {
-        if (_.isNil(data)) {
-          throw new ResponseError(ResponseError.RECORD_NOT_FOUND);
-        }
+      return GraphqlSingleDatasetQuery(schema, id)
+        .then(function (data) {
+          if (_.isNil(data)) {
+            throw new ResponseError(ResponseError.RECORD_NOT_FOUND);
+          }
 
-        var scheme = _.get(data, "scheme", null);
-        if (scheme  === null) {
-          throw new ResponseError(ResponseError.SCHEMA_IS_EMPTY);
-        }
+          var scheme = _.get(data, "scheme", null);
+          if (scheme === null) {
+            throw new ResponseError(ResponseError.SCHEMA_IS_EMPTY);
+          }
 
-        return scheme;
-      });
-    }
-
-    function GraphqlSingleDatasetQuery(
-      GraphqlCollectionQueryBuilder,
-      GraphqlCollectionQueryVariables,
-      GraphqlRequest,
-      GraphqlHelper
-    ) {
-      return function (schema, params) {
-        var params = params || {};
-        var queryName = GraphqlHelper.collectionQueryName(schema, params);
-
-        return GraphqlRequest({
-          name: getSingleDataset,
-          query: GraphqlCollectionQueryBuilder(queryName, schema, params),
-          variables: GraphqlCollectionQueryVariables(schema, params),
+          return scheme;
         });
-      };
     }
   }
 })();

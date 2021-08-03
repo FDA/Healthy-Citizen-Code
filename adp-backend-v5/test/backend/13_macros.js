@@ -5,11 +5,7 @@ const { prepareEnv } = require('../test-util');
 
 describe('Macros', function () {
   before(async function () {
-    prepareEnv();
-  });
-
-  beforeEach(async function () {
-    this.appLib = require('../../lib/app')();
+    this.appLib = prepareEnv();
   });
 
   afterEach(async function () {

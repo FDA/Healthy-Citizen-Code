@@ -1,11 +1,9 @@
 const _ = require('lodash');
 const Promise = require('bluebird');
 const { ObjectId } = require('mongodb');
-const mem = require('mem');
 const log = require('log4js').getLogger('lib/database-abstraction');
 const { AccessError, ValidationError } = require('./errors');
 const { getMongoDuplicateErrorMessage, MONGO } = require('./util/util');
-const { hashObject } = require('./util/hash');
 
 /**
  * @module database-abstraction
@@ -13,14 +11,15 @@ const { hashObject } = require('./util/hash');
  */
 module.exports = (appLib) => {
   const { transformers } = appLib;
+  const hashObject = require('./util/hash').getHashObjectFunction(appLib.config.USE_FARMHASH);
 
   const m = {};
 
-  m.isModelSoftDelete = mem((modelName) => !!_.get(appLib.appModel.models, `${modelName}.softDelete`));
+  m.isModelSoftDelete = (modelName) => !!_.get(appLib.appModel.models, `${modelName}.softDelete`);
+  m.getCollectionName = (modelName) => _.get(appLib.appModel.models, `${modelName}.collectionName`, modelName);
+  m.getConditionForActualRecord = (modelName) => (m.isModelSoftDelete(modelName) ? { deletedAt: new Date(0) } : {});
 
-  m.getConditionForActualRecord = (modelName) => {
-    return m.isModelSoftDelete(modelName) ? { deletedAt: new Date(0) } : {};
-  };
+  m.isCacheEnabled = (modelName) => _.get(appLib.appModel.models, `${modelName}.cacheOptions.enabled`, true);
 
   /**
    * Updates ONE document based on mongoConditions
@@ -33,22 +32,23 @@ module.exports = (appLib) => {
    * @param session
    */
   m.updateItem = async ({ modelName, userContext, mongoConditions, data, session }) => {
+    const collectionName = m.getCollectionName(modelName);
     const newConditions = MONGO.and(mongoConditions, m.getConditionForActualRecord(modelName));
     try {
       await transformers.preSaveTransformData(modelName, userContext, data, []);
       const { opResult } = await appLib.db
-        .collection(modelName)
+        .collection(collectionName)
         .hookQuery('replaceOne', newConditions, data, { session });
-      if (opResult.modifiedCount !== 1) {
+      if (opResult.matchedCount === 0) {
         throw new Error(`Unable to update item`);
       }
       await appLib.cache.clearCacheForModel(modelName);
       return data;
     } catch (e) {
-      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models[modelName]);
       if (duplicateErrMsg) {
         log.error(duplicateErrMsg);
-        throw new Error(duplicateErrMsg);
+        throw new ValidationError(duplicateErrMsg);
       }
       log.error(`Unable to replace '${modelName}' item by conditions: `, newConditions, e.stack);
       if (e instanceof ValidationError) {
@@ -59,21 +59,23 @@ module.exports = (appLib) => {
   };
 
   m.updateItems = async ({ modelName, userContext, items, session }) => {
+    const collectionName = m.getCollectionName(modelName);
     const errors = {};
 
+    const conditionForActualRecord = m.getConditionForActualRecord(modelName);
     await Promise.map(items, async (item) => {
       const itemId = item._id.toString();
-      const newConditions = MONGO.and({ _id: ObjectId(itemId) }, m.getConditionForActualRecord(modelName));
+      const newConditions = MONGO.and({ _id: ObjectId(itemId) }, conditionForActualRecord);
       try {
         await transformers.preSaveTransformData(modelName, userContext, item, []);
         const { opResult } = await appLib.db
-          .collection(modelName)
+          .collection(collectionName)
           .hookQuery('replaceOne', newConditions, item, { session });
         if (opResult.modifiedCount !== 1) {
           errors[itemId] = `Unable to update item`;
         }
       } catch (e) {
-        const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+        const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models[modelName]);
         if (duplicateErrMsg) {
           log.error(duplicateErrMsg);
           errors[itemId] = duplicateErrMsg;
@@ -94,7 +96,8 @@ module.exports = (appLib) => {
   };
 
   m.upsertItem = async ({ modelName, userContext, mongoConditions, data, session }) => {
-    const { record } = await appLib.db.collection(modelName).hookQuery('findOne', mongoConditions);
+    const collectionName = m.getCollectionName(modelName);
+    const { record } = await appLib.db.collection(collectionName).hookQuery('findOne', mongoConditions);
     if (record) {
       return m.updateItem({
         modelName,
@@ -112,9 +115,10 @@ module.exports = (appLib) => {
    * This creates whole new item, not just a submodel of existin element, so the transformers and validators should be applied to the whole item
    */
   m.createItem = async (modelName, userContext, origData) => {
+    const collectionName = m.getCollectionName(modelName);
     const data = _.cloneDeep(origData);
     await transformers.preSaveTransformData(modelName, userContext, data, []);
-    const { record } = await appLib.db.collection(modelName).hookQuery('insertOne', data);
+    const { record } = await appLib.db.collection(collectionName).hookQuery('insertOne', data);
     return record;
   };
 
@@ -131,8 +135,9 @@ module.exports = (appLib) => {
    * @returns {Promise<*>}
    */
   async function saveDocCheckingConditions(modelName, data, mongoConditions, session) {
+    const collectionName = m.getCollectionName(modelName);
     const { record } = await appLib.db
-      .collection(modelName)
+      .collection(collectionName)
       .hookQuery('insertOne', data, { session, checkKeys: false });
 
     if (mongoConditions === true) {
@@ -142,7 +147,7 @@ module.exports = (appLib) => {
     const savedItemId = record._id;
 
     const { record: createdDoc } = await appLib.db
-      .collection(modelName)
+      .collection(collectionName)
       .hookQuery('findOne', { ...mongoConditions, _id: savedItemId }, { session });
 
     if (!createdDoc) {
@@ -168,21 +173,23 @@ module.exports = (appLib) => {
 
   m.removeItem = async (modelName, conditions, session) => {
     const isModelSoftDelete = m.isModelSoftDelete(modelName);
+    const collectionName = m.getCollectionName(modelName);
+
     let record;
     if (isModelSoftDelete) {
       const newConditions = MONGO.and(conditions, m.getConditionForActualRecord(modelName));
       const result = await appLib.db
-        .collection(modelName)
+        .collection(collectionName)
         .hookQuery(
           'findOneAndUpdate',
           newConditions,
           { $set: { deletedAt: new Date() } },
-          { session, returnOriginal: false, checkKeys: false }
+          { session, returnDocument: 'after', checkKeys: false }
         );
       record = result.record;
     } else {
       const result = await appLib.db
-        .collection(modelName)
+        .collection(collectionName)
         .hookQuery('findOneAndDelete', conditions, { session, checkKeys: false });
       record = result.record;
     }
@@ -193,16 +200,17 @@ module.exports = (appLib) => {
 
   m.removeItems = async (modelName, conditions, session) => {
     const isModelSoftDelete = m.isModelSoftDelete(modelName);
+    const collectionName = m.getCollectionName(modelName);
     if (isModelSoftDelete) {
       const newConditions = MONGO.and(conditions, m.getConditionForActualRecord(modelName));
       const result = await appLib.db
-        .collection(modelName)
+        .collection(collectionName)
         .hookQuery('updateMany', newConditions, { $set: { deletedAt: new Date() } }, { session, checkKeys: false });
       return result.opResult.modifiedCount;
     }
 
     const result = await appLib.db
-      .collection(modelName)
+      .collection(collectionName)
       .hookQuery('deleteMany', conditions, { session, checkKeys: false });
 
     await appLib.cache.clearCacheForModel(modelName);
@@ -236,12 +244,14 @@ module.exports = (appLib) => {
       pipeline.push({ $project: projections });
     }
 
+    const collectionName = m.getCollectionName(modelName);
     // add allowDiskUse for sorting big collections
-    return appLib.db.collection(modelName).aggregate(pipeline, { allowDiskUse: true }).toArray();
+    return appLib.db.collection(collectionName).aggregate(pipeline, { allowDiskUse: true }).toArray();
   };
 
   m.aggregatePipeline = ({ modelName, pipeline }) => {
-    return appLib.db.collection(modelName).aggregate(pipeline, { allowDiskUse: true }).toArray();
+    const collectionName = m.getCollectionName(modelName);
+    return appLib.db.collection(collectionName).aggregate(pipeline, { allowDiskUse: true }).toArray();
   };
 
   m.getPreparedItems = async ({ modelName, userContext, mongoParams, actionFuncs }) => {
@@ -254,12 +264,16 @@ module.exports = (appLib) => {
     const getPromise = () => m.aggregateItems({ modelName, mongoParams });
 
     let docs;
-    try {
-      const paramHash = hashObject(mongoParams);
-      const cacheKey = `${modelName}:get:${paramHash}`;
-      docs = await appLib.cache.getUsingCache(getPromise, cacheKey);
-    } catch (e) {
-      log.warn(`Unable to hash params to get hash key. Cache will not be used.`, mongoParams, e.stack);
+    if (m.isCacheEnabled(modelName)) {
+      try {
+        const paramHash = hashObject(mongoParams);
+        const cacheKey = `${modelName}:get:${paramHash}`;
+        docs = await appLib.cache.getUsingCache(getPromise, cacheKey);
+      } catch (e) {
+        log.warn(`Unable to hash params to get hash key. Cache will not be used.`, mongoParams, e.stack);
+        docs = await getPromise();
+      }
+    } else {
       docs = await getPromise();
     }
 
@@ -281,10 +295,16 @@ module.exports = (appLib) => {
       return 0;
     }
     const finalConditions = countConditions === true ? {} : countConditions;
-    return appLib.db.collection(modelName).countDocuments(finalConditions);
+    const collectionName = m.getCollectionName(modelName);
+    return appLib.db.collection(collectionName).countDocuments(finalConditions);
   };
 
   m.getDocumentsCountUsingCache = (modelName, conditions) => {
+    const getPromise = () => m.getDocumentsCount(modelName, conditions);
+    if (!m.isCacheEnabled(modelName)) {
+      return getPromise();
+    }
+
     let cacheKey;
     try {
       const paramHash = hashObject(conditions);
@@ -294,7 +314,6 @@ module.exports = (appLib) => {
       return m.getDocumentsCount(modelName, conditions);
     }
 
-    const getPromise = () => m.getDocumentsCount(modelName, conditions);
     return appLib.cache.getUsingCache(getPromise, cacheKey);
   };
 

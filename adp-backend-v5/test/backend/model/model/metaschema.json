@@ -363,7 +363,8 @@
       "comment": "different actions may require different roles",
       "fields": {
         // TODO: move fields underneath fields
-        "showInTable": { // Deprecated! replaced with showPosition
+        "showInTable": {
+          // Deprecated! replaced with showPosition
           "description": "Used in actions. If true then there should be a button in the datatables view linked to this action",
           "default": true
         },
@@ -428,10 +429,7 @@
     },
     "recordActionsLayout": {
       "default": "spread",
-      "list": [
-        "spread",
-        "menu"
-      ],
+      "list": ["spread", "menu"],
       "fullName": "Record actions layout",
       "description": "The way actions appear in data grid row"
     },

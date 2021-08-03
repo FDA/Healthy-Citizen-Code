@@ -14,6 +14,7 @@
     ActionMessages,
     GraphqlCollectionMutator,
     ErrorHelpers,
+    GridOptionsHelpers,
     AdpUnifiedArgs
   ) {
     return {
@@ -24,17 +25,17 @@
       clone: cloneAction,
     };
 
-    function createAction(schema, data) {
+    function createAction(schema, data, gridInstance) {
       var modalOptions = getActionsOptions(ACTIONS.CREATE, schema, data);
-      return showFormModal(modalOptions);
+      return showFormModal(modalOptions, gridInstance);
     }
 
-    function updateAction(schema, data) {
+    function updateAction(schema, data, gridInstance) {
       var modalOptions = getActionsOptions(ACTIONS.UPDATE, schema, data);
-      return showFormModal(modalOptions);
+      return showFormModal(modalOptions, gridInstance);
     }
 
-    function cloneAction(schema, data) {
+    function cloneAction(schema, data, gridInstance) {
       var modalOptions = cloneOptions(schema, data);
 
       if (schema.schemaName === 'datasets') {
@@ -44,7 +45,7 @@
         };
       }
 
-      return showFormModal(modalOptions);
+      return showFormModal(modalOptions, gridInstance);
     }
 
     function cloneOptions(schema, data) {
@@ -55,7 +56,7 @@
       return getActionsOptions(ACTIONS.CLONE, schema, clonedData);
     }
 
-    function deleteRecord(schema, data) {
+    function deleteRecord(schema, data, gridInstance) {
       var modalOptions = {
         message: 'Are you sure that you want to delete this record?',
         schema: schema,
@@ -68,6 +69,7 @@
         })
         .then(function () {
           AdpNotificationService.notifySuccess(ActionMessages[ACTIONS.DELETE](schema));
+          GridOptionsHelpers.refreshGrid(gridInstance);
         })
         .catch(function (error) {
           ErrorHelpers.handleError(error, 'Unknown error, while trying to delete record.');
@@ -98,8 +100,16 @@
       return { args: args };
     }
 
-    function showFormModal(modalOptions) {
-      return AdpGeneratorModalService.formModal(modalOptions);
+    function showFormModal(modalOptions, gridInstance) {
+      return AdpGeneratorModalService
+        .formModal(modalOptions)
+        .then(function (res) {
+          if (res) {
+            GridOptionsHelpers.refreshGrid(gridInstance);
+          }
+
+          return res;
+        });
     }
   }
 })();

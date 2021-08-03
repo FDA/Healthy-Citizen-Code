@@ -44,7 +44,7 @@ async function run() {
 
   const { corePath, schemaPath, mongoUrl, count, batchName, excludeCollections, includeCollections } = args;
   const appLib = await prepareAppLib(corePath, schemaPath);
-  args.uploadDir = args.uploadDir || appLib.fileControllerUtil.DEFAULT_UPLOAD_DIR;
+  args.uploadDir = args.uploadDir || appLib.file.constants.uploadDir;
 
   const allCollections = Object.keys(appLib.appModel.models);
   const collectionsToCheck = excludeCollections || includeCollections;

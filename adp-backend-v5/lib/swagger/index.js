@@ -1,7 +1,7 @@
 const _ = require('lodash');
 const swaggerJSDoc = require('swagger-jsdoc');
 const swaggerUi = require('swagger-ui-express');
-const { getSchemaNestedPaths, appRoot } = require('../util/env');
+const { getSchemaNestedPaths, appRoot } = require('../../config/util');
 
 const { getGraphqlConfig } = require('./configs/graphql-config');
 const { getCrudRoutesConfig } = require('./configs/crud-config');
@@ -15,7 +15,7 @@ const connectSwagger = (appLib) => {
       `${appRoot}/server_controllers/**/*.js`,
       `${appRoot}/lib/app.js`,
       `${appRoot}/lib/*-controller.js`,
-      ...getSchemaNestedPaths('server_controllers/**/*.js'),
+      ...getSchemaNestedPaths(appLib.config.APP_SCHEMA, 'server_controllers/**/*.js'),
     ],
   });
 
@@ -107,4 +107,4 @@ function connectSwaggerSpec(appLib, swaggerSpec, mountPoint = '/api-docs') {
   appLib.addRoute('use', mountPoint, [swaggerUi.serve, swaggerUi.setup(swaggerSpec)]);
 }
 
-module.exports = connectSwagger;
+module.exports = { connectSwagger };

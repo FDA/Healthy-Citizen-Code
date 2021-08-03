@@ -115,9 +115,10 @@
       }
 
       socketLog('Connect attempt...');
+      var socketPath = _.compact([APP_CONFIG.appSuffix, APP_CONFIG.apiPrefix]).join('');
 
-      activeSocket = io.connect(APP_CONFIG.serverBaseUrl, {
-        path: APP_CONFIG.apiPrefix + '/socket.io',
+      activeSocket = io(APP_CONFIG.serverBaseUrl, {
+        path: socketPath + '/socket.io',
         forceNew: true,
         extraHeaders: {Authorization: authHeader},
         reconnectionDelayMax: 64000,
@@ -140,6 +141,12 @@
     function socketLogout() {
       if (activeSocket) {
         activeSocket.close();
+      }
+    }
+
+    function emit(event, data) {
+      if (activeSocket) {
+        activeSocket.emit(event, data);
       }
     }
 
@@ -224,6 +231,7 @@
       socketLogout: socketLogout,
       registerMessageProcessor: registerMessageProcessor,
       unRegisterMessageProcessor: unRegisterMessageProcessor,
+      emit: emit,
     };
   }
 })();

@@ -24,9 +24,7 @@
         var objVal = _.transform(args.data, function (result, value, key) {
           var nextArgs = nextObjItemArgs(args, value, key);
 
-          result[nextArgs.fieldSchema.fullName] = isObject(nextArgs) || isArray(nextArgs) ?
-            transformDataForYaml(nextArgs, CellRenderer) :
-            leaf(nextArgs, CellRenderer);
+          result[nextArgs.fieldSchema.fullName] = transformDataForYaml(nextArgs, CellRenderer);
         }, {});
 
         return _.isEmpty(objVal) ? null : objVal;

@@ -30,13 +30,11 @@ function addCreateOneResolver(model, modelName) {
       const { req, appLib } = context;
       try {
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
-        // no filtering for create record
-        graphQlContext.mongoParams = { conditions: {} };
         return await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.postItem(graphQlContext, args.record, session)
         );
       } catch (e) {
-        handleGraphQlError(e, `Unable to create record`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to create record`, log, appLib, modelName });
       }
     },
   });
@@ -79,7 +77,7 @@ function addDeleteOneResolver(model, modelName) {
 
         return { deletedCount: 1 };
       } catch (e) {
-        handleGraphQlError(e, `Unable to delete record`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to delete record`, log, appLib, modelName });
       }
     },
   });
@@ -107,7 +105,7 @@ function addDeleteManyResolver(model, modelName) {
 
         return { deletedCount };
       } catch (e) {
-        handleGraphQlError(e, `Unable to delete records`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to delete records`, log, appLib, modelName });
       }
     },
   });
@@ -130,11 +128,12 @@ function addUpdateOneResolver(model, modelName) {
       try {
         const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
+
         return await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.putItem(graphQlContext, args.record, session)
         );
       } catch (e) {
-        handleGraphQlError(e, `Unable to update record`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to update record`, log, appLib, modelName });
       }
     },
   });
@@ -161,7 +160,7 @@ function addUpdateManyResolver(model, modelName) {
         );
         return { errors };
       } catch (e) {
-        handleGraphQlError(e, `Unable to update record`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to update record`, log, appLib, modelName });
       }
     },
   });
@@ -189,7 +188,7 @@ function addUpsertOneResolver(model, modelName, filterType) {
           appLib.controllerUtil.upsertItem(graphQlContext, args.record, session)
         );
       } catch (e) {
-        handleGraphQlError(e, `Unable to upsert record`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to upsert record`, log, appLib, modelName });
       }
     },
   });

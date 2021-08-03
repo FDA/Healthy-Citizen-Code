@@ -31,12 +31,12 @@ const selectors = {
   g2: '[ng-group-name="g2"]',
   g3: '[ng-group-name="g3"]',
   g4: '[ng-group-name="g4"]',
-  s1: '#s1',
-  b2: '[ng-field-name="b2"]',
+  s1: '[adp-qaid-field-control="s1"]',
+  b2: '[adp-qaid-field-control="b2"]',
   a2: '[name="a2[0]"]',
-  s3: '#s3',
-  b3: '[ng-field-name="b3"]',
-  s4: '#s4',
+  s3: '[adp-qaid-field-control="s3"]',
+  b3: '[adp-qaid-field-control="b3"]',
+  s4: '[adp-qaid-field-control="s4"]',
 };
 
 const selectFieldName = 'fieldSelect'
@@ -44,26 +44,24 @@ const selectFieldName = 'fieldSelect'
 const groupType = 'accordion';
 
 const getVisibilitySnapshot = selectors => {
-  const hasDomElement = s => {
-    return document.querySelector(s) !== null;
-  };
-
   const isVisible = s => {
-    return document.querySelector(s).offsetParent !== null;
+    const element = document.querySelector(s);
+
+    return !!(element && (element.offsetWidth || element.offsetHeight || element.getClientRects().length))
   };
 
   return {
-    fieldSelect: hasDomElement(selectors.fieldSelect),
+    fieldSelect: isVisible(selectors.fieldSelect),
     g1: isVisible(selectors.g1),
     g2: isVisible(selectors.g2),
     g3: isVisible(selectors.g3),
     g4: isVisible(selectors.g4),
-    s1: hasDomElement(selectors.s1),
-    s3: hasDomElement(selectors.s3),
-    a2: hasDomElement(selectors.a2),
-    b2: hasDomElement(selectors.b2),
-    b3: hasDomElement(selectors.b3),
-    s4: hasDomElement(selectors.s4),
+    s1: isVisible(selectors.s1),
+    s3: isVisible(selectors.s3),
+    a2: isVisible(selectors.a2),
+    b2: isVisible(selectors.b2),
+    b3: isVisible(selectors.b3),
+    s4: isVisible(selectors.s4),
   };
 };
 
@@ -104,7 +102,7 @@ describe('show expression', () => {
           b2: false,
           a2: false,
           s3: false,
-          b3: true,
+          b3: false,
           s4: false
         };
 
@@ -121,17 +119,18 @@ describe('show expression', () => {
           g2: true,
           g3: true,
           g4: false,
-          s1: true,
+          s1: false,
           b2: true,
           a2: false,
           s3: false,
-          b3: true,
+          b3: false,
           s4: false
         };
 
         await selectDxListValue('Option2', selectFieldName, this.page);
-        await this.page.waitForSelector(selectors.b2);
-        await this.page.waitForTimeout(200);
+        await this.page.waitForSelector(selectors.g2, { visible: true });
+        await toggleGroup(selectors.g2, groupType, this.page);
+        await this.page.waitForSelector(selectors.s1, { hidden: true });
 
         const actualSnapshot1 = await this.page.evaluate(getVisibilitySnapshot, selectors);
         expect(actualSnapshot1).toEqual(expectedSnapshot1);
@@ -141,64 +140,59 @@ describe('show expression', () => {
       'should show/hide fields inside Group',
       async () => {
         await toggleGroup(selectors.g3, groupType, this.page);
-        await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
-        await this.page.waitForTimeout(200);
+        const booleanCtrl = await this.page.waitForSelector('[adp-qaid-field-control="b3"]', { visible: true });
+        await booleanCtrl.click();
 
-        let s3IsVisibleActual = await this.page.evaluate(
-          s => document.querySelector(s) !== null,
-          selectors.s3
-        );
-
-        expect(s3IsVisibleActual).toBe(true);
+        const s3FieldEl = await this.page.waitForSelector(selectors.s3, { visible: true });
+        expect(s3FieldEl).not.toBeNull();
       });
 
     test(
       'should show Array fields inside Group',
       async () => {
         await selectDxListValue('Option2', selectFieldName, this.page);
-        await this.page.waitForSelector(selectors.b2);
-        await this.page.waitForTimeout(200);
-
+        await this.page.waitForSelector(selectors.g2, { visible: true });
         await toggleGroup(selectors.g2, groupType, this.page);
-        await this.page.click('[ng-field-name="b2"] .dx-switch-handle');
-        await this.page.waitForTimeout(200);
 
-        let a2IsVisibleActual = await this.page.evaluate(
-          s => document.querySelector(s) !== null,
-          selectors.a2
-        );
+        const booleanCtrl = await this.page.waitForSelector('[adp-qaid-field-control="b2"]', { visible: true });
+        await this.page.waitForTimeout(500);
+        await booleanCtrl.click();
 
-        expect(a2IsVisibleActual).toBe(true);
+        const a2FieldEl = await this.page.waitForSelector(selectors.a2, { visible: true });
+        expect(a2FieldEl).not.toBeNull();
       });
 
     test(
       'should show correct fields for Group on edit action',
       async () => {
         await toggleGroup(selectors.g3, groupType, this.page);
-        await this.page.click('[ng-field-name="b3"] .dx-switch-handle');
-        await this.page.waitForTimeout(200);
-
-        await selectDxListValue('Option2', selectFieldName, this.page);
-        await this.page.waitForSelector(selectors.b2);
+        const booleanCtrl = await this.page.waitForSelector('[adp-qaid-field-control="b3"]', { visible: true });
+        await booleanCtrl.click();
 
         await clickSubmit(this.page);
+
         const { _id } = await getResponseForCreatedRecord('helperMethods_showAttributeAccordion', this.page);
         await clickEditButton(_id, this.page);
+
+        const groupEl = await this.page.waitForSelector(selectors.g3, { visible: true });
+        await groupEl.click();
+        await this.page.waitForSelector(selectors.s1, { hidden: true });
 
         const expectedSnapshot = {
           fieldSelect: true,
           g1: true,
-          g2: true,
+          g2: false,
           g3: true,
           g4: false,
-          s1: true,
-          b2: true,
+          s1: false,
+          b2: false,
           a2: false,
           s3: true,
           b3: true,
-          s4: false
+          s4: false,
         };
 
+        await this.page.waitForTimeout(500);
         const actualSnapshot = await this.page.evaluate(getVisibilitySnapshot, selectors);
         expect(actualSnapshot).toEqual(expectedSnapshot);
       });
@@ -207,11 +201,12 @@ describe('show expression', () => {
       'should be able show/hide Group content after after show evaluation',
       async () => {
         await selectDxListValue('Option2', selectFieldName, this.page);
-        await this.page.waitForSelector(selectors.b2);
+        await this.page.waitForSelector(selectors.g2, { visible: true });
 
         let group2IsCollapsedActual1 = await isGroupCollapsed(selectors.g2, this.page);
         expect(group2IsCollapsedActual1).toBe(true);
 
+        await this.page.waitForTimeout(400);
         await toggleGroup(selectors.g2, groupType, this.page);
         let group2IsCollapsedActual2 = await isGroupCollapsed(selectors.g2, this.page);
         expect(group2IsCollapsedActual2).toBe(false);

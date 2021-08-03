@@ -2,38 +2,32 @@ const _ = require('lodash');
 
 const { getOrCreateContext } = require('../processor-context');
 const { handleJobError, addQueueEventHandlers } = require('../util');
-const { getSchemaPaths } = require('../../../util/env');
+const { appRoot } = require('../../../../config/util');
 const { getParamsForGeneratorFiles, getHelperFiles } = require('../../../synthetic-content-generator/start-helpers');
 
 const processorContext = getOrCreateContext('scgContext');
 const { setCommonContext } = processorContext;
 
 const SCG_QUEUE_NAME = 'scgRunner';
-const scgRunnerConcurrency = +process.env.SCG_RUNNER_CONCURRENCY || 1;
-
-function getCorePath() {
-  return process.cwd();
-}
 
 async function createScgQueue({ appLib, log }) {
-  const corePath = getCorePath();
-  const schemaPath = getSchemaPaths();
-  const pregeneratorFiles = getHelperFiles(corePath, schemaPath, 'pregenerators');
+  const { APP_SCHEMA, SCG_RUNNER_CONCURRENCY } = appLib.config;
+  const pregeneratorFiles = getHelperFiles(appRoot, APP_SCHEMA, 'pregenerators');
   const paramsForGeneratorFiles = await getParamsForGeneratorFiles({
     pregeneratorFiles,
     appLib,
     batchName: '', // this one will be set in processor
-    uploadDir: appLib.fileControllerUtil.DEFAULT_UPLOAD_DIR,
+    uploadDir: appLib.file.constants.uploadDir,
   });
 
-  const generatorFiles = getHelperFiles(corePath, schemaPath, 'generators');
+  const generatorFiles = getHelperFiles(appRoot, APP_SCHEMA, 'generators');
 
   setCommonContext({ appLib, log, generatorFiles, paramsForGeneratorFiles });
 
   const scgRunnerQueue = appLib.queue.createQueue(SCG_QUEUE_NAME);
   addQueueEventHandlers({ appLib, bullQueue: scgRunnerQueue, log, enableNotifications: true });
 
-  scgRunnerQueue.process(scgRunnerConcurrency, require('./scg-processor')(processorContext));
+  scgRunnerQueue.process(SCG_RUNNER_CONCURRENCY, require('./scg-processor')(processorContext));
 
   return scgRunnerQueue;
 }
@@ -58,8 +52,10 @@ function fixArgs(args, allowedCollections) {
   return { errors, args };
 }
 
+const { filesCollectionName } = require('../../../file/constants');
+
 function getAllowedCollections(models) {
-  const restrictedCollections = ['users', 'roles', 'files', 'dxGridViews', 'datasets'];
+  const restrictedCollections = [filesCollectionName, 'users', 'roles', 'dxGridViews', 'datasets'];
   return Object.keys(models).filter((c) => !restrictedCollections.includes(c));
 }
 

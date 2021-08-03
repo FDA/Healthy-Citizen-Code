@@ -76,17 +76,19 @@
           ></button>
         </div>
 
-        <div class="subform-frame__errors-cnt">
-          <div ng-if="rootForm.$submitted">
-            <span ng-show="errorCount[$index] == 1">
-              {{errorCount[$index]}} error found.
-            </span>
+        <div
+          ng-if="rootForm.$submitted && getErrorCnt($parent.$index) > 0"
+          class="subform-frame__errors-cnt"
+        >
+          <span ng-show="getErrorCnt($parent.$index) == 1">
+            {{getErrorCnt($parent.$index)}} error found.
+          </span>
 
-            <span ng-show="errorCount[$index] >= 2">
-              {{errorCount[$index]}} errors found.
-            </span>
-          </div>
+            <span ng-show="getErrorCnt($parent.$index) >= 2">
+            {{getErrorCnt($parent.$index)}} errors found.
+          </span>
         </div>
+
       </h3>
 
       <div
@@ -107,7 +109,7 @@
             args="::args"
             form-context="::$parent.formContext"
             field-name="::subField.fieldName"
-            index="::$parent.$index"
+            index="$parent.$index"
           ></adp-form-field-factory>
         </div>
       </div>

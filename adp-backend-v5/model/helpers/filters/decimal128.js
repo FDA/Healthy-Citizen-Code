@@ -1,12 +1,12 @@
 const _ = require('lodash');
-const decimalFromString = require('bson/lib/decimal128.js').fromString;
+const { Decimal128 } = require('bson');
 const numberFilter = require('./number');
 const { ValidationError } = require('../../../lib/errors');
 
 function parseDecimal(value, fieldPath) {
   let decimal;
   try {
-    decimal = decimalFromString(value);
+    decimal = Decimal128.fromString(value);
   } catch (e) {
     throw new ValidationError(`Invalid decimal value '${value}' passed for filter by path '${fieldPath}'`);
   }

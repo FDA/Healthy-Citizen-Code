@@ -7,7 +7,8 @@
 
   function AdpFormService() {
     function getGroupingType(args) {
-      return _.get(args, 'modelSchema.parameters.groupingType', '').toLowerCase();
+      var group = _.get(args, 'modelSchema.parameters.groupingType') || '';
+      return group.toLowerCase();
     }
 
     function _forEachAngularFormField(form, callback) {
@@ -69,15 +70,32 @@
       });
     }
 
-    function countErrors(form) {
-      var counter = 0;
+    function countErrors(form, counterArg) {
+      if (_.isEmpty(form)) {
+        return;
+      }
+      var counter = counterArg || { cnt: 0 };
 
-      _forEachAngularFormField(form, function (field) {
-        counter += field.$invalid;
-        field.$setDirty();
+      angular.forEach(form.$getControls(), function(field) {
+        var isForm = !!field.$$controls;
+
+        if (isForm) {
+          var nextCounter = { cnt: 0 };
+          counter[field.$name] = countErrors(field, nextCounter);
+          counter.cnt += counter[field.$name].cnt;
+          return;
+        }
+
+        counter.cnt += field.$invalid;
       });
 
       return counter;
+    }
+
+    function setFormDirty(form) {
+      _forEachAngularFormField(form, function (field) {
+        field.$setDirty();
+      });
     }
 
     // refactor move to util for angular forms
@@ -94,6 +112,17 @@
       return root;
     }
 
+    function getErrorCounter(errorCntObj, args, index) {
+      var path = _.isNumber(index) ?
+        args.path + '[' + index + ']' :
+        args.path;
+
+      var formPath = path.split('.');
+      formPath.push('cnt');
+
+      return _.get(errorCntObj, formPath, 0);
+    }
+
     return {
       getGroupingType: getGroupingType,
       groupHasErrors: groupHasErrors,
@@ -102,6 +131,8 @@
       forceValidation: forceValidation,
       countErrors: countErrors,
       getRootForm: getRootForm,
+      setFormDirty: setFormDirty,
+      getErrorCounter: getErrorCounter,
     }
   }
 })();

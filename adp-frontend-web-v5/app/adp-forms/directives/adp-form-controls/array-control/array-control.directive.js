@@ -40,6 +40,10 @@
           addArrayItem();
         }
 
+        scope.getErrorCnt = function (index) {
+          return AdpFormService.getErrorCounter(scope.formContext.errorCount, scope.args, index);
+        };
+
         scope.display = function(index) {
           var arrayItemPath = scope.args.path + '[' + index + ']';
           return scope.formContext.visibilityMap[arrayItemPath];
@@ -101,18 +105,6 @@
 
           scope.visibilityStatus[index] = !scope.visibilityStatus[index];
         };
-
-        scope.$watch(
-          function () { return angular.toJson(scope.form); },
-          function () {
-            if (scope.rootForm.$submitted) {
-              scope.errorCount = getData().map(function (_v, i) {
-                var formName = scope.args.fieldSchema.fieldName + '[' + i + ']';
-                var formToCount = scope.form[formName];
-                return AdpFormService.countErrors(formToCount);
-              });
-            }
-          });
 
         function setDefaultDisplay() {
           var data = getData();

@@ -5,10 +5,7 @@
       fullName: 'Journal',
       parameters: {
         grouping: {
-          autoExpandAll: false
-        },
-        filterPanel: {
-          visible: true
+            autoExpandAll: false
         },
         selection: {
           mode: "multiple"
@@ -36,7 +33,7 @@
             "view": {
               "permissions": "accessAsSuperAdmin"
             },
-            "create": null
+            "create": null    
           }
         },
         "scopes": {
@@ -50,26 +47,41 @@
         type: {
           list: {
             values: {
-              auth: "auth",
-              security: "security",
-              db: "db",
-              http: "http",
-              system: "system"
+             auth: "auth",
+             security: "security",
+             db: "db",
+             http: "http",
+             system: "system"
             }
+          },
+          other: {
+            index: true
           }
         },
         duration: {
           type: 'Number',
-          fullName: 'Duration'
+          fullName: 'Duration',
+          other: {
+            index: true
+          }
         },
         timestamp: {
           type: 'DateTime',
-          fullName: 'Timestamp'
+          fullName: 'Timestamp',
+          other: {
+            index: true
+          }
         },
         method: {
+          other: {
+            index: true
+          },
           showInViewDetails: 'this.row.type === "db" || this.row.type === "http"'
         },
         collection: {
+          other: {
+            index: true
+          },
           showInViewDetails: 'this.row.type === "db"'
         },
         query: {
@@ -92,25 +104,34 @@
           type: 'LookupObjectID',
           fullName: 'User',
           lookup: {
-            "table": "users",
-            "foreignKey": "_id",
-            "label": "login",
-            "data": {
-              "email": "this.email"
-            }
+                      "table": "users",
+                      "foreignKey": "_id",
+                      "label": "login",
+                      "data": {
+                        "email": "this.email"
+                      }
           }
         },
         sessionId: {
           type: 'String',
-          fullName: 'Session Id'
+          fullName: 'Session Id',
+          other: {
+            index: true
+          }
         },
         requestId: {
           type: 'String',
-          fullName: 'Request Id'
+          fullName: 'Request Id',
+          other: {
+            index: true
+          }
         },
         clientIp: {
           type: 'String',
-          fullName: 'Client Ip'
+          fullName: 'Client Ip',
+          other: {
+            index: true
+          }
         },
         data: {
           type: 'Mixed',
@@ -129,7 +150,7 @@
         system: {
           type: 'MenuGroup',
           fullName: 'System',
-          other: {
+          other: { 
             "menuOrder": 1000,
             "scopes": {
               "user": {
@@ -145,7 +166,7 @@
             _journal: {
               type: 'MenuItem',
               fullName: 'Audit Log',
-              other: {
+              other: { 
                 "scopes": {
                   "user": {
                     "permissions": "accessAsSuperAdmin"

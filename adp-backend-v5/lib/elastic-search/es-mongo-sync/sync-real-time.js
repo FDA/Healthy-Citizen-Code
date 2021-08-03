@@ -11,10 +11,10 @@ const changeStreamCfgPath = path.join(__dirname, 'monstache_config', 'change_str
 function runChangeStreamConfig(configPath, enableLog) {
   const proc = spawn('monstache', ['-f', configPath]);
   if (enableLog) {
-    proc.stdout.on('data', data => {
+    proc.stdout.on('data', (data) => {
       log.info(data.toString());
     });
-    proc.stderr.on('data', data => {
+    proc.stderr.on('data', (data) => {
       log.error(data.toString());
     });
   }
@@ -27,7 +27,7 @@ function generateTomlForChangeStream(mongoUrlWithoutDbName, dbName, esConfig, co
     {
       'elasticsearch-urls': nodes,
       'mongo-url': mongoUrlWithoutDbName,
-      'change-stream-namespaces': collectionNames.map(c => `${dbName}.${c}`),
+      'change-stream-namespaces': collectionNames.map((c) => `${dbName}.${c}`),
       gzip: true,
       stats: true,
       'index-stats': true,

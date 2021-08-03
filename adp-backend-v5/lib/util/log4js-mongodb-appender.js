@@ -34,7 +34,7 @@ function insert(collection, data, insertOptions) {
 }
 
 function insertWithErrorCallback(collection, data, insertOptions) {
-  return collection.insertOne(data, insertOptions, function (error) {
+  return collection.insertOne(data, insertOptions, (error) => {
     if (error) {
       console.error('log: Error writing data to log!', error);
     }
@@ -42,7 +42,7 @@ function insertWithErrorCallback(collection, data, insertOptions) {
 }
 
 module.exports = (options = {}) => {
-  const { connectionString, collectionName = '_journal' } = options;
+  const { connectionString, collectionName } = options;
   if (!connectionString) {
     throw new Error(`Param 'connectionString' or 'db' must be presented`);
   }

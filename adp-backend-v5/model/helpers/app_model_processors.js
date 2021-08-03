@@ -5,7 +5,7 @@ const { CallStackError } = require('../../lib/errors');
  * Entire module will be passed to ejs as data to process app model schemes
  * @returns {{}}
  */
-module.exports = () => {
+module.exports = (appLib) => {
   const m = {};
   const MAX_RECURSIVE_CALLS_NUMBER = 15;
 
@@ -34,18 +34,20 @@ module.exports = () => {
 
     const macroArgs = args.slice(1);
     const macroParams = getMacrosParams(macroArgs, macro.parameters);
-    if (this.numberOfCalls > MAX_RECURSIVE_CALLS_NUMBER) {
+
+    this.nestingLevel = (this.nestingLevel || 0) + 1;
+    if (this.nestingLevel > MAX_RECURSIVE_CALLS_NUMBER) {
       throw new CallStackError(
         `The maximum number of recursive calls (${MAX_RECURSIVE_CALLS_NUMBER}) has been reached.`
       );
     }
-    this.numberOfCalls = (this.numberOfCalls || 0) + 1;
-
-    return macro.func.call(this, macroParams);
+    const result = macro.func.call(this, macroParams);
+    this.nestingLevel--;
+    return result;
   };
 
   m.ENV = function (varName) {
-    return process.env[varName];
+    return appLib.config[varName];
   };
 
   m.visualizationsModelSpecifications = function () {

@@ -1,9 +1,7 @@
-;(function () {
-  'use strict';
+(function () {
+  "use strict";
 
-  angular
-    .module('app.adpAuth')
-    .factory('AdpSessionService', AdpSessionService);
+  angular.module("app.adpAuth").factory("AdpSessionService", AdpSessionService);
 
   /** @ngInject */
   function AdpSessionService(
@@ -16,6 +14,7 @@
     AdpAppModel,
     AdpSocketIoService,
     AdpSessionHelper,
+    AdpUserActivityHelper,
     ResponseError,
     $rootScope
   ) {
@@ -31,14 +30,37 @@
     };
 
     function login(credentials) {
-      return $http.post(APP_CONFIG.apiUrl + '/login', credentials)
+      return $http
+        .post(APP_CONFIG.apiUrl + "/login", credentials)
+        .then(checkOtpRequirement(credentials))
         .then(setupAppForUser)
         .then(AdpSocketIoService.login)
-        .catch(function(err){
-          if (err.xhrStatus === 'error') {
-            throw new ResponseError('Unable to connect to the server. Please try again later');
+        .catch(function (err) {
+          if (_.get(err, "data.otpFailed")) {
+            return $state.go("auth.login");
+          }
+          if (err.xhrStatus === "error") {
+            throw new ResponseError(
+              "Unable to connect to the server. Please try again later"
+            );
           }
         });
+    }
+
+    function checkOtpRequirement(credentials) {
+      return function (userData) {
+        var otpRequired = _.get(userData, "data.otpRequired");
+
+        if (otpRequired) {
+          var params = _.assign({}, $state.params, {
+            credentials: credentials,
+          });
+
+          return $state.go("auth.login-otp", params);
+        }
+
+        return userData;
+      };
     }
 
     function setupAppForUser(userData) {
@@ -48,9 +70,9 @@
 
       AdpSessionHelper.setTokenRefreshTimeout();
       AdpSessionHelper.setSessionRemainingTimeout();
+      AdpUserActivityHelper.setUserActivityTracker();
 
-      return AdpAppModel.getAppModel(userData)
-        .then(afterLoginRedirect);
+      return AdpAppModel.getAppModel(userData).then(afterLoginRedirect);
     }
 
     function logout() {
@@ -59,61 +81,70 @@
 
       AdpSocketIoService.socketLogout();
       AdpSessionHelper.cancelAllTimers();
+      AdpUserActivityHelper.setUserActivityTracker(false);
 
-      $http.post(APP_CONFIG.apiUrl + '/logout');
+      $http.post(APP_CONFIG.apiUrl + "/logout");
       // Because this is just notification for fellow tabs, there is no reason to process any results...
 
-      return AdpAppModel
-        .getAppModel()
+      return AdpAppModel.getAppModel()
         .then(function () {
           var authSetting = window.adpAppStore.appInterface().app.auth;
           if (authSetting.requireAuthentication) {
             return forceLoginPage();
-          } else {
-            $state.go($state.current.name, {}, {reload: 'app'});
           }
+          $state.go($state.current.name, {}, { reload: "app" });
         })
-        .catch(forceLoginPage)
+        .catch(forceLoginPage);
 
       function forceLoginPage() {
-        var params = $location.path()==='/login' ? {} : {returnUrl: encodeURI($location.url())};
+        var params =
+          $location.path() === "/login"
+            ? {}
+            : { returnUrl: encodeURI($location.url()) };
 
-        return $state.go('auth.login', params);
+        return $state.go("auth.login", params);
       }
     }
 
     function forgot(params) {
-      return $http.post(APP_CONFIG.apiUrl + '/forgot', params)
+      return $http
+        .post(APP_CONFIG.apiUrl + "/forgot", params)
         .then(function (res) {
           if (!res.data.success) {
             throw new ResponseError(res.data.message);
           }
 
-          var message = "Reset link is sent to '" + params.email + "'. Please click on the link in the message to reset your password"
+          var message =
+            "Reset link is sent to '" +
+            params.email +
+            "'. Please click on the link in the message to reset your password";
           AdpNotificationService.notifySuccess(message);
           return res;
         });
     }
 
     function reset(params) {
-      return $http.post(APP_CONFIG.apiUrl + '/reset', {password: params.password, token:$state.params.token})
+      return $http.post(APP_CONFIG.apiUrl + "/reset", {
+        password: params.password,
+        token: $state.params.token,
+      });
     }
 
     function handleUnauthorized() {
       if (lsService.isGuest()) {
-        return;
+        return Promise.resolve();
       }
 
-      return logout()
-        .then(function () {
-          var message = getSessionExpMessage();
-          AdpNotificationService.notifyError(message);
-        });
+      return logout().then(function () {
+        var message = getSessionExpMessage();
+        AdpNotificationService.notifyError(message);
+      });
     }
 
     function getSessionExpMessage() {
-      var guestMessage = 'Session is expired. You may proceed as Guest or login again.';
-      var defaultMessage = 'Session is expired. Please login again';
+      var guestMessage =
+        "Session is expired. You may proceed as Guest or login again.";
+      var defaultMessage = "Session is expired. Please login again";
       var authSetting = window.adpAppStore.appInterface().app.auth;
 
       return authSetting.requireAuthentication ? defaultMessage : guestMessage;
@@ -131,21 +162,21 @@
     }
 
     function setAuthHeaders(config) {
-      config['headers']['Authorization'] = getAuthHeaders();
+      config["headers"]["Authorization"] = getAuthHeaders();
     }
 
     function setAjaxAuthHeaders() {
       $.ajaxPrefilter(function (options) {
         if (!options.beforeSend) {
           options.beforeSend = function (xhr) {
-            xhr.setRequestHeader('Authorization', getAuthHeaders());
-          }
+            xhr.setRequestHeader("Authorization", getAuthHeaders());
+          };
         }
       });
     }
 
     function getAuthHeaders() {
-      return 'JWT ' + lsService.getToken();
+      return "JWT " + lsService.getToken();
     }
   }
 })();

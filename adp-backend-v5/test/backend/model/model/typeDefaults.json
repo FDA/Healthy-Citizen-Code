@@ -1,5 +1,5 @@
 {
   "typeDefaults": {
-    "comment": "This file provides defaults for various attributes depending on the field type. One can always override these defaults by providing value directly in the field",
+    "comment": "This file provides defaults for various attributes depending on the field type. One can always override these defaults by providing value directly in the field"
   }
 }

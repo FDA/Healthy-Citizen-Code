@@ -178,9 +178,7 @@ module.exports = (appLib) => {
     return errors;
   };
 
-  m.cloneItem = async (context, newItem, session) => {
-    return m.postItem(context, newItem, session, 'clone');
-  };
+  m.cloneItem = async (context, newItem, session) => m.postItem(context, newItem, session, 'clone');
 
   m.postItem = async (context, newItem, session, action = 'create') => {
     await appLib.validation.validateNewItem(context, newItem);
@@ -195,11 +193,12 @@ module.exports = (appLib) => {
       action
     );
     const scopeConditions = scopeConditionsMeta.overallConditions;
+    const mongoConditions = MONGO.and(mongoParams.conditions, scopeConditions);
     const item = await appLib.controllerUtil.createItemWithCheckAndFilter({
       action,
       data: newItem,
       modelName,
-      mongoConditions: MONGO.and(mongoParams.conditions, scopeConditions),
+      mongoConditions,
       userPermissions,
       userContext,
       session,
@@ -275,7 +274,7 @@ module.exports = (appLib) => {
   };
 
   m.getElements = async ({
-    context: { appModel, userPermissions, userContext, inlineContext, modelName, mongoParams },
+    context: { appModel, userPermissions, userContext, inlineContext, modelName, collectionName, mongoParams },
     actionsToPut = false,
   }) => {
     const { action } = userContext;
@@ -289,6 +288,7 @@ module.exports = (appLib) => {
     mongoParams.conditions = MONGO.and(modelConditions, scopeConditions);
     const items = await appLib.dba.getItemsUsingCache({
       modelName,
+      collectionName,
       userContext,
       mongoParams,
       actionFuncs: actionFuncsMeta.actionFuncs,
@@ -371,15 +371,8 @@ module.exports = (appLib) => {
   };
 
   m.getTreeSelectorLookups = async (treeSelectorCtx) => {
-    const {
-      modelName,
-      userContext,
-      userPermissions,
-      inlineContext,
-      tableSpec,
-      mongoParams,
-      foreignKeyVal,
-    } = treeSelectorCtx;
+    const { modelName, userContext, userPermissions, inlineContext, tableSpec, mongoParams, foreignKeyVal } =
+      treeSelectorCtx;
     const { limit, skip, sort, conditions } = mongoParams;
     const treeSelectorParentLookup = m.getTreeSelectorParentLookup(foreignKeyVal, tableSpec);
 
@@ -454,7 +447,6 @@ module.exports = (appLib) => {
     // check whether label, data or foreign key fields in item is changed
     // if yes - update corresponding docs in other models
     const updatePromises = [];
-    const actualRecordCond = appLib.dba.getConditionForActualRecord(modelName);
 
     // used for clearing cache for changed linked records
     const updatedModels = new Set();
@@ -491,6 +483,7 @@ module.exports = (appLib) => {
         if (isLabelChanged || isDataChanged || isForeignKeyValChanged) {
           updatedModels.add(scheme);
           const collection = appLib.db.collection(scheme);
+          const conditionForActualRecord = appLib.dba.getConditionForActualRecord(scheme);
           let updatePromise;
 
           const hasArraysInPath = mongoPath.includes('$[]') || isMultiple;
@@ -507,7 +500,7 @@ module.exports = (appLib) => {
             }
             updatePromise = collection.hookQuery(
               'updateMany',
-              MONGO.and(actualRecordCond, {
+              MONGO.and(conditionForActualRecord, {
                 [`${itemPath}._id`]: oldItemFKey,
                 [`${itemPath}.table`]: modelName,
               }),
@@ -524,7 +517,7 @@ module.exports = (appLib) => {
             }
             updatePromise = collection.hookQuery(
               'updateMany',
-              MONGO.and({ [pathToArrayWithoutPosOperators]: { $exists: true } }, actualRecordCond),
+              MONGO.and({ [pathToArrayWithoutPosOperators]: { $exists: true } }, conditionForActualRecord),
               { $set: update },
               {
                 arrayFilters: [{ 'elem._id': oldItemFKey, 'elem.table': modelName }],
@@ -544,7 +537,7 @@ module.exports = (appLib) => {
             }
             updatePromise = collection.hookQuery(
               'updateMany',
-              MONGO.and({ [pathToArrayWithoutPosOperators]: { $exists: true } }, actualRecordCond),
+              MONGO.and({ [pathToArrayWithoutPosOperators]: { $exists: true } }, conditionForActualRecord),
               { $set: update },
               {
                 arrayFilters: [{ [`${elemPath}._id`]: oldItemFKey, [`${elemPath}.table`]: modelName }],
@@ -578,7 +571,6 @@ module.exports = (appLib) => {
    */
   m.getLinkedRecordsInfoOnDelete = (itemToDelete, lookupTableName, session) => {
     const promises = [];
-    const actualRecordCond = appLib.dba.getConditionForActualRecord(lookupTableName);
 
     const labelFieldsMeta = _.get(appLib.labelFieldsMeta, lookupTableName);
     _.each(labelFieldsMeta, (labelReferences) => {
@@ -601,12 +593,13 @@ module.exports = (appLib) => {
       } = _labelReference;
       const itemFKey = _.get(itemToDelete, foreignKey);
       const collection = appLib.db.collection(scheme);
+      const conditionForActualRecord = appLib.dba.getConditionForActualRecord(scheme);
 
       if (isMultiple && fieldType === 'LookupObjectID[]') {
         return (docs) =>
           collection.hookQuery(
             'updateMany',
-            { _id: { $in: docs.map((doc) => doc._id) } },
+            { _id: { $in: docs.map((doc) => doc._id) }, ...conditionForActualRecord },
             { $pull: { [mongoPath]: { _id: itemFKey, table: lookupTableName } } },
             { session: _session, checkKeys: false }
           );
@@ -616,7 +609,7 @@ module.exports = (appLib) => {
           return (docs) =>
             collection.hookQuery(
               'updateMany',
-              { _id: { $in: docs.map((doc) => doc._id) } },
+              { _id: { $in: docs.map((doc) => doc._id) }, ...conditionForActualRecord },
               {
                 $set: {
                   [beforeArrPath]: {
@@ -631,7 +624,7 @@ module.exports = (appLib) => {
         return (docs) =>
           collection.hookQuery(
             'updateMany',
-            { _id: { $in: docs.map((doc) => doc._id) } },
+            { _id: { $in: docs.map((doc) => doc._id) }, ...conditionForActualRecord },
             { $set: { [itemPath]: null } },
             { session: _session, checkKeys: false }
           );
@@ -673,7 +666,7 @@ module.exports = (appLib) => {
 
             return collection.hookQuery(
               'updateOne',
-              { _id: doc._id },
+              { _id: doc._id, ...conditionForActualRecord },
               { $set: changes },
               { session: _session, checkKeys: false }
             );
@@ -691,6 +684,7 @@ module.exports = (appLib) => {
 
     function getFindLinkedRecordsCondition(_labelReference) {
       const {
+        scheme,
         paths: { itemPath },
         isMultiple,
         foreignKey,
@@ -700,11 +694,19 @@ module.exports = (appLib) => {
         itemFKey = ObjectID(itemFKey);
       }
 
+      const conditionForActualRecord = appLib.dba.getConditionForActualRecord(scheme);
       if (isMultiple) {
-        return MONGO.and({ [itemPath]: { $elemMatch: { _id: itemFKey, table: lookupTableName } } }, actualRecordCond);
+        return MONGO.and(
+          { [itemPath]: { $elemMatch: { _id: itemFKey, table: lookupTableName } } },
+          conditionForActualRecord
+        );
       }
 
-      return MONGO.and({ [`${itemPath}._id`]: itemFKey }, { [`${itemPath}.table`]: lookupTableName }, actualRecordCond);
+      return MONGO.and(
+        { [`${itemPath}._id`]: itemFKey },
+        { [`${itemPath}.table`]: lookupTableName },
+        conditionForActualRecord
+      );
     }
 
     async function getLabelReferenceInfoPromise(_labelReference, _session) {

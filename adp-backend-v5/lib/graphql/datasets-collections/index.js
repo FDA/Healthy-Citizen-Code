@@ -1,7 +1,7 @@
 const log = require('log4js').getLogger('lib/graphql-datasets');
 const { ObjectID } = require('mongodb');
+const _ = require('lodash');
 const Promise = require('bluebird');
-const ms = require('ms');
 
 const { getOrCreateTypeByModel } = require('../type/model');
 const {
@@ -12,28 +12,27 @@ const {
   getMongoParams,
 } = require('../mutation');
 const GraphQlContext = require('../../request-context/graphql/GraphQlContext');
-const { COMPOSER_TYPES, MongoIdITC, dxQueryInputRequired } = require('../type/common');
+const { ValidationError } = require('../../errors');
+const { COMPOSER_TYPES, MongoIdITC } = require('../type/common');
 const {
-  getExternalDatasetsModelName,
+  getDatasetRecordSchemaName,
   addQueriesAndMutationsForDatasetsRecord,
-  getNewSchemeByProjections,
-  getCloneRecordsPipeline,
   removeQueriesAndMutationsForDatasetsRecord,
+  datasetsModelName,
 } = require('./util');
 const { handleGraphQlError } = require('../util');
 
-const datasetExpirationTime = process.env.DATASET_RESOLVERS_EXPIRATION_TIME || '24h';
-const datasetExpirationTimeMs = ms(datasetExpirationTime);
-const cloneResolverName = 'clone';
-
-module.exports = ({ appLib, datasetsModelName }) => {
+module.exports = ({ appLib }) => {
   const m = {};
+  const { DATASET_RESOLVERS_EXPIRATION_TIME } = appLib.config;
+
   m.datasetResolversInfo = {};
   const datasetsModel = appLib.appModel.models[datasetsModelName];
-  const { addDefaultQueries, addDefaultMutations, removeDefaultQueries, removeDefaultMutations } = appLib.graphQl;
 
-  m.updateDatasetExpirationTimeout = (datasetId) => {
+  m.datasetsModelName = datasetsModelName;
+  m.updateDatasetExpirationTimeout = (datasetRecord) => {
     const now = new Date();
+    const datasetId = datasetRecord._id.toString();
     if (m.datasetResolversInfo[datasetId]) {
       clearTimeout(m.datasetResolversInfo[datasetId].expirationTimeout);
     } else {
@@ -42,12 +41,13 @@ module.exports = ({ appLib, datasetsModelName }) => {
     m.datasetResolversInfo[datasetId] = {
       updatedAt: now,
       expirationTimeout: setTimeout(
-        () =>
-          removeQueriesAndMutationsForDatasetsRecord(appLib, datasetId, removeDefaultQueries, removeDefaultMutations),
-        datasetExpirationTimeMs
+        () => removeQueriesAndMutationsForDatasetsRecord(appLib, datasetRecord),
+        DATASET_RESOLVERS_EXPIRATION_TIME
       ),
     };
-    log.info(`Added a timeout(${datasetExpirationTime}) for removing dataset resolvers with id ${datasetId}`);
+    log.info(
+      `Added a timeout(${DATASET_RESOLVERS_EXPIRATION_TIME}) for removing dataset resolvers with id ${datasetId}`
+    );
   };
 
   m.transformDatasetsRecord = async (datasetsRecord, userPermissions, inlineContext) => {
@@ -74,15 +74,13 @@ module.exports = ({ appLib, datasetsModelName }) => {
       datasetRecords.push(record);
       if (datasetRecords.length >= 50) {
         await Promise.map(datasetRecords, (datasetRecord) =>
-          addQueriesAndMutationsForDatasetsRecord(datasetRecord, appLib, addDefaultQueries, addDefaultMutations)
+          addQueriesAndMutationsForDatasetsRecord(appLib, datasetRecord)
         );
         datasetRecords = [];
       }
     }
     datasetRecords.length &&
-      (await Promise.map(datasetRecords, (record) =>
-        addQueriesAndMutationsForDatasetsRecord(record, appLib, addDefaultQueries, addDefaultMutations)
-      ));
+      (await Promise.map(datasetRecords, (record) => addQueriesAndMutationsForDatasetsRecord(appLib, record)));
 
     appLib.graphQl.connect.rebuildGraphQlSchema();
   };
@@ -92,6 +90,24 @@ module.exports = ({ appLib, datasetsModelName }) => {
   const type = getOrCreateTypeByModel(datasetsModel, datasetsModelName, COMPOSER_TYPES.OUTPUT);
   const recordInputType = getOrCreateTypeByModel(datasetsModel, datasetsModelName, COMPOSER_TYPES.INPUT_WITHOUT_ID);
 
+  async function checkIsValidCollectionName(collectionName) {
+    // same message for all cases to forbid scanning collection names
+    const errorMessage = 'Invalid collectionName specified';
+    // More - https://docs.mongodb.com/manual/reference/limits/#mongodb-limit-Restriction-on-Collection-Names
+    const isInvalidName =
+      !_.isString(collectionName) ||
+      !collectionName ||
+      collectionName.includes('$') ||
+      collectionName.startsWith('system.');
+    if (isInvalidName) {
+      throw new ValidationError(errorMessage);
+    }
+    const isCollectionExist = await appLib.db.listCollections({ name: collectionName }, { nameOnly: true }).hasNext();
+    if (isCollectionExist) {
+      throw new ValidationError(errorMessage);
+    }
+  }
+
   type.addResolver({
     kind: 'mutation',
     name: createOneResolverName,
@@ -99,101 +115,41 @@ module.exports = ({ appLib, datasetsModelName }) => {
     type,
     resolve: async ({ args, context }) => {
       try {
+        await checkIsValidCollectionName(args.record.collectionName);
+
         const { req } = context;
         const graphQlContext = await new GraphQlContext(appLib, req, datasetsModelName, args).init();
-        // no filtering for create record
-        graphQlContext.mongoParams = { conditions: {} };
         // nullify scheme since we can't check if it's valid for now
         const datasetsId = ObjectID();
-        args.record.collectionName = getExternalDatasetsModelName(datasetsId);
         const datasetsRecord = { ...args.record, _id: datasetsId };
+        _.set(datasetsRecord, 'scheme.schemaName', getDatasetRecordSchemaName(datasetsRecord._id));
+        _.set(datasetsRecord, 'scheme.collectionName', datasetsRecord.collectionName);
 
-        const createdDatasetsRecord = await appLib.dba.withTransaction((session) =>
-          appLib.controllerUtil.postItem(graphQlContext, datasetsRecord, session)
-        );
+        const createdDatasetRecord = await appLib.dba.withTransaction(async (session) => {
+          const createdRecord = await appLib.controllerUtil.postItem(graphQlContext, datasetsRecord, session);
+          // try to add graphql stuff, transaction will be aborted on invalid dataset scheme
+          await addQueriesAndMutationsForDatasetsRecord(appLib, createdRecord);
+          return createdRecord;
+        });
+        await appLib.trino.upsertTrinoSchema(createdDatasetRecord.scheme);
 
-        await appLib.db.createCollection(datasetsRecord.collectionName);
-
-        m.updateDatasetExpirationTimeout(datasetsId);
-        return createdDatasetsRecord;
+        // addQueriesAndMutationsForDatasetsRecord creates indexes and thus creates a collection,
+        // but if there is no any indexes for collection create it with createCollection
+        try {
+          await appLib.db.createCollection(createdDatasetRecord.collectionName);
+        } catch (e) {
+          if (e.codeName !== 'NamespaceExists') {
+            throw e;
+          }
+        }
+        m.updateDatasetExpirationTimeout(createdDatasetRecord);
+        return createdDatasetRecord;
       } catch (e) {
-        handleGraphQlError(e, `Unable to create record`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to create record`, log, appLib, modelName: datasetsModelName });
       }
     },
   });
   m.datasetsResolvers.createOne = type.getResolver(createOneResolverName);
-
-  type.addResolver({
-    kind: 'mutation',
-    name: cloneResolverName,
-    args: {
-      record: recordInputType,
-      parentCollectionName: 'String!',
-      filter: dxQueryInputRequired,
-      projections: '[String]!',
-    },
-    type,
-    resolve: async ({ args, context }) => {
-      const { req } = context;
-      const { record, projections, parentCollectionName, filter } = args;
-
-      try {
-        const graphQlContext = await new GraphQlContext(appLib, req, datasetsModelName, args).init();
-        // no filtering for create record
-        graphQlContext.mongoParams = { conditions: {} };
-
-        const datasetsObjectId = ObjectID();
-        const datasetId = datasetsObjectId.toString();
-        const externalDatasetModelName = getExternalDatasetsModelName(datasetId);
-        record.collectionName = externalDatasetModelName;
-        const { parentCollectionScheme, newScheme, newSchemeFields } = await getNewSchemeByProjections({
-          datasetsModelName,
-          externalDatasetModelName,
-          appLib,
-          parentCollectionName,
-          projections,
-          fixLookupIdDuplicates: appLib.mutil.fixLookupIdDuplicates,
-        });
-        const datasetsItem = { _id: datasetsObjectId, ...record, scheme: newScheme };
-
-        const { userPermissions, inlineContext } = graphQlContext;
-        const pipeline = await getCloneRecordsPipeline({
-          appLib,
-          parentCollectionScheme,
-          userPermissions,
-          inlineContext,
-          filter,
-          newSchemeFields,
-          outCollectionName: datasetsItem.collectionName,
-        });
-
-        const createdDatasetsRecord = await appLib.dba.withTransaction((session) =>
-          appLib.controllerUtil.cloneItem(graphQlContext, datasetsItem, session)
-        );
-
-        const cloneRecordsPromise = appLib.db.collection(parentCollectionName).aggregate(pipeline).toArray();
-
-        // Error occurred if cloning records is in process simultaneously with creating indexes:
-        // "Unhandled rejection MongoError: indexes of target collection oraimports-prototype.testDataset_asd changed during processing."
-        // So add graphql and prepare scheme(create indexes etc) after cloning
-        // TODO: do not await in future since it may take much time. add it to job queue?
-        await cloneRecordsPromise;
-        await addQueriesAndMutationsForDatasetsRecord(
-          createdDatasetsRecord,
-          appLib,
-          addDefaultQueries,
-          addDefaultMutations
-        );
-        m.updateDatasetExpirationTimeout(datasetId);
-        appLib.graphQl.connect.rebuildGraphQlSchema();
-
-        return createdDatasetsRecord;
-      } catch (e) {
-        handleGraphQlError(e, `Unable to clone record`, log, appLib);
-      }
-    },
-  });
-  m.datasetsResolvers.cloneOne = type.getResolver(cloneResolverName);
 
   type.addResolver({
     kind: 'mutation',
@@ -207,22 +163,18 @@ module.exports = ({ appLib, datasetsModelName }) => {
         const { req } = context;
         const graphQlContext = await new GraphQlContext(appLib, req, datasetsModelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
-        const deletedDoc = await appLib.dba.withTransaction((session) =>
+        const deletedDataset = await appLib.dba.withTransaction((session) =>
           appLib.controllerUtil.deleteItem(graphQlContext, session)
         );
 
-        removeQueriesAndMutationsForDatasetsRecord(
-          appLib,
-          deletedDoc._id,
-          removeDefaultQueries,
-          removeDefaultMutations
-        );
+        removeQueriesAndMutationsForDatasetsRecord(appLib, deletedDataset);
         // dropping is done immediately with collection of any size
-        await appLib.db.collection(deletedDoc.collectionName).drop();
+        await appLib.db.collection(deletedDataset.collectionName).drop();
+        await appLib.trino.removeTrinoSchema(deletedDataset.collectionName);
 
         return { deletedCount: 1 };
       } catch (e) {
-        handleGraphQlError(e, `Unable to delete record`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to delete record`, log, appLib, modelName: datasetsModelName });
       }
     },
   });
@@ -238,21 +190,64 @@ module.exports = ({ appLib, datasetsModelName }) => {
     type,
     resolve: async ({ args, context }) => {
       try {
+        const { record } = args;
+
         const { req } = context;
         const graphQlContext = await new GraphQlContext(appLib, req, datasetsModelName, args).init();
         graphQlContext.mongoParams = getMongoParams(args);
-        const datasetRecord = await appLib.dba.withTransaction((session) =>
-          appLib.controllerUtil.putItem(graphQlContext, args.record, session)
-        );
 
-        await addQueriesAndMutationsForDatasetsRecord(datasetRecord, appLib, addDefaultQueries, addDefaultMutations);
-        const datasetId = datasetRecord._id.toString();
-        m.updateDatasetExpirationTimeout(datasetId);
+        const updatedDatasetRecord = await appLib.dba.withTransaction(async (session) => {
+          const { items } = await appLib.controllerUtil.getElements({ context: graphQlContext });
+          const currentRecord = items[0];
+          if (!currentRecord) {
+            throw new ValidationError(`Unable to update record`);
+          }
+
+          _.set(record, 'scheme.collectionName', record.collectionName);
+          _.set(record, 'scheme.schemaName', currentRecord.scheme.schemaName);
+          const isSameCollectionName = currentRecord.collectionName === record.collectionName;
+          if (!isSameCollectionName) {
+            await checkIsValidCollectionName(record.collectionName);
+          }
+
+          // set mandatory _id field
+          const _idField = currentRecord.scheme.fields._id;
+          let fields = _.get(record, 'scheme.fields');
+          if (_.isPlainObject(fields)) {
+            fields._id = _idField;
+          } else {
+            fields = { _id: _idField };
+          }
+          _.set(record, 'scheme.fields', fields);
+
+          const updatedRecord = await appLib.controllerUtil.putItem(graphQlContext, record, session);
+
+          const schemeFieldNames = _.keys(updatedRecord.scheme.fields);
+          const isCompleteScheme = schemeFieldNames.length === 1 && schemeFieldNames[0] === '_id';
+          if (isCompleteScheme) {
+            removeQueriesAndMutationsForDatasetsRecord(appLib, updatedRecord);
+          } else {
+            await addQueriesAndMutationsForDatasetsRecord(appLib, updatedRecord);
+          }
+
+          if (!isSameCollectionName) {
+            await appLib.mutil.renameCollection({
+              fromCollection: currentRecord.collectionName,
+              toCollection: updatedRecord.collectionName,
+              options: { dropTarget: true },
+            });
+          }
+          await appLib.trino.upsertTrinoSchemaForCollection(updatedRecord.scheme, currentRecord.collectionName);
+
+          return updatedRecord;
+        });
+
+        m.updateDatasetExpirationTimeout(updatedDatasetRecord);
         appLib.graphQl.connect.rebuildGraphQlSchema();
 
-        return datasetRecord;
+        return updatedDatasetRecord;
       } catch (e) {
-        handleGraphQlError(e, `Unable to update record`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to update record`, log, appLib, modelName: datasetsModelName });
       }
     },
   });
@@ -284,7 +279,13 @@ module.exports = ({ appLib, datasetsModelName }) => {
 
         return dataset;
       } catch (e) {
-        handleGraphQlError(e, `Unable to get requested dataset`, log, appLib);
+        handleGraphQlError({
+          e,
+          message: `Unable to get requested dataset`,
+          log,
+          appLib,
+          modelName: datasetsModelName,
+        });
       }
     },
   });

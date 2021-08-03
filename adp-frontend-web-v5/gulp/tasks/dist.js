@@ -70,14 +70,11 @@ function build() {
       }
 
       const { appSuffix } = conf.APP_CONFIG();
-      const suffix = !!appSuffix ? '/' + appSuffix : '';
-
-      return `<script src="${suffix}${src}"`;
+      return `<script src="${appSuffix}${src}"`;
     }))
     .pipe(gulpReplace(/<link\srel="stylesheet".*?href="(.*?)"/g, function (scriptPart, src) {
       const { appSuffix } = conf.APP_CONFIG();
-      const suffix = !!appSuffix ? '/' + appSuffix : '';
-      return `<link rel="stylesheet" href="${suffix}${src}"`;
+      return `<link rel="stylesheet" href="${appSuffix}${src}"`;
     }))
     .pipe(gulp.dest(conf.paths.distTmp));
 }

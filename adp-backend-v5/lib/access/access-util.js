@@ -7,7 +7,6 @@ const Promise = require('bluebird');
 const { default: sift } = require('sift');
 const { getDefaultArgsAndValuesForInlineCode, MONGO } = require('../util/util');
 const { getFunction } = require('../util/memoize');
-const { hashObject } = require('../util/hash');
 const { ValidationError } = require('../errors');
 
 module.exports = (appLib) => {
@@ -21,6 +20,7 @@ module.exports = (appLib) => {
     bot: [appPermissions.accessFromBot],
     car: [appPermissions.accessFromCar],
   };
+  const hashObject = require('../util/hash').getHashObjectFunction(appLib.config.USE_FARMHASH);
 
   function getEvaluatedWhereCondition(where, inlineContext) {
     if (_.isBoolean(where)) {
@@ -63,9 +63,9 @@ module.exports = (appLib) => {
    * @param req
    * @returns {*}
    */
-  m.getInlineContext = (req, projections = ['user', 'session', 'params', 'body']) => {
-    return { req: _.pick(req, projections) };
-  };
+  m.getInlineContext = (req, projections = ['user', 'session', 'params', 'body']) => ({
+    req: _.pick(req, projections),
+  });
 
   /**
    * Retrieves user context by request
@@ -192,17 +192,13 @@ module.exports = (appLib) => {
     req.user = user;
   };
 
-  m.getReqUser = (req) => {
-    return req.user;
-  };
+  m.getReqUser = (req) => req.user;
 
   m.setReqRoles = (req, roles) => {
     req.roles = roles;
   };
 
-  m.getReqRoles = (req) => {
-    return req.roles;
-  };
+  m.getReqRoles = (req) => req.roles;
 
   m.setReqPermissions = (req, permissions) => {
     req.permissions = permissions;
@@ -1137,13 +1133,44 @@ module.exports = (appLib) => {
   );
 
   async function getUserSettings(userContext) {
+    const userId = _.get(userContext, 'user._id');
+    if (!userId) {
+      return {};
+    }
     const [settings = {}] = await appLib.dba.getItemsUsingCache({
       modelName: '_userSettings',
       userContext,
-      mongoParams: { conditions: { 'creator._id': userContext.user._id } },
+      mongoParams: { conditions: { 'creator._id': userId } },
     });
     return settings;
   }
+
+  const applyThemeRules = (record) => {
+    if (record.fixedHeader === false) {
+      record.fixedRibbon = false;
+      record.fixedNavigation = false;
+    }
+
+    if (record.fixedNavigation) {
+      record.fixedWidth = false;
+      record.fixedHeader = true;
+    } else if (record.fixedNavigation === false) {
+      record.fixedRibbon = false;
+    }
+
+    if (record.fixedRibbon) {
+      record.fixedHeader = true;
+      record.fixedNavigation = true;
+      record.fixedWidth = false;
+    }
+
+    if (record.fixedWidth) {
+      record.fixedNavigation = false;
+      record.fixedRibbon = false;
+    }
+
+    return record;
+  };
 
   m.getUserSettingsMergedWithDefaults = (settings = {}, returnAsInterface = true) => {
     const recordPathToInterfacePath = {
@@ -1162,13 +1189,15 @@ module.exports = (appLib) => {
     _.each(recordPathToInterfacePath, (interfacePath, recordPath) => {
       const resultPath = returnAsInterface ? interfacePath : recordPath;
       const recordValue = settings[recordPath];
-      if (recordValue) {
+
+      if (!_.isUndefined(recordValue)) {
         return _.set(resultSettings, resultPath, recordValue);
       }
       const interfaceValue = _.get(appLib.appModel.interface, interfacePath);
       _.set(resultSettings, resultPath, interfaceValue);
     });
-    return resultSettings;
+
+    return applyThemeRules(resultSettings);
   };
 
   async function getThemeSettingsForAppModel(userContext) {

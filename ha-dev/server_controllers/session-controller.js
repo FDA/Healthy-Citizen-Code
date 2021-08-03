@@ -2,7 +2,6 @@ require('dotenv').load({ path: require('path').resolve(__dirname, '../.env') });
 const _ = require('lodash');
 const Promise = require('bluebird');
 const fs = require('fs-extra');
-const log = require('log4js').getLogger('session-controller');
 const { ObjectID } = require('mongodb');
 
 const DRUGS_MASTER_COL_NAME = 'drugsMaster';
@@ -31,6 +30,7 @@ module.exports = () => {
 
   m.init = (appLib) => {
     m.appLib = appLib;
+    m.log = appLib.getLogger('session-controller');
     appLib.addRoute('get', `/register-udid/:udid`, [appLib.isAuthenticated, m.registerUdid]);
     appLib.addRoute('get', `/start-session/:udid/session.png`, [
       appLib.isAuthenticated,
@@ -81,7 +81,7 @@ module.exports = () => {
       await m.appLib.dba.createItem(udidsCollectionName, { action: 'create' }, { udid });
       res.json({ success: true, message: `UDID '${udid}' has been registered` });
     } catch (e) {
-      log.error(`Error while registering a UDID: '${e}'`);
+      m.log.error(`Error while registering a UDID: '${e}'`);
       res.json({ success: false, message: `An error occurred` });
     }
   };
@@ -120,7 +120,7 @@ module.exports = () => {
 
       m.appLib.controllers.main.getItems(req, res, next);
     } catch (e) {
-      log.error(`Error while getting stuff`, e.stack);
+      m.log.error(`Error while getting stuff`, e.stack);
       res.json({ success: false, message: `An error occurred` });
     }
   };
@@ -130,7 +130,7 @@ module.exports = () => {
     // TODO: do not allow udids shorter than 12 characters for security reasons
     // TODO: discuss with the privacy office if we're allowed to store both the udid and the source IP
     if (!udid || udid.length <= 12) {
-      log.warn(`UDID is incorrectly formatted: '${udid}'`);
+      m.log.warn(`UDID is incorrectly formatted: '${udid}'`);
       return res.json({ success: false, message: `Incorrect deidentified ID` });
     }
 
@@ -142,7 +142,7 @@ module.exports = () => {
 
       req.session.udid = udid;
       const file = await fs.readFile('../ha-dev/public/img/1x1.png').catch((err) => {
-        log.error(`Error while reading 1x1 file: '${err}'`);
+        m.log.error(`Error while reading 1x1 file: '${err}'`);
         res.writeHead(500);
         res.end();
       });
@@ -151,7 +151,7 @@ module.exports = () => {
       res.end(file, 'binary');
       // res.end();
     } catch (e) {
-      log.error(`Error while starting a session`, e.stack);
+      m.log.error(`Error while starting a session`, e.stack);
       res.json({ success: false, message: `An error occurred while starting a session` });
     }
   };
@@ -163,7 +163,7 @@ module.exports = () => {
     // TODO: discuss with the privacy office if we're allowed to store both the udid and the source IP
     /*
     if (!udid || udid.length <= 12) {
-      log.warn(`UDID is incorrectly formatted: '${udid}'`);
+      m.log.warn(`UDID is incorrectly formatted: '${udid}'`);
       return res.json({ success: false, message: `Incorrect deidentified ID` });
     }
      */
@@ -189,7 +189,7 @@ module.exports = () => {
 
       //req.session.udid = udid;
       const file = await fs.readFile('../ha-dev/public/img/1x1.png').catch((err) => {
-        log.error(`Error while reading 1x1 file: '${err}'`);
+        m.log.error(`Error while reading 1x1 file: '${err}'`);
         res.writeHead(500);
         res.end();
       });
@@ -198,7 +198,7 @@ module.exports = () => {
       res.end(file, 'binary');
       // res.end();
     } catch (e) {
-      log.error(`Error while loading the session`, e.stack);
+      m.log.error(`Error while loading the session`, e.stack);
       res.json({ success: false, message: `An error occurred while loading a session` });
     }
   };
@@ -223,7 +223,7 @@ module.exports = () => {
       }
       return res.json({ success: true, data: getDrugInfo(drug) });
     } catch (e) {
-      log.error(`Error while getting drug:`, e.stack);
+      m.log.error(`Error while getting drug:`, e.stack);
       res.json({ success: false, message: `Error while getting drug` });
     }
   };
@@ -241,7 +241,7 @@ module.exports = () => {
 
       if (!profile) {
         const message = `Unable to find a profile by id: ${profileId}`;
-        log.error(message);
+        m.log.error(message);
         return res.json({ success: false, message });
       }
 
@@ -253,7 +253,7 @@ module.exports = () => {
       const data = drugs.map((drug) => getDrugInfo(drug));
       return res.json({ success: true, data });
     } catch (e) {
-      log.error(`Error while getting drugs:`, e.stack);
+      m.log.error(`Error while getting drugs:`, e.stack);
       res.json({ success: false, message: `Error while getting drugs` });
     }
   };
@@ -281,11 +281,11 @@ module.exports = () => {
           return m.appLib.controllers.main.getItems(req, res, next);
         })
         .catch(e => {
-          log.error(`Error while starting a session: '${e}'`);
+          m.log.error(`Error while starting a session: '${e}'`);
           res.json({ success: false, message: `An error occured` });
         });
     } else {
-      log.warn(`UDID is incorrect: '${udid}'`);
+      m.log.warn(`UDID is incorrect: '${udid}'`);
       res.json({ success: false, message: `Incorrect deidentified ID` });
     }
   };
@@ -348,7 +348,7 @@ module.exports = () => {
       res.json({ success: true });
     } catch (e) {
       const message = `Error while updating notification info for profile ${profileId}`;
-      log.error(message, e.stack);
+      m.log.error(message, e.stack);
       res.json({ success: false, message });
     }
   };
@@ -389,7 +389,7 @@ module.exports = () => {
       res.json({ success: true, data: recalls });
     } catch (e) {
       const message = `Error while getting recalls for drug ${drugId}`;
-      log.error(message, e.stack);
+      m.log.error(message, e.stack);
       res.json({ success: false, message });
     }
   };
@@ -431,7 +431,7 @@ module.exports = () => {
       res.json({ success: true, data: adverseEvents });
     } catch (e) {
       const message = `Error while getting adverse events for drug ${drugId}`;
-      log.error(message, e.stack);
+      m.log.error(message, e.stack);
       res.json({ success: false, message });
     }
   };
@@ -499,7 +499,7 @@ module.exports = () => {
       res.json({ success: true, data });
     } catch (e) {
       const message = `Error while getting recalls for rxcui: ${rxcui}`;
-      log.error(message, e.stack);
+      m.log.error(message, e.stack);
       res.json({ success: false, message });
     }
   };
@@ -530,7 +530,7 @@ module.exports = () => {
       res.json({ success: true, data: splData });
     } catch (e) {
       const message = `Error while getting SPL data for drug ${drugId}`;
-      log.error(message, e.stack);
+      m.log.error(message, e.stack);
       res.json({ success: false, message });
     }
   };

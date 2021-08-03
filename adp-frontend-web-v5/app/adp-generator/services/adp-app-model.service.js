@@ -10,7 +10,8 @@
     $http,
     $stateRegistry,
     AppGenerator,
-    APP_CONFIG
+    APP_CONFIG,
+    AdpLayoutConfigService
   ) {
     return {
       getAppModel: getAppModel
@@ -55,6 +56,7 @@
       window.adpAppStore.mediaTypes(data.mediaTypes);
 
       AppGenerator.generateApp();
+      AdpLayoutConfigService.updateThemeUI();
 
       return data;
     }

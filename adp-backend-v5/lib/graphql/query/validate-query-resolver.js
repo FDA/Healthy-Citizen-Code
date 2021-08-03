@@ -65,7 +65,7 @@ function getValidateFilterResolver() {
         if (e.name === 'MongoError') {
           return { isValidFilter: false, errors: e.message };
         }
-        handleGraphQlError(e, 'Error occurred during filter validation', log, appLib);
+        handleGraphQlError({ e, message: 'Error occurred during filter validation', log, appLib, modelName });
       }
     },
   });

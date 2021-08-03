@@ -1,0 +1,409 @@
+{
+  models: {
+    dataPulls: {
+      type: 'Schema',
+      fullName: 'Data Pulls',
+      parameters: {
+        grouping: {
+            autoExpandAll: false
+        },
+        selection: {
+          mode: "multiple"
+        },
+        groupingType: "Grouping"
+      },
+      other: {
+        "actions": {
+          "fields": {
+            "update": {
+              "permissions": [["manageOwnDataPulls", "manageAllDataPulls"]]
+            },
+            "delete": {
+              "permissions": [["manageOwnDataPulls", "manageAllDataPulls"]]
+            },
+            "clone": {
+              "permissions": [["manageOwnDataPulls", "manageAllDataPulls"]]
+            },
+            "viewDetails": {
+              "permissions": [["accessOwnDataPulls","accessAllDataPulls"]]
+            },
+            "view": {
+              "permissions": [["accessOwnDataPulls","accessAllDataPulls"]]
+            },
+            "create": {
+              "permissions": [["manageOwnDataPulls", "manageAllDataPulls"]]
+            }
+          }
+        },
+        "scopes": {
+          "own": {
+            "permissions": "accessOwnDataPulls",
+            "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+          },
+          "all": {
+            "permissions": "accessAllDataPulls",
+            "where": "{$eq:[1,1]}"
+          }
+        }
+      },
+      fields: {
+        name: {
+          required: true,
+          other: {
+            width: '200'
+          }
+        },
+        description: {
+          type: 'Text',
+          fullName: 'Description',
+          other: {
+            width: 'null'
+          }
+        },
+        tags: {
+          type: 'LookupObjectID[]',
+          fullName: 'Tags',
+          lookup: {
+            "table": {
+              "tags": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {"name": 1},
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          },
+          other: {
+            formWidth: '8'
+          }
+        },
+        dependsOn: {
+          type: 'LookupObjectID[]',
+          fullName: 'Depends On',
+          lookup: {
+            "table": {
+              "dataPulls": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {"name": 1},
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          },
+          other: {
+            formWidth: '4'
+          }
+        },
+        disabled: {
+          type: 'Boolean',
+          fullName: 'Disabled',
+          other: {
+            formWidth: '4'
+          }
+        },
+        lastPullPosition: {
+          type: 'Mixed',
+          fullName: 'Last Pull Position'
+        },
+        pullEnd: {
+          type: 'DateTime',
+          fullName: 'Pull End',
+          other: { "permissions": { "read": "accessAsUser", "write": "accessForbidden"},  formWidth: 4}
+        },
+        pullStart: {
+          type: 'DateTime',
+          fullName: 'Pull Start',
+          other: { "permissions": { "read": "accessAsUser", "write": "accessForbidden"},  formWidth: 4}
+        },
+        priority: {
+          type: 'Number',
+          fullName: 'Priority',
+          other: { default: 10, formWidth: 4 }
+        },
+        totalDocumentsProcessed: {
+          type: 'Int32',
+          fullName: 'Total Documents Processed',
+          other: { "permissions": { "read": "accessAsUser", "write": "accessForbidden"} }
+        },
+        chunkedDataPullGroup: {
+          type: 'Group',
+          fullName: 'Chunked Data Pull Group'
+        },
+        chunkedDataPull: {
+          type: 'Boolean',
+          fullName: 'Chunked Data Pull',
+          other: { default: false }
+        },
+        dataPullChunks: {
+          type: 'AssociativeArray',
+          fullName: 'Data Pull Chunks',
+          show: 'this.row.chunkedDataPull',
+          required: 'this.row.chunkedDataPull',
+          fields: {
+            chunkType: {
+              type: 'List',
+              fullName: 'Chunk Type',
+              list: {
+                values: {
+                  time: 'Time',
+                  number: 'Number'
+                }
+              }
+            },
+            timeChunkUnit: {
+              type: 'List',
+              fullName: 'Time Chunk Unit',
+              show: '_.get(this.parentData[this.index], \'chunkType\') === \'time\'',
+              required: '_.get(this.parentData[this.index], \'chunkType\') === \'time\'',
+              list: {
+                values: {
+                  minute: 'Minute',
+                  hour: 'Hour',
+                  day: 'Day',
+                  week: 'Week'
+                }
+              }
+            },
+            chunkSize: {
+              type: 'Int32',
+              fullName: 'Chunk Size',
+              required: true
+            },
+            position: {
+              type: 'Int32',
+              fullName: 'Position',
+              other: { default: 0 }
+            },
+            allChunksPulledCheck: {
+              type: 'Code',
+              fullName: 'All Chunks Pulled Check',
+              required: true,
+              parameters: { 
+               "codeEditor": {
+                "mode":"ace/mode/javascript",
+                "theme":"ace/theme/dracula"
+               }
+              }
+            }
+          }
+        },
+        sourceGroup: {
+          type: 'Group',
+          fullName: 'Source Group'
+        },
+        sourceType: {
+          type: 'List',
+          fullName: 'Source Type',
+          required: true,
+          list: {
+            values: {
+              oracle: 'Oracle'
+            },
+            scopes: {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        oracleConnectionString: {
+          show: 'this.row.sourceType === "oracle"',
+          required: true
+        },
+        oracleQuery: {
+          type: 'Code',
+          fullName: 'Oracle Query',
+          show: 'this.row.sourceType === "oracle"',
+          required: true,
+          parameters: {
+            codeEditor: {
+              mode: "ace/mode/sql",
+              theme: "ace/theme/monokai"
+            }
+          }
+        },
+        oracleCredentials: {
+          type: 'LookupObjectID',
+          fullName: 'Oracle Credentials',
+          show: 'this.row.sourceType === "oracle"',
+          required: true,
+          lookup: {
+            "table": {
+              "_credentials": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {"name": 1},
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        oraclePrivilege: {
+          type: 'List',
+          fullName: 'Oracle Privilege',
+          show: 'this.row.sourceType === "oracle"',
+          list: {
+            values: {
+              SYSDBA: 'SYSDBA',
+              SYSOPER: 'SYSOPER',
+              SYSASM: 'SYSASM',
+              SYSBACKUP: 'SYSBACKUP',
+              SYSDG: 'SYSDG',
+              SYSKM: 'SYSKM',
+              SYSPRELIM: 'SYSPRELIM',
+              SYSRAC: 'SYSRAC'
+            }
+          }
+        },
+        transformation: {
+          type: 'Group',
+          fullName: 'Transformation'
+        },
+        transformationCode: {
+          type: 'Code',
+          fullName: 'Transformation Code',
+          parameters: { 
+           "codeEditor": {
+            "mode":"ace/mode/javascript",
+            "theme":"ace/theme/dracula"
+           }
+          }
+        },
+        copyInputToOutput: {
+          type: 'Boolean',
+          fullName: 'Copy Input To Output',
+          other: { default: true }
+        },
+        destinationGroup: {
+          type: 'Group',
+          fullName: 'Destination Group'
+        },
+        destinationType: {
+          type: 'List',
+          fullName: 'Destination Type',
+          required: true,
+          list: {
+            values: {
+              localMongodb: 'Local MongoDB',
+              externalMongodb: 'External Mongodb'
+            },
+            scopes: {
+              "userScope": {
+                "permissions": {
+                  "view": "accessAsUser"
+                },
+                "where": "return true",
+                "return": "return $list"
+              }
+            }
+          }
+        },
+        mongodbUri: {
+          show: 'this.row.destinationType === "externalMongodb"',
+          required: 'this.row.destinationType === "externalMongodb"'
+        },
+        mongodbCollection: {
+          show: 'this.row.destinationType === "externalMongodb"',
+          required: 'this.row.destinationType === "externalMongodb"'
+        },
+        localMongodbDataset: {
+          type: 'LookupObjectID',
+          fullName: 'Local Mongodb Dataset',
+          show: 'this.row.destinationType === "localMongodb"',
+          required: 'this.row.destinationType === "localMongodb"',
+          lookup: {
+            "table": {
+              "datasets": {
+                "foreignKey": "_id",
+                "label": "name",
+                "sortBy": {"name": 1},
+                "scopes": {
+                  "ownRecordScope": {
+                    "permissions": "accessAsUser",
+                    "where": "{$eq: [1,1]}"
+                  }
+                }
+              }
+            }
+          }
+        },
+        afterPullGroup: {
+          type: 'Group',
+          fullName: 'After Pull Group'
+        },
+        customAfterPullCode: {
+          type: 'Boolean',
+          fullName: 'Custom After Pull Code'
+        },
+        afterPullCode: {
+          type: 'Code',
+          fullName: 'After Pull Code',
+          show: 'this.row.customAfterPullCode',
+          parameters: { 
+           "codeEditor": {
+            "mode":"ace/mode/javascript",
+            "theme":"ace/theme/dracula"
+           }
+          }
+        }
+      }
+    }
+  },
+  'interface': {
+    mainMenu: {
+      type: 'Menu',
+      fullName: 'Main Menu',
+      fields: {
+        system: {
+          type: 'MenuGroup',
+          fullName: 'System',
+          other: { 
+            "menuOrder": 1000,
+            "scopes": {
+              "user": {
+                "permissions": "accessAsUser"
+              }
+            }
+          },
+          icon: {
+            type: 'font-awesome',
+            link: 'heartbeat'
+          },
+          fields: {
+            dataPulls: {
+              type: 'MenuItem',
+              fullName: 'Data Pulls',
+              other: { 
+                "scopes": {
+                  "user": {
+                    "permissions": [["accessOwnDataPulls","accessAllDataPulls"]]
+                  }
+                }
+              },
+              link: '/dataPulls'
+            }
+          }
+        }
+      }
+    }
+  }
+}

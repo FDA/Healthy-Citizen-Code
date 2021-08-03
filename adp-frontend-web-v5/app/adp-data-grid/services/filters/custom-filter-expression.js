@@ -34,7 +34,8 @@
     };
 
     function defaultFilterExpression(filterValue, selectedFilterOperation) {
-      return [this.dataField, (selectedFilterOperation || this.defaultSelectedFilterOperation), filterValue];
+      var selectedOperation = selectedFilterOperation || this.defaultSelectedFilterOperation;
+      return [this.dataField, selectedOperation, filterValue];
     }
 
     function calculateExprForBoolean(filter, selectedFilterOperation, fieldType) {
@@ -93,7 +94,8 @@
     }
 
     function transformLookup(filterValue, selectedFilterOperation) {
-      return [this.dataField, selectedFilterOperation, filterValue];
+      var selectedOperation = selectedFilterOperation || this.defaultSelectedFilterOperation;
+      return [this.dataField, selectedOperation, filterValue];
     }
 
     function getCustomFilterExpr(field, schema) {

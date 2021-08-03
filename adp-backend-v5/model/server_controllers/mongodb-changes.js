@@ -2,8 +2,9 @@ const _ = require('lodash');
 const Promise = require('bluebird');
 const log = require('log4js').getLogger('mongodb-changes');
 const { getSiftFilteringFunc } = require('../../lib/util/sift');
+const { getOptionsToLog } = require('../../lib/util/mongo');
 
-const mongoDbChangeEvent = 'mongoDbChange';
+const mongoDbChangeAction = 'mongoDbChange';
 
 module.exports = () => {
   const m = {};
@@ -11,11 +12,11 @@ module.exports = () => {
   m.init = async (appLib) => {
     m.appLib = appLib;
 
-    if (process.env.SEND_RTC_ON_MONGODB_CHANGE !== 'true') {
+    if (!m.appLib.config.SEND_RTC_ON_MONGODB_CHANGE) {
       return;
     }
 
-    addMongoDbChangeEvent();
+    addMongoDbChangeAction();
     m.addHooks();
   };
 
@@ -42,8 +43,8 @@ module.exports = () => {
     return docsWithActions[0];
   }
 
-  function addMongoDbChangeEvent() {
-    m.appLib.ws.addEvent(mongoDbChangeEvent, {
+  function addMongoDbChangeAction() {
+    m.appLib.ws.addAction(mongoDbChangeAction, {
       async hook({ record, args, modelName, method, login }) {
         const ioNamespace = this;
         const appModel = m.appLib.appModel.models[modelName];
@@ -142,8 +143,10 @@ module.exports = () => {
     const modelNames = _.keys(m.appLib.appModel.models);
 
     _.each(modelNames, (modelName) => {
-      m.appLib.db.collection(modelName).after('write', function ({ args, method, result, login }) {
-        m.appLib.ws.sendRequest(mongoDbChangeEvent, { record: result.record, modelName, method, args, login });
+      m.appLib.db.collection(modelName).after('write', ({ args, method, result, login }) => {
+        const lastArgIndex = args.length - 1;
+        args[lastArgIndex] = getOptionsToLog(args[lastArgIndex]);
+        m.appLib.ws.performAction(mongoDbChangeAction, { record: result.record, modelName, method, args, login });
       });
     });
   };

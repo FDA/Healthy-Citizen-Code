@@ -18,11 +18,11 @@ const {
   buildGraphQlTreeselectorQuery,
   checkGraphQlSuccessfulResponse,
   checkGraphQlErrorResponse,
-} = require('../graphql-util.js');
+} = require('../graphql-util');
 
 const { getTreeselectorTypeName } = require('../../lib/graphql/type/lookup');
 
-describe('V5 TreeSelectors', function () {
+describe('V5 TreeSelectors', () => {
   const parent1 = {
     _id: ObjectID('5c6d437f9ea7665b9d924b00'),
     name: 'parent1',
@@ -60,12 +60,10 @@ describe('V5 TreeSelectors', function () {
   };
 
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
-    this.db = db;
+    this.appLib = prepareEnv();
 
-    await Promise.all([this.db.createCollection('model11treeselector'), this.db.createCollection('treeCollection')]);
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
+    this.db = db;
   });
 
   after(async function () {
@@ -87,7 +85,7 @@ describe('V5 TreeSelectors', function () {
     return this.appLib.shutdown();
   });
 
-  describe('returns correct results', function () {
+  describe('returns correct results', () => {
     beforeEach(function () {
       setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
@@ -100,7 +98,7 @@ describe('V5 TreeSelectors', function () {
 
       async function f() {
         const { makeRequest, checkResponse, checkData, getData } = settings;
-        const req = makeRequest(apiRequest(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -118,7 +116,7 @@ describe('V5 TreeSelectors', function () {
     const treeselectorTypeName = getTreeselectorTypeName(treeselectorId, treeSelectorTableName);
     const getGraphqlData = (res) => res.body.data[treeselectorTypeName].items;
 
-    describe('for search for treeselector with filtering condition', function () {
+    describe('for search for treeselector with filtering condition', () => {
       const _treeselectorId = 'model11treeselectorWithFilteringId';
       const tableName = 'treeCollection';
       const typeName = getTreeselectorTypeName(_treeselectorId, tableName);
@@ -159,7 +157,7 @@ describe('V5 TreeSelectors', function () {
       );
     });
 
-    describe('when requesting roots containing data attribute', function () {
+    describe('when requesting roots containing data attribute', () => {
       const checkData = (data) => {
         data.length.should.equal(2);
 
@@ -207,7 +205,7 @@ describe('V5 TreeSelectors', function () {
       it('GraphQL: when requesting roots containing data attribute', getTestFunc(graphqlSettings));
     });
 
-    describe('when requesting children (for default first page)', function () {
+    describe('when requesting children (for default first page)', () => {
       const foreignKeyVal = parent1._id.toString();
       const checkData = (data) => {
         // limitReturnedRecords = 2
@@ -253,7 +251,7 @@ describe('V5 TreeSelectors', function () {
       it('GraphQL: when requesting children (for default first page)', getTestFunc(graphqlSettings));
     });
 
-    describe('when requesting children with pagination (page=2)', function () {
+    describe('when requesting children with pagination (page=2)', () => {
       const foreignKeyVal = parent1._id.toString();
       const checkData = (data) => {
         data.length.should.equal(1);
@@ -302,7 +300,7 @@ describe('V5 TreeSelectors', function () {
     });
   });
 
-  describe('create TreeSelector', function () {
+  describe('create TreeSelector', () => {
     beforeEach(function () {
       setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
@@ -310,7 +308,7 @@ describe('V5 TreeSelectors', function () {
       return this.appLib.setup();
     });
 
-    describe('should submit doc with TreeSelector data ending with leaf', function () {
+    describe('should submit doc with TreeSelector data ending with leaf', () => {
       const treeSelectorData = [
         { ...parent1Lookup, _id: parent1Lookup._id.toString() },
         {
@@ -327,7 +325,7 @@ describe('V5 TreeSelectors', function () {
 
         async function f() {
           const { makeRequest, checkResponse, getCreatedDocId } = settings;
-          const req = makeRequest(apiRequest(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }
@@ -363,7 +361,7 @@ describe('V5 TreeSelectors', function () {
       it('GraphQL: should submit doc with TreeSelector data ending with leaf', getTestFunc(graphqlSettings));
     });
 
-    describe('should not submit doc with TreeSelector data ending with not leaf', function () {
+    describe('should not submit doc with TreeSelector data ending with not leaf', () => {
       const treeSelectorData = [
         { ...parent1Lookup, _id: parent1Lookup._id.toString() },
         {
@@ -380,7 +378,7 @@ describe('V5 TreeSelectors', function () {
 
         async function f() {
           const { makeRequest, checkResponse } = settings;
-          const req = makeRequest(apiRequest(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }

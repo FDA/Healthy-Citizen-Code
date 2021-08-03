@@ -50,6 +50,13 @@ describe('Custom Actions', () => {
 
   const rowActionsSnapshot = [
     {
+      "action": "clone",
+      "iconClass": "adp-icon fa fa-fw fa-clone"
+    },
+    {
+      "action": "viewDetails",
+      "iconClass": "adp-icon fa fa-fw fa-eye"
+    },    {
       "action": "delete",
       "iconClass": "adp-icon fa fa-fw fa-trash"
     },
@@ -69,14 +76,6 @@ describe('Custom Actions', () => {
       "action": "link",
       "iconClass": "adp-icon fa fa-fw fa-link"
     },
-    {
-      "action": "clone",
-      "iconClass": "adp-icon fa fa-fw fa-clone"
-    },
-    {
-      "action": "viewDetails",
-      "iconClass": "adp-icon fa fa-fw fa-eye"
-    }
   ];
 
   const toolbarActionsSnapshot = [
@@ -136,11 +135,6 @@ describe('Custom Actions', () => {
       "customItemClass": ""
     },
     {
-      "action": "customLink",
-      "iconClass": "adp-icon fa fa-fw fa-bolt dx-icon",
-      "customItemClass": ""
-    },
-    {
       "action": "search",
       "iconClass": null,
       "customItemClass": null
@@ -149,7 +143,12 @@ describe('Custom Actions', () => {
       "action": "filterBuilder",
       "customItemClass": "",
       "iconClass": "adp-icon fa fa-fw fa-search-plus dx-icon"
-    }
+    },
+    {
+      "action": "customLink",
+      "iconClass": "adp-icon fa fa-fw fa-bolt dx-icon",
+      "customItemClass": ""
+    },
   ];
 
   test(

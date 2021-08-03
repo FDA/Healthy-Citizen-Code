@@ -64,6 +64,12 @@ module.exports = (appLib) => {
         next();
       });
     },
+    datasetSchemaFullName(next) {
+      const { path, row } = this;
+      // set dataset.scheme.fullName equal to dataset.name
+      _.set(row, path, row.name);
+      next();
+    },
   };
   return m;
 };

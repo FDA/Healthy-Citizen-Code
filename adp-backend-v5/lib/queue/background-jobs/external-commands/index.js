@@ -7,16 +7,18 @@ const processorContext = getOrCreateContext('externalCommandsContext');
 const { setCommonContext } = processorContext;
 
 const EXTERNAL_COMMANDS_QUEUE_NAME = 'externalCommands';
-const runnerConcurrency = +process.env.EXTERNAL_COMMANDS_RUNNER_CONCURRENCY || 1;
 const commandsCollectionName = 'bjrExternalCommands';
 
 async function createExternalCommandQueue({ appLib, log }) {
-  setCommonContext({ log });
+  setCommonContext({ appLib, log });
 
   const externalCommandRunnerQueue = appLib.queue.createQueue(EXTERNAL_COMMANDS_QUEUE_NAME);
   addQueueEventHandlers({ appLib, bullQueue: externalCommandRunnerQueue, log, enableNotifications: true });
 
-  externalCommandRunnerQueue.process(runnerConcurrency, require('./external-command-processor')(processorContext));
+  externalCommandRunnerQueue.process(
+    appLib.config.EXTERNAL_COMMANDS_RUNNER_CONCURRENCY,
+    require('./external-command-processor')(processorContext)
+  );
 
   return externalCommandRunnerQueue;
 }
@@ -27,8 +29,16 @@ async function runExternalCommand({ commandId, creator, appLib, log }) {
     const { record: externalCommand } = await appLib.db
       .collection(commandsCollectionName)
       .hookQuery('findOne', { _id: ObjectID(commandId) });
-    const { name, command, progressRegex, logRegex } = externalCommand || {};
-    if (!name || !command) {
+    const {
+      name,
+      type = 'shellCommand',
+      command,
+      backendCommand,
+      progressRegex,
+      logRegex = '[\\s\\S]+',
+    } = externalCommand || {};
+    const isCommandSpecified = !!(command || backendCommand);
+    if (!name || !type || !isCommandSpecified) {
       return {
         success: false,
         message: `Invalid external command record by _id '${commandId}'`,
@@ -39,7 +49,9 @@ async function runExternalCommand({ commandId, creator, appLib, log }) {
       creator,
       commandId,
       name,
+      type,
       command,
+      backendCommand,
       progressRegex,
       logRegex,
     });
@@ -65,4 +77,5 @@ module.exports = {
   runExternalCommand,
   createExternalCommandQueue,
   EXTERNAL_COMMANDS_QUEUE_NAME,
+  commandsCollectionName,
 };

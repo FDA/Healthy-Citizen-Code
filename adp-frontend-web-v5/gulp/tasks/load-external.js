@@ -15,7 +15,7 @@ gulp.task('create:config', () => {
 });
 
 gulp.task('load:script', () => {
-  var endpoint = `${APP_CONFIG.apiUrl}/${conf.endpoints.appModelCode}`;
+  var endpoint = `${APP_CONFIG.apiBuildUrl}/${conf.endpoints.appModelCode}`;
 
   var options = {
     url: endpoint,
@@ -42,7 +42,7 @@ async function uploadClientModules() {
 
 function requestModulesFiles() {
   const opts = {
-    url: `${APP_CONFIG.resourceUrl}/${conf.endpoints.clientModules}`,
+    url: `${APP_CONFIG.apiBuildUrlForResource}/${conf.endpoints.clientModules}`,
     method: 'GET',
     json: true
   }
@@ -53,7 +53,7 @@ function requestModulesFiles() {
 function uploadFile(serverPath, distPath) {
   if (!APP_CONFIG) throw new Error('Application config not found.');
 
-  var endpoint = `${APP_CONFIG.resourceUrl}/${serverPath}`;
+  var endpoint = `${APP_CONFIG.apiBuildUrlForResource}/${serverPath}`;
 
   var options = {
     url: endpoint,
@@ -83,7 +83,7 @@ function createScripts(fileName, body) {
 gulp.task('load:manifest', () => {
   if (!APP_CONFIG) throw new Error('Application config not found.');
 
-  var endpoint = `${APP_CONFIG.resourceUrl}/public/manifest.json`;
+  var endpoint = `${APP_CONFIG.apiBuildUrlForResource}/public/manifest.json`;
 
   var options = {
     url: endpoint,

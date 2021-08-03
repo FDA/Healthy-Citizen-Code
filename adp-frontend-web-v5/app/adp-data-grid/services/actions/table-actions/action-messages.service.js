@@ -27,7 +27,12 @@
     return MESSAGES;
 
     function getSingleRecordTitle(schema) {
-      return schema.singleRecordName || pluralize.singular(schema.fullName) || (schema.fullName + " record");
+      if (schema.singleRecordName) {
+        return schema.singleRecordName;
+      } else {
+        const name = schema.fullName || schema.schemaName;
+        return pluralize.singular(name) || (name + " record");
+      }
     }
   }
 })();

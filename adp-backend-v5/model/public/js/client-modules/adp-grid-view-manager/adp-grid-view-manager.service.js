@@ -74,7 +74,7 @@
         }).then(function () {
           var options = _.cloneDeep(schema.parameters);
 
-          GridColumns(options, schema);
+          GridColumns(options, schema, customGridOptions);
           gridComponent.state({ columns: options.columns });
           customGridOptions.value('quickFilterId', '');
 

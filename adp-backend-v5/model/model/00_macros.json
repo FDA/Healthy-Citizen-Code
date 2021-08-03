@@ -5,6 +5,17 @@
     },
     "tagsLookup": {
       "inline": "{\n            \"table\": {\n              \"tags\": {\n                \"foreignKey\": \"_id\",\n                \"label\": \"name\",\n                \"sortBy\": {\"name\": 1},\n                \"scopes\": {\n                  \"specialScope\": {\n                    \"permissions\": {\n                      \"view\": \"accessAsUser\"\n                    }\n                  }\n                }\n              }\n            }\n          }"
+    },
+    "envParam": {
+      "inline": "requiresRestart: <@-requiresRestart@>, requiresLogout: <@-requiresLogout@>, permissions: { read: 'accessForbidden', write: 'accessForbidden' }",
+      "parameters": {
+        "requiresRestart": {
+          "default": true
+        },
+        "requiresLogout": {
+          "default": true
+        }
+      }
     }
   }
 }

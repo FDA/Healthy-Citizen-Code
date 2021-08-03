@@ -3,8 +3,8 @@ const _ = require('lodash');
 const stringifyObject = require('stringify-object');
 const { getTreeselectorTypeName, getLookupTypeName } = require('../lib/graphql/type/lookup');
 
-const formatGraphqlFilter = obj => {
-  const objWithoutUndefined = _.pickBy(obj, val => val !== undefined);
+const formatGraphqlFilter = (obj) => {
+  const objWithoutUndefined = _.pickBy(obj, (val) => val !== undefined);
   return stringifyObject(objWithoutUndefined, { indent: '  ', singleQuotes: false });
 };
 
@@ -71,19 +71,19 @@ function getQueryParams({ page, perPage, sort }) {
   return `${pagePart} ${perPagePart} ${sortPart}`;
 }
 
-const checkGraphQlSuccessfulResponse = res => {
+const checkGraphQlSuccessfulResponse = (res) => {
   should(res.statusCode).equal(200);
   should(res.body.errors).be.undefined();
 };
-const checkGraphQlErrorResponse = res => {
+const checkGraphQlErrorResponse = (res) => {
   should(res.statusCode).equal(200);
   should(res.body.errors).not.be.undefined();
 };
-const checkGraphQlInvalidRequest = res => {
+const checkGraphQlInvalidRequest = (res) => {
   should(res.statusCode).equal(500);
   should(res.body.errors).not.be.undefined();
 };
-const checkGraphQlNoDataResponse = res => {
+const checkGraphQlNoDataResponse = (res) => {
   should(res.statusCode).equal(200);
   const dataKeys = Object.keys(res.body.data);
   should(dataKeys.length).be.equal(1);

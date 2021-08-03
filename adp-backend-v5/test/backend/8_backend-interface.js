@@ -9,23 +9,23 @@ const { prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
 describe('V5 Backend Routes Functionality', function () {
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
+    this.appLib = prepareEnv();
+
     await this.appLib.setup();
     this.dba = require('../../lib/database-abstraction')(this.appLib);
-    this.appLib.authenticationCheck = (req, res, next) => next(); // disable authentication
+    this.appLib.auth.authenticationCheck = (req, res, next) => next(); // disable authentication
   });
 
   after(async function () {
     await this.appLib.shutdown();
-    const db = await getMongoConnection();
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     await db.dropDatabase();
     await db.close();
   });
 
   describe('GET /lists', function () {
     it('responds with list of lists', function (done) {
-      apiRequest(this.appLib.app)
+      apiRequest(this.appLib)
         .get('/lists')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)

@@ -86,8 +86,6 @@
             AdpFieldsService.getFormGroupFields(scope.args.fieldSchema.fields, scope.groupingType) :
             AdpFieldsService.getFormFields(scope.args.fieldSchema.fields);
 
-          scope.errorCount = 0;
-
           scope.loading = false;
           scope.uploaderCnt = 0;
           scope.hasFooter = _.hasIn(scope, 'formOptions.submitCb');
@@ -96,6 +94,7 @@
           scope.formContext = {
             visibilityMap: {},
             requiredMap: {},
+            errorCount: {},
             rootForm: scope.form,
           };
 
@@ -241,13 +240,16 @@
 
           if (scope.form.$submitted) {
             scope.errorCount = AdpFormService.countErrors(scope.form);
+            scope.formContext.errorCount = scope.errorCount;
           }
         }
 
         // refactor: form move to service
         function scrollToError() {
-          var $errorNode = $('.ng-invalid').closest('adp-form-field-container');
-          var $ngForm = $('.ng-invalid').closest('ng-form');
+          AdpFormService.setFormDirty(scope.form);
+          var firstFieldWithError = document.querySelector('.ng-invalid[ng-model]');
+          var $errorNode = $(firstFieldWithError).closest('adp-form-field-container');
+          var $ngForm = $($errorNode).closest('ng-form');
           var $scrollTarget;
 
           $scrollTarget = $ngForm.length > 0 ? $ngForm : $errorNode;

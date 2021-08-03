@@ -1,0 +1,1944 @@
+ 
+                                  
+ 
+                     
+   
+                                  
+                           
+  
+  
+  
+  
+  
+   
+       
+ 
+ 
+                      
+                      
+   
+     
+     
+  
+                      
+                      
+   
+     
+     
+                   
+   
+                              
+              
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+  Production - Release 2.0 
+[$site code]  User: 
+Pre-Operative Questionnaire (PRQ) 
+Web Version: 1.0; 1.00; 06-04-15
+ 1. Where are you taking this questionnaire? 
+
+ Home
+
+ Doctor's office  
+
+ Other location  
+
+2. In general, would you say your health is:
+
+ Excellent 
+   
+ Very good   
+
+ Good  
+ 
+Fair 
+ 
+Poor 
+
+INSTRUCTIONS: Whe n you answ e r the que stion below, think about the v ision corre ction y ou norm ally use , including glasses, contact 
+lenses, a magnifier, or nothing at all.
+ 3. How often do you worry about your eyesight or vision? 
+
+Never 
+
+ Rarely
+
+ Occasionally  
+
+ Sometimes
+
+ All the time
+
+ 4. How often do you notice or think about your eyesight or vision? 
+
+Never 
+
+ Rarely
+
+ Occasionally  
+
+ Sometimes
+
+ All the time
+ 
+5. At this time, how clear is your vision using the correction you normally use, including glasses, contact lenses, a magnifier, or nothing at all? 
+ Perfectly clear  
+ Pretty clear  
+ Somewhat clear 
+6/9/2015 3:44 PM1 of 24 
+----------------Page (0) Break----------------
+              
+                                   
+  
+   
+   
+     
+     
+   
+             
+                   
+                                       
+     
+                      
+   
+             
+                   
+                                       
+     
+                      
+                   
+      
+         
+                  
+                                         
+          
+                             
+                     
+  
+   
+   
+     
+     
+             
+  
+   
+   
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+ Not clear at all  
+6. As long as I could see well enough to drive without wearing glasses or contact lenses, I wouldn't mind having vision that was less than perfect.
+ Definitely true   
+ Mostly true  
+ Don't know  
+ Mostly false
+ Definitely false
+ 7. H        ow much of the time do you expect to use glasses or contact lenses to see things in the distance after healing from LASIK surgery? 
+ All of the time
+ Most of the time
+ Some of the time
+ Hardly ever
+ Never 
+8. How much of the time do you expect to use glasses or contact lenses to see things up close after healing from LASIK surgery? 
+ All of the time
+ Most of the time
+ Some of the time
+ Hardly ever
+ Never 
+9. After healing from LASIK surgery, I expect that I will have clear vision: 
+(please select all that apply)
+ With the aid of glasses to see in the distance  
+
+With the aid of glasses for reading 
+
+With the aid of contact lenses to see in the distance  
+
+ With the aid of contact lenses for reading 
+
+Without glasses or contact lenses  
+
+ 10. After healing from LASIK surgery, I expect my vision to be perfect.
+ Definitely true   
+ Mostly true  
+ Don't know  
+ Mostly false
+ Definitely false 
+11. I could accept less than perfect vision if I did not need glasses or contact lenses any more after healing from LASIK surgery.
+ Definitely true   
+ Mostly true  
+ Don't know 
+6/9/2015 3:44 PM2 of 24 
+----------------Page (1) Break----------------
+     
+     
+             
+                  
+                 
+                  
+                 
+                                  
+   
+     
+                                  
+   
+        
+ 
+     
+                                        
+            
+  
+               
+                                 
+                       
+   
+                                        
+            
+  
+               
+            
+                                                   
+      
+  
+                                        
+            
+  
+               
+                     
+                    
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+ Mostly false
+
+ Definitely false
+ 
+12. Have you ever driven a car?
+
+ Yes 
+
+No 
+
+ 13. Do you currently drive? 
+
+Yes 
+
+No 
+
+14. If you gave up driving, was that mainly because of your vision, mainly for some other reason, or because of both your vision and other
+ 
+reasons? 
+
+ Mainly vision  
+
+ Mainly other reasons
+
+ Both vision and other reasons 
+
+15. Because of your vision, how much difficulty do you have driving during the daytime in familiar places? Would you say you have:
+
+ No difficulty at all
+ 
+A little difficulty
+
+ Moderate difficulty   
+
+ A lot of difficulty
+
+ Never drive during the daytime because of vision  
+
+ Never drive during the daytime for other reasons
+ 
+INSTRUCTIONS: Whe n you answ e r the que stion below, think about your vision with the vision correction you norm ally use, including 
+glasse s, contact le nses, a magnifier, or nothing at all. 
+16. Because of your vision, how much difficulty do you have driving at night? 
+
+ No difficulty at all
+ 
+A little difficulty
+
+ Moderate difficulty   
+
+ A lot of difficulty
+ 
+Never drive at night because of vision
+
+ Never drive at night for other reasons 
+
+17. Because of your vision, how much difficulty do you have driving in difficult conditions, such as bad weather, during rush hour, on the freeway, 
+or in city traffic?
+ No difficulty at all 
+A little difficulty
+ Moderate difficulty   
+ A lot of difficulty
+
+ Never drive in these conditions because of vision  
+
+6/9/2015 3:44 PM 
+ Never drive in these conditions for other reasons   
+3 of 24 
+----------------Page (2) Break----------------
+                        
+ 
+                                        
+            
+  
+               
+           
+                                        
+            
+  
+               
+     
+ 
+                                        
+            
+  
+               
+            
+                            
+                                           
+                 
+                  
+                 
+     
+                             
+                             
+                 
+           
+    
+      
+    
+                                        
+            
+  
+               
+            
+                            
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+18. How much difficulty do you have seeing things off to the side, like cars coming out of driveways or site streets or people coming out of 
+doorways?
+ No difficulty at all 
+A little difficulty
+ Moderate difficulty   
+
+ A lot of difficulty
+ 
+19. Because of your vision, how much difficulty do you have with your daily activities? 
+
+ No difficulty at all
+ 
+A little difficulty
+
+ Moderate difficulty   
+
+ A lot of difficulty
+ 
+20. Because of your vision, how much difficulty do you have taking part in active sports or other outdoor activities that you enjoy (like hiking, 
+swimming, aerobics, team sports, or jogging)? 
+ No difficulty at all 
+A little difficulty
+ Moderate difficulty   
+ A lot of difficulty 
+Never try to do these activities because of vision
+
+ Never do these activities for other reasons
+ 
+21. Because of your vision, do you take part less than you would like in active sports or other outdoor activities (like hiking, swimming, aerobics, 
+team sports, or jogging)?
+ Yes 
+
+No 
+
+ 22. Are there any recreational or sports activities that you don't do because of your vision or the type of vision correction you have?
+ 
+Yes, many
+
+ Yes, a few 
+
+No 
+
+23. You have noted that you have difficulty with your daily activities because of your vision. Please list those activities with which you have difficulty 
+(e.g., watching television, using automated teller machines (ATM), etc.).
+ 24. How much difficulty do you have doing work or hobbies that require you to see well up close, such as cooking, fixing things around the house, 
+sewing, using hand tools, or working with a computer? 
+ No difficulty at all 
+A little difficulty
+ Moderate difficulty   
+ A lot of difficulty 
+Never try to do these activities because of vision
+
+ Never do these activities for other reasons
+ 
+6/9/2015 3:44 PM4 of 24 
+----------------Page (3) Break----------------
+ 
+                                        
+            
+  
+               
+           
+                                        
+                                        
+            
+  
+               
+            
+                            
+                               
+                             
+                      
+                 
+  
+                                        
+            
+  
+               
+          
+ 
+                                        
+            
+  
+               
+               
+      
+                                        
+            
+  
+               
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+ 25. How much difficulty do you have reading ordinary print in newspapers?
+
+ No difficulty at all
+ 
+A little difficulty
+
+ Moderate difficulty   
+
+ A lot of difficulty
+
+ Never try to do this because of vision
+ 
+Never try to do this for other reasons
+
+ 26. How much difficulty do you have reading small print in a telephone book, on a medicine bottle, or on legal forms? 
+
+ No difficulty at all
+ 
+A little difficulty
+
+ Moderate difficulty   
+
+ A lot of difficulty
+ 
+Never try to do these activities because of vision
+
+ Never do these activities for other reasons
+ 
+27. Are there daily activities that you would like to do, but don't do, because of your vision or the type of vision correction you have? 
+
+Yes, many
+ 
+Yes, one or a few 
+
+No 
+
+ 28. How much difficulty do you have judging distances, like walking down stairs or parking a car?
+
+ No difficulty at all
+ 
+A little difficulty
+
+ Moderate difficulty   
+
+ A lot of difficulty
+
+ 29. How much difficulty do you have getting used to the dark when you move from a lighted area into a dark place, like walking into a dark movie 
+theater?
+ No difficulty at all 
+A little difficulty
+ Moderate difficulty   
+
+ A lot of difficulty
+
+ 30. How much difficulty do you have seeing because of changes in the clarity of your vision during the course of the day? 
+
+ Don't have changes in the clarity of my vision
+
+ No difficulty at all
+ 
+A little difficulty
+
+ Moderate difficulty   
+
+ A lot of difficulty 
+6/9/2015 3:44 PM5 of 24 
+----------------Page (4) Break----------------
+                                                      
+                      
+                      
+   
+     
+     
+                      
+             
+                   
+                                       
+               
+     
+   
+                  
+                 
+             
+                   
+     
+                      
+                           
+  
+                  
+                 
+             
+                   
+     
+                      
+                           
+   
+                  
+                 
+             
+                   
+     
+                      
+                           
+ 
+31. How often are you bothered by changes in the clarity of your vision over the course of the day? 
+Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+6/9/2015 3:44 PM 
+Never 
+
+ Rarely
+
+ Occasionally  
+
+ Sometimes
+
+ All the time
+ 
+  35a. How bothersome has it been? 
+
+ Very
+
+ Somewhat
+ 
+A little  
+
+35. Have you experienced blurry vision in the last 7 days? 
+Yes 
+No 
+  34a. How bothersome has it been? 
+
+ Very
+
+ Somewhat
+ 
+A little  
+
+ Not at all
+ 
+34. Have you experienced distorted vision in the last 7 days? 
+Yes 
+No 
+  33a. How bothersome has it been? 
+
+ Very
+
+ Somewhat
+ 
+A little  
+
+ Not at all
+ 
+33. Have you experienced glare in the last 7 days?
+ Yes 
+No 
+32. How often when you are around bright lights at night do you see starbursts or halos that bother you or make it difficult to see.
+ All of the time
+ Most of the time
+ Some of the time
+ A little of the time
+ None of the time 
+ Not at all 
+6 of 24 
+----------------Page (5) Break----------------
+  
+                  
+                 
+             
+                   
+     
+                      
+                           
+     
+          
+          
+            
+            
+  
+                  
+                 
+   
+                         
+              
+                   
+ 
+                    
+                                    
+                    
+    
+                    
+      
+                  
+  
+             
+    
+   
+ 
+                                                        
+   
+ 
+  
+Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+36. Have you experienced trouble seeing in the last 7 days?
+
+ Yes 
+
+No 
+
+  36a. How bothersome has it been? 
+
+ Very
+
+ Somewhat
+ 
+A little  
+
+ Not at all
+
+ 37. In general, how satisfied or dissatisfied are you with your present vision? 
+
+ Completely satisfied
+ 
+Very satisfied  
+
+Somewhat satisfied  
+
+Somewhat dissatisfied
+ 
+Very dissatisfied
+
+ Completely dissatisfied   
+
+ 38. Are you currently employed (working for pay)? 
+
+Yes 
+
+No 
+
+INSTRUCTIONS: The follow ing question asks about the e ffect of any proble m w ith your eyes on your ability to work and perform re gular 
+activities during the past seven days, not including today. 
+39. During the past seven days, how many hours did you miss from work because of any eye problems? 
+Incl ude hours your missed on sick days, ti mes you went in l ate, left earl y, etc., because of your EYE PROBLEM . Do not incl ude time you missed to 
+participate i n this study.
+  HOURS 
+40. During the past seven days, how many hours did you miss from work because of any other reason, such as vacation, holidays, time off to 
+participate in this study? 
+  HOURS 
+41. During the past seven days, how many hours did you actually work?
+  HOURS 
+42. During the past seven days, how much did eye problems affect your productivity while you were working? 
+Think about days you were limi ted i n the amount or kind of work you coul d do, days you accompli shed less than you would like, or days you could
+ 
+not do your work as carefully as usual.
+ 
+If eye probl ems affected your work onl y a li ttle, choose a l ow number. Choose a hi gh number if eye problems affected your work a great deal.
+ 
+Consider only how much eye problems affected productivity while you were working. 
+Eye problem(s) 0 1 2 3 4 5 6 7 8 9 10 Eye problem(s) 
+had no effect completely 
+on my workprevented me from working 
+SELECT A NUMBER 
+6/9/2015 3:44 PM7 of 24 
+----------------Page (6) Break----------------
+                                                     
+                                           
+  
+                            
+                    
+                     
+   
+  
+                                                        
+   
+                            
+      
+                
+                  
+                   
+                             
+                               
+                                             
+                             
+   
+                       
+   
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+43. During the past seven days, how much did eye problems affect your ability to do your regular daily activities, other than work at a job? 
+By regular acti vi ti es, we mean the usual activi ties you do, such as work around the house, shopping, chi ldcare, exerci si ng, studyi ng, etc. Thi nk 
+about times you were l imited in the amount 
+or ki nd of activities you coul d do and ti mes you accomplished less than you would l ike. If eye problems 
+affected your activi ties onl y a li ttle, choose a l ow number. Choose a high number if eye probl ems affected your activities a great deal . 
+Consider only how much eye problems affected your ability to do your regular daily activities, other than work at a job. 
+Eye problem(s) Eye problem(s) 
+had no effect 0 1 2 3 4 5 6 7 8 9 10 completely 
+on my daily prevented me from doing my regular 
+activities activities 
+SELECT A NUMBER 
+44. In a typical day: 
+(ple ase sele ct all that apply ) 
+I do not use glasses or contact lenses   
+I use glasses to correct my vision for distance  
+I use glasses to correct my vision for reading 
+I use soft contact lenses to correct my vision for distance  
+I use soft contact lenses to correct my vision for reading 
+I use hard (rigid gas permeable) contact lenses to correct my vision for distance 
+I use hard (rigid gas permeable) contact lenses to correct my vision for reading   
+The ne x t se t of que stions will re fe re nce the following im age s and their labels. 
+6/9/2015 3:44 PM8 of 24 
+----------------Page (7) Break----------------
+                          
+            
+           
+   
+   
+            
+                                                          
+                                                
+                                         
+              
+                
+       
+                      
+                      
+     
+                     
+     
+                        
+                      
+                      
+     
+                     
+     
+   
+                 
+       
+     
+                    
+      
+                      
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+INSTRUCTIONS: The nex t fe w que stions are about double images, which som e people call "ghost" or "shadow" im age s. By double im ages, 
+we m ean seeing a distorted or blurry visual image, such as the im ages show n be low . The se im ages m ay not re present exactly what you 
+see and your sy m ptoms may be more or le ss severe than what is show n. 
+45. In the last 7 days, have you seen any double im ages? 
+
+ Yes, but ONLY when NOT wearing glasses or contact lenses  
+
+ Yes, but ONLY when wearing glasses or contact lenses
+
+ Yes, when wearing AND when not wearing glasses or contact lenses  
+
+ No, not at all  
+
+46a. In the last 7 days, how often have you seen double im ages when you are wearing your best vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ Never 
+ Rarely
+ Sometimes
+ Often
+ Always 
+46b. In the last 7 days, how often have you seen double im ages when you are NOT wearing any vision correction (glasses or contact lenses)? 
+Never 
+ Rarely
+ Sometimes
+ Often
+ Always
+ I always use glasses or contact lenses  
+47a. In the last 7 days, how bothersome have the double image s been when you are wearing your best vision correction (glasses or contact 
+lenses)? 
+ I do not use glasses or contact lenses
+ Extremely bothersome
+ Very bothersome
+ Somewhat bothersome
+ A little bothersome 
+6/9/2015 3:44 PM9 of 24 
+----------------Page (8) Break----------------
+                       
+                 
+     
+                    
+      
+                      
+                       
+   
+              
+       
+                                        
+            
+  
+               
+       
+              
+  
+                                        
+            
+  
+               
+       
+   
+  
+       
+            
+           
+                        
+   
+   
+     
+   
+                               
+                 
+  
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+ Not at all bothersome 
+47b. In the last 7 days, how bothersome have the double image s been when you are NOT wearing any vision correction (glasses or contact 
+lenses)? 
+ Extremely bothersome
+ Very bothersome
+ Somewhat bothersome
+ A little bothersome
+ Not at all bothersome
+ I always use glasses or contact lenses  
+48a. In the last 7 days, how much difficulty have you had doing your usual activities because you see double image s when you are wearing your 
+best vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ No difficulty at all 
+Very little difficulty
+ Moderate difficulty   
+ A lot of difficulty
+ So much difficulty that I can no longer do some of my usual activities 
+48b. In the last 7 days, how much difficulty have you had doing your usual activities because you see double image s when you are NOT wearing 
+any vision correction (glasses or contact lenses)? 
+ No difficulty at all 
+Very little difficulty
+ Moderate difficulty   
+ A lot of difficulty
+ So much difficulty that I can no longer do some of my usual activities
+ I always use glasses or contact lenses  
+ 49. When you use your best vision correction (glasses or contact lenses) do the double image s you see:
+
+ I do not use glasses or contact lenses
+ 
+Go away completely
+ 
+Go away mostly 
+
+ Go away a little   
+
+ Not change  
+
+ Get a little worse   
+
+ Get a lot worse 
+INSTRUCTIONS: The ne x t fe w que stions are about glare. By glare, we mean difficulty seeing well when there are bright lights like headlights 
+or sunlight, such as shown in the im ages be low. The se im ages may not repre sent e x actly what y ou se e and your symptoms may be more 
+or le ss severe than what is show n. 
+6/9/2015 3:44 PM10 of 24 
+----------------Page (9) Break----------------
+            
+                                                          
+                                                
+                                         
+              
+                
+       
+                      
+                      
+     
+                     
+     
+               
+                      
+                      
+     
+                     
+     
+   
+                
+       
+     
+                    
+      
+                      
+                       
+               
+     
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+6/9/2015 3:44 PM 
+50. In the last 7 days, have you noticed any glare? 
+ Yes, but ONLY when NOT wearing glasses or contact lenses  
+ Yes, but ONLY when wearing glasses or contact lenses
+ Yes, when wearing AND when not wearing glasses or contact lenses  
+ No, not at all  
+51a. In the last 7 days, how often have you noticed glare when you are wearing your best vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ Never 
+ Rarely
+ Sometimes
+ Often
+ Always 
+51b. In the last 7 days, how often have you noticed glare when you are NOT wearing any vision correction (glasses or contact lenses)? 
+Never 
+ Rarely
+ Sometimes
+ Often
+ Always
+ I always use glasses or contact lenses  
+52a. In the last 7 days, how bothersome has the glare been when you are wearing your best vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ Extremely bothersome
+ Very bothersome
+ Somewhat bothersome
+ A little bothersome
+ Not at all bothersome 
+52b. In the last 7 days, how bothersome has the glare been when you are NOT wearing any vision correction (glasses or contact lenses)? 
+ Extremely bothersome 
+11 of 24 
+----------------Page (10) Break----------------
+                    
+      
+                      
+                       
+   
+                
+       
+                                        
+            
+  
+               
+       
+              
+                                        
+            
+  
+               
+       
+   
+  
+       
+            
+           
+                        
+   
+   
+     
+   
+                               
+           
+ 
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+ Very bothersome
+ Somewhat bothersome
+ A little bothersome
+ Not at all bothersome
+ I always use glasses or contact lenses  
+53a. In the last 7 days, how much difficulty have you had doing your usual activities because you noticed glare when you are wearing your best 
+vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ No difficulty at all 
+Very little difficulty
+ Moderate difficulty   
+ A lot of difficulty
+ So much difficulty that I can no longer do some of my usual activities 
+53b. In the last 7 days, how much difficulty have you had doing your usual activities because you notice glare when you are NOT wearing any 
+vision correction (glasses or contact lenses)? 
+ No difficulty at all 
+Very little difficulty
+ Moderate difficulty   
+ A lot of difficulty
+ So much difficulty that I can no longer do some of my usual activities
+ I always use glasses or contact lenses  
+ 54. When you use your best vision correction (glasses or contact lenses) does the glare you notice:
+
+ I do not use glasses or contact lenses
+ 
+Go away completely
+ 
+Go away mostly 
+
+ Go away a little   
+
+ Not change  
+
+ Get a little worse   
+
+ Get a lot worse
+ 
+INSTRUCTIONS: The ne x t fe w que stions are about halos. By halos, w e m ean seeing a fuzzy cloud of light around lighted objects, such as 
+the one s shown in the image s be low. The se im ages may not repre sent exactly w hat y ou se e and y our sym ptom s may be m ore or le ss 
+severe than what is shown. 
+6/9/2015 3:44 PM12 of 24 
+----------------Page (11) Break----------------
+   
+            
+                                                          
+                                                
+                                         
+              
+               
+       
+                      
+                      
+     
+                     
+     
+                          
+                      
+                      
+     
+                     
+     
+   
+                
+       
+     
+                    
+      
+                      
+                       
+                 
+     
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+55. In the last 7 days, have you seen any halos? 
+ Yes, but ONLY when NOT wearing glasses or contact lenses  
+ Yes, but ONLY when wearing glasses or contact lenses
+ Yes, when wearing AND when not wearing glasses or contact lenses  
+ No, not at all  
+56a. In the last 7 days, how often have you seen halos when you are wearing your best vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ Never 
+ Rarely
+ Sometimes
+ Often
+ Always 
+56b. In the last 7 days, how often have you seen halos when you are NOT wearing any vision correction (glasses or contact lenses)? 
+Never 
+ Rarely
+ Sometimes
+ Often
+ Always
+ I always use glasses or contact lenses  
+57a. In the last 7 days, how bothersome have the halos been when you are wearing your best vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ Extremely bothersome
+ Very bothersome
+ Somewhat bothersome
+ A little bothersome
+ Not at all bothersome 
+57b. In the last 7 days, how bothersome have the halos been when you are NOT wearing any vision correction (glasses or contact lenses)? 
+ Extremely bothersome 
+6/9/2015 3:44 PM13 of 24 
+----------------Page (12) Break----------------
+                    
+      
+                      
+                       
+   
+               
+ 
+       
+                                        
+            
+  
+               
+       
+               
+ 
+                                        
+            
+  
+               
+       
+   
+  
+       
+            
+           
+                        
+   
+   
+     
+   
+                  
+                                                         
+           
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+ Very bothersome
+ Somewhat bothersome
+ A little bothersome
+ Not at all bothersome
+ I always use glasses or contact lenses  
+58a. In the last 7 days, how much difficulty have you had doing your usual activities because you see halos when you are wearing your best vision 
+correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ No difficulty at all 
+Very little difficulty
+ Moderate difficulty   
+ A lot of difficulty
+ So much difficulty that I can no longer do some of my usual activities 
+58b. In the last 7 days, how much difficulty have you had doing your usual activities because you see halos when you are NOT wearing any vision 
+correction (glasses or contact lenses)? 
+ No difficulty at all 
+Very little difficulty
+ Moderate difficulty   
+ A lot of difficulty
+ So much difficulty that I can no longer do some of my usual activities
+ I always use glasses or contact lenses  
+ 59. When you use your best vision correction (glasses or contact lenses) do the halos you see:
+
+ I do not use glasses or contact lenses
+ 
+Go away completely
+ 
+Go away mostly 
+
+ Go away a little   
+
+ Not change  
+
+ Get a little worse   
+
+ Get a lot worse
+ 
+INSTRUCTIONS: The ne x t fe w que stions are about starbursts. By starbursts, w e me an seeing rays of light coming out from lighted objects, 
+such as in the car he adlights in the im ages be low. The se im ages may not re present exactly what you see and your sy m ptoms may be 
+more or le ss severe than w hat is show n. 
+6/9/2015 3:44 PM14 of 24 
+----------------Page (13) Break----------------
+   
+            
+                                                          
+                                                
+                                         
+              
+                 
+       
+                      
+                      
+     
+                     
+     
+                
+                      
+                      
+     
+                     
+     
+   
+                
+       
+     
+                    
+      
+                      
+                       
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+60. In the last 7 days, have you seen any starbursts? 
+ Yes, but ONLY when NOT wearing glasses or contact lenses  
+ Yes, but ONLY when wearing glasses or contact lenses
+ Yes, when wearing AND when not wearing glasses or contact lenses  
+ No, not at all  
+61a. In the last 7 days, how often have you seen starbursts when you are wearing your best vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ Never 
+ Rarely
+ Sometimes
+ Often
+ Always 
+61b. In the last 7 days, how often have you seen starbursts when you are NOT wearing any vision correction (glasses or contact lenses)? 
+Never 
+ Rarely
+ Sometimes
+ Often
+ Always
+ I always use glasses or contact lenses  
+62a. In the last 7 days, how bothersome have the starbursts been when you are wearing your best vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ Extremely bothersome
+ Very bothersome
+ Somewhat bothersome
+ A little bothersome
+ Not at all bothersome 
+6/9/2015 3:44 PM15 of 24 
+----------------Page (14) Break----------------
+                 
+     
+                    
+      
+                      
+                       
+   
+              
+       
+                                        
+            
+  
+               
+       
+              
+                                        
+            
+  
+               
+       
+   
+  
+       
+            
+           
+                        
+   
+   
+     
+   
+     
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+62b. In the last 7 days, how bothersome have the starbursts been when you are NOT wearing any vision correction (glasses or contact lenses)? 
+ Extremely bothersome
+ Very bothersome
+ Somewhat bothersome
+ A little bothersome
+ Not at all bothersome
+ I always use glasses or contact lenses  
+63a. In the last 7 days, how much difficulty have you had doing your usual activities because you see starbursts when you are wearing your best 
+vision correction (glasses or contact lenses)? 
+ I do not use glasses or contact lenses
+ No difficulty at all 
+Very little difficulty
+ Moderate difficulty   
+ A lot of difficulty
+ So much difficulty that I can no longer do some of my usual activities 
+63b. In the last 7 days, how much difficulty have you had doing your usual activities because you see starbursts when you are NOT wearing any 
+vision correction (glasses or contact lenses)? 
+ No difficulty at all 
+Very little difficulty
+ Moderate difficulty   
+ A lot of difficulty
+ So much difficulty that I can no longer do some of my usual activities
+ I always use glasses or contact lenses  
+ 64. When you use your best vision correction (glasses or contact lenses) do the starbursts you see:
+
+ I do not use glasses or contact lenses
+ 
+Go away completely
+ 
+Go away mostly 
+
+ Go away a little   
+
+ Not change  
+
+ Get a little worse   
+
+ Get a lot worse
+ 
+INSTRUCTIONS: During the last 7 days, how ofte n hav e y ou experience d: 
+6/9/2015 3:44 PM16 of 24 
+----------------Page (15) Break----------------
+  
+     
+                                       
+             
+                   
+             
+ 
+     
+                                       
+             
+                   
+             
+  
+     
+                                       
+             
+                   
+             
+     
+                                       
+             
+                   
+             
+     
+                                       
+             
+                   
+             
+   
+      
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+6/9/2015 3:44 PM 
+65. Eyes that are sensitive to light? 
+
+ None of the time
+
+ Some of the time
+
+ Half of the time
+
+ Most of the time
+
+ All of the time
+ 
+66. Eyes that feel gritty? 
+
+ None of the time
+
+ Some of the time
+
+ Half of the time
+
+ Most of the time
+
+ All of the time
+ 
+67. Painful or sore eyes?
+
+ None of the time
+
+ Some of the time
+
+ Half of the time
+
+ Most of the time
+
+ All of the time
+
+ 68. Blurred vision? 
+
+ None of the time
+
+ Some of the time
+
+ Half of the time
+
+ Most of the time
+
+ All of the time
+
+ 69. Poor vision? 
+
+ None of the time
+
+ Some of the time
+
+ Half of the time
+
+ Most of the time
+
+ All of the time
+ 
+INSTRUCTIONS: During the last 7 day s, how often hav e your eyes fe lt uncom fortable in: 
+17 of 24 
+----------------Page (16) Break----------------
+ 
+     
+                                       
+             
+                   
+             
+  
+     
+                                       
+             
+                   
+             
+ 
+     
+                                       
+             
+                   
+             
+   
+         
+                
+                  
+                                    
+                  
+                
+                  
+                 
+           
+                              
+                 
+               
+                           
+    
+                  
+                 
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+6/9/2015 3:44 PM 
+ 70. Windy conditions?
+ None of the time
+ Some of the time
+ Half of the time
+ Most of the time
+ All of the time 
+71. Places or areas with low humidity (very dry)? 
+ None of the time
+ Some of the time
+ Half of the time
+ Most of the time
+ All of the time 
+72. Areas that are air conditioned? 
+ None of the time
+ Some of the time
+ Half of the time
+ Most of the time
+ All of the time
+ 73. How do you get information about LASIK surgery? 
+(please se lect all that apply ) 
+Discussions with LASIK surgeon  
+
+Discussions with any other eye care professional (e.g., ophthalmologist or optometrist)  
+
+Discussions with another physician, not an ophthalmologist
+ 
+Eye care professional's office pamphlets
+ 
+Eye care professional's office videos  
+
+Internet websites
+ 
+Newspaper or magazine articles  
+
+ T elevision / Radio
+ 
+Discussion with another patient
+ 
+Discussions with family or friends who have not had LASIK surgery  
+
+Discussions with family or friends who had LASIK surgery   
+
+ Other
+ 
+74. Have you ever been told by a LASIK surgeon or any other eye care professional that you should not have LASIK surgery performed? 
+Yes 
+No 
+18 of 24 
+----------------Page (17) Break----------------
+              
+                           
+              
+              
+  
+    
+                           
+              
+              
+  
+         
+                           
+              
+              
+  
+ 
+                           
+              
+              
+  
+   
+    
+    
+  
+   
+   
+     
+     
+  
+  
+   
+   
+     
+     
+   
+                                    
+ 
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+75. Over the last 2 weeks, how often have you been bothered by having little interest or pleasure in doing things? 
+ Not at all
+
+ Several days  
+
+ More than half the days  
+
+ Nearly every day   
+
+ 80. No Matter whom I'm talking to, I'm always a good listener.
+
+ Definitely true   
+
+ Mostly true  
+
+ Don't know  
+
+ Mostly false
+
+ Definitely false
+ 
+79. I am always courteous even to people who are disagreeable.
+
+ Definitely true   
+
+ Mostly true  
+
+ Don't know  
+
+ Mostly false
+
+ Definitely false
+
+INSTRUCTIONS: Listed be low is a state m ent about y our re lationships w ith othe rs. How m uch is this statement TRUE or FALSE for y ou? 
+78. Over the last 2 weeks, how often have you been bothered by not being able to stop or control worrying? 
+
+ Not at all
+
+ Several days  
+
+ More than half the days  
+
+ Nearly every day   
+
+77. Over the last 2 weeks, how often have you been bothered by feeling nervous, anxious, or on edge? 
+
+ Not at all
+
+ Several days  
+
+ More than half the days  
+
+ Nearly every day   
+
+76. Over the last 2 weeks, how often have you been bothered by feeling down, depressed, or hopeless? 
+
+ Not at all
+
+ Several days  
+
+ More than half the days  
+
+ Nearly every day   
+
+INSTRUCTIONS: Please answer the follow ing que stion about y ourse lf. Try not to le t your re sponse to a previous que stion influence your 
+response to this question. The re are no right or w rong answers. 
+6/9/2015 3:44 PM19 of 24 
+----------------Page (18) Break----------------
+                
+     
+    
+   
+    
+     
+                
+     
+    
+   
+    
+     
+  
+     
+    
+   
+    
+     
+  
+     
+    
+   
+    
+     
+  
+     
+    
+   
+    
+     
+  
+     
+    
+   
+    
+     
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+6/9/2015 3:44 PM 
+ 81. In uncertain times, I usually expect the best.
+ I agree a lot
+ I agree a little 
+ I neither agree nor disagree  
+ I disagree a little 
+ I disagree a lot 
+86. It s important for me to keep busy. 
+ I agree a lot
+ I agree a little 
+ I neither agree nor disagree  
+ I disagree a little 
+ I disagree a lot 
+85. I enjoy my friends a lot.
+ I agree a lot
+ I agree a little 
+ I neither agree nor disagree  
+ I disagree a little 
+ I disagree a lot 
+84. I'm always optimistic about my future. 
+ I agree a lot
+ I agree a little 
+ I neither agree nor disagree  
+ I disagree a little 
+ I disagree a lot 
+83. If something can go wrong for me, it will. 
+ I agree a lot
+ I agree a little 
+ I neither agree nor disagree  
+ I disagree a little 
+ I disagree a lot 
+82. It'
+'
+s easy for me to relax.
+ I agree a lot
+ I agree a little 
+ I neither agree nor disagree  
+ I disagree a little 
+ I disagree a lot 
+20 of 24 
+----------------Page (19) Break----------------
+          
+     
+    
+   
+    
+     
+                  
+     
+    
+   
+    
+     
+          
+     
+    
+   
+    
+     
+      
+     
+    
+   
+    
+     
+   
+    
+                              
+                      
+     
+                     
+     
+ 
+                      
+     
+                     
+     
+ 
+ 87. I hardly ever expect things to go my way.
+Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+6/9/2015 3:44 PM 
+ I agree a lot
+
+ I agree a little 
+
+ I neither agree nor disagree  
+
+ I disagree a little 
+
+ I disagree a lot
+ 
+ 92. I can adapt to new situations. 
+
+Never 
+
+ Sometimes
+
+ Often
+
+91. If I don't master a task right away, I keep trying until I get it right.
+ Never 
+ Sometimes
+ Often
+ Constantly
+INSTRUCTIONS: Ple ase select the answ er you feel be st applie s to you. 
+90. Overall, I expect more good things to happen to me than bad. 
+ I agree a lot
+ I agree a little 
+ I neither agree nor disagree  
+ I disagree a little 
+ I disagree a lot 
+89. I rarely count on good things happening to me.
+
+ I agree a lot
+
+ I agree a little 
+
+ I neither agree nor disagree  
+
+ I disagree a little 
+
+ I disagree a lot
+ 
+88. I don't get upset too easily.
+
+ I agree a lot
+
+ I agree a little 
+
+ I neither agree nor disagree  
+
+ I disagree a little 
+
+ I disagree a lot
+ 
+ Constantly 
+21 of 24 
+----------------Page (20) Break----------------
+                
+                      
+     
+                     
+     
+                   
+                      
+     
+                     
+     
+  
+                      
+     
+                     
+     
+ 
+                      
+     
+                     
+     
+                 
+                      
+     
+                     
+     
+            
+                      
+     
+                     
+     
+    
+                      
+     
+                     
+     
+ 
+93. I am happy and content.
+Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+6/9/2015 3:44 PM 
+Never 
+
+ Sometimes
+
+ Often
+
+ Constantly
+ 
+99. I am sure I can accomplish the tasks before me. 
+Never 
+ Sometimes
+ Often
+98. I sleep well at night.
+ Never 
+ Sometimes
+ Often
+ Constantly 
+97. I like to try new places, activities, and situations.
+ Never 
+ Sometimes
+ Often
+ Constantly 
+96. I feel self-assured and self-confident. 
+Never 
+ Sometimes
+ Often
+ Constantly 
+95. I look forward to trying a new task.
+ Never 
+ Sometimes
+ Often
+ Constantly 
+94. I am willing to take risks.
+ Never 
+ Sometimes
+ Often
+ Constantly 
+ Constantly 
+22 of 24 
+----------------Page (21) Break----------------
+                      
+     
+                     
+     
+   
+ 
+                                                  
+    
+ 
+    
+                        
+                   
+          
+   
+  
+   
+    
+     
+     
+          
+                             
+                    
+                                      
+                                     
+            
+                    
+                  
+                
+  
+ Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+ 100. I can usually master a task even if I can't master it right away. 
+
+Never 
+
+ Sometimes
+
+ Often
+
+ Constantly
+
+ 101. About how many minutes do you think it took you to fill out this questionnaire? 
+If you completed this survey in multiple sessions, estimate the total time you spent on the survey. Your best estimate is fine.
+ Minutes
+ 102. How did you feel about the length of the questionnaire? 
+
+ Much too short 
+
+ A little bit too short   
+
+ About right   
+
+A little bit too long  
+
+ Much too long  
+
+ 103. I had no problem using the computer today. 
+
+ Definitely true   
+
+ Mostly true  
+
+Unsure 
+
+ Mostly false
+
+ Definitely false
+ 
+104. Imagine you had been asked the same questions you were just asked by an interviewer rather than completing them by computer. Compared 
+to answering these questions by an interviewer, how was answering them using the computer today? 
+ A lot easier using the computer
+ A little easier using the computer
+ About the same 
+A little harder using the computer
+
+ A lot harder using the computer
+ 
+105. Is there anything you'd like to add regarding the quality, length, or administration of this questionnaire? Are there any questions you felt were 
+difficult to understand or answer? 
+6/9/2015 3:44 PM23 of 24 
+----------------Page (22) Break----------------
+  
+      
+                                                
+           
+           
+    
+   
+  
+   
+  
+  
+  
+    
+              
+                     
+                 
+            
+          
+                    
+                                                       
+         
+                         
+                   
+          
+                           
+                                
+          
+                           
+           
+ 
+106. What is the highest level of education you have completed? 
+Protocol: Patient-Reported Outcomes with LASIK 2 (PRWL2A) http://test/wfb/downloadReportList.action?location=WFBReports/Output... 
+6/9/2015 3:44 PM 
+8th grade or less
+ Some high school, but did not graduate 
+High school graduate or GED 
+Some college or 2-year degree 
+ 4-year college graduate 
+ More than 4-year college degree  
+109. What is your race? Please select all that apply.
+ White  
+Black or African American   
+American Indian or Alaskan Native
+ Asian Indian 
+ Asian 
+Samoan or Native Hawaiian
+ Other Pacific Islander 
+ Other 
+ 108. Are you Hispanic, Latino, or of Spanish origin? 
+ No, not of Hispanic, Latino, or Spanish origin  
+ Yes, Mexican, Mexican American, Chicano   
+Yes, Puerto Rican 
+Yes, Cuban  
+ Yes, another Hispanic Latino or Spanish origin 
+107. Which category best describes your household income? 
+ Less than $25,000  
+ $25,000 - $49,999   
+ $50,000 - $74,999   
+ $75,000 - $99,999   
+ $100,000 - $149,999 
+ $150,000 or more
+If "Other," specify:  
+24 of 24 
+----------------Page (23) Break----------------

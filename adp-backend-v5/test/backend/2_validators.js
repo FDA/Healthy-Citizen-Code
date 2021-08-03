@@ -49,8 +49,8 @@ describe('V5 Backend Validators', function () {
   };
 
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
+    this.appLib = prepareEnv();
+
     await this.appLib.setup();
     this.dba = require('../../lib/database-abstraction')(this.appLib);
     this.m6ModelName = 'model6s';
@@ -62,7 +62,7 @@ describe('V5 Backend Validators', function () {
 
   after(async function () {
     await this.appLib.shutdown();
-    const db = await getMongoConnection();
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     await db.dropDatabase();
     await db.close();
   });
@@ -83,7 +83,7 @@ describe('V5 Backend Validators', function () {
       data.n = 4;
       return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null);
-        err.message.should.equal('Error: Number1: Value 4 is too small, should be greater than 6');
+        err.message.should.equal('Number1: Value 4 is too small, should be greater than 6');
       });
     });
     it('does not create record with too large numeric input', function () {
@@ -91,7 +91,7 @@ describe('V5 Backend Validators', function () {
       data.n = 26;
       return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null);
-        err.message.should.equal('Error: Number1: Value 26 is too large, should be less than or equal to 25');
+        err.message.should.equal('Number1: Value 26 is too large, should be less than or equal to 25');
       });
     });
     it('does not create record with n equal to 9 (before transformation)', function () {
@@ -100,7 +100,7 @@ describe('V5 Backend Validators', function () {
       data.n = 9;
       return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null, data);
-        err.message.should.equal("Error: Number1: Value should not be equal to '9' (9)");
+        err.message.should.equal("Number1: Value should not be equal to '9' (9)");
       });
     });
     it('does not create record with two equal numbers (n and n2) in the record', function () {
@@ -110,7 +110,7 @@ describe('V5 Backend Validators', function () {
       data.n2 = 10;
       return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null, data);
-        err.message.should.equal('Error: Number2: This number should not be the same as Number1');
+        err.message.should.equal('Number2: This number should not be the same as Number1');
       });
     });
     it('does not create record with too short string', function () {
@@ -119,7 +119,7 @@ describe('V5 Backend Validators', function () {
       data.s = 'a';
       return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null);
-        err.message.should.equal('Error: String: Value is too short, should be at least 3 characters long');
+        err.message.should.equal('String: Value is too short, should be at least 3 characters long');
       });
     });
     it('does not create record with too long string', function () {
@@ -128,7 +128,7 @@ describe('V5 Backend Validators', function () {
       data.s = '0123456789123';
       return this.dba.createItem(this.m6ModelName, userContext, data).catch((err) => {
         assert(err != null);
-        err.message.should.equal('Error: String: Value is too long, should be at most 12 characters long');
+        err.message.should.equal('String: Value is too long, should be at most 12 characters long');
       });
     });
 
@@ -138,7 +138,7 @@ describe('V5 Backend Validators', function () {
       };
       return this.dba.createItem(this.m12ModelName, userContext, data).catch((err) => {
         assert(err != null);
-        err.message.should.equal('Error: A 2: Field is required');
+        err.message.should.equal('A 2: Field is required');
       });
     });
 
@@ -157,7 +157,7 @@ describe('V5 Backend Validators', function () {
       };
       return this.dba.createItem(this.m12ModelName, userContext, data).catch((err) => {
         assert(err != null);
-        err.message.should.equal('Error: A 3: Field is required');
+        err.message.should.equal('A 3: Field is required');
       });
     });
 
@@ -185,7 +185,7 @@ describe('V5 Backend Validators', function () {
       data.email = 'www';
       await this.dba
         .createItem(this.m6ModelName, userContext, data)
-        .should.be.rejectedWith(`Error: Email: Please enter correct email`);
+        .should.be.rejectedWith(`Email: Please enter correct email`);
     });
     it('creates record with correct email', async function () {
       const data = _.cloneDeep(sampleData0);
@@ -199,7 +199,7 @@ describe('V5 Backend Validators', function () {
       data.phone = 'www';
       await this.dba
         .createItem(this.m6ModelName, userContext, data)
-        .should.be.rejectedWith(`Error: Phone: Please provide correct US phone number`);
+        .should.be.rejectedWith(`Phone: Please provide correct US phone number`);
     });
     it('creates record with correct phone', async function () {
       const data = _.cloneDeep(sampleData0);
@@ -213,7 +213,7 @@ describe('V5 Backend Validators', function () {
 
       await this.dba
         .createItem(this.m6ModelName, userContext, data)
-        .should.be.rejectedWith(`Error: Url: Please enter correct URL`);
+        .should.be.rejectedWith(`Url: Please enter correct URL`);
     });
     it('creates record with correct url', async function () {
       const data = _.cloneDeep(sampleData0);
@@ -226,14 +226,14 @@ describe('V5 Backend Validators', function () {
       data.as[0].ss = '123';
       await this.dba
         .createItem(this.m6ModelName, userContext, data)
-        .should.be.rejectedWith(`Error: Array String: This value doesn't seem right`);
+        .should.be.rejectedWith(`Array String: This value doesn't seem right`);
     });
     it('does not create record with incorrect string inside associative array', async function () {
       const data = _.cloneDeep(sampleData0);
       data.assocArray.key1.ss = '123';
       await this.dba
         .createItem(this.m6ModelName, userContext, data)
-        .should.be.rejectedWith(`Error: Associative Array String: This value doesn't seem right`);
+        .should.be.rejectedWith(`Associative Array String: This value doesn't seem right`);
     });
   });
 });

@@ -21,13 +21,13 @@ const {
   checkGraphQlSuccessfulResponse,
   checkGraphQlErrorResponse,
   checkGraphQlNoDataResponse,
-} = require('../graphql-util.js');
+} = require('../graphql-util');
 
 describe('V5 Backend Scheme Permissions', function () {
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
+    this.appLib = prepareEnv();
+
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     this.db = db;
   });
 
@@ -85,7 +85,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
         async function f() {
           const { makeRequest, checkData, checkResponse, getData } = settings;
-          const req = makeRequest(apiRequest(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }
@@ -444,7 +444,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
       async function f() {
         const { makeRequest, checkResponse } = settings;
-        const req = makeRequest(apiRequest(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -561,7 +561,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
       async function f() {
         const { makeRequest, checkResponse } = settings;
-        const req = makeRequest(apiRequest(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -673,7 +673,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
       async function f() {
         const { makeRequest, checkResponse } = settings;
-        const req = makeRequest(apiRequest(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -688,7 +688,7 @@ describe('V5 Backend Scheme Permissions', function () {
 
       async function f() {
         const { makeRequest, checkResponse, modelName, docId } = settings;
-        const req = makeRequest(apiRequest(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }

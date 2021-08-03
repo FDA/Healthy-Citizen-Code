@@ -33,9 +33,10 @@
               },
               "link": '/users'
             },
+            /* hidden because the new editor is so much awesomer!
             "roles": {
               type: 'MenuItem',
-              fullName: 'Roles and Permissions',
+              fullName: 'Roles and Permissions (Legacy)',
               "scopes": {
                 "view": {
                   "permissions": "accessRolesAndPermissions"
@@ -43,6 +44,7 @@
               },
               "link": "/roles"
             },
+            */
             "rolesPermissionsEditor": {
               "type": "MenuItem",
               "fullName": "Roles Permissions Editor",
@@ -52,6 +54,48 @@
                 }
               },
               "link": "/roles-permissions-editor"
+            },
+            "credentials": {
+              "type": "MenuItem",
+              "fullName": "Credentials",
+              "scopes": {
+                "view": {
+                  "permissions": "manageCredentials"
+                }
+              },
+              "link": "/_credentials"
+            },
+            "tags": {
+              "type": "MenuItem",
+              "fullName": "Tags",
+              "scopes": {
+                "view": {
+                  "permissions": [["accessOwnTags", "accessAllTags"]]
+                }
+              },
+              "link": "/tags"
+            },
+            "exports": {
+              "type": "MenuItem",
+              "fullName": "Exports",
+              "scopes": {
+                "view": {
+                  "permissions": [["viewOwnDataExports", "viewAllDataExports"]]
+                }
+              },
+              "link": "/_exports"
+            },
+            "updateTrinoSchema": {
+              "type": "MenuItem",
+              "fullName": "Update Trino Schema",
+              "scopes": {
+                "view": {
+                  "permissions": "manageTrinoSchema"
+                }
+              },
+              "action": {
+                "link": "updateTrinoSchema"
+              }
             }
           }
         }

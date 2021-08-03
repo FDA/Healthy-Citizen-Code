@@ -1,15 +1,115 @@
 const ms = require('ms');
 const _ = require('lodash');
-const parseRequest = require('parse-request');
 
-const startAt = Symbol.for('request-received.startAt');
-const onFinished = require('on-finished');
-const { stringifyLog } = require('./util');
-const { getOptionsToLog } = require('./mongo');
+const { ObjectId } = require('mongodb');
+const Url = require('url-parse');
+const rfdc = require('rfdc');
+const isArrayBuffer = require('is-array-buffer');
+const isBuffer = require('is-buffer');
+const isStream = require('is-stream');
+const stringifySafe = require('json-stringify-safe');
 
+const { is: getAllowedContentType } = require('type-is');
+const { parse } = require('graphql');
 const { asyncLocalStorage } = require('../async-local-storage');
 
-const defaultRequestLogOptions = { isLogOptionsRequests: true, ignoredContentTypes: [], maxResponseBodySize: 10000 };
+const { stringifyLog } = require('./util');
+const { startAtSymbol, startAtDateSymbol } = require('./middlewares/response-time');
+const { getDuration } = require('./measure');
+const { getOptionsToLog } = require('./mongo');
+
+const auditLoggerTypes = ['http', 'db', 'auth', 'security', 'system'];
+const clone = rfdc({ proto: false, circles: false });
+
+function getAuditLoggers(log4js, config) {
+  const loggers = {};
+  const logAuditRecordFuncs = getLogAuditRecordFuncs(config);
+
+  _.each(logAuditRecordFuncs, (getRecordFunc, auditType) => {
+    const log4jsLogger = log4js.getLogger(auditType);
+    const isLoggerEnabled = log4jsLogger.isLevelEnabled('info');
+    if (isLoggerEnabled) {
+      loggers[auditType] = (...args) => {
+        const record = getRecordFunc(...args);
+        if (record) {
+          log4jsLogger.info(record);
+        }
+      };
+    } else {
+      loggers[auditType] = _.noop;
+    }
+  });
+  return loggers;
+}
+
+function isLogHttpAudit({ req, res, AUDIT_LOG_OPTIONS_REQUESTS, AUDIT_LOG_HTTP_CONTENT_TYPES }) {
+  const method = req.method.toLowerCase();
+  if (!AUDIT_LOG_OPTIONS_REQUESTS && method === 'options') {
+    return false;
+  }
+
+  const contentTypeHeader = res.getHeader('content-type');
+  if (contentTypeHeader && !_.isEmpty(AUDIT_LOG_HTTP_CONTENT_TYPES)) {
+    const allowedContentType = getAllowedContentType(contentTypeHeader, AUDIT_LOG_HTTP_CONTENT_TYPES);
+    if (!allowedContentType) {
+      return false;
+    }
+  }
+  return true;
+}
+
+function getLogAuditRecordFuncs(config) {
+  return {
+    auth: ({ message, req, user }) => ({
+      type: 'auth',
+      message,
+      clientIp: req.ip,
+      requestId: req.id,
+      sessionId: req.sessionID,
+      timestamp: new Date(),
+      duration: getReqDuration(req),
+      user: getUserLookup(user),
+    }),
+    security: ({ message, req, user }) => ({
+      type: 'security',
+      message,
+      clientIp: req.ip,
+      requestId: req.id,
+      sessionId: req.sessionID,
+      timestamp: new Date(),
+      duration: getReqDuration(req),
+      user: getUserLookup(user),
+    }),
+    http: ({ req, res }) => {
+      const { AUDIT_LOG_OPTIONS_REQUESTS, AUDIT_LOG_HTTP_CONTENT_TYPES } = config;
+      if (!isLogHttpAudit({ req, res, AUDIT_LOG_OPTIONS_REQUESTS, AUDIT_LOG_HTTP_CONTENT_TYPES })) {
+        return;
+      }
+
+      const message = getAppMessage(req, res);
+      const parsedRequest = getParsedRequest({ req, res, config });
+      return {
+        type: 'http',
+        message,
+        clientIp: req.ip,
+        requestId: req.id,
+        sessionId: req.sessionID,
+        user: getUserLookup(req.user),
+        data: parsedRequest,
+        query: parsedRequest.request.query,
+        method: parsedRequest.request.method,
+        duration: parsedRequest.duration,
+        timestamp: new Date(parsedRequest.timestamp),
+      };
+    },
+    db: getDbLogRecord,
+    system: ({ message }) => ({
+      type: 'system',
+      message,
+      timestamp: new Date(),
+    }),
+  };
+}
 
 function getAppMessage(req, res) {
   const { method, url } = req;
@@ -17,8 +117,8 @@ function getAppMessage(req, res) {
   const responseTimeHeader = res.getHeader('x-response-time');
   const responseTime = responseTimeHeader ? `${ms(responseTimeHeader)}ms` : null;
   const contentLengthHeader = res.getHeader('content-length');
-  const contentLength = contentLengthHeader ? `${contentLengthHeader}bytes` : null;
 
+  const contentLength = contentLengthHeader ? `${contentLengthHeader}bytes` : null;
   return [method, url, statusCode, contentLength, responseTime].filter((i) => i).join(' ');
 }
 
@@ -26,7 +126,6 @@ function getUserLookup(user) {
   if (!user) {
     return null;
   }
-
   const { _id, login, email } = user;
   return {
     _id: _id ? _id.toString() : undefined,
@@ -38,85 +137,155 @@ function getUserLookup(user) {
   };
 }
 
-function getParsedRequest(req, res, maxResponseBodySize) {
-  const parsedRequest = parseRequest({
-    req,
-    responseHeaders: res.getHeaders(),
-    userFields: ['ip_address'],
-  });
-  parsedRequest.requestId = req.id;
-  if (_.isString(res.body)) {
-    parsedRequest.response.body = res.body.substring(0, maxResponseBodySize);
+function maskSpecialTypes(obj, options = {}) {
+  const { maskBuffers = true, maskStreams = true } = options;
+  if (typeof obj !== 'object') {
+    return obj;
+  }
+  if (Array.isArray(obj)) {
+    const arr = [];
+    for (let i = 0; i < obj.length; i++) {
+      const element = obj[i];
+      arr[i] = maskSpecialTypes(element, options);
+    }
+    return arr;
+  }
+  if (ObjectId.isValid(obj)) {
+    return obj.toString();
+  }
+  if (maskStreams && isStream(obj)) {
+    return { type: 'Stream' };
   }
 
-  return parsedRequest;
+  if (maskBuffers) {
+    if (isBuffer(obj)) {
+      return { type: 'Buffer', byteLength: obj.byteLength };
+    }
+    if (isArrayBuffer(obj)) {
+      return { type: 'ArrayBuffer', byteLength: obj.byteLength };
+    }
+  }
+
+  const masked = {};
+  for (const key in obj) {
+    if (typeof obj[key] === 'object') {
+      if (Array.isArray(obj[key])) {
+        masked[key] = maskSpecialTypes(obj[key], options);
+      } else if (maskStreams && isStream(obj[key])) {
+        masked[key] = { type: 'Stream' };
+      } else if (maskBuffers && isBuffer(obj[key])) {
+        masked[key] = { type: 'Buffer', byteLength: obj[key].byteLength };
+      } else if (maskBuffers && isArrayBuffer(obj[key])) {
+        masked[key] = { type: 'ArrayBuffer', byteLength: obj[key].byteLength };
+      } else {
+        masked[key] = maskSpecialTypes(obj[key], options);
+      }
+    } else {
+      masked[key] = obj[key];
+    }
+  }
+
+  return masked;
 }
 
-function requestLogMiddleware({ appLogger, persistLogger, opts = {} }) {
-  const options = _.merge({}, defaultRequestLogOptions, opts);
+function getParsedRequest({ req, res, config, options = {} }) {
+  const start = process.hrtime.bigint();
+  const id = new ObjectId();
 
-  return (req, res, next) => {
-    onFinished(res, function (err) {
-      if (err) {
-        return appLogger.error(err);
-      }
+  const { method } = req;
+  const originalUrl = req.originalUrl || req.url;
+  let query;
+  let absoluteUrl;
+  if (originalUrl) {
+    const { origin, pathname, query: q } = new Url(originalUrl, {}); // parse query, path, and origin to prepare absolute Url
+    query = Url.qs.parse(q);
+    const path = origin === 'null' ? pathname : ''.concat(origin).concat(pathname);
+    const qs = Url.qs.stringify(query, true);
+    absoluteUrl = path + qs;
+  }
 
-      let level = 'info';
-      if (res.statusCode >= 500) {
-        level = 'error';
-      } else if (res.statusCode >= 400) {
-        level = 'warn';
-      }
+  const user = { ip_address: req.ip };
 
-      const message = getAppMessage(req, res);
-      const parsedRequest = getParsedRequest(req, res, options.maxResponseBodySize);
+  let body = clone(req.body);
+  const { maskBuffers = true, maskStreams = true } = options;
+  const maskSpecialTypesOptions = { maskBuffers, maskStreams };
+  if (!['GET', 'HEAD'].includes(method) && !_.isUndefined(body)) {
+    if (maskBuffers || maskStreams) {
+      body = maskSpecialTypes(body, maskSpecialTypesOptions);
+    }
+  }
 
-      appLogger[level](message, parsedRequest);
+  const cookies = clone(req.cookies);
+  delete cookies.refresh_token;
 
-      const method = req.method.toLowerCase();
-      if (!options.isLogOptionsRequests && method === 'options') {
-        return;
-      }
+  const headers = clone(res.getHeaders());
+  if (headers.authorization) {
+    const [authScheme, token = ''] = headers.authorization.split(' ');
+    if (authScheme === 'jwt') {
+      headers.authorization = `${authScheme} ${'*'.repeat(token.length)}`;
+    }
+  }
 
-      const contentType = (res.getHeader('content-type') || '').toLowerCase().split(';')[0];
-      if (options.ignoredContentTypes.includes(contentType)) {
-        return;
-      }
-
-      const record = {
-        type: 'http',
-        message,
-        clientIp: req.ip,
-        requestId: req.id,
-        sessionId: req.sessionID,
-        user: getUserLookup(req.user),
-        data: parsedRequest,
-        query: parsedRequest.request.query,
-        method: parsedRequest.request.method,
-        duration: parsedRequest.response.duration,
-        timestamp: parsedRequest.timestamp,
-      };
-      persistLogger[level](record);
-    });
-
-    return next();
+  const result = {
+    id: id.toString(),
+    timestamp: id.getTimestamp().toISOString(),
+    duration: getReqDuration(req),
+    requestId: req.id,
+    request: {
+      id: req.id,
+      method,
+      headers,
+      cookies,
+      url: absoluteUrl,
+      user,
+      query,
+      body,
+      timestamp: req[startAtDateSymbol] instanceof Date ? req[startAtDateSymbol].toISOString() : null,
+    },
+    response: { headers },
   };
-}
 
-function dbLog({ args, result, duration, timestamp, appLogger, persistLogger, isPersistLoggerEnabled = true }) {
-  const level = 'info';
-
-  const dbLogRecord = getDbLogRecord({ args, result, duration, timestamp });
-  appLogger[level](dbLogRecord.message);
-  if (isPersistLoggerEnabled) {
-    persistLogger[level](dbLogRecord);
+  if (typeof req.file === 'object') {
+    result.request.file = stringifySafe(clone(maskSpecialTypes(req.file, maskSpecialTypesOptions)));
   }
+  if (typeof req.files === 'object') {
+    result.request.files = stringifySafe(clone(maskSpecialTypes(req.files, maskSpecialTypesOptions)));
+  }
+
+  if (_.isString(res.body)) {
+    // fulfilled res.body comes from middleware
+    result.response.body = res.body;
+  }
+
+  const { API_PREFIX } = config;
+  const graphqlQuery = _.get(body, 'query');
+  if (req.url === `${API_PREFIX}/graphql` && graphqlQuery) {
+    try {
+      const parsedQuery = parse(graphqlQuery);
+      const resolverName = _.get(parsedQuery, 'definitions.0.selectionSet.selections.0.name.value');
+      if (resolverName === '_credentialsUpdateOne' || resolverName === '_credentialsCreate') {
+        const record = _.get(body, 'variables.record', {});
+        if (record.type === 'basic') {
+          record.login = '******';
+          record.password = '******';
+        }
+      } else if (resolverName === '_usersUpdateOne' || resolverName === '_usersCreate') {
+        const record = _.get(body, 'variables.record', {});
+        record.password = '******';
+      }
+    } catch (e) {
+      // parse error, continue
+    }
+  }
+  result.parseDuration = getDuration(start);
+  return result;
 }
 
 function getDbLogRecord({ args, result, duration, timestamp }) {
   const [collection, method] = args;
   const alsStore = asyncLocalStorage.getStore() || {};
   const { clientIp, requestId, sessionId } = alsStore;
+
   const baseRecord = {
     type: 'db',
     duration,
@@ -131,7 +300,6 @@ function getDbLogRecord({ args, result, duration, timestamp }) {
     user: getUserLookup(alsStore.user),
     ...getAffectedRecordsInfo(),
   };
-
   if (args.length === 2) {
     return {
       ...baseRecord,
@@ -179,7 +347,6 @@ function getDbLogRecord({ args, result, duration, timestamp }) {
     options: null,
     records: [],
   };
-
   function getMsgWithDuration(msg) {
     return duration ? `${msg}, ${duration}ms` : msg;
   }
@@ -213,15 +380,49 @@ function getDbLogRecord({ args, result, duration, timestamp }) {
 }
 
 function getReqDuration(req) {
-  const startHrTime = req[startAt];
+  const startHrTime = req[startAtSymbol];
   const diffHrtime = process.hrtime(startHrTime);
   const milliseconds = diffHrtime[0] * 1e3 + diffHrtime[1] / 1e6;
   return _.round(milliseconds, 1);
 }
 
+function getHttpAuditMiddleware(config) {
+  const { AUDIT_LOG_OPTIONS_REQUESTS, AUDIT_LOG_HTTP_CONTENT_TYPES, AUDIT_LOG_MAX_RESPONSE_SIZE } = config;
+
+  return (req, res, next) => {
+    let isLogEnabled = null;
+
+    const defaultWrite = res.write;
+    const defaultEnd = res.end;
+    let body = '';
+
+    res.write = (...restArgs) => {
+      if (isLogEnabled === null) {
+        isLogEnabled = isLogHttpAudit({ req, res, AUDIT_LOG_OPTIONS_REQUESTS, AUDIT_LOG_HTTP_CONTENT_TYPES });
+      }
+      if (isLogEnabled && body.length < AUDIT_LOG_MAX_RESPONSE_SIZE) {
+        body += Buffer.from(restArgs[0]).toString('utf-8');
+      }
+      defaultWrite.apply(res, restArgs);
+    };
+
+    res.end = (...restArgs) => {
+      if (isLogEnabled) {
+        if (restArgs[0] && body.length < AUDIT_LOG_MAX_RESPONSE_SIZE) {
+          body += Buffer.from(restArgs[0]).toString('utf-8');
+        }
+        res.body = body.substring(0, AUDIT_LOG_MAX_RESPONSE_SIZE);
+      }
+
+      defaultEnd.apply(res, restArgs);
+    };
+
+    next();
+  };
+}
+
 module.exports = {
-  requestLogMiddleware,
-  dbLog,
-  getUserLookup,
-  getReqDuration,
+  getAuditLoggers,
+  auditLoggerTypes,
+  getHttpAuditMiddleware,
 };

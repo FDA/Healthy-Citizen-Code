@@ -1,7 +1,7 @@
 const Promise = require('bluebird');
 const log = require('log4js').getLogger('lib/cache');
-
-const { getRedisConnection } = require('../util/redis');
+const { getCacheStorage } = require('./cacheStorage');
+const { getRedisPrefix } = require('../util/redis');
 
 module.exports = (options) => {
   const m = {};
@@ -9,41 +9,17 @@ module.exports = (options) => {
 
   m.init = async () => {
     const { keyPrefix, redisUrl } = options;
-    m.keyPrefix = keyPrefix;
-    m.cacheStorage = await m.getCacheStorage(redisUrl);
+    m.keyPrefix = getRedisPrefix(keyPrefix);
+    m.cacheStorage = await getCacheStorage(redisUrl, log);
   };
 
   m.getKeyWithPrefix = (key) => `${m.keyPrefix}${key}`;
 
-  m.getCacheStorage = (redisUrl) => {
-    if (!redisUrl) {
-      return null;
-    }
-
-    const redisConnectionName = 'Cache_Redis';
-    try {
-      return getRedisConnection({ redisUrl, log, redisConnectionName });
-    } catch (e) {
-      log.warn(
-        `Unable to connect ${redisConnectionName} by URL: ${redisUrl}. Server will continue working without cache`,
-        e.stack
-      );
-      return null;
-    }
-  };
-
-  m.isReady = () => {
+  m.isReady = () =>
     // RedisMock has field 'status', but has not field 'connected'
-    return m.cacheStorage && (m.cacheStorage.status === 'ready' || m.cacheStorage.connected);
-  };
+    m.cacheStorage && (m.cacheStorage.status === 'ready' || m.cacheStorage.connected);
 
-  /**
-   *
-   * @param key
-   * @param value
-   * @returns {Promise<boolean>}
-   */
-  m.setCache = async (key, value) => {
+  m.set = async (key, value) => {
     if (!m.isReady()) {
       return false;
     }
@@ -58,7 +34,22 @@ module.exports = (options) => {
     }
   };
 
-  m.getCache = async (key) => {
+  m.setex = async (key, value, expireInMs) => {
+    if (!m.isReady()) {
+      return false;
+    }
+
+    const keyWithPrefix = m.getKeyWithPrefix(key);
+    try {
+      await m.cacheStorage.setex(keyWithPrefix, expireInMs, JSON.stringify(value));
+      return true;
+    } catch (e) {
+      log.error(`Unable to setex value into cache by key: '${keyWithPrefix}'. Value: ${value}`, e.stack);
+      throw e;
+    }
+  };
+
+  m.get = async (key) => {
     if (!m.isReady() || !key) {
       return null;
     }
@@ -74,6 +65,20 @@ module.exports = (options) => {
       }
     } catch (e) {
       log.error(`Unable to get value from cache by key: '${keyWithPrefix}'.`, e.stack);
+      return null;
+    }
+  };
+
+  m.unlink = async (key) => {
+    if (!m.isReady() || !key) {
+      return null;
+    }
+
+    const keyWithPrefix = m.getKeyWithPrefix(key);
+    try {
+      await m.cacheStorage.unlink(keyWithPrefix);
+    } catch (e) {
+      log.error(`Unable to unlink cache by key: '${keyWithPrefix}'.`, e.stack);
       return null;
     }
   };
@@ -99,8 +104,10 @@ module.exports = (options) => {
     if (!m.isReady() || !keyPattern) {
       return null;
     }
+
+    const keyWithPrefix = m.getKeyWithPrefix(keyPattern);
     try {
-      const stream = m.cacheStorage.scanStream({ match: m.getKeyWithPrefix(keyPattern) });
+      const stream = m.cacheStorage.scanStream({ match: keyWithPrefix });
       const unlinkPromises = [];
 
       return new Promise((resolve) => {
@@ -112,12 +119,12 @@ module.exports = (options) => {
         });
         stream.on('end', async () => {
           await Promise.all(unlinkPromises);
-          log.info(`Cleared cache by keyPattern '${keyPattern}'`);
+          log.info(`Cleared cache by keyPattern '${keyWithPrefix}'`);
           resolve();
         });
       });
     } catch (e) {
-      log.error(`Unable to clear cache by keyPattern: '${keyPattern}'.`, e.stack);
+      log.error(`Unable to clear cache by keyPattern: '${keyWithPrefix}'.`, e.stack);
     }
   };
 
@@ -137,7 +144,7 @@ module.exports = (options) => {
   };
 
   m.getUsingCache = async (getPromise, key) => {
-    const cacheData = await m.getCache(key);
+    const cacheData = await m.get(key);
     if (cacheData) {
       log.debug(`Retrieved value from cache by key: ${key}`);
       return cacheData;
@@ -145,7 +152,7 @@ module.exports = (options) => {
 
     const data = await getPromise();
     try {
-      const isSet = await m.setCache(key, data);
+      const isSet = await m.set(key, data);
       isSet && log.debug(`Set value in cache by key: ${key}`);
     } catch (e) {
       //

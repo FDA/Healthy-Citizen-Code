@@ -1,6 +1,6 @@
 {
   "models": {
-    "files": {
+    "_files": {
       "type": "Schema",
       "description": "This collection contains list of files uploaded by users",
       "fields": {
@@ -30,13 +30,36 @@
         "cropped": {
           "type": "Boolean",
           "description": "If true then there is a cropped version of this file"
-        },
-        "user": {
-          "type": "LookupObjectID",
-          "lookup": {
-            "table": "users",
-            "foreignKey": "_id",
-            "label": "login"
+        }
+      },
+      "scopes": {
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        }
+      },
+      "actions": {
+        "fields": {
+          "update": {
+            "permissions": "accessAsUser"
+          },
+          "upsert": {
+            "permissions": "accessAsUser"
+          },
+          "delete": {
+            "permissions": "accessAsUser"
+          },
+          "clone": {
+            "permissions": "accessAsUser"
+          },
+          "viewDetails": {
+            "permissions": "accessAsUser"
+          },
+          "view": {
+            "permissions": "accessAsUser"
+          },
+          "create": {
+            "permissions": "accessAsUser"
           }
         }
       }

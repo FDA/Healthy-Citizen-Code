@@ -12,7 +12,7 @@
           'type': 'action',
           'link': 'group'
         },
-        '__name': 'group'
+        'actionName': 'group'
       },
       'search': {
         'position': 'grid.top.right',
@@ -22,7 +22,7 @@
           'type': 'action',
           'link': 'search'
         },
-        '__name': 'search'
+        'actionName': 'search'
       },
       'syntheticGenerate': {
         'position': 'grid.top.right',
@@ -36,7 +36,7 @@
           'type': 'module',
           'link': 'AdpSyntheticGenerate'
         },
-        '__name': 'syntheticGenerate'
+        'actionName': 'syntheticGenerate'
       },*/
       'export': {
         'position': 'grid.top.right',
@@ -50,7 +50,7 @@
           'type': 'module',
           'link': 'AdpDataExport'
         },
-        '__name': 'export'
+        'actionName': 'export'
       },
       'chooseColumns': {
         'position': 'grid.top.right',
@@ -63,18 +63,51 @@
           'type': 'module',
           'link': 'AdpGridColumnChooser'
         },
-        '__name': 'chooseColumns'
+        'actionName': 'chooseColumns'
       },
       'gridControlEdit': {
         'permissions': 'accessAsUser',
-        'description': 'Edit',
-        'fullName': 'Edit',
+        'description': 'Update record',
+        'fullName': 'Update',
+        'icon': {
+          'link': 'pencil'
+        },
         'action': {
           'type': 'module',
           'link': 'AdpGridControlActions',
           'method': 'edit'
         }
       },
+ /*     "gridControlDelete": {
+        "description": "Delete record",
+        "position": "grid.row",
+        "backgroundColor": "#F44336",
+        "borderColor": "#f32c1e",
+        "textColor": "white",
+        "icon": {
+          "link": "trash"
+        },
+        "action": {
+          "type": "action",
+          "link": "delete"
+        },
+        "actionOrder": 2
+      },
+      "gridControlClone": {
+        "description": "Clone record",
+        "position": "grid.row",
+        "backgroundColor": "#4CAF50",
+        "borderColor": "#388E3C",
+        "textColor": "white",
+        "icon": {
+          "link": "clone"
+        },
+        "action": {
+          "type": "action",
+          "link": "clone"
+        },
+        "actionOrder": 3
+      },*/
       'gridCreateControl': {
         'actionOrder': 1,
         'backgroundColor': '#2196F3',
@@ -91,7 +124,7 @@
           'link': 'AdpGridControlActions',
           'method': 'create'
         },
-        '__name': 'create',
+        'actionName': 'create',
       }
     });
 })();

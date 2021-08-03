@@ -1,0 +1,36 @@
+{
+  "interface": {
+    "app": {
+      "type": "AppType",
+      "fullName": "App"
+    },
+    "appDefinition": {
+      "type": "Definition",
+      "fullName": "App Definition",
+      "description": "2234"
+    },
+    "footer": {
+      "footerDefinition": {
+        "type": "FooterDefinition",
+        "fullName": "Footer Definition"
+      }
+    }
+  },
+  "interface2": {
+    "app": {
+      "type": "AppType",
+      "fullName": "App"
+    },
+    "appDefinition": {
+      "type": "Definition",
+      "fullName": "App Definition",
+      "description": "123"
+    }
+  },
+  "interfaceFooter": {
+    "footerDefinition": {
+      "type": "FooterDefinition",
+      "fullName": "Footer Definition"
+    }
+  }
+}

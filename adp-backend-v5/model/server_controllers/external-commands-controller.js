@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const Promise = require('bluebird');
 const log = require('log4js').getLogger('external-commands-controller');
 
 const {
@@ -8,8 +9,10 @@ const {
 } = require('../../lib/queue/background-jobs/external-commands');
 const { getCreator } = require('../../lib/queue/background-jobs/util');
 const { handleGraphQlError } = require('../../lib/graphql/util');
+const { isValidTimeZone } = require('../../lib/util/date');
 
 const scheduledJobsModelName = 'scheduledJobs';
+const commandsCollectionName = 'bjrExternalCommands';
 
 module.exports = () => {
   const m = {};
@@ -24,6 +27,8 @@ module.exports = () => {
     appLib.addRoute('get', `/runExternalCommand/:commandId`, [appLib.isAuthenticated, m.runExternalCommand]);
 
     // await syncMongoScheduledJobsWithQueue();
+
+    wrapBjrExternalCommands();
 
     // since scheduled jobs are based on external commands and dependant on externalCommandQueue it's handling is here
     wrapScheduledJobs();
@@ -64,6 +69,49 @@ module.exports = () => {
     }
   }
 
+  function wrapBjrExternalCommands() {
+    const { getUpdateOneMutationName, wrapMutation } = m.appLib.graphQl;
+    wrapMutation(getUpdateOneMutationName(commandsCollectionName), (next) => async (rp) => {
+      try {
+        const recordIdToUpdate = rp.args.filter._id;
+        const { record: prevRecord } = await m.appLib.db
+          .collection(commandsCollectionName)
+          .hookQuery('findOne', { _id: recordIdToUpdate }, {});
+        const updatedRecord = await next(rp);
+
+        if (prevRecord.command === updatedRecord.command) {
+          return;
+        }
+
+        // recreate scheduled job on command change
+        const currentCommandId = updatedRecord._id;
+        const conditionForActualRecord = m.appLib.dba.getConditionForActualRecord(scheduledJobsModelName);
+        const scheduledJobsUsingCurrentCommand = await m.appLib.db
+          .collection(scheduledJobsModelName)
+          .find({ 'command._id': currentCommandId, ...conditionForActualRecord })
+          .toArray();
+
+        await Promise.map(
+          scheduledJobsUsingCurrentCommand,
+          async (scheduledJob) => {
+            await removeQueueScheduledJob(scheduledJob);
+            await addQueueScheduledJob(scheduledJob);
+            await updateScheduledJobFields(scheduledJob);
+          },
+          { concurrency: 10 }
+        );
+      } catch (e) {
+        handleGraphQlError({
+          e,
+          message: `Unable to update record`,
+          log,
+          appLib: m.appLib,
+          modelName: commandsCollectionName,
+        });
+      }
+    });
+  }
+
   function wrapScheduledJobs() {
     const { getUpdateOneMutationName, getDeleteMutationName, getCreateMutationName, wrapMutation } = m.appLib.graphQl;
 
@@ -72,11 +120,18 @@ module.exports = () => {
         const createdRecord = await next(rp);
         if (createdRecord.isActive === true) {
           await addQueueScheduledJob(createdRecord);
+          await updateScheduledJobFields(createdRecord);
         }
 
         return createdRecord;
       } catch (e) {
-        handleGraphQlError(e, `Unable to create record`, log, m.appLib);
+        handleGraphQlError({
+          e,
+          message: `Unable to create record`,
+          log,
+          appLib: m.appLib,
+          modelName: scheduledJobsModelName,
+        });
       }
     });
 
@@ -93,11 +148,11 @@ module.exports = () => {
         const prevJobFields = _.pick(prevRecord, jobFields);
         const updatedJobFields = _.pick(updatedRecord, jobFields);
         const isJobSpecChanged = !_.isEqual(prevJobFields, updatedJobFields);
+        const isDelayedJobExist = !!(await getDelayedJob(prevRecord));
 
-        const isPrevJobShouldBeDeleted =
-          prevRecord.isActive && ((!isJobSpecChanged && !updatedRecord.isActive) || isJobSpecChanged);
+        const isPrevJobShouldBeDeleted = prevRecord.isActive && (isJobSpecChanged || !updatedRecord.isActive);
         const isNewJobShouldBeCreated =
-          updatedRecord.isActive && ((!isJobSpecChanged && !prevRecord.isActive) || isJobSpecChanged);
+          updatedRecord.isActive && (isJobSpecChanged || !prevRecord.isActive || !isDelayedJobExist);
 
         // scheduledJobKey and scheduledJobId should not be manually changed by user
         updatedRecord.scheduledJobKey = prevRecord.scheduledJobKey;
@@ -117,7 +172,13 @@ module.exports = () => {
 
         return updatedRecord;
       } catch (e) {
-        handleGraphQlError(e, `Unable to update record`, log, m.appLib);
+        handleGraphQlError({
+          e,
+          message: `Unable to update record`,
+          log,
+          appLib: m.appLib,
+          modelName: scheduledJobsModelName,
+        });
       }
     });
 
@@ -125,13 +186,17 @@ module.exports = () => {
       try {
         const result = await next(rp);
         const { deletedRecord } = rp.context;
-        if (deletedRecord.isActive) {
-          await removeQueueScheduledJob(deletedRecord);
-        }
+        await removeQueueScheduledJob(deletedRecord);
 
         return result;
       } catch (e) {
-        handleGraphQlError(e, `Unable to delete record`, log, m.appLib);
+        handleGraphQlError({
+          e,
+          message: `Unable to delete record`,
+          log,
+          appLib: m.appLib,
+          modelName: scheduledJobsModelName,
+        });
       }
     });
   }
@@ -167,6 +232,26 @@ module.exports = () => {
     );
   }
 
+  function getTimezone(timezoneDefinition) {
+    if (_.isString(timezoneDefinition)) {
+      return isValidTimeZone(timezoneDefinition) ? timezoneDefinition : null;
+    }
+
+    if (!_.isPlainObject(timezoneDefinition)) {
+      return null;
+    }
+
+    const { isServer, value } = timezoneDefinition;
+    if (isServer) {
+      const serverTimeZone = Intl.DateTimeFormat().resolvedOptions().timeZone;
+      return serverTimeZone;
+    }
+    if (isValidTimeZone(value)) {
+      return value;
+    }
+    return null;
+  }
+
   function getTransformedRepeatOpts(jobType, repeatOpts) {
     if (jobType === 'cron') {
       return _.pick(repeatOpts, ['cron', 'tz', 'startDate', 'endDate', 'limit', 'count']);
@@ -187,19 +272,24 @@ module.exports = () => {
   }
 
   async function addQueueScheduledJob(scheduledJobRecord) {
-    const { type: jobType, name, command: commandLookup, repeat, creator } = scheduledJobRecord;
+    const timezone = getTimezone(_.get(scheduledJobRecord, 'repeat.tz'));
+    _.set(scheduledJobRecord, 'repeat.tz', timezone);
 
+    const { type: jobType, name, command: commandLookup, repeat, creator } = scheduledJobRecord;
     const { getLookupDoc } = m.appLib.backgroundJobs.util;
     const commandDoc = await getLookupDoc(m.appLib, commandLookup);
-    const { _id, logRegex, progressRegex, command } = commandDoc;
+    const { _id, logRegex, type, progressRegex, command, backendCommand } = commandDoc;
     const scheduledJob = await m.externalCommandQueue.add(
       {
         creator,
-        name,
         commandId: _id,
+        name,
+        type,
         command,
+        backendCommand,
         progressRegex,
         logRegex,
+        timezone,
       },
       { repeat: getTransformedRepeatOpts(jobType, repeat) }
     );
@@ -222,6 +312,17 @@ module.exports = () => {
 
     delete scheduledJobRecord.scheduledJobKey;
     delete scheduledJobRecord.scheduledJobId;
+  }
+
+  async function getDelayedJob(scheduledJobRecord) {
+    const { scheduledJobId } = scheduledJobRecord;
+    if (!scheduledJobId) {
+      return null;
+    }
+    return m.appLib.queue.getDelayedJob({
+      queueName: EXTERNAL_COMMANDS_QUEUE_NAME,
+      jobId: scheduledJobId,
+    });
   }
 
   return m;

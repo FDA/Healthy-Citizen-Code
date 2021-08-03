@@ -4,21 +4,23 @@
     <a class="dropdown-toggle"
        data-toggle="dropdown"
        href>
-      <img ng-src="{{vm.baseUrl + 'assets/img/blank.gif'}}"
+      <img ng-src="{{vm.baseUrl + '/assets/img/blank.gif'}}"
            class="flag flag-{{$root.currentLanguage.key}}"
-           alt="{{$root.currentLanguage.alt}}">
+           alt="{{$root.currentLanguage.alt}}"
+      >
       <span> {{$root.currentLanguage.title}} </span>
 
       <i class="fa fa-angle-down"></i> </a>
 
     <ul class="dropdown-menu pull-right">
       <li ng-class="{ 'active': language == $root.currentLanguage }"
-          ng-repeat="language in $root.languages">
+          ng-repeat="language in $root.languages track by $index">
 
         <a ng-click="vm.selectLanguage(language)">
-          <img ng-src="{{vm.baseUrl + 'assets/img/blank.gif'}}"
+          <img ng-src="{{vm.baseUrl + '/assets/img/blank.gif'}}"
                class="flag flag-{{language.key}}"
-               alt="{{language.alt}}">
+               alt="{{language.alt}}"
+          >
           {{language.title}}
         </a>
 

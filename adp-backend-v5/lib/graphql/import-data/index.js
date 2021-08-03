@@ -18,7 +18,10 @@ module.exports = (appLib) => {
     }
 
     // TODO: check permissions for file creator?
-    const { record: file } = await appLib.db.collection('files').hookQuery('findOne', { _id: ObjectId(fileId) });
+    const { filesCollectionName } = appLib.file.constants;
+    const { record: file } = await appLib.db
+      .collection(filesCollectionName)
+      .hookQuery('findOne', { _id: ObjectId(fileId) });
     if (!file) {
       return null;
     }
@@ -73,8 +76,6 @@ module.exports = (appLib) => {
 
           const { filePath } = file;
           const graphQlContext = await new GraphQlContext(appLib, req, modelName, args).init();
-          graphQlContext.mongoParams = { conditions: {} };
-
           return await importFunc({ filePath, context: graphQlContext, log });
         } catch (e) {
           const errorMessage = e instanceof ValidationError ? e.message : `Unable to import file`;

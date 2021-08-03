@@ -7,8 +7,6 @@
   function AdpDataExport(
     AdpClientCommonHelper,
     AdpModalService,
-    AdpNotificationService,
-    AdpUnifiedArgs,
     ErrorHelpers,
     GridExportHelpers
   ) {
@@ -36,8 +34,17 @@
 
     function createExportDialog(gridComponent, schema, customGridOptions) {
       return function () {
-        exportModal(gridComponent, schema)
-          .then(GridExportHelpers.getExporter(gridComponent, schema, customGridOptions))
+        exportConfigModal(gridComponent, schema)
+          .then(function(configParams) {
+            GridExportHelpers.setPrefType(configParams.format);
+
+            return exportStatusModal({
+              schema: schema,
+              grid: gridComponent,
+              configParams: configParams,
+              customGridOptions: customGridOptions
+          });
+          })
           .catch(function (e) {
             ErrorHelpers.handleError(e, 'Error while exporting.');
           });
@@ -45,12 +52,16 @@
       };
     }
 
-    function exportModal(gridComponent, schema) {
+    function exportConfigModal(gridComponent, schema) {
       return AdpModalService.createModal('adpExportConfigModal', {
         schema: schema,
         grid: gridComponent,
         preferredType: GridExportHelpers.getPrefType(),
       }).result;
+    }
+
+    function exportStatusModal(params) {
+      return AdpModalService.createModal('adpExportStatusModal', params).result;
     }
   }
 })();

@@ -42,9 +42,24 @@
         }
       },
       "scopes": {
-        "own": {
-          // Specified permissions are accessAsAnyone just to make it appear in app-model
-          "permissions": "accessAsAnyone"
+        "ownRecordScope": {
+          "permissions": "accessAsUser",
+          "where": "{ 'creator._id': this.req.user._id }"
+        },
+        "superAdminScope": {
+          "permissions": "accessAsSuperAdmin",
+          "where": "{ system: { $ne: true } }"
+        },
+        "runSystemCommandsScope": {
+          "permissions": {
+            "update": "accessForbidden",
+            "delete": "accessForbidden",
+            "clone": "accessForbidden",
+            "viewDetails": "viewExternalCommands",
+            "view": "viewExternalCommands",
+            "runExternalCommand": "runExternalCommands"
+          },
+          "where": "{ system: true }"
         }
       },
       "fields": {
@@ -55,21 +70,49 @@
           "unique": true
         },
         "description": {
-          "type": "String",
+          "type": "Text",
           "description": "What this command is used for",
           "width": null
         },
-        "command": {
-          "type": "String",
-          "description": "Command itself",
+        "type": {
+          "type": "List",
           "required": true,
+          "list": {
+            "values": {
+              "shellCommand": "Shell Command",
+              "backendCommand": "Backend Command"
+            }
+          }
+        },
+        "command": {
+          "type": "Text",
+          "description": "Shell command itself",
+          "required": "this.row.type === 'shellCommand'",
+          "show": "this.row.type === 'shellCommand'",
+          "width": null
+        },
+        "backendCommand": {
+          "type": "Code",
+          "description": "Code for backend context",
+          "required": "this.row.type === 'backendCommand'",
+          "show": "this.row.type === 'backendCommand'",
+          "parameters": {
+            "codeEditor": {
+              "mode": "ace/mode/javascript",
+              "theme": "ace/theme/dracula"
+            }
+          },
           "width": null
         },
         "progressRegex": {
-          "type": "String"
+          "type": "String",
+          "description": "Regex matched against command result and used to track the progress of the background job",
+          "show": "this.row.type === 'shellCommand'"
         },
         "logRegex": {
-          "type": "String"
+          "type": "String",
+          "description": "Regex matched against command result and used as result of the background job ('Returnvalue' field)",
+          "show": "this.row.type === 'shellCommand'"
         }
       }
     }

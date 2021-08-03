@@ -23,4 +23,7 @@ function updateModel() {
 
 cd ../../../hc-data-bridge/
 
-updateModel journal 0.0.4
+#updateModel core 0.0.1 # do not update it!
+updateModel journal 0.0.7
+updateModel datasets 0.0.7
+updateModel dataPulls 0.0.6

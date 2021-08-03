@@ -17,7 +17,7 @@ const {
   buildGraphQlQuery,
   checkGraphQlSuccessfulResponse,
   checkGraphQlErrorResponse,
-} = require('../graphql-util.js');
+} = require('../graphql-util');
 
 describe('V5 TreeSelectors propagation', function () {
   const parent = {
@@ -69,9 +69,9 @@ describe('V5 TreeSelectors propagation', function () {
   };
 
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
+    this.appLib = prepareEnv();
+
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     this.db = db;
   });
 
@@ -116,7 +116,7 @@ describe('V5 TreeSelectors propagation', function () {
 
       function f() {
         const { makeRequest, checkResponse, checkTreeselectorPropagation } = settings;
-        const req = makeRequest(apiRequest(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -187,7 +187,7 @@ describe('V5 TreeSelectors propagation', function () {
 
       function f() {
         const { makeRequest, checkResponse } = settings;
-        const req = makeRequest(apiRequest(this.appLib.app));
+        const req = makeRequest(apiRequest(this.appLib));
         if (this.token) {
           req.set('Authorization', `JWT ${this.token}`);
         }
@@ -229,14 +229,14 @@ describe('V5 TreeSelectors propagation', function () {
 
       async function f() {
         const { delRequest, getRequest, putRequest, checkGetResponse, checkPutResponse } = settings;
-        await delRequest(apiRequest(this.appLib.app)).set('Accept', 'application/json').expect('Content-Type', /json/);
+        await delRequest(apiRequest(this.appLib)).set('Accept', 'application/json').expect('Content-Type', /json/);
 
-        const getRes = await getRequest(apiRequest(this.appLib.app))
+        const getRes = await getRequest(apiRequest(this.appLib))
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
         checkGetResponse(getRes);
 
-        const putRes = await putRequest(apiRequest(this.appLib.app))
+        const putRes = await putRequest(apiRequest(this.appLib))
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
         checkPutResponse(putRes);

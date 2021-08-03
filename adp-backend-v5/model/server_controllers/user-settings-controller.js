@@ -35,7 +35,13 @@ module.exports = () => {
 
         return result;
       } catch (e) {
-        handleGraphQlError(e, `Unable to get userSettings`, log, m.appLib);
+        handleGraphQlError({
+          e,
+          message: `Unable to get userSettings`,
+          log,
+          appLib: m.appLib,
+          modelName: userSettingsModelName,
+        });
       }
     });
   }

@@ -1,4 +1,4 @@
-module.exports = function() {
+module.exports = function () {
   const m = {
     test: {
       a: 'a',

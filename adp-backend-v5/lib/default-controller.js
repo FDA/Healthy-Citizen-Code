@@ -23,30 +23,26 @@ module.exports = (appLib) => {
   /**
    * Sends error message with 400 HTTP code
    * message is the error message to return to the client
-   * @param req
-   * @param res
-   * @param next
-   * @param err
-   * @param userMessage
-   * @returns {*}
    */
-  m.error = (req, res, next, err, userMessage) => {
-    log.error(`URL: ${req.url}`, err.stack);
-    res.status(400).json({ success: false, message: userMessage || err.message });
-    return next();
+  m.error = (req, res, error, userMessage) => {
+    if (error) {
+      log.error(`URL: ${req.url}`, error.stack);
+    }
+    if (error instanceof ValidationError || error instanceof AccessError || error instanceof LinkedRecordError) {
+      return res.status(400).json({ success: false, message: error.message });
+    }
+
+    return res.status(400).json({ success: false, message: userMessage });
   };
 
   /**
    * Returns status message indicating that the backend is up and running
    * Good for uptimerobot to verify the status
-   * @param req
-   * @param res
-   * @param next
    */
   m.getRootJson = (req, res, next) => {
     res.json({
       success: true,
-      message: `${process.env.APP_NAME || 'ADP'} Backend V5 is working correctly`,
+      message: `${appLib.config.APP_NAME || 'ADP'} Backend V5 is working correctly`,
     });
     next();
   };
@@ -77,32 +73,26 @@ module.exports = (appLib) => {
    * Returns JSON containing full application model
    * @param req
    * @param res
-   * @param next
    */
   m.getAppModelJson = async (req, res) => {
     const appModelForUser = await accessUtil.getAuthorizedAppModel(req);
     res.json({ success: true, data: appModelForUser });
   };
 
-  m.getBuildAppModelJson = (req, res, next) => {
-    appLib.auth
-      .authenticationCheck(req, res, next)
-      .then(async ({ user, roles, permissions }) => {
-        appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
-        const appModelForUser = await accessUtil.getAuthorizedAppModel(req);
-        res.json({ success: true, data: appModelForUser });
-      })
-      .catch(InvalidTokenError, ExpiredTokenError, () => {
+  m.getBuildAppModelJson = async (req, res) => {
+    try {
+      const { user, roles, permissions } = await appLib.auth.authenticationCheck(req);
+      appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
+      const appModelForUser = await accessUtil.getAuthorizedAppModel(req);
+      res.json({ success: true, data: appModelForUser });
+    } catch (e) {
+      if (e instanceof InvalidTokenError || e instanceof ExpiredTokenError) {
         const unauthorizedModel = accessUtil.getUnauthorizedAppModel(req);
-        res.json({ success: true, data: unauthorizedModel });
-      })
-      .catch((err) => {
-        log.error(err.stack);
-        res.status(500).json({
-          success: false,
-          message: `Error occurred while retrieving prebuild app model`,
-        });
-      });
+        return res.json({ success: true, data: unauthorizedModel });
+      }
+      log.error(e.stack);
+      res.status(500).json({ success: false, message: `Error occurred while retrieving prebuild app model` });
+    }
   };
 
   /**
@@ -189,32 +179,26 @@ module.exports = (appLib) => {
    * Returns JSON containing schema for specific schema
    * @param req
    * @param res
-   * @param next
    */
-  m.getSchema = (req, res, next) => {
-    const path = getUrlWithoutPrefix(req.url, appLib.API_PREFIX)
-      .replace(/^\/schema\//, '')
-      .replace(/.json$/, '')
-      .split('/');
+  m.getSchema = async (req, res) => {
+    try {
+      const path = getUrlWithoutPrefix(req.url, appLib.config.API_PREFIX)
+        .replace(/^\/schema\//, '')
+        .replace(/.json$/, '')
+        .split('/');
+      const model = _.cloneDeep(_.get(appLib.baseAppModel.models, path.join('.fields.')));
 
-    appLib.auth
-      .authenticationCheck(req, res, next)
-      .then(({ user, roles, permissions }) => {
-        appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
-        const model = _.cloneDeep(_.get(appLib.baseAppModel.models, path.join('.fields.')));
-        accessUtil.handleModelByPermissions(model, accessUtil.getReqPermissions(req));
-        res.json({ success: true, data: model });
-      })
-      .catch(InvalidTokenError, ExpiredTokenError, () => {
-        res.status(401).json({ success: false, message: 'Not authorized to get schema' });
-      })
-      .catch((err) => {
-        log.error(err.stack);
-        res.status(500).json({
-          success: false,
-          message: `Error occurred while retrieving schema`,
-        });
-      });
+      const { user, roles, permissions } = await appLib.auth.authenticationCheck(req);
+      appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
+      accessUtil.handleModelByPermissions(model, accessUtil.getReqPermissions(req));
+      res.json({ success: true, data: model });
+    } catch (e) {
+      if (e instanceof InvalidTokenError || e instanceof ExpiredTokenError) {
+        return res.status(401).json({ success: false, message: 'Not authorized to get schema' });
+      }
+      log.error(e.stack);
+      res.status(500).json({ success: false, message: `Error occurred while retrieving schema` });
+    }
   };
 
   /**
@@ -227,29 +211,29 @@ module.exports = (appLib) => {
    * @param res
    * @param next
    */
-  m.getLookupTable = async (req, res, next) => {
+  m.getLookupTable = async (req, res) => {
     try {
       const lookupContext = await new LookupContext(appLib, req).init();
       const { lookups, more } = await controllerUtil.getSchemaLookups(lookupContext);
       res.json({ success: true, more, data: lookups });
     } catch (e) {
       if (e instanceof ValidationError) {
-        return m.error(req, res, next, e, e.message);
+        return m.error(req, res, e);
       }
-      m.error(req, res, next, e, 'Internal error: unable to get requested lookups');
+      m.error(req, res, e, 'Internal error: unable to get requested lookups');
     }
   };
 
-  m.getTreeSelector = async (req, res, next) => {
+  m.getTreeSelector = async (req, res) => {
     try {
       const treeSelectorContext = await new TreeSelectorContext(appLib, req).init();
       const { treeSelectors, more } = await controllerUtil.getTreeSelectorLookups(treeSelectorContext);
       res.json({ success: true, more, data: treeSelectors });
     } catch (e) {
       if (e instanceof ValidationError) {
-        return m.error(req, res, next, e, e.message);
+        return m.error(req, res, e);
       }
-      m.error(req, res, next, e, 'Internal error: unable to get requested treeselectors');
+      m.error(req, res, e, 'Internal error: unable to get requested treeselectors');
     }
   };
 
@@ -262,7 +246,7 @@ module.exports = (appLib) => {
    * @param next
    * @returns {*}
    */
-  m.getItems = async (req, res, next) => {
+  m.getItems = async (req, res) => {
     try {
       const context = await new DatatablesContext(appLib, req).init();
       const { modelName, appModel, userContext, mongoParams } = context;
@@ -286,9 +270,9 @@ module.exports = (appLib) => {
       res.json({ success: true, data: items, recordsTotal, recordsFiltered });
     } catch (e) {
       if (e instanceof ValidationError) {
-        return m.error(req, res, next, e, e.message);
+        return m.error(req, res, e);
       }
-      m.error(req, res, next, e, 'Internal error: unable to find requested elements');
+      m.error(req, res, e, 'Internal error: unable to find requested elements');
     }
   };
 
@@ -310,9 +294,9 @@ module.exports = (appLib) => {
       res.json({ success: true, data });
     } catch (e) {
       if (e instanceof ValidationError) {
-        return m.error(req, res, next, e, e.message);
+        return m.error(req, res, e);
       }
-      m.error(req, res, next, e, 'Internal error: unable to find requested element');
+      m.error(req, res, e, 'Internal error: unable to find requested element');
     }
   };
 
@@ -330,7 +314,7 @@ module.exports = (appLib) => {
       res.json({ success: true, id: req.params.id });
     } catch (e) {
       if (e instanceof ValidationError || e instanceof AccessError) {
-        return m.error(req, res, next, e, e.message);
+        return m.error(req, res, e);
       }
       if (e instanceof LinkedRecordError) {
         return res.status(409).json({
@@ -341,7 +325,7 @@ module.exports = (appLib) => {
           message: e.message,
         });
       }
-      m.error(req, res, next, e, 'Internal error: unable to delete requested element');
+      m.error(req, res, e, 'Internal error: unable to delete requested element');
     }
   };
 
@@ -354,6 +338,7 @@ module.exports = (appLib) => {
    * @param next
    */
   m.putItem = async (req, res, next) => {
+    let modelName;
     try {
       const reqData = req.body.data;
       if (!reqData) {
@@ -361,13 +346,14 @@ module.exports = (appLib) => {
       }
 
       const context = await new DatatablesContext(appLib, req).init();
+      modelName = context.modelName;
       await appLib.dba.withTransaction((session) => controllerUtil.putItem(context, reqData, session));
       res.json({ success: true, id: req.params.id });
     } catch (e) {
       if (e instanceof ValidationError) {
-        return m.error(req, res, next, e, e.message);
+        return m.error(req, res, e);
       }
-      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models[modelName]);
       const errMsg = duplicateErrMsg || 'Internal error: unable to update this item';
       m.error(req, res, next, e, errMsg);
     }
@@ -380,21 +366,23 @@ module.exports = (appLib) => {
    * @param next
    */
   m.postItem = async (req, res, next) => {
+    let modelName;
     try {
       const reqBody = req.body.data;
       if (!reqBody) {
         throw new ValidationError(`Incorrect request. Must have 'data' field in request body`);
       }
       const context = await new DatatablesContext(appLib, req).init();
+      modelName = context.modelName;
       const item = await appLib.dba.withTransaction((session) => controllerUtil.postItem(context, reqBody, session));
       res.json({ success: true, id: item._id });
     } catch (e) {
       if (e instanceof AccessError || e instanceof ValidationError) {
-        return m.error(req, res, next, e, e.message);
+        return m.error(req, res, e);
       }
-      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models[modelName]);
       const errMsg = duplicateErrMsg || 'Internal error: unable to create this item';
-      m.error(req, res, next, e, errMsg);
+      m.error(req, res, e, errMsg);
     }
   };
 
@@ -419,8 +407,7 @@ module.exports = (appLib) => {
       const code = await getAppModelCode();
       const miniJs = uglify.minify(code);
       if (miniJs.error) {
-        const errMessage = `There is a problem with helpers code: ${miniJs.error}`;
-        m.error(req, res, next, new Error(errMessage), errMessage);
+        m.error(req, res, null, `There is a problem with helpers code: ${miniJs.error}`);
       } else {
         sendJavascript(res, miniJs.code, next);
       }

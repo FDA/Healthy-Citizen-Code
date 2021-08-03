@@ -2,7 +2,7 @@
   "use strict";
 
   function getStateUrl(url, suffix) {
-    return !!suffix ? '/' + suffix + url : url;
+    return !!suffix ? suffix + url : url;
   }
 
   angular
@@ -32,6 +32,26 @@
             content: {
               templateUrl: 'app/adp-auth/views/login.html',
               controller: 'LoginController as vm'
+            }
+          },
+          data: {
+            title: 'Login',
+            htmlId: 'auth-page',
+            htmlClasses: 'login-page',
+            redirectStrategy: 'guest'
+          }
+        })
+
+        .state('auth.login-otp', {
+          url: getStateUrl('/login-otp?returnUrl', APP_CONFIG.appSuffix),
+          params: {
+            returnUrl: null,
+            credentials: null,
+          },
+          views: {
+            content: {
+              templateUrl: 'app/adp-auth/views/login-otp.html',
+              controller: 'LoginOtpController as vm'
             }
           },
           data: {

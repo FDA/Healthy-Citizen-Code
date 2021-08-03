@@ -36,27 +36,27 @@
 
     // public
     function getFormFields(fields) {
-      var form = { notGrouped: [] };
+      return { notGrouped: prepareFormFields(_.cloneDeep(fields)) };
+    }
 
-      form.notGrouped = _.chain(_.clone(fields))
+    function prepareFormFields(fields) {
+      return _(fields)
         .map(prepareData)
         .filter(function (field) {
           return AdpSchemaService.isField(field) &&
             !AdpSchemaService.isGroup(field) &&
             _isVisible(field);
         })
-        .filter(_applyPermissions)
+        .filter(_hasPermissions)
         .sortBy(getOrder)
         .value();
-
-      return form;
     }
 
     function _isVisible(field) {
-      return field.showInForm;
+      return !!field.showInForm;
     }
 
-    function _applyPermissions(field) {
+    function _hasPermissions(field) {
       var fieldInfo = _.get(field, 'fieldInfo', {});
 
       if (!fieldInfo.read) {
@@ -74,101 +74,70 @@
       return field;
     }
 
+    // return structure
+    // groups: {
+    //  notGrouped[field],
+    //  groups: {
+    //    groupName: {
+    //      type: 'Group',
+    //      fields[field]
+    //    },
+    //  }
+    // }
     function getFormGroupFields(fields) {
-      // filtration
-      var fields = _.chain(_.clone(fields))
-        .map(prepareData)
-        .filter(function (field) {
-          if (field.type === 'Mixed') {
-            return false;
-          }
-
-          return (AdpSchemaService.isField(field) || AdpSchemaService.isGroup(field)) &&
-            _isVisible(field);
-        })
-        .filter(function (field) {
-          if (AdpSchemaService.isGroup(field)) {
-            return true;
-          }
-
-          return _applyPermissions(field);
-        })
-        .value();
-
-      var lastGroup = 'notGrouped';
-      var groups = {};
-      // groups: {
-      //  notGrouped[field],
-      //  groups: {
-      //    groupName: {
-      //      type: 'Group',
-      //      fields[field]
-      //    },
-      //    ...
-      //  }
-      // }
-      var grouped = _.groupBy(fields, function (field) {
-        if (field.type === 'Group') {
-          lastGroup = field.fieldName;
-        }
-
-        return lastGroup;
-      });
-
+      var lastGroup = null;
       var groupedFields = {
-        notGrouped: grouped.notGrouped,
-        groups: {}
+        notGrouped: [],
+        groups: {},
       };
 
-      _.each(grouped, function (group, groupName) {
-        if (groupName === 'notGrouped') {
+      _.forEach(_.cloneDeep(fields), function (field, name) {
+        if (field.type === 'Group') {
+          lastGroup = field;
+          groupedFields.groups[name] = field;
+          groupedFields.groups[name].fields = [];
           return;
         }
 
-        // FIXME: filtration
-        groupedFields.groups[groupName] = group[0];
-        groupedFields.groups[groupName].fields = group.slice(1);
-      });
-
-      groupedFields.groups = _.omitBy(groupedFields.groups, function (group, key) {
-        if (!group.fieldInfo.read) {
-          return true;
+        if (lastGroup) {
+          lastGroup.fields.push(field);
+        } else {
+          groupedFields.notGrouped.push(field);
         }
       });
 
-      _.each(groupedFields.groups, function (group) {
-        var fieldInfo = _.get(group, 'fieldInfo', {});
-
-        if (fieldInfo.read && !fieldInfo.write) {
-          _.each(group.fields, function (f) {
-            f.fieldInfo = _.clone(fieldInfo);
-          });
+      groupedFields.notGrouped = prepareFormFields(groupedFields.notGrouped);
+      groupedFields.groups = _.transform(groupedFields.groups, function (res, group, name) {
+        // visible or has permissions
+        if (!group.showInForm || !_hasPermissions(group)) {
+          return;
         }
+
+        group.fields = prepareFormFields(group.fields);
+        copyGroupPermissionsToChildField(group);
+        res[name] = group;
       });
 
-      return sortGroups(groupedFields);
-    }
-
-    function sortGroups(groupedFields) {
-      var getSortedFields = function (fields) {
-        return _.sortBy(fields, function (f) {
-          return f.formOrder;
-        });
-      };
-
-      groupedFields.notGrouped = getSortedFields(groupedFields.notGrouped);
-      groupedFields.groups = getSortedFields(groupedFields.groups);
-
-      var newGroups = {};
-      _.each(groupedFields.groups, function (group) {
-        if (group.type === 'Group') {
-          group.fields = getSortedFields(group.fields);
-          newGroups[group.fieldName] = group;
-        }
-      });
-      groupedFields.groups = newGroups;
+      // sorting
+      groupedFields.groups = _(groupedFields.groups)
+        .toPairs()
+        .sortBy(function (pair) {
+          return getOrder(pair[1]);
+        })
+        .fromPairs()
+        .value();
 
       return groupedFields;
+    }
+
+    function copyGroupPermissionsToChildField(group) {
+      var fieldInfo = _.get(group, 'fieldInfo', {});
+
+      if (fieldInfo.read && !fieldInfo.write) {
+        _.each(group.fields, function (f) {
+          f.fieldInfo = _.clone(fieldInfo);
+        });
+      }
     }
 
     function getUnitsList(field) {

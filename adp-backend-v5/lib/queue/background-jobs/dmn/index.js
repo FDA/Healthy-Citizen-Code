@@ -1,12 +1,10 @@
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
-const uuidv4 = require('uuid/v4');
+const { v4: uuidv4 } = require('uuid');
 const { initJavaInstance, getValidatedDmnUtilInstance } = require('./dmn-util');
 
 const dmnContextName = 'dmnContext';
 const DMN_QUEUE_NAME = 'dmnRunner';
-const dmnBatchSize = +process.env.DMN_BATCH_SIZE || 50;
-const dmnRunnerConcurrency = +process.env.DMN_RUNNER_CONCURRENCY || 1;
 const ruleCollectionName = 'businessRules';
 
 function prepareJavaInstance() {
@@ -24,7 +22,7 @@ async function createDmnQueue({ appLib, log }) {
   const dmnRunnerQueue = appLib.queue.createQueue(DMN_QUEUE_NAME);
   util.addQueueEventHandlers({ appLib, bullQueue: dmnRunnerQueue, log });
 
-  dmnRunnerQueue.process(dmnRunnerConcurrency, require('./dmn-queue-processor')(dmnContext));
+  dmnRunnerQueue.process(appLib.config.DMN_RUNNER_CONCURRENCY, require('./dmn-queue-processor')(dmnContext));
 
   return dmnRunnerQueue;
 }
@@ -69,7 +67,7 @@ async function runDmnRule({
     const job = await dmnRunnerQueue.add({
       jobContextId,
       creator,
-      batchSize: dmnBatchSize,
+      batchSize: appLib.config.DMN_BATCH_SIZE,
       inputRecordsCount,
       inputCollectionName,
       ruleRunId,

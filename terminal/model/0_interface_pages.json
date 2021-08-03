@@ -1,0 +1,41 @@
+
+{
+  "interface": {
+    "pages": {
+      "webTerminal": {
+        "link": "/webTerminal",
+        "fullName": "Web Terminal",
+        "template": {
+          "type": "file",
+          "link": "page_web_terminal.template.ejs"
+        },
+        "controller": "AdpWebTerminal",
+        "parameters": {
+          "presetName": "bash"
+        },
+        "scopes": {
+          "view": {
+            "permissions": {"view":"accessWebTerminal"}
+          }
+        }
+      },
+      "trinoTerminal": {
+        "link": "/trinoTerminal",
+        "fullName": "Trino Web Terminal",
+        "template": {
+          "type": "file",
+          "link": "page_web_terminal.template.ejs"
+        },
+        "controller": "AdpWebTerminal",
+        "parameters": {
+          "presetName": "trino"
+        },
+        "scopes": {
+          "view": {
+            "permissions": {"view":"accessTrinoTerminal"}
+          }
+        }
+      }
+    }
+  }
+}
