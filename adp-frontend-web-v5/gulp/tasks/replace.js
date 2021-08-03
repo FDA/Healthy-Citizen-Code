@@ -9,7 +9,7 @@ const conf = require('../config');
 const APP_CONFIG = conf.APP_CONFIG();
 
 gulp.task('html:replace', function () {
-  var endpoint = [APP_CONFIG.apiUrl, 'build-app-model'].join('/');
+  var endpoint = [APP_CONFIG.apiBuildUrl, 'build-app-model'].join('/');
 
   var options = {
     url: endpoint,
@@ -19,13 +19,12 @@ gulp.task('html:replace', function () {
 
   return requestPromise(options)
     .then(function ({ data }) {
-      const socketIoClientPath = `${APP_CONFIG.apiUrl}/socket.io/socket.io.js`;
       const { APP_SUFFIX } = process.env;
-      const appSuffix = !!APP_SUFFIX ? '/' + APP_SUFFIX : '';
-      const baseUrl = !!APP_SUFFIX ? '/' + APP_SUFFIX : '/';
+      const baseUrl = APP_SUFFIX || '/';
+      const baseUrlForManifest = (APP_SUFFIX  || '') + '/';
 
       return replaceMeta({
-        data: { ...data, socketIoClientPath, appSuffix, baseUrl },
+        data: { ...data, baseUrl, baseUrlForManifest },
         srcFileName: `${conf.paths.tmp}/index.html`,
         dstFileName: 'index.html',
       });
@@ -33,7 +32,7 @@ gulp.task('html:replace', function () {
 });
 
 gulp.task('sw:replace', function () {
-  const endpoint = [APP_CONFIG.apiUrl, 'build-app-model'].join('/');
+  const endpoint = [APP_CONFIG.apiBuildUrl, 'build-app-model'].join('/');
 
   const options = {
     url: endpoint,
@@ -44,7 +43,7 @@ gulp.task('sw:replace', function () {
   const { APP_SUFFIX } = process.env;
   return requestPromise(options)
     .then(({ data }) => replaceMeta({
-      data: { ...data, baseUrl: !!APP_SUFFIX ? '/' + APP_SUFFIX : '' },
+      data: { ...data, baseUrl: APP_SUFFIX || '' },
       srcFileName: `${conf.paths.src}/sw-manager.js.template`,
       dstFileName: 'sw-manager.js',
     }));
@@ -52,7 +51,7 @@ gulp.task('sw:replace', function () {
 
 gulp.task('clientModules:replace', async () => {
   const opts = {
-    url: `${APP_CONFIG.resourceUrl}/${conf.endpoints.clientModules}`,
+    url: `${APP_CONFIG.apiBuildUrlForResource}/${conf.endpoints.clientModules}`,
     method: 'GET',
     json: true
   }

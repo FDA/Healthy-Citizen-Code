@@ -82,10 +82,13 @@
       return [filter.fieldName, filterValueToSet].join('=');
     }
 
+    function stringMapper(filter) {
+      return [filter.fieldName, filter.value].join('=');
+    }
+
     return {
-      string: function (filter) {
-        return [filter.fieldName, filter.value].join('=');
-      },
+      string: stringMapper,
+      objectId: stringMapper,
       list: listMapper,
       dynamicList: listMapper,
       boolean: booleanMapper,

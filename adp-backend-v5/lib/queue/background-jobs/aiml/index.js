@@ -1,8 +1,6 @@
 const { ObjectID } = require('mongodb');
 
 const AIML_QUEUE_NAME = 'aimlRunner';
-const aimlRunnerConcurrency = +process.env.AIML_RUNNER_CONCURRENCY || 1;
-const aimlConcurrentRequestNumber = +process.env.AIML_CONCURRENT_REQUEST_NUMBER || 5;
 const aimlModelsCollectionName = 'aimlModels';
 
 async function createAimlQueue({ appLib, log }) {
@@ -13,7 +11,7 @@ async function createAimlQueue({ appLib, log }) {
   const aimlRunnerQueue = appLib.queue.createQueue(AIML_QUEUE_NAME);
   util.addQueueEventHandlers({ appLib, bullQueue: aimlRunnerQueue, log });
 
-  aimlRunnerQueue.process(aimlRunnerConcurrency, require('./aiml-queue-processor')(aimlContext));
+  aimlRunnerQueue.process(appLib.config.AIML_RUNNER_CONCURRENCY, require('./aiml-queue-processor')(aimlContext));
 
   return aimlRunnerQueue;
 }
@@ -47,7 +45,7 @@ async function runAimlModel({
     const job = await aimlRunnerQueue.add({
       _id,
       endpoint,
-      concurrentRequestNumber: aimlConcurrentRequestNumber,
+      concurrentRequestNumber: appLib.config.AIML_CONCURRENT_REQUEST_NUMBER,
       creator,
       aimlRunId: new Date().toISOString(),
       parameters,

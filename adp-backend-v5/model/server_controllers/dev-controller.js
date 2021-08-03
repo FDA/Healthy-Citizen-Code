@@ -3,6 +3,7 @@ const fs = require('fs-extra');
 const path = require('path');
 const { getDiagramCode } = require('../../lib/dev-helpers/er-diagram');
 const { getSchemeInCsv } = require('../../lib/dev-helpers/data-dictionary');
+const { version: APP_VERSION, name: APP_NAME } = require('../../package.json');
 
 module.exports = () => {
   const m = {};
@@ -20,6 +21,7 @@ module.exports = () => {
     appLib.addRoute('get', `/clear-cache`, prependDevMiddlewares([m.clearCache]));
 
     appLib.addRoute('get', '/routes', prependDevMiddlewares([m.getRoutesJson]));
+    appLib.addRoute('get', '/version', prependDevMiddlewares([m.version]));
     /**
      * @swagger
      * /routes:
@@ -50,12 +52,12 @@ module.exports = () => {
   };
 
   m.logDevRequest = (req, res, next) => {
-    m.appLib.auth.logSecurityAudit({ message: 'Request to development endpoint', req });
+    m.appLib.auditLoggers.security({ message: 'Request to development endpoint', req });
     next();
   };
 
   m.isDevelopmentMode = (req, res, next) => {
-    if (process.env.DEVELOPMENT === 'true') {
+    if (m.appLib.config.DEVELOPMENT) {
       return next();
     }
 
@@ -81,6 +83,14 @@ module.exports = () => {
     res.json({
       success: true,
       data: { brief: routesList },
+    });
+  };
+
+  m.version = (req, res) => {
+    return res.json({
+      'Application Name': `${APP_NAME}`,
+      'Application Version': `${APP_VERSION}`,
+      'Backend Version': '5.0.0',
     });
   };
 

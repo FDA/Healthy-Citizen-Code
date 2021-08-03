@@ -27,32 +27,15 @@
         var childScope;
         (function init() {
           scope.rootData = _.get(scope.args.row, scope.args.path);
-          scope.currentData = scope.rootData[scope.indexOfLevel];
-
-          if (_.isNil(scope.currentData)) {
-            scope.currentData = {};
-            scope.rootData[scope.indexOfLevel] = scope.currentData;
-          }
-
-          setConfig(scope.currentData);
-
-          // render child data lookups
-          var hasNext = scope.rootData[scope.indexOfLevel + 1];
-          if (hasNext) {
-            $timeout(function () {
-              renderNext(scope.rootData[scope.indexOfLevel + 1]);
-            });
-          }
+          scope.rootData[scope.indexOfLevel] = scope.rootData[scope.indexOfLevel] || {};
+          setConfig();
         })();
 
-        function setConfig(data) {
-          var initialData = _.cloneDeep(data);
+        function setConfig() {
+          var initialData = _.clone(scope.rootData[scope.indexOfLevel]) || {};
 
           var defaults = {
-            elementAttr: {
-              'class': 'adp-select-box',
-            },
-            value: initialData,
+            elementAttr: { 'class': 'adp-select-box' },
             showClearButton: true,
             searchEnabled: true,
             dataSource:  new DevExpress.data.DataSource({
@@ -78,6 +61,14 @@
             }),
             valueExpr: 'this',
             displayExpr: 'label',
+            onInitialized: function (e) {
+              // place to trigger change event, if initiated with
+              if (!_.isEmpty(initialData)) {
+                $timeout(function () {
+                  e.component.option('value', initialData);
+                });
+              }
+            },
             onValueChanged: onChange,
             multiline: true,
             wrapItemText: true,
@@ -105,14 +96,13 @@
         }
 
         function setData(value) {
-          _.assign(scope.currentData, value);
+          _.assign(scope.rootData[scope.indexOfLevel], value);
         }
 
         function removeData() {
           destroyChildScope();
 
           scope.rootData[scope.indexOfLevel] = {};
-          scope.currentData = scope.rootData[scope.indexOfLevel];
         }
 
         function renderNext(value) {
@@ -128,10 +118,10 @@
 
           var template = [
             '<tree-selector',
-              "args=args",
-              "form-data=formData",
-              "index-of-level=indexOfLevel",
-              'data-child',
+            "args=args",
+            "form-data=formData",
+            "index-of-level=indexOfLevel",
+            'data-child',
             '></tree-selector>',
           ].join('\n');
 

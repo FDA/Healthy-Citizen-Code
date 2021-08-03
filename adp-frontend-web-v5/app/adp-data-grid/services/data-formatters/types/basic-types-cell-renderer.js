@@ -121,20 +121,17 @@
 
       if (FormattersHelper.asText(args)) {
         return args.action === 'export' ? rawValue.replace(/\n+/g, ' ').trim() : rawValue;
-      } else {
-        var renderAsHtml = _.get(args, 'fieldSchema.parameters.renderAsHtml', false);
-        return renderAsHtml ? htmlCellContent(args) : stripHtml(rawValue);
       }
-    }
 
-    function htmlCellContent(args) {
-      var maxHeight = _.get(args, 'fieldSchema.parameters.maxDatagridCellHeight');
-      var tpl = '<div style="height: auto; max-height: ' + maxHeight + 'px; overflow-y: scroll;"></div>';
+      if (args.action === 'viewDetails') {
+        return args.data;
+      }
 
-      var container = $(tpl);
-      container.append(args.data);
+      var renderAsHtml = _.get(args, 'fieldSchema.parameters.renderAsHtml', false);
 
-      return container;
+      return renderAsHtml ?
+        $('<data>' + args.data + '</data>') :
+        stripHtml(rawValue);
     }
 
     function stripHtml(html) {

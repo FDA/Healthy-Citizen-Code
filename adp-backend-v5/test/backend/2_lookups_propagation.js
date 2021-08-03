@@ -14,7 +14,7 @@ const {
   buildGraphQlDeleteOne,
   checkGraphQlSuccessfulResponse,
   checkGraphQlErrorResponse,
-} = require('../graphql-util.js');
+} = require('../graphql-util');
 
 describe('V5 Backend Lookups Backpropogation', function () {
   const model4sSamples = [
@@ -80,9 +80,9 @@ describe('V5 Backend Lookups Backpropogation', function () {
   };
 
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
+    this.appLib = prepareEnv();
+
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     this.db = db;
   });
 
@@ -125,7 +125,7 @@ describe('V5 Backend Lookups Backpropogation', function () {
 
         async function f() {
           const { makeRequest, checkResponse, checkLookupPropagation } = settings;
-          const req = makeRequest(apiRequest(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib));
 
           const res = await req.set('Accept', 'application/json').expect('Content-Type', /json/);
           checkResponse(res);
@@ -187,7 +187,7 @@ describe('V5 Backend Lookups Backpropogation', function () {
 
         async function f() {
           const { makeRequest, checkResponse } = settings;
-          const req = makeRequest(apiRequest(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }
@@ -244,11 +244,11 @@ describe('V5 Backend Lookups Backpropogation', function () {
         async function f() {
           const { putRequest, checkPutResponse, delRequest, checkDelResponse } = settings;
 
-          const putRes = await putRequest(apiRequest(this.appLib.app))
+          const putRes = await putRequest(apiRequest(this.appLib))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkPutResponse(putRes);
-          const delRes = await delRequest(apiRequest(this.appLib.app))
+          const delRes = await delRequest(apiRequest(this.appLib))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkDelResponse(delRes);
@@ -293,11 +293,11 @@ describe('V5 Backend Lookups Backpropogation', function () {
         async function f() {
           const { delDocRequest, checkDelDocResponse, delLookupRequest, checkDelLookupResponse } = settings;
 
-          const delRes = await delDocRequest(apiRequest(this.appLib.app))
+          const delRes = await delDocRequest(apiRequest(this.appLib))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkDelDocResponse(delRes);
-          const delLookupRes = await delLookupRequest(apiRequest(this.appLib.app))
+          const delLookupRes = await delLookupRequest(apiRequest(this.appLib))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkDelLookupResponse(delLookupRes);

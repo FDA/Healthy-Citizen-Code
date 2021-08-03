@@ -5,7 +5,7 @@ const _ = require('lodash');
 const path = require('path');
 const log = require('log4js').getLogger('lib/helper-util');
 
-const { appRoot } = require('./util/env');
+const { appRoot } = require('../config/util');
 
 module.exports = async (appLib, helperDirPaths, buildAppModelCodeOnStart) => {
   const m = {};

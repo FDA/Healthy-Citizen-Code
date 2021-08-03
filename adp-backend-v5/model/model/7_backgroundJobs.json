@@ -91,17 +91,22 @@
           "type": "Number"
         },
         "stacktrace": {
-          "type": "Mixed"
+          "type": "Text"
         },
         "returnvalue": {
-          "type": "Mixed"
+          "type": "Mixed",
+          "fullName": "Command output"
         },
         "failedReason": {
-          "type": "Mixed"
+          "type": "Mixed",
+          "fullName": "Command error log"
         },
         "name": {
           "type": "String"
-        }
+        },
+        "updatedAt": null,
+        "createdAt": null,
+        "deletedAt": null
       }
     }
   }

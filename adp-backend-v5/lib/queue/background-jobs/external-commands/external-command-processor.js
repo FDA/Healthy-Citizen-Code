@@ -1,61 +1,99 @@
 const { spawn } = require('child_process');
+require('./add-runAsync-to-node-vm');
+const { NodeVM } = require('vm2');
 const _ = require('lodash');
 
-function getRegexExtractorFunc(regex) {
-  if (!regex) {
-    return _.noop;
-  }
-  const regExp = RegExp(regex, 'gm');
-  return regExp.exec.bind(regExp);
+function getLogRegexp(regexStr) {
+  return regexStr ? RegExp(regexStr, 'gm') : null;
 }
 
-module.exports = (context) => {
-  return (job) => {
-    const { command, progressRegex, logRegex } = job.data;
-    const progressFunc = getRegexExtractorFunc(progressRegex);
-    const logFunc = getRegexExtractorFunc(logRegex);
-    const { log } = context.getCommonContext();
+function getProgressRegexp(regexStr) {
+  return regexStr ? RegExp(regexStr, '') : null;
+}
 
-    // command should contain all args, i.e. it's being executed in shell mode
-    const proc = spawn(command, [], { shell: true });
-    const logs = [];
+function runShellCommand(job, context) {
+  const { log } = context;
+  const { command, progressRegex, logRegex } = job.data;
 
-    return new Promise((resolve, reject) => {
-      proc.stdout.on('data', (data) => {
-        const strData = data.toString();
+  const progressRegExp = getProgressRegexp(progressRegex);
+  const logRegExp = getLogRegexp(logRegex);
 
-        const progressMatch = progressFunc(strData);
-        const progress = _.last(progressMatch);
-        progress && job.progress(progress);
+  // command should contain all args, i.e. it's being executed in shell mode
+  const proc = spawn(command, [], { shell: true });
+  const logs = [];
 
-        const logMatch = logFunc(strData);
-        const logStr = _.last(logMatch);
-        if (logStr) {
-          log.info(logStr);
-          logs.push(logStr);
+  return new Promise((resolve, reject) => {
+    proc.stdout.on('data', (data) => {
+      const strData = data.toString();
+
+      if (progressRegExp) {
+        const progressMatch = strData.match(progressRegExp);
+        const progressStr = _.last(progressMatch);
+        if (progressStr) {
+          const progress = Number(progressStr);
+          if (progress) {
+            job.progress(progressStr);
+          } else {
+            log.error(`Invalid progress '${progressStr}' for jobId ${job.id}.`);
+          }
         }
-      });
+      }
 
-      proc.stderr.on('data', (data) => {
-        const logMatch = logFunc(data.toString());
-        const logStr = _.last(logMatch);
-        if (logStr) {
-          log.error(logStr);
-          logs.push(logStr);
+      if (logRegExp) {
+        const logMatch = strData.match(logRegExp);
+        if (logMatch) {
+          log.info(...logMatch);
+          logs.push(...logMatch);
         }
-      });
-
-      proc.on('error', (err) => {
-        reject(new Error(err));
-      });
-
-      proc.on('close', (code) => {
-        if (code !== 0) {
-          return reject(new Error(`Process exited with error code ${code}`));
-        }
-        job.progress(100);
-        resolve(logs.join('\n'));
-      });
+      }
     });
-  };
+
+    proc.stderr.on('data', (data) => {
+      const strData = data.toString();
+
+      if (logRegExp) {
+        const logMatch = strData.match(logRegExp);
+        if (logMatch) {
+          log.error(...logMatch);
+          logs.push(...logMatch);
+        }
+      }
+    });
+
+    proc.on('error', (err) => {
+      reject(new Error(err));
+    });
+
+    proc.on('close', (code) => {
+      const logsStr = logs.join('');
+      if (code !== 0) {
+        return reject(new Error(`Process exited with error code ${code}.\n${logsStr}`));
+      }
+      job.progress(100);
+      resolve(logsStr);
+    });
+  });
+}
+
+async function runBackendCommand(job, context) {
+  const vm = new NodeVM({
+    sandbox: { ...context, job },
+    wrapper: 'none',
+    require: {
+      external: true,
+    },
+  });
+  return vm.runAsync(job.data.backendCommand, __filename);
+}
+
+module.exports = (context) => async (job) => {
+  const jobContext = context.getCommonContext();
+  const { type = 'shellCommand' } = job.data;
+  if (type === 'shellCommand') {
+    return runShellCommand(job, jobContext);
+  }
+  if (type === 'backendCommand') {
+    return runBackendCommand(job, jobContext);
+  }
+  throw new Error(`Invalid command type ${type}`);
 };

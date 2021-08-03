@@ -26,7 +26,8 @@
           "headerFilter": {
             "allowSearch": false
           },
-          "allowSearch": false
+          "allowSearch": false,
+          "maxDatagridCellHeight": 70
         }
       },
       "Array": {
@@ -59,7 +60,7 @@
           "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
-        "validate": [{ "validator": "validateAssociativeArrayKeys" }]
+        "validate": [{ "validator": "validateAssociativeArray" }]
       },
       "Object": {
         "width": 200,
@@ -69,7 +70,7 @@
             "allowGrouping": false
           },
           "allowSearch": false,
-          "maxDatagridCellHeight": 200
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -96,7 +97,8 @@
           "grouping": {
             "allowGrouping": false
           },
-          "allowSearch": false
+          "allowSearch": false,
+          "maxDatagridCellHeight": 70
         }
       },
       "Html": {
@@ -104,7 +106,7 @@
         "transform": [["htmlStringToHtmlObject", "htmlObjectToHtmlString"]],
         "parameters": {
           "renderAsHtml": false,
-          "maxDatagridCellHeight": 200,
+          "maxDatagridCellHeight": 70,
           "enableInCellEditing": true,
           "grouping": {
             "allowGrouping": false,
@@ -118,8 +120,7 @@
           "filterType": "include",
           "allowSearch": true,
           "editor": {
-            "resize_minHeight": 54,
-            "resize_maxHeight": 270
+            "resize_minHeight": 54
           }
         }
       },
@@ -136,7 +137,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "String": {
@@ -156,7 +158,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -180,7 +183,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "width": 150
       },
@@ -194,7 +198,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "transform": [["lookupObjectId", "stringifyLookupObjectId"]]
       },
@@ -208,7 +213,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "transform": [["lookupObjectId", "stringifyLookupObjectId"]]
       },
@@ -226,7 +232,7 @@
             "allowGrouping": true,
             "allowExpandGroup": true
           },
-          "maxDatagridCellHeight": 200
+          "maxDatagridCellHeight": 70
         },
         "transform": [["objectIdTreeSelector", "stringifyTreeSelector"]]
       },
@@ -241,7 +247,8 @@
           "filterType": "include",
           "allowSearch": true,
           "pickerType": "rollers",
-          "openOnFieldClick": false
+          "openOnFieldClick": false,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -264,7 +271,8 @@
           "filterType": "include",
           "allowSearch": true,
           "pickerType": "rollers",
-          "openOnFieldClick": false
+          "openOnFieldClick": false,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -286,7 +294,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Number": {
@@ -302,7 +311,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Double": {
@@ -318,7 +328,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Int32": {
@@ -334,7 +345,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -359,7 +371,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -369,7 +382,8 @@
               "default": "Please enter correct int64 value"
             }
           }
-        ]
+        ],
+        "transform": [["numberToNumberLong", "numberLongToNumber"]]
       },
       "Decimal128": {
         "autocomplete": "enable",
@@ -384,7 +398,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -409,7 +424,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Double[]": {
@@ -424,7 +440,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Int32[]": {
@@ -440,7 +457,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -465,7 +483,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -490,7 +509,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {
@@ -513,7 +533,8 @@
           },
           "allowHeaderFiltering": false,
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [{ "validator": "boolean" }]
       },
@@ -530,7 +551,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [{ "validator": "triStateBoolean" }]
       },
@@ -550,7 +572,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Schema": {
@@ -589,7 +612,7 @@
             "fullName": "Creator",
             "synthesize": "creator",
             "description": "Record Creator",
-            "permissions": {"view": "accessAsUser", "read": "accessAsUser", "write": "accessForbidden"},
+            "permissions": { "view": "accessAsUser", "read": "accessAsUser", "write": "accessForbidden" },
             "generatorSpecification": {
               "generator": "scgCreator"
             },
@@ -606,7 +629,7 @@
             "fullName": "Created at",
             "synthesize": "createdAt",
             "description": "Record Created At",
-            "permissions": {"read": "accessAsUser", "write": "accessForbidden"},
+            "permissions": { "read": "accessAsUser", "write": "accessForbidden" },
             "index": true,
             "showInDatatable": true,
             "showInViewDetails": true,
@@ -621,7 +644,7 @@
             "fullName": "Updated at",
             "synthesize": "updatedAt",
             "description": "Record Updated At",
-            "permissions": {"read": "accessAsUser", "write": "accessForbidden"},
+            "permissions": { "read": "accessAsUser", "write": "accessForbidden" },
             "index": true,
             "showInDatatable": true,
             "showInViewDetails": true,
@@ -635,7 +658,7 @@
             "type": "DateTime",
             "fullName": "Deleted at",
             "description": "Record Deleted At",
-            "permissions": {"read": "accessAsUser", "write": "accessForbidden"},
+            "permissions": { "read": "accessAsUser", "write": "accessForbidden" },
             "index": true,
             "generatorSpecification": {
               "generator": "scgDeletedAt"
@@ -977,10 +1000,6 @@
           "headerFilter": {
             "visible": true
           },
-          "columnChooser": {
-            "allowSearch": true,
-            "mode": "select"
-          },
           "columnFixing": {
             "enabled": true
           },
@@ -1000,6 +1019,7 @@
             "mode": "multiple"
           },
           "paging": {
+            "enabled": true,
             "pageSize": 10
           },
           "selection": {
@@ -1038,7 +1058,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Email": {
@@ -1067,7 +1088,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Url": {
@@ -1097,7 +1119,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Phone": {
@@ -1126,7 +1149,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Text": {
@@ -1143,7 +1167,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "ImperialHeight": {
@@ -1172,7 +1197,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "ImperialWeight": {
@@ -1190,7 +1216,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "ImperialWeightWithOz": {
@@ -1219,7 +1246,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "File": {
@@ -1234,7 +1262,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Image": {
@@ -1245,7 +1274,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Audio": {
@@ -1256,7 +1286,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Video": {
@@ -1267,7 +1298,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "File[]": {
@@ -1278,7 +1310,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Image[]": {
@@ -1289,7 +1322,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Audio[]": {
@@ -1300,7 +1334,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Video[]": {
@@ -1311,7 +1346,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Blank": {
@@ -1329,7 +1365,8 @@
           "headerFilter": {
             "allowSearch": false
           },
-          "allowSearch": false
+          "allowSearch": false,
+          "maxDatagridCellHeight": 70
         }
       },
       "List": {
@@ -1354,7 +1391,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "List[]": {
@@ -1381,7 +1419,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         }
       },
       "Location": {
@@ -1411,7 +1450,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true
+          "allowSearch": true,
+          "maxDatagridCellHeight": 70
         },
         "validate": [
           {

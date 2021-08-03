@@ -2,35 +2,48 @@ const _ = require('lodash');
 const { updateOutputAndInputTypesByModel } = require('../type/model');
 const { AccessError } = require('../../errors');
 
-function getExternalDatasetsModelName(datasetsRecordId) {
+const datasetsModelName = 'datasets';
+
+function getDatasetRecordSchemaName(datasetsRecordId) {
   return `_ds_${datasetsRecordId}`;
 }
 
-async function addQueriesAndMutationsForDatasetsRecord(record, appLib, addDefaultQueries, addDefaultMutations) {
-  // make a clone to protect changing stored scheme in memory by record ref
-  const recordClone = _.cloneDeep(record);
-  const { scheme, collectionName } = recordClone;
+async function addQueriesAndMutationsForDatasetsRecord(appLib, datasetRecord) {
+  // make a clone to protect changing stored scheme in memory by datasetRecord ref
+  const recordClone = _.cloneDeep(datasetRecord);
+  const { scheme } = recordClone;
+  const schemaName = getDatasetRecordSchemaName(datasetRecord._id);
+  scheme.schemaName = schemaName;
+  appLib.appModel.models[schemaName] = scheme;
 
-  appLib.appModel.models[collectionName] = scheme;
-  // create indexes with 'await', since { background: true } option might be specified
-  await appLib.mutil.createIndexes(collectionName);
-  appLib.datasetModelNames.add(collectionName);
+  const schemeFields = _.get(datasetRecord.scheme, 'fields', {});
+  const schemeFieldNames = _.keys(schemeFields);
+  if (schemeFieldNames.length === 1 && schemeFieldNames[0] === '_id') {
+    return;
+  }
 
-  updateOutputAndInputTypesByModel(scheme, collectionName);
-
-  const modelInfo = { [collectionName]: scheme };
+  const { addDefaultQueries, addDefaultMutations } = appLib.graphQl;
+  const modelInfo = { [schemaName]: scheme };
+  updateOutputAndInputTypesByModel(scheme, schemaName);
   addDefaultQueries(modelInfo);
   addDefaultMutations(modelInfo);
+
+  // create indexes with 'await', since { background: true } option might be specified
+  const collectionName = _.get(recordClone, 'scheme.collectionName', recordClone.collectionName);
+  await appLib.mutil.removeUnusedIndexes({ schemaName, collectionName });
+  await appLib.mutil.createIndexes({ schemaName, collectionName });
+  appLib.datasetModelNames.add(schemaName);
 }
 
-function removeQueriesAndMutationsForDatasetsRecord(appLib, recordId, removeDefaultQueries, removeDefaultMutations) {
-  const collectionName = getExternalDatasetsModelName(recordId);
+function removeQueriesAndMutationsForDatasetsRecord(appLib, datasetRecord) {
+  const { schemaName } = datasetRecord.scheme;
 
-  removeDefaultQueries(collectionName);
-  removeDefaultMutations(collectionName);
+  const { removeDefaultQueries, removeDefaultMutations } = appLib.graphQl;
+  removeDefaultQueries(schemaName);
+  removeDefaultMutations(schemaName);
 
-  delete appLib.appModel.models[collectionName];
-  appLib.datasetModelNames.delete(collectionName);
+  delete appLib.appModel.models[schemaName];
+  appLib.datasetModelNames.delete(schemaName);
 
   appLib.graphQl.connect.rebuildGraphQlSchema();
 }
@@ -50,25 +63,24 @@ function removeQueriesAndMutationsForDatasetsRecord(appLib, recordId, removeDefa
   }
 } */
 
-async function getParentCollectionScheme(appLib, parentCollectionName, datasetsModelName) {
-  const schemeFromModels = appLib.appModel.models[parentCollectionName];
+async function getParentCollectionScheme(appLib, parentCollectionModel) {
+  const schemeFromModels = appLib.appModel.models[parentCollectionModel];
   if (schemeFromModels) {
     return schemeFromModels;
   }
 
   const { record: parentDatasetRecord } = await appLib.db.collection(datasetsModelName).hookQuery('findOne', {
-    collectionName: parentCollectionName,
+    collectionName: appLib.dba.getCollectionName(parentCollectionModel),
     ...appLib.dba.getConditionForActualRecord(datasetsModelName),
   });
   if (parentDatasetRecord) {
     return parentDatasetRecord.scheme;
   }
-  throw new Error(`Parent collection scheme for name ${parentCollectionName} is not found`);
+  throw new Error(`Parent collection scheme for name ${parentCollectionModel} is not found`);
 }
 
 async function getNewSchemeByProjections({
-  datasetsModelName,
-  externalDatasetModelName,
+  datasetRecordSchemaName,
   appLib,
   parentCollectionName,
   projections,
@@ -80,13 +92,13 @@ async function getNewSchemeByProjections({
   const defaultFieldPaths = _.keys(_.get(appLib.appModel, 'typeDefaults.fields.Schema.fields', {}));
   const newSchemeFields = [...fieldPaths, ...defaultFieldPaths];
   newScheme.fields = _.pick(parentCollectionScheme.fields, newSchemeFields);
-  newScheme.schemaName = externalDatasetModelName;
+  newScheme.schemaName = datasetRecordSchemaName;
 
-  fixLookupIdDuplicates(newScheme, [externalDatasetModelName]);
+  fixLookupIdDuplicates(newScheme, [datasetRecordSchemaName]);
   return { newScheme, newSchemeFields, parentCollectionScheme };
 }
 
-async function getCloneRecordsPipeline({
+async function getOutputRecordsPipeline({
   appLib,
   parentCollectionScheme,
   userPermissions,
@@ -95,40 +107,48 @@ async function getCloneRecordsPipeline({
   newSchemeFields,
   outCollectionName,
 }) {
-  // parentCollectionScheme is used for filter to allow filter for example by fields f1 and f2 and export (using projection) only field f2
+  // if user can view records then he can export them
+  const action = 'view';
+  // parentCollectionScheme is used for filtering for example by fields f1 and f2 and export (using projection) only field f2
   const scopeConditionsMeta = await appLib.accessUtil.getScopeConditionsMeta(
     parentCollectionScheme,
     userPermissions,
     inlineContext,
-    'create'
+    action
   );
   const { conditions: filterConditions } = appLib.filterParser.parse(filter.dxQuery, parentCollectionScheme);
   const scopeConditions = scopeConditionsMeta.overallConditions;
-  const cloneConditions = appLib.butil.MONGO.and(
+  const viewConditions = appLib.butil.MONGO.and(
     appLib.dba.getConditionForActualRecord(parentCollectionScheme.schemaName),
     scopeConditions,
     filterConditions
   );
 
-  if (cloneConditions === false) {
+  if (viewConditions === false) {
     throw new AccessError(`Not enough permissions to perform operation.`);
   }
 
-  const project = _.reduce(
-    newSchemeFields,
-    (res, projection) => {
-      res[projection] = 1;
-      return res;
-    },
-    {}
-  );
-  return [{ $match: cloneConditions }, { $project: project }, { $out: outCollectionName }];
+  const pipeline = [];
+  if (viewConditions !== true) {
+    pipeline.push({ $match: viewConditions });
+  }
+  const project = {};
+  _.each(newSchemeFields, (fieldProjection) => {
+    project[fieldProjection] = 1;
+  });
+  if (!_.isEmpty(project)) {
+    pipeline.push({ $project: project });
+  }
+  pipeline.push({ $out: outCollectionName });
+
+  return pipeline;
 }
 
 module.exports = {
-  getExternalDatasetsModelName,
+  getDatasetRecordSchemaName,
   addQueriesAndMutationsForDatasetsRecord,
-  getNewSchemeByProjections,
-  getCloneRecordsPipeline,
   removeQueriesAndMutationsForDatasetsRecord,
+  getNewSchemeByProjections,
+  getOutputRecordsPipeline,
+  datasetsModelName,
 };

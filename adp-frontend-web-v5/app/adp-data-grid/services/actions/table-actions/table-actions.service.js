@@ -1,6 +1,5 @@
 ;(function () {
   'use strict';
-  var ROW_POSITION_SIGNATURE = "grid.row";
 
   angular
     .module('app.adpDataGrid')
@@ -8,15 +7,13 @@
 
   /** @ngInject */
   function GridTableActions(
-    GridActionsTemplate
+    GridActionsTemplate,
+    ActionsHelpers
   ) {
     return function (options, schema, customGridOptions) {
-      var tableActions = _.pickBy(schema.actions.fields, function (action) {
-        // ToDo: ShowInTable is deprecated so here for compatibility reasons only
-        return _.startsWith(action.position, ROW_POSITION_SIGNATURE) || _.get(action, 'showInTable', true);
-      });
+      var tableActions = ActionsHelpers.pickTableActions(schema);
 
-      if (actionsIsEmpty(tableActions)) {
+      if (ActionsHelpers.actionsIsEmpty(tableActions)) {
         return;
       }
 
@@ -49,12 +46,6 @@
         var template = GridActionsTemplate(permittedActions, cellInfo, schema, customGridOptions);
         container.append(template);
       }
-    }
-
-    function actionsIsEmpty(actions) {
-      var actionNames = _.keys(actions);
-      var hasOnlyViewsKey = actionNames.length === 0 && actionNames[0] === 'view';
-      return _.isEmpty(actions) || hasOnlyViewsKey;
     }
   }
 })();

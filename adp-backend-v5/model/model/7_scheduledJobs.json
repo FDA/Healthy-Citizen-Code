@@ -42,9 +42,9 @@
           "required": true,
           "list": {
             "values": {
-              "cron": "cron",
-              "repeat": "repeat",
-              "delayed": "delayed"
+              "cron": "Crontab",
+              "repeat": "Repeat",
+              "delayed": "Delayed"
             },
             "scopes": {
               "userScope": {
@@ -60,15 +60,34 @@
         "repeat": {
           "type": "Object",
           "fullName": "Schedule options",
+          "show": "!!this.row.type",
           "fields": {
             "cron": {
               "type": "CronExpression",
               "show": "this.row.type === 'cron'"
             },
             "tz": {
-              "type": "String",
+              "type": "Object",
               "fullName": "Timezone",
-              "show": "['cron', 'delayed'].includes(this.row.type)"
+              "formRender": {
+                "formRenderer": "timeZoneControl"
+              },
+              "show": "['cron', 'delayed'].includes(this.row.type)",
+              "fields": {
+                "value": {
+                  "type": "String"
+                },
+                "isClient": {
+                  "type": "Boolean",
+                  "visible": false,
+                  "showInGraphql": true
+                },
+                "isServer": {
+                  "type": "Boolean",
+                  "visible": false,
+                  "showInGraphql": true
+                }
+              }
             },
             "startDate": {
               "type": "DateTime",

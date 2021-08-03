@@ -22,21 +22,18 @@ function getNodeObjectHashFunction() {
   return (args) => nodeObjectHasher.hash(args);
 }
 
-function getHashObjectFunction() {
-  if (process.env.USE_FARMHASH === 'true') {
+function getHashObjectFunction(useFarmhash) {
+  if (useFarmhash) {
     return getFarmhashFunction();
   }
   return getNodeObjectHashFunction();
 }
 
 function md5(str) {
-  return crypto
-    .createHash('md5')
-    .update(str)
-    .digest('hex');
+  return crypto.createHash('md5').update(str).digest('hex');
 }
 
 module.exports = {
-  hashObject: getHashObjectFunction(),
+  getHashObjectFunction,
   md5,
 };

@@ -1,0 +1,6664 @@
+{
+  "Account.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Device",
+      "Practitioner",
+      "Location",
+      "HealthcareService",
+      "Organization"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Account.coverage.coverage": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Coverage"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Account.owner": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Account.guarantor.party": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "RelatedPerson",
+      "Organization"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ActivityDefinition.library": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Library"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ActivityDefinition.location": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ActivityDefinition.product[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Medication",
+      "Substance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ActivityDefinition.transform": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "StructureMap"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "AdverseEvent.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "ResearchSubject",
+      "Medication",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "AdverseEvent.reaction": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "AdverseEvent.location": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "AdverseEvent.recorder": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "AdverseEvent.eventParticipant": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "AdverseEvent.suspectEntity.instance": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Substance",
+      "Medication",
+      "MedicationAdministration",
+      "MedicationStatement",
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "AdverseEvent.suspectEntity.causalityAuthor": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "PractitionerRole"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "AdverseEvent.subjectMedicalHistory": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation",
+      "AllergyIntolerance",
+      "FamilyMemberHistory",
+      "Immunization",
+      "Procedure"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "AdverseEvent.referenceDocument": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "DocumentReference"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "AdverseEvent.study": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ResearchStudy"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "AllergyIntolerance.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "AllergyIntolerance.recorder": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "AllergyIntolerance.asserter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "RelatedPerson",
+      "Practitioner"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Appointment.indication": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Procedure"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Appointment.supportingInformation": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Appointment.slot": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Slot"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Appointment.incomingReferral": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Appointment.participant.actor": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Device",
+      "HealthcareService",
+      "Location"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "AppointmentResponse.appointment": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Appointment"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "AppointmentResponse.actor": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Device",
+      "HealthcareService",
+      "Location"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "AuditEvent.agent.reference": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Device",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "AuditEvent.agent.location": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "AuditEvent.entity.reference": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Basic.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Basic.author": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Binary.securityContext": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "BodySite.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "CapabilityStatement.profile": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "StructureDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CapabilityStatement.rest.resource.profile": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "StructureDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CapabilityStatement.rest.operation.definition": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "OperationDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "CapabilityStatement.messaging.supportedMessage.definition": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "MessageDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "CapabilityStatement.messaging.event.request": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "StructureDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "CapabilityStatement.messaging.event.response": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "StructureDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "CapabilityStatement.document.profile": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "StructureDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "CarePlan.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "PlanDefinition",
+      "Questionnaire"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CarePlan"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.replaces": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CarePlan"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CarePlan"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "CarePlan.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CarePlan.author": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Organization",
+      "CareTeam"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.careTeam": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CareTeam"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.addresses": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.supportingInfo": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.goal": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Goal"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.activity.outcomeReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.activity.reference": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Appointment",
+      "CommunicationRequest",
+      "DeviceRequest",
+      "MedicationRequest",
+      "NutritionOrder",
+      "Task",
+      "ProcedureRequest",
+      "ReferralRequest",
+      "VisionPrescription",
+      "RequestGroup"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CarePlan.activity.detail.definition": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "PlanDefinition",
+      "ActivityDefinition",
+      "Questionnaire"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CarePlan.activity.detail.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.activity.detail.goal": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Goal"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.activity.detail.location": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CarePlan.activity.detail.performer": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "RelatedPerson",
+      "Patient",
+      "CareTeam"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CarePlan.activity.detail.product[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Medication",
+      "Substance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CareTeam.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "CareTeam.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CareTeam.participant.member": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "RelatedPerson",
+      "Patient",
+      "Organization",
+      "CareTeam"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "CareTeam.participant.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CareTeam.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CareTeam.managingOrganization": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ChargeItem.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ChargeItem"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ChargeItem.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ChargeItem.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ChargeItem.participant.actor": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "Device",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ChargeItem.performingOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ChargeItem.requestingOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ChargeItem.enterer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "Device",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "ChargeItem.service": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "DiagnosticReport",
+      "ImagingStudy",
+      "Immunization",
+      "MedicationAdministration",
+      "MedicationDispense",
+      "Observation",
+      "Procedure",
+      "SupplyDelivery"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ChargeItem.account": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Account"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ChargeItem.supportingInformation": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Claim.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.enterer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.insurer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.provider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.related.claim": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Claim"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.prescription": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "MedicationRequest",
+      "VisionPrescription"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.originalPrescription": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "MedicationRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.payee.party": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.referral": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.facility": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.careTeam.provider": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Claim.information.value[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.diagnosis.diagnosis[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Claim.procedure.procedure[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Procedure"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Claim.insurance.coverage": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Coverage"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Claim.insurance.claimResponse": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ClaimResponse"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.accident.location[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.item.location[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Claim.item.udi": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Claim.item.encounter": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Claim.item.detail.udi": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Claim.item.detail.subDetail.udi": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ClaimResponse.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "ClaimResponse.insurer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ClaimResponse.requestProvider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ClaimResponse.requestOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ClaimResponse.request": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Claim"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ClaimResponse.communicationRequest": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CommunicationRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ClaimResponse.insurance.coverage": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Coverage"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "ClaimResponse.insurance.claimResponse": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ClaimResponse"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ClinicalImpression.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ClinicalImpression.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ClinicalImpression.assessor": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ClinicalImpression.previous": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ClinicalImpression"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ClinicalImpression.problem": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "AllergyIntolerance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ClinicalImpression.investigation.item": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Observation",
+      "QuestionnaireResponse",
+      "FamilyMemberHistory",
+      "DiagnosticReport",
+      "RiskAssessment",
+      "ImagingStudy"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ClinicalImpression.finding.item[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Condition",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "ClinicalImpression.prognosisReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "RiskAssessment"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ClinicalImpression.action": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ReferralRequest",
+      "ProcedureRequest",
+      "Procedure",
+      "MedicationRequest",
+      "Appointment"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Communication.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "PlanDefinition",
+      "ActivityDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Communication.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Communication.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Communication.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Communication.recipient": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Group"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Communication.topic": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Communication.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Communication.sender": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Communication.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Communication.payload.content[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "CommunicationRequest.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CommunicationRequest.replaces": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CommunicationRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CommunicationRequest.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "CommunicationRequest.recipient": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Group",
+      "CareTeam"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CommunicationRequest.topic": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "CommunicationRequest.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CommunicationRequest.payload.content[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "CommunicationRequest.sender": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "CommunicationRequest.requester.agent": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "RelatedPerson",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "CommunicationRequest.requester.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "CommunicationRequest.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Composition.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Composition.encounter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Composition.author": {
+    "min": "1",
+    "max": "*",
+    "refs": [
+      "Practitioner",
+      "Device",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": true
+  },
+  "Composition.attester.party": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Composition.custodian": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Composition.relatesTo.target[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Composition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Composition.event.detail": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Composition.section.entry": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ConceptMap.source[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ValueSet"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ConceptMap.target[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ValueSet"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Condition.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Condition.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Condition.asserter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Condition.stage.assessment": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ClinicalImpression",
+      "DiagnosticReport",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Condition.evidence.detail": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Consent.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Consent.consentingParty": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Consent.actor.reference": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Group",
+      "CareTeam",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Consent.organization": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Consent.source[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Consent",
+      "DocumentReference",
+      "Contract",
+      "QuestionnaireResponse"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Consent.data.reference": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Consent.except.actor.reference": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Group",
+      "CareTeam",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Consent.except.data.reference": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Contract.subject": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Contract.topic": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Contract.authority": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Contract.domain": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Contract.agent.actor": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Contract",
+      "Device",
+      "Group",
+      "Location",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Substance"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Contract.signer.party": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Contract.valuedItem.entity[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Contract.term.topic": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Contract.term.agent.actor": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Contract",
+      "Device",
+      "Group",
+      "Location",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Substance"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Contract.term.valuedItem.entity[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Contract.binding[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Composition",
+      "DocumentReference",
+      "QuestionnaireResponse"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Contract.friendly.content[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Composition",
+      "DocumentReference",
+      "QuestionnaireResponse"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Contract.legal.content[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Composition",
+      "DocumentReference",
+      "QuestionnaireResponse"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Contract.rule.content[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "DocumentReference"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Coverage.policyHolder": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "RelatedPerson",
+      "Organization"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Coverage.subscriber": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Coverage.beneficiary": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Coverage.payor": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Organization",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Coverage.contract": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Contract"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DetectedIssue.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "DetectedIssue.author": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DetectedIssue.implicated": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DetectedIssue.mitigation.author": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Device.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Device.owner": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Device.location": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DeviceComponent.source": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DeviceComponent.parent": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "DeviceComponent"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DeviceMetric.source": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DeviceMetric.parent": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "DeviceComponent"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DeviceRequest.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ActivityDefinition",
+      "PlanDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DeviceRequest.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DeviceRequest.priorRequest": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DeviceRequest.code[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "DeviceRequest.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group",
+      "Location",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "DeviceRequest.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DeviceRequest.requester.agent": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "DeviceRequest.requester.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DeviceRequest.performer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "Device",
+      "RelatedPerson",
+      "HealthcareService"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "DeviceRequest.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DeviceRequest.supportingInfo": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DeviceRequest.relevantHistory": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Provenance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DeviceUseStatement.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "DeviceUseStatement.source": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "DeviceUseStatement.device": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "DiagnosticReport.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CarePlan",
+      "ImmunizationRecommendation",
+      "MedicationRequest",
+      "NutritionOrder",
+      "ProcedureRequest",
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DiagnosticReport.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group",
+      "Device",
+      "Location"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "DiagnosticReport.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DiagnosticReport.performer.actor": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "DiagnosticReport.specimen": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Specimen"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DiagnosticReport.result": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DiagnosticReport.imagingStudy": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ImagingStudy",
+      "ImagingManifest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DiagnosticReport.image.link": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Media"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "DocumentManifest.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "Group",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "DocumentManifest.author": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Device",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DocumentManifest.recipient": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DocumentManifest.content.p[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "DocumentManifest.related.ref": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DocumentReference.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "Group",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "DocumentReference.author": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Device",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "DocumentReference.authenticator": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DocumentReference.custodian": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DocumentReference.relatesTo.target": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "DocumentReference"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "DocumentReference.context.encounter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "DocumentReference.context.sourcePatientInfo": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "DocumentReference.context.related.ref": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityRequest.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityRequest.enterer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityRequest.provider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityRequest.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityRequest.insurer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityRequest.facility": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityRequest.coverage": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Coverage"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityResponse.requestProvider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityResponse.requestOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityResponse.request": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "EligibilityRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityResponse.insurer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityResponse.insurance.coverage": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Coverage"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EligibilityResponse.insurance.contract": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Contract"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Encounter.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Encounter.episodeOfCare": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Encounter.incomingReferral": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Encounter.participant.individual": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Encounter.appointment": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Appointment"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Encounter.diagnosis.condition": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Condition",
+      "Procedure"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Encounter.account": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Account"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Encounter.hospitalization.origin": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Encounter.hospitalization.destination": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Encounter.location.location": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Encounter.serviceProvider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Encounter.partOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Endpoint.managingOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EnrollmentRequest.insurer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EnrollmentRequest.provider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EnrollmentRequest.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EnrollmentRequest.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "EnrollmentRequest.coverage": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Coverage"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EnrollmentResponse.request": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "EnrollmentRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EnrollmentResponse.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EnrollmentResponse.requestProvider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EnrollmentResponse.requestOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EpisodeOfCare.diagnosis.condition": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "EpisodeOfCare.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "EpisodeOfCare.managingOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EpisodeOfCare.referralRequest": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "EpisodeOfCare.careManager": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "EpisodeOfCare.team": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CareTeam"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "EpisodeOfCare.account": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Account"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ExplanationOfBenefit.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.enterer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.insurer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.provider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.referral": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.facility": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.claim": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Claim"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.claimResponse": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ClaimResponse"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.related.claim": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Claim"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.prescription": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "MedicationRequest",
+      "VisionPrescription"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.originalPrescription": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "MedicationRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.payee.party": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.information.value[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.careTeam.provider": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.diagnosis.diagnosis[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.procedure.procedure[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Procedure"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.insurance.coverage": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Coverage"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.accident.location[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.item.location[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ExplanationOfBenefit.item.udi": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ExplanationOfBenefit.item.encounter": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ExplanationOfBenefit.item.detail.udi": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ExplanationOfBenefit.item.detail.subDetail.udi": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "FamilyMemberHistory.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "PlanDefinition",
+      "Questionnaire"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "FamilyMemberHistory.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "FamilyMemberHistory.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation",
+      "AllergyIntolerance",
+      "QuestionnaireResponse"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Flag.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Location",
+      "Group",
+      "Organization",
+      "Practitioner",
+      "PlanDefinition",
+      "Medication",
+      "Procedure"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Flag.encounter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Flag.author": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Organization",
+      "Patient",
+      "Practitioner"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Goal.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group",
+      "Organization"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Goal.expressedBy": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Goal.addresses": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation",
+      "MedicationStatement",
+      "NutritionOrder",
+      "ProcedureRequest",
+      "RiskAssessment"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Goal.outcomeReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Group.member.entity": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "Device",
+      "Medication",
+      "Substance"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "GuidanceResponse.module": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "ServiceDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "GuidanceResponse.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "GuidanceResponse.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "GuidanceResponse.performer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "GuidanceResponse.reason[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "GuidanceResponse.evaluationMessage": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "OperationOutcome"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "GuidanceResponse.outputParameters": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Parameters"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "GuidanceResponse.result": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "CarePlan",
+      "RequestGroup"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "HealthcareService.providedBy": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "HealthcareService.location": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "HealthcareService.coverageArea": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "HealthcareService.endpoint": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Endpoint"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImagingManifest.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ImagingManifest.author": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Device",
+      "Organization",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "ImagingManifest.study.imagingStudy": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ImagingStudy"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ImagingManifest.study.endpoint": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Endpoint"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImagingManifest.study.series.endpoint": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Endpoint"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImagingStudy.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ImagingStudy.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ImagingStudy.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ReferralRequest",
+      "CarePlan",
+      "ProcedureRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImagingStudy.referrer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ImagingStudy.interpreter": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImagingStudy.endpoint": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Endpoint"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImagingStudy.procedureReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Procedure"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImagingStudy.series.endpoint": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Endpoint"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImagingStudy.series.performer": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Immunization.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Immunization.encounter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Immunization.location": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Immunization.manufacturer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Immunization.practitioner.actor": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Immunization.reaction.detail": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Immunization.vaccinationProtocol.authority": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ImmunizationRecommendation.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ImmunizationRecommendation.recommendation.protocol.authority": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ImmunizationRecommendation.recommendation.supportingImmunization": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Immunization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImmunizationRecommendation.recommendation.supportingPatientInformation": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Observation",
+      "AllergyIntolerance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ImplementationGuide.package.resource.source[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "ImplementationGuide.package.resource.exampleFor": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "StructureDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ImplementationGuide.global.profile": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "StructureDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Linkage.author": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Linkage.item.resource": {
+    "min": "1",
+    "max": "1",
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "List.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group",
+      "Device",
+      "Location"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "List.encounter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "List.source": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Patient",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "List.entry.item": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Location.managingOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Location.partOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Location.endpoint": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Endpoint"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Measure.library": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Library"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MeasureReport.measure": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Measure"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "MeasureReport.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "MeasureReport.reportingOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MeasureReport.group.population.patients": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "List"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MeasureReport.group.stratifier.stratum.population.patients": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "List"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MeasureReport.evaluatedResources": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Bundle"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Media.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ProcedureRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Media.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "Group",
+      "Device",
+      "Specimen"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Media.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Media.operator": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Media.device": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device",
+      "DeviceMetric"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Medication.manufacturer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Medication.ingredient.item[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Substance",
+      "Medication"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Medication.package.content.item[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Medication"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationAdministration.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "PlanDefinition",
+      "ActivityDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationAdministration.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "MedicationAdministration",
+      "Procedure"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationAdministration.medication[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Medication"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationAdministration.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationAdministration.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationAdministration.supportingInformation": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationAdministration.performer.actor": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Patient",
+      "RelatedPerson",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationAdministration.performer.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationAdministration.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationAdministration.prescription": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "MedicationRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationAdministration.device": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationAdministration.eventHistory": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Provenance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationDispense.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Procedure"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationDispense.medication[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Medication"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationDispense.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationDispense.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationDispense.supportingInformation": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationDispense.performer.actor": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "Device",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationDispense.performer.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationDispense.authorizingPrescription": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "MedicationRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationDispense.destination": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationDispense.receiver": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Patient",
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationDispense.substitution.responsibleParty": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationDispense.detectedIssue": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "DetectedIssue"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationDispense.notDoneReason[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "DetectedIssue"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationDispense.eventHistory": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Provenance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationRequest.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ActivityDefinition",
+      "PlanDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationRequest.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CarePlan",
+      "MedicationRequest",
+      "ProcedureRequest",
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationRequest.medication[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Medication"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationRequest.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationRequest.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationRequest.supportingInformation": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationRequest.requester.agent": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "RelatedPerson",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationRequest.requester.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationRequest.recorder": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationRequest.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationRequest.dispenseRequest.performer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationRequest.priorPrescription": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "MedicationRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationRequest.detectedIssue": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "DetectedIssue"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationRequest.eventHistory": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Provenance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationStatement.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "MedicationRequest",
+      "CarePlan",
+      "ProcedureRequest",
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationStatement.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "MedicationAdministration",
+      "MedicationDispense",
+      "MedicationStatement",
+      "Procedure",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationStatement.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationStatement.medication[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Medication"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationStatement.informationSource": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Organization"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "MedicationStatement.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "MedicationStatement.derivedFrom": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MedicationStatement.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MessageDefinition.base": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "MessageDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MessageDefinition.parent": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ActivityDefinition",
+      "PlanDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MessageDefinition.replaces": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "MessageDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "MessageDefinition.focus.profile": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "StructureDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MessageDefinition.allowedResponse.message": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "MessageDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "MessageHeader.destination.target": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MessageHeader.receiver": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MessageHeader.sender": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MessageHeader.enterer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MessageHeader.author": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MessageHeader.responsible": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MessageHeader.response.details": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "OperationOutcome"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "MessageHeader.focus": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "NamingSystem.replacedBy": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "NamingSystem"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "NutritionOrder.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "NutritionOrder.encounter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "NutritionOrder.orderer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "NutritionOrder.allergyIntolerance": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "AllergyIntolerance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Observation.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CarePlan",
+      "DeviceRequest",
+      "ImmunizationRecommendation",
+      "MedicationRequest",
+      "NutritionOrder",
+      "ProcedureRequest",
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Observation.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group",
+      "Device",
+      "Location"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Observation.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Observation.performer": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Observation.specimen": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Specimen"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Observation.device": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device",
+      "DeviceMetric"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Observation.related.target": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Observation",
+      "QuestionnaireResponse",
+      "Sequence"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "OperationDefinition.base": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "OperationDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "OperationDefinition.parameter.profile": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "StructureDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "OperationDefinition.parameter.binding.valueSet[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "ValueSet"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Organization.partOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Organization.endpoint": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Endpoint"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Parameters.parameter.value[x]": {
+    "min": "0",
+    "max": "1",
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Patient.contact.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Patient.generalPractitioner": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Organization",
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Patient.managingOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Patient.link.other": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "PaymentNotice.request": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentNotice.response": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentNotice.target": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentNotice.provider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentNotice.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentReconciliation.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentReconciliation.request": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ProcessRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentReconciliation.requestProvider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentReconciliation.requestOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentReconciliation.detail.request": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentReconciliation.detail.response": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentReconciliation.detail.submitter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PaymentReconciliation.detail.payee": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Person.managingOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Person.link.target": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Person"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "PlanDefinition.library": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Library"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "PlanDefinition.action.definition": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ActivityDefinition",
+      "PlanDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PlanDefinition.action.transform": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "StructureMap"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Practitioner.qualification.issuer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PractitionerRole.practitioner": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PractitionerRole.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "PractitionerRole.location": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "PractitionerRole.healthcareService": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "HealthcareService"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "PractitionerRole.endpoint": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Endpoint"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Procedure.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "PlanDefinition",
+      "ActivityDefinition",
+      "HealthcareService"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Procedure.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CarePlan",
+      "ProcedureRequest",
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Procedure.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Procedure",
+      "Observation",
+      "MedicationAdministration"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Procedure.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Procedure.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Procedure.performer.actor": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "RelatedPerson",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Procedure.performer.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Procedure.location": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Procedure.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Procedure.report": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "DiagnosticReport"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Procedure.complicationDetail": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Procedure.focalDevice.manipulated": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Procedure.usedReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Device",
+      "Medication",
+      "Substance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ProcedureRequest.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ActivityDefinition",
+      "PlanDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ProcedureRequest.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ProcedureRequest.replaces": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ProcedureRequest.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group",
+      "Location",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ProcedureRequest.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcedureRequest.requester.agent": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "ProcedureRequest.requester.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcedureRequest.performer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "Device",
+      "RelatedPerson",
+      "HealthcareService"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcedureRequest.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ProcedureRequest.supportingInfo": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ProcedureRequest.specimen": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Specimen"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ProcedureRequest.relevantHistory": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Provenance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ProcessRequest.target": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcessRequest.provider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcessRequest.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcessRequest.request": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcessRequest.response": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcessResponse.organization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcessResponse.request": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcessResponse.requestProvider": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcessResponse.requestOrganization": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ProcessResponse.communicationRequest": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "CommunicationRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Provenance.target": {
+    "min": "1",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": true
+  },
+  "Provenance.location": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Provenance.agent.who[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "RelatedPerson",
+      "Patient",
+      "Device",
+      "Organization"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Provenance.agent.onBehalfOf[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "RelatedPerson",
+      "Patient",
+      "Device",
+      "Organization"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Provenance.entity.what[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Questionnaire.item.enableWhen.answer[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Questionnaire.item.options": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ValueSet"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Questionnaire.item.initial[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "QuestionnaireResponse.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ReferralRequest",
+      "CarePlan",
+      "ProcedureRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "QuestionnaireResponse.parent": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Observation",
+      "Procedure"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "QuestionnaireResponse.questionnaire": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Questionnaire"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "QuestionnaireResponse.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "QuestionnaireResponse.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "QuestionnaireResponse.author": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Practitioner",
+      "Patient",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "QuestionnaireResponse.source": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "QuestionnaireResponse.item.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "QuestionnaireResponse.item.answer.value[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ReferralRequest.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ActivityDefinition",
+      "PlanDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ReferralRequest.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ReferralRequest",
+      "CarePlan",
+      "ProcedureRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ReferralRequest.replaces": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ReferralRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ReferralRequest.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ReferralRequest.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ReferralRequest.requester.agent": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "RelatedPerson",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ReferralRequest.requester.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ReferralRequest.recipient": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "HealthcareService"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ReferralRequest.reasonReference": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Condition",
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ReferralRequest.supportingInfo": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ReferralRequest.relevantHistory": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Provenance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "RelatedPerson.patient": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "RequestGroup.definition": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "RequestGroup.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "RequestGroup.replaces": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "RequestGroup.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "RequestGroup.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RequestGroup.author": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RequestGroup.reason[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RequestGroup.action.participant": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Patient",
+      "Person",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "RequestGroup.action.resource": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ResearchStudy.protocol": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "PlanDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ResearchStudy.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ResearchStudy"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ResearchStudy.enrollment": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Group"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ResearchStudy.sponsor": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ResearchStudy.principalInvestigator": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "ResearchStudy.site": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ResearchSubject.study": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "ResearchStudy"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "ResearchSubject.individual": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "ResearchSubject.consent": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Consent"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RiskAssessment.basedOn": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RiskAssessment.parent": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RiskAssessment.subject": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "RiskAssessment.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RiskAssessment.condition": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RiskAssessment.performer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RiskAssessment.reason[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "RiskAssessment.basis": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Schedule.actor": {
+    "min": "1",
+    "max": "*",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "PractitionerRole",
+      "RelatedPerson",
+      "Device",
+      "HealthcareService",
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": true
+  },
+  "SearchParameter.component.definition": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "SearchParameter"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Sequence.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Sequence.specimen": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Specimen"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Sequence.device": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Sequence.performer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Sequence.referenceSeq.referenceSeqPointer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Sequence"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Sequence.variant.variantPointer": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Observation"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Sequence.pointer": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Sequence"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "ServiceDefinition.operationDefinition": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "OperationDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Slot.schedule": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Schedule"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Specimen.subject": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Patient",
+      "Group",
+      "Device",
+      "Substance"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Specimen.parent": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Specimen"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Specimen.request": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "ProcedureRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Specimen.collection.collector": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Specimen.processing.additive": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Substance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Specimen.container.additive[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Substance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "StructureMap.group.rule.source.defaultValue[x]": {
+    "min": "0",
+    "max": "1",
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Substance.ingredient.substance[x]": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Substance"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "SupplyDelivery.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "SupplyRequest"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "SupplyDelivery.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "SupplyDelivery",
+      "Contract"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "SupplyDelivery.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "SupplyDelivery.suppliedItem.item[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Medication",
+      "Substance",
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "SupplyDelivery.supplier": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "SupplyDelivery.destination": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "SupplyDelivery.receiver": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "SupplyRequest.orderedItem.item[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Medication",
+      "Substance",
+      "Device"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "SupplyRequest.requester.agent": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Practitioner",
+      "Organization",
+      "Patient",
+      "RelatedPerson",
+      "Device"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "SupplyRequest.requester.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "SupplyRequest.supplier": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "SupplyRequest.reason[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "SupplyRequest.deliverFrom": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization",
+      "Location"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "SupplyRequest.deliverTo": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization",
+      "Location",
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Task.definition[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "ActivityDefinition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Task.basedOn": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Task.partOf": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Task"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Task.focus": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Task.for": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Task.context": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter",
+      "EpisodeOfCare"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Task.requester.agent": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": true,
+    "isMultiple": false
+  },
+  "Task.requester.onBehalfOf": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "Task.owner": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Device",
+      "Organization",
+      "Patient",
+      "Practitioner",
+      "RelatedPerson"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "Task.relevantHistory": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Provenance"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Task.restriction.recipient": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Patient",
+      "Practitioner",
+      "RelatedPerson",
+      "Group",
+      "Organization"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "Task.input.value[x]": {
+    "min": "1",
+    "max": "1",
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "Task.output.value[x]": {
+    "min": "1",
+    "max": "1",
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "TestReport.testScript": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "TestScript"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "TestScript.metadata.capability.capabilities": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "CapabilityStatement"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "TestScript.fixture.resource": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "TestScript.profile": {
+    "min": "0",
+    "max": "*",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": true
+  },
+  "TestScript.rule.resource": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "TestScript.ruleset.resource": {
+    "min": "1",
+    "max": "1",
+    "refs": [
+      "Resource"
+    ],
+    "isPhiUsed": false,
+    "required": true,
+    "isMultiple": false
+  },
+  "VisionPrescription.patient": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Patient"
+    ],
+    "isPhiUsed": true,
+    "required": false,
+    "isMultiple": false
+  },
+  "VisionPrescription.encounter": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Encounter"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "VisionPrescription.prescriber": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Practitioner"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  },
+  "VisionPrescription.reason[x]": {
+    "min": "0",
+    "max": "1",
+    "refs": [
+      "Condition"
+    ],
+    "isPhiUsed": false,
+    "required": false,
+    "isMultiple": false
+  }
+}

@@ -22,6 +22,13 @@ async function mongoConnect(url) {
   )).db();
 }
 
+async function getMongoConnection (url, connectionOpts = connectionOptions) {
+  const client = await connect(url, connectionOpts);
+  const db = client.db(client.s.options.dbName);
+  db.close = client.close.bind(client);
+  return db;
+}
+
 async function setUpdateAtIfRecordChanged(collection, updateFunc, condition, update, options = {}) {
   const now = new Date();
   const res = await collection[updateFunc](condition, update, options);
@@ -58,6 +65,7 @@ async function insertOrReplaceDocByCondition(newDoc, collection, condition) {
 
 module.exports = {
   mongoConnect,
+  getMongoConnection,
   setUpdateAtIfRecordChanged,
   insertOrReplaceNewDoc,
   insertOrReplaceDocByCondition,

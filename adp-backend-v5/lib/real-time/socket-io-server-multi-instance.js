@@ -1,16 +1,23 @@
 const _ = require('lodash');
+const isCircular = require('is-circular');
+const stringifySafe = require('json-stringify-safe');
 const redisAdapter = require('socket.io-redis');
 
 const { getRedisConnection } = require('../util/redis');
-const { addAuthentication, getSocketIoServer } = require('./common');
-const { getEventManager } = require('./event-manager');
+const { addAuthAndSubscriptions, getSocketIoServer } = require('./common');
+const { getActionManager } = require('./action-manager');
+const { getSubscriptionManager } = require('./subscription-manager');
 
 module.exports = ({ appLib, socketIoOpts, namespace, redisUrl, keyPrefix, log }) => {
   const m = {};
 
   m.ioServer = null;
-  const eventManager = getEventManager(appLib);
-  m.addEvent = eventManager.addEvent.bind(eventManager);
+
+  const actionManager = getActionManager(appLib);
+  m.addAction = actionManager.addAction.bind(actionManager);
+
+  const subscriptionManager = getSubscriptionManager(appLib);
+  m.addSubscription = subscriptionManager.addSubscription.bind(subscriptionManager);
 
   m.build = async (server) => {
     try {
@@ -24,20 +31,43 @@ module.exports = ({ appLib, socketIoOpts, namespace, redisUrl, keyPrefix, log })
       throw new Error(`Unable to connect Socket.io_Redis by url '${redisUrl}'.`);
     }
 
-    addAuthentication({ appLib, io: m.ioServer, log });
+    addAuthAndSubscriptions({ appLib, io: m.ioServer, log, subscriptionManager });
+    buildCustomHookForActions();
+    addPerformAction();
+  };
 
-    buildCustomHookForEvents();
+  function buildCustomHookForActions() {
+    m.ioServer.of(namespace).adapter.customHook = async function (requestData, cb) {
+      const actionType = _.get(requestData, 'type');
+      const actionSpec = actionManager.actionSpecs[actionType];
+      if (!actionSpec) {
+        throw new Error(`Invalid action type '${actionType}'`);
+      }
 
-    m.sendRequest = async (type, data) => {
-      const eventSpec = eventManager.eventSpecs[type];
-      if (!eventSpec) {
-        throw new Error(`Invalid event type '${type}'`);
+      try {
+        const ioNamespace = this.nsp;
+        const result = await actionSpec.hook.call(ioNamespace, requestData.data);
+        cb(result);
+      } catch (e) {
+        throw new Error(`Error occurred in customHook for data ${requestData}'`);
+      }
+    };
+  }
+
+  function addPerformAction() {
+    m.performAction = async (type, data) => {
+      const actionSpec = actionManager.actionSpecs[type];
+      if (!actionSpec) {
+        throw new Error(`Invalid action type '${type}'`);
+      }
+      if (isCircular(data)) {
+        throw new Error(`Invalid data having circular references sent for performAction with type '${type}': ${stringifySafe(data)}`);
       }
 
       return new Promise((resolve, reject) => {
-        m.ioServer.of(namespace).adapter.customRequest({ type, data }, function (err, replies) {
+        m.ioServer.of(namespace).adapter.customRequest({ type, data }, (err, replies) => {
           try {
-            const result = eventSpec.repliesHandler(err, replies);
+            const result = actionSpec.repliesHandler(err, replies);
             resolve(result);
           } catch (e) {
             reject(e);
@@ -45,25 +75,7 @@ module.exports = ({ appLib, socketIoOpts, namespace, redisUrl, keyPrefix, log })
         });
       });
     };
-
-    function buildCustomHookForEvents() {
-      m.ioServer.of(namespace).adapter.customHook = async function (requestData, cb) {
-        const eventType = _.get(requestData, 'type');
-        const eventSpec = eventManager.eventSpecs[eventType];
-        if (!eventSpec) {
-          throw new Error(`Invalid event type '${eventType}'`);
-        }
-
-        try {
-          const ioNamespace = this.nsp;
-          const result = await eventSpec.hook.call(ioNamespace, requestData.data);
-          cb(result);
-        } catch (e) {
-          throw new Error(`Error occurred in customHook for data ${requestData}'`);
-        }
-      };
-    }
-  };
+  }
 
   return m;
 };

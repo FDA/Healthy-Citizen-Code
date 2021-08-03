@@ -1,0 +1,43 @@
+{
+  "models": {
+    "_trinoSchema": {
+      "type": "Schema",
+      "description": "This collection contains trino schema",
+      "cacheOptions": {
+        "enabled": false
+      },
+      "softDelete": false,
+      "actions": {
+        "fields": {
+          "view": { "permissions": "manageTrinoSchema" },
+          "create": { "permissions": "manageTrinoSchema" },
+          "update": { "permissions": "manageTrinoSchema" },
+          "delete": { "permissions": "manageTrinoSchema" }
+        }
+      },
+      "fields": {
+        "table": {
+          "type": "String",
+          "description": "Lower-cased collection name",
+          "unique": true
+        },
+        "fields": {
+          "type": "Array",
+          "fields": {
+            "name": {
+              "type": "String",
+              "description": "Field name"
+            },
+            "type": {
+              "type": "String",
+              "description": "Trino type"
+            },
+            "hidden": {
+              "type": "Boolean"
+            }
+          }
+        }
+      }
+    }
+  }
+}

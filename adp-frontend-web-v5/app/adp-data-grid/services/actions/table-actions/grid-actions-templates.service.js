@@ -26,7 +26,7 @@
       var layoutName = _.get(schema, 'recordActionsLayout', 'spread');
       var layoutFactory = layoutFactories[layoutName] || spreadButtonsTemplate;
       var sortedActions = _.map(actions, function (action, name) {
-        action.__name = name;
+        action.actionName = name;
 
         return action;
       }).sort(AdpSchemaService.getSorter('actionOrder'));
@@ -56,7 +56,7 @@
         return {
           disabled: ActionsHelpers.evalDisabledAttr(action, data, params.schema),
           template: $(itemHtml).attr('data-action-name', action.actionName).append(icon).append(title),
-          action: action.__name,
+          action: action.actionName,
         };
       });
 
@@ -68,7 +68,7 @@
       return $("<div>").dxMenu({
         dataSource: menuDataSource,
         onItemClick: function (event) {
-          var actionItem = _.find(params.actions, function (item) {
+          var actionItem = event.itemData && _.find(params.actions, function (item) {
             return item.actionName === event.itemData.action && item.action.type !== 'link'
           });
 
@@ -116,7 +116,7 @@
         .dxButton({
           elementAttr: {
             class: btnClass,
-            "data-action-name": actionItem.__name,
+            "data-action-name": actionItem.actionName,
             style: addStyles(actionItem),
             type: 'button',
           },
@@ -138,7 +138,7 @@
         "href=\"" + link + "\"",
         "adp-" + params.cellInfo.data._id,
         "data-action=" + actionItem.action.link,
-        "data-action-name=" + actionItem.__name,
+        "data-action-name=" + actionItem.actionName,
         ">",
         "<span>",
         createContents(actionItem),
@@ -189,7 +189,7 @@
         var actionFnArgs = AdpUnifiedArgs.getHelperParamsWithConfig({
           path: "",
           formData: params.cellInfo.data,
-          action: actionItem.__name,
+          action: actionItem.actionName,
           schema: params.schema,
         });
 
@@ -202,11 +202,9 @@
     function callBuiltInAction(actionItem, params) {
       return function () {
         var actionFnName = getActionCallbackName(actionItem);
+        var gridInstance = _.get(params, 'customGridOptions.gridComponent');
 
-        ActionsHandlers[actionFnName](params.schema, params.cellInfo.data)
-          .then(function () {
-            GridOptionsHelpers.refreshGrid(params.customGridOptions.gridComponent);
-          });
+        ActionsHandlers[actionFnName](params.schema, params.cellInfo.data, gridInstance);
       }
     }
 
@@ -216,7 +214,7 @@
         var actionFnArgs = AdpUnifiedArgs.getHelperParamsWithConfig({
           path: "",
           formData: params.cellInfo.data,
-          action: actionItem.__name,
+          action: actionItem.actionName,
           schema: params.schema,
         });
         var actionCallback = getActionCallbackName(actionItem).split(".");
@@ -245,8 +243,8 @@
     function getLinkActionUrl(actionItem, params) {
       var URL_PARAMS_REGEX = /\/:([^\/\n\r]+)/g;
 
-      return actionItem.action.link.replace(URL_PARAMS_REGEX, function (_, key) {
-        return '/' + params.cellInfo.data[key];
+      return actionItem.action.link.replace(URL_PARAMS_REGEX, function (_0, key) {
+        return '/' + _.get(params.cellInfo.data, key);
       });
     }
   }

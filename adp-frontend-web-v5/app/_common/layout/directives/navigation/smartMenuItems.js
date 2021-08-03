@@ -80,7 +80,7 @@
 
             if (_.isFunction(item.action)) {
               a.on("click", function (e) {
-                item.action(Object.assign(unifiedParams, {event: e, action: "menuClick"}))
+                item.action(Object.assign({}, unifiedParams, {event: e, action: "menuClick"}))
               });
             }
 
@@ -91,7 +91,7 @@
             }
 
             if (_.isFunction(item.render)) {
-              itemBody = item.render(Object.assign(unifiedParams, {action: "menuRender"}));
+              itemBody = item.render(Object.assign({}, unifiedParams, {action: "menuRender"}));
             }
 
             if (item.title) {

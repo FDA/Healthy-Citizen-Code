@@ -26,18 +26,20 @@ module.exports = function () {
     m.appLib = appLib;
     const { wrapMutation } = m.appLib.graphQl;
     const { ValidationError } = m.appLib.errors;
+    const { filesCollectionName } = m.appLib.file.constants;
 
     m.participantsCollectionName = 'participants';
     m.questionnairesCollectionName = 'questionnaires';
-    m.questionnairesActualConditions = m.appLib.dba.getConditionForActualRecord(m.questionnairesCollectionName);
-    m.participantsActualConditions = m.appLib.dba.getConditionForActualRecord(m.participantsCollectionName);
+    const { getConditionForActualRecord } = m.appLib.dba;
+    m.questionnairesActualConditions = getConditionForActualRecord(m.questionnairesCollectionName);
+    m.participantsActualConditions = getConditionForActualRecord(m.participantsCollectionName);
 
     const parseQuestionnaireFileWrapper = (next) => async (rp) => {
       try {
         const tmpfile = `${getRandomString()}.json`;
         const uploadedFileId = _.get(rp.args.record, 'questionnaireDefinitionFile.0.id');
 
-        const data = await appLib.db.collection('files').findOne({ _id: ObjectID(uploadedFileId) });
+        const data = await appLib.db.collection(filesCollectionName).findOne({ _id: ObjectID(uploadedFileId) });
         if (!data) {
           throw new ValidationError('Unable to find questionnaire file');
         }

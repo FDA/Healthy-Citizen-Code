@@ -132,6 +132,7 @@
           prevDisposer(event);
         }
 
+        customGridOptions.handlers.destroy && customGridOptions.handlers.destroy();
         AdpListsService.dropCache();
       };
 

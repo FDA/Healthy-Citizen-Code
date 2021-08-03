@@ -58,7 +58,7 @@ appConfig.skins = [
 
 
 
-appConfig.sound_path = "./assets/sound/";
+appConfig.sound_path = "/assets/sound/";
 appConfig.sound_on = true;
 
 

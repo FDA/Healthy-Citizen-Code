@@ -37,22 +37,26 @@ module.exports = (appLib) => {
   const log = require('log4js').getLogger('helpers/validators');
   const { getParentInfo } = require('../../lib/util/unified-approach');
   const { difference } = require('../../lib/util/set-helpers');
-  const Decimal128 = require('bson/lib/decimal128.js');
-  const decimalFromString = Decimal128.fromString;
+  const { Decimal128 } = require('bson');
   const { schemaKeyRegExp } = require('../../lib/util/model');
+  const ms = require('ms');
   const isValidDecimal128 = (value) => {
     try {
       if (value instanceof Decimal128) {
         return true;
       }
-      // if can cast string to decimal without an error so it's a valid value
-      decimalFromString(value);
+      // if able to cast string to decimal without an error so it's a valid value
+      Decimal128.fromString(value);
+      return true;
     } catch (e) {
       return false;
     }
-    return true;
   };
   const vutil = appLib.appModelHelpers.ValidatorUtils;
+
+  function isIntegerString(val) {
+    return /^\d+$/.test(val);
+  }
 
   function isArrayWithTwoIntegers(arr) {
     return _.isArray(arr) && arr.length === 2 && arr.findIndex((val) => !Number.isInteger(val)) === -1;
@@ -452,9 +456,13 @@ module.exports = (appLib) => {
       }
       cb();
     },
-    validateAssociativeArrayKeys(cb) {
+    validateAssociativeArray(cb) {
       const { path: lodashPath, row } = this;
       const assocArray = _.get(row, lodashPath);
+      const isValidFormat = _.isNil(assocArray) || _.isPlainObject(assocArray);
+      if (!isValidFormat) {
+        return cb(`Invalid data format`);
+      }
       const invalidKeys = _.keys(assocArray).filter((key) => !schemaKeyRegExp.test(key));
       if (!_.isEmpty(invalidKeys)) {
         const formattedKeys = invalidKeys.map((k) => `'${k}'`).join(', ');
@@ -568,6 +576,35 @@ module.exports = (appLib) => {
         return cb();
       }
       cb(`Invalid value`);
+    },
+    intString(cb) {
+      const { data } = this;
+      if (!data) {
+        return cb();
+      }
+      return isIntegerString(data) ? cb() : cb(`Invalid value`);
+    },
+    booleanString(cb) {
+      const { data } = this;
+      if (!data) {
+        return cb();
+      }
+      const val = data.toLowerCase();
+      if (val === 'true' || val === 'false') {
+        return cb();
+      }
+      return cb(`Invalid value`);
+    },
+    msString(cb) {
+      const { data } = this;
+      if (!data) {
+        return cb();
+      }
+      const milliseconds = ms(data);
+      if (milliseconds === undefined) {
+        return cb(`Invalid value`);
+      }
+      return Number.isInteger(milliseconds) ? cb() : cb(`Invalid value`);
     },
   };
 

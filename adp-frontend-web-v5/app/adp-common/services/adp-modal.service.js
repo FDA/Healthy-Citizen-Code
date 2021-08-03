@@ -19,6 +19,8 @@
     // Available options
     // options = {
     //   message: 'string',
+    //   hideCancelButton: false  - option to leave 'Yes' button alone
+    //   okButtonText: 'Yes' - redefines button label
     //   actionType: String
     // }
     function confirm(options) {

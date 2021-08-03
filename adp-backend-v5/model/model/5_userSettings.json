@@ -59,7 +59,7 @@
         },
         "headerVisible": {
           "type": "TriStateBoolean",
-          "fullName": "Header visibility"
+          "fullName": "Header visibility",
         },
         "fullScreenToggle": {
           "fullName": "Fullscreen button visibility",
@@ -70,17 +70,24 @@
           "type": "TriStateBoolean"
         },
         "fixedHeader": {
-          "type": "TriStateBoolean"
+          "type": "TriStateBoolean",
+          "formRender": { "formRenderer": "userSettingsFixedHeader" }
         },
         "fixedNavigation": {
-          "type": "TriStateBoolean"
+          "type": "TriStateBoolean",
+          "formRender": { "formRenderer": "userSettingsFixedNavigation" }
+        },
+        "fixedRibbon": {
+          "type": "TriStateBoolean",
+          "formRender": { "formRenderer": "userSettingsFixedRibbon" }
+        },
+        "fixedWidth": {
+          "type": "TriStateBoolean",
+          "formRender": { "formRenderer": "userSettingsFixedWidth" }
         },
         "fixedFooter": {
           "type": "TriStateBoolean"
         },
-        "fixedWidth": {
-          "type": "TriStateBoolean"
-        }
       },
       "scopes": {
         "own": {

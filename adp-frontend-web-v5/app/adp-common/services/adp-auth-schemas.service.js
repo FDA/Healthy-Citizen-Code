@@ -17,6 +17,7 @@
   function AdpAuthSchemas(AdpUnifiedArgs) {
     var AUTH_ACTIONS = {
       LOGIN: 'login',
+      LOGIN_OTP: 'loginOtp',
       REGISTER: 'register',
       FORGOT_PASSWORD: 'forgotPassword',
       RESET_PASSWORD: 'resetPassword',
@@ -44,21 +45,50 @@
       }
     }
 
+    function loginOtpArgs() {
+      return getArgs(AUTH_ACTIONS.LOGIN_OTP, loginOtpSchema());
+    }
+
+    function loginOtpSchema() {
+      var twoFactorTokenField = getModelField('twoFactorToken');
+
+      twoFactorTokenField.showInForm = true;
+
+      return {
+        type: 'Schema',
+        schemaName: 'login-otp',
+        fields: {
+          twoFactorToken: twoFactorTokenField,
+        }
+      }
+    }
+
     function registrationArgs() {
       return getArgs(AUTH_ACTIONS.REGISTER, registrationSchema());
     }
 
     function registrationSchema() {
+      var fields = {
+        login: getModelField('login'),
+        email: getModelField('email'),
+        password: getPasswordModelField(),
+        passwordConfirmation: getPasswordConfirmation(),
+        recaptcha: getRecaptchaField(),
+      };
+
+      var requireMfa = window.adpAppStore.appInterface().app.auth.requireMfa;
+
+      if (requireMfa) {
+        fields.enableTwoFactor = getModelField('enableTwoFactor');
+        _.set(fields, 'enableTwoFactor.formRenderer.renderMode', 'register');
+
+        fields.twoFactorRequirementText = getModelField('twoFactorRequirementText');
+      }
+
       return {
         type: 'Schema',
         schemaName: 'singup',
-        fields: {
-          login: getModelField('login'),
-          email: getModelField('email'),
-          password: getPasswordModelField(),
-          passwordConfirmation: getPasswordConfirmation(),
-          recaptcha: getRecaptchaField(),
-        }
+        fields: fields
       }
     }
 
@@ -186,6 +216,7 @@
 
     return {
       loginArgs: loginArgs,
+      loginOtpArgs: loginOtpArgs,
       registrationArgs: registrationArgs,
       resetPasswordArgs: resetPasswordArgs,
       forgotPasswordArgs: forgotPasswordArgs,

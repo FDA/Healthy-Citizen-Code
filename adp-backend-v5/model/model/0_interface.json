@@ -52,7 +52,9 @@
         "accessAsGuest": { "description": "Default guest permission" },
         "accessAsUser": { "description": "Default user permission" },
         "accessAsSuperAdmin": { "description": "Default admin permission" },
-        "accessForbidden": { "description": "Permission that will not be given to any role (even to the SuperAdmin role)" },
+        "accessForbidden": {
+          "description": "Permission that will not be given to any role (even to the SuperAdmin role)"
+        },
         "createUserAccounts": { "description": "Default createUserAccounts permission" },
         "accessFromDesktop": { "description": "accessFromDesktop" },
         "accessFromTv": { "description": "accessFromTv" },
@@ -60,6 +62,33 @@
         "accessFromPhone": { "description": "accessFromPhone" },
         "accessFromBot": { "description": "accessFromBot" },
         "accessFromCar": { "description": "accessFromCar" },
+        "accessOwnDatasets": {
+          "description": "Allows access to own datasets"
+        },
+        "manageOwnDatasets": {
+          "description": "Allows managing own datasets"
+        },
+        "accessAllDatasets": {
+          "description": "Allows access to all datasets"
+        },
+        "manageAllDatasets": {
+          "description": "Allows managing all datasets"
+        },
+        "manageDatasetContents": {
+          "description": "Allows managing datasets contents"
+        },
+        "accessOwnDataPulls": {
+          "description": "Allows access to own data pulls configuration"
+        },
+        "manageOwnDataPulls": {
+          "description": "Allows managing to own data pulls configuration"
+        },
+        "accessAllDataPulls": {
+          "description": "Allows access to all data pulls configuration"
+        },
+        "manageAllDataPulls": {
+          "description": "Allows managing to all data pulls configuration"
+        },
         "viewAllBackgroundJobs": {
           "description": "Allows to view all jobs listing and details for each job in any queue"
         },
@@ -118,9 +147,55 @@
         },
         "accessJournal": {
           "description": "Access system journal"
+        },
+        "viewOwnDataExports":  {
+          "description":  "View own data exports"
+        },
+        "viewAllDataExports": {
+          "description":  "View all data exports"
+        },
+        "downloadOwnDataExports":  {
+          "description":  "Download own data exports"
+        },
+        "downloadAllDataExports": {
+          "description":  "Download all data exports"
+        },
+        "manageOwnDataExports":  {
+          "description":  "Manage own data exports"
+        },
+        "manageAllDataExports": {
+          "description": "Manage all data exports"
+        },
+        "manageEnvironment": {
+          "description": "Manage Environment"
+        },
+        "viewEnvironment": {
+          "description": "View Environment"
+        },
+        "manageCredentials": {
+          "description": "Manage Credentials"
+        },
+        "accessOwnTags": {
+          "description": "Allows access to own tags"
+        },
+        "manageOwnTags": {
+          "description": "Allows managing own tags"
+        },
+        "accessAllTags": {
+          "description": "Allows access to all tags"
+        },
+        "manageAllTags": {
+          "description": "Allows managing all tags"
+        },
+        "manageTrinoSchema": {
+          "description": "Manage trino schema"
         }
       },
-      "preStart": {}
+      "preStart": {},
+      "auth": {
+        "enableMfa": <@-this.ENV('MFA_ENABLED')@>,
+        "requireMfa": <@-this.ENV('MFA_REQUIRED')@>
+      }
     },
     "layout": {
       "fixed": {

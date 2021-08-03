@@ -17,7 +17,7 @@
   <!-- endbower -->
   <!-- endbuild -->
 
-  <link rel="manifest" href="{{ appSuffix }}/manifest.json">
+  <link rel="manifest" crossorigin="use-credentials" href="{{ baseUrlForManifest }}manifest.json">
 
   <!-- build:css(.tmp) /styles/index.css -->
   <link rel="stylesheet" href="/styles/index.css"/>
@@ -128,7 +128,7 @@ Possible attributes
 <script src="/lib/ace-builds/src-noconflict/ext-language_tools.js"></script>
 <script src="/lib/ace-builds/src-noconflict/mode-python.js"></script>
 <script src="/lib/ace-builds/src-noconflict/mode-json.js"></script>
-<script src="{{ socketIoClientPath }}"></script>
+<script src="/lib/ace-builds/src-noconflict/mode-sql.js"></script>
 
 <!-- build:js({.tmp,./}) /scripts/vendor.js -->
 <!-- bower:js -->

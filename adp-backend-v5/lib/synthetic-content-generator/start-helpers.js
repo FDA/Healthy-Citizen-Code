@@ -7,7 +7,7 @@ const JSON5 = require('json5');
 
 const { combineModels } = require('../util/model');
 const { mongoConnect } = require('../util/mongo');
-const { getAbsolutePath } = require('../util/env');
+const { getAbsolutePath } = require('../../config/util');
 const { globSyncAsciiOrder } = require('../util/glob');
 
 const defaultBatchName = new Date().toISOString();
@@ -35,14 +35,14 @@ async function getParamsForGeneratorFiles({ appLib, pregeneratorFiles, batchName
   });
 
   // create new connection since reusing appLib.db causes weird low-level 'ERR_MULTIPLE_CALLBACK' errors
-  const { db } = await mongoConnect(process.env.MONGODB_URI);
+  const { db } = await mongoConnect(appLib.config.MONGODB_URI);
   // default params
   const paramsForGeneratorFiles = {
     random: require('../util/random').random,
     chance: require('../util/random').chance,
     ScgError: require('./errors/scg-error'),
     batchName,
-    handleUpload: (file) => appLib.fileControllerUtil.handleUpload(file, null, null, uploadDir),
+    handleUpload: (file) => appLib.file.util.handleUpload({ files: [file], uploadDir }),
     db,
     dba: appLib.dba,
   };
@@ -54,6 +54,7 @@ async function getParamsForGeneratorFiles({ appLib, pregeneratorFiles, batchName
     if (!pregeneratorFunction) {
       invalidPregeneratorNames.push(pregeneratorName);
     }
+    pregeneratorParams.appConfig = appLib.config;
     return pregeneratorFunction({ pregeneratorParams, paramsForGeneratorFiles });
   });
 
@@ -198,8 +199,7 @@ async function prepareAppLib(corePath, schemaPath) {
   appLib.allActionsNames = [...appLib.accessCfg.DEFAULT_ACTIONS, ..._.keys(appLib.appModelHelpers.CustomActions)];
 
   appLib.accessUtil = require('../access/access-util')(appLib);
-  appLib.filterUtil = require('../filter/util');
-  appLib.fileControllerUtil = require('../file-controller-util')(appLib);
+  appLib.file = require('../file')(appLib);
   appLib.getAuthSettings = () => appLib.appModel.interface.app.auth;
   return appLib;
 

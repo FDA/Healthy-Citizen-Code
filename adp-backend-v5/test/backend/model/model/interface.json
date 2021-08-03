@@ -7,8 +7,8 @@
         "enableAuthentication": true,
         "enablePermissions": false,
         "enableUserPasswordReset": false,
-        "enableMfa": false,
-        "requireMfa": false
+        "enableMfa": <@-this.ENV('MFA_ENABLED')@>,
+        "requireMfa": <@-this.ENV('MFA_REQUIRED')@>,
       },
       "permissions": {
         "accessAsAnyone": {

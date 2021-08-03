@@ -32,7 +32,7 @@
         scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
 
         scope.config = {
-          value: _.isNil(getterSetterFn()) ? false : true,
+          value: !!getterSetterFn(),
           switchedOnText: 'YES',
           switchedOffText: 'NO',
           onValueChanged: function (e) {

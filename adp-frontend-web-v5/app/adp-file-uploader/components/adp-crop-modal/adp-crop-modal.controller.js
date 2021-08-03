@@ -7,8 +7,8 @@
 
   /** @ngInject */
   function AdpCropModalController(
-    AdpFilePathService,
     AdpModalService,
+    AdpMediaTypeHelper,
     $q
   ) {
     var vm = this;
@@ -25,16 +25,25 @@
       vm.resultCropParams = [];
       vm.resultCropSources = [];
 
-      prepareNextImage();
+      prepareNextImage()
+        .then(function (src) {
+          vm.inputImage = src;
+        });
     };
 
     function prepareNextImage() {
       vm.current = vm.items.pop();
       resetCurrentItemParams();
 
-      vm.inputImage = vm.current._file.isDummyFile ?
-        AdpFilePathService.file(vm.current._file) :
-        URL.createObjectURL(vm.current._file);
+      if (!vm.current._file.isDummyFile) {
+        return Promise.resolve(URL.createObjectURL(vm.current._file));
+      }
+
+      return AdpMediaTypeHelper.getFileLink(vm.current._file)
+        .then(function (imgSrc) {
+          return fetch(imgSrc, { credentials: 'include' })
+            .then(function (r) { return r.blob(); });
+        });
     }
 
     vm.cancel = function () {
@@ -57,7 +66,11 @@
     vm.next = function () {
       cacheProgress();
       URL.revokeObjectURL(vm.inputImage);
-      prepareNextImage();
+
+      prepareNextImage()
+        .then(function (src) {
+          vm.inputImage = src;
+        });
     };
 
     vm.save = function () {

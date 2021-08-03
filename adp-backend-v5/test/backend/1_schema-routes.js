@@ -11,7 +11,7 @@ const {
   apiRequest,
 } = require('../test-util');
 
-describe('V5 Backend Schema Routes', function () {
+describe('V5 Backend Schema Routes', () => {
   before(async function () {
     this.expected = {
       type: 'Schema',
@@ -36,6 +36,7 @@ describe('V5 Backend Schema Routes', function () {
             },
             filterType: 'include',
             allowSearch: true,
+            maxDatagridCellHeight: 70,
           },
           validate: [
             {
@@ -89,6 +90,7 @@ describe('V5 Backend Schema Routes', function () {
                     },
                     filterType: 'include',
                     allowSearch: true,
+                    maxDatagridCellHeight: 70,
                   },
                   validate: [
                     {
@@ -166,6 +168,7 @@ describe('V5 Backend Schema Routes', function () {
                     },
                     filterType: 'include',
                     allowSearch: true,
+                    maxDatagridCellHeight: 70,
                   },
                   validate: [
                     {
@@ -205,6 +208,7 @@ describe('V5 Backend Schema Routes', function () {
                     },
                     filterType: 'include',
                     allowSearch: true,
+                    maxDatagridCellHeight: 70,
                   },
                   width: 150,
                   responsivePriority: 100,
@@ -329,6 +333,7 @@ describe('V5 Backend Schema Routes', function () {
             },
             filterType: 'include',
             allowSearch: true,
+            maxDatagridCellHeight: 70,
           },
           fieldName: 'creator',
           autocomplete: 'enable',
@@ -360,6 +365,7 @@ describe('V5 Backend Schema Routes', function () {
             allowSearch: true,
             pickerType: 'rollers',
             openOnFieldClick: false,
+            maxDatagridCellHeight: 70,
           },
           fieldName: 'createdAt',
           width: 150,
@@ -398,6 +404,7 @@ describe('V5 Backend Schema Routes', function () {
             allowSearch: true,
             pickerType: 'rollers',
             openOnFieldClick: false,
+            maxDatagridCellHeight: 70,
           },
           fieldName: 'updatedAt',
           width: 150,
@@ -437,6 +444,7 @@ describe('V5 Backend Schema Routes', function () {
             allowSearch: true,
             pickerType: 'rollers',
             openOnFieldClick: false,
+            maxDatagridCellHeight: 70,
           },
           fieldName: 'deletedAt',
           width: 150,
@@ -481,6 +489,7 @@ describe('V5 Backend Schema Routes', function () {
             },
             filterType: 'include',
             allowSearch: true,
+            maxDatagridCellHeight: 70,
           },
           validate: [
             {
@@ -500,6 +509,7 @@ describe('V5 Backend Schema Routes', function () {
         },
       },
       schemaName: 'model1s',
+      collectionName: 'model1s',
       recordActionsLayout: 'menu',
       actions: {
         width: 60,
@@ -810,10 +820,6 @@ describe('V5 Backend Schema Routes', function () {
         headerFilter: {
           visible: true,
         },
-        columnChooser: {
-          allowSearch: true,
-          mode: 'select',
-        },
         columnFixing: {
           enabled: true,
         },
@@ -834,6 +840,7 @@ describe('V5 Backend Schema Routes', function () {
         },
         paging: {
           pageSize: 10,
+          enabled: true,
         },
         selection: {
           selectAllMode: 'page',
@@ -889,9 +896,9 @@ describe('V5 Backend Schema Routes', function () {
       },
     };
 
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    this.db = await getMongoConnection();
+    this.appLib = prepareEnv();
+
+    this.db = await getMongoConnection(this.appLib.options.MONGODB_URI);
   });
 
   after(async function () {
@@ -920,7 +927,7 @@ describe('V5 Backend Schema Routes', function () {
     const additionalData = { fields: this.batchNumberField };
     this.expectedData = _.merge({}, this.expected, additionalData);
     const token = await loginWithUser(this.appLib, admin);
-    const res = await apiRequest(this.appLib.app)
+    const res = await apiRequest(this.appLib)
       .get('/schema/model1s')
       .set('Accept', 'application/json')
       .set('Authorization', `JWT ${token}`)
@@ -942,7 +949,7 @@ describe('V5 Backend Schema Routes', function () {
     const additionalData = { fields: this.batchNumberField };
     this.expectedData = _.merge({}, this.expected, additionalData, this.notWritableFields);
     const token = await loginWithUser(this.appLib, admin);
-    const res = await apiRequest(this.appLib.app)
+    const res = await apiRequest(this.appLib)
       .get('/schema/model1s')
       .set('Accept', 'application/json')
       .set('Authorization', `JWT ${token}`)

@@ -62,6 +62,7 @@ module.exports = (appLib) => {
         parentData,
         handlerSpec: handler,
         modelName,
+        collectionName: appLib.appModel.models[modelName].collectionName || modelName,
       };
 
       // log.trace(`>> Calling "${type}" hook "${JSON.stringify(handler)}" for "${lodashPath}" equal "${_.get(data, lodashPath)}", data: ${JSON.stringify(data)}`);
@@ -321,20 +322,13 @@ module.exports = (appLib) => {
    * @param changesPath - the part of the doc where the changes occurred represented as an array. Example: [58ed793cd78de0745f84e2dd,encounters,3550cf00d207fe624eaaa918,vitalSigns,e44c93b0e80f393af37367eb]. This path is a mix of appModel path and data path. Note that transformation will be done for the whole data, but validation will be performed only for the changed part.
    */
   m.preSaveTransformData = async (modelName, userContext, data, changesPath) => {
-    // log.trace(`preSaveTransformData model ${modelName} changesPath: ${changesPath} data: ${JSON.stringify(data)}`);
-    const errors = [];
-
     try {
       await processAttribute('validate', changesPath);
+      await processAttribute('transform', []);
+      await processAttribute('synthesize', []);
     } catch (e) {
-      errors.push(e);
+      throw new ValidationError(e.message);
     }
-    if (errors.length > 0) {
-      throw new ValidationError(errors.join('\n'));
-    }
-
-    await processAttribute('transform', []);
-    await processAttribute('synthesize', []);
 
     const appModel = appLib.appModel.models[modelName];
     m.removeVirtualFields(appModel, data);

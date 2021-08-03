@@ -2,7 +2,7 @@ function findRoutesInStack(path, stack, method) {
   const routes = [];
   const layerNamesToSkip = ['query', 'expressInit'];
 
-  stack.forEach(layer => {
+  stack.forEach((layer) => {
     const layerName = layer.name;
     if (!layer || !layer.match(path) || layerNamesToSkip.includes(layerName)) {
       return;
@@ -16,7 +16,7 @@ function findRoutesInStack(path, stack, method) {
   });
 
   if (method) {
-    return routes.filter(r => r.route.methods[method.toLowerCase()]);
+    return routes.filter((r) => r.route.methods[method.toLowerCase()]);
   }
   return routes;
 }
@@ -35,7 +35,7 @@ function removeRoutes(app, path, method = '') {
   const lowerMethod = method.toLowerCase();
   const removedRoutes = [];
 
-  foundRoute.forEach(layer => {
+  foundRoute.forEach((layer) => {
     const { route, stack } = layer;
     if (!route) {
       return;

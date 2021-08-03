@@ -62,6 +62,14 @@ function getRedisConnection({ redisUrl, options, log, redisConnectionName = 'Red
   }
 }
 
+function getRedisPrefix(prefix) {
+  if (!prefix) {
+    return '';
+  }
+  return prefix.endsWith(':') ? prefix : `${prefix}:`;
+}
+
 module.exports = {
   getRedisConnection,
+  getRedisPrefix,
 };

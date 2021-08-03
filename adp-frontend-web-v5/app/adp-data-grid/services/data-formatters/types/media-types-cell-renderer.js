@@ -7,9 +7,9 @@
 
   /** @ngInject */
   function MediaTypesCellRenderer(
-    AdpFilePathService,
     FormattersHelper,
-    GRID_FORMAT
+    GRID_FORMAT,
+    AdpMediaTypeHelper
   ) {
     function fileList(args) {
       var files = args.data;
@@ -17,45 +17,53 @@
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
-      var interpolationRegex = /\${([^\}]+)}/g;
-
       if (FormattersHelper.asText(args)) {
         return files.map(function(file) {
-          return file.name
+          return file.name;
         }).join(', ');
       }
 
-      var listItemTpl = [
-        '<li>',
-        '<a class="datatable-thumb-url" href="${downloadUrl}" target="_blank">',
-        '<img src=${thumbUrl} class="img-responsive"> ${name}',
-        '</a>',
-        '</li>',
-      ].join('');
+      var listItemTpl = function (fileItem, src) {
+        return [
+          '<li>',
+            '<a class="datatable-thumb-url" href data-file-id="' + fileItem.id + '">',
+              '<img src="' + src + '" class="img-responsive"> ' + fileItem.name,
+            '</a>',
+          '</li>',
+        ].join('');
+      }
 
-      var replaceCb = function(fileItem, _placeholder, placeholderName) {
-        var fnName;
-        if (placeholderName === 'downloadUrl') {
-          return AdpFilePathService.download(fileItem);
+      var ul = $('<ul class="datatable-thumb-list"></ul>');
+      ul.on('click', function (e) {
+        if (e.target.classList.contains('datatable-thumb-url')) {
+          e.preventDefault();
+
+          var fileId = e.target.getAttribute('data-file-id');
+          var file = _.find(files, ['id', fileId]);
+
+          AdpMediaTypeHelper.downloadWithSaveDialog(file);
         }
+      });
 
-        if (placeholderName === 'thumbUrl') {
-          fnName = fileItem.cropped ? 'cropped' : 'thumb';
-          return AdpFilePathService[fnName](fileItem) + '?v=' + new Date().valueOf();
-        }
+      Promise.all(files.map(function (fileItem) {
+        var fnName = fileItem.cropped ? 'getCroppedImgLink' : 'getThumbImgLink';
 
-        return fileItem[placeholderName];
-      };
+        return AdpMediaTypeHelper[fnName](fileItem)
+          .then(function (src) {
+              return { src: src, fileItem: fileItem };
+          });
+      }))
+        .then(function (fileItems) {
+          var listItems = fileItems.map(function (file) {
+            return $(listItemTpl(file.fileItem, file.src));
+          });
 
-      var fileListTpl = files.map(function(file) {
-        return listItemTpl.replace(interpolationRegex, replaceCb.bind(this, file));
-      }).join('');
+          ul.append(listItems);
+        });
 
-      return ['<ul class="datatable-thumb-list">', fileListTpl, '</ul>'].join('');
+      return ul;
     }
 
-    return {
-      fileList: fileList,
-    }
+    return { fileList: fileList };
   }
 })();

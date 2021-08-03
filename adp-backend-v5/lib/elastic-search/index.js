@@ -1,12 +1,8 @@
+const _ = require('lodash');
 const runRealTimeSync = require('./es-mongo-sync/sync-real-time');
 
-function getEsConfig() {
-  return process.env.ES_NODES
-    ? {
-        nodes: process.env.ES_NODES.split(','),
-        maxRetries: +process.env.ES_MAX_RETRIES,
-      }
-    : undefined;
+function getEsConfig(nodes, maxRetries) {
+  return _.isEmpty(nodes) ? undefined : { nodes, maxRetries };
 }
 
 function startRealTimeSync(isMongoSupportsSessions, models, mongoUrl, esConfig, enableLog) {

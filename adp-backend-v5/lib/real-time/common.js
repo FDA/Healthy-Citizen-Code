@@ -1,10 +1,10 @@
 const _ = require('lodash');
 const socketIo = require('socket.io');
 const addDeviceToSocketRequest = require('express-device').capture();
-const socketIoAuth = require('./socketio-auth');
+const socketIoAuth = require('./socket-io-auth');
 const { InvalidTokenError, ExpiredTokenError } = require('../errors');
 
-function addAuthentication({ appLib, io, log }) {
+function addAuthAndSubscriptions({ appLib, io, log, subscriptionManager }) {
   socketIoAuth(io, {
     debug: log.debug.bind(log),
     async authenticate(socket, cb) {
@@ -19,7 +19,7 @@ function addAuthentication({ appLib, io, log }) {
 
         addDeviceToSocketRequest(socket.request);
 
-        const { user, roles, permissions } = await appLib.authenticationCheck(socket.request);
+        const { user, roles, permissions } = await appLib.auth.authenticationCheck(socket.request);
         socket.userId = _.get(user, '_id', '').toString();
         socket.user = user;
         socket.roles = roles;
@@ -38,6 +38,20 @@ function addAuthentication({ appLib, io, log }) {
         log.error(e.stack);
         return cb({ message: `Error occurred during authentication process` });
       }
+    },
+    postAuthenticate(socket) {
+      // subscribe socket on single 'message' event where all subscriptions are handled
+      socket.on('message', (data) => {
+        const type = _.get(data, 'type');
+        if (!type) {
+          return log.warn(`Invalid socket message without type field`);
+        }
+        const handler = subscriptionManager.subscriptions[type];
+        if (!handler) {
+          return log.warn(`Invalid socket subscription type ${type}`);
+        }
+        handler({ socket, data });
+      });
     },
     disconnect(socket) {
       log.trace(`User with id '${socket.userId}' disconnected from socket '${socket.id}'`);
@@ -60,6 +74,6 @@ function getSocketIoServer(server, opts = {}) {
   });
 }
 module.exports = {
-  addAuthentication,
+  addAuthAndSubscriptions,
   getSocketIoServer,
 };

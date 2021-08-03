@@ -1,5 +1,6 @@
 ;(function () {
   'use strict';
+  var ROW_POSITION_SIGNATURE = "grid.row";
 
   angular
     .module('app.adpDataGrid')
@@ -15,7 +16,7 @@
                      .get('actions.fields', {})
                      .pickBy(pickFunction || _.noop)
                      .map(function (action, name) {
-                       action.__name = name;
+                       action.actionName = name;
                        return action;
                      })
                      .value();
@@ -56,7 +57,7 @@
       if (_.isString(actionItem.enabled)) {
         var args = AdpUnifiedArgs.getHelperParamsWithConfig({
           path: '',
-          action: actionItem.__name,
+          action: actionItem.actionName,
           formData: recordData || {},
           schema: schema,
         });
@@ -72,12 +73,26 @@
       return !actionItem.enabled;
     }
 
+    function pickTableActions(schema) {
+      return _.pickBy(schema.actions.fields, function (action) {
+        // ToDo: ShowInTable is deprecated so here for compatibility reasons only
+        return _.startsWith(action.position, ROW_POSITION_SIGNATURE) || _.get(action, 'showInTable', true);
+      });
+    }
+
+    function actionsIsEmpty(actions) {
+      var actionNames = _.keys(actions);
+      var hasOnlyViewsKey = actionNames.length === 1 && actionNames[0] === 'view';
+      return _.isEmpty(actions) || hasOnlyViewsKey;
+    }
 
     return {
       getActionsByPosition: getActionsByPosition,
       getForHelperType: getForHelperType,
       getForModuleType: getForModuleType,
       evalDisabledAttr: evalDisabledAttr,
+      pickTableActions: pickTableActions,
+      actionsIsEmpty:  actionsIsEmpty,
     };
   }
 })()

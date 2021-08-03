@@ -5,6 +5,8 @@
   dayjs.extend(window.dayjs_plugin_isSameOrBefore);
   dayjs.extend(window.dayjs_plugin_customParseFormat);
 
+  _.memoize.Cache = window.WeakMap;
+
   var $http = angular.injector(['ng']).get('$http');
   var APP_CONFIG = getAppConfig();
 

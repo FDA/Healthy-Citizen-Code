@@ -8,22 +8,24 @@ const nanoid = customAlphabet(alphabet, 7);
 
 class PatchedQueue extends Queue {
   add(name, data, opts) {
-    const jobId = `${this.name}-${nanoid()}`;
-
     if (typeof name !== 'string') {
-      data = setJobId(data);
-    } else {
-      opts = setJobId(opts);
+      opts = data;
+      data = name;
+      name = null;
     }
+    opts = getOptions({ options: opts, queueName: this.name });
 
+    if (name === null) {
+      return Queue.prototype.add.call(this, data, opts);
+    }
     return Queue.prototype.add.call(this, name, data, opts);
-
-    function setJobId(options) {
-      const _options = _.isPlainObject(options) ? options : {};
-      _options.jobId = jobId;
-      return _options;
-    }
   }
+}
+
+function getOptions({ options, queueName }) {
+  const resultOpts = _.isPlainObject(options) ? options : {};
+  resultOpts.jobId = `${queueName}-${nanoid()}`;
+  return resultOpts;
 }
 
 module.exports = {

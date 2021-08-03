@@ -7,7 +7,8 @@
 
   function htmlControl(
     AdpValidationUtils,
-    ControlSetterGetter
+    ControlSetterGetter,
+    $timeout
   ) {
     return {
       restrict: 'E',
@@ -21,10 +22,12 @@
         var getterSetterFn = ControlSetterGetter(scope.args);
         scope.getterSetter = getterSetterFn;
 
-        if (_.isNil(getterSetterFn())) {
-          getterSetterFn(null);
-        }
-        setOptions();
+        $timeout(function () {
+          if (_.isNil(getterSetterFn())) {
+            getterSetterFn(null);
+          }
+          setOptions();
+        });
 
         scope.isRequired = AdpValidationUtils.isRequired(scope.args.path, scope.formContext.requiredMap);
 

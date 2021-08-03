@@ -10,7 +10,7 @@
       getByType: getByType
     };
 
-    // METHODS
+    // METHODS.en
     function getByType(type) {
       return $http.get(getUrl() + '/langs/' + type + '.json');
     }
@@ -20,7 +20,8 @@
     }
 
     function getUrl() {
-      return _.compact([APP_CONFIG.appSuffix, window.appConfig.apiRootUrl]).join('/');
+      var smartAdminApiRoot = '/api'
+      return APP_CONFIG.appSuffix + smartAdminApiRoot;
     }
   }
 })();

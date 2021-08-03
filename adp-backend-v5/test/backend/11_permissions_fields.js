@@ -17,7 +17,7 @@ const {
   buildGraphQlUpdateOne,
   buildGraphQlQuery,
   checkGraphQlSuccessfulResponse,
-} = require('../graphql-util.js');
+} = require('../graphql-util');
 
 describe('V5 Backend Field Permissions', function () {
   const MODEL10_SAMPLE = {
@@ -68,9 +68,9 @@ describe('V5 Backend Field Permissions', function () {
   const docId = MODEL10_SAMPLE._id.toString();
 
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
+    this.appLib = prepareEnv();
+
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     this.db = db;
   });
 
@@ -117,7 +117,7 @@ describe('V5 Backend Field Permissions', function () {
 
         async function f() {
           const { makeRequest, checkData, checkResponse, getData } = settings;
-          const req = makeRequest(apiRequest(this.appLib.app));
+          const req = makeRequest(apiRequest(this.appLib));
           if (this.token) {
             req.set('Authorization', `JWT ${this.token}`);
           }
@@ -288,7 +288,7 @@ describe('V5 Backend Field Permissions', function () {
 
           async function f() {
             const { makeRequest, checkDbData: checkData, checkResponse, getCreatedDocId } = settings;
-            const req = makeRequest(apiRequest(this.appLib.app));
+            const req = makeRequest(apiRequest(this.appLib));
             if (this.token) {
               req.set('Authorization', `JWT ${this.token}`);
             }
@@ -310,7 +310,7 @@ describe('V5 Backend Field Permissions', function () {
 
           async function f() {
             const { makeRequest, checkDbData, checkResponse } = settings;
-            const req = makeRequest(apiRequest(this.appLib.app));
+            const req = makeRequest(apiRequest(this.appLib));
             if (this.token) {
               req.set('Authorization', `JWT ${this.token}`);
             }

@@ -1,4 +1,5 @@
 const _ = require('lodash');
+const dayjs = require('dayjs');
 
 function getISODate(value) {
   if (_.isString(value)) {
@@ -73,6 +74,15 @@ function getAmPmTimeFromDate(date) {
   return `${hours}:${minutes} ${ampm}`;
 }
 
+function isValidTimeZone(timezone) {
+  try {
+    dayjs().tz(timezone);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
 module.exports = {
   getUTCDate,
   getTime,
@@ -80,4 +90,5 @@ module.exports = {
   getDatePartValue,
   getDateFromAmPmTime,
   getAmPmTimeFromDate,
+  isValidTimeZone,
 };

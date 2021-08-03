@@ -1,7 +1,6 @@
 const Promise = require('bluebird');
 
 const express = require('express');
-const ms = require('ms');
 const http = require('http');
 const fs = require('fs-extra');
 const bodyParser = require('body-parser');
@@ -18,40 +17,17 @@ const log4js = require('log4js');
 const JSON5 = require('json5');
 const expressSession = require('express-session');
 const RedisStore = require('connect-redis')(expressSession);
+const onFinished = require('on-finished');
+const { getHttpAuditMiddleware, getAuditLoggers } = require('./util/audit-log');
+const { getOrderedList } = require('./util/util');
+const { responseTime } = require('./util/middlewares/response-time');
 
-const getMigrateConfig = require('../migrate/config.js');
-const { serveDirs } = require('./public-files-controller');
-const { version: APP_VERSION, name: APP_NAME } = require('../package.json');
-const { prepareEnv, getSchemaNestedPaths } = require('./util/env');
-const { globSyncAsciiOrder } = require('./util/glob');
-const connectSwagger = require('./swagger');
-const { appRoot, getSchemaPaths } = require('./util/env');
-const { requestLogMiddleware } = require('./util/audit-log');
-const { mongoConnect } = require('./util/mongo');
-const { getRedisConnection } = require('./util/redis');
-const { cookieOpts } = require('./util/cookie');
+const { getSchemaNestedPaths, appRoot, getConfigFromDb, prepareEnvironmentSchema } = require('../config/util');
 const { asyncLocalStorage } = require('./async-local-storage');
 
 module.exports = () => {
   const m = {};
-  let options = {}; // options for whole module (empty by default)
-
-  m.errors = require('./errors');
-  m.butil = require('./util/util');
-  m.expressUtil = require('./express-util');
-  m.accessCfg = require('./access/access-config');
-  m.elasticSearch = require('./elastic-search');
-  m.cache = require('./cache')({
-    redisUrl: process.env.REDIS_URL,
-    keyPrefix: process.env.REDIS_KEY_PREFIX,
-  });
-  m.queue = require('./queue')({
-    redisUrl: process.env.BULL_REDIS_URL || process.env.REDIS_URL,
-    keyPrefix: process.env.BULL_KEY_PREFIX || process.env.REDIS_KEY_PREFIX,
-  });
-
-  m.API_PREFIX = process.env.API_PREFIX || '';
-  m.RESOURCE_PREFIX = process.env.RESOURCE_PREFIX || '';
+  m.options = {}; // options for whole module (empty by default)
 
   m.getAuthSettings = () => m.appModel.interface.app.auth;
 
@@ -59,12 +35,12 @@ module.exports = () => {
    * Connects to DB and sets various DB parameters
    */
   m.connectAppDb = async () => {
+    const { MONGODB_URI } = m.config;
+    const { mongoConnect } = require('./util/mongo');
     try {
-      return await mongoConnect(process.env.MONGODB_URI);
+      return await mongoConnect(MONGODB_URI);
     } catch (e) {
-      m.log.error(
-        `LAP003: MongoDB connection error. Please make sure MongoDB is running at ${process.env.MONGODB_URI}`
-      );
+      m.log.error(`LAP003: MongoDB connection error. Please make sure MongoDB is running at ${MONGODB_URI}`);
       throw e;
     }
   };
@@ -105,31 +81,36 @@ module.exports = () => {
     });
     process.on('uncaughtException', procUncaughtExListener);
 
-    const { COOKIE_SECRET, USER_SESSION_ID_TIMEOUT = '1d', REDIS_URL, REDIS_KEY_PREFIX } = process.env;
-
+    app.use(require('express-request-id')());
+    app.use(responseTime());
     app.use(bodyParser.urlencoded({ extended: true }));
     app.use(bodyParser.json({ limit: '100mb' }));
     app.use(compression());
     app.use(device.capture());
-    app.use(cookieParser(COOKIE_SECRET));
-    app.use(require('request-received'));
-    app.use(require('response-time')());
-    app.use(require('express-request-id')());
+    app.use(cookieParser(m.config.COOKIE_SECRET));
 
+    const { getCookieOpts, sessionCookieName } = require('./util/cookie');
+    const cookieOpts = getCookieOpts(m.config);
     const expressSessionOpts = {
-      secret: COOKIE_SECRET,
+      secret: m.config.COOKIE_SECRET,
+      name: sessionCookieName,
       resave: false,
       saveUninitialized: true,
       rolling: true, // reset maxAge on every request
-      cookie: { ...cookieOpts, maxAge: ms(USER_SESSION_ID_TIMEOUT), httpOnly: true },
+      cookie: { ...cookieOpts, maxAge: m.config.USER_SESSION_ID_TIMEOUT, httpOnly: true },
     };
-    if (REDIS_URL) {
+    const { SESSIONS_REDIS_URL, SESSIONS_KEY_PREFIX } = m.config;
+    if (SESSIONS_REDIS_URL) {
+      const { getRedisConnection, getRedisPrefix } = require('./util/redis');
       const redisConnection = await getRedisConnection({
-        redisUrl: REDIS_URL,
+        redisUrl: SESSIONS_REDIS_URL,
         log: m.log,
         redisConnectionName: 'Session_Redis',
       });
-      expressSessionOpts.store = new RedisStore({ client: redisConnection, prefix: `${REDIS_KEY_PREFIX}_sessions_` });
+      expressSessionOpts.store = new RedisStore({
+        client: redisConnection,
+        prefix: getRedisPrefix(SESSIONS_KEY_PREFIX),
+      });
     }
     const sessionMiddleware = expressSession(expressSessionOpts);
     app.use((req, res, next) => {
@@ -151,17 +132,16 @@ module.exports = () => {
     };
     app.use(alsMiddleware);
 
-    const maxResponseBodySize = parseInt(process.env.AUDIT_LOG_MAX_RESPONSE_SIZE, 10) || 10000;
-    app.use(
-      requestLogMiddleware({
-        appLogger: m.expressLog,
-        persistLogger: m.auditPersistLogger,
-        opts: {
-          isLogOptionsRequests: false,
-          maxResponseBodySize,
-        },
-      })
-    );
+    app.use((req, res, next) => {
+      onFinished(res, (err) => {
+        if (err) {
+          return m.log.error(err);
+        }
+        m.auditLoggers.http({ req, res });
+      });
+
+      return next();
+    });
     app.use(
       fileUpload({
         useTempFiles: true,
@@ -169,12 +149,9 @@ module.exports = () => {
       })
     );
 
-    const corsOrigins = process.env.CORS_ORIGIN
-      ? [RegExp(process.env.CORS_ORIGIN)]
-      : [/https:\/\/.+\.conceptant\.com/, /http:\/\/localhost\.conceptant\.com.*/, /http:\/\/localhost.*/];
     app.use(
       cors({
-        origin: corsOrigins,
+        origin: m.config.CORS_ORIGIN,
         methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
         allowedHeaders: ['API-Token', 'Authorization', 'Content-Type', 'Accept'],
         exposedHeaders: ['API-Token-Expiry'],
@@ -183,34 +160,11 @@ module.exports = () => {
       })
     );
 
-    const responseBodyMiddleware = (req, res, next) => {
-      const defaultWrite = res.write;
-      const defaultEnd = res.end;
-      const chunks = [];
-
-      res.write = (...restArgs) => {
-        chunks.push(Buffer.from(restArgs[0]));
-        defaultWrite.apply(res, restArgs);
-      };
-
-      res.end = (...restArgs) => {
-        if (restArgs[0]) {
-          chunks.push(Buffer.from(restArgs[0]));
-        }
-        res.body = Buffer.concat(chunks).toString('utf8');
-
-        defaultEnd.apply(res, restArgs);
-      };
-
-      next();
-    };
-
-    app.use(responseBodyMiddleware);
+    const httpAuditMiddleware = getHttpAuditMiddleware(m.config);
+    app.use(httpAuditMiddleware);
   };
 
-  m.getFullRoute = (routePrefix, route) => {
-    return routePrefix ? `${routePrefix}${route}` : route;
-  };
+  m.getFullRoute = (routePrefix, route) => (routePrefix ? `${routePrefix}${route}` : route);
 
   /**
    * Adds routes to the application router
@@ -239,13 +193,9 @@ module.exports = () => {
     m.log.trace(` ∟ ${action} route: ${method.toUpperCase()} ${fullRoute} ${authRouteNote}`);
   }
 
-  m.addRoute = (verb, route, args) => {
-    return addRoute(verb, m.API_PREFIX, route, args);
-  };
+  m.addRoute = (verb, route, args) => addRoute(verb, m.config.API_PREFIX, route, args);
 
-  m.addResourceRoute = (verb, route, args) => {
-    return addRoute(verb, m.RESOURCE_PREFIX, route, args);
-  };
+  m.addResourceRoute = (verb, route, args) => addRoute(verb, m.config.RESOURCE_PREFIX, route, args);
 
   /**
    * Adds routes necessary to perform full CRUD on the global.appModel
@@ -332,7 +282,7 @@ module.exports = () => {
           const isFilteringLookup = tableLookup.where;
           const tableName = tableLookup.table;
           const lookupPath = `/lookups/${lookupId}/${tableName}`;
-          const fullLookupPath = m.getFullRoute(m.API_PREFIX, lookupPath);
+          const fullLookupPath = m.getFullRoute(m.config.API_PREFIX, lookupPath);
           if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullLookupPath, 'get'))) {
             m.addRoute('get', lookupPath, [m.isAuthenticated, mainController.getLookupTable]);
           }
@@ -349,7 +299,10 @@ module.exports = () => {
           }
           const isFilteringLookup = tableSpec.where;
           const treeSelectorPath = `/treeselectors/${treeSelectorId}/${tableName}`;
-          const fullTreeSelectorPath = m.getFullRoute(m.API_PREFIX, `/treeselectors/${treeSelectorId}/${tableName}`);
+          const fullTreeSelectorPath = m.getFullRoute(
+            m.config.API_PREFIX,
+            `/treeselectors/${treeSelectorId}/${tableName}`
+          );
           if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullTreeSelectorPath, 'get'))) {
             m.addRoute('get', treeSelectorPath, [m.isAuthenticated, mainController.getTreeSelector]);
           }
@@ -367,10 +320,14 @@ module.exports = () => {
   };
 
   m.loadControllers = async () => {
+    const { globSyncAsciiOrder } = require('./util/glob');
+
     m.log.trace('Loading custom controllers:');
     try {
       const appSchemaControllersFiles = _.flatten(
-        getSchemaNestedPaths('server_controllers/**/*.js').map((pattern) => globSyncAsciiOrder(pattern))
+        getSchemaNestedPaths(m.config.APP_SCHEMA, 'server_controllers/**/*.js').map((pattern) =>
+          globSyncAsciiOrder(pattern)
+        )
       );
       const coreControllers = globSyncAsciiOrder(`${appRoot}/model/server_controllers/**/*.js`);
       const files = [...coreControllers, ...appSchemaControllersFiles];
@@ -393,7 +350,7 @@ module.exports = () => {
 
   m.addRoutes = async () => {
     const mainController = m.controllers.main;
-    const { fileController } = m;
+    const { controller: fileController } = m.file;
 
     // development and system endpoints
     m.addRoute('get', '/', [mainController.getRootJson]);
@@ -558,8 +515,9 @@ module.exports = () => {
      *         description: Server error occurred during authentication process
      */
 
+    const { serveDirs } = require('./public-files-controller');
     m.addResourceRoute('use', '/public', [
-      serveDirs([...getSchemaNestedPaths('/public'), './model/public'], {
+      serveDirs([...getSchemaNestedPaths(m.config.APP_SCHEMA, '/public'), './model/public'], {
         fileMatcher: ({ accessType, relativePath }) => {
           if (accessType === 'directory') {
             return relativePath.startsWith('/js/client-modules');
@@ -569,7 +527,7 @@ module.exports = () => {
       }),
     ]);
 
-    m.addRoute('post', '/upload', [fileController.upload]);
+    m.addRoute('post', '/upload', [m.isAuthenticated, fileController.upload]);
     /**
      * @swagger
      * /upload:
@@ -595,88 +553,25 @@ module.exports = () => {
      *               type: boolean
      */
 
-    m.addRoute('get', '/file/:id', [fileController.getFile]);
+    m.addRoute('get', '/file-link/:fileId', [m.isAuthenticated, fileController.getFileLink]);
     /**
      * @swagger
-     * /file/{id}:
+     * /file-link/{fileId}:
      *   get:
-     *     summary: Gets inline file by id
-     *     description: Does not check AUTH.
+     *     summary: Gets a link to download specified file
      *     tags:
      *       - File
      *     parameters:
      *       - in: 'path'
-     *         name: 'id'
+     *         name: 'fileId'
      *         required: true
      *         type: 'string'
-     *     produces:
-     *       - image/png
-     *       - image/gif
-     *       - image/jpeg
-     *       - image/bmp
-     *     responses:
-     *       200:
-     */
-
-    m.addRoute('get', '/file-cropped/:id', [fileController.getFileCropped]);
-    /**
-     * @swagger
-     * /file-cropped/{id}:
-     *   get:
-     *     summary: Gets cropped image by file id
-     *     description: Does not check AUTH.
-     *     tags:
-     *       - File
-     *     parameters:
-     *       - in: 'path'
-     *         name: 'id'
-     *         required: true
+     *       - in: 'query'
+     *         name: 'fileType'
      *         type: 'string'
-     *     produces:
-     *       - image/png
-     *       - image/gif
-     *       - image/jpeg
-     *       - image/bmp
-     *     responses:
-     *       200:
-     */
-
-    m.addRoute('get', '/file-thumbnail/:id', [fileController.getFileThumbnail]);
-    /**
-     * @swagger
-     * /file-thumbnail/{id}:
-     *   get:
-     *     summary: Gets image thumbnail by file id
-     *     description: Does not check AUTH.
-     *     tags:
-     *       - File
-     *     parameters:
-     *       - in: 'path'
-     *         name: 'id'
-     *         required: true
-     *         type: 'string'
-     *     produces:
-     *       - image/png
-     *       - image/gif
-     *       - image/jpeg
-     *     responses:
-     *       200:
-     */
-
-    m.addRoute('get', '/download/:id', [fileController.getFile]);
-    /**
-     * @swagger
-     * /download/{id}:
-     *   get:
-     *     summary: Gets file by id as attachment
-     *     description: Does not check AUTH.
-     *     tags:
-     *       - File
-     *     parameters:
-     *       - in: 'path'
-     *         name: 'id'
-     *         required: true
-     *         type: 'string'
+     *         enum: [asis, cropped, thumbnail]
+     *         default: asis
+     *         description: Specifies the type of file to download. Values 'cropped' and 'thumbnail' are available only for pictures.
      *     responses:
      *       200:
      *         schema:
@@ -685,8 +580,38 @@ module.exports = () => {
      *             data:
      *               type: object
      *               description: Uploaded files
+     *               properties:
+     *                linkId:
+     *                  type: string
+     *                  description: Link to download the file
+     *                expiresAt:
+     *                  type: string
+     *                  description: Expiration date of the link in ISO format
      *             success:
      *               type: boolean
+     */
+
+    m.addRoute('get', '/file/:linkId', [fileController.getFile]);
+    /**
+     * @swagger
+     * /file/{linkId}:
+     *   get:
+     *     summary: Gets file by link
+     *     tags:
+     *       - File
+     *     parameters:
+     *       - in: 'path'
+     *         name: 'linkId'
+     *         required: true
+     *         type: 'string'
+     *       - in: 'query'
+     *         name: 'attachment'
+     *         type: 'boolean'
+     *         default: false
+     *         description: If true downloads the file as attachment otherwise inline
+     *     responses:
+     *       200:
+     *         description: File content
      */
 
     // endpoints for all models
@@ -702,6 +627,7 @@ module.exports = () => {
     connect.connectGraphqlWithAltair();
 
     m.log.trace('Connecting Swagger');
+    const { connectSwagger } = require('./swagger');
     connectSwagger(m);
   };
 
@@ -726,21 +652,23 @@ module.exports = () => {
   };
 
   m.setOptions = (opts) => {
-    options = opts;
+    m.options = _.merge(m.options, opts);
   };
 
   m.migrateMongo = async function () {
-    const migrateMongo = new MigrateMongo(getMigrateConfig());
+    const { getMigrateConfig } = require('../migrate/config');
+    const { MONGODB_URI } = m.config;
+    const migrateMongo = new MigrateMongo(getMigrateConfig(MONGODB_URI));
     const db = await migrateMongo.database.connect();
     await migrateMongo.up(db);
     await db.close();
   };
 
   async function cacheRolesToPermissions() {
-    if (m.cache) {
+    if (m.cache.isReady()) {
       // set rolesToPermissions on startup to rewrite old cache
       const rolesToPermissions = await m.accessUtil.getRolesToPermissions();
-      await m.cache.setCache(m.cache.keys.rolesToPermissions(), rolesToPermissions);
+      await m.cache.set(m.cache.keys.rolesToPermissions(), rolesToPermissions);
       m.log.info('Loaded rolesToPermissions: ', JSON.stringify(rolesToPermissions, null, 2));
     }
   }
@@ -753,13 +681,17 @@ module.exports = () => {
     m.filterParser = require('./filter/filter-parser')(m);
 
     m.accessUtil = require('./access/access-util')(m);
+    m.otp = require('./util/otp')(m.config);
+    m.crypto = require('./util/crypto')(m.config);
+    m.mail = require('./mail')(m.config);
     m.dba = require('./database-abstraction')(m);
     m.mutil = require('./model')(m);
+    m.trino = require('./trino')(m);
 
     m.graphQl = require('./graphql')(m, '/graphql', '/altair');
     m.requestContexts = require('./request-context');
 
-    m.googleMapsClient = require('./google-maps');
+    m.googleMapsClient = require('./google-maps')(m.config.GOOGLE_API_KEY);
 
     m.backgroundJobs = require('./queue/background-jobs');
 
@@ -774,8 +706,7 @@ module.exports = () => {
     m.controllers = {};
     m.controllerUtil = require('./default-controller-util')(m);
     m.controllers.main = require('./default-controller')(m);
-    m.fileController = require('./file-controller')(m);
-    m.fileControllerUtil = require('./file-controller-util')(m.db);
+    m.file = require('./file')(m);
   }
 
   function addMongoHooks() {
@@ -783,74 +714,111 @@ module.exports = () => {
     const usersWithPermissionsKeyPattern = `${keys.usersWithPermissions()}:*`;
     const rolesToPermissionsKey = keys.rolesToPermissions();
 
-    m.db.collection('roles').after('write', function (/* { args, method, result } */) {
+    m.db.collection('roles').after('write', (/* { args, method, result } */) => {
       clearCacheByKeyPattern(usersWithPermissionsKeyPattern);
       clearCacheByKeyPattern(rolesToPermissionsKey);
     });
-    m.db.collection('users').after('write', function (/* { args, method, result } */) {
+    m.db.collection('users').after('write', (/* { args, method, result } */) => {
       clearCacheByKeyPattern(usersWithPermissionsKeyPattern);
       clearCacheByKeyPattern(rolesToPermissionsKey);
     });
   }
 
-  function configureLog4js() {
-    const log4jsConfig = {
-      appenders: { out: { type: 'stdout' } },
-      categories: { default: { appenders: ['out'], level: 'OFF' } },
-    };
-    try {
-      const log4jsConfigContent = process.env.LOG4JS_CONFIG ? fs.readFileSync(process.env.LOG4JS_CONFIG, 'utf8') : '{}';
-      _.merge(log4jsConfig, JSON5.parse(log4jsConfigContent));
-    } catch (e) {
-      console.error(`Unable to read log4js config by path '${process.env.LOG4JS_CONFIG}'`);
-      throw e;
+  function configureLog4js(configWarnings) {
+    const log4jsConfig = {};
+
+    const { LOG4JS_CONFIG } = m.config;
+    if (!fs.existsSync(LOG4JS_CONFIG)) {
+      throw new Error(`Log4js config file by path '${LOG4JS_CONFIG}' does not exist`);
     }
 
-    const mongoDbAppender = require('./util/log4js-mongodb-appender')({
-      connectionString: process.env.LOG_DB_URI,
-      collectionName: process.env.LOG_DB_COLLECTION,
-    });
+    try {
+      const log4jsFileConfig = JSON5.parse(fs.readFileSync(LOG4JS_CONFIG, 'utf8'));
+      _.merge(log4jsConfig, log4jsFileConfig);
+    } catch (e) {
+      throw new Error(`Invalid log4js config by path '${LOG4JS_CONFIG}, ${e.message}`);
+    }
 
-    const isLogAuditEnabled = process.env.LOG_AUDIT === 'true';
-    _.set(log4jsConfig, 'appenders.audit', { type: mongoDbAppender });
-    _.set(log4jsConfig, 'categories.audit', {
-      appenders: ['audit'],
-      level: isLogAuditEnabled ? 'trace' : 'off',
+    if (!_.get(log4jsConfig, 'appenders.out')) {
+      _.set(log4jsConfig, 'appenders.out', { type: 'stdout' });
+    }
+    if (!_.get(log4jsConfig, 'categories.default')) {
+      _.set(log4jsConfig, 'categories.default', { appenders: ['out'], level: 'OFF' });
+    }
+    const auditAppender = require('./util/log4js-mongodb-appender')({
+      connectionString: m.config.LOG_DB_URI,
+      collectionName: m.config.LOG_DB_COLLECTION,
     });
+    _.set(log4jsConfig, 'appenders.audit', { type: auditAppender });
+
+    const consoleEjsonOptions = _.get(log4jsConfig, 'appenders.consoleEjson.options');
+    const consoleEjsonAppender = require('./util/log4js-console-ejson-appender')(consoleEjsonOptions);
+    _.set(log4jsConfig, 'appenders.consoleEjson', { type: consoleEjsonAppender });
 
     log4js.configure(log4jsConfig);
 
     m.log = log4js.getLogger('lib/app');
-    m.auditPersistLogger = log4js.getLogger('audit');
+    const configWarningsList = getOrderedList(configWarnings);
+    configWarningsList && m.log.warn(`Config warnings:\n ${configWarningsList}`);
+
+    m.auditLoggers = getAuditLoggers(log4js, m.config);
     m.expressLog = log4js.getLogger('express');
     m.dbAppLogger = log4js.getLogger('db');
+    m.getLogger = log4js.getLogger.bind(log4js);
   }
 
   /**
    * App setup, configures everything but doesn't start the app
-   * For tests just setup the app
    * For the actual server also call app.start();
    */
   m.setup = async () => {
-    prepareEnv(appRoot);
-    configureLog4js();
+    const { errors, warnings: configWarnings, config, envConfig } = await getConfigFromDb(m.options.MONGODB_URI);
+    if (!_.isEmpty(errors)) {
+      throw new Error(errors.join('\n'));
+    }
+    if (m.options.MONGODB_URI) {
+      config.MONGODB_URI = m.options.MONGODB_URI;
+    }
+    m.config = config;
+    m.envConfig = envConfig;
 
-    if (!process.env.APP_SCHEMA) {
+    configureLog4js(configWarnings);
+
+    m.errors = require('./errors');
+    m.butil = require('./util/util');
+    m.expressUtil = require('./express-util');
+    m.accessCfg = require('./access/access-config');
+    m.elasticSearch = require('./elastic-search');
+
+    const {
+      REDIS_URL,
+      REDIS_KEY_PREFIX,
+      BULL_REDIS_URL,
+      BULL_KEY_PREFIX,
+      BULL_REMOVE_ON_COMPLETE,
+      BULL_REMOVE_ON_FAIL,
+    } = m.config;
+    m.cache = require('./cache')({ redisUrl: REDIS_URL, keyPrefix: REDIS_KEY_PREFIX });
+    m.queue = require('./queue')({
+      redisUrl: BULL_REDIS_URL,
+      keyPrefix: BULL_KEY_PREFIX,
+      removeOnComplete: BULL_REMOVE_ON_COMPLETE,
+      removeOnFail: BULL_REMOVE_ON_FAIL,
+    });
+
+    if (_.isEmpty(m.config.APP_SCHEMA)) {
       m.log.warn(`Env APP_SCHEMA not specified. Proceeding with built-in models only.`);
     }
 
-    const nonExistingSchemaPaths = getSchemaPaths()
-      .map((p) => (fs.existsSync(p) ? null : p))
-      .filter((p) => p);
+    const nonExistingSchemaPaths = m.config.APP_SCHEMA.map((p) => (fs.existsSync(p) ? null : p)).filter((p) => p);
     if (!_.isEmpty(nonExistingSchemaPaths)) {
       m.log.warn(`Found non-existing schema paths: ${nonExistingSchemaPaths.join(', ')}. Check your .env file.`);
     }
 
     // mongo-wrapper patches mongodb so calling require('mongodb') will get patched version in any other place
     require('./mongo-wrapper')({
-      appLogger: m.dbAppLogger,
-      persistLogger: m.auditPersistLogger,
-      logCollectionName: process.env.LOG_DB_COLLECTION,
+      log: m.auditLoggers.db,
+      logCollectionName: m.config.LOG_DB_COLLECTION,
     });
 
     setInitProperties();
@@ -871,29 +839,32 @@ module.exports = () => {
     m.datasetModelNames = new Set();
 
     const coreModelPath = nodePath.resolve(__dirname, '../model');
-    const helperDirPaths = [`${coreModelPath}/helpers`, ...getSchemaNestedPaths('helpers')];
-    const buildAppModelCodeOnStart = (process.env.BUILD_APP_MODEL_CODE_ON_START || 'true') === 'true';
-    m.helperUtil = await require('./helper-util')(m, helperDirPaths, buildAppModelCodeOnStart);
+    const helperDirPaths = [`${coreModelPath}/helpers`, ...getSchemaNestedPaths(m.config.APP_SCHEMA, 'helpers')];
+    m.helperUtil = await require('./helper-util')(m, helperDirPaths, m.config.BUILD_APP_MODEL_CODE_ON_START);
     m.allActionsNames = [...m.accessCfg.DEFAULT_ACTIONS, ..._.keys(m.appModelHelpers.CustomActions)];
 
     const { model, macrosFunctionContext } = await m.mutil.getCombinedModel({
-      appModelSources: options.appModelSources,
+      appModelSources: m.options.appModelSources,
       appModelProcessors: m.appModelHelpers.appModelProcessors,
-      macrosDirPaths: [...getSchemaNestedPaths('macros'), `${coreModelPath}/macros`],
+      macrosDirPaths: [...getSchemaNestedPaths(m.config.APP_SCHEMA, 'macros'), `${coreModelPath}/macros`],
     });
+
+    prepareEnvironmentSchema(model.models._environment);
     m.appModel = model;
     m.macrosFunctionContext = macrosFunctionContext;
 
-    const { errors, warnings } = m.mutil.validateAndCleanupAppModel(m.appModel.models);
-    if (warnings.length) {
-      const warningsList = warnings.map((w, index) => `${index + 1}) ${w}`).join('\n');
+    const { errors: modelErrors, warnings: modelWarnings } = m.mutil.validateAndCleanupAppModel(m.appModel.models);
+    if (modelWarnings.length) {
+      const warningsList = getOrderedList(modelWarnings);
       m.log.warn(`Warnings during model building:\n${warningsList}`);
     }
-    if (errors.length) {
-      throw new Error(errors.join('\n'));
+    if (modelErrors.length) {
+      throw new Error(modelErrors.join('\n'));
     }
 
+    await m.mutil.createCollections();
     await m.mutil.handleIndexes();
+    await m.trino.upsertTrinoSchemas(m.appModel.models);
     await cacheRolesToPermissions();
 
     m.log.info('Executing prestart scripts...');
@@ -902,22 +873,34 @@ module.exports = () => {
 
     m.auth = require('./auth')(m);
 
-    m.appModel.interface.app.isInactivityLogoutEnabled = m.auth.isInactivityLogoutEnabled;
+    const {
+      IS_INACTIVITY_LOGOUT_ENABLED,
+      INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_FROM_SESSION_END,
+      DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT,
+      INACTIVITY_LOGOUT_FE_PING_INTERVAL,
+    } = m.config;
+    m.appModel.interface.app.isInactivityLogoutEnabled = IS_INACTIVITY_LOGOUT_ENABLED;
     m.appModel.interface.app.inactivityLogoutNotificationAppearsFromSessionEnd =
-      m.auth.inactivityLogoutNotificationAppearsFromSessionEnd;
+      INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_FROM_SESSION_END;
+    m.appModel.interface.app.dataExportInstantDownloadTimeout = DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT;
+    m.appModel.interface.app.inactivityLogoutFePingInterval = INACTIVITY_LOGOUT_FE_PING_INTERVAL;
     m.isAuthenticated = m.auth.isAuthenticated;
-    m.authenticationCheck = m.auth.authenticationCheck;
 
-    const esConfig = m.elasticSearch.getEsConfig();
+    const { ES_NODES, ES_MAX_RETRIES } = m.config;
+    const esConfig = m.elasticSearch.getEsConfig(ES_NODES, ES_MAX_RETRIES);
     if (esConfig) {
       m.log.info('Starting real-time Mongo-ES sync...');
-      const mongoUrl = process.env.MONGODB_URI;
-      await m.elasticSearch.startRealTimeSync(m.isMongoSupportsSessions, m.appModel.models, mongoUrl, esConfig, true);
+      await m.elasticSearch.startRealTimeSync(
+        m.isMongoSupportsSessions,
+        m.appModel.models,
+        m.config.MONGODB_URI,
+        esConfig,
+        true
+      );
     }
 
     const app = express();
     await m.configureApp(app);
-    m.auth.addUserAuthentication(app);
 
     // build baseAppModel once to reuse it in models responses for specific users
     m.baseAppModel = m.accessUtil.getBaseAppModel();
@@ -927,8 +910,8 @@ module.exports = () => {
     // define m.ws before loading model controllers, since it's allowed to add own ws events inside them
     m.ws = require('./real-time')({
       appLib: m,
-      redisUrl: process.env.SOCKETIO_REDIS_URL || process.env.REDIS_URL,
-      keyPrefix: process.env.SOCKETIO_KEY_PREFIX || process.env.REDIS_KEY_PREFIX,
+      redisUrl: m.config.SOCKETIO_REDIS_URL,
+      keyPrefix: m.config.SOCKETIO_KEY_PREFIX,
     });
 
     await m.addRoutes();
@@ -939,6 +922,7 @@ module.exports = () => {
     // build ws server with ready http instance and ws events from model controllers
     await m.ws.build(m.server);
 
+    const { APP_VERSION, APP_NAME } = m.config;
     m.log.info(`${APP_NAME} Backend v${APP_VERSION} is running`);
     return m;
   };
@@ -963,12 +947,11 @@ module.exports = () => {
    * Starts the application. It's been extracted into a separate routine to make testing possible.
    */
   m.start = () => {
-    m.httpInstance = m.server.listen(process.env.APP_PORT);
-    m.log.info('App is listening on port', process.env.APP_PORT);
-    m.auditPersistLogger.info({
-      type: 'system',
+    const { APP_PORT } = m.config;
+    m.httpInstance = m.server.listen(APP_PORT);
+    m.log.info('App is listening on port', APP_PORT);
+    m.auditLoggers.system({
       message: 'System backend is running',
-      timestamp: new Date(),
     });
   };
 

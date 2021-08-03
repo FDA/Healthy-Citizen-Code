@@ -13,7 +13,7 @@
 
     // TODO: don't use it, please. Rewrite with ng-translate
     $rootScope.lang = {};
-    vm.baseUrl = !!APP_CONFIG.appSuffix ? APP_CONFIG.appSuffix + '/' : ''
+    vm.baseUrl = APP_CONFIG.appSuffix;
 
     AdpLanguageMockService.getAll()
       .then(function(response){

@@ -9,6 +9,7 @@
   function GraphqlRequest(
     ServerError,
     APP_CONFIG,
+    AdpUserActivityHelper,
     $http
   ) {
     function endpoint() {
@@ -23,11 +24,19 @@
 
       return $http.post(endpoint(), body)
         .then(function (res) {
+          var resData = _.get(res.data, 'data.' + requestParams.name);
+          if (resData !== null && hasGraphqlError(res)) {
+            warnErrors(res, requestParams.name);
+            return resData;
+          }
+
           if (hasGraphqlError(res)) {
            throwIfErrors(res);
           }
 
-          return res.data.data[requestParams.name];
+          AdpUserActivityHelper.resetUserActivityTimer();
+
+          return _.get(res.data, 'data.' + requestParams.name);
         })
         .catch(function (err) {
           if (hasGraphqlError(err)) {
@@ -44,6 +53,14 @@
       });
 
       throw new ServerError(errorsMessages);
+    }
+
+    function warnErrors(res) {
+      var errorsMessages = res.data.errors.map(function (err) {
+        return err.message;
+      }).join('\n');
+
+      console.error('Server Error: ' + errorsMessages);
     }
 
     function hasGraphqlError(res) {

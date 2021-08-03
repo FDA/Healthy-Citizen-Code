@@ -4,7 +4,7 @@ const _ = require('lodash');
 const reDate = /^(?:new )?Date\("?([^"]+)"?\)$/;
 const reObjectId = /^ObjectId\("?([^"]+)"?\)$/;
 
-const filterReviver = function(key, value) {
+const filterReviver = function (key, value) {
   if (typeof value === 'string') {
     const execDate = reDate.exec(value);
     if (execDate) {
@@ -25,7 +25,7 @@ function getLimit(appLib, model, perPage = Infinity, userPermissions) {
     const permissionLimits = _.map(model.limitReturnedRecords, (permLimit, permName) =>
       userPermissions.has(permName) ? permLimit : 0
     );
-    modelLimit = Math.max(...permissionLimits);
+    modelLimit = _.isEmpty(permissionLimits) ? 0 : Math.max(...permissionLimits);
   } else {
     modelLimit = +model.limitReturnedRecords;
   }

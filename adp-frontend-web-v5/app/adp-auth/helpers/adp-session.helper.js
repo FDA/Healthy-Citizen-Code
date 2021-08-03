@@ -5,8 +5,7 @@
     .module('app.adpAuth')
     .factory('AdpSessionHelper', AdpSessionHelper);
 
-  var sessionRemainingTimeout = null;
-  var sessionPollingInterval = null;
+  var sessionTimeout = null;
   var tokenRefreshTimeout = null;
   var timerDialogInstance = null;
 
@@ -17,6 +16,7 @@
     $interval,
     $injector,
     AdpModalService,
+    AdpUserActivityHelper,
     APP_CONFIG
   ) {
     return {
@@ -24,6 +24,7 @@
       setSessionRemainingTimeout: setSessionRemainingTimeout,
       cancelAllTimers: cancelAllTimers,
       doLogout: doLogout,
+      doProlongSession: doProlongSession,
     };
 
     function setSessionRemainingTimeout() {
@@ -31,71 +32,48 @@
       var isCheckSessionStatusRequired = INTERFACE.app.isInactivityLogoutEnabled;
 
       if (isCheckSessionStatusRequired) {
-        doSessionCheck()
-          .then(createSessionRemainingTimeout)
-          .catch(doLogout);
+        _checkSessionExpire();
       }
     }
 
-    function createSessionRemainingTimeout(expiresIn) {
+    function _createSessionTimeout(timerMs) {
+      _cancelSessionTimeout();
+      sessionTimeout = $timeout(_checkSessionExpire, timerMs);
+    }
+
+    function _cancelSessionTimeout() {
+      $timeout.cancel(sessionTimeout);
+    }
+
+    function _checkSessionExpire() {
+      _doSessionCheck().then(_onSessionCheck).catch(doLogout);
+    }
+
+    function _onSessionCheck(expiresIn) {
       if (!_.isNumber(expiresIn)) {
         return;
       }
-      var timerMs = Math.max(0, expiresIn - getHowLongBeforeExpireWeShowTimer() + 1000);
 
-      cancelSessionRemainingTimeout();
-      sessionRemainingTimeout = $timeout(onSessionRemainingTimeout, timerMs);
+      if (expiresIn < _getHowLongBeforeExpireWeShowTimer()) {
+        _doOpenTimerDialog(expiresIn);
+        _createSessionTimeout(APP_CONFIG.INACTIVITY_LOGOUT_POLLING_INTERVAL);
+        AdpUserActivityHelper.resetUserActivityTimer(true);
+      } else {
+        _doCloseTimerDialog();
+        _createSessionTimeout(Math.max(0, expiresIn - _getHowLongBeforeExpireWeShowTimer() + 1000));
+        AdpUserActivityHelper.resetUserActivityTimer();
+      }
     }
 
-    function onSessionRemainingTimeout() {
-      doSessionCheck().then(
-        function (expiresIn) {
-          if (expiresIn < getHowLongBeforeExpireWeShowTimer()) {
-            doOpenTimerDialog(expiresIn);
-            setSessionRemainingPollingInterval();
-          } else {
-            createSessionRemainingTimeout(expiresIn);
-          }
-        }
-      )
-    }
-
-    function setSessionRemainingPollingInterval() {
-      var timerMs = APP_CONFIG.INACTIVITY_LOGOUT_POLLING_INTERVAL;
-
-      cancelSessionPollingInterval();
-
-      sessionPollingInterval = $interval(onSessionRemainingPolling, timerMs);
-    }
-
-    function onSessionRemainingPolling() {
-      doSessionCheck().then(
-        function (expiresIn) {
-          if (getHowLongBeforeExpireWeShowTimer() < expiresIn) {
-            doCloseTimerDialog();
-            createSessionRemainingTimeout(expiresIn);
-          }
-        }
-      )
-    }
-
-    function cancelSessionRemainingTimeout() {
-      $timeout.cancel(sessionRemainingTimeout);
-    }
-
-    function cancelSessionPollingInterval() {
-      $interval.cancel(sessionPollingInterval);
-    }
-
-    function doSessionCheck() {
+    function _doSessionCheck() {
       var url = APP_CONFIG.apiUrl + '/session-status';
 
       return $http.post(url)
-                  .then(onSessionCheck)
+                  .then(_transformSessionEndResponse)
                   .catch(doLogout);
     }
 
-    function onSessionCheck(data) {
+    function _transformSessionEndResponse(data) {
       if (data.data.success) {
         var timeLeft = data.data.data.sessionEndMs;
 
@@ -107,16 +85,16 @@
       throw new Error('No session found. Logout.');
     }
 
-    function doProlongSession() {
+    function doProlongSession(lastActivityIn) {
       var url = APP_CONFIG.apiUrl + '/prolong-session';
 
-      return $http.post(url)
-                  .then(onSessionCheck)
-                  .then(createSessionRemainingTimeout)
+      return $http.post(url, {data: {lastActivityIn: lastActivityIn}})
+                  .then(_transformSessionEndResponse)
+                  .then(_onSessionCheck)
                   .catch(doLogout);
     }
 
-    function doOpenTimerDialog(sessionEndsAfterMs) {
+    function _doOpenTimerDialog(sessionEndsAfterMs) {
       if (timerDialogInstance) {
         return;
       }
@@ -133,7 +111,7 @@
         .then(function (result) {
           if (result) {
             if (result.prolong) {
-              return doProlongSession();
+              return doProlongSession(0);
             }
             if (result.logout) {
               doLogout();
@@ -143,18 +121,17 @@
         .catch(_.noop)
         .finally(function () {
           timerDialogInstance = null;
-          cancelSessionPollingInterval();
         });
     }
 
-    function doCloseTimerDialog() {
+    function _doCloseTimerDialog() {
       if (timerDialogInstance) {
         timerDialogInstance.close();
       }
     }
 
     function setTokenRefreshTimeout(immediate, isLoud) {
-      cancelTokenRefreshTimeout();
+      _cancelTokenRefreshTimeout();
 
       if (!immediate) {
         var timeout;
@@ -171,31 +148,32 @@
           timeout /= 2;
         }
 
-        tokenRefreshTimeout = $timeout(tokenRefresh, timeout);
+        timeout = Math.min(timeout, 2000000000);
+        tokenRefreshTimeout = $timeout(_tokenRefresh, timeout);
 
         return Promise.resolve();
       }
 
-      return tokenRefresh(isLoud);
+      return _tokenRefresh(isLoud);
     }
 
-    function cancelTokenRefreshTimeout() {
+    function _cancelTokenRefreshTimeout() {
       $timeout.cancel(tokenRefreshTimeout);
     }
 
-    function tokenRefresh(isLoud) {
+    function _tokenRefresh(isLoud) {
       var url = APP_CONFIG.apiUrl + '/refresh-token' + (isLoud ? '' : '?silent=true');
 
       return $http.post(url)
                   .then(function (data) {
                     if (data.data.success) {
-                      tokenUpdate(data);
+                      _tokenUpdate(data);
                     }
                   })
                   .catch(doLogout);
     }
 
-    function tokenUpdate(data) {
+    function _tokenUpdate(data) {
       var updatedUserData = {
         token: data.data.token,
         expiresIn: data.data.expiresIn,
@@ -212,12 +190,11 @@
     }
 
     function cancelAllTimers() {
-      cancelSessionRemainingTimeout();
-      cancelSessionPollingInterval();
-      cancelTokenRefreshTimeout();
+      _cancelSessionTimeout();
+      _cancelTokenRefreshTimeout();
     }
 
-    function getHowLongBeforeExpireWeShowTimer() {
+    function _getHowLongBeforeExpireWeShowTimer() {
       var INTERFACE = window.adpAppStore.appInterface();
 
       return INTERFACE.app.inactivityLogoutNotificationAppearsFromSessionEnd;

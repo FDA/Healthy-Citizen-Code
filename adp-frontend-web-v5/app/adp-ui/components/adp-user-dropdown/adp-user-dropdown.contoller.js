@@ -10,16 +10,24 @@
     AdpSessionService,
     AdpModalService,
     $rootScope,
-    AdpFilePathService,
-    APP_CONFIG
+    $http,
+    APP_CONFIG,
+    AdpMediaTypeHelper
   ) {
     var authSettings = window.adpAppStore.appInterface().app.auth;
     var vm = this;
+    var DEFAULT_AVATAR = APP_CONFIG.appSuffix + '/assets/img/profile.jpg';
 
     vm.user = lsService.getUser();
     vm.isGuest = lsService.isGuest();
     vm.showLogin = lsService.isGuest() && authSettings.enableAuthentication;
-    vm.avatarSrc = getAvatar($rootScope.avatar);
+    vm.avatarSrc = DEFAULT_AVATAR;
+
+    getAvatar($rootScope.avatar)
+      .then(function (src) {
+        vm.avatarSrc = src;
+      });
+
     vm.showClsCsrInUserMenu = APP_CONFIG.showClsCsrInUserMenu;
 
     $rootScope.$watch('avatar.id', function (newVal, oldVal) {
@@ -27,17 +35,19 @@
         return;
       }
 
-      vm.avatarSrc = getAvatar($rootScope.avatar);
+      getAvatar($rootScope.avatar)
+        .then(function (src) {
+          vm.avatarSrc = src;
+        });
     });
 
     function getAvatar(fileItem) {
       if (_.isEmpty(fileItem)) {
-        return 'assets/img/profile.jpg';
+        return Promise.resolve(DEFAULT_AVATAR);
       }
 
-      return fileItem.cropped ?
-        AdpFilePathService.cropped(fileItem) :
-        AdpFilePathService.thumb(fileItem);
+      var fnName = fileItem.cropped ? 'getCroppedImgLink' : 'getThumbImgLink';
+      return AdpMediaTypeHelper[fnName](fileItem);
     }
 
     vm.logout = function () {

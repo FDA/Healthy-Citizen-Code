@@ -24,7 +24,6 @@ module.exports = (appLib) => {
     const modelTreeSelectors = _.get(appLib.treeSelectorFieldsMeta, modelName);
     const checkTreeSelectorPromises = [];
 
-    const actualRecordCond = appLib.dba.getConditionForActualRecord(modelName);
     _.each(modelTreeSelectors, (treeSelectorMeta, itemPath) => {
       const { jsonPath } = treeSelectorMeta.paths;
       const singleTableMeta = Object.values(treeSelectorMeta.table)[0];
@@ -32,12 +31,13 @@ module.exports = (appLib) => {
 
       _.each(treeSelectorResult, (treeSelectorData) => {
         const { parent, isLeaf, requireLeafSelection, foreignKey, table } = singleTableMeta;
+        const conditionForActualRecord = appLib.dba.getConditionForActualRecord(table);
         const lastChildId = treeSelectorData[treeSelectorData.length - 1]._id;
         const [fromField, toField] = Object.entries(parent)[0];
         const checkPromise = appLib.db
           .collection(table)
           .aggregate([
-            { $match: { ...actualRecordCond, [foreignKey]: lastChildId } },
+            { $match: { ...conditionForActualRecord, [foreignKey]: lastChildId } },
             {
               $graphLookup: {
                 from: table,
@@ -45,7 +45,7 @@ module.exports = (appLib) => {
                 connectFromField: fromField,
                 connectToField: toField,
                 as: 'tree',
-                restrictSearchWithMatch: actualRecordCond,
+                restrictSearchWithMatch: conditionForActualRecord,
               },
             },
           ])
@@ -103,7 +103,6 @@ module.exports = (appLib) => {
   m.checkAndTransformLookup = async (item, modelName, userContext) => {
     const lookupFieldsMeta = _.get(appLib.lookupObjectIdFieldsMeta, modelName);
     const checkLookupPromises = [];
-    const conditionForActualRecord = appLib.dba.getConditionForActualRecord(modelName);
 
     _.each(lookupFieldsMeta, (lookupMeta, itemPath) => {
       const { jsonPath } = lookupMeta.paths;
@@ -117,6 +116,7 @@ module.exports = (appLib) => {
           return `Lookup meta for collection ${table} does not exist.`;
         }
 
+        const conditionForActualRecord = appLib.dba.getConditionForActualRecord(table);
         const records = await appLib.dba.getItemsUsingCache({
           modelName: table,
           userContext,

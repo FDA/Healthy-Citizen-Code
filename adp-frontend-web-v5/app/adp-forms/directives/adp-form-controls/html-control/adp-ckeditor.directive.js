@@ -27,6 +27,10 @@
         scope.$watch('editorsConfig', initEditor);
 
         function initEditor(config) {
+          if (!config) {
+            return;
+          }
+
           var oldInstance = getEditorInstance();
           if (oldInstance) {
             oldInstance.destroy();
@@ -44,15 +48,13 @@
             toolbarCanCollapse: true,
             toolbarStartupExpanded: true,
             removePlugins: 'flash,sourcearea',
-            extraPlugins: 'collapse',
+            extraPlugins: 'collapse,divarea',
             resize_dir: 'both',
             toolbar: CKEDITOR_TOOLBAR,
-            resize_minHeight: 300,
-            resize_maxHeight: 600,
         };
           var opts = _.assign({}, editorsDefaults, userConfig);
 
-          return CKEDITOR.inline(editorElem, opts);
+          return CKEDITOR.replace(editorElem, opts);
         }
 
         function getEditorElement() {

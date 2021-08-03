@@ -3,27 +3,26 @@
  * @returns {{}}
  */
 const log = require('log4js').getLogger('lib/user-controller');
-const passport = require('passport');
-const ms = require('ms');
 const { ObjectID } = require('mongodb');
 const _ = require('lodash');
 const mem = require('mem');
 const Promise = require('bluebird');
 
-const { sendMail, getForgotPasswordMail, getSuccessfulPasswordResetMail } = require('../../lib/mail');
 const { getMongoDuplicateErrorMessage } = require('../../lib/util/util');
 const { getCookie } = require('../../lib/util/cookie');
 
 module.exports = (appLib) => {
   const m = {};
+  m.appLib = appLib;
 
-  const User = appLib.db.collection('users');
-  const { transformers } = appLib;
+  const usersCollectionName = 'users';
+  const User = appLib.db.collection(usersCollectionName);
+  const { config, transformers } = appLib;
+  const { sendMail, getForgotPasswordMail, getSuccessfulPasswordResetMail } = appLib.mail;
   const { LinkedRecordError, InvalidTokenError, ExpiredTokenError, ValidationError } = appLib.errors;
   const {
     extractJwtFromRequest,
     getExpiryDate,
-    resetPasswordTokenExpiresInMs,
     getResetToken,
     refreshTokenCookieName,
     setRefreshTokenCookie,
@@ -31,12 +30,9 @@ module.exports = (appLib) => {
     createTokensRecord,
     removeTokensRecord,
     updateSocketAccessToken,
-    isInactivityLogoutEnabled,
     getTokensRecord,
     prolongSession,
   } = appLib.auth;
-
-  m.appLib = appLib;
 
   m.addAuthRoutes = function () {
     appLib.addRoute('post', '/login', [m.postLogin, m.postLoginResponse]);
@@ -220,7 +216,7 @@ module.exports = (appLib) => {
 
     // appLib.addRoute('post', '/account/delete', [m.appLib.isAuthenticated, m.postDeleteAccount]);
     appLib.addRoute('post', '/refresh-token', [m.refreshToken]);
-    if (isInactivityLogoutEnabled) {
+    if (config.IS_INACTIVITY_LOGOUT_ENABLED) {
       appLib.addRoute('post', '/session-status', [m.sessionStatus]);
       appLib.addRoute('post', '/prolong-session', [m.prolongSession]);
     }
@@ -237,48 +233,95 @@ module.exports = (appLib) => {
    * POST /login
    * Sign in using email and password.
    */
-  m.postLogin = (req, res, next) => {
-    passport.authenticate('local', async (err, user) => {
-      if (err || !user) {
-        err && log.error(err);
-        req.loginData = { success: false, message: err || 'Invalid credentials.' };
+  m.postLogin = async (req, res, next) => {
+    try {
+      const authResult = await appLib.auth.authenticateByPassword(req);
+      if (!authResult.success) {
+        req.loginData = authResult;
+        return next();
+      }
+      const { user } = authResult;
+      const twoFactorResult = await appLib.auth.authenticateByTwoFactor(req, user);
+      if (twoFactorResult.otpRequired) {
+        req.loginData = { success: true, otpRequired: true };
+        return next();
+      }
+      if (!twoFactorResult.success) {
+        req.loginData = twoFactorResult;
         return next();
       }
 
-      try {
-        const { record } = await User.hookQuery('findOne', { _id: ObjectID(user._id) });
-        if (!record) {
-          log.error(`User not found: ${user}`);
-          req.loginData = { success: false, message: `User not found` };
+      const passwordFieldsUpdate = {};
+      if (config.ACCOUNT_FORCED_PASSWORD_CHANGE_ENABLED) {
+        const userData = _.clone(user);
+        const { newPassword } = req.body;
+        if (newPassword) {
+          userData.password = req.body.newPassword;
+        }
+
+        const userContext = appLib.accessUtil.getUserContext(req);
+        try {
+          await transformers.preSaveTransformData(usersCollectionName, userContext, userData, []);
+        } catch (e) {
+          if (e.message.includes(config.ACCOUNT_FORCED_PASSWORD_CHANGE_MESSAGE)) {
+            req.loginData = {
+              success: false,
+              changePasswordRequired: true,
+              message: e.message,
+            };
+          } else {
+            req.loginData = {
+              success: false,
+              message: e.message,
+            };
+          }
           return next();
         }
 
-        const linkedRecords = _(appLib.appModel.models.users.fields)
-          .map((val, key) => ({ key, lookup: val.lookup, required: val.required }))
-          .filter((val) => val.lookup && val.required)
-          .keyBy('key')
-          .mapValues((val) => record[val.key])
-          .value();
-
-        const { _id, login } = user;
-        const userData = _.merge(linkedRecords, {
-          id: _id,
-          login,
-          avatar: _.get(user, 'avatar.0', {}),
+        ['password', 'lastPasswordsHashes', 'lastPasswordChangeDate'].each((f) => {
+          if (!_.isEqual(user[f], userData[f])) {
+            passwordFieldsUpdate[f] = userData[f];
+          }
         });
-
-        const tokensRecord = await createTokensRecord(_id, login);
-        const { refreshToken, accessToken, accessTokenExpire } = tokensRecord;
-
-        setRefreshTokenCookie(res, refreshToken);
-        req.loginData = { success: true, data: { token: accessToken, expiresIn: accessTokenExpire, user: userData } };
-        next();
-      } catch (e) {
-        log.error(`Unable to find user`, e.stack);
-        req.loginData = { success: false, message: 'Unable to find user' };
-        return next();
       }
-    })(req, res, next);
+
+      const linkedRecords = _(appLib.appModel.models.users.fields)
+        .map((val, key) => ({ key, lookup: val.lookup, required: val.required }))
+        .filter((val) => val.lookup && val.required)
+        .keyBy('key')
+        .mapValues((val) => user[val.key])
+        .value();
+      const { _id, login } = user;
+      const userProfile = _.merge(linkedRecords, {
+        id: _id,
+        login,
+        avatar: _.get(user, 'avatar.0', {}),
+      });
+      const tokensRecord = await createTokensRecord(_id, login);
+      const { refreshToken, accessToken, accessTokenExpire } = tokensRecord;
+      setRefreshTokenCookie(res, refreshToken);
+      req.loginData = { success: true, data: { token: accessToken, expiresIn: accessTokenExpire, user: userProfile } };
+
+      await User.hookQuery(
+        'updateOne',
+        { _id: user._id },
+        {
+          $set: {
+            ...passwordFieldsUpdate,
+            failedLoginAttempts: [],
+            mfaFailedLoginAttempts: [],
+            lastLoginAt: new Date(),
+          },
+        }
+      );
+      appLib.auditLoggers.auth({ message: `User '${user.login}' logged in`, req, user });
+      next();
+    } catch (e) {
+      const message = `Unable to login`;
+      log.error(message, e.stack);
+      req.loginData = { success: false, message };
+      return next();
+    }
   };
 
   m.postLoginResponse = (req, res) => {
@@ -304,13 +347,13 @@ module.exports = (appLib) => {
       return res.json({ success: false, message: 'Invalid refresh token presented' });
     }
     const { accessToken, login, userId } = record;
-    m.appLib.ws.sendRequest('emitToSockets', {
+    m.appLib.ws.performAction('emitToSockets', {
       data: { type: 'logoutNotification', level: 'info' },
       socketFilter: `return socket.accessToken === this.accessToken;`,
       context: { accessToken },
     });
 
-    m.appLib.auth.logAuthAudit({ message: `User '${login}' logged out`, req, user: { _id: userId, login } });
+    appLib.auditLoggers.auth({ message: `User '${login}' logged out`, req, user: { _id: userId, login } });
     res.json({ success: true, message: 'User has been logged out' });
   };
 
@@ -340,13 +383,8 @@ module.exports = (appLib) => {
   }
 
   m.postSignup = async (req, res, next) => {
-    const {
-      getUserContext,
-      getRolesAndPermissionsForUser,
-      setReqRoles,
-      setReqPermissions,
-      getReqPermissions,
-    } = appLib.accessUtil;
+    const { getUserContext, getRolesAndPermissionsForUser, setReqRoles, setReqPermissions, getReqPermissions } =
+      appLib.accessUtil;
 
     const linkedRecords = {};
     // need to pregenerate user doc object id to be able to set it in dependent fields like 'creator'
@@ -355,7 +393,7 @@ module.exports = (appLib) => {
     _.set(userContext, 'user._id', userDocObjectId);
 
     try {
-      const { user, roles, permissions } = await appLib.authenticationCheck(req, res, next);
+      const { user, roles, permissions } = await appLib.auth.authenticationCheck(req, res, next);
       appLib.accessUtil.setReqAuth({ req, user, roles, permissions });
     } catch (e) {
       if (e instanceof InvalidTokenError || e instanceof ExpiredTokenError) {
@@ -371,9 +409,10 @@ module.exports = (appLib) => {
       return res.status(403).json({ success: false, message: `Not authorized to signup` });
     }
 
-    const signupFields = _.pick(req.body, ['login', 'email', 'password']);
+    const signupFieldNames = ['login', 'email', 'password'];
+    let signupFields = _.pick(req.body, signupFieldNames);
     try {
-      await transformers.preSaveTransformData('users', userContext, signupFields, []);
+      await transformers.preSaveTransformData(usersCollectionName, userContext, signupFields, signupFieldNames);
     } catch (e) {
       return res.status(422).json({ success: false, message: e.message });
     }
@@ -383,6 +422,20 @@ module.exports = (appLib) => {
     const { record } = await User.hookQuery('findOne', { login: { $eq: login } });
     if (record) {
       return res.status(409).json({ success: false, message: `User ${login} already exists` });
+    }
+
+    if (config.MFA_REQUIRED) {
+      const secret = _.get(req.session, 'otp.secret');
+      const verified = _.get(req.session, 'otp.verified');
+
+      if (!verified || !secret) {
+        return res.status(422).json({
+          success: false,
+          message: `This application requires multi-factor authentication (MFA). Please register with your auth application and enter the code.`,
+        });
+      }
+
+      signupFields = { ...signupFields, twoFactorSecret: secret, enableTwoFactor: true };
     }
 
     try {
@@ -405,13 +458,7 @@ module.exports = (appLib) => {
     }
 
     try {
-      // create user record
       const userData = _.merge(linkedRecords, { ...signupFields, _id: userDocObjectId });
-      // remove recaptcha and other non-model fields
-      // TODO: UNI-732 add strict validation
-      // const strictUser = new User(userData, true);
-      // const createdUser = await strictUser.save();
-
       const { record: createdUser } = await User.hookQuery('insertOne', userData, { checkKeys: false });
 
       res.json({
@@ -419,8 +466,9 @@ module.exports = (appLib) => {
         message: 'Account has been successfully created',
         data: { id: createdUser._id, login, email },
       });
+      delete req.session.otp;
     } catch (e) {
-      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models);
+      const duplicateErrMsg = getMongoDuplicateErrorMessage(e, appLib.appModel.models[usersCollectionName]);
       if (duplicateErrMsg) {
         log.info(duplicateErrMsg);
         return res.status(409).json({ success: false, message: duplicateErrMsg });
@@ -443,7 +491,7 @@ module.exports = (appLib) => {
     try {
       // validate user input
       const userContext = appLib.accessUtil.getUserContext(req);
-      await transformers.preSaveTransformData('users', userContext, userData, ['password']);
+      await transformers.preSaveTransformData(usersCollectionName, userContext, userData, ['password']);
     } catch (e) {
       return res.status(422).json({ success: false, message: e.message });
     }
@@ -457,7 +505,7 @@ module.exports = (appLib) => {
       // update password
       await User.hookQuery('updateOne', conditions, { $set: { password: userData.password } }, { checkKeys: false });
 
-      m.appLib.auth.logAuthAudit({ message: `User '${req.user.login}' changed password`, req, user: req.user });
+      appLib.auditLoggers.auth({ message: `User '${req.user.login}' changed password`, req, user: req.user });
       res.json({
         success: true,
         message: 'User password was successfully updated',
@@ -491,14 +539,14 @@ module.exports = (appLib) => {
       user.resetPasswordToken = undefined;
       user.resetPasswordExpires = undefined;
       const userContext = appLib.accessUtil.getUserContext(req);
-      await transformers.preSaveTransformData('users', userContext, user, []);
+      await transformers.preSaveTransformData(usersCollectionName, userContext, user, []);
       await User.hookQuery('replaceOne', { _id: user._id }, user, { checkKeys: false });
 
       const { email } = user;
       const successfulPasswordResetMail = getSuccessfulPasswordResetMail(email);
       await sendMail(successfulPasswordResetMail);
 
-      m.appLib.auth.logAuthAudit({ message: `User '${user.login}' changed password`, req, user });
+      appLib.auditLoggers.auth({ message: `User '${user.login}' changed password`, req, user });
       res.json({ success: true, message: `The password for your account ${email} has just been changed.` });
     } catch (e) {
       if (e instanceof ValidationError) {
@@ -525,7 +573,7 @@ module.exports = (appLib) => {
       }
 
       user.resetPasswordToken = getResetToken();
-      user.resetPasswordExpires = getExpiryDate(resetPasswordTokenExpiresInMs);
+      user.resetPasswordExpires = getExpiryDate(config.RESET_PASSWORD_TOKEN_EXPIRES_IN);
       await User.replaceOne({ _id: user._id }, user);
 
       const forgotPasswordMail = getForgotPasswordMail(email, user.resetPasswordToken, user.login);
@@ -560,9 +608,10 @@ module.exports = (appLib) => {
           response: { success: true, token: accessToken, expiresIn: accessTokenExpire },
         };
       })
-      .catch(InvalidTokenError, ExpiredTokenError, (e) => {
-        return { status: 401, response: { success: false, message: e.message } };
-      })
+      .catch(InvalidTokenError, ExpiredTokenError, (e) => ({
+        status: 401,
+        response: { success: false, message: e.message },
+      }))
       .catch((e) => {
         const message = 'Unable to refresh token';
         log.error(message, e.stack);
@@ -571,7 +620,7 @@ module.exports = (appLib) => {
   }
   const memoizedRefreshTokenFunc = mem(refreshTokenFunc, {
     cacheKey: (args) => args.join(','),
-    maxAge: ms(process.env.INACTIVITY_LOGOUT_REMEMBER_OLD_TOKEN_FOR || 10000),
+    maxAge: config.INACTIVITY_LOGOUT_REMEMBER_OLD_TOKEN_FOR,
   });
 
   m.refreshToken = async (req, res) => {
@@ -617,13 +666,20 @@ module.exports = (appLib) => {
         return res.json({ success: false, message: `There is no access token presented.` });
       }
 
-      const sessionExpireDate = await prolongSession(accessToken);
+      const lastActivityIn = _.get(req.body, 'data.lastActivityIn');
+      const lastActivityInMs = (_.isNumber(lastActivityIn) && lastActivityIn > 0 ? lastActivityIn : 0) * 1000;
+      const prolongTimeMs = appLib.config.INACTIVITY_LOGOUT_IN - lastActivityInMs;
+      if (prolongTimeMs <= 0) {
+        return res.json({ success: false, message: 'Unable to prolong session due to invalid lastActivityIn.' });
+      }
+
+      const sessionExpireDate = await prolongSession(accessToken, prolongTimeMs);
       if (!sessionExpireDate) {
         return res.json({ success: false, message: 'There is no session associated with token presented.' });
       }
       return res.json({ success: true, data: { sessionEndMs: sessionExpireDate - Date.now() } });
     } catch (e) {
-      if (e instanceof InvalidTokenError) {
+      if (e instanceof InvalidTokenError || e instanceof ValidationError) {
         return res.json({ success: false, message: e.message });
       }
       return res.json({ success: false, message: 'Unable to prolong session.' });

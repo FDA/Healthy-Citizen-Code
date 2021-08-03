@@ -4,7 +4,7 @@ module.exports = ({ appLib, redisUrl, keyPrefix }) => {
   const namespace = '/';
 
   const socketIoOpts = {
-    path: `${appLib.API_PREFIX}/socket.io`,
+    path: `${appLib.config.API_PREFIX}/socket.io`,
   };
   if (!redisUrl || !keyPrefix) {
     const realTimeServer = require('./socket-io-server-single-instance')({ appLib, socketIoOpts, namespace, log });

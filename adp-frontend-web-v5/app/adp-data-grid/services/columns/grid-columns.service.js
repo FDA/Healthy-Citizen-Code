@@ -15,12 +15,13 @@
     GRID_FORMAT,
     GridTableActions,
     GridColumnsHelpers,
-    GridSorting
+    GridSorting,
+    EvalShowIn
   ) {
     return function (options, schema, customGridOptions) {
       var gridFields = GridSchema.getFieldsForGrid(schema);
 
-      options.columns = schemaToColumn(gridFields, schema);
+      options.columns = schemaToColumn(gridFields, schema, customGridOptions);
       GridTableActions(options, schema, customGridOptions);
 
       GridColumnsHelpers.setWidthToColumns(options, schema);
@@ -29,9 +30,14 @@
       return options;
     }
 
-    function schemaToColumn(gridFields, schema) {
+    function schemaToColumn(gridFields, schema, customGridOptions) {
+      var ShowInEvaluator = EvalShowIn.createFilterMemoizedFunction();
+      customGridOptions.handlers.destroy = function () {
+        EvalShowIn.removeMemoizedFunction(ShowInEvaluator);
+      };
+
       return gridFields.map(function (field) {
-        var column = createColumn(field, schema);
+        var column = createColumn(field, schema, ShowInEvaluator);
         injectColumnOptionsFromSchema(column, field.parameters);
 
         return column;
@@ -44,8 +50,9 @@
       _.merge(column, parametersToMerge);
     }
 
-    function createColumn(field, schema) {
+    function createColumn(field, schema, ShowInEvaluator) {
       var isFilteringAllowed = GridFilterHelpers.filteringAllowedForField(field);
+
       var column = {
         cssClass: ['name-' + field.fieldName, 'adp-grid-cell-' + _.kebabCase(field.type)].join(' '),
         caption: field.fullName || field.fieldName,
@@ -58,7 +65,8 @@
         calculateFilterExpression: CustomFilterExpression(field, schema),
         selectedFilterOperation:  FilterOperation.getSelected(field),
         cellTemplate: function (container, cellInfo) {
-          container.append(GridColumnsHelpers.getTemplateForField(field, schema, cellInfo.data));
+          var filteredData = ShowInEvaluator(schema, cellInfo.data);
+          container.append(GridColumnsHelpers.getTemplateForField(field, schema, filteredData));
         },
         groupCellTemplate: function (container, cellInfo) {
           // refactor: it's too complex, better to keep inside some service

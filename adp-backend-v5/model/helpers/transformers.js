@@ -8,8 +8,8 @@
 const _ = require('lodash');
 const sanitizeHtml = require('sanitize-html');
 const { ObjectId } = require('mongodb');
+const { Long } = require('bson');
 const log = require('log4js').getLogger('helpers/transformers');
-const { hashPassword, bcryptHashRegex } = require('../../lib/util/password');
 const { getTime } = require('../../lib/util/date');
 
 const {
@@ -20,8 +20,16 @@ const {
   weightImperialToMetric,
   weightMetricToImperial,
 } = require('./transformers_util');
+const { hashPassword } = require('../../lib/util/password');
 
 module.exports = (appLib) => {
+  const {
+    ACCOUNT_FORCED_PASSWORD_CHANGE_REMEMBER_PASSWORDS,
+    ACCOUNT_FORCED_PASSWORD_CHANGE_ENABLED,
+    ACCOUNT_FORCED_PASSWORD_CHANGE_MESSAGE,
+    ACCOUNT_FORCED_PASSWORD_CHANGE_DUPLICATE_PASSWORD_MESSAGE,
+  } = appLib.config;
+
   function stringifyObjId(value) {
     return appLib.butil.isValidObjectId(value) ? value.toString() : value;
   }
@@ -121,37 +129,124 @@ module.exports = (appLib) => {
       next();
     },
     async hashPassword(next) {
-      const { path, row, data, modelName } = this;
-      if (typeof data === 'undefined' && row._id) {
-        // this happens when users record is being updated, but the password is not a part of the update
-        // in this case we need to read the existing hash and return it
-        const { record: oldRecord } = await appLib.db
-          .collection(modelName)
-          .hookQuery('findOne', { _id: ObjectId(row._id) });
-        if (!oldRecord) {
-          throw `Unable to find record with _id=${row._id} while trying to preserve the password`;
-        }
-        const oldHash = _.get(oldRecord, path);
-        if (oldHash) {
-          _.set(row, path, oldHash);
-        }
-        next();
-      } else {
-        const isBcryptHash = bcryptHashRegex.test(data);
-        if (!data || isBcryptHash) {
-          return next();
-        }
+      const { path, row, data: newPassword, collectionName } = this;
 
-        const hash = await hashPassword(data);
-        _.set(row, path, hash);
-        next();
+      let currentRecord;
+      if (row._id) {
+        const { record } = await appLib.db.collection(collectionName).hookQuery('findOne', { _id: ObjectId(row._id) });
+        currentRecord = record;
+        if (!currentRecord) {
+          return next(`Unable to find record with _id=${row._id} while trying to handling the password`);
+        }
       }
+
+      const passwordForcedToChange = appLib.auth.isPasswordForcedToChange(currentRecord);
+      const isSamePassword = currentRecord ? newPassword === currentRecord.password : false;
+      if (!passwordForcedToChange && isSamePassword) {
+        return next();
+      }
+      if (passwordForcedToChange && (_.isUndefined(newPassword) || isSamePassword)) {
+        return next(ACCOUNT_FORCED_PASSWORD_CHANGE_MESSAGE);
+      }
+
+      if (_.isUndefined(newPassword)) {
+        // this happens when user's record is being updated, but the password is not a part of the update
+        // in this case we need to set the current hash
+        const currentHash = _.get(currentRecord, path);
+        _.set(row, path, currentHash);
+        return next();
+      }
+
+      const lastPasswordsHashes = currentRecord ? currentRecord.lastPasswordsHashes || [currentRecord.password] : [];
+
+      if (
+        ACCOUNT_FORCED_PASSWORD_CHANGE_ENABLED &&
+        (await appLib.auth.isPasswordPreviouslyUsed(lastPasswordsHashes, newPassword))
+      ) {
+        return next(ACCOUNT_FORCED_PASSWORD_CHANGE_DUPLICATE_PASSWORD_MESSAGE);
+      }
+
+      const newPasswordHash = await hashPassword(newPassword);
+      const newLastPasswordsHashes = [newPasswordHash, ...lastPasswordsHashes].slice(
+        0,
+        ACCOUNT_FORCED_PASSWORD_CHANGE_REMEMBER_PASSWORDS
+      );
+      const prePath = _.dropRight(path.split('.'));
+      _.set(row, path, newPasswordHash);
+      _.set(row, _.concat(prePath, 'lastPasswordsHashes'), newLastPasswordsHashes);
+      _.set(row, _.concat(prePath, 'lastPasswordChangeDate'), new Date());
+
+      next();
     },
     cleanupPassword(next) {
       const { action, row, path } = this;
       if (['view', 'viewDetails'].includes(action)) {
         _.unset(row, path);
       }
+      next();
+    },
+    async encryptValue(next) {
+      const { path, row, data: newValue, modelName } = this;
+      let currentRecord;
+
+      if (row._id) {
+        const { record } = await appLib.db.collection(modelName).hookQuery('findOne', { _id: ObjectId(row._id) });
+        currentRecord = record;
+        if (!currentRecord) {
+          return next(`Unable to find record with _id=${row._id} while trying to handling the ${path}`);
+        }
+      }
+
+      const currentCrypt = _.get(currentRecord, path);
+      let currentValue;
+
+      if (currentCrypt) {
+        try {
+          currentValue = appLib.crypto.decrypt(currentCrypt);
+        } catch (err) {
+          return next(`Unable to decrypt value of ${path}. ${err.message}`);
+        }
+      }
+
+      const isSameValue = !newValue || newValue === currentValue;
+
+      if (isSameValue) {
+        return next();
+      }
+
+      if (_.isUndefined(newValue)) {
+        // this happens when record is being updated, but the field is not a part of the update.
+        _.set(row, path, currentCrypt);
+        return next();
+      }
+
+      try {
+        _.set(row, path, appLib.crypto.encrypt(newValue));
+      } catch (err) {
+        return next(`Unable to encrypt value of ${path}. ${err.message}`);
+      }
+
+      next();
+    },
+    async keepDbValue(next) {
+      const { path, row, modelName } = this;
+      let currentRecord;
+
+      if (row._id) {
+        const { record } = await appLib.db.collection(modelName).hookQuery('findOne', { _id: ObjectId(row._id) });
+        currentRecord = record;
+
+        if (!currentRecord) {
+          return next(`Unable to find record with _id=${row._id} while trying to handling the ${path}`);
+        }
+
+        const currentValue = _.get(currentRecord, path);
+
+        _.set(row, path, currentValue);
+
+        return next();
+      }
+
       next();
     },
     time(next) {
@@ -301,6 +396,20 @@ module.exports = (appLib) => {
       }
 
       next();
+    },
+    numberToNumberLong(cb) {
+      const { path, data, row } = this;
+      if (!_.isNil(data)) {
+        _.set(row, path, Long.fromNumber(data));
+      }
+      return cb();
+    },
+    numberLongToNumber(cb) {
+      const { path, data, row } = this;
+      if (Long.isLong(data)) {
+        _.set(row, path, data.toNumber());
+      }
+      return cb();
     },
   };
 

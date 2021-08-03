@@ -25,6 +25,8 @@ if (!mongoUrl) {
 }
 
 const splCollectionName = args.splCollectionName || 'spl';
+const filesCollectionName = args.filesCollectionName || '_files';
+
 // For now we handle all dirs (add as param?)
 const DIRS_TO_HANDLE = ['animal', 'homeopathic', 'otc', 'other', 'prescription'];
 const RELEASE_TYPES = {
@@ -286,8 +288,9 @@ async function upsertSplDoc(splDoc, dbCollection, pathToXml) {
     const splIndexes = ['splId'];
     await createIndexes(splCollectionName, splIndexes, dbCon);
     console.log(`DB Indexes created on '${splCollectionName}': ${splIndexes.join(', ')}`);
+
     const fileIndexes = ['hash'];
-    await createIndexes('files', fileIndexes, dbCon);
+    await createIndexes(filesCollectionName, fileIndexes, dbCon);
     console.log(`DB Indexes created on 'files': ${fileIndexes.join(', ')}`);
 
     let zipPaths;

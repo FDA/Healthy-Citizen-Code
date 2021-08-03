@@ -1,0 +1,42 @@
+{
+  "appenders": {
+    "out": {
+      "type": "console"
+    },
+    "app": {
+      "type": "file",
+      "filename": "logs/adp.log"
+    },
+    "audit": {
+      "type": "console"
+    }
+  },
+  "categories": {
+    "default": {
+      "appenders": ["out", "app"],
+      "level": "trace"
+    },
+    "db": {
+      "appenders": ["consoleEjson", "audit"],
+      "level": "trace"
+    },
+    "http": {
+      "appenders": ["consoleEjson", "audit"],
+      "level": "trace"
+    },
+    "security": {
+      "appenders": ["consoleEjson", "audit"],
+      "level": "trace"
+    },
+    "auth": {
+      "appenders": ["consoleEjson", "app", "audit"],
+      "level": "trace"
+    },
+    "system": {
+      "appenders": ["consoleEjson"],
+      "level": "trace"
+    }
+  }
+}
+
+

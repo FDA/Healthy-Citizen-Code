@@ -1,12 +1,12 @@
 const nodePath = require('path');
 
-const getConfig = () => {
-  const slashIndex = process.env.MONGODB_URI.lastIndexOf('/');
+function getMigrateConfig(mongoDbUri) {
+  const slashIndex = mongoDbUri.lastIndexOf('/');
   return {
     mongodb: {
-      url: process.env.MONGODB_URI.slice(0, slashIndex),
+      url: mongoDbUri.slice(0, slashIndex),
 
-      databaseName: process.env.MONGODB_URI.slice(slashIndex + 1),
+      databaseName: mongoDbUri.slice(slashIndex + 1),
 
       options: {
         // several deprecations in the MongoDB Node.js driver
@@ -24,6 +24,6 @@ const getConfig = () => {
     // The mongodb collection where the applied changes are stored. Only edit this when really necessary.
     changelogCollectionName: 'mongoMigrateChangeLog',
   };
-};
+}
 
-module.exports = getConfig;
+module.exports = { getMigrateConfig };

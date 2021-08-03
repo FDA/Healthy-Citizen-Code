@@ -23,4 +23,5 @@ const measureFuncDuration = function (orig) {
 
 module.exports = {
   measureFuncDuration,
+  getDuration,
 };

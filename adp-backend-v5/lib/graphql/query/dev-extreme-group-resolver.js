@@ -123,7 +123,7 @@ function addDevExtremeGroupResolver(model, modelName) {
 
         return await getGroups({ args, modelName, conditions, appLib, actionFuncs, userContext, appModel });
       } catch (e) {
-        handleGraphQlError(e, `Unable to find requested elements`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to find requested elements`, log, appLib, modelName });
       }
     },
   });

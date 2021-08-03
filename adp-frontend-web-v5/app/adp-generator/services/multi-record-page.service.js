@@ -8,7 +8,6 @@
   /** @ngInject */
   function MultiRecordPageService(
     GraphqlCollectionQuery,
-    GridOptionsHelpers,
     ActionsHandlers,
     AdpQueryParams,
     ResponseError,
@@ -71,10 +70,7 @@
       var record = record || {};
       var formData = _.merge({}, record, dataFromQuery);
 
-      ActionsHandlers[queryData.action](schema, formData)
-        .then(function () {
-          GridOptionsHelpers.refreshGrid();
-        });
+      ActionsHandlers[queryData.action](schema, formData);
     }
   }
 })();

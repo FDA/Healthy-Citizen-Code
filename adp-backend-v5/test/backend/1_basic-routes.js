@@ -8,34 +8,34 @@ const { prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
 describe('V5 Backend Basic Routes', function () {
   before(function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
+    this.appLib = prepareEnv();
+
     return this.appLib.setup();
   });
 
   after(async function () {
     await this.appLib.shutdown();
-    const db = await getMongoConnection();
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     await db.dropDatabase();
     await db.close();
   });
 
   describe('GET /', function () {
     it('responds with backend status', function (done) {
-      apiRequest(this.appLib.app)
+      apiRequest(this.appLib)
         .get('/')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
         .end((err, res) => {
           res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
-          res.body.message.should.equal(`${process.env.APP_NAME} Backend V5 is working correctly`);
+          res.body.message.should.equal(`${this.appLib.config.APP_NAME} Backend V5 is working correctly`);
           done();
         });
     });
   });
   describe('GET /schemas', function () {
     it('responds with list of schemas', function (done) {
-      apiRequest(this.appLib.app)
+      apiRequest(this.appLib)
         .get('/schemas')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -54,7 +54,7 @@ describe('V5 Backend Basic Routes', function () {
   });
   describe('GET /routes', function () {
     it('responds with list of basic routes', function (done) {
-      apiRequest(this.appLib.app)
+      apiRequest(this.appLib)
         .get('/routes')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/)
@@ -63,7 +63,8 @@ describe('V5 Backend Basic Routes', function () {
           res.body.success.should.equal(true, res.body.message);
           res.body.data.should.have.property('brief');
 
-          const { getFullRoute, API_PREFIX } = this.appLib;
+          const { getFullRoute } = this.appLib;
+          const { API_PREFIX } = this.appLib.config;
           res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/')}`);
           res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/schemas')}`);
           res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/metaschema')}`);

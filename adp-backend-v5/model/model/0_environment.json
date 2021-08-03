@@ -1,0 +1,41 @@
+{
+  "models": {
+    "_environment": {
+      "type": "Schema",
+      "description": "This collection contains env variables",
+      "cacheOptions": {
+        "enabled": false
+      },
+      "singleRecord": true,
+      "softDelete": false,
+      "actions": {
+        "fields": {
+          "view": {
+            "permissions": [["viewEnvironment", "manageEnvironment"]]
+          },
+          "create": {
+            "permissions": "manageEnvironment"
+          },
+          "update": {
+            "permissions": "manageEnvironment"
+          },
+          "delete": null
+        }
+      },
+      "scopes": {
+        "viewScope": {
+          "permissions": {
+            "view": "viewEnvironment"
+          }
+        },
+        "manageScope": {
+          "permissions": {
+            "view": "manageEnvironment",
+            "create": "manageEnvironment",
+            "update": "manageEnvironment"
+          }
+        }
+      }
+    }
+  }
+}

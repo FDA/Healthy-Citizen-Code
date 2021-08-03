@@ -15,16 +15,16 @@
   "dependencies": {
     "@babel/polyfill": "^7.2.5",
     "@babel/runtime": "^7.4.3",
-    "bluebird": "^3.5.1",
+    "bluebird": "^3.7.2",
     "d3": "^5.1.0",
     "dotenv": "^4.0.0",
     "fs-extra": "^7.0.1",
     "hc-ui-util": "file:../hc-ui-util",
-    "lodash": "^4.17.15",
-    "log4js": "^6.1.0",
-    "moment": "^2.22.2",
-    "mongodb": "^3.1.13",
-    "restify-cookies": "^0.2.5"
+    "lodash": "^4.17.21",
+    "log4js": "^6.3.0",
+    "moment": "^2.29.1",
+    "mongodb": "^3.6.10",
+    "restify-cookies": "^0.2.6"
   },
   "devDependencies": {
     "@babel/cli": "^7.2.3",

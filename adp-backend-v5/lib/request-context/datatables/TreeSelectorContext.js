@@ -10,7 +10,7 @@ module.exports = class TreeSelectorContext extends LookupContext {
   }
 
   _getTableSpec() {
-    const urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.API_PREFIX));
+    const urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.config.API_PREFIX));
     const [treeSelectorId, tableName] = urlParts.slice(-2);
     if (!treeSelectorId) {
       throw new ValidationError(`No TreeSelector ID in the URL: ${this.req.url}`);

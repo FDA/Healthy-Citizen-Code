@@ -598,6 +598,7 @@ describe('V5 Core Utility', function () {
         getAuthSettings: () => ({}),
         accessCfg,
         filterUtil,
+        config: {},
       };
       appLib.accessUtil = require('../../lib/access/access-util')(appLib);
 
@@ -627,6 +628,7 @@ describe('V5 Core Utility', function () {
         getAuthSettings: () => ({}),
         accessCfg,
         filterUtil,
+        config: {},
       };
       appLib.accessUtil = require('../../lib/access/access-util')(appLib);
 
@@ -644,6 +646,7 @@ describe('V5 Core Utility', function () {
         getAuthSettings: () => ({}),
         accessCfg,
         filterUtil,
+        config: {},
       };
       appLib.accessUtil = require('../../lib/access/access-util')(appLib);
 
@@ -665,6 +668,7 @@ describe('V5 Core Utility', function () {
           Transformers: { transformer1: 'test', transformer2: 'test' },
         },
         filterUtil,
+        config: {},
       };
       appLib.accessUtil = require('../../lib/access/access-util')(appLib);
 
@@ -685,6 +689,7 @@ describe('V5 Core Utility', function () {
         accessCfg,
         allActionsNames: [...accessCfg.DEFAULT_ACTIONS],
         filterUtil,
+        config: {},
       };
       appLib.accessUtil = require('../../lib/access/access-util')(appLib);
 

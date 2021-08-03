@@ -8,24 +8,26 @@
   /** @ngInject */
   function AdpThumbController(
     AdpFileManagerService,
-    AdpFilePathService,
-    AdpMimeService
+    AdpMimeService,
+    AdpMediaTypeHelper
   ) {
     var vm = this;
     var currentCropSrc;
 
     vm.$onInit = function () {
       vm.fileType = AdpMimeService.getFileType(vm.fileItem.name);
-      vm.src = '';
-
-      if (vm.fileType === 'images') {
-        getImageSource(vm.fileItem);
-        vm.src += '?v=' + new Date().valueOf();
-        vm.fileItem.cropSrc = vm.src;
-        currentCropSrc = vm.src;
-
-        vm.$doCheck = doCheck;
+      if (vm.fileType !== 'images') {
+        return;
       }
+      vm.src = '';
+      vm.$doCheck = doCheck;
+
+      getImageSource(vm.fileItem)
+        .then(function (dataURI) {
+          vm.src = dataURI;
+          vm.fileItem.cropSrc = vm.src;
+          currentCropSrc = vm.src;
+        });
     };
 
     function doCheck() {
@@ -36,26 +38,18 @@
     }
 
     function getImageSource(fileItem) {
-      // uploaded
-      if (fileItem.isDummyFile) {
-        vm.src = fileItem.cropped ?
-          AdpFilePathService.cropped(fileItem) :
-          AdpFilePathService.thumb(fileItem);
-
-        return;
+      var croppedOnClient = !!vm.fileItem.cropSrc;
+      if (croppedOnClient) {
+        return vm.fileItem.cropSrc;
       }
 
-      // croped on client
-      if (vm.fileItem.cropSrc) {
-        vm.src = vm.fileItem.cropSrc;
-        return;
+      var fileUploaded = !!fileItem.isDummyFile;
+      if (fileUploaded) {
+        var fnName = fileItem.cropped ? 'getCroppedImgLink' : 'getThumbImgLink';
+        return AdpMediaTypeHelper[fnName](fileItem);
       }
 
-      // not cropped, not uploaded
-      AdpFileManagerService.imgFileObjectToDataURI(fileItem)
-        .then(function(dataURI) {
-          vm.src = dataURI;
-        });
+      return AdpFileManagerService.imgFileObjectToDataURI(fileItem);
     }
   }
 })();

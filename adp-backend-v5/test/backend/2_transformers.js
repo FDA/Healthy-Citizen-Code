@@ -5,7 +5,7 @@ const { ObjectID } = require('mongodb');
 
 const { prepareEnv, getMongoConnection, apiRequest, setAppAuthOptions } = require('../test-util');
 
-describe('V5 Backend Transformers', function () {
+describe('V5 Backend Transformers', () => {
   const sampleData0 = {
     n: 7,
     n2: 8,
@@ -81,19 +81,18 @@ describe('V5 Backend Transformers', function () {
   };
 
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
+    this.appLib = prepareEnv();
+
     setAppAuthOptions(this.appLib, { requireAuthentication: false });
     await this.appLib.setup();
     this.dba = require('../../lib/database-abstraction')(this.appLib);
     this.modelName = 'model6s';
     this.M6 = this.appLib.db.collection(this.modelName);
-    await this.appLib.db.createCollection(this.modelName);
   });
 
   after(async function () {
     await this.appLib.shutdown();
-    const db = await getMongoConnection();
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     await db.dropDatabase();
     await db.close();
   });
@@ -103,8 +102,8 @@ describe('V5 Backend Transformers', function () {
   });
 
   // This is a quick sanity check. Most tests are done in CRUD section below
-  describe('when called directly in db call', function () {
-    describe('creates', function () {
+  describe('when called directly in db call', () => {
+    describe('creates', () => {
       it('1st level data', async function () {
         const data = _.cloneDeep(sampleData0);
         const userContext = { _id: 1 };
@@ -127,10 +126,10 @@ describe('V5 Backend Transformers', function () {
     });
   });
 
-  describe('When called via CRUD', function () {
-    describe('Create Item', function () {
+  describe('When called via CRUD', () => {
+    describe('Create Item', () => {
       it('posts and stores 1st level data', async function () {
-        const postRes = await apiRequest(this.appLib.app)
+        const postRes = await apiRequest(this.appLib)
           .post('/model6s')
           .send({ data: sampleData0 })
           .set('Accept', 'application/json')
@@ -140,7 +139,7 @@ describe('V5 Backend Transformers', function () {
         postRes.body.should.have.property('id');
         const savedId = postRes.body.id;
 
-        const res = await apiRequest(this.appLib.app)
+        const res = await apiRequest(this.appLib)
           .get(`/model6s/${savedId}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
@@ -176,7 +175,7 @@ describe('V5 Backend Transformers', function () {
         const sampleDataWithStandardTransformers = _.cloneDeep(sampleData0);
         sampleDataWithStandardTransformers.height = [6, 1];
         sampleDataWithStandardTransformers.weight = 100;
-        const postRes = await apiRequest(this.appLib.app)
+        const postRes = await apiRequest(this.appLib)
           .post('/model6s')
           .send({ data: sampleDataWithStandardTransformers })
           .set('Accept', 'application/json')
@@ -189,7 +188,7 @@ describe('V5 Backend Transformers', function () {
         const data = await this.M6.findOne({ _id: ObjectID(savedId) });
         data.height.should.equal(185);
         data.weight.should.equal(45359.237001003545);
-        const res = await apiRequest(this.appLib.app)
+        const res = await apiRequest(this.appLib)
           .get(`/model6s/${savedId}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
@@ -201,9 +200,9 @@ describe('V5 Backend Transformers', function () {
       });
     });
 
-    describe('Update Item', function () {
+    describe('Update Item', () => {
       it('puts and stores 1st level data', async function () {
-        const postRes = await apiRequest(this.appLib.app)
+        const postRes = await apiRequest(this.appLib)
           .post('/model6s')
           .send({ data: sampleData0 })
           .set('Accept', 'application/json')
@@ -213,7 +212,7 @@ describe('V5 Backend Transformers', function () {
         postRes.body.should.have.property('id');
         const savedId = postRes.body.id;
 
-        const res = await apiRequest(this.appLib.app)
+        const res = await apiRequest(this.appLib)
           .get(`/model6s/${savedId}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
@@ -228,7 +227,7 @@ describe('V5 Backend Transformers', function () {
         res.body.data.as[1].sn.should.equal(8);
         res.body.data.as[1].ss.should.equal('abcQW');
 
-        const putRes = await apiRequest(this.appLib.app)
+        const putRes = await apiRequest(this.appLib)
           .put(`/model6s/${savedId}`)
           .send({ data: sampleData1 })
           .set('Accept', 'application/json')
@@ -236,7 +235,7 @@ describe('V5 Backend Transformers', function () {
         putRes.statusCode.should.equal(200, JSON.stringify(putRes, null, 4));
         putRes.body.success.should.equal(true, putRes.body.message);
 
-        const getRes = await apiRequest(this.appLib.app)
+        const getRes = await apiRequest(this.appLib)
           .get(`/model6s/${savedId}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);

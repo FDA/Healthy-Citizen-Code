@@ -81,7 +81,7 @@
 
       var asHtml = !FormattersHelper.asText(args);
       if (asHtml) {
-        return wrapContent(content, args);
+        return wrapContent(content, args, t);
       }
 
       return content;
@@ -98,11 +98,18 @@
       return !!htmlCellRenderers[fieldType] ? fieldType : fallbackCellRenderer;
     }
 
-    function wrapContent(content, args) {
-      var div = $('<div>').append(content);
-      AdpAttrs(div[0], args);
+    function wrapContent(content, args, renderType) {
+      var maxDatagridCellHeight = _.get(args, 'fieldSchema.parameters.maxDatagridCellHeight', 'auto');
+      var $container = $('<div class="adp-datagrid-cell-container"></div>');
+      $container.css({ maxHeight: args.action === 'view' ? maxDatagridCellHeight : 'auto' });
 
-      return div;
+      (renderType === 'custom') && $container.addClass('adp-datagrid-cell-container-custom-render');
+
+      $container.append(content);
+
+      AdpAttrs($container[0], args);
+
+      return $container;
     }
 
     function complexType(args) {
@@ -115,12 +122,10 @@
     }
 
     function mixedType(args) {
-      function mixedTypeViewDetails(args) {
+      function tabbedView(args) {
         var YAML = complexType(args);
         var content = function (contentStr) {
-          var maxHeight = 200 + 'px';
-
-          return '<div style="max-height: ' + maxHeight + '" class="adp-tab-content"><div>' + contentStr + '</div></div>';
+          return '<div class="adp-tab-content"><div>' + contentStr + '</div></div>';
         };
 
         var tabsEl = $('<div>');
@@ -135,7 +140,7 @@
               html: content(JSON.stringify(args.data, null, 4)),
             }],
             scrollingEnabled: true,
-          }).dxTabPanel("instance");
+          }).dxTabPanel('instance');
 
           tabsEl.on('remove', function () {
             tabsInstance.dispose();
@@ -149,7 +154,11 @@
         return GRID_FORMAT.EMPTY_VALUE;
       }
 
-      return args.action === 'viewDetails' ? mixedTypeViewDetails(args) : complexType(args);
+      if (typeof args.data !== 'object') {
+        return args.data;
+      }
+
+      return args.action === 'viewDetails' ? tabbedView(args) : complexType(args);
     }
 
     function CustomRender(args) {

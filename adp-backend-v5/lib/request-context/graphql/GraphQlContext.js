@@ -9,6 +9,8 @@ module.exports = class GraphQlContext extends BaseContext {
     this.args = args;
     this.modelName = modelName;
     this.appModel = this._getAppModel();
+    this.collectionName = this.appModel.collectionName || modelName;
+    this.mongoParams = { conditions: {} };
   }
 
   init() {

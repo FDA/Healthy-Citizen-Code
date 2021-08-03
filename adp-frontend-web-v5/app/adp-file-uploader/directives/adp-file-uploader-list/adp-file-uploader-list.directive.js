@@ -8,8 +8,8 @@
   /** @ngInject */
   function adpFileUploaderList(
     AdpFileUploaderModalService,
-    AdpFilePathService,
-    AdpMimeService
+    AdpMimeService,
+    AdpMediaTypeHelper
   ) {
     return {
       restrict: 'E',
@@ -41,10 +41,6 @@
           }
 
           item.remove();
-        }
-
-        $scope.getDownloadUrl = function(item){
-          return AdpFilePathService.download(item._file)
         }
       }
     }

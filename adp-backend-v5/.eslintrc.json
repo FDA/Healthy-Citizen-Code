@@ -80,7 +80,7 @@
     "func-names": ["error", "never"],
     "no-await-in-loop": "off",
     "no-continue": "off",
-    // allow to import devDependencies for webpack plugins and and other devDependencies
+    // allow to import devDependencies for webpack plugins and other devDependencies
     "import/no-extraneous-dependencies": [
       "error",
       {
@@ -106,7 +106,7 @@
     ],
 
     // Promise config
-    // blubird catch can receive 2 params
+    // bluebird catch can receive 2 params
     "promise/valid-params": "off",
     "promise/always-return": "off",
     "promise/no-return-wrap": "error",

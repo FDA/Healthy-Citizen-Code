@@ -77,6 +77,17 @@ module.exports = () => {
       const errorMessageFunc = (response) => response.message;
       return runByRecordId.call(this, confirmMessage, successMessageFunc, errorMessageFunc);
     },
+    downloadFile() {
+      const injector = angular.element(document).injector();
+      const adpMediaTypeHelper = injector.get('AdpMediaTypeHelper');
+
+      if (this.row.exportType !== 'db') {
+        const fileId = _.get(this.row, 'file._id');
+        const fileItem = {id: fileId};
+
+        adpMediaTypeHelper.downloadWithSaveDialog(fileItem);
+      }
+    },
   };
   return m;
 };

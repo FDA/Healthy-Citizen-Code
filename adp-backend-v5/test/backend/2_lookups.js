@@ -15,7 +15,7 @@ const {
   buildGraphQlUpdateOne,
   buildGraphQlLookupQuery,
   checkGraphQlInvalidRequest,
-} = require('../graphql-util.js');
+} = require('../graphql-util');
 const { getLookupTypeName } = require('../../lib/graphql/type/lookup');
 
 describe('V5 Backend Lookups', function () {
@@ -51,9 +51,9 @@ describe('V5 Backend Lookups', function () {
   };
 
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
+    this.appLib = prepareEnv();
+
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     this.db = db;
   });
 
@@ -85,7 +85,7 @@ describe('V5 Backend Lookups', function () {
 
     async function f() {
       const { makeRequest, checkResponse, checkData } = settings;
-      const req = makeRequest(apiRequest(this.appLib.app));
+      const req = makeRequest(apiRequest(this.appLib));
       if (this.token) {
         req.set('Authorization', `JWT ${this.token}`);
       }
@@ -100,14 +100,15 @@ describe('V5 Backend Lookups', function () {
   describe('lookups in /routes', function () {
     it('GET /routes contains endpoint', async function () {
       await this.appLib.setup();
-      const res = await apiRequest(this.appLib.app)
+      const res = await apiRequest(this.appLib)
         .get('/routes')
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
       res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
       res.body.success.should.equal(true, res.body.message);
 
-      const { getFullRoute, API_PREFIX } = this.appLib;
+      const { getFullRoute } = this.appLib;
+      const { API_PREFIX } = this.appLib.config;
       res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/lookups/model4Id/model4s')} AUTH`);
     });
   });
@@ -136,7 +137,7 @@ describe('V5 Backend Lookups', function () {
           },
         };
         const checkData = async function (id) {
-          const res2 = await apiRequest(this.appLib.app)
+          const res2 = await apiRequest(this.appLib)
             .get(`/${modelName}/${id}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
@@ -191,7 +192,7 @@ describe('V5 Backend Lookups', function () {
         };
         const docId = sampleDataModel3._id.toString();
         const checkData = async function (id) {
-          const res2 = await apiRequest(this.appLib.app)
+          const res2 = await apiRequest(this.appLib)
             .get(`/${modelName}/${id}`)
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)

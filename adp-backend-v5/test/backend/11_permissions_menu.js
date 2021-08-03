@@ -1,13 +1,12 @@
 const _ = require('lodash');
 require('should');
 
-const { getSchemaNestedPaths } = require('../../lib/util/env');
-
 const {
   auth: { user, loginWithUser },
   getMongoConnection,
   prepareEnv,
   apiRequest,
+  setAppOptions,
 } = require('../test-util');
 
 const menuPart = {
@@ -209,9 +208,9 @@ const authPart = {
 
 describe('V5 Backend Menu Permissions', function () {
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
+    this.appLib = prepareEnv();
+
+    const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
     this.db = db;
   });
 
@@ -234,14 +233,12 @@ describe('V5 Backend Menu Permissions', function () {
 
   it('should correctly strip down menu for user', async function () {
     const { appLib } = this;
-    appLib.setOptions({
-      appModelSources: [...getSchemaNestedPaths('model'), menuPart, authPart],
-    });
+    setAppOptions(appLib, menuPart, authPart);
 
     await appLib.setup();
     const token = await loginWithUser(appLib, user);
 
-    const res = await apiRequest(appLib.app)
+    const res = await apiRequest(appLib)
       .get('/app-model')
       .set('Accept', 'application/json')
       .set('Authorization', `JWT ${token}`)

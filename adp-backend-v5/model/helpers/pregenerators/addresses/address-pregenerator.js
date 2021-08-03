@@ -22,6 +22,7 @@ async function generateAddressesIfNotExists({
   googleApiKey,
   numberPerLocation = 10,
   forceNewGeneration,
+  appConfig,
 } = {}) {
   if (!filePath) {
     filePath = nodePath.resolve(__dirname, defaultAddressesFileName);
@@ -33,10 +34,10 @@ async function generateAddressesIfNotExists({
   }
 
   if (!googleApiKey) {
-    if (!process.env.GOOGLE_API_KEY) {
+    if (!appConfig.GOOGLE_API_KEY) {
       throw new Error(`Unable to get 'googleApiKey' to generate addresses.`);
     }
-    googleApiKey = process.env.GOOGLE_API_KEY;
+    googleApiKey = appConfig.GOOGLE_API_KEY;
   }
 
   const geocoderOptions = {
@@ -60,7 +61,7 @@ async function generateAddressesIfNotExists({
   const addresses = [];
   await Promise.map(
     coordinates,
-    async locationCoordinates => {
+    async (locationCoordinates) => {
       const generatedAddresses = await realAddressGenerator({
         number: numberPerLocation,
         centerPoints: [locationCoordinates],
@@ -89,7 +90,7 @@ async function generateAddressesIfNotExists({
 
 function isAddressValid(address) {
   const requiredFields = ['country', 'formattedAddress', 'latitude', 'longitude'];
-  return _.isPlainObject(address) && requiredFields.every(f => _.get(address, f));
+  return _.isPlainObject(address) && requiredFields.every((f) => _.get(address, f));
 }
 
 async function addressPregenerator({ pregeneratorParams, paramsForGeneratorFiles }) {

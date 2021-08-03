@@ -10,7 +10,7 @@ const {
   checkForEqualityConsideringInjectedFields,
   apiRequest,
 } = require('../test-util');
-const { buildGraphQlUpdateOne, buildGraphQlQuery, checkGraphQlSuccessfulResponse } = require('../graphql-util.js');
+const { buildGraphQlUpdateOne, buildGraphQlQuery, checkGraphQlSuccessfulResponse } = require('../graphql-util');
 
 describe('V5 Backend Lookups Backpropagation With Cache', function () {
   const model4sSamples = [
@@ -51,18 +51,9 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
   };
 
   before(async function () {
-    prepareEnv();
-    this.appLib = require('../../lib/app')();
-    const db = await getMongoConnection();
-    this.db = db;
+    this.appLib = prepareEnv();
 
-    const RedisMock = require('ioredis-mock');
-    const redisMockClient = new RedisMock();
-    // unlink is not implemented in ioredis-mock, but does logically the same as del
-    redisMockClient.unlink = redisMockClient.del;
-    // this.appLib.cache.getCacheStorage = () => Promise.resolve(redisMockClient);
-    const sinon = require('sinon');
-    sinon.stub(this.appLib.cache, 'getCacheStorage').resolves(redisMockClient);
+    this.db = await getMongoConnection(this.appLib.options.MONGODB_URI);
   });
 
   after(async function () {
@@ -84,7 +75,13 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
     setAppAuthOptions(this.appLib, {
       requireAuthentication: false,
     });
-    return this.appLib.setup();
+    await this.appLib.setup();
+
+    const RedisMock = require('ioredis-mock');
+    const redisMockClient = new RedisMock();
+    // unlink is not implemented in ioredis-mock, but does logically the same as del
+    redisMockClient.unlink = redisMockClient.del;
+    this.appLib.cache.cacheStorage = redisMockClient;
   });
 
   afterEach(function () {
@@ -113,7 +110,7 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
           } = settings;
 
           await warmupCache(this.appLib, propagationModelRequest, checkResponse);
-          const res = await changeLookupRequest(apiRequest(this.appLib.app))
+          const res = await changeLookupRequest(apiRequest(this.appLib))
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/);
           checkResponse(res);
@@ -122,7 +119,7 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
         }
       };
       const warmupCache = async (appLib, propagationModelRequest, checkResponse) => {
-        const res = await propagationModelRequest(apiRequest(appLib.app))
+        const res = await propagationModelRequest(apiRequest(appLib))
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
         checkResponse(res);
@@ -154,7 +151,7 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
         };
         should(dbDoc).be.deepEqual(expectedDbDoc);
 
-        const responseDoc = await propagationModelRequest(apiRequest(appLib.app))
+        const responseDoc = await propagationModelRequest(apiRequest(appLib))
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/)
           .expect(200);

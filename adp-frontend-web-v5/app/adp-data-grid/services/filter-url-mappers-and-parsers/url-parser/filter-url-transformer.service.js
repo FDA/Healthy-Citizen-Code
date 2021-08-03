@@ -30,9 +30,8 @@
           return value;
         }
       ],
-      string: [function (value) {
-        return !!value ? value : null;
-      }],
+      string: [transformToString],
+      objectId: [transformToString],
       boolean: [transformToBoolean],
       triStateBoolean: [transformToBoolean],
       list: [transformToList],
@@ -139,6 +138,10 @@
       } else {
         return null;
       }
+    }
+
+    function transformToString(value) {
+      return !!value ? value : null;
     }
 
     function validateLookupValues(value, field) {

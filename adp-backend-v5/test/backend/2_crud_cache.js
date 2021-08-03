@@ -3,6 +3,8 @@ const sinon = require('sinon');
 const RedisMock = require('ioredis-mock');
 RedisMock.Promise = require('bluebird');
 
+const rewiremock = require('rewiremock/node');
+
 const {
   checkForEqualityConsideringInjectedFields,
   samples: { sampleData0, sampleData1, sampleData2, sampleDataToCompare0 },
@@ -13,28 +15,29 @@ const {
   apiRequest,
 } = require('../test-util');
 
-function getAppLibWithAuthDisabled() {
-  const appLib = require('../../lib/app')();
-  setAppAuthOptions(appLib, {
-    requireAuthentication: false,
-    enablePermissions: false,
+function mockCacheStorage() {
+  // totally mock `cacheStorage` with stub
+  rewiremock(() => require('../../lib/cache/cacheStorage')).with({
+    getCacheStorage: () => {
+      const redisMockClient = new RedisMock();
+      // unlink is not implemented in ioredis-mock, but does logically the same as del
+      redisMockClient.unlink = redisMockClient.del;
+      return redisMockClient;
+    },
   });
-  return appLib;
 }
 
 describe('V5 Backend Cache', function () {
-  before(async function () {
-    prepareEnv();
-    this.db = await getMongoConnection();
-  });
-
-  after(async function () {
-    await this.db.dropDatabase();
-    await this.db.close();
-  });
-
   describe('Cache enabled/disabled', function () {
     beforeEach(async function () {
+      this.appLib = prepareEnv();
+      setAppAuthOptions(this.appLib, {
+        requireAuthentication: false,
+        enablePermissions: false,
+      });
+
+      this.db = await getMongoConnection(this.appLib.options.MONGODB_URI);
+
       await this.db.collection('model1s').deleteMany({});
       await Promise.all([
         this.db.collection('model1s').insertOne(sampleData0),
@@ -42,27 +45,24 @@ describe('V5 Backend Cache', function () {
       ]);
     });
 
-    afterEach(function () {
+    afterEach(async function () {
+      await this.db.close();
       return this.appLib.shutdown();
     });
 
     it('when cache is enabled returns value from cache on 2nd GET request', async function () {
-      this.appLib = getAppLibWithAuthDisabled();
-
-      const redisMockClient = new RedisMock();
-      // unlink is not implemented in ioredis-mock, but does logically the same as del
-      redisMockClient.unlink = redisMockClient.del;
-      // this.appLib.cache.getCacheStorage = () => Promise.resolve(redisMockClient);
-      sinon.stub(this.appLib.cache, 'getCacheStorage').resolves(redisMockClient);
+      mockCacheStorage();
+      rewiremock.enable();
 
       await this.appLib.setup();
+
       const { dba, cache } = this.appLib;
       this.getItemsUsingCacheSpy = sinon.spy(dba, 'getItemsUsingCache');
-      this.getCacheSpy = sinon.spy(cache, 'getCache');
+      this.getCacheSpy = sinon.spy(cache, 'get');
       this.aggregateItemsSpy = sinon.spy(dba, 'aggregateItems');
-      this.setCacheSpy = sinon.spy(cache, 'setCache');
+      this.setCacheSpy = sinon.spy(cache, 'set');
 
-      const res = await apiRequest(this.appLib.app)
+      const res = await apiRequest(this.appLib)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -92,7 +92,7 @@ describe('V5 Backend Cache', function () {
       checkForEqualityConsideringInjectedFields(data, stringifiedCachedRecord);
 
       // request with same params to get value from cache
-      const res2 = await apiRequest(this.appLib.app)
+      const res2 = await apiRequest(this.appLib)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -107,20 +107,21 @@ describe('V5 Backend Cache', function () {
       // 1st and 3rd for rolesAndPermissions and 2nd and 4th for model1s
       this.getCacheSpy.callCount.should.equal(4);
       this.setCacheSpy.callCount.should.equal(1);
+
+      rewiremock.disable();
     });
 
     it('when cache is disabled returns value from db on 2nd GET request', async function () {
       delete process.env.REDIS_URL;
-      this.appLib = getAppLibWithAuthDisabled();
-
       await this.appLib.setup();
+
       const { dba, cache } = this.appLib;
       this.getItemsUsingCacheSpy = sinon.spy(dba, 'getItemsUsingCache');
-      this.getCacheSpy = sinon.spy(cache, 'getCache');
+      this.getCacheSpy = sinon.spy(cache, 'get');
       this.aggregateItemsSpy = sinon.spy(dba, 'aggregateItems');
-      this.setCacheSpy = sinon.spy(cache, 'setCache');
+      this.setCacheSpy = sinon.spy(cache, 'set');
 
-      const res = await apiRequest(this.appLib.app)
+      const res = await apiRequest(this.appLib)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -136,7 +137,7 @@ describe('V5 Backend Cache', function () {
       this.setCacheSpy.callCount.should.equal(2);
 
       // request with same params to get value from cache
-      const res2 = await apiRequest(this.appLib.app)
+      const res2 = await apiRequest(this.appLib)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -161,24 +162,37 @@ describe('V5 Backend Cache', function () {
    * 4. Get 1st item, it should be retrieved from db
    */
   describe('Cache complex scenario', function () {
-    beforeEach(function () {
-      this.appLib = getAppLibWithAuthDisabled();
+    before(async function () {
+      mockCacheStorage();
 
-      const redisMockClient = new RedisMock();
-      // unlink is not implemented in ioredis-mock, but does logically the same as del
-      redisMockClient.unlink = redisMockClient.del;
-      // this.appLib.cache.getCacheStorage = () => Promise.resolve(redisMockClient);
-      sinon.stub(this.appLib.cache, 'getCacheStorage').resolves(redisMockClient);
+      this.appLib = prepareEnv();
+
+      this.db = await getMongoConnection(this.appLib.options.MONGODB_URI);
+
+      setAppAuthOptions(this.appLib, {
+        requireAuthentication: false,
+        enablePermissions: false,
+      });
+    });
+
+    after(async function () {
+      await this.db.close();
+    });
+
+    beforeEach(async function () {
+      rewiremock.enable();
+      await this.appLib.setup();
 
       return Promise.all([this.db.collection('model1s').deleteMany({}), this.appLib.setup()]);
     });
 
     afterEach(function () {
+      rewiremock.disable();
       return this.appLib.shutdown();
     });
 
     const step0 = async function () {
-      const res1 = await apiRequest(this.appLib.app)
+      const res1 = await apiRequest(this.appLib)
         .post('/model1s')
         .send({ data: sampleData0 })
         .set('Accept', 'application/json')
@@ -189,7 +203,7 @@ describe('V5 Backend Cache', function () {
       const savedId1 = res1.body.id;
       this.getCacheSpy.callCount.should.equal(1);
 
-      const res2 = await apiRequest(this.appLib.app)
+      const res2 = await apiRequest(this.appLib)
         .post('/model1s')
         .send({ data: sampleData1 })
         .set('Accept', 'application/json')
@@ -204,7 +218,7 @@ describe('V5 Backend Cache', function () {
     };
 
     const step1 = async function () {
-      const res = await apiRequest(this.appLib.app)
+      const res = await apiRequest(this.appLib)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -220,7 +234,7 @@ describe('V5 Backend Cache', function () {
     };
 
     const step2 = async function () {
-      const res = await apiRequest(this.appLib.app)
+      const res = await apiRequest(this.appLib)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -242,7 +256,7 @@ describe('V5 Backend Cache', function () {
       const beforeAggregateItemsSpy = this.aggregateItemsSpy.callCount;
       const beforeSetCacheSpy = this.setCacheSpy.callCount;
 
-      await apiRequest(this.appLib.app)
+      await apiRequest(this.appLib)
         .get(`/model1s/${sampleData0._id.toString()}`)
         .set('Accept', 'application/json')
         .expect('Content-Type', /json/);
@@ -256,9 +270,9 @@ describe('V5 Backend Cache', function () {
     const cacheTest = async function (step3) {
       const { dba, cache } = this.appLib;
       this.getItemsUsingCacheSpy = sinon.spy(dba, 'getItemsUsingCache');
-      this.getCacheSpy = sinon.spy(cache, 'getCache');
+      this.getCacheSpy = sinon.spy(cache, 'get');
       this.aggregateItemsSpy = sinon.spy(dba, 'aggregateItems');
-      this.setCacheSpy = sinon.spy(cache, 'setCache');
+      this.setCacheSpy = sinon.spy(cache, 'set');
 
       await step0.call(this);
       await step1.call(this);
@@ -270,7 +284,7 @@ describe('V5 Backend Cache', function () {
     it('clear cache by creating new item', function () {
       const step3 = async function () {
         this.clearCacheForModel = sinon.spy(this.appLib.cache, 'clearCacheForModel');
-        const res = await apiRequest(this.appLib.app)
+        const res = await apiRequest(this.appLib)
           .post(`/model1s`)
           .send({ data: sampleData2 })
           .set('Accept', 'application/json')
@@ -285,7 +299,7 @@ describe('V5 Backend Cache', function () {
     it('clear cache by deleting old item', function () {
       const step3 = async function () {
         this.clearCacheForModel = sinon.spy(this.appLib.cache, 'clearCacheForModel');
-        const res = await apiRequest(this.appLib.app)
+        const res = await apiRequest(this.appLib)
           .del(`/model1s/${sampleData0._id.toString()}`)
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/);
@@ -299,7 +313,7 @@ describe('V5 Backend Cache', function () {
     it('clear cache by updating old item', function () {
       const step3 = async function () {
         this.clearCacheForModel = sinon.spy(this.appLib.cache, 'clearCacheForModel');
-        const res = await apiRequest(this.appLib.app)
+        const res = await apiRequest(this.appLib)
           .put(`/model1s/${sampleData0._id.toString()}`)
           .send({ data: sampleData0 }) // update with the same object
           .set('Accept', 'application/json')

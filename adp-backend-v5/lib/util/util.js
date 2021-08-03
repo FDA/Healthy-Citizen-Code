@@ -155,15 +155,15 @@ function stringifyObjectId(obj) {
 /**
  * Gets error message if its mongo duplicate error.
  * Mongo duplicate error may be represented as:
- * - E11000 duplicate key error collection: rlog-mobile.refrigerantTypes index: refrigerantTypeName_1 dup key: { : "123" }
- * - E11000 duplicate key error collection: rlog-mobile.refrigerantTypes index: array.nestedArrayStr_1 dup key: { : "123" }
- * - E11000 duplicate key error collection: rlog-mobile.refrigerantTypes index: obj.nestedObjNumber_1 dup key: { : 11111111 }
+ * - E11000 duplicate key error collection: dbName.collectionName index: stringName_1 dup key: { : "123" }
+ * - E11000 duplicate key error collection: dbName.collectionName index: array.nestedArrayStr_1 dup key: { : "123" }
+ * - E11000 duplicate key error collection: dbName.collectionName index: obj.nestedObjNumber_1 dup key: { : 11111111 }
  * NOTE: If many fields break index constraint then only one field is represented in error message.
  * @param error
- * @param models
+ * @param schema
  * @returns {*}
  */
-function getMongoDuplicateErrorMessage(error, models) {
+function getMongoDuplicateErrorMessage(error, schema) {
   const isDuplicateError = ['BulkWriteError', 'MongoError'].includes(error.name) && error.code === 11000;
   if (!isDuplicateError) {
     return null;
@@ -173,24 +173,44 @@ function getMongoDuplicateErrorMessage(error, models) {
     /E11000 duplicate key error collection: (?:.+)\.(.+) index: (.+) dup key: { (.+): (.+) }/
   );
 
-  if (!match) {
+  if (!schema || !match) {
     return `Unable to process due to duplicate error.`;
   }
 
   const [, collectionName, , indexField, errorValue] = match;
-  const schema = models[collectionName];
+  if (schema.collectionName !== collectionName) {
+    return `Unable to process duplicate key error collection '${collectionName}'.`;
+  }
+
   const schemaField = _.get(schema.fields, indexField.replace(/\./g, '.fields.'));
   const schemaFieldFullName = _.get(schemaField, 'fullName', indexField);
   const schemaFullName = schema.fullName;
   if (errorValue === 'null') {
-    return `Unable to process. '${schemaFullName}' record with empty '${schemaFieldFullName}' already exists`;
+    return `Unable to process. ${schemaFullName} record with empty ${schemaFieldFullName} already exists.`;
   }
 
   let formattedErrorValue = errorValue;
-  if (_.get(schemaField, 'type') === 'String' && errorValue.startsWith('"') && errorValue.endsWith('"')) {
+  const stringTypes = ['String', 'Email', 'Phone', 'Url', 'Text', 'Barcode', 'Decimal128', 'Html', 'CronExpression'];
+  const isStringType = stringTypes.includes(_.get(schemaField, 'type'));
+  const isWrappedInQuotes = errorValue.startsWith('"') && errorValue.endsWith('"');
+  if (isStringType && isWrappedInQuotes) {
     formattedErrorValue = errorValue.slice(1, -1);
   }
-  return `Unable to process. '${schemaFullName}' record with the '${schemaFieldFullName}' '${formattedErrorValue}' already exists`;
+  return `Unable to process. ${schemaFullName} record with the ${schemaFieldFullName} "${formattedErrorValue}" already exists.`;
+}
+
+function getMongoDuplicateIndexErrorMessage(error) {
+  const isDuplicateError = ['BulkWriteError', 'MongoError'].includes(error.name) && error.code === 11000;
+  if (!isDuplicateError) {
+    return null;
+  }
+  // find out errorValue from error message because its not possible to get it from indexName if error occurred in array
+  const match = error.message.match(/E11000 duplicate key error collection: (?:.+)\.(.+) index: (.+) dup key: ({.+})/);
+  if (!match) {
+    return `Unable to process due to duplicate error.`;
+  }
+  const [, collectionName, indexName, dupKey] = match;
+  return `Duplicate key error collection: ${collectionName}, indexName: ${indexName}, key: ${dupKey}`;
 }
 
 function getMongoSortParallelArrayErrorMessage(error) {
@@ -217,9 +237,6 @@ function stringifyLog(obj, space) {
   const valHandler = (value) => {
     if (value instanceof RegExp) {
       return value.toString();
-    }
-    if (value instanceof ObjectID) {
-      return `ObjectID(${value.toString()})`;
     }
     if (value instanceof ObjectID) {
       return `ObjectID(${value.toString()})`;
@@ -365,6 +382,10 @@ function handleResult(res, func = (r) => r) {
   return func.call(this, res);
 }
 
+function getOrderedList(arr) {
+  return arr.map((w, index) => `${index + 1}) ${w}`).join('\n');
+}
+
 module.exports = {
   getUrlParts,
   getUrlWithoutPrefix,
@@ -376,6 +397,7 @@ module.exports = {
   mapValuesDeep,
   stringifyObjectId,
   getMongoDuplicateErrorMessage,
+  getMongoDuplicateIndexErrorMessage,
   getMongoSortParallelArrayErrorMessage,
   getDefaultArgsAndValuesForInlineCode,
   getDocValueForExpression,
@@ -393,4 +415,5 @@ module.exports = {
   expandObjectAsNumberedList,
   showMemoryUsage,
   handleResult,
+  getOrderedList,
 };

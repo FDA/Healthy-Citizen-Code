@@ -105,6 +105,7 @@ function addPaginationResolver(type, backgroundJobsModelName) {
       _.each(jobs, (job) => {
         job._actions = {
           view: true,
+          viewDetails: true,
           deleteBackgroundJob: isDeleteAllowedFunc(job),
         };
       });
@@ -191,7 +192,7 @@ function addDeleteResolver(type, backgroundJobsModelName) {
         await job.remove();
         return { deletedCount: 1 };
       } catch (e) {
-        handleGraphQlError(e, `Unable to delete record`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to delete record`, log, appLib, modelName: backgroundJobsModelName });
       }
     },
   });

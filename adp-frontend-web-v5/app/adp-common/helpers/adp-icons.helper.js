@@ -20,7 +20,7 @@
         var link = icon.link;
 
         if (link.substr(0, 4) !== "http") {
-          link = APP_CONFIG.apiUrl + link;
+          link = APP_CONFIG.resourceUrl + link;
         }
         tagProps.push("style=\"background-image:url(" + link + ")\"");
         classNames.push("adp-icon-base");

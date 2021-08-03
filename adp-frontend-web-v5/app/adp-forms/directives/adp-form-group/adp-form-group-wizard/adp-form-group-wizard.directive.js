@@ -110,21 +110,9 @@
         };
 
         scope.getHeader = function (group) {
-          var args = AdpUnifiedArgs.getHelperParamsWithConfig({
-            path: group.fieldName,
-            action: scope.args.action,
-            formData: scope.args.row,
-            schema: scope.args.modelSchema,
-          });
-          args.data = getData(group);
-
+          var args = AdpUnifiedArgs.getArgsForGroup(group, scope.args);
           return AdpFieldsService.getHeaderRenderer(args);
         };
-
-        function getData(group) {
-          var fieldNames = _.map(group.fields, function (f) { return f.fieldName });
-          return _.pick(scope.args.row, fieldNames);
-        }
       }
     }
   }

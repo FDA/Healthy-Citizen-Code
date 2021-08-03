@@ -2,8 +2,6 @@ const { ObjectID } = require('mongodb');
 const { prepareJavaInstance } = require('../dmn');
 
 const BPMN_QUEUE_NAME = 'bpmnRunner';
-const bpmnRunnerConcurrency = +process.env.BPMN_RUNNER_CONCURRENCY || 1;
-const bpmnBatchSize = +process.env.BPMN_BATCH_SIZE || 50;
 const bpmnProcessesCollectionName = 'bpmnProcesses';
 
 async function createBpmnQueue({ appLib, log }) {
@@ -16,7 +14,7 @@ async function createBpmnQueue({ appLib, log }) {
   const bpmnRunnerQueue = appLib.queue.createQueue(BPMN_QUEUE_NAME);
   util.addQueueEventHandlers({ appLib, bullQueue: bpmnRunnerQueue, log });
 
-  bpmnRunnerQueue.process(bpmnRunnerConcurrency, require('./bpmn-queue-processor')(bpmnContext));
+  bpmnRunnerQueue.process(appLib.config.BPMN_RUNNER_CONCURRENCY, require('./bpmn-queue-processor')(bpmnContext));
 
   return bpmnRunnerQueue;
 }
@@ -48,7 +46,7 @@ async function runBpmnProcess({
 
     const job = await bpmnRunnerQueue.add({
       xml,
-      batchSize: bpmnBatchSize,
+      batchSize: appLib.config.BPMN_BATCH_SIZE,
       creator,
       processRunId: new Date().toISOString(),
       parameters,

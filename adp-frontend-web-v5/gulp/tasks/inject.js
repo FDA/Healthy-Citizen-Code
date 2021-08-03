@@ -96,6 +96,7 @@ function injectNpmJs() {
     .pipe(gulpOrder([
       '**/jquery.js',
       '**/bootstrap.js',
+      '**/socket.io.js',
       '**/angular.js',
       '**/wavesurfer*.js',
       '**/jszip*.js',
@@ -118,6 +119,11 @@ function getMainBowerFiles() {
       bowerJson: 'package.json'
     },
     overrides: {
+      "socket.io-client": {
+        main: 'dist/socket.io.js',
+        "dependencies": {
+        }
+      },
       "angular-ui-router": {
         "main": "./release/angular-ui-router.js",
         "dependencies": {
@@ -242,6 +248,19 @@ function getMainBowerFiles() {
           "./plugin/customParseFormat.js",
         ],
       },
+      "simplebar": {
+        "main": [
+          "./dist/simplebar.min.css",
+          "./dist/simplebar.min.js",
+        ],
+      },
+      "can-use-dom": {
+        "ignore": true,
+      },
+      "core-js": {
+        "ignore": true,
+      },
+
     }
   });
 }

@@ -1,0 +1,34 @@
+{
+  "interface": {
+    "mainMenu": {
+      "type": "Menu",
+      "fullName": "Main Menu",
+      "fields": {
+        "system": {
+          "fields": {
+            "webTerminal": {
+              "type": "MenuItem",
+              "fullName": "Web Terminal",
+              "scopes": {
+                "view": {
+                  "permissions": "accessWebTerminal"
+                }
+              },
+              "link": "/web-terminal"
+            },
+            "trinoTerminal": {
+              "type": "MenuItem",
+              "fullName": "Trino Web Terminal",
+              "scopes": {
+                "view": {
+                  "permissions": "accessTrinoTerminal"
+                }
+              },
+              "link": "/trino-terminal"
+            }
+          }
+        }
+      }
+    }
+  }
+}

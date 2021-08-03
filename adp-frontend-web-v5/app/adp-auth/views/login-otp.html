@@ -1,0 +1,27 @@
+<adp-form
+  class="login-form auth-form"
+  args="::vm.args"
+  form-options="::vm.formOptions"
+>
+
+  <form-header>
+    Sign In
+  </form-header>
+
+  <form-footer>
+    <footer>
+      <div class="text-center">
+        <button
+          type="submit"
+          data-action-name="submit"
+          class="btn btn-primary"
+        >
+          {{vm.authParams.signInText}}
+        </button>
+        <a ui-sref="auth.login" class="adp-action-b-secondary">
+            Cancel
+        </a>
+      </div>
+    </footer>
+  </form-footer>
+</adp-form>

@@ -51,15 +51,15 @@
 
   <fieldset
     class="form-error-count input-container state-error"
-    ng-if="form.$submitted && errorCount > 0"
+    ng-if="errorCount.cnt > 0"
   >
     <div class="note-error col col-12 text-right">
-      <span ng-show="errorCount == 1">
-        {{errorCount}} error found in the form.
+      <span ng-show="errorCount.cnt == 1">
+        {{errorCount.cnt}} error found in the form.
       </span>
 
-      <span ng-show="errorCount >= 2">
-        {{errorCount}} errors found in the form.
+      <span ng-show="errorCount.cnt >= 2">
+        {{errorCount.cnt}} errors found in the form.
       </span>
     </div>
   </fieldset>

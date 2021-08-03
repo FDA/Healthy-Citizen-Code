@@ -99,6 +99,7 @@ function addFindManyByDevExtremeFilterResolver(type) {
     type: [type],
     resolve: async ({ args, context, paginationContext }) => {
       const { appLib } = context;
+      const { modelName } = paginationContext;
       try {
         const {
           controllerUtil,
@@ -114,7 +115,7 @@ function addFindManyByDevExtremeFilterResolver(type) {
         }
         return getItemsForGroups(items, parse, args.filter.dxQuery, paginationContext.appModel);
       } catch (e) {
-        handleGraphQlError(e, `Unable to find requested elements`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to find requested elements`, log, appLib, modelName });
       }
     },
   });
@@ -132,12 +133,13 @@ function addCountByDevExtremeFilterResolver(type) {
     type: 'Int!',
     resolve: async ({ context, paginationContext }) => {
       const { appLib } = context;
+      const { modelName } = paginationContext;
       try {
         const { getElementsCount } = appLib.controllerUtil;
         paginationContext.action = 'view';
         return await getElementsCount({ context: paginationContext });
       } catch (e) {
-        handleGraphQlError(e, `Unable to count requested elements`, log, appLib);
+        handleGraphQlError({ e, message: `Unable to count requested elements`, log, appLib, modelName });
       }
     },
   });

@@ -14,13 +14,15 @@ module.exports = class LookupContext extends BaseContext {
       throw new ValidationError(`Invalid model name in the URL: ${this.req.url}`);
     }
     this.modelName = this.tableSpec.table;
+    this.appModel = _.get(this.appLib.appModel.models, this.modelName);
+    this.collectionName = this.appModel.collectionName || this.modelName;
     this.filteringCondition = await this._getFilteringCondition();
     this.mongoParams = this._getLookupMongoParams();
     return this;
   }
 
   _getTableSpec() {
-    const urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.API_PREFIX));
+    const urlParts = getUrlParts(getUrlWithoutPrefix(this.req.url, this.appLib.config.API_PREFIX));
     const [lookupId, tableName] = urlParts.slice(-2);
     if (!lookupId) {
       throw new ValidationError(`No lookup ID in the URL: ${this.req.url}`);
@@ -43,8 +45,7 @@ module.exports = class LookupContext extends BaseContext {
 
   _getLookupMongoParams() {
     // TODO: should I move limit to lookup definition? Or give one ability to override, make it smaller than the one defined on table?
-    const lookupAppModel = _.get(this.appLib.appModel.models, this.tableSpec.table);
-    const limit = getLimit(this.appLib, lookupAppModel, Number.Infinity, this.userPermissions);
+    const limit = getLimit(this.appLib, this.appModel, Number.Infinity, this.userPermissions);
     const { page, q } = this.req.query;
     const skip = getSkip(page, limit);
 
