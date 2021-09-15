@@ -19,13 +19,13 @@
         '        <div class="col col-12">' +
         '            <div ng-if="vm.status === \'start\'" class=""><i class="fa fa-circle-o-notch fa-4x fa-spin"></i></div>' +
           '            <div ng-if="vm.status === \'finish\'" class="">Successfully</div>' +
-        '            <div ng-if="vm.showResultsCollection"><a href="/_exports">You can get export result here then its ready</a></div>' +
+        '            <div><a ui-sref="app._exports">You can get export result here then its ready</a></div>' +
         '            <div ng-if="vm.status === \'error\'" class="">' +
         '               <div>{{ vm.errorMessage }}</div>' +
         '            </div>' +
         '        </div>' +
         '    </fieldset>' +
-        '    <footer class="adp-action-b-container">' +
+        '    <footer class="adp-action-b-container" adp-ui-buttons-handle-keyboard>' +
         '        <button class="adp-action-b-primary"' +
         '                type="button"' +
         '                ng-if="vm.downloadAllowed" ' +

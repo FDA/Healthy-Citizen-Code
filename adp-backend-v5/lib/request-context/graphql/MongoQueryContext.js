@@ -15,7 +15,7 @@ module.exports = class MongoQueryContext extends GraphQlContext {
     const { limit, limitPlusOne, skip } = this._getLimitSkipForPagination(perPage, page);
     this.mongoParams = {
       conditions: query,
-      sort: sort ? JSON5.parse(sort) : {},
+      sort: this._getSort(sort),
       perPage: limit,
       limit: limitPlusOne,
       skip,

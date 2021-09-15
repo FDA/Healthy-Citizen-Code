@@ -57,19 +57,9 @@
       return exportsSchema.fields.exportType.list;
     }
 
-    function guessTimeZone() {
-      try {
-        return Intl.DateTimeFormat()
-          .resolvedOptions().timeZone;
-      } catch (e) {
-        return '';
-      }
-    }
-
     return {
       getExportFormats: getExportFormats,
       getPrefType: getPrefType,
-      guessTimeZone: guessTimeZone,
       setPrefType: setPrefType,
       gridFilterCondition: gridFilterCondition,
       gridVisibleColumns: gridVisibleColumns

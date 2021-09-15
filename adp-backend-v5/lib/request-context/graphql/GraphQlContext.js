@@ -40,7 +40,8 @@ module.exports = class GraphQlContext extends BaseContext {
     } else if (_.isPlainObject(sort)) {
       sortObj = sort;
     } else {
-      sortObj = {};
+      const { defaultSortBy } = this.appLib.appModel.metaschema;
+      sortObj = _.get(this.appModel, `defaultSortBy`, defaultSortBy.default);
     }
 
     _.each(sortObj, (val, fieldName) => {

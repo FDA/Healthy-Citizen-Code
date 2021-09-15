@@ -1,53 +1,29 @@
 // eslint-disable-next-line max-classes-per-file
 const pty = require('node-pty');
 const _ = require('lodash');
+const { defaultPreset, defaultPresetName, presets } = require( "../lib/terminal-presets" );
 
 const subscriptionType = 'webTerminal';
 
-const defaultPresetName = 'bash';
-const defaultPreset = {
-  shell: 'bash',
-  args: [],
-  params: {
-    name: 'xterm-color',
-    cols: 80,
-    rows: 30,
-    cwd: process.env.HOME,
-    env: process.env,
-  },
-};
-
-const presets = {
-  bash: {
-    shell: 'bash',
-    args: [],
-    params: {
-    }
-  },
-  trino: {
-    shell: 'trino',
-    args: appLib => ([
-      '--server', appLib.config.TRINO_URI,
-      '--catalog', appLib.config.TRINO_CATALOG,
-      '--schema', appLib.config.TRINO_SCHEMA,
-    ]),
-  }
-}
-
 function getPtyParamsPreset(appLib, presetName) {
-  const preset = presets[presetName] || presets[defaultPresetName] || {};
+  const preset = presets[presetName];
 
-  _.each(['shell', 'args', 'params'], key => {
-    let value = preset[key] || defaultPreset[key];
+  if (!preset) {
+    throw new Error("Terminal preset not found");
+  } else {
 
-    if (_.isFunction(value)) {
-      preset[key] = value(appLib)
-    } else if (_.isObject(value) && _.isObject(defaultPreset[key])) {
-      preset[key] = _.defaults(value, defaultPreset[key]);
-    } else {
-      preset[key] = value;
-    }
-  })
+    _.each( [ 'shell', 'args', 'params' ], key => {
+      let value = preset[ key ] || defaultPreset[ key ];
+
+      if( _.isFunction( value ) ) {
+        preset[ key ] = value( appLib )
+      } else if( _.isObject( value ) && _.isObject( defaultPreset[ key ] ) ) {
+        preset[ key ] = _.defaults( value, defaultPreset[ key ] );
+      } else {
+        preset[ key ] = value;
+      }
+    } )
+  }
 
   return preset;
 }
@@ -121,6 +97,11 @@ class WebTerminalManager {
     let terminal = this._getTerminal(uid);
     if (!terminal) {
       const presetName = _.get(data, 'presetName');
+      const disabledPresets = this.appLib.config.TERMINAL_DISABLE_PRESETS.split(',') || [];
+
+      if (_.indexOf(disabledPresets, presetName) >= 0) {
+        throw new Error('Unknown terminal preset');
+      }
 
       terminal = new WebTerminal(this.appLib, uid, socket, presetName);
       this._setTerminal(uid, terminal);

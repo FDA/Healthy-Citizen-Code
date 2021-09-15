@@ -52,11 +52,19 @@ function handleConditionsByQueueNameField(conditions) {
 }
 
 function handleConditionsByStateField(conditions) {
-  // for now frontend sends only filter like [list, '=', [val1, val2] ] which is transformed as $in
-  // this function should be changed for other operations i.e. '<>'
-  const jobTypes = _.get(conditions, `${stateFieldName}.$in`);
+  const jobStateConditions = _.get(conditions, stateFieldName, {});
   delete conditions[stateFieldName];
-  return jobTypes;
+
+  const { $in, $nin } = jobStateConditions;
+  if (_.isArray($in)) {
+    return $in;
+  }
+  if (_.isArray($nin)) {
+    return ['waiting', 'active', 'completed', 'failed', 'delayed', 'paused', 'stuck'].filter(
+      (state) => !$nin.includes(state)
+    );
+  }
+  return [];
 }
 
 function addPaginationResolver(type, backgroundJobsModelName) {

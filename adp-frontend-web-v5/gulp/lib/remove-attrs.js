@@ -13,12 +13,12 @@ module.exports = (attrMatchers = []) => {
 
   return (tree) => {
     tree.walk((node) => {
-      const result =_.omitBy(node.attrs, (val, name) => {
-        return attrMatchers.some((matcher) => {
+      const result = _.omitBy(node.attrs, (val, name) =>
+        attrMatchers.some((matcher) => {
           const matcherFn = typeof matcher === 'string' ? 'string' : 'regex';
           return matcherFns[matcherFn](name, matcher);
-        });
-      });
+        })
+      );
 
       result && (node.attrs = result);
 

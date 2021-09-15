@@ -8,7 +8,6 @@ const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
-  checkRestSuccessfulResponse,
   conditionForActualRecord,
   sortByIdDesc,
   apiRequest,
@@ -112,7 +111,6 @@ describe('V5 TreeSelectors', () => {
     const treeselectorId = 'Model11treeselectorTreeselector';
     const treeSelectorTableName = 'treeCollection';
 
-    const getRestData = (res) => res.body.data;
     const treeselectorTypeName = getTreeselectorTypeName(treeselectorId, treeSelectorTableName);
     const getGraphqlData = (res) => res.body.data[treeselectorTypeName].items;
 
@@ -127,12 +125,6 @@ describe('V5 TreeSelectors', () => {
         label.should.equal(form.filteringField);
       };
 
-      const restSettings = {
-        makeRequest: (r) => r.post(`/treeselectors/${_treeselectorId}/${tableName}`).send(form),
-        checkResponse: checkRestSuccessfulResponse,
-        checkData,
-        getData: getRestData,
-      };
       const graphqlSettings = {
         makeRequest: (r) =>
           r.post('/graphql').send(
@@ -147,10 +139,7 @@ describe('V5 TreeSelectors', () => {
         checkData,
         getData: (res) => res.body.data[typeName].items,
       };
-      it(
-        `REST: returns correct results for search for treeselector with filtering condition`,
-        getTestFunc(restSettings)
-      );
+
       it(
         `GraphQL: returns correct results for search for treeselector with filtering condition`,
         getTestFunc(graphqlSettings)
@@ -181,12 +170,7 @@ describe('V5 TreeSelectors', () => {
           },
         });
       };
-      const restSettings = {
-        makeRequest: (r) => r.get(`/treeselectors/${treeselectorId}/${treeSelectorTableName}`),
-        checkResponse: checkRestSuccessfulResponse,
-        checkData,
-        getData: getRestData,
-      };
+
       const graphqlSettings = {
         makeRequest: (r) =>
           r.post('/graphql').send(
@@ -201,7 +185,6 @@ describe('V5 TreeSelectors', () => {
         getData: getGraphqlData,
       };
 
-      it('REST: when requesting roots containing data attribute', getTestFunc(restSettings));
       it('GraphQL: when requesting roots containing data attribute', getTestFunc(graphqlSettings));
     });
 
@@ -225,13 +208,6 @@ describe('V5 TreeSelectors', () => {
         });
       };
 
-      const restSettings = {
-        makeRequest: (r) =>
-          r.get(`/treeselectors/${treeselectorId}/${treeSelectorTableName}?foreignKeyVal=${foreignKeyVal}`),
-        checkResponse: checkRestSuccessfulResponse,
-        checkData,
-        getData: getRestData,
-      };
       const graphqlSettings = {
         makeRequest: (r) =>
           r.post('/graphql').send(
@@ -247,7 +223,6 @@ describe('V5 TreeSelectors', () => {
         getData: getGraphqlData,
       };
 
-      it('REST: when requesting children (for default first page)', getTestFunc(restSettings));
       it('GraphQL: when requesting children (for default first page)', getTestFunc(graphqlSettings));
     });
 
@@ -270,15 +245,6 @@ describe('V5 TreeSelectors', () => {
       };
 
       const page = `2`;
-      const restSettings = {
-        makeRequest: (r) =>
-          r.get(
-            `/treeselectors/${treeselectorId}/${treeSelectorTableName}?foreignKeyVal=${foreignKeyVal}&page=${page}`
-          ),
-        checkResponse: checkRestSuccessfulResponse,
-        checkData,
-        getData: getRestData,
-      };
       const graphqlSettings = {
         makeRequest: (r) =>
           r.post('/graphql').send(
@@ -287,7 +253,7 @@ describe('V5 TreeSelectors', () => {
               tableName: treeSelectorTableName,
               selectFields: 'items { _id label table isLeaf data { info } }',
               foreignKeyVal,
-              page: 2,
+              page,
             })
           ),
         checkResponse: checkGraphQlSuccessfulResponse,
@@ -295,7 +261,6 @@ describe('V5 TreeSelectors', () => {
         getData: getGraphqlData,
       };
 
-      it('REST: when requesting children with pagination (page=2)', getTestFunc(restSettings));
       it('GraphQL: when requesting children with pagination (page=2)', getTestFunc(graphqlSettings));
     });
   });
@@ -343,21 +308,14 @@ describe('V5 TreeSelectors', () => {
       };
 
       const modelName = 'model11treeselector';
-      const createDocRestRequest = (r) => r.post(`/${modelName}`).send({ data: record });
       const createDocGraphqlRequest = (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record));
 
-      const restSettings = {
-        makeRequest: createDocRestRequest,
-        checkResponse: checkRestSuccessfulResponse,
-        getCreatedDocId: (res) => res.body.id,
-      };
       const graphqlSettings = {
         makeRequest: createDocGraphqlRequest,
         checkResponse: checkGraphQlSuccessfulResponse,
         getCreatedDocId: (res) => res.body.data[`${modelName}Create`]._id,
       };
 
-      it('REST: should submit doc with TreeSelector data ending with leaf', getTestFunc(restSettings));
       it('GraphQL: should submit doc with TreeSelector data ending with leaf', getTestFunc(graphqlSettings));
     });
 
@@ -389,25 +347,19 @@ describe('V5 TreeSelectors', () => {
       };
 
       const modelName = 'model11treeselector';
-      const createDocRestRequest = (r) => r.post(`/${modelName}`).send({ data: record });
       const createDocGraphqlRequest = (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record));
 
-      const restSettings = {
-        makeRequest: createDocRestRequest,
+      const graphqlSettings = {
+        makeRequest: createDocGraphqlRequest,
         checkResponse: (res) => {
-          const { success, message } = res.body;
-          success.should.equal(false);
-          message.should.equal(
+          checkGraphQlErrorResponse(res);
+          const { message } = res.body.errors[0];
+          should(message).equal(
             'Found invalid tree selector data: Last element must be a leaf for field "treeSelector"'
           );
         },
       };
-      const graphqlSettings = {
-        makeRequest: createDocGraphqlRequest,
-        checkResponse: checkGraphQlErrorResponse,
-      };
 
-      it('REST: should not submit doc with TreeSelector data ending with not leaf', getTestFunc(restSettings));
       it('GraphQL: should not submit doc with TreeSelector data ending with not leaf', getTestFunc(graphqlSettings));
     });
   });

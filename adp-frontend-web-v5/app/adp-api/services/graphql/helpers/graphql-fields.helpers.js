@@ -6,7 +6,7 @@
     .factory('GraphqlHelper', GraphqlHelper);
 
   /** @ngInject */
-  function GraphqlHelper() {
+  function GraphqlHelper(AdpTime) {
     function wrapFieldString(fieldsString, name) {
       return [
         name,
@@ -25,7 +25,15 @@
         return {type: 'Mongo Expression', expression: filter[2].value}
       },
       relativeDate: function (filter) {
-        return [filter[0], filter[1], filter[2].value]
+        return {
+          type: 'Relative Date',
+          expression: {
+            fieldPath: filter[0],
+            operation: filter[1],
+            value: filter[2].value,
+            timezone: AdpTime.guessTimeZone(),
+          }
+        };
       },
       databaseField: function (filter) {
         return {type: 'Database Field', expression: [filter[0], filter[1], filter[2].value]}

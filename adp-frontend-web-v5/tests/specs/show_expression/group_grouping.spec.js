@@ -172,8 +172,10 @@ describe('show expression', () => {
         await selectDxListValue('Option2', selectFieldName, this.page);
         await this.page.waitForSelector(selectors.b2, { visible: true });
 
-        await clickSubmit(this.page);
-        const { _id } = await getResponseForCreatedRecord('helperMethods_showAttributeGrouping', this.page);
+        const [{ _id }] = await Promise.all([
+          getResponseForCreatedRecord('helperMethods_showAttributeGrouping', this.page),
+          clickSubmit(this.page)
+        ]);
         await clickEditButton(_id, this.page);
 
         const expectedSnapshot = {

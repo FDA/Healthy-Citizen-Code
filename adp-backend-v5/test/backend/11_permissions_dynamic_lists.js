@@ -1,4 +1,5 @@
-require('should');
+const should = require('should');
+const _ = require('lodash');
 
 const {
   auth: { admin, user, loginWithUser },
@@ -7,6 +8,7 @@ const {
   prepareEnv,
   apiRequest,
 } = require('../test-util');
+const { buildGraphQlUpdateOne, buildGraphQlCreate } = require('../graphql-util');
 
 const modelName = 'model9_dynamic_list_permissions';
 
@@ -53,20 +55,19 @@ describe('V5 Backend Dynamic List Permissions', () => {
         await this.appLib.start();
         const token = await loginWithUser(appLib, admin);
         const res = await apiRequest(appLib)
-          .post(`/${modelName}`)
-          .send({ data: model9Sample })
+          .post('/graphql')
+          .send(buildGraphQlCreate(modelName, _.omit(model9Sample, '_id')))
           .set('Accept', 'application/json')
           .set('Authorization', `JWT ${token}`)
-          .expect('Content-Type', /json/);
-        res.statusCode.should.equal(200, JSON.stringify(res, null, 2));
-        res.body.success.should.equal(true);
-        res.body.id.should.not.be.empty();
+          .expect('Content-Type', /json/)
+          .expect(200);
+        const item = res.body.data[`${modelName}Create`];
+        should(item._id).not.be.empty();
       });
 
-      it('should not allow admin to create item with invalid list values', async function () {
+      it('should not allow admin to create item with invalid single list value', async function () {
         const model9Sample = {
           dynamicList: 'invalidVal',
-          arrayDynamicList: ['val1', 'invalidVal'],
         };
         const { appLib } = this;
         setAppAuthOptions(this.appLib, {
@@ -77,19 +78,42 @@ describe('V5 Backend Dynamic List Permissions', () => {
         await this.appLib.start();
         const token = await loginWithUser(appLib, admin);
         const res = await apiRequest(appLib)
-          .post(`/${modelName}`)
-          .send({ data: model9Sample })
+          .post('/graphql')
+          .send(buildGraphQlCreate(modelName, _.omit(model9Sample, '_id')))
           .set('Accept', 'application/json')
           .set('Authorization', `JWT ${token}`)
-          .expect('Content-Type', /json/);
-        res.statusCode.should.equal(400, JSON.stringify(res, null, 2));
-        res.body.success.should.equal(false);
-        const errMessageDynamicList = `Value 'invalidVal' is not allowed for list field 'model9_dynamic_list_permissions.dynamicList'.`;
-        const errMessageArrayDynamicList = `Value 'invalidVal' is not allowed for list field 'model9_dynamic_list_permissions.arrayDynamicList'.`;
-        const { message } = res.body;
+          .expect('Content-Type', /json/)
+          .expect(200);
+
+        res.body.errors.should.not.be.empty();
+        const { message } = res.body.errors[0];
         message.should.startWith('Incorrect request: ');
+        const errMessageDynamicList = `Value 'invalidVal' is not allowed for list field 'dynamicList'.`;
         message.should.containEql(errMessageDynamicList);
-        message.should.containEql(errMessageArrayDynamicList);
+      });
+
+      it('should allow admin to create item with array list containing invalid value (this value must be erased)', async function () {
+        const model9Sample = { arrayDynamicList: ['val1', 'invalidVal'] };
+        const { appLib } = this;
+        setAppAuthOptions(this.appLib, {
+          requireAuthentication: true,
+          enablePermissions: true,
+        });
+        await this.appLib.setup();
+        await this.appLib.start();
+        const token = await loginWithUser(appLib, admin);
+        const res = await apiRequest(appLib)
+          .post('/graphql')
+          .send(buildGraphQlCreate(modelName, _.omit(model9Sample, '_id'), 'arrayDynamicList'))
+          .set('Accept', 'application/json')
+          .set('Authorization', `JWT ${token}`)
+          .expect('Content-Type', /json/)
+          .expect(200);
+
+        should(res.body.errors).be.undefined();
+        const item = res.body.data[`${modelName}Create`];
+        should(item).not.be.undefined();
+        should(item.arrayDynamicList).be.deepEqual(['val1']);
       });
 
       it('should allow user to create and update item with list values available for that user', async function () {
@@ -109,27 +133,28 @@ describe('V5 Backend Dynamic List Permissions', () => {
         const token = await loginWithUser(appLib, user);
 
         const res = await apiRequest(appLib)
-          .post(`/${modelName}`)
-          .send({ data: model9Sample })
+          .post('/graphql')
+          .send(buildGraphQlCreate(modelName, _.omit(model9Sample, '_id')))
           .set('Accept', 'application/json')
           .set('Authorization', `JWT ${token}`)
-          .expect('Content-Type', /json/);
-        res.statusCode.should.equal(200, JSON.stringify(res, null, 2));
-        res.body.success.should.equal(true);
-        const savedId = res.body.id;
-        savedId.should.not.be.empty();
+          .expect('Content-Type', /json/)
+          .expect(200);
+        should(res.body.errors).be.undefined();
+        const item = res.body.data[`${modelName}Create`];
+        const savedId = item._id;
+        should(savedId).not.be.empty();
 
-        const res2 = await apiRequest(appLib)
-          .put(`/${modelName}/${savedId}`)
-          .send({ data: model9Sample })
+        await apiRequest(appLib)
+          .post('/graphql')
+          .send(buildGraphQlUpdateOne(modelName, _.omit(model9Sample, '_id'), savedId))
           .set('Accept', 'application/json')
           .set('Authorization', `JWT ${token}`)
-          .expect('Content-Type', /json/);
-        res2.statusCode.should.equal(200, JSON.stringify(res, null, 2));
-        res2.body.success.should.equal(true);
+          .expect('Content-Type', /json/)
+          .expect(200);
+        should(res.body.errors).be.undefined();
       });
 
-      it('should not allow user to create item with list values not available for that user', async function () {
+      it('should not allow user to create item with single list value not available for that user', async function () {
         const model9Sample = {
           dynamicList: 'val3',
           arrayDynamicList: ['val3', 'val4'],
@@ -144,23 +169,19 @@ describe('V5 Backend Dynamic List Permissions', () => {
         await this.appLib.start();
         const token = await loginWithUser(appLib, user);
         const res = await apiRequest(appLib)
-          .post(`/${modelName}`)
-          .send({ data: model9Sample })
+          .post('/graphql')
+          .send(buildGraphQlCreate(modelName, _.omit(model9Sample, '_id')))
           .set('Accept', 'application/json')
           .set('Authorization', `JWT ${token}`)
-          .expect('Content-Type', /json/);
-        res.statusCode.should.equal(400, JSON.stringify(res, null, 2));
-        res.body.success.should.equal(false);
+          .expect('Content-Type', /json/)
+          .expect(200);
 
-        const errMessageDynamicList = `Value 'val3' is not allowed for list field 'model9_dynamic_list_permissions.dynamicList'.`;
-        const errMessageArrayDynamicList = [
-          `Value 'val3' is not allowed for list field 'model9_dynamic_list_permissions.arrayDynamicList'.`,
-          `Value 'val4' is not allowed for list field 'model9_dynamic_list_permissions.arrayDynamicList'.`,
-        ];
-        const { message } = res.body;
-        message.should.startWith('Incorrect request: ');
-        message.should.containEql(errMessageDynamicList);
-        errMessageArrayDynamicList.forEach((m) => message.should.containEql(m));
+        res.body.errors.should.not.be.empty();
+        const { message } = res.body.errors[0];
+        should(message).startWith('Incorrect request: ');
+        const errMessageDynamicList = `Value 'val3' is not allowed for list field 'dynamicList'.`;
+        should(message).containEql(errMessageDynamicList);
+        // Both ['val3', 'val4'] values for 'arrayDynamicList' are invalid but erased
       });
     });
   });

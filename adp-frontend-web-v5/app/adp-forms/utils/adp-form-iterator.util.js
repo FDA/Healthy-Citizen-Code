@@ -23,6 +23,8 @@
 
             traverseFormDataPostOrder(currArrayArgs, callback);
           });
+
+          callback(currArgs, true);
         } else {
           _isFieldVisible(currentField) && callback(currArgs);
         }

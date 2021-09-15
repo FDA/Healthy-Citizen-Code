@@ -152,8 +152,10 @@ describe('show expression', () => {
         await selectDxListValue('o21', fieldNames.s2, this.page);
         await this.page.waitForSelector(s3);
 
-        await clickSubmit(this.page);
-        const { _id } = await getResponseForCreatedRecord('helperMethods_showArraysWithIndexes', this.page);
+        const [{ _id }] = await Promise.all([
+          getResponseForCreatedRecord('helperMethods_showArraysWithIndexes', this.page),
+          clickSubmit(this.page)
+        ]);
         await clickEditButton(_id, this.page);
 
         const expectedSnapshot1 = {

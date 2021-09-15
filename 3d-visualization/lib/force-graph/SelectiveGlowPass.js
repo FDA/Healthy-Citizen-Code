@@ -3,7 +3,7 @@ import {
   MeshBasicMaterial,
   Layers
 } from 'three/build/three.js';
-import {Pass} from 'three/examples/jsm/postprocessing/Pass.js';
+import {Pass, FullScreenQuad} from 'three/examples/jsm/postprocessing/Pass.js';
 import {EffectComposer} from 'three/examples/jsm/postprocessing/EffectComposer.js';
 import {RenderPass} from 'three/examples/jsm/postprocessing/RenderPass.js';
 import {UnrealBloomPass} from 'three/examples/jsm/postprocessing/UnrealBloomPass.js';
@@ -65,7 +65,7 @@ class SelectiveGlowPass extends Pass {
       fragmentShader: fragmentShaderComposeBloomOverScene
     });
 
-    this.fsQuad = new Pass.FullScreenQuad(this.material);
+    this.fsQuad = new FullScreenQuad(this.material);
 
     this.darkenNonBloomed = obj => {
       if (obj.material && (obj.__data && !obj.__data.isGlow) || !obj.__data) {

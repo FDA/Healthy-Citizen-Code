@@ -27,7 +27,7 @@
       function generateControl(isOtpActive) {
         var appInterface = window.adpAppStore.appInterface()
         var mfaRequired =  _.get(appInterface, "app.auth.requireMfa");
-        var $primaryButton = $('<div>').addClass('btn');
+        var $primaryButton = $('<div>').addClass('btn mfa-primary');
         var $statusText;
         var $backupButton;
 

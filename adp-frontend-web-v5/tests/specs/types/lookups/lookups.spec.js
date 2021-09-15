@@ -71,9 +71,11 @@ describe('lookup types', () => {
       'Should save form with single Lookup Field',
       async () => {
         await selectLookupValue(lastLabel, lookupNames.single, this.page);
-        await clickSubmit(this.page);
+        const [{ _id }] = await Promise.all([
+          getResponseForCreatedRecord(PAGE_NAME, this.page),
+          clickSubmit(this.page),
+        ]);
 
-        const { _id } = await getResponseForCreatedRecord(PAGE_NAME, this.page);
         await clickEditButton(_id, this.page);
 
         const actualLookupValue = await getSingleLookupValue(lookupNames.single, this.page);
@@ -94,8 +96,10 @@ describe('lookup types', () => {
       'Should save form with multiple Lookup Field',
       async () => {
         await selectLookupValue(lastLabel, lookupNames.multiple, this.page);
-        await clickSubmit(this.page);
-        const { _id } = await getResponseForCreatedRecord(PAGE_NAME, this.page);
+        const [{ _id }] = await Promise.all([
+          getResponseForCreatedRecord(PAGE_NAME, this.page),
+          clickSubmit(this.page),
+        ]);
         await clickEditButton(_id, this.page);
 
         const [actualLookupValue] = await getMultipleLookupValue(lookupNames.multiple, this.page);

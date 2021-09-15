@@ -22,10 +22,12 @@ const ensureAtLeastOneRecordExistToDisplayActions = async (page) => {
     return;
   }
 
-  const nameInputSelector = "#name input";
+  const nameInputSelector = '[adp-qaid-field-control="name"]';
+  const processName = "autoTestingDmn" + Math.round(100000 * Math.random());
+
   await clickCreateNewButton(page);
   await page.waitForSelector(nameInputSelector);
-  await page.type(nameInputSelector, "autoTestingDmn001");
+  await page.type(nameInputSelector, processName);
   await clickSubmit(page);
 }
 

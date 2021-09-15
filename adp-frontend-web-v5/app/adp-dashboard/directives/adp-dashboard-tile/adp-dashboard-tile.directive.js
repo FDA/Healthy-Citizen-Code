@@ -1,14 +1,15 @@
 ;(function () {
   'use strict';
-  
+
   angular
     .module('app.adpDashboard')
     .directive('adpDashboardTile', adpDashboardTile);
-  
+
   /** @ngInject */
   function adpDashboardTile(
     $state,
     adpTemplateEngineService,
+    AdpStateGenerator,
     $compile
   ) {
     var INTERFACE = window.adpAppStore.appInterface();
@@ -48,17 +49,13 @@
 
           actionsMap[actionType](destinationState);
         };
-        
+
         function add(destinationState) {
           $state.go(destinationState, {action: 'create'});
         }
-        
+
         function view(destinationState) {
           $state.go(destinationState);
-        }
-        
-        function _linkToState(link) {
-          return 'app.' + _.last(link.split('/'));
         }
 
         compile();

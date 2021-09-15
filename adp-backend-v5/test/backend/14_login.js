@@ -173,7 +173,7 @@ describe('V5 Backend Login', () => {
       const userData5 = await this.db.collection('users').findOne({ _id: user._id });
       should(userData5.failedLoginAttempts.length).be.equal(0);
       should(userData5.cooldownTimestamp).be.undefined();
-    }).timeout(5000);
+    });
 
     it('If LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN is equal to 0, then the the backend should lock out the user permanently', async function () {
       const { appLib } = this;

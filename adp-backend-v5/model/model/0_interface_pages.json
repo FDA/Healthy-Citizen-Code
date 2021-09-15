@@ -40,6 +40,7 @@ Try to avoid using numbers or any non-alpha characters in the names
           "link": "page_rule_editor.ejs"
         },
         "controller": "DmnEditorController",
+        "cssClass": "stick-to-screen",
         "scopes": {
           "view": {
             "permissions": {"view":"accessBusinessRules"}
@@ -54,6 +55,7 @@ Try to avoid using numbers or any non-alpha characters in the names
           "link": "page_rule_editor.ejs"
         },
         "controller": "BpmnEditorController",
+        "cssClass": "stick-to-screen",
         "scopes": {
           "view": {
             "permissions": {"view":"accessBpmnProcesses"}
@@ -67,6 +69,7 @@ Try to avoid using numbers or any non-alpha characters in the names
           "type": "file",
           "link": "page_vowl_template.ejs"
         },
+        "cssClass": "stick-to-screen",
         "controller": "OntologyController"
       },
       "profile": {
@@ -87,6 +90,7 @@ Try to avoid using numbers or any non-alpha characters in the names
           "link": "rolesPermissionsEditor.template.ejs"
         },
         "controller": "AdpRolesPermissionsEditor",
+        "cssClass": "stick-to-screen",
         "scopes": {
           "view": {
             "permissions": {"view":"accessRolesAndPermissions"}

@@ -107,17 +107,17 @@
       "actions": {
         "fields": {
           "update": null,
-          "delete": {
-            "permissions": "accessAsUser"
-          },
           "clone": null,
+          "create": null,
+          "delete": {
+            "permissions": [["manageAllDataExports", "manageOwnDataExports"]]
+          },
           "viewDetails": {
-            "permissions": "accessAsUser"
+            "permissions": [["viewAllDataExports", "viewOwnDataExports"]]
           },
           "view": {
-            "permissions": "accessAsUser"
+            "permissions": [["viewAllDataExports", "viewOwnDataExports"]]
           },
-          "create": null,
           "downloadFile": {
             "fullName": "Download file",
             "description": "Download resulting file",
@@ -126,8 +126,9 @@
             },
             "action": {
               "type": "action",
-              "link": "downloadFile"
-            }
+              "link": "downloadFromExportsCollection"
+            },
+            "permissions": [["downloadAllDataExports","downloadOwnDataExports"]]
           },
           "viewDataset": {
             "fullName": "View dataset",
@@ -138,31 +139,57 @@
             "action": {
               "type": "link",
               "link": "/datasets/:dataset._id"
-            }
+            },
+            "permissions": [["viewAllExportedDatasets","viewOwnExportedDatasets"]]
           }
         }
       },
       "scopes": {
         "superAdminScope": {
           "permissions": {
-            "delete": "accessAsUser",
-            "viewDetails": "accessAsUser",
-            "view": "accessAsUser",
             "downloadFile": "accessForbidden",
             "viewDataset": "accessForbidden"
           }
         },
-        "allowForFiles": {
+        "allRecords": {
           "permissions": {
-            "downloadFile": "accessAsSuperAdmin"
+            "view": "viewAllDataExports",
+            "viewDetails": "viewAllDataExports",
+            "delete": "manageAllDataExports"
+          },
+          "where": true
+        },
+        "ownRecords": {
+          "permissions": {
+            "view": "viewOwnDataExports",
+            "viewDetails": "viewOwnDataExports",
+            "delete": "manageOwnDataExports"
+          },
+          "where": "{ 'creator._id': { $eq: this.req.user._id } }"
+        },
+        "allowAllFiles": {
+          "permissions": {
+            "downloadFile": "downloadAllDataExports"
           },
           "where": "{ file: { $ne:null } }"
         },
-        "allowForDatasets": {
+        "allowAllDatasets": {
           "permissions": {
-            "viewDataset": "accessAsSuperAdmin"
+            "viewDataset": "viewAllExportedDatasets"
           },
           "where": "{ dataset: { $ne:null } }"
+        },
+        "allowForOwnFiles": {
+          "permissions": {
+            "downloadFile": "downloadOwnDataExports"
+          },
+          "where": "{$and : [{ file: { $ne:null } }, { 'creator._id': { $eq: this.req.user._id } }]}"
+        },
+        "allowForOwnDatasets": {
+          "permissions": {
+            "viewDataset": "viewOwnExportedDatasets"
+          },
+          "where": "{$and : [{ dataset: { $ne:null } }, { 'creator._id': { $eq: this.req.user._id } }]}"
         }
       }
     }

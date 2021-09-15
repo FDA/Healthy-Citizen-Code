@@ -8,7 +8,8 @@
       'Blank',
       'StaticHtml',
       'Readonly',
-      'Recaptcha'
+      'Recaptcha',
+      'FormSeparator',
     ])
     .constant('OTHER_FIELDS', {
       'String[]': 'string-array',
@@ -17,6 +18,8 @@
       'Int32[]': 'number-array',
       'Int64[]': 'number-array',
       'Decimal128[]': 'decimal-array',
+      'DateTime[]': 'datetime-array',
+      'Date[]': 'datetime-array',
       'Code': 'code',
       'Mixed': 'code',
 

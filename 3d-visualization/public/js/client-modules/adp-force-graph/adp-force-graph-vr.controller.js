@@ -21,9 +21,8 @@
     vm.isLoading = true;
 
     if (typeof ForceGraphVr === 'undefined') {
-      proms.push(AdpClientCommonHelper.loadScript(APP_CONFIG.apiUrl + '/public/js/lib/force-graph/index.js'));
-
-      AdpClientCommonHelper.loadCss(APP_CONFIG.apiUrl + '/public/js/lib/force-graph/css/style.css');
+      proms.push(AdpClientCommonHelper.loadScript(APP_CONFIG.resourceUrl + '/public/js/lib/force-graph/index.js'));
+      AdpClientCommonHelper.loadCss(APP_CONFIG.resourceUrl + '/public/js/lib/force-graph/css/style.css');
     }
 
     !relData &&

@@ -1,6 +1,6 @@
 const _ = require('lodash');
 const { ObjectID } = require('mongodb');
-const log = require('log4js').getLogger('otp');
+const log = require('log4js').getLogger('otp-controller');
 
 module.exports = function (appLib) {
   const m = {};

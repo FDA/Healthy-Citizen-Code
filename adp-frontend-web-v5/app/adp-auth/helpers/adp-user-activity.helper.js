@@ -13,10 +13,10 @@
     $http,
     $timeout,
     $interval,
-    $injector
+    $injector,
+    APP_CONFIG
   ) {
-    var INTERFACE = window.adpAppStore.appInterface();
-    var pingIntervalTime = INTERFACE.app.inactivityLogoutFePingInterval || INTERFACE.app.inactivityLogoutNotificationAppearsFromSessionEnd / 3;
+    var pingIntervalTime = APP_CONFIG.inactivityLogoutFePingInterval;
     var lsUpdateIntervalTime = Math.min(pingIntervalTime * 3 / 4, 60000);
     var lastActivity = _getCurrentSec();
     var pingInterval = null;

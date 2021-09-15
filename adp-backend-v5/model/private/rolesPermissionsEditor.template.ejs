@@ -1,18 +1,13 @@
 <style>
-    #ribbon {
-        display: none;
-    }
 
     #rp-wrapper {
-        position: relative;
-        height: calc(100vh - 80px);
-        min-height: 100px;
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
         display: flex;
         flex-direction: column;
-    }
-
-    body.menu-on-top #rp-wrapper {
-        height: calc(100vh - 156px);
     }
 
     #rp-header, #rp-footer {
@@ -20,11 +15,17 @@
         flex: 0 0 auto;
     }
 
-    #rp-grid-container {
+    #rp-body {
         position: relative;
-        height: calc(100vh - 80px);
-        min-height: 100px;
         flex: 1 1 auto;
+    }
+
+    #rp-grid-container {
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: 0;
+        right: 0;
     }
 
     #rp-grid-container td {
@@ -74,7 +75,9 @@
 </style>
 <div id="rp-wrapper">
     <div id="rp-header"><h1>User Roles Editor</h1></div>
-    <div id="rp-grid-container"></div>
+    <div id="rp-body">
+        <div id="rp-grid-container"></div>
+    </div>
     <div id="rp-footer">
         <button
                 class="btn adp-action-b-tertiary"

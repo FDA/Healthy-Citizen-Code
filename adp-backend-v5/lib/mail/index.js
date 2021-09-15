@@ -1,46 +1,86 @@
+const _ = require('lodash');
 const mailer = require('nodemailer');
 
-module.exports = (config) => {
+module.exports = (appLib) => {
   const m = {};
+  let smtpTransport;
+  let transportOpts;
 
-  m.sendMail = async (mail) => {
-    const smtpTransport = mailer.createTransport(getTransportOpts());
+  async function getSmtpTransport() {
+    if (!smtpTransport) {
+      await m.updateSmtpTransport();
+    }
+    return smtpTransport;
+  }
+
+  async function getAuthFromCredentials(credentialsName) {
+    const record = await appLib.db.collection('_credentials').findOne({ name: credentialsName });
+    if (!record) {
+      throw new Error(
+        `Unable to get smtp options due to absence of _credentials record with name '${credentialsName}'.`
+      );
+    }
 
     try {
-      return await smtpTransport.sendMail(mail);
-    } finally {
-      smtpTransport.close();
+      const { decrypt } = appLib.crypto;
+      return {
+        user: decrypt(record.login),
+        pass: decrypt(record.password),
+      };
+    } catch (e) {
+      throw new Error(`Unable to decrypt '${credentialsName}' _credentials record. ${e.stack}`);
     }
+  }
+
+  m.getTransportOptsFromCredentials = async (credentialsName) => {
+    const auth = await getAuthFromCredentials(credentialsName);
+    return m.getTransportOpts(auth);
   };
 
-  function getTransportOpts() {
-    const auth = {
-      user: config.EMAIL_USER,
-      pass: config.EMAIL_PASSWORD,
-    };
+  m.getTransportOpts = (auth) => {
+    const { EMAIL_SERVICE, EMAIL_HOST, EMAIL_PORT, EMAIL_SECURE, EMAIL_POOL } = appLib.config;
 
-    if (config.EMAIL_SERVICE) {
-      return {
-        service: config.EMAIL_SERVICE,
-        auth,
-      };
+    if (EMAIL_SERVICE) {
+      return { service: EMAIL_SERVICE, auth };
     }
 
     return {
-      host: config.EMAIL_HOST,
-      port: config.EMAIL_PORT,
-      secure: config.EMAIL_SECURE,
-      pool: config.EMAIL_POOL,
+      host: EMAIL_HOST,
+      port: EMAIL_PORT,
+      secure: EMAIL_SECURE,
+      pool: EMAIL_POOL,
       auth,
     };
-  }
+  };
+
+  m.updateSmtpTransport = async () => {
+    const newTransportOpts = await m.getTransportOptsFromCredentials(appLib.config.EMAIL_CREDENTIALS);
+    if (_.isEqual(transportOpts, newTransportOpts)) {
+      return;
+    }
+
+    const newSmtpTransport = mailer.createTransport(newTransportOpts);
+    try {
+      await newSmtpTransport.verify();
+    } catch (e) {
+      throw new Error(`Unable to establish SMTP connection for new options. ${e.stack}`);
+    }
+    transportOpts = newTransportOpts;
+    smtpTransport = newSmtpTransport;
+  };
+
+  m.sendMail = async (mail) => {
+    smtpTransport = await getSmtpTransport();
+    return smtpTransport.sendMail(mail);
+  };
 
   m.getForgotPasswordMail = (email, token, login) => {
-    const resetUrlWithToken = `${config.FRONTEND_URL}/password/reset?token=${token}&login=${login}`;
+    const { FRONTEND_URL, APP_NAME } = appLib.config;
+    const resetUrlWithToken = `${FRONTEND_URL}/password/reset?token=${token}&login=${login}`;
     return {
       to: email,
       // TODO: add site name? for example 'Reset your password on ${siteName}'
-      subject: `Reset your ${config.APP_NAME} password`,
+      subject: `Reset your ${APP_NAME} password`,
       html: getResetPasswordHtml(resetUrlWithToken),
     };
   };
@@ -67,7 +107,7 @@ module.exports = (config) => {
 
   m.getSuccessfulPasswordResetMail = (to) => ({
     to,
-    subject: `Your ${config.APP_NAME} password has been changed`,
+    subject: `Your ${appLib.config.APP_NAME} password has been changed`,
     html: getSuccessfulPasswordResetHtml(to),
   });
 

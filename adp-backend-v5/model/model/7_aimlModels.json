@@ -26,39 +26,6 @@
           "create": {
             "permissions": "accessAimlModels"
           },
-          "rulesEditor": {
-            "fullName": "Rules editor",
-            "description": "View/Edit DMN diagram",
-            "backgroundColor": "#333300",
-            "borderColor": "#666600",
-            "textColor": "yellow",
-            "icon": {
-              "link": "sitemap"
-            },
-            "action": {
-              "type": "link",
-              "link": "/#/dmnRulesEditor/:_id"
-            },
-            "permissions": "accessAimlModels"
-          }
-          // standalone launch is not supported for now
-          //          "runRules": {
-          //            "permissions": "accessAsUser",
-          //            "showInTable": true,
-          //            "icon": {
-          //              "link": "play"
-          //            },
-          //            "backgroundColor": "#660",
-          //            "borderColor": "#330",
-          //            "textColor": "yellow",
-          //            "fullName": "Rules Runner",
-          //            "description": "Run this ruleset",
-          //            "action": {
-          //              "type": "action",
-          //              "link": "redirectToBpmRunner",
-          //              "redirectUrl": "/rulesRun"
-          //            }
-          //          }
         }
       },
       "scopes": {

@@ -7,9 +7,4 @@ module.exports = {
     TreeSelectorContext: require('./graphql/TreeSelectorContext'),
     MongoQueryContext: require('./graphql/MongoQueryContext'),
   },
-  datatables: {
-    DatatablesContext: require('./datatables/DatatablesContext'),
-    LookupContext: require('./datatables/LookupContext'),
-    TreeSelectorContext: require('./datatables/TreeSelectorContext'),
-  },
 };

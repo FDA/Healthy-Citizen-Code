@@ -11,7 +11,7 @@
       '    </form-header>' +
 
       '    <form-footer>' +
-            '<footer class="adp-action-b-container">' +
+            '<footer class="adp-action-b-container" adp-ui-buttons-handle-keyboard>' +
       '        <button' +
       '                class="adp-action-b-secondary"' +
       '                type="button"' +

@@ -1,7 +1,7 @@
 const path = require('path');
 const gulp = require('gulp');
 const uglify = require('gulp-uglify');
-const pipeline = require('readable-stream').pipeline;
+const { pipeline } = require('readable-stream');
 const concat = require('gulp-concat');
 
 const conf = require('../config');
@@ -17,17 +17,13 @@ const workers = {
     workerPath: 'editors-workers/json5-worker/*',
     destName: 'worker-json5.js',
   },
-}
+};
 
 gulp.task('pythonEditorWorker', () => buildWorker(workers.python));
 gulp.task('relaxedJsonEditorWorker', () => buildWorker(workers.relaxedJson));
 
 function buildWorker({ parserPath, workerPath, destName }) {
-  const sourcePath = [
-    parserPath,
-    'editors-workers/ace-lib.js',
-    workerPath,
-  ];
+  const sourcePath = [parserPath, 'editors-workers/ace-lib.js', workerPath];
   const destPath = path.join(conf.paths.tmp, conf.paths.acePath);
 
   const uglifyConfig = {
@@ -35,10 +31,5 @@ function buildWorker({ parserPath, workerPath, destName }) {
     output: { max_line_len: Infinity },
   };
 
-  return pipeline(
-    gulp.src(sourcePath),
-    uglify(uglifyConfig),
-    concat(destName),
-    gulp.dest(destPath),
-  );
+  return pipeline(gulp.src(sourcePath), uglify(uglifyConfig), concat(destName), gulp.dest(destPath));
 }

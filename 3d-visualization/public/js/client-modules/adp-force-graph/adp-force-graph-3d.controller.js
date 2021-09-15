@@ -49,7 +49,7 @@
 
     function doLoadData() {
       return $http
-        .get(APP_CONFIG.serverBaseUrl + APP_CONFIG.apiPrefix + '/getFdaVipFgData')
+        .get(APP_CONFIG.apiUrl + '/getFdaVipFgData')
         .then(function (res) {
           if (res) {
             return AdpForceGraphHelpers.prepareGraphData(res.data);

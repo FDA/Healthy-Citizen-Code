@@ -23,7 +23,7 @@
         showFooter: '=?',
       },
       template:
-        '<iframe ng-if="src" ng-src="{{src}}" frameborder="0" style="width: 100%; height: calc(100vh - 160px); min-height: 100px;"></iframe>',
+        '<iframe ng-if="src" ng-src="{{src}}" frameborder="0" style="position: absolute; width: 100%; height:100%;"></iframe>',
       link: function (scope) {
         var defaults = {
           title: '',
@@ -41,7 +41,7 @@
           showZoom: false,
           showFooter: false,
           token: lsService.getToken(),
-          apiUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix,
+          apiUrl: APP_CONFIG.apiUrl,
         };
 
         var options = _.pick(scope, _.keys(defaults));
@@ -56,7 +56,7 @@
           }).join(';');
         }
 
-        scope.src = APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/web-vowl/index.html';
+        scope.src = APP_CONFIG.resourceUrl + '/public/js/lib/web-vowl/index.html';
         scope.src += '#opts=[' + getOptions(options) + ']';
         scope.src = $sce.trustAsResourceUrl(scope.src);
       },

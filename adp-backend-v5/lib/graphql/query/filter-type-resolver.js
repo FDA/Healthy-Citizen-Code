@@ -24,7 +24,6 @@ function addFindManyByFilterTypeResolver(type, filterType) {
       },
       sort: {
         type: 'String',
-        defaultValue: '{_id: 1}',
       },
     },
     type: [type],

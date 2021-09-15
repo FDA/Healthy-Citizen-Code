@@ -7,6 +7,7 @@
 
   /** @ngInject */
   function GridActionsTemplate(
+    APP_CONFIG,
     AdpIconsHelper,
     ActionsHandlers,
     AdpUnifiedArgs,
@@ -130,12 +131,14 @@
     function linkTemplate(actionItem, params) {
       var linkClass = _.compact(["table-action", actionItem.className]).join(" ");
       var link = getLinkActionUrl(actionItem, params);
+      var target = isActionExternal(actionItem) ? _.get(actionItem, "action.target", '_self') : '';
 
       return [
         "<a",
         "style=\"" + addStyles(actionItem) + "\"",
         "class=\"" + linkClass + "\"",
         "href=\"" + link + "\"",
+        target,
         "adp-" + params.cellInfo.data._id,
         "data-action=" + actionItem.action.link,
         "data-action-name=" + actionItem.actionName,
@@ -240,12 +243,21 @@
         (actionItem.action.type === "module" && actionItem.action.method ? "." + actionItem.action.method : "");
     }
 
+    function isActionExternal(actionItem) {
+      return !!_.get(actionItem, "action.external");
+    }
+
     function getLinkActionUrl(actionItem, params) {
       var URL_PARAMS_REGEX = /\/:([^\/\n\r]+)/g;
-
-      return actionItem.action.link.replace(URL_PARAMS_REGEX, function (_0, key) {
+      var link = actionItem.action.link.replace(URL_PARAMS_REGEX, function (_0, key) {
         return '/' + _.get(params.cellInfo.data, key);
       });
+
+      if (!isActionExternal(actionItem)) {
+        link = APP_CONFIG.appSuffix + link;
+      }
+
+      return link;
     }
   }
 })();

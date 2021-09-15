@@ -5,7 +5,7 @@
     .module("app.adpDataGrid")
     .factory("ActionMessages", ActionMessages);
 
-  /** @ngInject */
+  /** @ngInject **/
   function ActionMessages(ACTIONS) {
     var MESSAGES = {};
 
@@ -30,7 +30,7 @@
       if (schema.singleRecordName) {
         return schema.singleRecordName;
       } else {
-        const name = schema.fullName || schema.schemaName;
+        var name = schema.fullName || schema.schemaName;
         return pluralize.singular(name) || (name + " record");
       }
     }

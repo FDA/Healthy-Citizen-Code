@@ -36,9 +36,15 @@
             oldInstance.destroy();
           }
 
-          var editor = createEditor(getEditorElement(), config);
-          bindEvents(editor);
-          setStylesForEditor(config);
+          var editor = createEditor(config);
+          editor.on('instanceReady', function () {
+            $('.cke_button__sourcedialog_label').hide();
+            editor.setData(scope.ngModel() || '');
+
+            bindEvents(editor);
+            setStylesForEditor(config);
+            getEditorElement().css(scope.editorStyles);
+          });
         }
 
         function createEditor(editorElem, userConfig) {
@@ -51,14 +57,15 @@
             extraPlugins: 'collapse,divarea',
             resize_dir: 'both',
             toolbar: CKEDITOR_TOOLBAR,
-        };
-          var opts = _.assign({}, editorsDefaults, userConfig);
+          };
 
-          return CKEDITOR.replace(editorElem, opts);
+          var editorReplaceNode = elem.find('.adp-html-editor')[0];
+          var opts = _.assign({}, editorsDefaults, userConfig);
+          return CKEDITOR.replace(editorReplaceNode, opts);
         }
 
         function getEditorElement() {
-          return elem[0].querySelector('.adp-html-editor');
+          return elem.find('.cke');
         }
 
         function getEditorInstance() {
@@ -66,25 +73,15 @@
         }
 
         function bindEvents(editor) {
-          editor.on('instanceReady', function (e) {
-            $('.cke_button__sourcedialog_label').hide();
-            editor.setData(scope.ngModel() || '');
+          var editorEl = getEditorElement();
 
-            $(editor.element.$).css(scope.editorStyles)
-          });
-
-          var inputEvents = [
-            'input.ckeditor' + scope.editorId,
-            'cut.ckeditor' + scope.editorId,
-          ].join(' ');
-
-          var editorEl = elem.find('.adp-html-editor');
+          var inputEvents = ['input.ckeditor' + scope.editorId].join(' ');
           editorEl.on(inputEvents, function (e) {
             scope.ngModel($(e.target).html());
           });
 
           editor.on('change', function () {
-            scope.ngModel(editorEl.html());
+            scope.ngModel(editor.getData());
           });
 
           editor.on('paste', function (e) {

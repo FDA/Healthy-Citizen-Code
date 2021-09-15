@@ -82,7 +82,15 @@
   padding: 0;
   margin-left: 10px;
   background-color: transparent;
-  color: #a2a2a2;
 
-  &:hover { background-color: transparent; }
+  &:not(.dx-overlay-content) .dx-menu-item .dx-menu-item-content { padding: 0; }
+  &:not(.dx-overlay-content) .dx-menu-item .dx-menu-item-content .fa {
+    width: 14px;
+    height: 14px;
+    font-size: 14px;
+    line-height: 14px;
+    vertical-align: initial;
+    padding-top: 2px;
+    color: #A2A2A2 !important;
+  }
 }

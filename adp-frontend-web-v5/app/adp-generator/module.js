@@ -9,28 +9,10 @@ angular
     'app.adpDataGrid'
   ])
   .run(onRun)
-  .config(onConfig)
-  .config(addRoutes)
+  .config(onConfig);
 
   function onConfig (AppGeneratorProvider) {
     AppGeneratorProvider.generateApp();
-  }
-
-  function addRoutes($stateProvider) {
-    $stateProvider
-      .state('app.datasetById', {
-        url: '/datasets/{_id:[0-9A-Fa-f]{24}}',
-        views: {
-          content: {
-            templateUrl: 'app/adp-generator/views/datasets.html',
-            controller: 'DatasetController as vm'
-          }
-        },
-        data: {
-          title: 'Datasets',
-          redirectStrategy: 'user'
-        }
-      })
   }
 
   function onRun($transitions, $uibModalStack) {

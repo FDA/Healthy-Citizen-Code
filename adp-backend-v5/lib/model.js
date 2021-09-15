@@ -747,6 +747,10 @@ module.exports = (appLib) => {
     }
 
     if (part.type.startsWith('LookupObjectID')) {
+      const { lookup } = part;
+      const lookupId = lookup.id;
+      appLib.appLookups[lookupId] = { ...lookup, path };
+
       const itemPath = getItemPathByFullModelPath(path);
       const { schemeName, jsonPath } = getJsonPathByFullModelPath(appLib.appModel.models, path);
       const { mongoPath } = getMongoPathByFullModelPath(appLib.appModel.models, path);
@@ -782,6 +786,10 @@ module.exports = (appLib) => {
     }
 
     if (part.type === 'TreeSelector') {
+      const { table } = part;
+      const treeSelectorId = table.id;
+      appLib.appTreeSelectors[treeSelectorId] = { ...table, path };
+
       const itemPath = getItemPathByFullModelPath(path);
       const { schemeName, jsonPath } = getJsonPathByFullModelPath(appLib.appModel.models, path);
       const { mongoPath } = getMongoPathByFullModelPath(appLib.appModel.models, path);
@@ -942,8 +950,6 @@ module.exports = (appLib) => {
         }
 
         const link = _.get(spec, 'action.link');
-        const type = _.get(spec, 'action.type');
-
         if (!link) {
           if (!appLib.allActionsNames.includes(modelActionName)) {
             errors.push(`Invalid action '${modelActionName}' specified for scheme '${path}'`);
@@ -955,16 +961,6 @@ module.exports = (appLib) => {
           return errors.push(
             `Action link must be a string if specified, found in scheme '${path}' for action '${modelActionName}'`
           );
-        }
-
-        if (type !== 'module') {
-          const isFrontendAction = link.startsWith('/');
-          const isUrlAction = link.startsWith('http://') || link.startsWith('https://');
-          if (!isUrlAction && !isFrontendAction && !appLib.allActionsNames.includes(link)) {
-            return errors.push(
-              `Action link '${link}' is not valid (must be one of default or custom actions if specified), found in scheme '${path}' for action '${modelActionName}'`
-            );
-          }
         }
       });
     }
@@ -1195,12 +1191,10 @@ module.exports = (appLib) => {
     }
   }
 
+  // The default name for an index is the concatenation of the indexed keys and each key's direction in the index ( i.e. 1 or -1) using underscores as a separator
+  // More: https://docs.mongodb.com/manual/indexes/#index-names
   function getIndexSpecNameByKeys(indexKeys) {
-    let indexSpecName = '';
-    _.each(indexKeys, (val, indexKey) => {
-      indexSpecName += `${indexKey}${val}`;
-    });
-    return indexSpecName;
+    return _.map(indexKeys, (val, indexKey) => `${indexKey}_${val}`).join('_');
   }
 
   function transformModelsIndexes(part, path, errors) {
@@ -1523,14 +1517,14 @@ module.exports = (appLib) => {
           return url;
         }
 
-        const { APP_URL, API_PREFIX } = config;
-        const isValidAppUrl = APP_URL && ['http://', 'https://'].some((b) => APP_URL.startsWith(b));
+        const { API_URL, API_PREFIX } = config;
+        const isValidAppUrl = API_URL && ['http://', 'https://'].some((b) => API_URL.startsWith(b));
         if (!isValidAppUrl) {
           errors.push(
-            `Param 'APP_URL' must be valid (startsWith 'http://' or 'https://') to build a full url for dynamic list with a short url '${url}'`
+            `Param 'API_URL' must be valid (startsWith 'http://' or 'https://') to build a full url for dynamic list with a short url '${url}'`
           );
         }
-        return `${APP_URL}${appLib.getFullRoute(API_PREFIX, url)}`;
+        return `${API_URL}${appLib.getFullRoute(API_PREFIX, url)}`;
       }
     }
 

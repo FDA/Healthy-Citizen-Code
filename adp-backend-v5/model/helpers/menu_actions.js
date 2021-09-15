@@ -1,3 +1,4 @@
+const { getFeModule } = require("./util");
 /**
  * MenuActions are called when a user clicks a menu item linked to a custom action
  *
@@ -9,15 +10,14 @@ module.exports = function () {
 
   m.updateTrinoSchema = () => {
     // eslint-disable-next-line no-undef
-    const injector = angular.element(document).injector();
-    const $http = injector.get('$http');
-    const { apiUrl } = injector.get('APP_CONFIG');
-    const { handleError } = injector.get('ErrorHelpers');
-    const { notifySuccess, notifyError } = injector.get('AdpNotificationService');
+    const fe = getFeModule(['$http', 'APP_CONFIG', 'ErrorHelpers', 'AdpNotificationService']);
+    const {apiUrl} = fe.APP_CONFIG;
+    const {handleError} = fe.ErrorHelpers;
+    const {notifySuccess, notifyError} = fe.AdpNotificationService;
 
-    $http
+    fe.$http
       .post(`${apiUrl}/update-trino-schema`)
-      .then(({ data }) => {
+      .then(({data}) => {
         if (data.success) {
           return notifySuccess(`Successfully updated Trino schemas`);
         }
@@ -25,6 +25,41 @@ module.exports = function () {
       })
       .catch((error) => handleError(error, 'Unable to update Trino schemas'));
   };
+
+  m.userLogout = () => {
+    const fe = getFeModule(['AdpModalService', 'AdpSessionService']);
+    const options = {
+      message: 'Are you sure you want to logout?',
+      actionType: 'confirm-logout',
+    };
+
+    // eslint-disable-next-line promise/catch-or-return
+    fe.AdpModalService.confirm(options)
+      .then(fe.AdpSessionService.logout);
+  }
+
+  m.resetUi = () => {
+    const fe = getFeModule(['AdpModalService']);
+    const options = {
+      message: 'This will reset your current frontend setting to default and logout you from the system. Are you sure you want to proceed?',
+      actionType: 'confirm-ui-reset',
+    };
+
+    // eslint-disable-next-line promise/catch-or-return
+    fe.AdpModalService.confirm(options)
+      .then(() => {
+        // eslint-disable-next-line no-undef
+        lsService.clear();
+        // eslint-disable-next-line no-undef
+        window.location.reload(true);
+      });
+  }
+
+  m.toggleFullscreen = () => {
+    const fe = getFeModule(['$rootScope']);
+
+    fe.$rootScope.isFullscreen = !fe.$rootScope.isFullscreen;
+  }
 
   return m;
 };

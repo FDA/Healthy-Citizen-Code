@@ -11,6 +11,7 @@ const {
   fillStringEditors,
   waitForGridLoaded,
   clickOutsideOfGridToTriggerSubmit,
+  clickAddRowButton,
   dataGenerators: {
     randomInt32,
   }
@@ -41,7 +42,7 @@ describe('Cell Editors: Currency types', () => {
         usdCurrency: randomInt32(),
       };
 
-      await this.page.click('.dx-datagrid-addrow-button');
+      await clickAddRowButton(this.page);
       await fillStringEditors(record, this.page);
       await clickOutsideOfGridToTriggerSubmit(this.page);
       await waitForGridLoaded(this.page);

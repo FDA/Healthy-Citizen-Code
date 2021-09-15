@@ -3,7 +3,7 @@ require('should');
 const { prepareEnv, getMongoConnection } = require('../test-util');
 
 // NOTE: Passing arrow functions (“lambdas”) to Mocha is discouraged (http://mochajs.org/#asynchronous-code)
-describe('V5 Backend Basics', function () {
+describe('V5 Backend Basics', () => {
   before(function () {
     this.appLib = prepareEnv();
 
@@ -17,7 +17,7 @@ describe('V5 Backend Basics', function () {
     await db.close();
   });
 
-  describe('appModel builder', function () {
+  describe('appModel builder', () => {
     it('creates model JSON', function (done) {
       this.appLib.should.have.property('appModel');
       this.appLib.appModel.should.have.property('models');

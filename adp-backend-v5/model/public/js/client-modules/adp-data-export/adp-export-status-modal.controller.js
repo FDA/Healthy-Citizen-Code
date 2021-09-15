@@ -11,10 +11,12 @@
     AdpSocketIoService,
     AdpNotificationService,
     AdpSchemaService,
+    AdpTime,
     ErrorHelpers,
     GraphqlCollectionMutator,
     $timeout,
-    $location
+    $location,
+    $state
   ) {
     var vm = this;
     var downloadPermission = true;
@@ -53,8 +55,11 @@
           _setSocketListener(exportFormat, data._id);
         })
         .catch(function (error) {
+          var message = _.isArray(error.message) ? error.message.join(',') : (error.message || 'Unknown error');
+
           vm.status = 'error';
-          vm.errorMessage = error.message || 'Unknown error';
+          vm.errorMessage = message;
+
           ErrorHelpers.handleError(error, 'Unknown error, while trying to export dataset');
           throw error;
         });
@@ -70,7 +75,7 @@
             dxQuery: JSON.stringify(GridExportHelpers.gridFilterCondition(params)),
           },
           projections: GridExportHelpers.gridVisibleColumns(params.grid),
-          timezone: GridExportHelpers.guessTimeZone(),
+          timezone: AdpTime.guessTimeZone(),
         },
         exportType: params.configParams.format,
       };
@@ -84,21 +89,22 @@
     }
 
     function doDownload() {
-      var fileItem = {
-        id: vm.resultItemId,
-      }
-
+      var fileItem = { id: vm.resultItemId };
       AdpMediaTypeHelper.downloadWithSaveDialog(fileItem);
 
       doDialogClose();
     }
 
     function goToDataset() {
-      $location.path( getDatasetUrl() );
+      $state.go('app.datasetsId', getDatasetsPageParams());
     }
 
     function getDatasetUrl() {
-      return '/datasets/' + vm.resultItemId;
+      return $state.href('app.datasetsId', getDatasetsPageParams());
+    }
+
+    function getDatasetsPageParams() {
+      return { _id: vm.resultItemId };
     }
 
     function getFileUrl() {
@@ -110,7 +116,8 @@
     }
 
     function getResultMessage(resultUrl) {
-      return 'Export completed. <br><a href="'+resultUrl+'">Get result here</a>';
+      // todo: fix
+      return 'Export completed. <br><a href="' + resultUrl + '">Get result here</a>';
     }
 
     function doDialogClose() {

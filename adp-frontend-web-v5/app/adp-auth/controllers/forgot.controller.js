@@ -31,6 +31,7 @@
     AdpSessionService,
     AdpAuthSchemas,
     AdpNotificationService,
+    ResponseError,
     $state
 ) {
     var vm = this;
@@ -51,7 +52,7 @@
               }
 
               vm.isReset = true;
-              AdpNotificationService.notifySuccess("Password has been reset, please sign in using your new password", true);
+              AdpNotificationService.notifySuccess("Password has been reset, please sign in using your new password");
               return res;
             });
         }

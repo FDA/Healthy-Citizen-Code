@@ -17,12 +17,12 @@ const {
 const PAGE_TO_TEST = "businessRules";
 const waitForGridLoaded = async (page) => page.waitForTimeout(2000);
 const ensureAtLeastOneRecordExistToDisplayActions = async (page) => {
-  const hasData = await page.$(".dx-data-row td");
+  const hasData = await  page.waitForSelector(".dx-data-row td");
   if (hasData) {
     return;
   }
 
-  const nameInputSelector = "#name input";
+  const nameInputSelector = '[adp-qaid-field-control="name"]';
   await clickCreateNewButton(page);
   await page.waitForSelector(nameInputSelector);
   await page.type(nameInputSelector, "autoTestingDmn_" + (new Date).getTime());
@@ -62,5 +62,5 @@ describe("DMN business processes page", () => {
       await this.page.waitForSelector(editorSvgSelector);
       await this.page.waitForSelector(toolPaletteSelector);
       await this.page.waitForSelector(diagramElementSelector);  // This test requires at least one element to be present on diagram!
-    });
+    }, 15000);
 });

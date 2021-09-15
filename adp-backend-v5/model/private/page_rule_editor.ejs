@@ -1,35 +1,25 @@
-<link type="text/css"  rel="stylesheet" ng-if="vm.extraCSS" ng-href="{{vm.extraCSS}}">
+<link type="text/css" rel="stylesheet" ng-if="vm.extraCSS" ng-href="{{vm.extraCSS}}">
 <div class="router-animation-container" style="height: auto; overflow: visible;">
-    <div data-ui-view="content" data-autoscroll="false">
-        <adp-content-container>
-            <div id="content" class="clearfix">
-                <adp-section-container>
-                    <div class="well">
-                        <div class="bpm-title">
-                            <div class="bpm-title-col">
-                                <h2>{{vm.nativeName}} Editor</h2>
-                            </div>
-                            <div class="bpm-title-col">
-                                <div id="decision-menu"></div>
-                                <button ng-click="vm.diskLoad()" class="btn btn-default btn-disk-load">
-                                    Load from File
-                                </button>
-                                <button ng-click="vm.diskSave()" class="btn btn-default btn-disk-save">
-                                    Save to File
-                                </button>
-                                <button ng-click="vm.saveRules()" class="btn btn-primary btn-db-save">
-                                    Save to Database
-                                </button>
-                            </div>
-                        </div>
-                        <div id="editor-container" class="adp-bpm-{{vm.diagramType}}">
-                            <div id="bpm-canvas"></div>
-                            <div id="bpm-properties" ng-if="vm.diagramType==='bpmn'"></div>
-                            <adp-page-loader loading="vm.isLoading"></adp-page-loader>
-                        </div>
-                    </div>
-                </adp-section-container>
-            </div>
-        </adp-content-container>
+    <div class="bpm-title">
+        <div class="bpm-title-col">
+            <h2>{{vm.nativeName}} Editor</h2>
+        </div>
+        <div class="bpm-title-col">
+            <div id="decision-menu"></div>
+            <button ng-click="vm.diskLoad()" class="btn btn-default btn-disk-load">
+                Load from File
+            </button>
+            <button ng-click="vm.diskSave()" class="btn btn-default btn-disk-save">
+                Save to File
+            </button>
+            <button ng-click="vm.saveRules()" class="btn btn-primary btn-db-save">
+                Save to Database
+            </button>
+        </div>
+    </div>
+    <div id="editor-container" class="adp-bpm-{{vm.diagramType}}">
+        <div id="bpm-canvas"></div>
+        <div id="bpm-properties" ng-if="vm.diagramType==='bpmn'"></div>
+        <adp-page-loader loading="vm.isLoading"></adp-page-loader>
     </div>
 </div>

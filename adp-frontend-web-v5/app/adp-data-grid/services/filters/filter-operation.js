@@ -19,6 +19,9 @@
       'String[]': commonOperations.string,
       'Int32[]': commonOperations.numeric,
       'Int64[]': commonOperations.numeric,
+      'Number[]': commonOperations.numeric,
+      'Double[]': commonOperations.numeric,
+      'Decimal128[]': commonOperations.numeric,
       Email: commonOperations.string,
       Phone: commonOperations.string,
       Text: commonOperations.string,
@@ -58,6 +61,7 @@
       LookupObjectID: commonOperations.equality,
       'LookupObjectID[]': commonOperations.equality,
       Html: commonOperations.string,
+      Code: commonOperations.string,
     };
 
     function get(field) {

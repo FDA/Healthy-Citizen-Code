@@ -10,6 +10,7 @@ const {
   fillImperialUnitsEditors,
   waitForGridLoaded,
   clickOutsideOfGridToTriggerSubmit,
+  clickAddRowButton,
 } = require('./cell-editors.utils');
 
 const PAGE_TO_TEST = 'cellEditingImperialUnitsTypes';
@@ -39,7 +40,7 @@ describe('Cell Editors: Imperial Units types', () => {
         imperialWeightWithOz: "4lb 11oz"
       };
 
-      await this.page.click('.dx-datagrid-addrow-button');
+      await clickAddRowButton(this.page);
       await fillImperialUnitsEditors(record, this.page);
       await clickOutsideOfGridToTriggerSubmit(this.page);
       await waitForGridLoaded(this.page);

@@ -1,118 +1,104 @@
 const gulp = require('gulp');
-const conf = require('../config');
-const APP_CONFIG = conf.APP_CONFIG();
+const path = require('path');
 const bufferToVinyl = require('buffer-to-vinyl');
 const gulpNgConfig = require('gulp-ng-config');
+const streamToPromise = require('stream-to-promise');
+const fs = require('fs-extra');
+const conf = require('../config');
 const requestPromise = require('../utils/request-promise');
 
-gulp.task('create:config', () => {
-  const configJson = JSON.stringify({'APP_CONFIG': APP_CONFIG});
-  const configBuffer = new Buffer(configJson);
+gulp.task('create:config', async () => {
+  const { runtimeConfig, buildConfig } = await conf.buildAppConfig();
 
-  return bufferToVinyl.stream(configBuffer, './api_config.json')
-    .pipe(gulpNgConfig('APP_MODEL_CONFIG', { pretty: 2 }))
-    .pipe(gulp.dest(conf.paths.tmp));
+  const clientAppConfigPromise = streamToPromise(
+    bufferToVinyl
+      .stream(Buffer.from(JSON.stringify({ APP_CONFIG: runtimeConfig })), './api_config.json')
+      .pipe(gulpNgConfig('APP_MODEL_CONFIG', { pretty: 2 }))
+      .pipe(gulp.dest(conf.paths.tmp))
+  );
+  const appConfigPromise = fs.outputFile(path.resolve(conf.paths.buildAppConfig), JSON.stringify(buildConfig, null, 2));
+
+  return Promise.all([clientAppConfigPromise, appConfigPromise]);
 });
 
 gulp.task('load:script', () => {
-  var endpoint = `${APP_CONFIG.apiBuildUrl}/${conf.endpoints.appModelCode}`;
+  const { apiBuildUrl } = conf.getAppConfig();
+  const endpoint = `${apiBuildUrl}/${conf.endpoints.appModelCode}`;
 
-  var options = {
+  const options = {
     url: endpoint,
     method: 'GET',
-    json: true
+    json: true,
   };
 
-  return requestPromise(options)
-    .then(createScripts.bind(this, conf.paths.appModelCodePath));
+  return requestPromise(options).then(createScripts.bind(this, conf.paths.appModelCodePath));
 });
 
 gulp.task('load:modules', uploadClientModules);
-gulp.task('load:css', () => uploadFile(conf.endpoints.serverCss,  conf.paths.serverCss));
-
 async function uploadClientModules() {
-  const { data } = await requestModulesFiles();
+  const { buildResourceUrl } = conf.getAppConfig();
+  const { data } = await requestModulesFiles(buildResourceUrl);
 
-  const nameToSrcPath = name => `${conf.endpoints.clientModules}/${name}`;
-  const nameToDistPath = name => `${conf.paths.clientModulesFolder}/${name}`;
-  const promises = data.map(({ name }) => uploadFile(nameToSrcPath(name), nameToDistPath(name)));
+  const nameToSrcPath = (name) => `${conf.endpoints.clientModules}/${name}`;
+  const nameToDistPath = (name) => `${conf.paths.clientModulesFolder}/${name}`;
+  const promises = data.map(({ name }) => uploadFile(nameToSrcPath(name), nameToDistPath(name), buildResourceUrl));
 
   return Promise.all(promises);
 }
 
-function requestModulesFiles() {
+gulp.task('load:css', () => {
+  const { buildResourceUrl } = conf.getAppConfig();
+  return uploadFile(conf.endpoints.serverCss, conf.paths.serverCss, buildResourceUrl);
+});
+
+function requestModulesFiles(buildResourceUrl) {
   const opts = {
-    url: `${APP_CONFIG.apiBuildUrlForResource}/${conf.endpoints.clientModules}`,
+    url: `${buildResourceUrl}/${conf.endpoints.clientModules}`,
     method: 'GET',
-    json: true
-  }
+    json: true,
+  };
 
   return requestPromise(opts);
 }
 
-function uploadFile(serverPath, distPath) {
-  if (!APP_CONFIG) throw new Error('Application config not found.');
+function uploadFile(serverPath, distPath, buildResourceUrl) {
+  const endpoint = `${buildResourceUrl}/${serverPath}`;
 
-  var endpoint = `${APP_CONFIG.apiBuildUrlForResource}/${serverPath}`;
-
-  var options = {
+  const options = {
     url: endpoint,
     method: 'GET',
-    json: true
+    json: true,
   };
 
-  return requestPromise(options)
-    .then(createScripts.bind(this, distPath));
+  return requestPromise(options).then(createScripts.bind(this, distPath));
 }
 
 function createScripts(fileName, body) {
-  if (body.code === 'ResourceNotFound') {
-    var file = '';
-  } else {
-    file = body;
-  }
+  const file = body.code === 'ResourceNotFound' ? '' : body;
 
-  return new Promise(function (resolve, reject) {
-    bufferToVinyl.stream(new Buffer(file), fileName)
-      .pipe(gulp.dest(conf.paths.tmp))
-      .on('end', resolve)
-      .on('error', reject);
-  })
+  const stream = bufferToVinyl.stream(Buffer.from(file), fileName).pipe(gulp.dest(conf.paths.tmp));
+  return streamToPromise(stream);
 }
 
 gulp.task('load:manifest', () => {
-  if (!APP_CONFIG) throw new Error('Application config not found.');
+  const { buildResourceUrl } = conf.getAppConfig();
+  const endpoint = `${buildResourceUrl}/public/manifest.json`;
 
-  var endpoint = `${APP_CONFIG.apiBuildUrlForResource}/public/manifest.json`;
-
-  var options = {
+  const options = {
     url: endpoint,
-    method: 'GET'
+    method: 'GET',
   };
 
   return requestPromise(options)
     .then(writeManifest)
-    .catch(e => {
+    .catch((e) => {
       console.log(`Error while loading ${endpoint}:`, e);
     });
 });
 
 function writeManifest(body) {
-  if (body.code === 'ResourceNotFound') {
-    var file = '';
-  } else {
-    file = body;
-  }
+  const file = body.code === 'ResourceNotFound' ? '' : body;
 
-  return new Promise(function (resolve, reject) {
-    bufferToVinyl.stream(new Buffer(file), 'manifest.json')
-      .pipe(gulp.dest(conf.paths.tmp))
-      .on('end', resolve)
-      .on('error', reject);
-  })
+  const stream = bufferToVinyl.stream(Buffer.from(file), 'manifest.json').pipe(gulp.dest(conf.paths.tmp));
+  return streamToPromise(stream);
 }
-
-
-
-
-

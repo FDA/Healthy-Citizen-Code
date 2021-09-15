@@ -20,7 +20,7 @@
         '    <h3 ng-if="!vm.codes.length">No backup codes available</h3>' +
         '  </div>' +
         '</div>' +
-        '<div class="modal-footer">' +
+        '<div class="modal-footer"  adp-ui-buttons-handle-keyboard>' +
         '  <button class="adp-action-b-secondary"' +
         '          ng-if="vm.codes && vm.codes.length"' +
         '          type="button"' +

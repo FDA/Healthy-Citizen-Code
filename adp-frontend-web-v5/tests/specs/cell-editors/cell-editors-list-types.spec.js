@@ -10,6 +10,7 @@ const {
   fillListEditors,
   waitForGridLoaded,
   clickOutsideOfGridToTriggerSubmit,
+  clickAddRowButton,
 } = require('./cell-editors.utils');
 
 const PAGE_TO_TEST = 'cellEditingListStringTypes';
@@ -40,7 +41,7 @@ describe('Cell Editors: List types', () => {
         dynamicListMultiple: 'val2, val4',
       };
 
-      await this.page.click('.dx-datagrid-addrow-button');
+      await clickAddRowButton(this.page);
       await fillListEditors(record, this.page);
       await clickOutsideOfGridToTriggerSubmit(this.page);
       await waitForGridLoaded(this.page);

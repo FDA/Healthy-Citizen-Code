@@ -56,13 +56,13 @@ describe('complex arrays', () => {
           removeArrayElemSelector
         );
 
-        await clickSubmit(this.page);
         const [data, submitMsg] = await Promise.all([
           getRequestForCreatedRecord(this.page),
           getSubmitMsg(this.page),
+          clickSubmit(this.page),
         ]);
 
-        expect(data.array.length).toBe(0);
+        expect(data.array).toBe(undefined);
         expect(submitMsg).toBe('Not Required Array With Not Required Field has been added.');
         const isPostRequestSent = !!data;
         expect(isPostRequestSent).toBe(true);

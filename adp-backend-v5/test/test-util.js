@@ -18,7 +18,7 @@ const testEnvPath = nodePath.resolve(__dirname, './backend/.env.test');
 
 const isDateString = (str) => !Number.isNaN(Date.parse(str));
 
-const diffObjects = (a, b) => {
+const diffObjects = (a, b, considerUndefinedAndNullSame = true) => {
   const result = {
     different: [],
     missing_from_first: [],
@@ -49,6 +49,9 @@ const diffObjects = (a, b) => {
         );
         return res;
       }
+      if (considerUndefinedAndNullSame && b[key] === undefined && value === null) {
+        return res;
+      }
       res.missing_from_second.push(key);
       return res;
     },
@@ -59,6 +62,9 @@ const diffObjects = (a, b) => {
     b,
     (res, value, key) => {
       if (_.has(a, key)) {
+        return res;
+      }
+      if (considerUndefinedAndNullSame && a[key] === undefined && value === null) {
         return res;
       }
       res.missing_from_first.push(key);
@@ -353,13 +359,9 @@ const setupAppAndGetToken = async (appLib, authOptions, user) => {
   return token;
 };
 
-const sortByIdDesc = (arr) => {
-  return [...arr].sort((a, b) => (a._id.toString() <= b._id.toString() ? 1 : -1));
-};
+const sortByIdDesc = (arr) => [...arr].sort((a, b) => (a._id.toString() <= b._id.toString() ? 1 : -1));
 
-function getAgentWithPrefix(configParam, appLib) {
-  const prefix = appLib.config[configParam];
-
+function getAgentWithPrefix(appLib, prefix) {
   const agent = request.agent(appLib.app);
   const methods = ['get', 'post', 'put', 'head', 'del', 'options'];
   methods.forEach((method) => {
@@ -369,12 +371,17 @@ function getAgentWithPrefix(configParam, appLib) {
   return agent;
 }
 
-function apiRequest(appLib, envFilePath = testEnvPath) {
-  return getAgentWithPrefix('API_PREFIX', appLib, envFilePath);
+function apiRequest(appLib) {
+  return getAgentWithPrefix(appLib, appLib.config.API_PREFIX);
 }
 
-function resourceRequest(appLib, envFilePath = testEnvPath) {
-  return getAgentWithPrefix('RESOURCE_PREFIX', appLib, envFilePath);
+function resourceRequest(appLib) {
+  return getAgentWithPrefix(appLib, appLib.config.RESOURCE_PREFIX);
+}
+
+function appRequest(appLib) {
+  const { APP_SUFFIX, API_PREFIX } = appLib.config;
+  return getAgentWithPrefix(appLib, `${APP_SUFFIX}${API_PREFIX}`);
 }
 
 module.exports = {
@@ -432,4 +439,5 @@ module.exports = {
   sortByIdDesc,
   apiRequest,
   resourceRequest,
+  appRequest,
 };

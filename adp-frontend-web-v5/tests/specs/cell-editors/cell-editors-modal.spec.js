@@ -13,6 +13,7 @@ const {
 
 const {
   waitForGridLoaded,
+  clickAddRowButton,
 } = require('./cell-editors.utils');
 
 const PAGE_TO_TEST = 'cellEditingModalsComplex';
@@ -36,7 +37,7 @@ describe('Cell Editors: modals', () => {
   test(
     'should create and record using Modal Cell Editors',
     async () => {
-      await this.page.click('.dx-datagrid-addrow-button');
+      await clickAddRowButton(this.page);
       await this.page.waitForSelector('.cellEditingModalsComplex');
 
       await clickObject('o', this.page);

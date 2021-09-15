@@ -19,9 +19,10 @@
   ) {
     var vm = this;
     var gridComponent;
-    var lastSortingIndex;
     var rolesSchema = AdpSchemaService.getSchemaByName('roles');
-    var permissions = rolesSchema.fields.permissions.list;
+    var INTERFACE = window.adpAppStore.appInterface();
+    var permissions = _.get(INTERFACE, 'app.permissions', {});
+    var sortingMode = -1;
 
     vm.isSaving = false;
     vm.apiUrl = APP_CONFIG.apiUrl;
@@ -94,23 +95,111 @@
         return getRoleColumnOptions(role, index);
       });
 
-      columns.unshift(getFirstColumnOptions());
+      columns.unshift(getGroupColumnOptions());
+      columns.unshift(getPermissionsColumnOptions());
 
       return columns;
     }
 
-    function getFirstColumnOptions() {
+    function getSortingClickHeader(component, colIndex, title) {
+      return $('<div/>')
+        .text(title)
+        .click(
+          function () {
+            if (colIndex) {
+              return
+            }
+
+            sortingMode = (sortingMode + 1) % 4;
+
+            var nameOrder = sortingMode % 2 ? 'desc' : 'asc';
+            var groupOrder = sortingMode > 1 ? 'desc' : 'asc';
+
+            component.columnOption(0, {
+              sortOrder: nameOrder,
+              sortIndex: 0
+            });
+
+            component.columnOption(1, {
+              sortOrder: groupOrder,
+              sortIndex: 1
+            });
+          }
+        );
+    }
+
+    function getDropdownContainer() {
+      return $('<div/>')
+        .addClass('rp-role-actions-dropdown-container');
+    }
+
+    function getDataSource(roles) {
+      return _.map(permissions, function (permission, name) {
+        var row = {
+          name: name,
+          title: permission.description || makeNaturalName(name),
+          group: permission.group || 'Other',
+        };
+
+        _.each(roles, function (role, index) {
+          row[getDataFieldName(index)] = !!role.permObj[name];
+        });
+
+        return row;
+      })
+    }
+
+    function getGridOptions(roles) {
+      return {
+        dataSource: getDataSource(roles),
+        columns: getColumnsOptions(roles),
+        hoverStateEnabled: true,
+        filterRow: {
+          visible: true
+        },
+        paging: {
+          enabled: false
+        },
+        stateStoring: {
+          enabled: true
+        },
+        sorting: {
+          mode: 'none'
+        },
+        grouping: {
+          autoExpandAll: false
+        },
+        onInitialized: function (event) {
+          gridComponent = event.component;
+          gridComponent.refresh = reloadRoles; // Dirty hack to update dataGrid after (role altering) form actions
+        }
+      };
+    }
+
+    function getPermissionsColumnOptions() {
       return {
         cssClass: 'perm-name perm-td',
         caption: '',
         fixed: true,
         dataField: 'title',
         width: 220,
-        customizeText: function (event) {
-          return makeNaturalName(event.value);
-        },
+        sortIndex: 0,
+        filterOperations: ['contains', 'endswith', '='],
         headerCellTemplate: function (container, headerCellInfo) {
           container.append(getSortingClickHeader(headerCellInfo.component, 0, 'Permissions'));
+        }
+      }
+    }
+
+    function getGroupColumnOptions() {
+      return {
+        dataField: 'group',
+        groupIndex: 0,
+        sortIndex: 1,
+        groupCellTemplate: function ($cellElement, event) {
+          $('<strong>')
+            .text(event.value)
+            .appendTo($cellElement);
         }
       }
     }
@@ -170,65 +259,6 @@
           }
         }
       }
-    }
-
-    function getSortingClickHeader(component, colIndex, title) {
-      return $('<div/>')
-        .text(title)
-        .click(
-          function () {
-            var currentSorting = component.columnOption(colIndex, 'sortOrder');
-
-            component.columnOption(colIndex, {
-              sortOrder: currentSorting === 'asc' ? 'desc' : 'asc',
-              sortIndex: 0
-            });
-
-            if (!_.isUndefined(lastSortingIndex) && lastSortingIndex !== colIndex) {
-              component.columnOption(lastSortingIndex, 'sortOrder', undefined);
-            }
-
-            lastSortingIndex = colIndex;
-          }
-        );
-    }
-
-    function getDropdownContainer() {
-      return $('<div/>')
-        .addClass('rp-role-actions-dropdown-container');
-    }
-
-    function getDataSource(roles) {
-      return _.map(permissions, function (permission, name) {
-        var row = {name: name, title: permission};
-
-        _.each(roles, function (role, index) {
-          row[getDataFieldName(index)] = !!role.permObj[permission];
-        });
-
-        return row;
-      })
-    }
-
-    function getGridOptions(roles) {
-      return {
-        dataSource: getDataSource(roles),
-        columns: getColumnsOptions(roles),
-        hoverStateEnabled: true,
-        paging: {
-          enabled: false
-        },
-        stateStoring: {
-          enabled: true
-        },
-        sorting: {
-          mode: 'none'
-        },
-        onInitialized: function (event) {
-          gridComponent = event.component;
-          gridComponent.refresh = reloadRoles; // Dirty hack to update dataGrid after (role altering) form actions
-        }
-      };
     }
 
     function refreshGridOptions(roles) {

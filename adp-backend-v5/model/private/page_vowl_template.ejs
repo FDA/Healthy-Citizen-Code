@@ -1,22 +1,15 @@
 <adp-page-loader loading="vm.loading"></adp-page-loader>
-
-<adp-content-container ng-if="!vm.loading">
-
-    <adp-section-container>
-        <vowl
-                show-about="false"
-                show-options="true"
-                show-pause-resume="true"
-                show-reset="true"
-                show-modes="true"
-                show-filter="true"
-                show-export="true"
-                show-ontology="false"
-                show-search="true"
-                show-zoom="true"
-                show-footer="true"
-                sidebar="true"
-        ></vowl>
-    </adp-section-container>
-
-</adp-content-container>
+<vowl ng-if="!vm.loading"
+      show-about="false"
+      show-options="true"
+      show-pause-resume="true"
+      show-reset="true"
+      show-modes="true"
+      show-filter="true"
+      show-export="true"
+      show-ontology="false"
+      show-search="true"
+      show-zoom="true"
+      show-footer="true"
+      sidebar="true"
+></vowl>

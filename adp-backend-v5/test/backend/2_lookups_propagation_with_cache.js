@@ -5,14 +5,13 @@ const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
-  checkRestSuccessfulResponse,
   conditionForActualRecord,
   checkForEqualityConsideringInjectedFields,
   apiRequest,
 } = require('../test-util');
 const { buildGraphQlUpdateOne, buildGraphQlQuery, checkGraphQlSuccessfulResponse } = require('../graphql-util');
 
-describe('V5 Backend Lookups Backpropagation With Cache', function () {
+describe('V5 Backend Lookups Backpropagation With Cache', () => {
   const model4sSamples = [
     {
       _id: new ObjectID('587179f6ef4807703afd0df0'),
@@ -93,8 +92,8 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
   const lookupModelName = 'lookup_test_model1';
   const propagationModelName = 'model3_propagation';
 
-  describe('backpropagation with cache enabled', function () {
-    describe('should update label in single and multiple lookups when original record is changed', function () {
+  describe('backpropagation with cache enabled', () => {
+    describe('should update label in single and multiple lookups when original record is changed', () => {
       const getTestFunc = function (settings) {
         return f;
 
@@ -181,16 +180,6 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
 
       const putRecord = { name: 'new_name', anotherName: 'new_anotherName' };
 
-      const restSettings = {
-        propagationModelRequest: (r) => r.get(`/${propagationModelName}/${propagationDocId}`),
-        warmupCache,
-        changeLookupRequest: (r) => r.put(`/${lookupModelName}/${lookupDocId}`).send({ data: putRecord }),
-        checkResponse: checkRestSuccessfulResponse,
-        checkLookupPropagation,
-        getData: (res) => res.body.data,
-        checkPropagationModelCacheIsClear,
-      };
-
       const selectFields = `items { 
         _id, 
         model4sSingleLookupName { table, label, _id },
@@ -213,10 +202,6 @@ describe('V5 Backend Lookups Backpropagation With Cache', function () {
         checkPropagationModelCacheIsClear,
       };
 
-      it(
-        `REST: should update label in single and multiple lookups when original record is changed`,
-        getTestFunc(restSettings)
-      );
       it(
         `GraphQL: should update label in single and multiple lookups when original record is changed`,
         getTestFunc(graphqlSettings)

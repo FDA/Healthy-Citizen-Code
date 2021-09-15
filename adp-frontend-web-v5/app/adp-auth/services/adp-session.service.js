@@ -13,6 +13,7 @@
     AdpNotificationService,
     AdpAppModel,
     AdpSocketIoService,
+    AdpMenuService,
     AdpSessionHelper,
     AdpUserActivityHelper,
     ResponseError,
@@ -72,7 +73,9 @@
       AdpSessionHelper.setSessionRemainingTimeout();
       AdpUserActivityHelper.setUserActivityTracker();
 
-      return AdpAppModel.getAppModel(userData).then(afterLoginRedirect);
+      return AdpAppModel.getAppModel(userData)
+                        .then(AdpMenuService.generateMenu)
+                        .then(afterLoginRedirect);
     }
 
     function logout() {
@@ -86,15 +89,23 @@
       $http.post(APP_CONFIG.apiUrl + "/logout");
       // Because this is just notification for fellow tabs, there is no reason to process any results...
 
+      var appInterface = window.adpAppStore.appInterface().app;
+
       return AdpAppModel.getAppModel()
         .then(function () {
-          var authSetting = window.adpAppStore.appInterface().app.auth;
-          if (authSetting.requireAuthentication) {
+          if (appInterface.auth.requireAuthentication) {
             return forceLoginPage();
           }
           $state.go($state.current.name, {}, { reload: "app" });
         })
-        .catch(forceLoginPage);
+        .catch(forceLoginPage)
+        .finally(function(){
+          var hideNotificationsTimeout = appInterface.hideErrorMessagesAfterLogoutIn;
+
+          if (hideNotificationsTimeout) {
+            $timeout(AdpNotificationService.closeAll, hideNotificationsTimeout);
+          }
+        });
 
       function forceLoginPage() {
         var params =

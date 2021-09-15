@@ -28,8 +28,7 @@
     };
 
     function setSessionRemainingTimeout() {
-      var INTERFACE = window.adpAppStore.appInterface();
-      var isCheckSessionStatusRequired = INTERFACE.app.isInactivityLogoutEnabled;
+      var isCheckSessionStatusRequired = APP_CONFIG.isInactivityLogoutEnabled;
 
       if (isCheckSessionStatusRequired) {
         _checkSessionExpire();
@@ -56,7 +55,7 @@
 
       if (expiresIn < _getHowLongBeforeExpireWeShowTimer()) {
         _doOpenTimerDialog(expiresIn);
-        _createSessionTimeout(APP_CONFIG.INACTIVITY_LOGOUT_POLLING_INTERVAL);
+        _createSessionTimeout(APP_CONFIG.inactivityLogoutPollingInterval);
         AdpUserActivityHelper.resetUserActivityTimer(true);
       } else {
         _doCloseTimerDialog();
@@ -142,8 +141,8 @@
           timeout = 0;
         }
 
-        if (timeout > APP_CONFIG.JWT_ACCESS_TOKEN_REFRESH_BEFORE_EXPIRE) {
-          timeout -= APP_CONFIG.JWT_ACCESS_TOKEN_REFRESH_BEFORE_EXPIRE;
+        if (timeout > APP_CONFIG.jwtAccessTokenRefreshBeforeExpire) {
+          timeout -= APP_CONFIG.jwtAccessTokenRefreshBeforeExpire;
         } else {
           timeout /= 2;
         }
@@ -195,9 +194,7 @@
     }
 
     function _getHowLongBeforeExpireWeShowTimer() {
-      var INTERFACE = window.adpAppStore.appInterface();
-
-      return INTERFACE.app.inactivityLogoutNotificationAppearsFromSessionEnd;
+      return APP_CONFIG.inactivityLogoutNotificationAppearsFromSessionEnd;
     }
   }
 })();

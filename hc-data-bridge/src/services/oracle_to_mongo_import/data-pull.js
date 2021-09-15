@@ -120,7 +120,7 @@ async function pumpData() {
     type: 'dataBridgeStart',
     id: dataBridgeId,
     command: process.argv,
-    tags: tags,
+    tags,
     timestamp: dataBridgeStart,
   });
 
@@ -309,16 +309,15 @@ function processMacros(oracleQuery, dataPull) {
     now(format = 'YYYY-MM-DDTHH:mm:ss.sssZ') {
       return dateformat(new Date(), format);
     },
-    lastPull(format = 'YYYY-MM-DDTHH:mm:ss.sssZ') {
-      const lastPull = new Date(dataPull.lastPull) || new Date(1700, 0, 1);
-      return dateformat(lastPull, format);
-    },
     chunk(name) {
       return dataPull.dataPullChunks[name];
     },
     lastPullPosition() {
       return dataPull.lastPullPosition;
     },
+    dataPull() {
+      return dataPull;
+    }
   };
 
   try {
@@ -329,17 +328,22 @@ function processMacros(oracleQuery, dataPull) {
   }
 }
 
+function md5(str) {
+  return crypto.createHash('md5').update(str).digest('hex');
+}
+
 function decryptOracleCredentials(oracleCredentialsRecord) {
   const algorithm = 'aes-256-ctr';
   const GLUE_STRING = '.';
   const { CREDENTIALS_PASSWORD } = process.env;
+  const credentialsPassword = CREDENTIALS_PASSWORD && md5(CREDENTIALS_PASSWORD);
 
   function decrypt(data) {
-    if (!CREDENTIALS_PASSWORD) {
+    if (!credentialsPassword) {
       return data;
     }
     const [iv, value] = data.split(GLUE_STRING);
-    const decipher = crypto.createDecipheriv(algorithm, CREDENTIALS_PASSWORD, Buffer.from(iv, 'hex'));
+    const decipher = crypto.createDecipheriv(algorithm, credentialsPassword, Buffer.from(iv, 'hex'));
     const decrypted = Buffer.concat([decipher.update(Buffer.from(value, 'hex')), decipher.final()]);
 
     return decrypted.toString();
@@ -387,7 +391,7 @@ async function processDataPull({ dataPull, processingContext }) {
   dataPullLogger.info({
     type: 'dataPullStart',
     id: dataBridgeId,
-    dataPull: dataPull,
+    dataPull,
     dataPullName,
     dataPullId: dataPull._id,
     timestamp: dataPull.pullStart,
@@ -395,7 +399,7 @@ async function processDataPull({ dataPull, processingContext }) {
 
   processingContext.pullNamesInProgress.push(dataPullName);
   try {
-    const totalDocumentsProcessed = await pumpDataPull({ dataPull: dataPull, processingContext });
+    const totalDocumentsProcessed = await pumpDataPull({ dataPull, processingContext });
     markDataPullProcessed(dataPulls, dataPullName);
     _.remove(processingContext.pullNamesInProgress, (name) => name === dataPullName);
 
@@ -540,10 +544,12 @@ async function pumpDataPull({ dataPull, processingContext }) {
 
     dataPull.pullEnd = new Date();
     dataPull.totalDocumentsProcessed = totalDocumentsProcessed;
-    if (dataPull.customAfterPullCode) {
-      const func = new Function(`_, ObjectID, dayjs`, dataPull.afterPullCode);
-      func.apply({ dataPull }, [_, ObjectID, dayjs]);
-    }
+
+    const defaultAfterPullCode = '_.set(this.dataPull, "lastPullPosition.pullStart", this.dataPull.pullStart)';
+    const afterPullCode = dataPull.customAfterPullCode ? dataPull.afterPullCode : defaultAfterPullCode;
+    const func = new Function(`_, ObjectID, dayjs`, afterPullCode);
+    func.apply({ dataPull }, [_, ObjectID, dayjs]);
+
     await dbPullsCollection.updateOne({ _id: dataPull._id }, { $set: _.pick(dataPull, dataPullFields) });
     logger.info(`Finished dataPull '${name}'. Total documents processed: ${totalDocumentsProcessed}`);
     return totalDocumentsProcessed;

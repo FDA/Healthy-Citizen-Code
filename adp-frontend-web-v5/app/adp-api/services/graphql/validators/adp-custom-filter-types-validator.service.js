@@ -7,7 +7,7 @@
 
   /** @ngInject */
   function CustomFilterTypesValidatorService(
-    GraphqlRequest
+    GraphqlRequest, AdpTime
   ) {
     var queryTypes = {
       "Mongo Expression": MongoExpression,
@@ -103,7 +103,11 @@
     }
 
     function RelativeDate(filterValue) {
-      return JSON.stringify(filterValue);
+      return "{type:'Relative Date', expression:{fieldPath:'" + filterValue[0]
+        +"',operation:'" + filterValue[1] + "',value:'" + filterValue[2] + "',timezone:'" + AdpTime.guessTimeZone() + "'}}";
+
+      //['date', '=', '2 day ago']
+      //{ type: "Relative Date", expression: { fieldPath: "date", operation: "=", value: "1 day ago", timezone: "Europe/Moscow" } }
     }
 
     function DatabaseField(filterValue) {

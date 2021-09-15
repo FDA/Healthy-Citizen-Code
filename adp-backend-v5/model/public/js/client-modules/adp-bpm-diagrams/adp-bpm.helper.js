@@ -57,6 +57,9 @@
 
       return config
         .getRecordToSave(vm, definition)
+        .then(function(record) {
+          return stripNullAttributes(record)
+        })
         .then(function (record) {
           return GraphqlCollectionMutator.update(config.getSchema(), record);
         })
@@ -66,6 +69,10 @@
         .catch(function (error) {
           ErrorHelpers.handleError(error, 'Unknown error while saving DEFINITION');
         });
+    }
+
+    function stripNullAttributes(record) {
+      return _.omitBy(record, _.isNull);
     }
 
     function getFileName(type, id) {

@@ -33,6 +33,17 @@
   margin-top: 69px !important;
 }
 
+.header-hidden #main {
+  margin-top: 0px;
+}
+.header-hidden #header {
+  display: none;
+}
+.menu-on-top.header-hidden #main {
+ // margin-top: 20px !important;
+}
+
+
 .menu-on-top .minifyme, .menu-on-top .btn-nav-menu, .menu-on-top #logout {
   display: none !important;
 }
@@ -271,6 +282,10 @@ body.menu-on-top.fixed-header {
   padding-top: 49px
 }
 
+body.menu-on-top.fixed-header.header-hidden{
+  padding-top: 0;
+}
+
 /*
  * FIXED TOP HEADER + NAV
  */
@@ -443,7 +458,7 @@ body.menu-on-top.fixed-header.fixed-navigation.fixed-ribbon #ribbon {
 
 /*
  * Menu on top invisible
- * applying this class will make these elements invisible 
+ * applying this class will make these elements invisible
  * when menu on top is enabled
  */
 

@@ -19,7 +19,7 @@
       '        </div>' +
       '    </div>' +
       '</div>' +
-      '<div class="modal-footer">' +
+      '<div class="modal-footer" adp-ui-buttons-handle-keyboard="single">' +
       '    <button class="adp-action-b-primary" ng-click="vm.onClose()">Close</button>' +
       '</div>',
     bindings: {

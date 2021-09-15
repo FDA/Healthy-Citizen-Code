@@ -3,7 +3,7 @@ const nodePath = require('path');
 const should = require('should');
 const assert = require('assert');
 
-describe('App Model Routes', function () {
+describe('App Model Routes', () => {
   before(function () {
     const envPath = nodePath.resolve(__dirname, '../../../.env');
     require('dotenv').load({ path: envPath });

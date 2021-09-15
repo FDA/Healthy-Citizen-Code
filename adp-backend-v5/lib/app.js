@@ -38,7 +38,7 @@ module.exports = () => {
     const { MONGODB_URI } = m.config;
     const { mongoConnect } = require('./util/mongo');
     try {
-      return await mongoConnect(MONGODB_URI);
+      return await mongoConnect(MONGODB_URI, { log: m.log });
     } catch (e) {
       m.log.error(`LAP003: MongoDB connection error. Please make sure MongoDB is running at ${MONGODB_URI}`);
       throw e;
@@ -169,6 +169,7 @@ module.exports = () => {
   /**
    * Adds routes to the application router
    * @param verb i.e. get, post, put etc
+   * @param routePrefix
    * @param route the route to add (as a string)
    * @param args array of controller functions to handle route
    */
@@ -193,125 +194,29 @@ module.exports = () => {
     m.log.trace(` ∟ ${action} route: ${method.toUpperCase()} ${fullRoute} ${authRouteNote}`);
   }
 
+  function endWithSlash(str) {
+    return str.endsWith('/') ? str : `${str}/`;
+  }
   m.addRoute = (verb, route, args) => addRoute(verb, m.config.API_PREFIX, route, args);
+  m.getApiBaseUrl = (endSlash = true) => {
+    const { API_URL, API_PREFIX } = m.config;
+    const url = `${API_URL}${API_PREFIX}`;
+    return endSlash ? endWithSlash(url) : url;
+  };
+
+  // Used for pages served by backend
+  m.addAppRoute = (verb, route, args) => addRoute(verb, `${m.config.APP_SUFFIX}${m.config.API_PREFIX}`, route, args);
+  m.getAppBaseUrl = (endSlash = true) => {
+    const { API_URL, APP_SUFFIX, API_PREFIX } = m.config;
+    const url = `${API_URL}${APP_SUFFIX}${API_PREFIX}`;
+    return endSlash ? endWithSlash(url) : url;
+  };
 
   m.addResourceRoute = (verb, route, args) => addRoute(verb, m.config.RESOURCE_PREFIX, route, args);
-
-  /**
-   * Adds routes necessary to perform full CRUD on the global.appModel
-   */
-  m.addAppModelRoutes = () => {
-    _.each(m.appModel.models, (schema, schemaName) => {
-      m.log.debug('Adding routes for schema', schemaName);
-      addCrudRoutesToSchema(schemaName, schema, []);
-      addRelatedRoutesToSchema(schemaName, schema, []);
-    });
-
-    /**
-     * This adds routes to the express app to handle CRUD for a specific schema
-     * NOTE: unlike lookup method this method is not checking for existing routes
-     * @param name the name of the schema
-     * @param schema the schema definition
-     * @param path the full path to the schema (as array)
-     */
-    function addCrudRoutesToSchema(name, schema, path) {
-      const mainController = m.controllers.main;
-
-      const callbacks = [];
-      callbacks.push(m.isAuthenticated);
-      // add standard CRUD
-      // let name = pluralize(name, 2);
-      const qualifiedPath = `/${_.map(path, (p) => `${p}/:${p}_id`).join('/') + (path.length === 0 ? '' : '/')}`;
-      const unqualifiedPath = `/schema/${path.join('/') + (path.length === 0 ? '' : '/')}`;
-      m.addRoute('get', `${unqualifiedPath}${name}`, [mainController.getSchema]); // this just returns schema, no auth is required
-      m.addRoute('get', `${qualifiedPath}${name}`, callbacks.concat([mainController.getItems]));
-      m.addRoute('post', `${qualifiedPath}${name}`, callbacks.concat([mainController.postItem]));
-      m.addRoute('get', `${qualifiedPath}${name}/:id`, callbacks.concat([mainController.getItem]));
-      m.addRoute('put', `${qualifiedPath}${name}/:id`, callbacks.concat([mainController.putItem]));
-      m.addRoute('del', `${qualifiedPath}${name}/:id`, callbacks.concat([mainController.deleteItem]));
-      /* delete this code once frontend is fixed and start sending data in correct form: ADP-134
-      if(schema.singleRecord) { // duplicate all endpoints for single-record pages without need to specify :id
-          m.addRoute('get', `${qualifiedPath}${name}`, callbacks.concat([mainController.getItem]));
-          m.addRoute('put', `${qualifiedPath}${name}`, callbacks.concat([mainController.putItem]));
-          m.addRoute('del', `${qualifiedPath}${name}`, callbacks.concat([mainController.deleteItem]));
-      }
-      */
-    }
-
-    /**
-     * Adds routes related to schema (lookups, treeselectors)
-     * @param objName
-     * @param obj
-     * @param path
-     */
-    function addRelatedRoutesToSchema(objName, obj, path) {
-      const mainController = m.controllers.main;
-
-      const { type, fields } = obj;
-      if (type === 'LookupObjectID' || type === 'LookupObjectID[]') {
-        const { lookup } = obj;
-        const lookupId = lookup.id;
-        m.appLookups[lookupId] = lookup;
-        m.log.debug(`☞ Adding routes for lookup ${path.join('.')}.${objName}`);
-        addLookupRoutes(lookup, lookupId);
-      }
-
-      if (type === 'TreeSelector') {
-        const { table } = obj;
-        const treeSelectorId = table.id;
-        m.appTreeSelectors[treeSelectorId] = table;
-        m.log.debug(`☞ Adding routes for TreeSelector ${path.join('.')}.${objName}`);
-        addTreeSelectorRoutes(table, treeSelectorId);
-      }
-
-      if (_.isPlainObject(fields)) {
-        _.each(fields, (field, fieldName) => {
-          addRelatedRoutesToSchema(fieldName, field, path.concat([objName]));
-        });
-      }
-
-      /** Adds route to the app so it can run lookups using UI elements such as select2
-       * The request should contain Get parameter q=<search> to perform the search and
-       * optionally page=<number> parameter to show results in infinity scroll as
-       * specified in the select2 documentation
-       * @param lookup
-       * @param lookupId
-       */
-      function addLookupRoutes(lookup, lookupId) {
-        _.forEach(lookup.table, (tableLookup) => {
-          const isFilteringLookup = tableLookup.where;
-          const tableName = tableLookup.table;
-          const lookupPath = `/lookups/${lookupId}/${tableName}`;
-          const fullLookupPath = m.getFullRoute(m.config.API_PREFIX, lookupPath);
-          if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullLookupPath, 'get'))) {
-            m.addRoute('get', lookupPath, [m.isAuthenticated, mainController.getLookupTable]);
-          }
-          if (isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullLookupPath, 'post'))) {
-            m.addRoute('post', lookupPath, [m.isAuthenticated, mainController.getLookupTable]);
-          }
-        });
-      }
-
-      function addTreeSelectorRoutes(table, treeSelectorId) {
-        _.forEach(table, (tableSpec, tableName) => {
-          if (tableName === 'id') {
-            return;
-          }
-          const isFilteringLookup = tableSpec.where;
-          const treeSelectorPath = `/treeselectors/${treeSelectorId}/${tableName}`;
-          const fullTreeSelectorPath = m.getFullRoute(
-            m.config.API_PREFIX,
-            `/treeselectors/${treeSelectorId}/${tableName}`
-          );
-          if (!isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullTreeSelectorPath, 'get'))) {
-            m.addRoute('get', treeSelectorPath, [m.isAuthenticated, mainController.getTreeSelector]);
-          }
-          if (isFilteringLookup && _.isEmpty(m.expressUtil.findRoutes(m.app, fullTreeSelectorPath, 'post'))) {
-            m.addRoute('post', treeSelectorPath, [m.isAuthenticated, mainController.getTreeSelector]);
-          }
-        });
-      }
-    }
+  m.getResourceBaseUrl = (endSlash = true) => {
+    const { API_URL, APP_SUFFIX, RESOURCE_PREFIX } = m.config;
+    const url = `${API_URL}${APP_SUFFIX}${RESOURCE_PREFIX}`;
+    return endSlash ? endWithSlash(url) : url;
   };
 
   // TODO: delete after mobile app refactoring, only required for mobile app framework backward compatibility
@@ -614,8 +519,6 @@ module.exports = () => {
      *         description: File content
      */
 
-    // endpoints for all models
-    m.addAppModelRoutes();
     m.addDashboardEndpoints(); // TODO: remove this after mobile update
 
     const { addAll, connect } = m.graphQl;
@@ -683,7 +586,7 @@ module.exports = () => {
     m.accessUtil = require('./access/access-util')(m);
     m.otp = require('./util/otp')(m.config);
     m.crypto = require('./util/crypto')(m.config);
-    m.mail = require('./mail')(m.config);
+    m.mail = require('./mail')(m);
     m.dba = require('./database-abstraction')(m);
     m.mutil = require('./model')(m);
     m.trino = require('./trino')(m);
@@ -872,18 +775,6 @@ module.exports = () => {
     m.log.info('Finished executing prestart scripts.');
 
     m.auth = require('./auth')(m);
-
-    const {
-      IS_INACTIVITY_LOGOUT_ENABLED,
-      INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_FROM_SESSION_END,
-      DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT,
-      INACTIVITY_LOGOUT_FE_PING_INTERVAL,
-    } = m.config;
-    m.appModel.interface.app.isInactivityLogoutEnabled = IS_INACTIVITY_LOGOUT_ENABLED;
-    m.appModel.interface.app.inactivityLogoutNotificationAppearsFromSessionEnd =
-      INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_FROM_SESSION_END;
-    m.appModel.interface.app.dataExportInstantDownloadTimeout = DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT;
-    m.appModel.interface.app.inactivityLogoutFePingInterval = INACTIVITY_LOGOUT_FE_PING_INTERVAL;
     m.isAuthenticated = m.auth.isAuthenticated;
 
     const { ES_NODES, ES_MAX_RETRIES } = m.config;

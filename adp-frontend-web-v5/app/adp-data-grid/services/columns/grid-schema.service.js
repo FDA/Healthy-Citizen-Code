@@ -121,6 +121,31 @@
       return groupedFields;
     }
 
+    function groupFieldsIntoUiGroups(fields) {
+      var lastGroup = null;
+      var groupedFields = {
+        notGrouped: [],
+        groups: [],
+      };
+
+      _.forEach(_.cloneDeep(fields), function (field) {
+        if (field.type === 'Group') {
+          lastGroup = field;
+          groupedFields.groups.push(field);
+          field.fields = [];
+          return;
+        }
+
+        if (lastGroup) {
+          lastGroup.fields.push(field);
+        } else {
+          groupedFields.notGrouped.push(field);
+        }
+      });
+
+      return groupedFields;
+    }
+
     function flattenGroup(fields) {
       var result = [];
 
@@ -166,7 +191,6 @@
 
     function getOrder(field, property) {
       var val = Number(field[property]);
-
       return _.isNaN(val) ? undefined : val;
     }
 
@@ -186,6 +210,7 @@
       getFieldsForGrid: getFieldsForGrid,
       getFieldsForDetailedView: getFieldsForDetailedView,
       getSchemaForVisibleColumns: getSchemaForVisibleColumns,
+      groupFieldsIntoUiGroups: groupFieldsIntoUiGroups,
     };
   }
 })();

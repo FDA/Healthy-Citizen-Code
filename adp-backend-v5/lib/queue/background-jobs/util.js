@@ -223,7 +223,10 @@ async function getUserIdsToNotifyAboutBgJobs(appLib, jobCreatorId) {
   }
 
   async function isJobCreatorAllowedToSeeJobStatus(creatorId) {
-    const { record: user } = await appLib.db.collection('users').hookQuery('findOne', { _id: creatorId });
+    if (!ObjectID.isValid(creatorId)) {
+      return false;
+    }
+    const { record: user } = await appLib.db.collection('users').hookQuery('findOne', { _id: ObjectID(creatorId) });
     if (!user) {
       return false;
     }

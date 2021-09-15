@@ -7,6 +7,7 @@
 
   function adpBreadcrumbs(
     $transitions,
+    $rootScope,
     $state
   ) {
     return {
@@ -14,8 +15,7 @@
       replace: true,
       templateUrl: 'app/adp-ui/directives/adp-breadcrumbs/adp-breadcrumbs.template.html',
       link: function (scope) {
-        var MENU_ITEMS = window.adpAppStore.menuItems();
-        var flattenMenu = flattenMenuItems(MENU_ITEMS);
+        var flattenMenu = flattenMenuItems($rootScope.menu);
 
         function init() {
             scope.breadcrumbs = getBreadcrumbs($state.current);
@@ -33,13 +33,15 @@
         function flattenMenuItems(menuItems, resultItems) {
           var result = resultItems || [];
 
-          menuItems.forEach(function (item) {
-            result.push(item);
+          if (_.isArray(menuItems)) {
+            menuItems.forEach(function (item) {
+              result.push(item);
 
-            if (item.items) {
-              flattenMenuItems(item.items, result);
-            }
-          });
+              if (item.items) {
+                flattenMenuItems(item.items, result);
+              }
+            });
+          }
 
           return result;
         }

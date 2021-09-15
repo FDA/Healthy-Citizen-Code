@@ -15,7 +15,7 @@
                "            <div class=\"filter-builder-container\"></div>" +
                "        </div>" +
                "    </fieldset>" +
-               "    <footer class=\"adp-action-b-container\">" +
+               "    <footer class=\"adp-action-b-container\" adp-ui-buttons-handle-keyboard>" +
                "        <button class=\"adp-action-b-secondary\"" +
                "                type=\"button\"" +
                "                ng-click=\"vm.exit()\">Close</button>" +

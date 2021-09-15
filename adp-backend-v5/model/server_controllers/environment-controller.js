@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const log = require('log4js').getLogger('user-settings-controller');
+const log = require('log4js').getLogger('environment-controller');
 const { handleGraphQlError } = require('../../lib/graphql/util');
 const { getNewConfig, getEnvConfig } = require('../../config/util');
 const GraphQlContext = require('../../lib/request-context/graphql/GraphQlContext');
@@ -96,8 +96,11 @@ module.exports = () => {
           userContext,
           filteredEnvItem
         );
+
+        const oldConfig = m.appLib.config;
         m.appLib.config = newConfig;
-        m.appLib.newEnvConfig = newEnvConfig;
+        m.appLib.envConfig = newEnvConfig;
+        await handleConfigChange(oldConfig, newConfig);
 
         return createdRecord;
       } catch (e) {
@@ -158,8 +161,11 @@ module.exports = () => {
           return item;
         });
 
+        const oldConfig = m.appLib.config;
         m.appLib.config = newConfig;
         m.appLib.envConfig = newEnvConfig;
+        await handleConfigChange(oldConfig, newConfig);
+
         return updatedItem;
       } catch (e) {
         handleGraphQlError({
@@ -171,6 +177,15 @@ module.exports = () => {
         });
       }
     });
+  }
+
+  // eslint-disable-next-line no-unused-vars
+  async function handleConfigChange(oldConfig, newConfig) {
+    try {
+      await m.appLib.mail.updateSmtpTransport();
+    } catch (e) {
+      log.error(e.stack);
+    }
   }
 
   return m;

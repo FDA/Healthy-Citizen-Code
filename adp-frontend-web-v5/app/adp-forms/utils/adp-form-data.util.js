@@ -57,18 +57,15 @@
 
       var rootArgsCopy = _.assign({}, rootArgs, { row: _.cloneDeep(rootArgs.row) });
 
-      var cleanUpCb = function (currArgs) {
+      var cleanUpCb = function (currArgs, isArrayRoot) {
         var type = currArgs.fieldSchema.type;
         var cleanupStrategy = cleanUpStrategies[type] || cleanUpStrategies.default;
 
-        cleanupStrategy(currArgs);
-
-        if (type === 'Array' && isLastArrayItem(currArgs)) {
-          cleanUpStrategies.ArrayRoot(currArgs);
-        }
-
-        if (type === 'AssociativeArray' && isLastArrayItem(currArgs)) {
-          cleanUpStrategies.AssociativeArrayRoot(currArgs);
+        if (isArrayRoot) {
+          var method = type + 'Root';
+          cleanUpStrategies[method](currArgs);
+        } else {
+          cleanupStrategy(currArgs);
         }
       };
 
@@ -177,8 +174,9 @@
         _.set(args.row, arrayPath, emptyValue);
       } else {
         var result = {};
-        arrayData.forEach(function (item) {
-          result[item.$key] = _.omit(item, ['$key']);
+        _.each(arrayData, function (item, key) {
+          var itemKey = item.$key || key;
+          result[itemKey] = _.omit(item, ['$key']);
         });
 
         _.set(args.row, arrayPath, result);

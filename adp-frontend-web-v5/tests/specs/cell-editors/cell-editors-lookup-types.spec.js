@@ -12,6 +12,7 @@ const {
   fillLookupEditors,
   waitForGridLoaded,
   clickOutsideOfGridToTriggerSubmit,
+  clickAddRowButton,
 } = require('./cell-editors.utils');
 
 const PAGE_TO_TEST = 'cellEditingLookupTypes';
@@ -44,7 +45,8 @@ describe('Cell Editors: Lookup types', () => {
         objectIdsWithMultipleTables: lookupLabel,
       };
 
-      await this.page.click('.dx-datagrid-addrow-button');
+      await clickAddRowButton(this.page);
+      await this.page.waitForSelector(".adp-lookup-selector");
       await fillLookupEditors(record, this.page);
       await clickOutsideOfGridToTriggerSubmit(this.page);
       await waitForGridLoaded(this.page);

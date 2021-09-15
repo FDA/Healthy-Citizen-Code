@@ -10,7 +10,7 @@ const {
 } = require('../test-util');
 const { buildGraphQlDxQuery } = require('../graphql-util');
 
-describe('V5 Backend DevExtreme and Quick Filter Support', function () {
+describe('V5 Backend DevExtreme and Quick Filter Support', () => {
   const modelName = 'model5s';
   // const quickFiltersModelName = 'quickFilters';
 
@@ -67,7 +67,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', function () {
     await Promise.all([this.db.close(), this.appLib.shutdown()]);
   });
 
-  describe('Filtering', function () {
+  describe('Filtering', () => {
     it('should filter with Quick Filter', async function () {
       const res = await apiRequest(this.appLib)
         .post('/graphql')
@@ -207,7 +207,7 @@ describe('V5 Backend DevExtreme and Quick Filter Support', function () {
   //   });
   // });
 
-  describe(`GraphQL 'testQuickFilter' query`, function () {
+  describe(`GraphQL 'testQuickFilter' query`, () => {
     const query = (projections) => ({
       query: `query { testQuickFilter (model: "${modelName}", filter: "${quickFilterRecord.filter}") { ${projections} } }`,
     });

@@ -3,11 +3,12 @@
 
   /** @ngInject */
   function AdpDmnConfigFactory(APP_CONFIG) {
+    var resourceUrl = APP_CONFIG.resourceUrl + '/public/js/lib/dmn-js';
     return {
       diagramFieldName: 'definition',
       nativeName: 'DMN Rules',
-      jsUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/dmn-js/index.js',
-      cssUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/dmn-js/css/style.css',
+      jsUrl: resourceUrl + '/index.js',
+      cssUrl: resourceUrl + '/css/style.css',
       libName: 'DmnJS',
       collectionName: 'businessRules',
       emptyDiagram: [

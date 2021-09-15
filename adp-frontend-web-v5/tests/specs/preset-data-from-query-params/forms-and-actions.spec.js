@@ -3,16 +3,19 @@ const puppeteer = require('puppeteer');
 const {
   getLaunchOptions,
   loginWithUser,
+  getToken,
   table: {
-    clickViewDetailsButton,
     VIEW_DETAILS_SELECTOR,
   },
   form: {
     FORM_SELECTOR,
+  },
+  gql: {
+    gqlCreateRecord
   }
 } = require('../../utils');
 const { openPageAndPresetData } = require('./helpers/preset-data.helpers');
-const queryParamsFixture = require('./helpers/preset-data-from-query-params.fixture');
+const uuidv4 = require('uuid/v4');
 
 const PAGE_TO_TEST = 'queryParamsBasic';
 
@@ -34,12 +37,20 @@ async function assertFormForActionIsVisible(action, expectedStringFieldValue, pa
   expect(actualStringFieldValue).toBe(expectedStringFieldValue);
 }
 
+async function queryParamsFixture(token, testPage) {
+  const fixtureData = { string: uuidv4() };
+  const { _id } = await gqlCreateRecord(token, testPage, fixtureData);
+
+  return { _id, ...fixtureData };
+}
+
 describe('data presetting', () => {
   beforeAll(async () => {
     this.browser = await puppeteer.launch(getLaunchOptions());
     this.context = await this.browser.createIncognitoBrowserContext();
     const page = await this.context.newPage();
     await loginWithUser(page);
+    this.token = await getToken(page);
     await page.close();
   });
 
@@ -71,7 +82,7 @@ describe('data presetting', () => {
     test(
       'should open form for UPDATE action with data from url query params',
       async () => {
-        const fixtureData = await queryParamsFixture(PAGE_TO_TEST, this.page);
+        const fixtureData = await queryParamsFixture(this.token, PAGE_TO_TEST);
 
         const dataToPreset = {
           _id: fixtureData._id,
@@ -85,7 +96,7 @@ describe('data presetting', () => {
     test(
       'should open form for CLONE action with data from url query params',
       async () => {
-        const fixtureData = await queryParamsFixture(PAGE_TO_TEST, this.page);
+        const fixtureData = await queryParamsFixture(this.token, PAGE_TO_TEST);
 
         const dataToPreset = {
           _id: fixtureData._id,
@@ -99,7 +110,7 @@ describe('data presetting', () => {
     test(
       'should open viewDetails modal action',
       async () => {
-        const fixtureData = await queryParamsFixture(PAGE_TO_TEST, this.page);
+        const fixtureData = await queryParamsFixture(this.token, PAGE_TO_TEST);
 
         const dataToPreset = {
           _id: fixtureData._id,
@@ -121,7 +132,7 @@ describe('data presetting', () => {
     test(
       'should show delete modal on page load',
       async () => {
-        const fixtureData = await queryParamsFixture(PAGE_TO_TEST, this.page);
+        const fixtureData = await queryParamsFixture(this.token, PAGE_TO_TEST);
 
         const dataToPreset = {
           _id: fixtureData._id,

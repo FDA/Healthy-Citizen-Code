@@ -42,10 +42,17 @@
               },
               "action": {
                 "type": "link",
-                "link": "<@-this.ENV('APP_SUFFIX')@>/datasets/:_id"
+                "link": "/datasets/:_id"
               },
               "permissions": "manageDatasetContents"
-            }
+            },
+                  "submit": {
+                    "action": {
+                      "type": "module",
+                      "link": "AdpFormActions",
+                      "method": "datasetsSubmitAndUpdateMenu"
+                    }
+                  }
           }
         },
         "scopes": {
@@ -63,7 +70,15 @@
         name: {
           required: true,
           other: {
-            width: '200'
+            width: '200',
+            formWidth: '8'
+          }
+        },
+        favorite: {
+          type: 'Boolean',
+          fullName: 'Show in Datasets menu',
+          other: {
+            formWidth: '4'
           }
         },
         collectionName: {
@@ -176,7 +191,8 @@
                       'List[]': 'List[]',
                       Blank: 'Blank',
                       StaticHtml: 'StaticHtml',
-                      CronExpression: 'CronExpression'
+                      CronExpression: 'CronExpression',
+                      FormSeparator: 'FormSeparator'
                     }
                   }
                 },
@@ -425,6 +441,22 @@
                     codeEditor: {
                       type: 'Mixed',
                       fullName: 'Code Editor'
+                    },
+                    "height": {
+                      type: 'Number',
+                      fullName: 'Separator field height'
+                    },
+                    "lineStyle": {
+                      type: 'String',
+                      fullName: 'Separator line style'
+                    },
+                    "lineColor": {
+                      type: 'String',
+                      fullName: 'Separator line color'
+                    },
+                    "lineWidth": {
+                      type: 'Number',
+                      fullName: 'Separator width'
                     }
                   }
                 }
@@ -932,7 +964,7 @@
             },
             fullName: {
               other: { visible: false, synthesize: "datasetSchemaFullName" }
-              
+
             },
             schemaName: {
               other: {
@@ -957,12 +989,15 @@
         datasets: {
           type: 'MenuItem',
           fullName: 'Datasets',
-          other: { 
+          other: {
             "scopes": {
               "user": {
                 "permissions": [["accessOwnDatasets","accessAllDatasets"]]
               }
-            }
+            },      "render": {
+                      "link": "datasetsCustomMenuItems",
+                      "renderTarget": "submenu"
+                    }
           },
           link: '/datasets',
           icon: {

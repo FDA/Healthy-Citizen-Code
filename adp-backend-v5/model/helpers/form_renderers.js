@@ -7,14 +7,8 @@
  * row - the entire record the data need to be rendered for
  * meta - metainformation in datatables format: https://datatables.net/reference/option/columns.render
  */
+const {getFeModule} = require('./util');
 
-function guessTimeZone(){
-  try {
-    return Intl.DateTimeFormat().resolvedOptions().timeZone;
-  } catch(e) {
-    return '';
-  }
-}
 
 module.exports = function () {
   const formRenderUtil = require('./form_renderers_util');
@@ -43,7 +37,7 @@ module.exports = function () {
     userSettingsFixedHeader() {
       return formRenderUtil.createTriStateBooleanControl(this, (val) => {
         if (val === false) {
-          formRenderUtil.changeValuesToControl({
+          formRenderUtil.setValuesToControl({
             fixedNavigation: false,
             fixedRibbon: false,
           });
@@ -54,12 +48,12 @@ module.exports = function () {
     userSettingsFixedNavigation() {
       return formRenderUtil.createTriStateBooleanControl(this, (val) => {
         if (val) {
-          formRenderUtil.changeValuesToControl({
+          formRenderUtil.setValuesToControl({
             fixedWidth: false,
             fixedHeader: true,
           });
         } else if (val === false) {
-          formRenderUtil.changeValuesToControl({
+          formRenderUtil.setValuesToControl({
             fixedRibbon: false,
           });
         }
@@ -69,7 +63,7 @@ module.exports = function () {
     userSettingsFixedRibbon() {
       return formRenderUtil.createTriStateBooleanControl(this, (val) => {
         if (val) {
-          formRenderUtil.changeValuesToControl({
+          formRenderUtil.setValuesToControl({
             fixedHeader: true,
             fixedNavigation: true,
             fixedWidth: false,
@@ -81,7 +75,7 @@ module.exports = function () {
     userSettingsFixedWidth() {
       return formRenderUtil.createTriStateBooleanControl(this, (val) => {
         if (val) {
-          formRenderUtil.changeValuesToControl({
+          formRenderUtil.setValuesToControl({
             fixedRibbon: false,
             fixedNavigation: false,
           });
@@ -90,6 +84,7 @@ module.exports = function () {
     },
 
     timeZoneControl() {
+      const fe = getFeModule(['AdpTime']);
       const $container = $('<div>');
       const $autodetected = $('<div>');
       const clientAutoDetectText = '<Autodetect>';
@@ -115,7 +110,7 @@ module.exports = function () {
         let autoDetected = '';
 
         if (optionString === clientAutoDetectText) {
-          autoDetected = guessTimeZone();
+          autoDetected = fe.AdpTime.guessTimeZone();
           object.value = autoDetected;
           object.isClient = true;
         } else if (optionString === serverAutoDetectText) {

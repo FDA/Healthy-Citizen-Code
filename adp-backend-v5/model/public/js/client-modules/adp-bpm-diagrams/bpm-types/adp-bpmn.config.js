@@ -3,11 +3,12 @@
 
   /** @ngInject */
   function AdpBpmnConfigFactory(APP_CONFIG) {
+    var resourceUrl = APP_CONFIG.resourceUrl + '/public/js/lib/bpmn-js';
     return {
       diagramFieldName: 'definition',
       nativeName: 'BPMN Processes',
-      jsUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/bpmn-js/index.js',
-      cssUrl: APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/bpmn-js/css/style.css',
+      jsUrl: resourceUrl + '/index.js',
+      cssUrl: resourceUrl + '/css/style.css',
       libName: 'BpmnJS',
       collectionName: 'bpmnProcesses',
       emptyDiagram: [

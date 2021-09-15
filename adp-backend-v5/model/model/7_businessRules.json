@@ -37,7 +37,7 @@
             },
             "action": {
               "type": "link",
-              "link": "/#/dmnRulesEditor/:_id"
+              "link": "/dmnRulesEditor/:_id"
             },
             "permissions": "accessBusinessRules"
           },

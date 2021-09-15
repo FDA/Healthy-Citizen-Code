@@ -5,18 +5,12 @@
       AdpNotificationService,
       AdpFormDataUtils,
       ActionMessages,
+      $timeout,
+      AdpMenuService,
       ACTIONS
     ) {
       return {
-        submit: function (args, formHooks, cloneParams) {
-          return callSubmit(args, cloneParams)
-            .then(function (respData) {
-              formHooks.onComplete && formHooks.onComplete(args, respData);
-              notifySuccess(args);
-
-              return respData;
-            });
-        },
+        submit: doSubmit,
 
         apply: function (args, formHooks, cloneParams) {
           return callSubmit(args, cloneParams)
@@ -33,8 +27,45 @@
 
         cancel: function (args, formHooks) {
           formHooks.onCancel && formHooks.onCancel(args);
-        }
+        },
+
+        submitAndReload: function (args, formHooks, cloneParams) {
+          return doSubmit(args, formHooks, cloneParams)
+            .then(function (respData) {
+              AdpNotificationService.notifySuccess('Reloading page');
+              $timeout(function () {
+                window.location.reload()
+              }, 1000);
+
+              return respData;
+            });
+        },
+
+        datasetsSubmitAndUpdateMenu: function(args, formHooks, cloneParams) {
+          return doSubmit(args, formHooks, cloneParams)
+            .then(function (respData) {
+              var cur = args.row;
+              var prev = args.parentData;
+              var toUpdateMenu = (cur.favorite && prev.name !== cur.name) || (cur.favorite !== prev.favorite)
+
+              if (toUpdateMenu) {
+                AdpMenuService.generateMenu();
+              }
+
+              return respData;
+            });
+        },
       };
+
+      function doSubmit(args, formHooks, cloneParams) {
+        return callSubmit(args, cloneParams)
+          .then(function (respData) {
+            formHooks.onComplete && formHooks.onComplete(args, respData);
+            notifySuccess(args);
+
+            return respData;
+          });
+      }
 
       function callSubmit(args, cloneParams) {
         var argsWithCleanedRow = AdpFormDataUtils.transformDataBeforeSending(args);

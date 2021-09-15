@@ -93,7 +93,7 @@
           return true;
         }
 
-        return dayjs(dates.value).isSameOrBefore(dates.comparisonDate);
+        return dates.value.isSameOrBefore(dates.comparisonDate);
       },
       minImperialHeight: noopValidator,
       minImperialWeightWithOz: noopValidator,
@@ -203,8 +203,8 @@
         dayjs(args.validationRule.arguments.limit, format);
 
       var dates = {
-        value: dayjs(args.data),
-        comparisonDate: limitDate,
+        value: dayjs(args.data).startOf('minute'),
+        comparisonDate: limitDate.startOf('minute'),
       };
 
       if (!dates.value.isValid() || !dates.comparisonDate.isValid()) {

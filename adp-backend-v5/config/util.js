@@ -1,8 +1,8 @@
 const ms = require('ms');
 const _ = require('lodash');
 const nodePath = require('path');
-const {md5} = require('../lib/util/hash');
-const {PERMISSIONS} = require('../lib/access/access-config');
+const { md5 } = require('../lib/util/hash');
+const { PERMISSIONS } = require('../lib/access/access-config');
 
 const appRoot = nodePath.resolve(__dirname, '../');
 const envCollectionName = '_environment';
@@ -67,12 +67,12 @@ function getAbsolutePathsFromCommaSeparated(root, paths = '') {
 
 let envFieldsSchema;
 function getEnvFieldsSchema() {
-  if (envFieldsSchema) {
-    return envFieldsSchema;
+  if (!envFieldsSchema) {
+    // for now it's only current repo's adp.environment section in package.json
+    envFieldsSchema = _.get(require('../package.json'), 'adp.environment', {});
   }
-  // for now it's only current repo's adp.environment section in package.json
-  envFieldsSchema = _.get(require('../package.json'), 'adp.environment', {});
-  return envFieldsSchema;
+
+  return _.clone(envFieldsSchema);
 }
 
 function getConfigFromEnv() {
@@ -115,11 +115,13 @@ function getConfigFromObj(configObj) {
   const warnings = [];
   const c = {};
 
+  // Write all declared env params as is and then transform complicated ones
+  const envFieldsSchema = getEnvFieldsSchema();
+  _.each(envFieldsSchema, (field, key) => {
+    c[key] = _.isUndefined(configObj[key]) ? '' : configObj[key];
+  });
+
   c.APP_PORT = castIntEnv(configObj.APP_PORT, 8080);
-  c.APP_URL = configObj.APP_URL;
-  c.JWT_SECRET = configObj.JWT_SECRET;
-  c.MONGODB_URI = configObj.MONGODB_URI;
-  c.APP_NAME = configObj.APP_NAME;
   c.CREATE_INDEXES = castBooleanEnv(configObj.CREATE_INDEXES, true);
   c.DEVELOPMENT = castBooleanEnv(configObj.DEVELOPMENT, false);
   // Absolute paths are not error prone. Its being used in custom prototypes and tests
@@ -128,7 +130,6 @@ function getConfigFromObj(configObj) {
     ? [getAbsolutePath(appRoot, configObj.APP_MODEL_DIR)]
     : getAbsolutePathsFromCommaSeparated(appRoot, configObj.APP_SCHEMA);
 
-  c.REDIS_URL = configObj.REDIS_URL;
   c.REDIS_KEY_PREFIX = configObj.REDIS_KEY_PREFIX || 'cache';
   c.BULL_REDIS_URL = configObj.BULL_REDIS_URL || configObj.REDIS_URL;
   c.BULL_KEY_PREFIX = configObj.BULL_KEY_PREFIX || 'bull';
@@ -141,13 +142,9 @@ function getConfigFromObj(configObj) {
   c.SOCKETIO_REDIS_URL = configObj.SOCKETIO_REDIS_URL || configObj.REDIS_URL;
   c.SOCKETIO_KEY_PREFIX = configObj.SOCKETIO_KEY_PREFIX || 'socket.io';
 
-  c.API_PREFIX = configObj.API_PREFIX || '';
-  c.RESOURCE_PREFIX = configObj.RESOURCE_PREFIX || '';
-  c.FRONTEND_URL = configObj.FRONTEND_URL;
   c.CORS_ORIGIN = configObj.CORS_ORIGIN
     ? [RegExp(configObj.CORS_ORIGIN)]
     : [/https:\/\/.+\.conceptant\.com/, /http:\/\/localhost\.conceptant\.com.*/, /http:\/\/localhost.*/];
-  c.GOOGLE_API_KEY = configObj.GOOGLE_API_KEY;
   c.DATASET_RESOLVERS_EXPIRATION_TIME = getMs(configObj.DATASET_RESOLVERS_EXPIRATION_TIME || '24h');
   c.LOG_DB_URI = configObj.LOG_DB_URI || configObj.MONGODB_URI;
   c.LOG_DB_COLLECTION = configObj.LOG_DB_COLLECTION || '_journal';
@@ -162,13 +159,9 @@ function getConfigFromObj(configObj) {
   c.JWT_ACCESS_TOKEN_EXPIRES_IN = getMs(configObj.JWT_ACCESS_TOKEN_EXPIRES_IN || '10m');
   c.JWT_REFRESH_TOKEN_EXPIRES_IN = getMs(configObj.JWT_REFRESH_TOKEN_EXPIRES_IN || '90d');
 
-  c.EMAIL_HOST = configObj.EMAIL_HOST;
   c.EMAIL_PORT = castIntEnv(configObj.EMAIL_PORT);
   c.EMAIL_SECURE = castBooleanEnv(configObj.EMAIL_SECURE, false);
   c.EMAIL_POOL = castBooleanEnv(configObj.EMAIL_POOL, false);
-  c.EMAIL_USER = configObj.EMAIL_USER;
-  c.EMAIL_PASSWORD = configObj.EMAIL_PASSWORD;
-  c.EMAIL_SERVICE = configObj.EMAIL_SERVICE;
 
   c.INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_IN = getMs(configObj.INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_IN || '15m');
   c.INACTIVITY_LOGOUT_IN = getMs(configObj.INACTIVITY_LOGOUT_IN || '20m');
@@ -180,9 +173,6 @@ function getConfigFromObj(configObj) {
   }
   c.INACTIVITY_LOGOUT_REMEMBER_OLD_TOKEN_FOR = getMs(configObj.INACTIVITY_LOGOUT_REMEMBER_OLD_TOKEN_FOR || '10s');
   c.IS_INACTIVITY_LOGOUT_ENABLED = c.INACTIVITY_LOGOUT_IN > 0;
-  c.INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_FROM_SESSION_END = c.INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_IN
-    ? c.INACTIVITY_LOGOUT_IN - c.INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_IN
-    : 0;
   c.INACTIVITY_LOGOUT_FE_PING_INTERVAL =
     getMs(configObj.INACTIVITY_LOGOUT_FE_PING_INTERVAL) || Math.round(c.INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_IN / 3);
 
@@ -267,18 +257,129 @@ function getConfigFromObj(configObj) {
 
   c.CREDENTIALS_PASSWORD = configObj.CREDENTIALS_PASSWORD && md5(configObj.CREDENTIALS_PASSWORD);
 
-  c.DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT = castIntEnv('DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT') || 3000;
-  c.DATA_EXPORT_INSTANT_DOWNLOADING_TIMEOUT_MESSAGE =
-    configObj.DATA_EXPORT_INSTANT_DOWNLOADING_TIMEOUT_MESSAGE ||
-    "This export is taking too long. Once it's completed you can download it from <URL>";
-
   c.TRINO_SCHEMA_GUESS_ROWS = castIntEnv('TRINO_SCHEMA_GUESS_ROWS') || 10;
 
-  c.TRINO_URI = configObj.TRINO_URI;
-  c.TRINO_CATALOG = configObj.TRINO_CATALOG;
-  c.TRINO_SCHEMA = configObj.TRINO_SCHEMA;
+  c.DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT = castIntEnv('DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT') || 3000;
+  c.DATA_EXPORT_INSTANT_DOWNLOADING_TIMEOUT_MESSAGE =
+    process.env.DATA_EXPORT_INSTANT_DOWNLOADING_TIMEOUT_MESSAGE ||
+    "This export is taking too long. Once it's completed you can download it from <URL>";
+
+  c.DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT = getMs(configObj.DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT || '3s');
+
+  c.HIDE_ERROR_MESSAGES_AFTER_LOGOUT_IN = getMs(configObj.HIDE_ERROR_MESSAGES_AFTER_LOGOUT_IN || '5s');
 
   return { config: c, errors, warnings };
+}
+
+function getDevEnvInfo() {
+  const c = {};
+
+  c.APP_PORT = { required: false, type: 'Number' };
+  c.API_URL = { required: true, type: 'String' };
+  c.JWT_SECRET = { required: true, type: 'String' };
+  c.MONGODB_URI = { required: true, type: 'String' };
+  c.APP_NAME = { required: true, type: 'String' };
+  c.APP_VERSION = { required: false, type: 'String' };
+  c.CREATE_INDEXES = { required: false, type: 'Boolean' };
+  c.DEVELOPMENT = { required: false, type: 'Boolean' };
+  c.LOG4JS_CONFIG = { required: false, type: 'String' };
+  c.APP_SCHEMA = { required: false, type: 'String' };
+
+  c.REDIS_URL = { required: false, type: 'String' };
+  c.REDIS_KEY_PREFIX = { required: false, type: 'String' };
+  c.BULL_REDIS_URL = { required: false, type: 'String' };
+  c.BULL_KEY_PREFIX = { required: false, type: 'String' };
+  c.SESSIONS_REDIS_URL = { required: false, type: 'String' };
+  c.SESSIONS_KEY_PREFIX = { required: false, type: 'String' };
+  c.SOCKETIO_REDIS_URL = { required: false, type: 'String' };
+  c.SOCKETIO_KEY_PREFIX = { required: false, type: 'String' };
+
+  c.APP_SUFFIX = { required: false, type: 'String' };
+  c.API_PREFIX = { required: false, type: 'String' };
+  c.RESOURCE_PREFIX = { required: false, type: 'String' };
+  c.FRONTEND_URL = { required: true, type: 'String' };
+  c.CORS_ORIGIN = { required: false, type: 'String' };
+  c.GOOGLE_API_KEY = { required: false, type: 'String' };
+  c.DATASET_RESOLVERS_EXPIRATION_TIME = { required: false, type: 'String(ms format) or Number' };
+  c.LOG_DB_URI = { required: false, type: 'String' };
+  c.LOG_DB_COLLECTION = { required: false, type: 'String' };
+  c.ES_NODES = { required: false, type: 'Comma-separated String' };
+  c.ES_MAX_RETRIES = { required: false, type: 'Number' };
+  c.BUILD_APP_MODEL_CODE_ON_START = { required: false, type: 'Boolean' };
+  c.USE_FARMHASH = { required: false, type: 'Boolean' };
+  c.SEND_RTC_ON_MONGODB_CHANGE = { required: false, type: 'Boolean' };
+  c.USER_SESSION_ID_TIMEOUT = { required: false, type: 'String(ms format) or Number' };
+
+  c.RESET_PASSWORD_TOKEN_EXPIRES_IN = { required: false, type: 'String(ms format) or Number' };
+  c.JWT_ACCESS_TOKEN_EXPIRES_IN = { required: false, type: 'String(ms format) or Number' };
+  c.JWT_REFRESH_TOKEN_EXPIRES_IN = { required: false, type: 'String(ms format) or Number' };
+
+  c.EMAIL_HOST = { required: 'Yes if EMAIL_SERVICE is not specified', type: 'String' };
+  c.EMAIL_PORT = { required: 'Yes if EMAIL_SERVICE is not specified', type: 'Number' };
+  c.EMAIL_SECURE = { required: false, type: 'Boolean' };
+  c.EMAIL_POOL = { required: false, type: 'Boolean' };
+  c.EMAIL_CREDENTIALS = { required: true, type: 'String' };
+  c.EMAIL_SERVICE = { required: 'Yes if EMAIL_HOST and EMAIL_PORT are not specified', type: 'String' };
+
+  c.INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_IN = { required: false, type: 'String(ms format) or Number' };
+  c.INACTIVITY_LOGOUT_IN = { required: false, type: 'String(ms format) or Number' };
+
+  c.INACTIVITY_LOGOUT_REMEMBER_OLD_TOKEN_FOR = { required: false, type: 'String(ms format) or Number' };
+  c.INACTIVITY_LOGOUT_FE_PING_INTERVAL = { required: false, type: 'String(ms format) or Number' };
+
+  c.LOGIN_MAX_FAILED_LOGIN_ATTEMPTS = { required: false, type: 'Number' };
+  c.LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME = { required: false, type: 'String(ms format) or Number' };
+  c.LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN = { required: false, type: 'String(ms format) or Number' };
+  c.LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE = { required: false, type: 'String' };
+  c.LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE = { required: false, type: 'String' };
+  c.ACCOUNT_INACTIVITY_LOCKOUT_TIME = { required: false, type: 'String(ms format) or Number' };
+  c.ACCOUNT_INACTIVITY_LOCKOUT_MESSAGE = { required: false, type: 'String' };
+  c.USER_MAX_SIMULTANEOUS_SESSIONS = { required: false, type: 'Number' };
+
+  c.AIML_RUNNER_CONCURRENCY = { required: false, type: 'Number' };
+  c.AIML_CONCURRENT_REQUEST_NUMBER = { required: false, type: 'Number' };
+  c.BPMN_RUNNER_CONCURRENCY = { required: false, type: 'Number' };
+  c.BPMN_BATCH_SIZE = { required: false, type: 'Number' };
+  c.DMN_RUNNER_CONCURRENCY = { required: false, type: 'Number' };
+  c.DMN_BATCH_SIZE = { required: false, type: 'Number' };
+  c.EXTERNAL_COMMANDS_RUNNER_CONCURRENCY = { required: false, type: 'Number' };
+  c.SCG_RUNNER_CONCURRENCY = { required: false, type: 'Number' };
+  c.BULL_REMOVE_ON_COMPLETE = { required: false, type: 'Boolean or Number' };
+  c.BULL_REMOVE_ON_FAIL = { required: false, type: 'Boolean or Number' };
+
+  c.COOKIE_SECRET = { required: false, type: 'String' };
+  c.COOKIE_SAME_SITE = { required: false, type: 'Boolean or String' };
+  c.COOKIE_SECURE = { required: false, type: 'Boolean' };
+
+  c.AUDIT_LOG_MAX_RESPONSE_SIZE = { required: false, type: 'Number' };
+  c.AUDIT_LOG_OPTIONS_REQUESTS = { required: false, type: 'Boolean' };
+  c.AUDIT_LOG_HTTP_CONTENT_TYPES = { required: false, type: 'Comma-separated String' };
+
+  c.MFA_OTP_TOTP_TOKEN_LENGTH = { required: false, type: 'Number' };
+  c.MFA_OTP_HOTP_TOKEN_LENGTH = { required: false, type: 'Number' };
+  c.MFA_OTP_MAX_TOKEN_ATTEMPTS = { required: false, type: 'Number' };
+  c.MFA_OTP_BACKUP_CODES_NUMBER = { required: false, type: 'Number' };
+  c.MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_TIME = { required: false, type: 'Number' };
+  c.MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN = { required: false, type: 'Number' };
+  c.MFA_REQUIRED = { required: false, type: 'Boolean' };
+  c.MFA_ENABLED = { required: false, type: 'Boolean' };
+  c.ACCOUNT_FORCED_PASSWORD_CHANGE_TIME = { required: false, type: 'String(ms format) or Number' };
+  c.ACCOUNT_FORCED_PASSWORD_CHANGE_REMEMBER_PASSWORDS = { required: false, type: 'Number' };
+  c.FILE_LINK_EXPIRES_IN = { required: false, type: 'String(ms format) or Number' };
+  c.CREDENTIALS_PASSWORD = { required: false, type: 'String' };
+  c.TRINO_SCHEMA_GUESS_ROWS = { required: false, type: 'Number' };
+  c.TRINO_URI = { required: false, type: 'String' };
+  c.TRINO_CATALOG = { required: false, type: 'String' };
+  c.TRINO_SCHEMA = { required: false, type: 'String' };
+
+  c.DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT = { required: false, type: 'Number' };
+  c.DATA_EXPORT_INSTANT_DOWNLOADING_TIMEOUT_MESSAGE = { required: false, type: 'String' };
+  c.DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT = { required: false, type: 'String(ms format) or Number' };
+  c.HIDE_ERROR_MESSAGES_AFTER_LOGOUT_IN = { required: false, type: 'String(ms format) or Number' };
+
+  c.TERMINAL_DISABLE_PRESETS = { required: false, type: 'Comma-separated String' };
+
+  return c;
 }
 
 // All values are of string type
@@ -309,13 +410,43 @@ function getConfigMergedWithEnvRecord(envRecord, mongodbUri) {
 }
 
 function prepareEnvironmentSchema(envSchema) {
-  const envFieldsSchema = getEnvFieldsSchema();
-  const preparedEnvFieldsSchema = _.merge({}, envSchema.fields, envFieldsSchema);
-  _.each(preparedEnvFieldsSchema, (field) => {
-    field.permissions = { read: 'viewEnvironment' };
-    field.permissions.write = field.canBeDefinedInDatabase ? 'manageEnvironment' : PERMISSIONS.accessForbidden;
-    field.visible = field.canBeDefinedInDatabase;
+  const envFieldsSchema = _.merge({}, envSchema.fields, getEnvFieldsSchema());
+
+  const envFieldsEntries = _.entries(envFieldsSchema);
+  envFieldsEntries.sort((a, b) => {
+    const [fieldNameA, { group: groupA = '' }] = a;
+    const [fieldNameB, { group: groupB = '' }] = b;
+
+    const groupCompare = groupA.localeCompare(groupB);
+    if (groupCompare !== 0) {
+      return groupCompare;
+    }
+    return fieldNameA.localeCompare(fieldNameB);
   });
+
+  const preparedEnvFieldsSchema = {};
+  let currentGroup = null;
+  _.each(envFieldsEntries, ([fieldName, field]) => {
+    field.formWidth = 6;
+    field.permissions = { read: 'accessSystemEnvironmentVariables' };
+    field.permissions.write = field.canBeDefinedInDatabase
+      ? 'manageSystemEnvironmentVariables'
+      : PERMISSIONS.accessForbidden;
+    field.visible = field.canBeDefinedInDatabase;
+
+    const group = field.group || 'Params Without Group';
+    if (field.visible && currentGroup !== group) {
+      currentGroup = group;
+      const groupFieldName = `group${_.upperFirst(_.camelCase(group))}`;
+      preparedEnvFieldsSchema[groupFieldName] = {
+        type: 'Group',
+        fullName: group,
+      };
+    }
+
+    preparedEnvFieldsSchema[fieldName] = field;
+  });
+
   envSchema.fields = preparedEnvFieldsSchema;
 }
 
@@ -343,6 +474,16 @@ function getNewConfig(newEnvRecord, previousEnvConfig) {
   return { newConfig, newEnvConfig };
 }
 
+function getFrontendConfig(wholeConfig) {
+  const includeWithBuildSchemaParams = [];
+  _.each(getEnvFieldsSchema(), (val, key) => {
+    if (val.includeWithBuildSchema === true) {
+      includeWithBuildSchemaParams.push(key);
+    }
+  });
+  return _.pick(wholeConfig, includeWithBuildSchemaParams);
+}
+
 module.exports = {
   getSchemaNestedPaths,
   getAbsolutePath,
@@ -353,5 +494,7 @@ module.exports = {
   getConfigFromEnv,
   getEnvConfig,
   getNewConfig,
+  getFrontendConfig,
+  getDevEnvInfo,
   appRoot,
 };

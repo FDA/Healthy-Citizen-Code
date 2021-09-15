@@ -26,7 +26,7 @@ module.exports = (appLib, graphQlRoute, altairRoute) => {
     // customValidateFn and customExecuteFn are necessary to add lazy dataset resolvers
     const graphqlMiddleware = graphqlHTTP((req) => ({
       schema: m.graphQLSchema,
-      graphiql: true,
+      graphiql: false,
       context: { req, appLib },
       customValidateFn: (...args) => {
         const validationErrors = graphql.validate(...args);
@@ -65,9 +65,9 @@ module.exports = (appLib, graphQlRoute, altairRoute) => {
       },
     }));
 
-    appLib.addRoute('get', m.graphQlRoute, [graphqlMiddleware]);
     appLib.addRoute('post', m.graphQlRoute, [appLib.isAuthenticated, graphqlMiddleware]);
-    const fullGraphqlRoute = appLib.getFullRoute(appLib.config.API_PREFIX, m.graphQlRoute);
+    const appBaseWithoutSlashUrl = appLib.getAppBaseUrl(false);
+    const fullGraphqlRoute = `${appBaseWithoutSlashUrl}${m.graphQlRoute}`;
     appLib.addRoute('use', m.altairRoute, [altairExpress({ endpointURL: fullGraphqlRoute })]);
   };
 

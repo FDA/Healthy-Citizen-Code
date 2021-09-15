@@ -426,7 +426,6 @@ module.exports = (appLib, graphQlRoute, altairRoute) => {
 
   m.addAll = async () => {
     const { models } = appLib.appModel;
-    const { appLookups, appTreeSelectors } = appLib;
 
     const allModelNames = _.keys(models);
     const { datasetsResolvers, datasetsModelName } = require('./datasets-collections')({ appLib });
@@ -447,6 +446,7 @@ module.exports = (appLib, graphQlRoute, altairRoute) => {
     await m.addQuickFilters();
     await addValidateFilterResolver();
 
+    const { appLookups, appTreeSelectors } = appLib;
     addLookupsQueries(models, appLookups, log);
     addTreeselectorsQueries(models, appTreeSelectors, log);
 

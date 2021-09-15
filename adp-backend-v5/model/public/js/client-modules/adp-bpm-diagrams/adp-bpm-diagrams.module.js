@@ -8,6 +8,7 @@
   function getRuleEditorController(diagramType) {
     return function (
       $scope,
+      $state,
       APP_CONFIG,
       AdpBpmHelper,
       AdpClientCommonHelper,
@@ -20,15 +21,16 @@
       ErrorHelpers
     ) {
       var vm = this;
-      var recordId = $location.$$path.split('/')[2];
+      var recordId = $state.params.uid;
       var diagram = AdpBpmHelper.getDiagramConfig(diagramType);
+      var noProperEditorMsg = 'Editor is not initialized properly';
 
       vm.isLoading = true;
       vm.saveRules = saveRulesRecord;
       vm.diskLoad = loadRulesFromDisk;
       vm.diskSave = saveRulesToDisk;
       vm.nativeName = diagram.nativeName;
-      vm.extraCSS = APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/client-modules/adp-bpm-diagrams/adp-bpm-editor.css';
+      vm.extraCSS = APP_CONFIG.resourceUrl + '/public/js/client-modules/adp-bpm-diagrams/adp-bpm-editor.css';
       vm.diagramType = diagramType;
 
       initialise();
@@ -106,14 +108,18 @@
       function openDiagram(definition) {
         var deferred = new $.Deferred();
 
-        vm.instance.importXML(definition, function (err) {
-          if (err) {
-            console.log('Could not import diagram into modeller', err);
-            deferred.reject(err);
-          } else {
-            deferred.resolve();
-          }
-        });
+        if (!vm.instance) {
+          deferred.reject(noProperEditorMsg);
+        } else {
+          vm.instance.importXML(definition, function (err) {
+            if (err) {
+              console.log('Could not import diagram into modeller', err);
+              deferred.reject(err);
+            } else {
+              deferred.resolve();
+            }
+          });
+        }
 
         return deferred;
       }
@@ -122,12 +128,14 @@
         return prepareDefinition(true)
           .then(replaceServiceTaskSingleQuotes)
           .then(function (definition) {
-          return AdpBpmHelper.putRulesRecord(diagramType, vm, definition);
-        });
+            if (definition) {
+              return AdpBpmHelper.putRulesRecord(diagramType, vm, definition);
+            }
+        })
       }
 
       function replaceServiceTaskSingleQuotes(def){
-         return def.replace(/(\{environment.services.\w+\()&#39;(.*?)&#39;(\)\})/, "$1'$2'$3");
+         return def ? def.replace(/(\{environment.services.\w+\()&#39;(.*?)&#39;(\)\})/, "$1'$2'$3") : '';
       }
 
       function loadRulesFromDisk() {
@@ -156,11 +164,13 @@
         return prepareDefinition()
           .then(replaceServiceTaskSingleQuotes)
           .then(function (definition) {
-          return AdpFileDownloader({
-            buffer: definition,
-            mimeType: 'text/xml',
-            fileName: AdpBpmHelper.getFileName(diagramType, recordId),
-          });
+            if (definition) {
+              return AdpFileDownloader({
+                buffer: definition,
+                mimeType: 'text/xml',
+                fileName: AdpBpmHelper.getFileName(diagramType, recordId),
+              });
+            }
         });
       }
 
@@ -172,10 +182,16 @@
         }
 
         return new Promise(function(resolve, reject){
-          vm.instance.saveXML({ format: true }, function (err, definition) {
-            err ? reject(err) : resolve(definition);
-          });
-        })
+          if (!vm.instance) {
+            reject(noProperEditorMsg);
+          } else {
+            vm.instance.saveXML({ format: true }, function (err, definition) {
+              err ? reject(err) : resolve(definition);
+            });
+          }
+        }).catch( function (err) {
+          AdpNotificationService.notifyError(err);
+        });
       }
     };
   }

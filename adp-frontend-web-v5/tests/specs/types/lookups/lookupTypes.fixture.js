@@ -1,5 +1,8 @@
 const uuidv4 = require('uuid/v4');
-const { createRecord } = require('../../../utils/api-helpers');
+const { getToken,
+  gql: {
+    gqlCreateRecord
+  } } = require('../../../utils');
 
 module.exports = {
   lookupLabelFixture,
@@ -9,7 +12,8 @@ module.exports = {
 async function lookupLabelFixture(page) {
   const labelText = uuidv4();
   const data = { string: labelText };
-  await createRecord(data, 'basicTypes', page);
+  const token = await getToken(page);
+  await gqlCreateRecord(token, 'basicTypes', data);
 
   return data.string;
 }
@@ -17,7 +21,8 @@ async function lookupLabelFixture(page) {
 async function lookupLabelWithFormDataFixture(page) {
   const labelText = uuidv4();
   const data = { name: labelText };
-  await createRecord(data, 'lookupWithDataAttachment', page);
+  const token = await getToken(page);
+  await gqlCreateRecord(token, 'lookupWithDataAttachment', data);
 
   return data.name;
 }

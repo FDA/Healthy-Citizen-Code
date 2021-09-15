@@ -36,9 +36,6 @@ describe("SCG job run", () => {
     await this.browser.close();
   });
 
-  beforeEach(async () => {
-  });
-
   afterEach(async () => {
     await this.page.close();
   });
@@ -66,7 +63,8 @@ describe("SCG job run", () => {
     "should find previously created job on BackgroundJobs page and remove it",
     async () => {
       this.page = await this.context.newPage();
-      await this.page.goto(getUrlFor("backgroundJobs"));
+      const paramsString = encodeURIComponent(`id=${jobId}&Operation=contains`);
+      await this.page.goto(getUrlFor(`backgroundJobs?filter=${paramsString}`));
 
       const selector = ".dx-row.dx-data-row.dx-column-lines";
       await this.page.waitForSelector(selector);

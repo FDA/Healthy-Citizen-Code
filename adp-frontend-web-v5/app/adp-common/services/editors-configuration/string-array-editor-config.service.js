@@ -10,6 +10,16 @@
     return function (args, initialValue, onValueChangeCb) {
       var fieldData = initialValue || [];
 
+      // how it works:
+      // main purpose of this code is to allow custom tags with duplicates inside tagBox
+      // all component data is stored in multiple presentation
+      // tagBox values is indexes of dataSource
+      // dataSource is store Array of { id, label }, where id is index and label is data
+      // order:
+      // when use add new tag onCustomItemCreating triggered. new item added into dataSource
+      // then onValueChanged triggered, where dataSource is mapped by 'label'
+      // result passed to onValueChangeCb, which updates form model
+      // that where real data is stored
       return {
         showClearButton: true,
         elementAttr: { class: 'adp-select-box' },
@@ -49,7 +59,7 @@
       };
     }
 
-    function onItemCreating(data){
+    function onItemCreating(data) {
       if(!data.text) {
         data.customItem = null;
         return;

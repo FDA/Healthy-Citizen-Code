@@ -7,7 +7,6 @@ const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
-  checkRestSuccessfulResponse,
   conditionForActualRecord,
   apiRequest,
 } = require('../test-util');
@@ -19,7 +18,7 @@ const {
   checkGraphQlErrorResponse,
 } = require('../graphql-util');
 
-describe('V5 TreeSelectors propagation', function () {
+describe('V5 TreeSelectors propagation', () => {
   const parent = {
     _id: ObjectID('5c6d437f9ea7665b9d924b00'),
     name: 'parent',
@@ -80,32 +79,28 @@ describe('V5 TreeSelectors propagation', function () {
     await this.db.close();
   });
 
-  beforeEach(function () {
-    return Promise.all([
+  beforeEach(async function () {
+    await Promise.all([
       this.db.collection('treeCollection').deleteMany({}),
       this.db.collection('model11treeselector_propagation').deleteMany({}),
       this.db.collection('users').deleteMany({}),
       this.db.collection('mongoMigrateChangeLog').deleteMany({}),
-    ])
-      .then(() =>
-        Promise.all([
-          this.db.collection('treeCollection').insertMany([parent, child1, child2]),
-          this.db.collection('model11treeselector_propagation').insertOne(model11treeselectorSample),
-        ])
-      )
-      .then(() => {
-        setAppAuthOptions(this.appLib, {
-          requireAuthentication: false,
-        });
-        return this.appLib.setup();
-      });
+    ]);
+    await Promise.all([
+      this.db.collection('treeCollection').insertMany([parent, child1, child2]),
+      this.db.collection('model11treeselector_propagation').insertOne(model11treeselectorSample),
+    ]);
+    setAppAuthOptions(this.appLib, {
+      requireAuthentication: false,
+    });
+    return this.appLib.setup();
   });
 
   afterEach(function () {
     return this.appLib.shutdown();
   });
 
-  describe(`should update TreeSelector lookups labels and data when parent's record is updated`, function () {
+  describe(`should update TreeSelector lookups labels and data when parent's record is updated`, () => {
     const docId = parent._id.toString();
     const modelName = 'treeCollection';
     const record = {
@@ -157,11 +152,6 @@ describe('V5 TreeSelectors propagation', function () {
         ...conditionForActualRecord,
       });
     };
-    const restSettings = {
-      makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
-      checkResponse: checkRestSuccessfulResponse,
-      checkTreeselectorPropagation,
-    };
     const graphqlSettings = {
       makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
       checkResponse: checkGraphQlSuccessfulResponse,
@@ -169,16 +159,12 @@ describe('V5 TreeSelectors propagation', function () {
     };
 
     it(
-      `REST: should update TreeSelector lookups labels and data when parent's record is updated`,
-      getTestFunc(restSettings)
-    );
-    it(
       `GraphQL: should update TreeSelector lookups labels and data when parent's record is updated`,
       getTestFunc(graphqlSettings)
     );
   });
 
-  describe(`should not allow to delete TreeSelector item with children`, function () {
+  describe(`should not allow to delete TreeSelector item with children`, () => {
     // More info about handling here: https://confluence.conceptant.com/display/DEV/Tree+Selector+Control
     const docId = parent._id.toString();
     const modelName = 'treeCollection';
@@ -201,28 +187,20 @@ describe('V5 TreeSelectors propagation', function () {
       }
     };
 
-    const restSettings = {
-      makeRequest: (r) => r.del(`/${modelName}/${docId}`),
+    const graphqlSettings = {
+      makeRequest: (r) => r.post('/graphql').send(buildGraphQlDeleteOne(modelName, docId)),
       checkResponse: (res) => {
-        res.statusCode.should.equal(409);
-
-        const { success, message } = res.body;
-        success.should.equal(false);
-        message.should.equal(
+        checkGraphQlErrorResponse(res);
+        res.body.errors[0].message.should.equal(
           `ERROR: Unable to delete this record because there are other records referring. Please update the referring records and remove reference to this record.`
         );
       },
     };
-    const graphqlSettings = {
-      makeRequest: (r) => r.post('/graphql').send(buildGraphQlDeleteOne(modelName, docId)),
-      checkResponse: checkGraphQlErrorResponse,
-    };
 
-    it(`REST: should not allow to delete TreeSelector item with children`, getTestFunc(restSettings));
     it(`GraphQL: should not allow to delete TreeSelector item with children`, getTestFunc(graphqlSettings));
   });
 
-  describe(`should handle TreeSelector lookups when leaf without record label field is deleted`, function () {
+  describe(`should handle TreeSelector lookups when leaf without record label field is deleted`, () => {
     // More info about handling here: https://confluence.conceptant.com/display/DEV/Tree+Selector+Control
     const getTestFunc = function (settings) {
       return f;
@@ -249,47 +227,6 @@ describe('V5 TreeSelectors propagation', function () {
     const treeDocId = child2._id.toString();
     const treeCollectionName = `treeCollection`;
     const propagationCollectionName = `model11treeselector_propagation`;
-    const restSettings = {
-      delRequest: (r) => r.del(`/${treeCollectionName}/${treeDocId}`),
-      getRequest: (r) => r.get(`/${propagationCollectionName}/${model11treeselectorSample._id.toString()}`),
-      checkGetResponse: (res) => {
-        res.body.success.should.equal(true);
-        const { data } = res.body;
-
-        should(data).be.deepEqual({
-          _id: model11treeselectorSample._id.toString(),
-          treeSelectorRequiredAllowedNode: treeSelectorDataAllItems.slice(0, 2),
-          treeSelectorRequiredNotAllowedNode: treeSelectorDataAllItems,
-          treeSelectorNotRequiredAllowedNode: treeSelectorDataAllItems.slice(0, 2),
-          treeSelectorNotRequiredNotAllowedNode: null,
-          deletedAt: new Date(0).toISOString(),
-        });
-      },
-      putRequest: (r) =>
-        r.put(`/${propagationCollectionName}/${model11treeselectorSample._id.toString()}`).send({
-          data: {
-            treeSelectorRequiredAllowedNode: treeSelectorDataAllItems,
-            treeSelectorRequiredNotAllowedNode: treeSelectorDataAllItems,
-            treeSelectorNotRequiredAllowedNode: treeSelectorDataAllItems,
-            treeSelectorNotRequiredNotAllowedNode: treeSelectorDataAllItems,
-          },
-        }),
-      checkPutResponse: (res) => {
-        const { success, message } = res.body;
-        should(success).be.equal(false);
-
-        const [cause, info] = message.split(':');
-        should(cause).be.equal('Found invalid tree selector data');
-
-        const infoMessages = info.trim().split('. ');
-        should(infoMessages).containDeep([
-          'Unable to find a chain for field "treeSelectorNotRequiredAllowedNode"',
-          'Unable to find a chain for field "treeSelectorNotRequiredNotAllowedNode"',
-          'Unable to find a chain for field "treeSelectorRequiredAllowedNode"',
-          'Unable to find a chain for field "treeSelectorRequiredNotAllowedNode"',
-        ]);
-      },
-    };
 
     const lookupFields = 'table label _id';
     const selectFields = `items { _id treeSelectorRequiredAllowedNode{${lookupFields}} treeSelectorRequiredNotAllowedNode{${lookupFields}} treeSelectorNotRequiredAllowedNode{${lookupFields}} treeSelectorNotRequiredNotAllowedNode{${lookupFields}} }`;
@@ -306,6 +243,7 @@ describe('V5 TreeSelectors propagation', function () {
             )
           ),
       checkGetResponse: (res) => {
+        checkGraphQlSuccessfulResponse(res);
         const data = res.body.data[propagationCollectionName].items[0];
 
         should(data).be.deepEqual({
@@ -329,12 +267,24 @@ describe('V5 TreeSelectors propagation', function () {
             model11treeselectorSample._id.toString()
           )
         ),
-      checkPutResponse: checkGraphQlErrorResponse,
+      checkPutResponse: (res) => {
+        checkGraphQlErrorResponse(res);
+        const { message } = res.body.errors[0];
+        const errorStart = 'Found invalid tree selector data:';
+        should(message).startWith(errorStart);
+        const errorsArray = message
+          .replace('Found invalid tree selector data:', '')
+          .split('.')
+          .map((e) => e.trim());
+        should(errorsArray).containDeep([
+          'Unable to find a chain for field "treeSelectorNotRequiredAllowedNode"',
+          'Unable to find a chain for field "treeSelectorNotRequiredNotAllowedNode"',
+          'Unable to find a chain for field "treeSelectorRequiredAllowedNode"',
+          'Unable to find a chain for field "treeSelectorRequiredNotAllowedNode"',
+        ]);
+      },
     };
-    it(
-      `REST: should handle TreeSelector lookups when leaf without record label field is deleted`,
-      getTestFunc(restSettings)
-    );
+
     it(
       `GraphQL: should handle TreeSelector lookups when leaf without record label field is deleted`,
       getTestFunc(graphqlSettings)

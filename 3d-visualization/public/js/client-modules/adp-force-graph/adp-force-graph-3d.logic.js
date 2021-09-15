@@ -127,7 +127,7 @@
         },
       };
 
-      if (APP_CONFIG.ALLOW_PERFORMANCE_MONITOR === 'true') {
+      if (APP_CONFIG.allowPerformanceMonitor === 'true') {
         vm.performanceMonitor = {
           show: false,
           run: false,
@@ -169,8 +169,8 @@
       };
 
       if (typeof ForceGraph === 'undefined') {
-        var jsCodePath = APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/force-graph/index.js';
-        var cssStylesPath = APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/force-graph/css/style.css?v1';
+        var jsCodePath = APP_CONFIG.resourceUrl + '/public/js/lib/force-graph/index.js';
+        var cssStylesPath = APP_CONFIG.resourceUrl + '/public/js/lib/force-graph/css/style.css?v1';
 
         // This polyfill is to fix pure WebXR support in Chrome 79
         if (navigator && navigator.xr && !_.isFunction(navigator.xr.requestDevice)) {
@@ -401,7 +401,7 @@
         vm.exportingHtml = true;
         $.when
           .apply(this, [
-            $http.get(APP_CONFIG.serverBaseUrl + APP_CONFIG.apiPrefix + '/public/js/lib/force-graph/export-template.html'),
+            $http.get(APP_CONFIG.resourceUrl + '/public/js/lib/force-graph/export-template.html'),
             doLoadData()
           ])
           .then(function (res1, graphRawData) {
@@ -665,7 +665,7 @@
           });
         }
 
-        if (APP_CONFIG.ALLOW_PERFORMANCE_MONITOR === 'true') {
+        if (APP_CONFIG.allowPerformanceMonitor === 'true') {
           vm.performanceMonitor.component = createStats();
           $('#fg3d-performance-monitor').append(vm.performanceMonitor.component.domElement);
           renderStats();
@@ -709,7 +709,7 @@
       }
 
       function createStats() {
-        if (APP_CONFIG.ALLOW_PERFORMANCE_MONITOR === 'true') {
+        if (APP_CONFIG.allowPerformanceMonitor === 'true') {
           var stats = new window.Stats;
           stats.setMode(0);
 
@@ -724,7 +724,7 @@
       }
 
       function renderStats() {
-        if (APP_CONFIG.ALLOW_PERFORMANCE_MONITOR === 'true') {
+        if (APP_CONFIG.allowPerformanceMonitor === 'true') {
           if (vm.performanceMonitor.show) {
             requestAnimationFrame(renderStats);
             vm.performanceMonitor.component.update();

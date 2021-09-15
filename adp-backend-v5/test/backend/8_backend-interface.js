@@ -7,7 +7,7 @@ require('should');
 const assert = require('assert');
 const { prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
-describe('V5 Backend Routes Functionality', function () {
+describe('V5 Backend Routes Functionality', () => {
   before(async function () {
     this.appLib = prepareEnv();
 
@@ -23,7 +23,7 @@ describe('V5 Backend Routes Functionality', function () {
     await db.close();
   });
 
-  describe('GET /lists', function () {
+  describe('GET /lists', () => {
     it('responds with list of lists', function (done) {
       apiRequest(this.appLib)
         .get('/lists')

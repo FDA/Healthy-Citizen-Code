@@ -33,7 +33,7 @@
     vm.loading = true;
 
     if (!window.XTerm || !window.XTermAttach) {
-      var libPath = APP_CONFIG.serverBaseUrl + APP_CONFIG.resourcePrefix + '/public/js/lib/xterm'
+      var libPath = APP_CONFIG.resourceUrl + '/public/js/lib/xterm'
 
       AdpClientCommonHelper.loadCss(libPath + '/css/style.css');
       promises.push(AdpClientCommonHelper.loadScript(libPath + '/index.js'));
@@ -83,6 +83,9 @@
       },
       connection: function () {
         emit('reconnect')
+      },
+      error: function( data ) {
+        AdpNotificationService.notifyError(data.error);
       }
     }
 
