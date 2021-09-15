@@ -162,15 +162,23 @@ angular.module('SmartAdmin.Layout').directive('smartLayout', function (
             }
 
           function handleBodyClasses(state) {
-            var CLASS_PREFIX = 'page-', pageClass;
+            var CLASS_PREFIX = 'page-';
+            var pageClasses = [];
             var regex = new RegExp('(^|\\s)' + CLASS_PREFIX + '\\S+', 'g');
 
             $body.removeClass(function(index, className) {
               return (className.match(regex) || []).join(' ').trim();
             });
 
-            pageClass = state.name.replace(/\./g, '-');
-            $body.addClass(CLASS_PREFIX + pageClass);
+            if (state.data.cssClass) {
+              pageClasses = _.compact(state.data.cssClass.split(' '));
+            }
+
+            pageClasses.push(state.name.replace(/\./g, '-'));
+
+            $body.addClass(_.map(pageClasses, function(className){
+              return CLASS_PREFIX + className;
+            }).join(' '));
           }
 
             $transitions.onStart(null, function(trans) {

@@ -49,6 +49,26 @@ module.exports = (appLib) => {
     return val.toString();
   }
 
+  async function _keepDbValue(context, next) {
+    const { path, row, modelName } = context;
+    let currentRecord;
+
+    if (row._id) {
+      const { record } = await appLib.db.collection(modelName).hookQuery('findOne', { _id: ObjectId(row._id) });
+      currentRecord = record;
+
+      if (!currentRecord) {
+        return next(`Unable to find record with _id=${row._id} while trying to handling the ${path}`);
+      }
+
+      const currentValue = _.get(currentRecord, path);
+
+      _.set(row, path, currentValue);
+    }
+
+    next();
+  }
+
   const m = {
     /** Special transformer doing nothing, allows to specify 'null' in transformer array ['null', 'postTransformer'].
      * Value null is not appropriate since .xls transformer has null values cast to 'null'.
@@ -185,69 +205,23 @@ module.exports = (appLib) => {
       }
       next();
     },
-    async encryptValue(next) {
-      const { path, row, data: newValue, modelName } = this;
-      let currentRecord;
+    encryptValue(next) {
+      const { path, row, data: newValue } = this;
 
-      if (row._id) {
-        const { record } = await appLib.db.collection(modelName).hookQuery('findOne', { _id: ObjectId(row._id) });
-        currentRecord = record;
-        if (!currentRecord) {
-          return next(`Unable to find record with _id=${row._id} while trying to handling the ${path}`);
-        }
-      }
-
-      const currentCrypt = _.get(currentRecord, path);
-      let currentValue;
-
-      if (currentCrypt) {
+      if (newValue) {
         try {
-          currentValue = appLib.crypto.decrypt(currentCrypt);
+          _.set(row, path, appLib.crypto.encrypt(newValue));
         } catch (err) {
-          return next(`Unable to decrypt value of ${path}. ${err.message}`);
+          return next(`Unable to encrypt value of ${path}. ${err.message}`);
         }
-      }
-
-      const isSameValue = !newValue || newValue === currentValue;
-
-      if (isSameValue) {
-        return next();
-      }
-
-      if (_.isUndefined(newValue)) {
-        // this happens when record is being updated, but the field is not a part of the update.
-        _.set(row, path, currentCrypt);
-        return next();
-      }
-
-      try {
-        _.set(row, path, appLib.crypto.encrypt(newValue));
-      } catch (err) {
-        return next(`Unable to encrypt value of ${path}. ${err.message}`);
+      } else {
+        return _keepDbValue(this, next);
       }
 
       next();
     },
-    async keepDbValue(next) {
-      const { path, row, modelName } = this;
-      let currentRecord;
-
-      if (row._id) {
-        const { record } = await appLib.db.collection(modelName).hookQuery('findOne', { _id: ObjectId(row._id) });
-        currentRecord = record;
-
-        if (!currentRecord) {
-          return next(`Unable to find record with _id=${row._id} while trying to handling the ${path}`);
-        }
-
-        const currentValue = _.get(currentRecord, path);
-
-        _.set(row, path, currentValue);
-
-        return next();
-      }
-
-      next();
+    keepDbValue(next) {
+      return _keepDbValue(this, next);
     },
     time(next) {
       const { path, row, data } = this;

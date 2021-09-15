@@ -23,7 +23,9 @@ const connectSwagger = (appLib) => {
 };
 
 function getSwaggerConfig(appLib) {
-  const baseConfig = getBaseSwaggerConfig();
+  const { APP_SUFFIX, API_PREFIX } = appLib.config;
+  const basePath = `${APP_SUFFIX}${API_PREFIX}`;
+  const baseConfig = getBaseSwaggerConfig(basePath);
 
   const { models } = appLib.appModel;
   const crudRoutesConfig = getCrudRoutesConfig(models);
@@ -57,7 +59,7 @@ function getSwaggerConfig(appLib) {
  * This config is aware of other configs tags since it manages the order of tags.
  * @returns object
  */
-function getBaseSwaggerConfig() {
+function getBaseSwaggerConfig(basePath) {
   return {
     swagger: '2.0',
     info: {
@@ -83,7 +85,7 @@ All responses are wrapped in envelop:
       email: 'connect@conceptant.com',
     },
     version: '1.0',
-    basePath: '/',
+    basePath,
     schemes: ['http', 'https'],
     consumes: ['application/json'],
     produces: ['application/json'],

@@ -2,7 +2,7 @@
  * Implement user authentication and authorization
  * @returns {{}}
  */
-const log = require('log4js').getLogger('lib/user-controller');
+const log = require('log4js').getLogger('user-controller');
 const { ObjectID } = require('mongodb');
 const _ = require('lodash');
 const mem = require('mem');
@@ -580,7 +580,7 @@ module.exports = (appLib) => {
       await sendMail(forgotPasswordMail);
       res.json({ success: true, message: `An e-mail has been sent to ${email} with further instructions.` });
     } catch (e) {
-      log.error(`Something went wrong while handling forgot password`, e.stack);
+      log.error(`Something went wrong while handling forgot password.`, e.stack);
       res.json({ success: false, message: `Something went wrong, try again later or contact support.` });
     }
   };

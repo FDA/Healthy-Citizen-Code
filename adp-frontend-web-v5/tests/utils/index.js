@@ -1,5 +1,4 @@
 const config = require('../test_config')();
-const appConfig = require('../app_config')();
 const fetch = require("node-fetch");
 const _ = require("lodash");
 
@@ -232,10 +231,11 @@ async function addArrayItem(arr, page) {
 }
 
 async function getResponseByPath(page, path, url = "graphql") {
+  const { apiUrl } = await require('../app_config')();
   const response = await page.waitForResponse(
     response => {
       const req = response.request();
-      return response.url() === `${appConfig.apiUrl}/${url}` && req.method() === "POST";
+      return response.url() === `${apiUrl}/${url}` && req.method() === "POST";
     }
   );
 
@@ -248,7 +248,11 @@ async function getResponseForCreatedRecord(collectionName, page) {
 }
 
 async function getRequestForCreatedRecord(page) {
-  const response = await page.waitForResponse(`${appConfig.apiUrl}/graphql`);
+  const { apiUrl } = await require('../app_config')();
+  const response = await page.waitForResponse(
+    response => response.url() === `${apiUrl}/graphql` && response.status() === 200
+  );
+
   const request = JSON.parse(response.request().postData());
 
   return request.variables.record;
@@ -316,7 +320,8 @@ async function getToken(page) {
 }
 
 async function fetchPost(token, post) {
-  return fetch(appConfig.apiUrl + "/graphql", {
+  const { apiUrl } = await require('../app_config')();
+  return fetch(apiUrl + "/graphql", {
     method: "POST",
     headers: {
       Accept: "application/json",
@@ -330,14 +335,14 @@ async function fetchPost(token, post) {
 
 async function gqlCreateRecord(token, collectionName, data) {
   const post = {
-    query: "mutation m($record: basicTypesDatesInputWithoutId) {" + collectionName + "Create (record: $record) { _id }}",
+    query: `mutation m($record: ${collectionName}InputWithoutId) {${collectionName}Create (record: $record) { _id }}`,
     variables: {
       record: data
     }
   };
   const json = await fetchPost(token, post);
 
-  return json.data[collectionName + "Create"];
+  return json.data[`${collectionName}Create`];
 }
 
 async function gqlEmptyRecord(token, collectionName, id) {

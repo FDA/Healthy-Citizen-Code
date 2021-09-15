@@ -6,8 +6,6 @@ const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
-  checkRestSuccessfulResponse,
-  checkRestErrorResponse,
   apiRequest,
 } = require('../test-util');
 const {
@@ -171,19 +169,11 @@ describe('V5 Backend List Permissions', () => {
               objectListWithReferenceAndNoCustomScopes: 'val3',
               objectListWithReferenceAndCustomScopes: 'val4',
             };
-            const restSettings = {
-              makeRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
-              checkResponse: checkRestSuccessfulResponse,
-            };
             const graphqlSettings = {
               makeRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
               checkResponse: checkGraphQlSuccessfulResponse,
             };
 
-            it(
-              'REST: should allow admin to create item with any valid list values',
-              getCreateItemTestFunc(restSettings)
-            );
             it(
               'GraphQL: should allow admin to create item with any valid list values',
               getCreateItemTestFunc(graphqlSettings)
@@ -198,19 +188,11 @@ describe('V5 Backend List Permissions', () => {
               objectListWithReferenceAndCustomScopes: 'invalid4',
             };
 
-            const restSettings = {
-              makeRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
-              checkResponse: checkRestErrorResponse,
-            };
             const graphqlSettings = {
               makeRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
               checkResponse: checkGraphQlErrorResponse,
             };
 
-            it(
-              'REST: should not allow admin to create item with invalid list values',
-              getCreateItemTestFunc(restSettings)
-            );
             it(
               'GraphQL: should not allow admin to create item with invalid list values',
               getCreateItemTestFunc(graphqlSettings)
@@ -236,18 +218,6 @@ describe('V5 Backend List Permissions', () => {
               objectListWithObjectValueList: '',
               objectListWithReferenceAndNoCustomScopes: '',
               objectListWithReferenceAndCustomScopes: 'val1',
-            };
-            const restSettings = {
-              createRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
-              getCreatedDocId: (res) => {
-                res.statusCode.should.equal(200);
-                res.body.success.should.equal(true);
-                const docId = res.body.id;
-                docId.should.not.be.empty();
-                return docId;
-              },
-              updateRequest: (r, docId) => r.put(`/${modelName}/${docId}`).send({ data: record }),
-              checkUpdate: checkRestSuccessfulResponse,
             };
             const graphqlSettings = {
               createRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
@@ -284,10 +254,6 @@ describe('V5 Backend List Permissions', () => {
             };
 
             it(
-              'REST: should allow user to create and update item with list values available for that user',
-              getCreateAndUpdateItemTestFunc(restSettings)
-            );
-            it(
               'GraphQL: should allow user to create and update item with list values available for that user',
               getCreateAndUpdateItemTestFunc(graphqlSettings)
             );
@@ -300,19 +266,11 @@ describe('V5 Backend List Permissions', () => {
               objectListWithReferenceAndNoCustomScopes: 'val3',
               objectListWithReferenceAndCustomScopes: 'val4',
             };
-            const restSettings = {
-              makeRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
-              checkResponse: checkRestSuccessfulResponse,
-            };
             const graphqlSettings = {
               makeRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
               checkResponse: checkGraphQlSuccessfulResponse,
             };
 
-            it(
-              'REST: should not allow user to create item with list values not available for that user',
-              getCreateItemTestFunc(restSettings)
-            );
             it(
               'GraphQL: should not allow user to create item with list values not available for that user',
               getCreateItemTestFunc(graphqlSettings)

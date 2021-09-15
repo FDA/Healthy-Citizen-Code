@@ -91,6 +91,7 @@
     "otpauth": "^7.0.3",
     "p-event": "^4.2.0",
     "parseurl": "^1.3.3",
+    "pretty": "^2.0.0",
     "qrcode": "^1.4.4",
     "query-string": "^7.0.0",
     "randexp": "^0.5.3",
@@ -184,7 +185,7 @@
   },
   "jest-runner-mocha": {
     "cliOptions": {
-      "timeout": 15000
+      "timeout": 35000
     },
     "coverageOptions": {}
   },
@@ -202,7 +203,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Basic"
       },
       "APP_PORT": {
         "fullName": "Backend Port",
@@ -216,15 +219,20 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "8080"
+        "includeWithBuildSchema": false,
+        "default": "8080",
+        "group": "Basic"
       },
-      "APP_URL": {
+      "API_URL": {
         "fullName": "Application URL",
         "description": "The URL of the backend (including HTTP Basic Auth login and password). Used for dynamic lists in case list name starts with '/'",
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": true,
+        "required": "this.row.canBeDefinedInDatabase === true",
+        "group": "Basic"
       },
       "JWT_SECRET": {
         "fullName": "Jwt secret",
@@ -232,7 +240,19 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Auth"
+      },
+      "APP_VERSION": {
+        "fullName": "App version",
+        "description": "The version of the application.",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Basic"
       },
       "APP_NAME": {
         "fullName": "App name",
@@ -240,7 +260,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Basic"
       },
       "CREATE_INDEXES": {
         "fullName": "Create indexes",
@@ -254,7 +276,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "true"
+        "includeWithBuildSchema": false,
+        "default": "true",
+        "group": "Basic"
       },
       "DEVELOPMENT": {
         "fullName": "Development",
@@ -268,7 +292,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "false"
+        "includeWithBuildSchema": false,
+        "default": "false",
+        "group": "Basic"
       },
       "LOG4JS_CONFIG": {
         "fullName": "Log4js config",
@@ -276,7 +302,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Logs"
       },
       "APP_MODEL_DIR": {
         "fullName": "App model dir",
@@ -284,7 +312,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Basic"
       },
       "APP_SCHEMA": {
         "fullName": "App schema",
@@ -292,7 +322,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Basic"
       },
       "REDIS_URL": {
         "fullName": "Redis url",
@@ -300,7 +332,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Redis"
       },
       "REDIS_KEY_PREFIX": {
         "fullName": "Redis key prefix",
@@ -309,7 +343,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "cache"
+        "includeWithBuildSchema": false,
+        "default": "cache",
+        "group": "Redis"
       },
       "BULL_REDIS_URL": {
         "fullName": "Bull redis url",
@@ -317,7 +353,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Bull"
       },
       "BULL_KEY_PREFIX": {
         "fullName": "Bull key prefix",
@@ -326,7 +364,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "bull"
+        "includeWithBuildSchema": false,
+        "default": "bull",
+        "group": "Bull"
       },
       "BULL_REMOVE_ON_COMPLETE": {
         "fullName": "Bull remove on complete",
@@ -335,7 +375,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "10000"
+        "includeWithBuildSchema": false,
+        "default": "10000",
+        "group": "Bull"
       },
       "BULL_REMOVE_ON_FAIL": {
         "fullName": "Bull remove on fail",
@@ -344,7 +386,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "10000"
+        "includeWithBuildSchema": false,
+        "default": "10000",
+        "group": "Bull"
       },
       "SOCKETIO_REDIS_URL": {
         "fullName": "Socket.io redis url",
@@ -352,7 +396,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "includeWithBuildSchema": false,
+        "canBeDefinedInEnvironment": true,
+        "group": "Real-time"
       },
       "SOCKETIO_KEY_PREFIX": {
         "fullName": "Socket.io key prefix",
@@ -361,7 +407,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "socket.io"
+        "includeWithBuildSchema": false,
+        "default": "socket.io",
+        "group": "Real-time"
       },
       "SESSIONS_REDIS_URL": {
         "fullName": "Sessions redis url",
@@ -369,7 +417,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "includeWithBuildSchema": false,
+        "canBeDefinedInEnvironment": true,
+        "group": "Sessions"
       },
       "SESSIONS_KEY_PREFIX": {
         "fullName": "Sessions key prefix",
@@ -378,7 +428,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "sessions"
+        "includeWithBuildSchema": false,
+        "default": "sessions",
+        "group": "Sessions"
       },
       "BUILD_APP_MODEL_CODE_ON_START": {
         "fullName": "Build app model code on start",
@@ -392,7 +444,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "true"
+        "includeWithBuildSchema": false,
+        "default": "true",
+        "group": "Basic"
       },
       "ES_NODES": {
         "fullName": "Es nodes",
@@ -400,7 +454,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "ElasticSearch"
       },
       "ES_MAX_RETRIES": {
         "fullName": "Es max retries",
@@ -414,7 +470,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "4"
+        "includeWithBuildSchema": false,
+        "default": "4",
+        "group": "ElasticSearch"
       },
       "GOOGLE_API_KEY": {
         "fullName": "Google api key",
@@ -422,7 +480,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "includeWithBuildSchema": true,
+        "canBeDefinedInEnvironment": true,
+        "group": "Misc"
       },
       "FRONTEND_URL": {
         "fullName": "Frontend url",
@@ -430,7 +490,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "includeWithBuildSchema": false,
+        "canBeDefinedInEnvironment": true,
+        "group": "Basic"
       },
       "CORS_ORIGIN": {
         "fullName": "CORS origin",
@@ -438,7 +500,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "includeWithBuildSchema": false,
+        "canBeDefinedInEnvironment": true,
+        "group": "HTTP"
       },
       "EMAIL_SERVICE": {
         "fullName": "Email service",
@@ -446,7 +510,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "includeWithBuildSchema": false,
+        "canBeDefinedInEnvironment": true,
+        "group": "Email"
       },
       "EMAIL_HOST": {
         "fullName": "Email host",
@@ -454,7 +520,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "includeWithBuildSchema": false,
+        "canBeDefinedInEnvironment": true,
+        "group": "Email"
       },
       "EMAIL_PORT": {
         "fullName": "Email port",
@@ -467,7 +535,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "includeWithBuildSchema": false,
+        "canBeDefinedInEnvironment": true,
+        "group": "Email"
       },
       "EMAIL_SECURE": {
         "fullName": "Email secure",
@@ -481,7 +551,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "false"
+        "includeWithBuildSchema": false,
+        "default": "false",
+        "group": "Email"
       },
       "EMAIL_POOL": {
         "fullName": "Email pool",
@@ -495,23 +567,19 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "false"
+        "includeWithBuildSchema": false,
+        "default": "false",
+        "group": "Email"
       },
-      "EMAIL_USER": {
-        "fullName": "Email user",
-        "description": "Email address from which reset password emails are sent.",
-        "requiresRestart": true,
-        "requiresLogout": true,
-        "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
-      },
-      "EMAIL_PASSWORD": {
-        "fullName": "Email password",
-        "description": "Email password for EMAIL_USER",
-        "requiresRestart": true,
-        "requiresLogout": true,
-        "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+      "EMAIL_CREDENTIALS": {
+        "fullName": "Email credentials",
+        "description": "Should contain the name value of the field in _credentials collection containing the user login and password",
+        "requiresRestart": false,
+        "requiresLogout": false,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Email"
       },
       "DMN_BATCH_SIZE": {
         "fullName": "Dmn batch size",
@@ -525,7 +593,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "50"
+        "includeWithBuildSchema": false,
+        "default": "50",
+        "group": "Bpmn"
       },
       "DMN_RUNNER_CONCURRENCY": {
         "fullName": "Dmn runner concurrency",
@@ -539,7 +609,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "1"
+        "includeWithBuildSchema": false,
+        "default": "1",
+        "group": "Bpmn"
       },
       "BPMN_BATCH_SIZE": {
         "fullName": "Bpmn batch size",
@@ -553,7 +625,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "50"
+        "includeWithBuildSchema": false,
+        "default": "50",
+        "group": "Bpmn"
       },
       "BPMN_RUNNER_CONCURRENCY": {
         "fullName": "Bpmn batch size",
@@ -567,7 +641,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "1"
+        "includeWithBuildSchema": false,
+        "default": "1",
+        "group": "Bpmn"
       },
       "AIML_RUNNER_CONCURRENCY": {
         "fullName": "Aiml runner concurrency",
@@ -581,7 +657,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "1"
+        "includeWithBuildSchema": false,
+        "default": "1",
+        "group": "Aiml"
       },
       "AIML_CONCURRENT_REQUEST_NUMBER": {
         "fullName": "Aiml concurrent request number",
@@ -595,7 +673,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "5"
+        "includeWithBuildSchema": false,
+        "default": "5",
+        "group": "Aiml"
       },
       "EXTERNAL_COMMANDS_RUNNER_CONCURRENCY": {
         "fullName": "External commands processor concurrency",
@@ -608,7 +688,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "1"
+        "includeWithBuildSchema": false,
+        "default": "1",
+        "group": "Bull"
       },
       "SCG_RUNNER_CONCURRENCY": {
         "fullName": "Scg runner concurrency",
@@ -622,7 +704,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "1"
+        "includeWithBuildSchema": false,
+        "default": "1",
+        "group": "Bull"
       },
       "DATASET_RESOLVERS_EXPIRATION_TIME": {
         "fullName": "Dataset resolvers expiration time",
@@ -636,7 +720,19 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "24h"
+        "includeWithBuildSchema": false,
+        "default": "24h",
+        "group": "Misc"
+      },
+      "APP_SUFFIX": {
+        "fullName": "App suffix",
+        "description": "This variable is used when the following form of routing is used by the client to separate multiple apps: https://domain.com/appSuffix. In this configuration, client's proxy routes to the app based on the appSuffix portion of the URL and rewrites the URL by stripping this part when the call reaches the app itself. Please prepend APP_SUFFIX in all modules (including the frontend, terminal, 3d-vis, backend etc) to all URLs rendered to the user in the browser. For the backend APP_SUFFIX does not affect API and RESOURCE endpoints, it only affects endpoints which serve pages (for example /dev pages).",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": true,
+        "group": "Routing"
       },
       "API_PREFIX": {
         "fullName": "Api prefix",
@@ -644,7 +740,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": true,
+        "group": "Routing"
       },
       "RESOURCE_PREFIX": {
         "fullName": "Resource prefix",
@@ -652,7 +750,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": true,
+        "group": "Routing"
       },
       "LOG_DESTINATION": {
         "fullName": "Resource prefix",
@@ -660,7 +760,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Logs"
       },
       "LOG_DB_URI": {
         "fullName": "Log db uri",
@@ -668,7 +770,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Logs"
       },
       "LOG_DB_COLLECTION": {
         "fullName": "Log db uri",
@@ -677,7 +781,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "_journal"
+        "includeWithBuildSchema": false,
+        "default": "_journal",
+        "group": "Logs"
       },
       "SEND_RTC_ON_MONGODB_CHANGE": {
         "fullName": "Send rtc on mongodb change",
@@ -691,7 +797,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "false"
+        "includeWithBuildSchema": false,
+        "default": "false",
+        "group": "Real-time"
       },
       "RESET_PASSWORD_TOKEN_EXPIRES_IN": {
         "fullName": "Reset password token expires in",
@@ -705,7 +813,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "1h"
+        "includeWithBuildSchema": false,
+        "default": "1h",
+        "group": "Auth"
       },
       "JWT_ACCESS_TOKEN_EXPIRES_IN": {
         "fullName": "Jwt access token expires in",
@@ -719,7 +829,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "10m"
+        "includeWithBuildSchema": false,
+        "default": "10m",
+        "group": "Auth"
       },
       "JWT_REFRESH_TOKEN_EXPIRES_IN": {
         "fullName": "Jwt refresh token expires in",
@@ -733,7 +845,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "90d"
+        "includeWithBuildSchema": false,
+        "default": "90d",
+        "group": "Auth"
       },
       "JWT_ACCESS_TOKEN_REFRESH_BEFORE_EXPIRE": {
         "fullName": "Jwt access token refresh before expire",
@@ -741,7 +855,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Auth"
       },
       "INACTIVITY_LOGOUT_NOTIFICATION_APPEARS_IN": {
         "fullName": "Inactivity logout notification appears in",
@@ -755,7 +871,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "15m"
+        "includeWithBuildSchema": true,
+        "default": "15m",
+        "group": "Auth"
       },
       "INACTIVITY_LOGOUT_IN": {
         "fullName": "Inactivity logout in",
@@ -769,15 +887,19 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "20m"
+        "includeWithBuildSchema": true,
+        "default": "20m",
+        "group": "Auth"
       },
       "INACTIVITY_LOGOUT_POLLING_INTERVAL": {
         "fullName": "Inactivity logout polling interval",
         "description": "How often to poll BE for session status. Please note - this polling occurs only during the Inactivity Logout Timer dialog is on screen and its aim to catch session prolongation performed from other browser instance. So, this interval period shouldn't be too long.",
         "requiresRestart": true,
         "requiresLogout": true,
-        "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Auth"
       },
       "INACTIVITY_LOGOUT_FE_PING_INTERVAL": {
         "fullName": "Inactivity logout front end ping interval",
@@ -785,7 +907,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": true,
+        "group": "Auth"
       },
       "INACTIVITY_LOGOUT_REMEMBER_OLD_TOKEN_FOR": {
         "fullName": "Inactivity logout remember old token for",
@@ -799,7 +923,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "10s"
+        "includeWithBuildSchema": false,
+        "default": "10s",
+        "group": "Auth"
       },
       "COOKIE_SECRET": {
         "fullName": "Cookie secret",
@@ -807,7 +933,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "HTTP"
       },
       "COOKIE_SAME_SITE": {
         "fullName": "Cookie same site",
@@ -815,7 +943,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "HTTP"
       },
       "COOKIE_SECURE": {
         "fullName": "Cookie secure",
@@ -824,7 +954,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "false"
+        "includeWithBuildSchema": false,
+        "default": "false",
+        "group": "HTTP"
       },
       "AUDIT_LOG_MAX_RESPONSE_SIZE": {
         "fullName": "Audit log max response size",
@@ -838,7 +970,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "10000"
+        "includeWithBuildSchema": false,
+        "default": "10000",
+        "group": "Logs"
       },
       "AUDIT_LOG_OPTIONS_REQUESTS": {
         "fullName": "Audit log options requests",
@@ -852,7 +986,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "false"
+        "includeWithBuildSchema": false,
+        "default": "false",
+        "group": "Logs"
       },
       "AUDIT_LOG_HTTP_CONTENT_TYPES": {
         "fullName": "Audit log http content types",
@@ -861,7 +997,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "json"
+        "includeWithBuildSchema": false,
+        "default": "json",
+        "group": "Logs"
       },
       "USER_SESSION_ID_TIMEOUT": {
         "fullName": "User session id timeout",
@@ -870,7 +1008,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "1d"
+        "includeWithBuildSchema": false,
+        "default": "1d",
+        "group": "Auth"
       },
       "USE_FARMHASH": {
         "fullName": "Use farmhash",
@@ -884,7 +1024,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
         "canBeDefinedInEnvironment": true,
-        "default": "false"
+        "includeWithBuildSchema": false,
+        "default": "false",
+        "group": "Misc"
       },
       "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS": {
         "fullName": "Login max failed login attempts",
@@ -898,7 +1040,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "3"
+        "includeWithBuildSchema": false,
+        "default": "3",
+        "group": "Auth"
       },
       "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_TIME": {
         "fullName": "Login max failed login attempts time",
@@ -912,7 +1056,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "30m"
+        "includeWithBuildSchema": false,
+        "default": "30m",
+        "group": "Auth"
       },
       "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN": {
         "fullName": "Login max failed login attempts cooldown",
@@ -926,7 +1072,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "15m"
+        "includeWithBuildSchema": false,
+        "default": "15m",
+        "group": "Auth"
       },
       "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN_MESSAGE": {
         "fullName": "Login max failed login attempts cooldown message",
@@ -935,7 +1083,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "This account is temporarily disabled due to excessive number of invalid login attempts. Please try to login again later."
+        "includeWithBuildSchema": false,
+        "default": "This account is temporarily disabled due to excessive number of invalid login attempts. Please try to login again later.",
+        "group": "Auth"
       },
       "LOGIN_MAX_FAILED_LOGIN_ATTEMPTS_LOCKOUT_MESSAGE": {
         "fullName": "Login max failed login attempts lockout message",
@@ -944,7 +1094,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "This account was locked due to excessive number of incorrect logins. Please contact the system administrator in order to unlock the account."
+        "includeWithBuildSchema": false,
+        "default": "This account was locked due to excessive number of incorrect logins. Please contact the system administrator in order to unlock the account.",
+        "group": "Auth"
       },
       "ACCOUNT_INACTIVITY_LOCKOUT_TIME": {
         "fullName": "Account inactivity lockout time",
@@ -958,7 +1110,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "90d"
+        "includeWithBuildSchema": false,
+        "default": "90d",
+        "group": "Auth"
       },
       "ACCOUNT_INACTIVITY_LOCKOUT_MESSAGE": {
         "fullName": "Account inactivity lockout message",
@@ -967,7 +1121,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "This account is locked due to a long period of inactivity. Please contact the system administrator to unlock your account"
+        "includeWithBuildSchema": false,
+        "default": "This account is locked due to a long period of inactivity. Please contact the system administrator to unlock your account",
+        "group": "Auth"
       },
       "USER_MAX_SIMULTANEOUS_SESSIONS": {
         "fullName": "User max simultaneous sessions",
@@ -981,7 +1137,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "0"
+        "includeWithBuildSchema": false,
+        "default": "0",
+        "group": "Auth"
       },
       "MFA_REQUIRED": {
         "fullName": "Mfa required",
@@ -995,7 +1153,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "false"
+        "includeWithBuildSchema": false,
+        "default": "false",
+        "group": "Auth"
       },
       "MFA_ENABLED": {
         "fullName": "Mfa enabled",
@@ -1009,7 +1169,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "true"
+        "includeWithBuildSchema": false,
+        "default": "true",
+        "group": "Auth"
       },
       "MFA_OTP_BACKUP_CODES_NUMBER": {
         "fullName": "Mfa otp backup codes number",
@@ -1023,7 +1185,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "10"
+        "includeWithBuildSchema": false,
+        "default": "10",
+        "group": "Auth"
       },
       "MFA_OTP_MAX_TOKEN_ATTEMPTS": {
         "fullName": "Mfa otp max token attempts",
@@ -1036,7 +1200,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Auth"
       },
       "MFA_OTP_TOTP_TOKEN_LENGTH": {
         "fullName": "Mfa TOTP token length",
@@ -1050,7 +1216,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "6"
+        "includeWithBuildSchema": false,
+        "default": "6",
+        "group": "Auth"
       },
       "MFA_OTP_HOTP_TOKEN_LENGTH": {
         "fullName": "Mfa HOTP token length",
@@ -1064,7 +1232,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "8"
+        "includeWithBuildSchema": false,
+        "default": "8",
+        "group": "Auth"
       },
       "MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_TIME": {
         "fullName": "Mfa otp max failed login attempts time",
@@ -1073,7 +1243,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "3"
+        "includeWithBuildSchema": false,
+        "default": "3",
+        "group": "Auth"
       },
       "MFA_OTP_MAX_FAILED_LOGIN_ATTEMPTS_COOLDOWN": {
         "fullName": "Mfa otp max failed login attempts cooldown",
@@ -1081,7 +1253,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Auth"
       },
       "ACCOUNT_FORCED_PASSWORD_CHANGE_TIME": {
         "fullName": "Account forced password change time",
@@ -1090,7 +1264,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "0"
+        "includeWithBuildSchema": false,
+        "default": "0",
+        "group": "Auth"
       },
       "ACCOUNT_FORCED_PASSWORD_CHANGE_REMEMBER_PASSWORDS": {
         "fullName": "Account forced password change remember passwords",
@@ -1099,7 +1275,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "3"
+        "includeWithBuildSchema": false,
+        "default": "3",
+        "group": "Auth"
       },
       "FILE_LINK_EXPIRES_IN": {
         "fullName": "File link expires in",
@@ -1113,7 +1291,9 @@
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
         "canBeDefinedInEnvironment": true,
-        "default": "1m"
+        "includeWithBuildSchema": false,
+        "default": "1m",
+        "group": "Downloads"
       },
       "CREDENTIALS_PASSWORD": {
         "fullName": "Credentials password",
@@ -1121,7 +1301,9 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": false,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Credentials"
       },
       "TRINO_SCHEMA_GUESS_ROWS": {
         "fullName": "Trino schema guess rows",
@@ -1129,31 +1311,99 @@
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Trino"
       },
       "TRINO_URI": {
-        "fullName": "TRINO_URI",
-        "description": "TRINO_URI",
+        "fullName": "Trino uri",
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Trino"
       },
       "TRINO_CATALOG": {
-        "fullName": "TRINO_CATALOG",
-        "description": "TRINO_CATALOG",
+        "fullName": "Trino catalog",
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Trino"
       },
       "TRINO_SCHEMA": {
-        "fullName": "TRINO_SCHEMA",
-        "description": "TRINO_SCHEMA",
+        "fullName": "Trino schema",
         "requiresRestart": true,
         "requiresLogout": true,
         "canBeDefinedInDatabase": true,
-        "canBeDefinedInEnvironment": true
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Trino"
+      },
+      "DATA_EXPORT_INSTANT_DOWNLOAD_TIMEOUT": {
+        "fullName": "Data export instant download timeout",
+        "description": "Time limit after export task considered 'long running' and result will not auto downloaded",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": true,
+        "group": "Downloads"
+      },
+      "HIDE_ERROR_MESSAGES_AFTER_LOGOUT_IN": {
+        "fullName": "Hide error messages after logout in ms",
+        "description": "Wait this time and then hide all message notifications",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": true,
+        "group": "Misc"
+      },
+      "RECAPTCHA_KEY": {
+        "fullName": "Recaptcha key",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": true,
+        "group": "Misc"
+      },
+      "CAPTCHA_DISABLED": {
+        "fullName": "Captcha disabled",
+        "validate": [
+          {
+            "validator": "booleanString"
+          }
+        ],
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": true,
+        "default": "false",
+        "group": "Misc"
+      },
+      "TERMINAL_DISABLE_PRESETS": {
+        "fullName": "Terminal disable presets",
+        "description": "List of terminal presets to be disabled",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": false,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false,
+        "group": "Misc"
+      },
+      "MB_SITE_URL": {
+        "fullName": "Metabase URL",
+        "description": "The URL where Metabase is deployed. Used in AIRO main menu to include link to Metabase",
+        "requiresRestart": true,
+        "requiresLogout": true,
+        "canBeDefinedInDatabase": true,
+        "canBeDefinedInEnvironment": true,
+        "includeWithBuildSchema": false
       }
     }
   },

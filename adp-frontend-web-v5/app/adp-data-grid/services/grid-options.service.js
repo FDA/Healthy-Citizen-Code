@@ -23,7 +23,6 @@
       var presentation = {
         showBorders: true,
         showColumnLines: true,
-        wordWrapEnabled: true,
       };
       var customGridOptions = AdpGridCustomOptionsService.create();
       var other = {

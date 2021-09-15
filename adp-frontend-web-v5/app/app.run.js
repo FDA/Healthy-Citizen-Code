@@ -3,6 +3,7 @@
 
   angular.module('app')
     .run(setupUserData)
+    .run(initMainMenu)
     .run(runBlock)
     .run(setupSocketIo)
     .run(handleReturnUrlForUnauthorizedUsers)
@@ -18,6 +19,11 @@
     }
 
     $rootScope.avatar = user.avatar;
+  }
+
+  /** @ngInject */
+  function initMainMenu(AdpMenuService) {
+    AdpMenuService.generateMenu();
   }
 
   /** @ngInject */

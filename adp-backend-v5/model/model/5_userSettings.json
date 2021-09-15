@@ -17,6 +17,27 @@
       },
       "actions": {
         "fields": {
+          "updateAndReload": {
+            "fullName": "Update and Reload",
+            "permissions": "accessAsUser",
+            "position": "form.bottom",
+            "description": "Update & Reload",
+            "actionOrder": 4,
+            "action": {
+              "type": "module",
+              "link": "AdpFormActions",
+              "method": "submitAndReload"
+            },
+            "htmlAttributes": {
+              "type": "submit",
+              "className": "adp-action-b-primary"
+            }
+          },
+          "submit": {
+            "htmlAttributes": {
+              "className": "adp-action-b-tertiary"
+            }
+          },
           "update": {
             "permissions": "accessAsUser"
           },
@@ -56,10 +77,6 @@
               "left": "Menu on left side"
             }
           }
-        },
-        "headerVisible": {
-          "type": "TriStateBoolean",
-          "fullName": "Header visibility",
         },
         "fullScreenToggle": {
           "fullName": "Fullscreen button visibility",

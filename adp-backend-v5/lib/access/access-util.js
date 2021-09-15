@@ -900,40 +900,27 @@ module.exports = (appLib) => {
     return pages;
   };
 
-  m.validateListsValues = async (modelName, data, userPermissions, inlineContext) => {
+  m.validateAndTransformListsValues = async (modelName, data, userPermissions, inlineContext) => {
     const listsErrors = [];
-    // if (!appLib.getAuthSettings().enablePermissions) {
-    //   return listsErrors;
-    // }
-
-    const fieldsPathInAppModel = `${modelName}.fields`;
-
-    // transform relative paths of data to absolute paths
-    const userData = _.reduce(
-      data,
-      (result, val, key) => {
-        const fullPath = `${fieldsPathInAppModel}.${key}`;
-        result[fullPath] = val;
-        return result;
-      },
-      {}
-    );
+    const fieldsPathInAppModel = `${modelName}.fields.`;
 
     const schemaListsFields = appLib.ListsFields.filter((path) => path.startsWith(fieldsPathInAppModel));
     const allowedLists = await m.getListsForUser(userPermissions, inlineContext, schemaListsFields);
 
-    await Promise.map(Object.entries(allowedLists), ([fieldPath, list]) => validate(list, fieldPath));
+    await Promise.map(Object.entries(allowedLists), ([listFieldFullPath, list]) => {
+      const fieldPath = listFieldFullPath.slice(fieldsPathInAppModel.length).split('.fields.').join('.');
+      return validate(data, list, fieldPath);
+    });
     return listsErrors;
 
-    async function validate(list, fieldPath) {
-      const userVal = userData[fieldPath];
+    async function validate(_data, list, fieldPath) {
       if (list.dynamicList) {
         // Dynamic values of type 'List' might differ depending on 'dynamicListRequestConfig' sent from client (see accessUtil.getListForUser)
         // For now validation for this case is disabled.
         return;
       }
 
-      const fieldPathWithoutFields = fieldPath.split('.fields.').join('.');
+      const userVal = _.get(_data, fieldPath);
       if (_.isEmpty(userVal)) {
         return;
       }
@@ -942,16 +929,12 @@ module.exports = (appLib) => {
       const isArrayType = list.type.endsWith('[]');
       if (isArrayType) {
         if (!_.isArray(userVal)) {
-          listsErrors.push(`Value '${userVal}' should be an array for '${fieldPathWithoutFields}'.`);
+          listsErrors.push(`Value '${userVal}' should be an array for '${fieldPath}'.`);
         } else {
-          userVal.forEach((val) => {
-            if (!listValues[val]) {
-              listsErrors.push(`Value '${val}' is not allowed for list field '${fieldPathWithoutFields}'.`);
-            }
-          });
+          _.remove(userVal, (val) => !listValues[val]);
         }
       } else if (userVal && !listValues[userVal]) {
-        listsErrors.push(`Value '${userVal}' is not allowed for list field '${fieldPathWithoutFields}'.`);
+        listsErrors.push(`Value '${userVal}' is not allowed for list field '${fieldPath}'.`);
       }
     }
   };
@@ -1121,6 +1104,10 @@ module.exports = (appLib) => {
       _.each(authorizedModel.models, (model) => {
         m.handleModelByPermissions(model, userPermissions);
       });
+
+      if (userPermissions.has('accessRolesAndPermissions')) {
+        _.set(authorizedModel, 'interface.app.permissions', _.get(appLib.appModel, 'interface.app.permissions'));
+      }
 
       await m.injectListValues(userPermissions, inlineContext, authorizedModel.models);
       authorizedModel.interface.mainMenu = m.getMenuForUser(userPermissions, authorizedModel);

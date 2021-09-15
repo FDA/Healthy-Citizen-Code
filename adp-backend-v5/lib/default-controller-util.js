@@ -1,6 +1,7 @@
 const _ = require('lodash');
 const log = require('log4js').getLogger('lib/default-conditions-util');
 const { ObjectID } = require('mongodb');
+const { EJSON } = require('bson');
 const Promise = require('bluebird');
 const { JSONPath } = require('jsonpath-plus');
 const { MONGO, getDocValueForExpression, isValidObjectId } = require('./util/util');
@@ -19,6 +20,40 @@ module.exports = (appLib) => {
     const { items, meta } = await m.getElementsWithFilteredFields({ context, actionsToPut });
     await appLib.hooks.postHook(appModel, userContext);
     return { items, meta };
+  };
+
+  m.handleOperationsInBulk = async function (operations, session) {
+    const collectionToOperations = _.groupBy(operations, (op) => op.collection);
+    _.each(collectionToOperations, (colOps, collection) => {
+      const updateOperations = [];
+      for (let i = 0; i < colOps.length; i++) {
+        const colOp = colOps[i];
+        if (colOp.operationName === 'updateMany' || colOp.operationName === 'updateOne') {
+          updateOperations.push(colOp);
+          colOps.splice(i, 1);
+          i--;
+        }
+      }
+      const notUpdateOperations = _.map(colOps, (colOp) => ({ [colOp.operationName]: colOp.operationBody }));
+
+      // grouping by filter to make one update instead of several
+      const filterToUpdateOperations = _.groupBy(updateOperations, (op) => {
+        const { filter } = op.operationBody;
+        return `${op.operationName}${EJSON.stringify(filter)}`;
+      });
+      const mergedUpdateOperations = [];
+      _.each(filterToUpdateOperations, (sameFilterOps) => {
+        const { operationName, operationBody } = sameFilterOps[0];
+        const mergedUpdate = _.merge({}, ...sameFilterOps.map((o) => o.operationBody.update));
+        mergedUpdateOperations.push({ [operationName]: { filter: operationBody.filter, update: mergedUpdate } });
+      });
+
+      collectionToOperations[collection] = [...notUpdateOperations, ...mergedUpdateOperations];
+    });
+
+    return Promise.map(_.entries(collectionToOperations), ([collection, ops]) =>
+      appLib.db.collection(collection).bulkWrite(ops, { session, checkKeys: false })
+    );
   };
 
   m.deleteItem = async (context, session) => {
@@ -41,11 +76,10 @@ module.exports = (appLib) => {
         'Please update the referring records and remove reference to this record.';
       throw new LinkedRecordError(message, deleteInfo);
     }
-    const handleLinkedRecordsOnDeletePromises = Promise.map(deleteInfo, (info) => info.handleDeletePromise());
-    const [deletedItem] = await Promise.all([
-      appLib.dba.removeItem(modelName, mongoParams.conditions, session),
-      handleLinkedRecordsOnDeletePromises,
-    ]);
+    const deleteLabelOperations = _.flatten(_.map(deleteInfo, (info) => info.getDeleteLabelOperations()));
+    await m.handleOperationsInBulk(deleteLabelOperations, session);
+
+    const deletedItem = await appLib.dba.removeItem(modelName, mongoParams.conditions, session);
     await appLib.hooks.postHook(appModel, userContext);
     return deletedItem;
   };
@@ -61,20 +95,21 @@ module.exports = (appLib) => {
       throw new AccessError(`Unable to delete requested elements`);
     }
 
-    const deleteInfos = await Promise.map(items, (item) => m.getLinkedRecordsInfoOnDelete(item, modelName, session));
-    const flatDeleteInfos = _.flatMap(deleteInfos);
-    const isAllDeletionsValid = flatDeleteInfos.every((info) => info.isValidDelete);
+    const deleteInfosByItems = await Promise.map(items, (item) =>
+      m.getLinkedRecordsInfoOnDelete(item, modelName, session)
+    );
+    const deleteInfos = _.flatten(deleteInfosByItems);
+    const isAllDeletionsValid = deleteInfos.every((info) => info.isValidDelete);
     if (!isAllDeletionsValid) {
       const message =
         'ERROR: Unable to delete these records because there are other records referring. ' +
         'Please update the referring records and remove reference to this record.';
-      throw new LinkedRecordError(message, flatDeleteInfos);
+      throw new LinkedRecordError(message, deleteInfos);
     }
-    const handleLinkedRecordsOnDeletePromises = Promise.map(flatDeleteInfos, (info) => info.handleDeletePromise());
-    const [deletedCount] = await Promise.all([
-      appLib.dba.removeItems(modelName, mongoParams.conditions, session),
-      handleLinkedRecordsOnDeletePromises,
-    ]);
+    const deleteLabelOperations = _.flatten(_.map(deleteInfos, (info) => info.getDeleteLabelOperations()));
+    await m.handleOperationsInBulk(deleteLabelOperations, session);
+
+    const deletedCount = await appLib.dba.removeItems(modelName, mongoParams.conditions, session);
     await appLib.hooks.postHook(appModel, userContext);
     return deletedCount;
   };
@@ -454,8 +489,8 @@ module.exports = (appLib) => {
     const labelFieldsMeta = _.get(appLib.labelFieldsMeta, modelName);
     // TODO: improve efficiency by decreasing number of update requests for same records
     // TODO: one record may be updated multiple times if it has multiple lookups/treeselector linked to same scheme.
-    _.each(labelFieldsMeta, (labelReferences, label) => {
-      _.each(labelReferences, (labelReference) => {
+    for (const [label, labelReferences] of _.entries(labelFieldsMeta)) {
+      for (const labelReference of labelReferences) {
         const {
           scheme,
           paths: { itemPath, mongoPath, beforeArrPath, afterArrPath },
@@ -548,8 +583,8 @@ module.exports = (appLib) => {
           }
           updatePromises.push(updatePromise);
         }
-      });
-    });
+      }
+    }
 
     await Promise.all(updatePromises);
     return Promise.map([...updatedModels], (model) => appLib.cache.clearCacheForModel(model));
@@ -566,22 +601,23 @@ module.exports = (appLib) => {
    *  linkedCollection - collection containing reference(-s) to itemToDelete
    *  linkedLabel - label in reference
    *  linkedRecords - docs from linkedCollection containing references to itemDelete
-   *  deleteFunc - evaluating deleteFunc() deletes all references to itemToDelete from linkedRecords
+   *  getDeleteLabelOperations - array of mongo operations to delete all references to itemToDelete from linkedRecords
    * }]
    */
-  m.getLinkedRecordsInfoOnDelete = (itemToDelete, lookupTableName, session) => {
-    const promises = [];
-
+  m.getLinkedRecordsInfoOnDelete = async (itemToDelete, lookupTableName, session) => {
     const labelFieldsMeta = _.get(appLib.labelFieldsMeta, lookupTableName);
-    _.each(labelFieldsMeta, (labelReferences) => {
-      _.each(labelReferences, (labelReference) => {
-        promises.push(getLabelReferenceInfoPromise(labelReference, session));
-      });
-    });
 
-    return Promise.all(promises);
+    const labelReferencesByLabelField = await Promise.map(_.values(labelFieldsMeta), (labelReferences) =>
+      Promise.map(_.values(labelReferences), (labelReference) => getLabelReferenceInfoPromise(labelReference))
+    );
 
-    function getHandleDeletePromise(_labelReference, _session) {
+    return _.flatten(labelReferencesByLabelField);
+
+    function getDeleteLabelOperations(_labelReference, docs) {
+      if (!docs.length) {
+        return [];
+      }
+
       const {
         scheme,
         paths: { jsonPath, itemPath, mongoPath, beforeArrPath, afterArrPath },
@@ -592,42 +628,50 @@ module.exports = (appLib) => {
         required,
       } = _labelReference;
       const itemFKey = _.get(itemToDelete, foreignKey);
-      const collection = appLib.db.collection(scheme);
       const conditionForActualRecord = appLib.dba.getConditionForActualRecord(scheme);
 
       if (isMultiple && fieldType === 'LookupObjectID[]') {
-        return (docs) =>
-          collection.hookQuery(
-            'updateMany',
-            { _id: { $in: docs.map((doc) => doc._id) }, ...conditionForActualRecord },
-            { $pull: { [mongoPath]: { _id: itemFKey, table: lookupTableName } } },
-            { session: _session, checkKeys: false }
-          );
+        return [
+          {
+            collection: scheme,
+            operationName: 'updateMany',
+            operationBody: {
+              filter: { _id: { $in: docs.map((doc) => doc._id) }, ...conditionForActualRecord },
+              update: { $pull: { [mongoPath]: { _id: itemFKey, table: lookupTableName } } },
+            },
+          },
+        ];
       }
       if (!isMultiple && fieldType === 'LookupObjectID') {
         if (beforeArrPath) {
-          return (docs) =>
-            collection.hookQuery(
-              'updateMany',
-              { _id: { $in: docs.map((doc) => doc._id) }, ...conditionForActualRecord },
-              {
-                $set: {
-                  [beforeArrPath]: {
-                    [`${afterArrPath}._id`]: itemFKey,
-                    [`${afterArrPath}.table`]: lookupTableName,
+          return [
+            {
+              collection: scheme,
+              operationName: 'updateMany',
+              operationBody: {
+                filter: { _id: { $in: docs.map((doc) => doc._id) }, ...conditionForActualRecord },
+                update: {
+                  $set: {
+                    [beforeArrPath]: {
+                      [`${afterArrPath}._id`]: itemFKey,
+                      [`${afterArrPath}.table`]: lookupTableName,
+                    },
                   },
                 },
               },
-              { session: _session, checkKeys: false }
-            );
+            },
+          ];
         }
-        return (docs) =>
-          collection.hookQuery(
-            'updateMany',
-            { _id: { $in: docs.map((doc) => doc._id) }, ...conditionForActualRecord },
-            { $set: { [itemPath]: null } },
-            { session: _session, checkKeys: false }
-          );
+        return [
+          {
+            collection: scheme,
+            operationName: 'updateMany',
+            operationBody: {
+              filter: { _id: { $in: docs.map((doc) => doc._id) }, ...conditionForActualRecord },
+              update: { $set: { [itemPath]: null } },
+            },
+          },
+        ];
       }
 
       if (isMultiple && fieldType === 'TreeSelector') {
@@ -635,51 +679,51 @@ module.exports = (appLib) => {
         const allowedToSelectNodes = !requireLeafSelection;
 
         if (required && !allowedToSelectNodes) {
-          // cannot set null to required field so leave it as is
-          // but when the user will need to edit it, it won't save without user providing the required value first
-          return () => {};
+          // Cannot set null to required field so leave it as is
+          // However when the user will need to edit it, it won't be saved without user providing the required value first
+          return [];
         }
 
-        return (docs) => {
-          Promise.map(docs, (doc) => {
-            const changes = {};
-            JSONPath({
-              path: jsonPath,
-              resultType: 'pointer',
-              json: doc,
-              callback(pointer, resType, payload) {
-                let { value: treeSelector } = payload;
-                if (allowedToSelectNodes) {
-                  const deletedLookupIndex = treeSelector.findIndex(
-                    (lookup) => lookup.table === lookupTableName && lookup._id.toString() === itemFKey.toString()
-                  );
-                  if (deletedLookupIndex !== -1) {
-                    treeSelector.splice(deletedLookupIndex, treeSelector.length);
-                  }
-                } else {
-                  treeSelector = null;
+        return _.map(docs, (doc) => {
+          const changes = {};
+          JSONPath({
+            path: jsonPath,
+            resultType: 'pointer',
+            json: doc,
+            callback(pointer, resType, payload) {
+              let { value: treeSelector } = payload;
+              if (allowedToSelectNodes) {
+                const deletedLookupIndex = treeSelector.findIndex(
+                  (lookup) => lookup.table === lookupTableName && lookup._id.toString() === itemFKey.toString()
+                );
+                if (deletedLookupIndex !== -1) {
+                  treeSelector.splice(deletedLookupIndex, treeSelector.length);
                 }
-                const lodashPath = pointer.substring(1).replace(/\//g, '.');
-                changes[lodashPath] = treeSelector;
-              },
-            });
-
-            return collection.hookQuery(
-              'updateOne',
-              { _id: doc._id, ...conditionForActualRecord },
-              { $set: changes },
-              { session: _session, checkKeys: false }
-            );
+              } else {
+                treeSelector = null;
+              }
+              const lodashPath = pointer.substring(1).replace(/\//g, '.');
+              changes[lodashPath] = treeSelector;
+            },
           });
-        };
+
+          return {
+            collection: scheme,
+            operationName: 'updateOne',
+            operationBody: {
+              filter: { _id: doc._id, ...conditionForActualRecord },
+              update: { $set: changes },
+            },
+          };
+        });
       }
 
       log.warn(
         `Unable to find handler while removing item ${JSON.stringify(itemToDelete)} for labelReference ${JSON.stringify(
           _labelReference
-        )}. Resolved as empty handler`
+        )}`
       );
-      return () => {};
+      return [];
     }
 
     function getFindLinkedRecordsCondition(_labelReference) {
@@ -709,7 +753,7 @@ module.exports = (appLib) => {
       );
     }
 
-    async function getLabelReferenceInfoPromise(_labelReference, _session) {
+    async function getLabelReferenceInfoPromise(_labelReference) {
       const {
         scheme,
         paths: { itemPath },
@@ -717,23 +761,19 @@ module.exports = (appLib) => {
       } = _labelReference;
 
       const findLinkedRecordsCondition = getFindLinkedRecordsCondition(_labelReference);
-      const docs = await appLib.db.collection(scheme).find(findLinkedRecordsCondition, { session: _session }).toArray();
+      const linkedDocs = await appLib.db.collection(scheme).find(findLinkedRecordsCondition, { session }).toArray();
 
-      // condition to allow performing deleteFunc
-      // for now its:
-      // - not allowed to delete docs if there are linked records in LookupObjectID/LookupObjectID[]
-      // - allowed to delete docs referenced in TreeSelector
-      const isValidDelete = fieldType === 'TreeSelector' || docs.length === 0;
+      // For now it's:
+      // - not allowed to delete linkedDocs if there are linked records in LookupObjectID/LookupObjectID[]
+      // - allowed to delete linkedDocs referenced in TreeSelector
+      const isValidDelete = fieldType === 'TreeSelector' || linkedDocs.length === 0;
 
       return {
         isValidDelete,
         linkedCollection: scheme,
         linkedLabel: itemPath,
-        linkedRecords: docs.map((doc) => ({ _id: doc._id })),
-        handleDeletePromise: () => {
-          const handleDeletePromise = getHandleDeletePromise(_labelReference, _session);
-          return handleDeletePromise(docs);
-        },
+        linkedRecords: linkedDocs.map((doc) => ({ _id: doc._id })),
+        getDeleteLabelOperations: () => getDeleteLabelOperations(_labelReference, linkedDocs),
       };
     }
   };

@@ -1,10 +1,11 @@
 const request = require('request');
-const APP_CONFIG = require('../config').APP_CONFIG();
+const _ = require('lodash');
+const envConfig = require('../config').getEnvConfig();
 
 function requestPromise(options) {
   return new Promise((resolve, reject) => {
     request(options, (error, response, body) => {
-      if (APP_CONFIG.debug) {
+      if (envConfig.debug) {
         console.log('----------------- START LOG -----------------');
         console.log('Request params', JSON.stringify(options, null, 2));
         console.log('Response params', JSON.stringify(response, null, 2));
@@ -12,11 +13,12 @@ function requestPromise(options) {
       }
 
       if (error || response.statusCode > 200) {
-        reject(`Request to ${options.url} rejected.`, error);
+        const errorMessage = _.get(error, 'message', '');
+        return reject(new Error(`Request to ${options.url} rejected.\n${errorMessage}`));
       }
       resolve(body);
-    })
-  })
+    });
+  });
 }
 
 module.exports = requestPromise;

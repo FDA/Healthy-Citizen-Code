@@ -11,6 +11,7 @@ const {
   fillArrayEditors,
   waitForGridLoaded,
   clickOutsideOfGridToTriggerSubmit,
+  clickAddRowButton,
   dataGenerators: {
     randomString,
     // randomInt32,
@@ -41,7 +42,7 @@ describe('Cell Editors: Array types', () => {
     async () => {
       const record = generateRecord();
 
-      await this.page.click('.dx-datagrid-addrow-button');
+      await clickAddRowButton(this.page);
       await fillArrayEditors(record, this.page);
 
       await clickOutsideOfGridToTriggerSubmit(this.page);

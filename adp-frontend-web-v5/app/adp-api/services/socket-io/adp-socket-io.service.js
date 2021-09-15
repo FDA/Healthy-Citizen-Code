@@ -115,8 +115,8 @@
       }
 
       socketLog('Connect attempt...');
-      var socketPath = _.compact([APP_CONFIG.appSuffix, APP_CONFIG.apiPrefix]).join('');
 
+      var socketPath = _.compact([APP_CONFIG.appSuffix, APP_CONFIG.apiPrefix]).join('');
       activeSocket = io(APP_CONFIG.serverBaseUrl, {
         path: socketPath + '/socket.io',
         forceNew: true,

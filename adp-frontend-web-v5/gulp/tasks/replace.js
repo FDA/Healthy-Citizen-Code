@@ -3,68 +3,70 @@ const gulp = require('gulp');
 const replace = require('gulp-replace');
 const rename = require('gulp-rename');
 const _ = require('lodash');
+const streamToPromise = require('stream-to-promise');
 const requestPromise = require('../utils/request-promise');
 
 const conf = require('../config');
-const APP_CONFIG = conf.APP_CONFIG();
 
-gulp.task('html:replace', function () {
-  var endpoint = [APP_CONFIG.apiBuildUrl, 'build-app-model'].join('/');
+gulp.task('html:replace', () => {
+  const { apiBuildUrl, appSuffix, resourceUrl } = conf.getAppConfig();
+  const endpoint = [apiBuildUrl, 'build-app-model'].join('/');
 
-  var options = {
+  const options = {
     url: endpoint,
     method: 'GET',
     json: true,
   };
 
-  return requestPromise(options)
-    .then(function ({ data }) {
-      const { APP_SUFFIX } = process.env;
-      const baseUrl = APP_SUFFIX || '/';
-      const baseUrlForManifest = (APP_SUFFIX  || '') + '/';
+  return requestPromise(options).then(({ data }) => {
+    const baseUrl = appSuffix || '/';
+    const baseUrlForManifest = `${appSuffix}/`;
 
-      return replaceMeta({
-        data: { ...data, baseUrl, baseUrlForManifest },
-        srcFileName: `${conf.paths.tmp}/index.html`,
-        dstFileName: 'index.html',
-      });
+    return replaceMeta({
+      data: { ...data, baseUrl, baseUrlForManifest },
+      srcFileName: `${conf.paths.tmp}/index.html`,
+      dstFileName: 'index.html',
+      resourceUrl,
     });
+  });
 });
 
-gulp.task('sw:replace', function () {
-  const endpoint = [APP_CONFIG.apiBuildUrl, 'build-app-model'].join('/');
+gulp.task('sw:replace', () => {
+  const { apiBuildUrl, appSuffix } = conf.getAppConfig();
+  const endpoint = [apiBuildUrl, 'build-app-model'].join('/');
 
   const options = {
     url: endpoint,
     method: 'GET',
-    json: true
+    json: true,
   };
 
-  const { APP_SUFFIX } = process.env;
-  return requestPromise(options)
-    .then(({ data }) => replaceMeta({
-      data: { ...data, baseUrl: APP_SUFFIX || '' },
+  return requestPromise(options).then(({ data }) =>
+    replaceMeta({
+      data: { ...data, baseUrl: appSuffix },
       srcFileName: `${conf.paths.src}/sw-manager.js.template`,
       dstFileName: 'sw-manager.js',
-    }));
+    })
+  );
 });
 
 gulp.task('clientModules:replace', async () => {
+  const { buildResourceUrl } = conf.getAppConfig();
   const opts = {
-    url: `${APP_CONFIG.apiBuildUrlForResource}/${conf.endpoints.clientModules}`,
+    url: `${buildResourceUrl}/${conf.endpoints.clientModules}`,
     method: 'GET',
-    json: true
-  }
+    json: true,
+  };
 
   const { data } = await requestPromise(opts);
   const moduleNames = data
-    .filter(item => /.+\.module\.js$/.test(item.name))
+    .filter((item) => /.+\.module\.js$/.test(item.name))
     .map(({ name }) => {
       const fileName = name.split('/').pop();
       const [moduleName] = fileName.match(/(^|\/)[^.]+/);
-      return 'app.' + _.camelCase(moduleName);
+      return `app.${_.camelCase(moduleName)}`;
     })
-    .filter(v => !!v);
+    .filter((v) => !!v);
 
   return replaceMeta({
     data: { moduleList: JSON.stringify(moduleNames) },
@@ -73,27 +75,24 @@ gulp.task('clientModules:replace', async () => {
   });
 });
 
-function replaceMeta({ data, srcFileName, dstFileName }) {
-  let re = /{{ (.+) }}/g;
+function replaceMeta({ data, srcFileName, dstFileName, resourceUrl }) {
+  const re = /{{ (.+) }}/g;
+  const stream = gulp
+    .src(path.join(srcFileName))
+    .pipe(replace(re, replaceCb.bind(this, data)))
+    .pipe(rename(dstFileName))
+    .pipe(gulp.dest(conf.paths.tmp));
 
-  return new Promise((resolve, reject) => {
-    gulp.src(path.join(srcFileName))
-      .pipe(replace(re, replaceCb.bind(this, data)))
-      .pipe(rename(dstFileName))
-      .pipe(gulp.dest(conf.paths.tmp))
-      .on('end', resolve)
-      .on('error', reject);
-  });
-}
+  return streamToPromise(stream);
 
-function replaceCb(data, match, path) {
-  let value = _.get(data, path, null);
+  function replaceCb(_data, match, _path) {
+    let value = _.get(_data, _path, null);
 
-  if (path.indexOf('favicon') > -1) {
-    value = APP_CONFIG.resourceUrl + value;
-  } else if (path === 'interface.app.offlineModeSupport') {
-    value = value === null ? false : value;
+    if (_path.indexOf('favicon') > -1) {
+      value = resourceUrl + value;
+    } else if (_path === 'interface.app.offlineModeSupport') {
+      value = value === null ? false : value;
+    }
+    return value === null ? match : value;
   }
-
-  return value === null ? match : value;
 }

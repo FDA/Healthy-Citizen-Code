@@ -17,8 +17,8 @@
 
     function stringArray(args) {
       var value = args.data;
+      var isEmptyArray = _.isArray(value) && value.length === 0;
 
-      const isEmptyArray = _.isArray(value) && value.length === 0;
       if (value === null || isEmptyArray)  {
         return GRID_FORMAT.EMPTY_VALUE;
       }

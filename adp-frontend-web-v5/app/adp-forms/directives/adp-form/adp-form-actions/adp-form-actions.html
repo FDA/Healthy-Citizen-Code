@@ -1,4 +1,4 @@
-<footer class="adp-action-b-container">
+<footer class="adp-action-b-container" adp-ui-buttons-handle-keyboard>
   <button
     ng-repeat-start="(name, action) in actions"
     ng-if="visibleGetter(action) && ['module', 'action'].includes(action.action.type)"

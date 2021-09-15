@@ -16,6 +16,7 @@
         'fixed-navigation': true,
         'fixed-ribbon': layoutConfig.fixed.ribbon,
         'fixed-page-footer': layoutConfig.fixed.footer,
+        'header-hidden': !INTERFACE.app.header.visible,
         'smart-rtl': layoutConfig.rtlSupport,
         'colorblind-friendly': layoutConfig.colorblind,
         'background': layoutConfig.background,

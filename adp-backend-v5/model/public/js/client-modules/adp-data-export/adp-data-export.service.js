@@ -46,7 +46,9 @@
           });
           })
           .catch(function (e) {
-            ErrorHelpers.handleError(e, 'Error while exporting.');
+            if (e) {
+              ErrorHelpers.handleError(e, 'Error while exporting.');
+            }
           });
         AdpClientCommonHelper.repaintToolbar(gridComponent);
       };

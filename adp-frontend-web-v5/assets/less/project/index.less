@@ -24,6 +24,51 @@
   }
 }
 
+body.page-stick-to-screen {
+  #ribbon, #demo-setting {
+    display: none;
+  }
+  #main {
+    position: absolute!important;
+    top: 49px;
+    bottom: 34px;
+    left:0;
+    right:0;
+    min-height: 0!important;
+    margin-top: 0!important;
+    padding: 0!important;
+    overflow: hidden;
+  }
+
+  &.header-hidden #main {
+    margin-top: 0 !important;
+    top: 0;
+  }
+
+  &.menu-on-top #main {
+    margin-top: 0 !important;
+    top: 117px;
+  }
+
+  &.menu-on-top.header-hidden #main {
+    top: 69px;
+  }
+
+  #content, .well {
+    position: static;
+  }
+}
+
+@media screen and (max-width: 979px) {
+  body.menu-on-top.page-stick-to-screen #main {
+    top: 49px;
+  }
+
+  body.header-hidden.page-stick-to-screen #main {
+    top: 0!important;
+  }
+}
+
 .login-info.disabled {
   a { cursor: default; }
   a:hover { color: #c0bbb7; }
@@ -289,19 +334,77 @@ adp-ckeditor {
 .single-record-form header { padding: 0; }
 
 /* MENU */
+body.header-hidden #left-panel {
+  padding-top: 0 !important;
+}
+
 .menu-on-top #logout { display: block !important; }
+.menu-on-top nav > ul li.right-bound {
+  float: right !important;
+  & > ul {
+    right:0;
+    left:auto;
+  }
+}
+
+.menu-on-top nav li.avatar-menu-item > a {
+  &  > i.adp-icon {
+    max-width: 72px;
+    min-width: 48px;
+    height: 100%;
+    border-radius: 50%;
+  }
+
+  & > span.menu-item-body {
+    display: none;
+  }
+}
+
 #left-panel nav { overflow-y: hidden; }
 #left-panel nav > ul { max-height: 100vh; }
 
-nav ul[smart-menu] > li > a > i { position: absolute; }
+nav ul.adp-level0 > li > a > i { position: absolute; }
 nav ul span.menu-item-parent { padding-left: 30px; }
 nav>ul>li>a>i { margin-bottom: 4px; }
+nav a { cursor: pointer; }
 
-.menu-on-top nav ul[smart-menu] > li > a > i,
-.minified nav ul[smart-menu] > li > a > i { position: static; }
+.menu-on-top nav ul.adp-level0 > li > a > i,
+.minified nav ul.adp-level0 > li > a > i { position: static; }
+
+.menu-on-top nav ul.adp-level1 {
+  z-index:1;
+}
 
 .menu-on-top nav ul span.menu-item-parent { padding-left: 0; }
 .menu-on-top nav>ul>li>a>i { margin-bottom: 4px; }
+
+nav ul li > span {
+    display: block;
+    padding: 7px 15px 7px 42px;
+    position: relative;
+    overflow: hidden;
+    line-height: normal;
+    cursor:default;
+    color: #c0bbb7;
+
+  .menu-on-top & {
+    padding-left: 10px !important;
+  }
+
+  body.smart-style-6 & {
+    color: #4c4c4c!important;
+  }
+
+
+}
+
+.menu-on-top nav ul ul li > span, .menu-on-top nav ul ul ul li > span {
+  color: #4C4F53;
+}
+
+.smart-style-2.menu-on-top nav ul ul li a, .smart-style-2.menu-on-top nav ul ul ul li a {
+  color: #ADBED3 !important;
+}
 
 /* MENU-SEPARATOR */
 nav ul li.menu-item-separator {
@@ -482,6 +585,21 @@ nav ul span.menu-item-parent {
   display: none !important;
   @media (max-width: 979px) {
     display: block !important;
+  }
+}
+
+#headless-btn-nav-menu {
+  position: absolute;
+  top: 5px;
+  right: 5px;
+  z-index: 910;
+
+  i {
+    color: #2196F3 !important;
+  }
+
+  a {
+    box-shadow: none !important;
   }
 }
 
@@ -792,8 +910,8 @@ nav ul span.menu-item-parent {
 }
 
 .header-avatar {
-  width: 30px;
-  height: auto;
+  width: 29px;
+  height: 29px;
   max-height: 30px;
   margin: 10px 0 0 0;
 }
@@ -894,6 +1012,11 @@ tree-selector[data-child] > div { margin-top: 10px; padding-left: 2%; }
 
 .adp-select-box .dx-dropdowneditor-button {
   background-color: #eeeeee;
+}
+
+datetime-array-control {
+  .dx-dropdowneditor-field-template-wrapper { padding: 0; }
+  .adp-text-box .dx-texteditor-input { width: 150px; }
 }
 
 .adp-lookup-selector .adp-text-box { display: none !important; }
@@ -1132,8 +1255,6 @@ tree-selector[data-child] > div { margin-top: 10px; padding-left: 2%; }
     .adp-datagrid-cell-container {
       padding: 10px 5px 9px 5px;
       white-space: pre;
-
-      &:hover { overflow: auto; }
     }
 
     .adp-datagrid-cell-container-custom-render {
@@ -1937,10 +2058,6 @@ table.adp-grid-control-table {
 }
 
 .dx-list-select-all-checkbox {
-  // display: table-cell;
-}
-
-.dx-list-select-all-checkbox {
   float: none;
   margin: 0;
   padding: 6px;
@@ -1952,19 +2069,50 @@ table.adp-grid-control-table {
   white-space: normal;
 }
 
-.view-details-row {
-  .adp-datagrid-cell-container {
-    white-space: pre;
+.adp-datagrid-cell-container {
+  padding: 4px 6px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  max-height: 200px;
+
+  .view-details-cell & {
     overflow: auto;
-    max-height: 200px;
-    background-color: #eee;
-    border-left: 4px solid #2196F3;
-    padding: 8px 5px;
+    white-space: pre;
+    text-overflow: clip;
   }
+}
+
+adp-record-details .adp-col {
+  margin-bottom: 10px;
+}
+
+.view-details-row {
+  height: 100%;
+  background-color: #f7f7f7;
+  border-left: 4px solid #1b6075;
+
+  &:hover { background-color: #eee; }
+  &-blank { visibility: hidden; }
 }
 
 .view-details-label {
   display: flex;
+  padding: 4px 6px;
+  font-weight: 700;
+}
+
+.view-details-row-group {
+  background-color: transparent;
+  .dx-accordion-item-title {
+    font-size: 14px;
+    font-weight: 700;
+    background-color: #f7f7f7;
+
+    &:hover { background-color: #eee; }
+  }
+
+  .dx-accordion { margin: 0; }
+  .dx-accordion-item-body { padding: 12px 8px 0 8px; }
 }
 
 .view-details-cell-type-mixed {
@@ -1977,8 +2125,14 @@ table.adp-grid-control-table {
   .adp-tab-content { height: 200px; }
 
   &.view-details-cell-type-mixed-as-primitive .adp-datagrid-cell-container {
-    padding: 8px 5px;
+    padding: 4px 6px;
     max-height: 200px;
+  }
+}
+
+.view-details-cell-type-html {
+  .adp-datagrid-cell-container {
+    white-space: normal;
   }
 }
 
@@ -2046,12 +2200,35 @@ table.adp-grid-control-table {
   }
 }
 
-.form-action-register {
-  [adp-qaid-form-render-field-content='enableTwoFactor'] .btn {
-    width: 100%;
-    background-color: #f0f0f0;
-    color: black;
-    border-color: silver !important;
-    padding: 3px 10px;
+.form-action-register .btn.mfa-primary {
+  width: 100%;
+  background-color: #f0f0f0;
+  color: black;
+  border-color: silver !important;
+  padding: 3px 10px;
+}
+
+.adp-form-separator-container {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  height: 70px;
+}
+
+.adp-form-separator-line {
+  position: relative;
+  width: 100%;
+  height: 1px;
+  border-width: 1px 0 0 0;
+  border-color: black;
+  border-style: solid;
+}
+
+.view-details-row-formseparator {
+  background-color: transparent;
+  border-left: 0;
+
+  &:hover {
+    background-color: transparent;
   }
 }

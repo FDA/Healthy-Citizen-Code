@@ -4,6 +4,17 @@
   data-smart-include="app/adp-layout/partials/header.tpl.html"
   class="placeholder-header">
 </div>
+<div
+  ng-if="!vm.header.visible"
+  id="headless-btn-nav-menu"
+  class="btn-header btn-nav-menu btn-nav-menu-mobile">
+        <span>
+            <a toggle-menu title="Collapse Menu">
+                <i class="fa fa-reorder"></i>
+            </a>
+        </span>
+        <span id="header"></span> <!-- #header is required for proper functioning on smartAdmin -->
+</div>
 <!-- END HEADER -->
 
 <!-- Left panel : Navigation area -->

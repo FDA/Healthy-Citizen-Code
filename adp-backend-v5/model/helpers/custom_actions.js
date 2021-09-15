@@ -31,6 +31,13 @@ function runByRecordId(confirmMessage, successMessageFunc, errorMessageFunc) {
     .catch((error) => adpErrorHelper.handleError(error));
 }
 
+function downloadFile(fileItem) {
+  const injector = angular.element(document).injector();
+  const adpMediaTypeHelper = injector.get('AdpMediaTypeHelper');
+
+  adpMediaTypeHelper.downloadWithSaveDialog(fileItem);
+}
+
 module.exports = () => {
   const m = {
     deleteBackgroundJob() {
@@ -78,15 +85,22 @@ module.exports = () => {
       return runByRecordId.call(this, confirmMessage, successMessageFunc, errorMessageFunc);
     },
     downloadFile() {
-      const injector = angular.element(document).injector();
-      const adpMediaTypeHelper = injector.get('AdpMediaTypeHelper');
-
       if (this.row.exportType !== 'db') {
         const fileId = _.get(this.row, 'file._id');
-        const fileItem = {id: fileId};
+        const fileItem = { id: fileId };
 
-        adpMediaTypeHelper.downloadWithSaveDialog(fileItem);
+        downloadFile(fileItem);
       }
+    },
+    downloadFromExportsCollection() {
+      if (this.row.exportType === 'db') {
+        return;
+      }
+
+      downloadFile({ id: this.row.file._id });
+    },
+    downloadFromFilesCollection() {
+      downloadFile({ id: this.row._id });
     },
   };
   return m;

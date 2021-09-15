@@ -206,7 +206,7 @@ const authPart = {
   },
 };
 
-describe('V5 Backend Menu Permissions', function () {
+describe('V5 Backend Menu Permissions', () => {
   before(async function () {
     this.appLib = prepareEnv();
 
@@ -246,6 +246,7 @@ describe('V5 Backend Menu Permissions', function () {
     res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
     res.body.success.should.equal(true, res.body.message);
 
+    const menuDashboardLinkDefaults = appLib.appModel.typeDefaults.fields.MenuDashboardLink;
     const menuItemDefaults = appLib.appModel.typeDefaults.fields.MenuItem;
     const menuGroupDefaults = appLib.appModel.typeDefaults.fields.MenuGroup;
 
@@ -263,9 +264,15 @@ describe('V5 Backend Menu Permissions', function () {
     } = menuFields;
     const srcMenuFields = menuPart.interface.mainMenu.fields;
 
-    _.isEqual(menuDashboardLinkNoScopes, srcMenuFields.menuDashboardLinkNoScopes).should.be.true();
+    _.isEqual(menuDashboardLinkNoScopes, {
+      ...menuDashboardLinkDefaults,
+      ...srcMenuFields.menuDashboardLinkNoScopes,
+    }).should.be.true();
     const menuDashboardLinkWithScopesOmitted = _.omit(srcMenuFields.menuDashboardLinkWithScopes, ['scopes']);
-    _.isEqual(menuDashboardLinkWithScopes, menuDashboardLinkWithScopesOmitted).should.be.true();
+    _.isEqual(menuDashboardLinkWithScopes, {
+      ...menuDashboardLinkDefaults,
+      ...menuDashboardLinkWithScopesOmitted,
+    }).should.be.true();
     _.isUndefined(menuDashboardLinkWithImpracticableScope).should.be.true();
 
     _.isEqual(menuItemNoScopes, { ...menuItemDefaults, ...srcMenuFields.menuItemNoScopes }).should.be.true();

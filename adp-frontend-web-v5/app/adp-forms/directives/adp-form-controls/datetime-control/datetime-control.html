@@ -1,0 +1,16 @@
+<div
+  dx-tag-box="config"
+  ng-if="config"
+  field-name="{{args.fieldSchema.fieldName}}"
+>
+</div>
+
+<input
+  type="hidden"
+  ng-required="isRequired()"
+  adp-validate="args"
+  name="{{args.fieldSchema.fieldName}}"
+  ng-model="getterSetter"
+  ng-model-options="{ getterSetter: true }"
+>
+

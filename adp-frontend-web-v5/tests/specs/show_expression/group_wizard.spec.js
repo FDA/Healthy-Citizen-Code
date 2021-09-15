@@ -178,8 +178,9 @@ describe('show expression', () => {
 
         await selectDxListValue('Option2', selectName, this.page);
 
-        await clickSubmit(this.page);
-        const { _id } = await getResponseForCreatedRecord('helperMethods_showAttributeWizard', this.page);
+        const [{ _id }] = await Promise.all([
+          getResponseForCreatedRecord('helperMethods_showAttributeWizard', this.page),
+          clickSubmit(this.page)]);
         await clickEditButton(_id, this.page);
 
         await this.page.click(selectors.m3);

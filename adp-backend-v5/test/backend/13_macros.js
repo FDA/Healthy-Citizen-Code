@@ -3,7 +3,7 @@ const path = require('path');
 
 const { prepareEnv } = require('../test-util');
 
-describe('Macros', function () {
+describe('Macros', () => {
   before(async function () {
     this.appLib = prepareEnv();
   });

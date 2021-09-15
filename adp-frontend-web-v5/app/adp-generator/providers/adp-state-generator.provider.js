@@ -57,7 +57,9 @@
       createDashboards: createDashboards,
       createCustomPages: createCustomPages,
       createBuiltInStates: createBuiltInStates,
+      getDefaultStateParams: getDefaultStateParams,
       _replaceUrlParams: _replaceUrlParams,
+      linkToState: linkToState,
       findDashboard: findDashboard,
       getCurrentUser: getCurrentUser,
       $get: function() {
@@ -169,8 +171,8 @@
      *
      * @param {Object[]} menuItems
      */
-    function createDashboards(menuItems) {
-      var dashboards = findDashboard(menuItems);
+    function createDashboards(menuSchema) {
+      var dashboards = findDashboard(menuSchema.fields);
       if (!dashboards.length) return;
 
       dashboards.forEach(function (dashboard) {
@@ -206,16 +208,18 @@
     function _createDashboardState(dashboardMenuItem) {
       try {
         var state = _.clone(stateDefault);
+        var link = dashboardMenuItem.link;
+        var title = dashboardMenuItem.fullName;
 
-        state.name = dashboardMenuItem.stateName;
-        state.url = _addBaseUrlSuffix( '/' + dashboardMenuItem.link, APP_CONFIG.appSuffix);
+        state.name = linkToState(link);
+        state.url = _addBaseUrlSuffix( '/' + link, APP_CONFIG.appSuffix);
         state.data = {
           redirectStrategy: 'user',
-          title: dashboardMenuItem.title,
+          title: title,
           // intentional duplication of title to avoid compabillity issues in already implemented applications
           pageParams: {
-            title: dashboardMenuItem.title,
-            dashboardName: dashboardMenuItem.link
+            title: title,
+            dashboardName: link
           }
         };
 
@@ -402,7 +406,7 @@
      * @private
      */
     function _getPageData(schemaItem, schemaName, schemaPath) {
-      return {
+      var params = {
         title: schemaItem.fullName,
         schemaPath: schemaPath,
         // deprecated for usage outside of provide phase
@@ -411,6 +415,12 @@
         // TODO: change later
         redirectStrategy: 'user'
       };
+
+      if (schemaItem.cssClass) {
+        params.cssClass = schemaItem.cssClass;
+      }
+
+      return params;
     }
 
     /**
@@ -478,6 +488,33 @@
       }
     }
 
+    function getDefaultStateParams(menuInterface) {
+      menuInterface = menuInterface || {};
+      var state, defaultMenuItem, URL_PARAMS_REGEX = /\/:([^\/\n\r]+)/g;
+      var url;
+
+      if ('default' in menuInterface) {
+        state = {
+          url: APP_CONFIG.appSuffix + menuInterface.default,
+          stateName: linkToState(menuInterface.default)
+        };
+      } else {
+        defaultMenuItem = _findDefaultInMenu(menuInterface);
+        url = _.get(defaultMenuItem, 'link', '/');
+
+        state = {
+          url: url,
+          stateName: linkToState(url)
+        };
+      }
+
+      if (URL_PARAMS_REGEX.test(state.link)) {
+        console.error('======= Default state link ' + defaultMenuItem.link + ' can\'t contain url params');
+      }
+
+      return state;
+    }
+
     function _getSchema(path) {
       var schemaPath = path.split('.').join('.fields.');
       var APP_MODEL = window.adpAppStore.appModel();
@@ -510,6 +547,29 @@
       var subSchemaKey = _.findKey(schema.fields, {type: 'Subschema'});
 
       return !!subSchemaKey;
+    }
+
+    function _findDefaultInMenu(menuInterface) {
+      // TODO: check if state has schema
+      return _.chain(menuInterface.fields)
+              .flatMap(function(item) {
+                return item.fields ? _.flatten(_.toArray(item.fields)) : item;
+              })
+              .find(function (item) {
+                return 'link' in item;
+              })
+              .value();
+    }
+    function linkToState(link) {
+      var newLink = 'app.' + _.last(link.split('/'));
+
+      return _dashCaseToCamelCase(newLink);
+    }
+
+    function _dashCaseToCamelCase(string) {
+      return string.replace(/-([a-z0-9])/g, function (g) {
+        return g[1].toUpperCase();
+      });
     }
 
     function createBuiltInStates() {

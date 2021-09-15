@@ -12,11 +12,12 @@
 
     return {
       notifyError: notifyError,
-      notifySuccess: notifySuccess
+      notifySuccess: notifySuccess,
+      closeAll: closeAll,
     };
 
     function notifyError(message, title, options){
-      return addTabbedToast('error', message, title, Object.assign({
+      return _addTabbedToast('error', message, title, Object.assign({
         containerId: CONTAINER_ID_ERROR,
         positionClass: "toast-container-universal",
         timeOut: 0,
@@ -38,18 +39,18 @@
       }, options || {}));
     }
 
-    function addTabbedToast(method, message, title, options){
+    function _addTabbedToast(method, message, title, options){
       var boxId = options.containerId || 'toaster-box-'+method;
-      var config = getToastsConfig( boxId );
+      var config = _getToastsConfig( boxId );
 
       options.containerId = boxId;
-      options.onHidden = onCloseToast;
-      options.onCloseClick = onCloseClick;
+      options.onHidden = _onCloseToast;
+      options.onCloseClick = _onCloseClick;
 
-      var $toast = toastr[method](modifyLongMessage(message), title, options);
+      var $toast = toastr[method](_modifyLongMessage(message), title, options);
 
       if ($toast) {
-        highlightToast($toast);
+        _highlightToast($toast);
 
         if ($toast.find(".toast-more-link").length) {
           $toast.delegate(".toast-more-link", "click", function () {
@@ -59,56 +60,51 @@
 
           $toast.delegate(".toast-full-message", "click", function () {
             $toast.removeClass("toast-expanded");
-            activateToast($toast);
+            _activateToast($toast);
           });
         }
 
-        var $tab = addToastTab($toast);
+        var $tab = _addToastTab($toast);
 
         $tab.attr("title", message.substr(0, 30) + ( message.length > 30 ? "..." : ""));
 
-        activateToast($toast);
+        _activateToast($toast);
       }
 
-      function onCloseClick(e){
+      function _onCloseClick(e){
         var $toast = $(e.target).closest('.toast');
 
-        config.lastIndex = getToastIndex($toast);
+        config.lastIndex = _getToastIndex($toast);
       }
 
-      function onCloseToast(){
+      function _onCloseToast(){
         var $tabs = $('.toast-tab', config.$tabBox);
         var index = config.lastIndex;
 
         $($tabs.get(index)).remove();
-        setTimeout(onAfterCloseToast,0);
+        setTimeout(_onAfterCloseToast,0);
       }
 
-      function onAfterCloseToast(){
+      function _onAfterCloseToast(){
         var $toasts = $('.toast', config.$toastBox);
         var index = config.lastIndex;
 
         if ($toasts.length) {
-          activateToast( $($toasts.get(Math.min(index, $toasts.length - 1))));
-          doRefreshCloseAll();
+          _activateToast( $($toasts.get(Math.min(index, $toasts.length - 1))));
+          _doRefreshCloseAll();
         } else {
-          clearContainer();
+          _clearContainer(config);
         }
       }
 
-      function clearContainer(){
-        config.$box.remove();
-        state[boxId] = null;
-      }
-
-      function getToastIndex($toast) {
+      function _getToastIndex($toast) {
         var $toasts = $('.toast', config.$toastBox);
         return $toasts.index($toast);
       }
 
-      function activateToast($toast) {
+      function _activateToast($toast) {
         var $toasts = $('.toast', config.$toastBox);
-        var index = getToastIndex($toast);
+        var index = _getToastIndex($toast);
         var $tabs =  $('.toast-tab', config.$tabBox).removeClass('toast-tab-active');
 
         $toasts.removeClass('toast-expanded').addClass('toast-hidden');
@@ -116,20 +112,20 @@
         $($toasts.get(index)).removeClass('toast-hidden');
       }
 
-      function addToastTab($toast) {
+      function _addToastTab($toast) {
         var $tab = $('<div>').addClass('toast-tab toast-' + method);
 
         $tab.click(function(){
-          activateToast($toast);
+          _activateToast($toast);
         });
 
         $tab.appendTo(config.$tabBox);
-        doRefreshCloseAll();
+        _doRefreshCloseAll();
 
         return $tab;
       }
 
-      function doRefreshCloseAll() {
+      function _doRefreshCloseAll() {
         var $toasts = $(".toast", config.$toastBox);
         var $closeAll = $(".close-all-toast", config.$tabBox);
 
@@ -138,32 +134,41 @@
             .addClass("close-all-toast")
             .append($("<a>")
               .text("close all")
-              .click(onCloseAllClick)
+              .click(closeAll)
             )
             .prependTo(config.$tabBox);
         } else if ($closeAll.length && $toasts.length < 2) {
           $closeAll.remove();
         }
       }
-
-      function onCloseAllClick(e) {
-        var $toasts = $(".toast", config.$toastBox);
-
-        _.each($toasts, function (toast) {
-          toastr.clear($(toast))
-        });
-
-        $(e.target).remove();
-        setTimeout(clearContainer, 200);
-      }
     }
 
-    function highlightToast($toast) {
+    function closeAll() {
+      var config = _getToastsConfig(CONTAINER_ID_ERROR);
+      var $toasts = $('.toast', config.$toastBox);
+      var $closeAll = $('.close-all-toast > a', config.$tabBox);
+
+      _.each($toasts, function (toast) {
+        toastr.clear($(toast))
+      });
+
+      $closeAll.remove();
+      setTimeout(function(){
+        _clearContainer(config)
+      }, 200);
+    }
+
+    function _clearContainer(config){
+      config.$box.remove();
+      state[config.id] = null;
+    }
+
+    function _highlightToast($toast) {
       $toast.css("backgroundColor", "#c3482d")
         .animate({backgroundColor: "#C46A69"}, 500);
     }
 
-    function modifyLongMessage(msg) {
+    function _modifyLongMessage(msg) {
       var newMsg = msg;
       if (msg.length > MESSAGE_LENGTH_TRUNCATE) {
         newMsg =
@@ -180,7 +185,7 @@
       return newMsg;
     }
 
-    function getToastsConfig(boxId){
+    function _getToastsConfig(boxId){
       var config = state[boxId];
 
       if (!config) {
@@ -189,6 +194,7 @@
         var $toastBox = $('<div id="'+boxId+'" class="toast-container-universal">').appendTo($box);
 
         state[boxId] = config = {
+          id: boxId,
           $box: $box,
           $tabBox : $tabBox,
           $toastBox: $toastBox,

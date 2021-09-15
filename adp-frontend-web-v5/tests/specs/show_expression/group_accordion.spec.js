@@ -169,9 +169,9 @@ describe('show expression', () => {
         const booleanCtrl = await this.page.waitForSelector('[adp-qaid-field-control="b3"]', { visible: true });
         await booleanCtrl.click();
 
-        await clickSubmit(this.page);
-
-        const { _id } = await getResponseForCreatedRecord('helperMethods_showAttributeAccordion', this.page);
+        const [{ _id }] = await Promise.all([
+          getResponseForCreatedRecord('helperMethods_showAttributeAccordion', this.page),
+          clickSubmit(this.page)]);
         await clickEditButton(_id, this.page);
 
         const groupEl = await this.page.waitForSelector(selectors.g3, { visible: true });

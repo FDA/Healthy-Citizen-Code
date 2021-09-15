@@ -18,7 +18,7 @@ const {
 const PAGE_TO_TEST = 'customActions';
 const waitForGridLoaded = async (page) => page.waitForTimeout(2000);
 const ensureAtLeastOneRecordExistToDisplayActions = async (page) => {
-  const hasData = await page.$('.dx-data-row td');
+  const hasData = await page.waitForSelector('td.name-field1 .adp-datagrid-cell-container');
   if (hasData) {
     return;
   }
@@ -173,8 +173,7 @@ describe('Custom Actions', () => {
           return {
             action: el.className.replace(/^.*?adp-toolbar-action-(\w+).*?$/, '$1'),
             iconClass: icon && icon.className,
-            customItemClass: itemContent
-              && itemContent.className.replace('dx-item-content dx-menu-item-content', ''),
+            customItemClass: itemContent && itemContent.className.replace('dx-item-content dx-menu-item-content', ''),
           }}))
       expect(actionsSnapshot).toEqual(toolbarActionsSnapshot);
 
@@ -234,10 +233,10 @@ describe('Custom Actions', () => {
       );
 
       await clickTableAction(null, 'action', this.page);
-      const helperMessage = await alertPromise;
+      const alertContents = await alertPromise;
+      const helperData = JSON.parse(alertContents);
 
-      expect(helperMessage.substr(0,10))
-        .toEqual('{"field1":');
+      expect(helperData).toMatchObject({ field1: null });
 
       await clickTableAction(null, 'action1', this.page);
 

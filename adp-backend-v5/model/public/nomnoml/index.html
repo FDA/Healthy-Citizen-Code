@@ -1,15 +1,16 @@
 <!DOCTYPE html>
 <html>
 <head>
+	<base href="__RESOURCE_BASE_URL__">
 	<meta charset="utf-8">
 	<meta http-equiv="X-UA-Compatible" content="IE=edge">
 	<meta name="viewport" content="width=device-width, initial-scale=1">
 	<meta name="description" content="A tool for drawing sassy UML diagrams based on syntax. Provides instant feedback and has a customizable styling.">
 	<title>nomnoml</title>
-	<link rel="stylesheet" href="/public/nomnoml/nomnoml_files/codemirror.css">
-	<link rel="stylesheet" href="/public/nomnoml/nomnoml_files/solarized.nomnoml.css">
-	<link rel="stylesheet" href="/public/nomnoml/nomnoml_files/nomnoml.css">
-	<link rel="shortcut icon" href="/public/nomnoml/nomnoml_files/favicon.png">
+	<link rel="stylesheet" href="public/nomnoml/nomnoml_files/codemirror.css">
+	<link rel="stylesheet" href="public/nomnoml/nomnoml_files/solarized.nomnoml.css">
+	<link rel="stylesheet" href="public/nomnoml/nomnoml_files/nomnoml.css">
+	<link rel="shortcut icon" href="public/nomnoml/nomnoml_files/favicon.png">
 </head>
 <body>
 <div class="wrap">
@@ -151,7 +152,7 @@
 			<p>The canvas can be panned and zoomed by dragging and scrolling in the right hand third of the canvas.
 			</p>
 
-			<img src="/public/nomnoml/nomnoml_files/interaction-tutorial.svg" alt="interaction tutorial">
+			<img src="public/nomnoml/nomnoml_files/interaction-tutorial.svg" alt="interaction tutorial">
 
 			<p>Downloaded image files will be given the filename in the <tt>#title</tt> directive.
 			</p>
@@ -341,14 +342,14 @@
 {DIAGRAM_CODE}
 </script>
 
-<script src="/public/nomnoml/nomnoml_files/underscore.min.js"></script>
-<script src="/public/nomnoml/nomnoml_files/filesaver.min.js"></script>
-<script src="/public/nomnoml/nomnoml_files/codemirror-compressed.js"></script>
-<script src="/public/nomnoml/nomnoml_files/nomnoml.codemirror-mode.js"></script>
-<script src="/public/nomnoml/nomnoml_files/nomnoml.web.js"></script>
+<script src="public/nomnoml/nomnoml_files/underscore.min.js"></script>
+<script src="public/nomnoml/nomnoml_files/filesaver.min.js"></script>
+<script src="public/nomnoml/nomnoml_files/codemirror-compressed.js"></script>
+<script src="public/nomnoml/nomnoml_files/nomnoml.codemirror-mode.js"></script>
+<script src="public/nomnoml/nomnoml_files/nomnoml.web.js"></script>
 
-<script src="/public/nomnoml/nomnoml_files/vue.min.js"></script>
-<script src="/public/nomnoml/nomnoml_files/webapp.js"></script>
+<script src="public/nomnoml/nomnoml_files/vue.min.js"></script>
+<script src="public/nomnoml/nomnoml_files/webapp.js"></script>
 
 <script>
 	var app = new App(nomnoml, CodeMirror, saveAs, _)

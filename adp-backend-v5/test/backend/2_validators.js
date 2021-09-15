@@ -8,7 +8,7 @@ const _ = require('lodash');
 const { ObjectID } = require('mongodb');
 const { prepareEnv, getMongoConnection } = require('../test-util');
 
-describe('V5 Backend Validators', function () {
+describe('V5 Backend Validators', () => {
   const userContext = { _id: 1 };
   const sampleData0 = {
     n: 7,
@@ -72,7 +72,7 @@ describe('V5 Backend Validators', function () {
   });
 
   // This is a quick sanity check. Most tests are done in CRUD section below
-  describe('when called directly in db call', function () {
+  describe('when called directly in db call', () => {
     it('creates record with correct input', function () {
       const data = _.cloneDeep(sampleData0);
       data.n = 11;
@@ -179,7 +179,7 @@ describe('V5 Backend Validators', function () {
     });
   });
 
-  describe('when running subtype validators', function () {
+  describe('when running subtype validators', () => {
     it('does not create record with incorrect email', async function () {
       const data = _.cloneDeep(sampleData0);
       data.email = 'www';

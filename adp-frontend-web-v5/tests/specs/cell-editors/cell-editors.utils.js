@@ -5,6 +5,13 @@ const {
 }  = require('../../utils/select.helpers');
 const _ = require('lodash');
 
+async function clickAddRowButton(page) {
+  const addRowButtonSelector = '.dx-datagrid-addrow-button';
+
+  await page.waitForSelector(addRowButtonSelector);
+  await page.click(addRowButtonSelector);
+}
+
 function getGridCellSelector(fieldName) {
   return `tr.dx-data-row:first-child .name-${fieldName}`;
 }
@@ -147,6 +154,7 @@ module.exports = {
   fillImperialUnitsEditors,
   clickOutsideOfGridToTriggerSubmit,
   waitForGridLoaded,
+  clickAddRowButton,
   dataGenerators: {
     randomString,
     randomInt32,

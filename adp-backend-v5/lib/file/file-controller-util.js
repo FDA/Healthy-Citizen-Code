@@ -6,6 +6,7 @@ const jimp = require('jimp');
 const mime = require('mime');
 const Promise = require('bluebird');
 const { ObjectId } = require('mongodb');
+const { appRoot } = require('../../config/util');
 
 const imageMediaTypes = require('../../model/model/0_mediaTypes.json').mediaTypes.images;
 const GraphQlContext = require('../request-context/graphql/GraphQlContext');
@@ -31,10 +32,14 @@ module.exports = (appLib) => {
     }));
   }
 
-  m.handleUpload = ({ files, owner, cropParams, uploadDir = defaultUploadDir }) => {
+  m.handleUpload = async ({ files, owner, cropParams, uploadDir = defaultUploadDir }) => {
     const castedFiles = castFiles(files);
     // using mapSeries to avoid "ParallelSaveError": Can't save() the same doc multiple times in parallel
-    return Promise.mapSeries(castedFiles, (file) => m.handleSingleFileUpload({ file, owner, cropParams, uploadDir }));
+    const fileObjects = await Promise.mapSeries(castedFiles, (file) =>
+      m.handleSingleFileUpload({ file, owner, cropParams, uploadDir })
+    );
+    await appLib.cache.clearCacheForModel(filesCollectionName);
+    return fileObjects;
   };
 
   m.handleSingleFileUpload = async ({ file, owner, cropParams, uploadDir = defaultUploadDir }) => {
@@ -66,11 +71,11 @@ module.exports = (appLib) => {
   /* eslint-enable promise/avoid-new */
 
   m.getThumbnailPath = function (fullFilePath) {
-    return path.resolve(`${fullFilePath}_thumbnail`);
+    return path.resolve(appRoot, `${fullFilePath}_thumbnail`);
   };
 
   m.getCroppedPath = function (fullFilePath) {
-    return path.resolve(`${fullFilePath}_cropped`);
+    return path.resolve(appRoot, `${fullFilePath}_cropped`);
   };
 
   /**
@@ -84,7 +89,7 @@ module.exports = (appLib) => {
       return;
     }
     const { filePath, cropped } = record;
-    const fullFilePath = path.resolve(filePath);
+    const fullFilePath = path.resolve(appRoot, filePath);
     const pathsToRemove = [fullFilePath];
     isImage(record) && pathsToRemove.push(m.getThumbnailPath(fullFilePath));
     cropped && pathsToRemove.push(m.getCroppedPath(fullFilePath));
@@ -100,7 +105,7 @@ module.exports = (appLib) => {
     return path.resolve(uploadDir, uploadFolder, docId.toString());
   };
 
-  m.getRelativePath = (absolutePath) => path.relative(process.cwd(), absolutePath);
+  m.getRelativePath = (absolutePath) => path.relative(appRoot, absolutePath);
 
   m.createFile = async ({ file, hash, owner, uploadDir = defaultUploadDir }) => {
     const ownerLogin = _.get(owner, 'login');
@@ -232,7 +237,7 @@ module.exports = (appLib) => {
   m.sendFile = ({ attachment, fullPath, mimeType, originalName, res, next }) => {
     res.writeHead(200, {
       'Content-Type': mimeType,
-      'Content-Disposition': attachment ? `attachment; filename=${originalName}` : 'inline',
+      'Content-Disposition': attachment ? `attachment; filename=${encodeURIComponent(originalName)}` : 'inline',
     });
     const stream = fs.createReadStream(fullPath);
     stream.on('end', next);
@@ -256,7 +261,7 @@ module.exports = (appLib) => {
   };
 
   m.getFileInfo = async (fileRecord, fileType) => {
-    const initFilePath = path.resolve(fileRecord.filePath);
+    const initFilePath = path.resolve(appRoot, fileRecord.filePath);
     if (fileType === m.FILE_TYPES.ASIS) {
       return { filePath: initFilePath, mimeType: fileRecord.mimeType };
     }
@@ -272,12 +277,12 @@ module.exports = (appLib) => {
       }
 
       const mimeType = (fileRecord.mimeType || '').replace(/\//g, '-');
-      const thumbnailByMimePath = path.resolve(__dirname, `../../model/public/default-thumbnails/${mimeType}.png`);
+      const thumbnailByMimePath = path.resolve(appRoot, `model/public/default-thumbnails/${mimeType}.png`);
       if (await fs.pathExists(thumbnailByMimePath)) {
         return { filePath: thumbnailByMimePath, mimeType: 'image/png' };
       }
 
-      const defaultThumbnail = path.resolve(__dirname, '../../model/public/default-thumbnails/default.png');
+      const defaultThumbnail = path.resolve(appRoot, 'model/public/default-thumbnails/default.png');
       if (await fs.pathExists(defaultThumbnail)) {
         return { filePath: defaultThumbnail, mimeType: 'image/png' };
       }

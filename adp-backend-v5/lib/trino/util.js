@@ -26,6 +26,23 @@ function getTrinoSchema(adpSchema) {
 function getTrinoFieldType(field) {
   const { type } = field;
 
+  const stringTypes = [
+    'String',
+    'Code',
+    'Email',
+    'Phone',
+    'Url',
+    'Text',
+    'Barcode',
+    'Decimal128',
+    'Html',
+    'CronExpression',
+    'Password',
+  ];
+  if (!type || stringTypes.includes(type)) {
+    return 'varchar';
+  }
+
   if (type === 'Object') {
     const objTypes = [];
     _.each(field.fields, (objField, fieldName) => {
@@ -40,23 +57,6 @@ function getTrinoFieldType(field) {
     objectField.type = 'Object';
     const objectType = getTrinoFieldType(objectField);
     return `map(varchar, ${objectType})`;
-  }
-
-  const stringTypes = [
-    'String',
-    'Code',
-    'Email',
-    'Phone',
-    'Url',
-    'Text',
-    'Barcode',
-    'Decimal128',
-    'Html',
-    'CronExpression',
-    'Password',
-  ];
-  if (stringTypes.includes(type)) {
-    return 'varchar';
   }
 
   const doubleTypes = [

@@ -1,0 +1,26 @@
+<div
+  ng-switch
+  on="field.type"
+  ng-class="[valueRowClass]"
+>
+  <div ng-switch-when="Blank"></div>
+
+  <div ng-switch-when="FormSeparator">
+    <adp-form-separator field-schema="::field"></adp-form-separator>
+  </div>
+
+  <div ng-switch-default>
+    <div class="view-details-label">
+      {{field.fullName}}
+      <adp-tooltip adp-field="::field"></adp-tooltip>
+      <adp-clipboard-button args="::args"></adp-clipboard-button>
+    </div>
+
+    <div class="view-details-cell">
+      <adp-record-details-cell
+        args="::args"
+      ></adp-record-details-cell>
+    </div>
+  </div>
+
+</div>

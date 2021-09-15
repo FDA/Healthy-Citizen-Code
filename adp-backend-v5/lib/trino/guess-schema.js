@@ -1,4 +1,4 @@
-const { ObjectId, Long, Decimal128 } = require('bson');
+const { ObjectId } = require('bson');
 const _ = require('lodash');
 
 // Inspired by https://github.com/variety/variety and adopted to ADP types
@@ -14,7 +14,8 @@ function getVarietyResults(docs, opts) {
       return 'Array';
     }
 
-    if (ObjectId.isValid(value) && _.get(value, '_bsontype') === 'ObjectID') {
+    const bsontype = _.get(value, '_bsontype');
+    if (ObjectId.isValid(value) && bsontype === 'ObjectID') {
       return 'ObjectID';
     }
     if (valueType === 'boolean') {
@@ -32,10 +33,10 @@ function getVarietyResults(docs, opts) {
       }
       return 'Number';
     }
-    if (value instanceof Long) {
+    if (bsontype === 'Long') {
       return 'Int64';
     }
-    if (value instanceof Decimal128) {
+    if (bsontype === 'Decimal128') {
       return 'Decimal128';
     }
 
@@ -83,6 +84,8 @@ function getVarietyResults(docs, opts) {
 
       return 'Object';
     }
+
+    return 'String';
   };
 
   // Flattens object keys. i.e. {'key1':1,{'key2':{'key3':2}}} becomes {'key1':1,'key2.key3':2}

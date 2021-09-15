@@ -17,6 +17,7 @@
     ListTypesCellRenderer,
     ComplexTypesCellRenderer,
     GridTypeCellRenderer,
+    MixedTypeTabbedView,
     GRID_FORMAT,
     AdpAttrs,
     FormattersHelper
@@ -38,6 +39,8 @@
       'Date': DateTypesCellRenderer.date,
       'Time': DateTypesCellRenderer.date,
       'DateTime': DateTypesCellRenderer.date,
+      'Date[]': DateTypesCellRenderer.dateArray,
+      'DateTime[]': DateTypesCellRenderer.dateArray,
 
       'LookupObjectID': LookupTypesCellRenderer.single,
       'LookupObjectID[]': LookupTypesCellRenderer.multiple,
@@ -122,34 +125,6 @@
     }
 
     function mixedType(args) {
-      function tabbedView(args) {
-        var YAML = complexType(args);
-        var content = function (contentStr) {
-          return '<div class="adp-tab-content"><div>' + contentStr + '</div></div>';
-        };
-
-        var tabsEl = $('<div>');
-        setTimeout(function () {
-          var tabsInstance = tabsEl.dxTabPanel({
-            selectedIndex: 0,
-            items: [{
-              title: 'YAML',
-              html: content(!!YAML.html ? YAML.html() : YAML),
-            }, {
-              title: 'JSON',
-              html: content(JSON.stringify(args.data, null, 4)),
-            }],
-            scrollingEnabled: true,
-          }).dxTabPanel('instance');
-
-          tabsEl.on('remove', function () {
-            tabsInstance.dispose();
-          })
-        }, 0);
-
-        return tabsEl;
-      }
-
       if (_.isNil(args.data)) {
         return GRID_FORMAT.EMPTY_VALUE;
       }
@@ -158,7 +133,9 @@
         return args.data;
       }
 
-      return args.action === 'viewDetails' ? tabbedView(args) : complexType(args);
+      return args.action === 'viewDetails' ?
+        MixedTypeTabbedView(args, complexType) :
+        complexType(args);
     }
 
     function CustomRender(args) {

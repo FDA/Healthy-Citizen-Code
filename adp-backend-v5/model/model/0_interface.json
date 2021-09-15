@@ -47,148 +47,236 @@
       },
       "permissions": {
         "accessAsAnyone": {
-          "description": "Default permission for marking something as available to anyone"
+          "description": "Default permission for marking something as available to anyone",
+          "group": "Access"
         },
-        "accessAsGuest": { "description": "Default guest permission" },
-        "accessAsUser": { "description": "Default user permission" },
-        "accessAsSuperAdmin": { "description": "Default admin permission" },
+        "accessAsGuest": {
+          "description": "Default guest permission",
+          "group": "Access"
+        },
+        "accessAsUser": {
+          "description": "Default user permission",
+          "group": "Access"
+        },
+        "accessAsSuperAdmin": {
+          "description": "Default admin permission",
+          "group": "Access"
+        },
         "accessForbidden": {
-          "description": "Permission that will not be given to any role (even to the SuperAdmin role)"
+          "description": "Permission that will not be given to any role (even to the SuperAdmin role)",
+          "group": "Access"
         },
-        "createUserAccounts": { "description": "Default createUserAccounts permission" },
-        "accessFromDesktop": { "description": "accessFromDesktop" },
-        "accessFromTv": { "description": "accessFromTv" },
-        "accessFromTablet": { "description": "accessFromTablet" },
-        "accessFromPhone": { "description": "accessFromPhone" },
-        "accessFromBot": { "description": "accessFromBot" },
-        "accessFromCar": { "description": "accessFromCar" },
+        "createUserAccounts": {
+          "description": "Default createUserAccounts permission",
+          "group": "Access"
+        },
+        "accessFromDesktop": {
+          "description": "accessFromDesktop",
+          "group": "Access"
+        },
+        "accessFromTv": {
+          "description": "accessFromTv",
+          "group": "Access"
+        },
+        "accessFromTablet": {
+          "description": "accessFromTablet",
+          "group": "Access"
+        },
+        "accessFromPhone": {
+          "description": "accessFromPhone",
+          "group": "Access"
+        },
+        "accessFromBot": {
+          "description": "accessFromBot",
+          "group": "Access"
+        },
+        "accessFromCar": {
+          "description": "accessFromCar",
+          "group": "Access"
+        },
         "accessOwnDatasets": {
-          "description": "Allows access to own datasets"
+          "description": "Allows access to own datasets",
+          "group": "Datasets"
         },
         "manageOwnDatasets": {
-          "description": "Allows managing own datasets"
+          "description": "Allows managing own datasets",
+          "group": "Datasets"
         },
         "accessAllDatasets": {
-          "description": "Allows access to all datasets"
+          "description": "Allows access to all datasets",
+          "group": "Datasets"
         },
         "manageAllDatasets": {
-          "description": "Allows managing all datasets"
+          "description": "Allows managing all datasets",
+          "group": "Datasets"
         },
         "manageDatasetContents": {
-          "description": "Allows managing datasets contents"
+          "description": "Allows managing datasets contents",
+          "group": "Datasets"
         },
         "accessOwnDataPulls": {
-          "description": "Allows access to own data pulls configuration"
+          "description": "Allows access to own data pulls configuration",
+          "group": "Data pulls"
         },
         "manageOwnDataPulls": {
-          "description": "Allows managing to own data pulls configuration"
+          "description": "Allows managing to own data pulls configuration",
+          "group": "Data pulls"
         },
         "accessAllDataPulls": {
-          "description": "Allows access to all data pulls configuration"
+          "description": "Allows access to all data pulls configuration",
+          "group": "Data pulls"
         },
         "manageAllDataPulls": {
-          "description": "Allows managing to all data pulls configuration"
+          "description": "Allows managing to all data pulls configuration",
+          "group": "Data pulls"
         },
         "viewAllBackgroundJobs": {
-          "description": "Allows to view all jobs listing and details for each job in any queue"
+          "description": "Allows to view all jobs listing and details for each job in any queue",
+          "group": "Jobs"
         },
         "viewOwnBackgroundJobs": {
-          "description": "Allows to view own jobs listing and details for each own job in any queue"
+          "description": "Allows to view own jobs listing and details for each own job in any queue",
+          "group": "Jobs"
         },
-        "deleteAllBackgroundJobs": { "description": "Allows to delete all jobs in any queue" },
-        "deleteOwnBackgroundJobs": { "description": "Allows to delete own jobs in any queue" },
+        "deleteAllBackgroundJobs": {
+          "description": "Allows to delete all jobs in any queue",
+          "group": "Jobs"
+        },
+        "deleteOwnBackgroundJobs": {
+          "description": "Allows to delete own jobs in any queue",
+          "group": "Jobs"
+        },
         "manageBackgroundJobs": {
-          "description": "Allows to start/stop/pause/restart queues the jobs listing and details for each job"
+          "description": "Allows to start/stop/pause/restart queues the jobs listing and details for each job",
+          "group": "Jobs"
         },
         "wsViewOwnJobsStatus": {
-          "description": "Allows to get real-time notifications about all jobs details for each job in any queue"
+          "description": "Allows to get real-time notifications about all jobs details for each job in any queue",
+          "group": "Jobs"
         },
         "wsViewAllJobsStatus": {
-          "description": "Allows to get real-time notifications about own jobs details for each own job in any queue"
+          "description": "Allows to get real-time notifications about own jobs details for each own job in any queue",
+          "group": "Jobs"
         },
         "viewExternalCommands": {
-          "description": "Allows to view external programs"
+          "description": "Allows to view external programs",
+          "group": "Jobs"
         },
         "manageExternalCommands": {
-          "description": "Allows to manage external programs"
+          "description": "Allows to manage external programs",
+          "group": "Jobs"
         },
         "runExternalCommands": {
-          "description": "Allows to run external programs"
+          "description": "Allows to run external programs",
+          "group": "Jobs"
         },
         "viewScheduledJobs": {
-          "description": "Allows to view scheduled jobs"
+          "description": "Allows to view scheduled jobs",
+          "group": "Jobs"
         },
         "manageScheduledJobs": {
-          "description": "Allows to manage scheduled jobs"
+          "description": "Allows to manage scheduled jobs",
+          "group": "Jobs"
         },
         "accessBpmnProcesses": {
-          "description": "Access Bpmn processes"
+          "description": "Access Bpmn processes",
+          "group": "Airo"
         },
         "accessBusinessRules": {
-          "description": "Access Business Rules"
+          "description": "Access Business Rules",
+          "group": "Airo"
         },
         "accessAimlModels": {
-          "description": "Access Aiml Models"
+          "description": "Access Aiml Models",
+          "group": "Airo"
         },
         "accessDataMappings": {
-          "description": "Access Data Mappings"
+          "description": "Access Data Mappings",
+          "group": "Airo"
         },
         "accessOutputs": {
-          "description": "Access Outputs"
+          "description": "Access Outputs",
+          "group": "Airo"
         },
         "accessSystemMenu": {
-          "description": "Access system menu"
+          "description": "Access system menu",
+          "group": "System"
         },
         "accessRolesAndPermissions": {
-          "description": "Access roles and permissions"
+          "description": "Access roles and permissions",
+          "group": "System"
         },
         "accessUsers": {
-          "description": "Access system users"
+          "description": "Access system users",
+          "group": "System"
         },
         "accessJournal": {
-          "description": "Access system journal"
+          "description": "Access system journal",
+          "group": "System"
         },
-        "viewOwnDataExports":  {
-          "description":  "View own data exports"
+        "viewOwnDataExports": {
+          "description": "View own data exports",
+          "group": "Exports"
         },
         "viewAllDataExports": {
-          "description":  "View all data exports"
+          "description": "View all data exports",
+          "group": "Exports"
         },
-        "downloadOwnDataExports":  {
-          "description":  "Download own data exports"
+        "downloadOwnDataExports": {
+          "description": "Download own data exports",
+          "group": "Exports"
         },
         "downloadAllDataExports": {
-          "description":  "Download all data exports"
+          "description": "Download all data exports",
+          "group": "Exports"
         },
-        "manageOwnDataExports":  {
-          "description":  "Manage own data exports"
+        "viewOwnExportedDatasets": {
+          "description": "View own exported datasets",
+          "group": "Exports"
+        },
+        "viewAllExportedDatasets": {
+          "description": "View all exported datasets",
+          "group": "Exports"
+        },
+        "manageOwnDataExports": {
+          "description": "Manage own data exports",
+          "group": "Exports"
         },
         "manageAllDataExports": {
-          "description": "Manage all data exports"
+          "description": "Manage all data exports",
+          "group": "Exports"
         },
-        "manageEnvironment": {
-          "description": "Manage Environment"
+        "manageSystemEnvironmentVariables": {
+          "description": "Allows to manage System Environment Variables",
+          "group": "Environment variables"
         },
-        "viewEnvironment": {
-          "description": "View Environment"
+        "accessSystemEnvironmentVariables": {
+          "description": "Allows access to System Environment Variables",
+          "group": "Environment variables"
         },
         "manageCredentials": {
-          "description": "Manage Credentials"
+          "description": "Manage Credentials",
+          "group": "System"
         },
         "accessOwnTags": {
-          "description": "Allows access to own tags"
+          "description": "Allows access to own tags",
+          "group": "Tags"
         },
         "manageOwnTags": {
-          "description": "Allows managing own tags"
+          "description": "Allows managing own tags",
+          "group": "Tags"
         },
         "accessAllTags": {
-          "description": "Allows access to all tags"
+          "description": "Allows access to all tags",
+          "group": "Tags"
         },
         "manageAllTags": {
-          "description": "Allows managing all tags"
+          "description": "Allows managing all tags",
+          "group": "Tags"
         },
         "manageTrinoSchema": {
-          "description": "Manage trino schema"
+          "description": "Manage trino schema",
+          "group": "Trino"
         }
       },
       "preStart": {},

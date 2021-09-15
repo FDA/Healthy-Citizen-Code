@@ -590,9 +590,9 @@ const sampleRequiredValidation = {
 const accessCfg = require('../../lib/access/access-config');
 const filterUtil = require('../../lib/filter/util');
 // TODO: add check on transformation array of permissions to objects
-describe('V5 Core Utility', function () {
-  describe('validateAndCleanupAppModel', function () {
-    it('removes comments, adds type defaults, assumes type', function () {
+describe('V5 Core Utility', () => {
+  describe('validateAndCleanupAppModel', () => {
+    it('removes comments, adds type defaults, assumes type', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel1),
         getAuthSettings: () => ({}),
@@ -622,7 +622,7 @@ describe('V5 Core Utility', function () {
       warnings.length.should.equal(0, errors.join('\n'));
     });
 
-    it('validates lookups', function () {
+    it('validates lookups', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel2WithLookups),
         getAuthSettings: () => ({}),
@@ -640,7 +640,7 @@ describe('V5 Core Utility', function () {
       errors[2].should.equal('Lookup label "this.F1a" in M4.fields.F1 uses nonexisting fields: "F1a"');
     });
 
-    it('validates defaultSortBy', function () {
+    it('validates defaultSortBy', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel3DefaultSortBy),
         getAuthSettings: () => ({}),
@@ -657,7 +657,7 @@ describe('V5 Core Utility', function () {
       errors[1].should.equal('defaultSortBy in M3 refers to nonexisting field "F2"');
       errors[2].should.equal('defaultSortBy in M4 has incorrect format, must be an object');
     });
-    it('validates validators and transformers presence', function () {
+    it('validates validators and transformers presence', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleModel4ValidatorsAndTransformers),
         getAuthSettings: () => ({}),
@@ -682,7 +682,7 @@ describe('V5 Core Utility', function () {
         `Transformer "transformer2,transformer3,transformer4" doesn't look right in M2.fields.F1 (if array then must contain only two elements)`
       );
     });
-    it('validates required field contradictions', function () {
+    it('validates required field contradictions', () => {
       const appLib = {
         appModel: _.cloneDeep(sampleRequiredValidation),
         getAuthSettings: () => ({}),

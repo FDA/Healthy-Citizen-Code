@@ -6,7 +6,7 @@ require('should');
 
 const { prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
-describe('V5 Backend Basic Routes', function () {
+describe('V5 Backend Basic Routes', () => {
   before(function () {
     this.appLib = prepareEnv();
 
@@ -20,7 +20,7 @@ describe('V5 Backend Basic Routes', function () {
     await db.close();
   });
 
-  describe('GET /', function () {
+  describe('GET /', () => {
     it('responds with backend status', function (done) {
       apiRequest(this.appLib)
         .get('/')
@@ -33,7 +33,7 @@ describe('V5 Backend Basic Routes', function () {
         });
     });
   });
-  describe('GET /schemas', function () {
+  describe('GET /schemas', () => {
     it('responds with list of schemas', function (done) {
       apiRequest(this.appLib)
         .get('/schemas')
@@ -52,7 +52,7 @@ describe('V5 Backend Basic Routes', function () {
         });
     });
   });
-  describe('GET /routes', function () {
+  describe('GET /routes', () => {
     it('responds with list of basic routes', function (done) {
       apiRequest(this.appLib)
         .get('/routes')
@@ -65,13 +65,14 @@ describe('V5 Backend Basic Routes', function () {
 
           const { getFullRoute } = this.appLib;
           const { API_PREFIX } = this.appLib.config;
-          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/')}`);
-          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/schemas')}`);
-          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/metaschema')}`);
-          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/routes')}`);
-          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/lists')}`);
-          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/interface')}`);
-          res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/typeDefaults')}`);
+          const { brief } = res.body.data;
+          brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/routes')}`);
+          brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/')}`);
+          brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/schemas')}`);
+          brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/metaschema')}`);
+          brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/lists')}`);
+          brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/interface')}`);
+          brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/typeDefaults')}`);
           done();
         });
     });

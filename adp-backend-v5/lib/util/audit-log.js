@@ -218,13 +218,13 @@ function getParsedRequest({ req, res, config, options = {} }) {
   const cookies = clone(req.cookies);
   delete cookies.refresh_token;
 
-  const headers = clone(res.getHeaders());
-  if (headers.authorization) {
-    const [authScheme, token = ''] = headers.authorization.split(' ');
-    if (authScheme === 'jwt') {
-      headers.authorization = `${authScheme} ${'*'.repeat(token.length)}`;
-    }
-  }
+  const requestHeaders = clone(req.headers);
+  // if (requestHeaders.authorization) {
+  //   const [authScheme = '', token = ''] = requestHeaders.authorization.split(' ');
+  //   if (authScheme.toLowerCase() === 'jwt') {
+  //     requestHeaders.authorization = `${authScheme} ${'*'.repeat(token.length)}`;
+  //   }
+  // }
 
   const result = {
     id: id.toString(),
@@ -234,7 +234,7 @@ function getParsedRequest({ req, res, config, options = {} }) {
     request: {
       id: req.id,
       method,
-      headers,
+      headers: requestHeaders,
       cookies,
       url: absoluteUrl,
       user,
@@ -242,7 +242,7 @@ function getParsedRequest({ req, res, config, options = {} }) {
       body,
       timestamp: req[startAtDateSymbol] instanceof Date ? req[startAtDateSymbol].toISOString() : null,
     },
-    response: { headers },
+    response: { headers: res.getHeaders() },
   };
 
   if (typeof req.file === 'object') {

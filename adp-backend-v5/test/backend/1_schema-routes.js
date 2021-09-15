@@ -58,6 +58,8 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          detailedViewOrder: 0,
+          datagridOrder: 0,
         },
         encounters: {
           type: 'Array',
@@ -111,10 +113,13 @@ describe('V5 Backend Schema Routes', () => {
                     read: true,
                     write: true,
                   },
+                  detailedViewOrder: 0,
+                  datagridOrder: 0,
                 },
               },
               fieldName: 'diagnoses',
               width: 200,
+              searchable: false,
               parameters: {
                 enableInCellEditing: true,
                 grouping: {
@@ -141,6 +146,8 @@ describe('V5 Backend Schema Routes', () => {
                 read: true,
                 write: true,
               },
+              detailedViewOrder: 0,
+              datagridOrder: 0,
             },
             vitalSigns: {
               type: 'Array',
@@ -189,6 +196,8 @@ describe('V5 Backend Schema Routes', () => {
                     read: true,
                     write: true,
                   },
+                  detailedViewOrder: 0,
+                  datagridOrder: 0,
                 },
                 array: {
                   type: 'String[]',
@@ -196,6 +205,7 @@ describe('V5 Backend Schema Routes', () => {
                   description: 'Array',
                   fieldName: 'array',
                   autocomplete: 'enable',
+                  searchable: false,
                   parameters: {
                     enableInCellEditing: true,
                     grouping: {
@@ -207,7 +217,7 @@ describe('V5 Backend Schema Routes', () => {
                       allowSearch: true,
                     },
                     filterType: 'include',
-                    allowSearch: true,
+                    allowSearch: false,
                     maxDatagridCellHeight: 70,
                   },
                   width: 150,
@@ -221,10 +231,13 @@ describe('V5 Backend Schema Routes', () => {
                     read: true,
                     write: true,
                   },
+                  detailedViewOrder: 0,
+                  datagridOrder: 0,
                 },
               },
               fieldName: 'vitalSigns',
               width: 200,
+              searchable: false,
               parameters: {
                 enableInCellEditing: true,
                 grouping: {
@@ -251,6 +264,8 @@ describe('V5 Backend Schema Routes', () => {
                 read: true,
                 write: true,
               },
+              detailedViewOrder: 0,
+              datagridOrder: 0,
             },
           },
           fieldName: 'encounters',
@@ -281,6 +296,9 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          searchable: false,
+          detailedViewOrder: 0,
+          datagridOrder: 0,
         },
         _id: {
           type: 'ObjectID',
@@ -292,6 +310,7 @@ describe('V5 Backend Schema Routes', () => {
               allowGrouping: false,
               allowExpandGroup: false,
             },
+            allowSearch: false,
           },
           fieldName: '_id',
           width: 120,
@@ -300,11 +319,15 @@ describe('V5 Backend Schema Routes', () => {
           showInDatatable: true,
           showInViewDetails: true,
           showInGraphql: true,
+          searchable: false,
           filter: 'objectId',
           fieldInfo: {
             read: true,
             write: true,
           },
+          detailedViewOrder: -1000,
+          datagridOrder: -1000,
+          formWidth: 6,
         },
         creator: {
           type: 'LookupObjectID',
@@ -324,15 +347,15 @@ describe('V5 Backend Schema Routes', () => {
           showInDatatable: true,
           showInViewDetails: true,
           showInGraphql: true,
+          searchable: false,
           parameters: {
             enableInCellEditing: false,
-            visible: false,
             allowHeaderFiltering: true,
             headerFilter: {
               allowSearch: true,
             },
             filterType: 'include',
-            allowSearch: true,
+            allowSearch: false,
             maxDatagridCellHeight: 70,
           },
           fieldName: 'creator',
@@ -345,6 +368,9 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          detailedViewOrder: -1001,
+          datagridOrder: -1001,
+          formWidth: 6,
         },
         createdAt: {
           type: 'DateTime',
@@ -354,16 +380,16 @@ describe('V5 Backend Schema Routes', () => {
           showInDatatable: true,
           showInViewDetails: true,
           showInGraphql: true,
+          searchable: false,
           parameters: {
             enableInCellEditing: false,
-            visible: false,
             allowHeaderFiltering: true,
             headerFilter: {
               allowSearch: true,
             },
             filterType: 'include',
-            allowSearch: true,
-            pickerType: 'rollers',
+            allowSearch: false,
+            pickerType: 'calendar',
             openOnFieldClick: false,
             maxDatagridCellHeight: 70,
           },
@@ -384,6 +410,9 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          detailedViewOrder: -1002,
+          datagridOrder: -1002,
+          formWidth: 6,
         },
         updatedAt: {
           type: 'DateTime',
@@ -393,6 +422,7 @@ describe('V5 Backend Schema Routes', () => {
           showInDatatable: true,
           showInViewDetails: true,
           showInGraphql: true,
+          searchable: false,
           parameters: {
             enableInCellEditing: false,
             visible: false,
@@ -401,8 +431,8 @@ describe('V5 Backend Schema Routes', () => {
               allowSearch: true,
             },
             filterType: 'include',
-            allowSearch: true,
-            pickerType: 'rollers',
+            allowSearch: false,
+            pickerType: 'calendar',
             openOnFieldClick: false,
             maxDatagridCellHeight: 70,
           },
@@ -423,6 +453,9 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          detailedViewOrder: -1003,
+          datagridOrder: -1003,
+          formWidth: 6,
         },
         deletedAt: {
           type: 'DateTime',
@@ -430,9 +463,10 @@ describe('V5 Backend Schema Routes', () => {
           description: 'Record Deleted At',
           index: true,
           showInDatatable: true,
-          showInViewDetails: true,
+          showInViewDetails: "this.data !== '1970-01-01T00:00:00.000Z'",
           showInGraphql: true,
           showInForm: false,
+          searchable: false,
           parameters: {
             enableInCellEditing: false,
             visible: false,
@@ -441,8 +475,8 @@ describe('V5 Backend Schema Routes', () => {
               allowSearch: true,
             },
             filterType: 'include',
-            allowSearch: true,
-            pickerType: 'rollers',
+            allowSearch: false,
+            pickerType: 'calendar',
             openOnFieldClick: false,
             maxDatagridCellHeight: 70,
           },
@@ -462,11 +496,14 @@ describe('V5 Backend Schema Routes', () => {
             read: true,
             write: true,
           },
+          detailedViewOrder: -1004,
+          datagridOrder: -1004,
+          formWidth: 6,
         },
         generatorBatchName: {
           type: 'String',
           showInDatatable: false,
-          showInViewDetails: false,
+          showInViewDetails: 'this.data !== null',
           showInForm: false,
           showInGraphql: false,
           searchable: false,
@@ -488,7 +525,7 @@ describe('V5 Backend Schema Routes', () => {
               allowSearch: true,
             },
             filterType: 'include',
-            allowSearch: true,
+            allowSearch: false,
             maxDatagridCellHeight: 70,
           },
           validate: [
@@ -505,6 +542,44 @@ describe('V5 Backend Schema Routes', () => {
           fieldInfo: {
             read: true,
             write: true,
+          },
+          detailedViewOrder: -1005,
+          datagridOrder: -1005,
+          formWidth: 6,
+        },
+        'systemFieldsSeparator': {
+          'type': 'FormSeparator',
+          'showInDatatable': false,
+          'showInViewDetails': true,
+          'showInForm': false,
+          'showInGraphql': false,
+          'searchable': false,
+          'parameters': {
+            'height': '4px',
+            'lineStyle': '',
+            'lineColor': '',
+            'lineWidth': 0,
+            'enableInCellEditing': false,
+            'grouping': {
+              'allowGrouping': false,
+            },
+            'allowHeaderFiltering': false,
+            'headerFilter': {
+              'allowSearch': false,
+            },
+            'allowSearch': false,
+          },
+          'fieldName': 'systemFieldsSeparator',
+          'virtual': true,
+          'detailedViewOrder': 0,
+          'datagridOrder': 0,
+          'fullName': 'System fields separator',
+          'responsivePriority': 100,
+          'width': 100,
+          'filter': 'none',
+          'fieldInfo': {
+            'read': true,
+            'write': true,
           },
         },
       },
@@ -857,7 +932,7 @@ describe('V5 Backend Schema Routes', () => {
     this.batchNumberField = {
       generatorBatchName: {
         type: 'String',
-        showInViewDetails: false,
+        showInViewDetails: 'this.data !== null',
         showInDatatable: false,
         showInForm: false,
         showInGraphql: false,
@@ -928,15 +1003,16 @@ describe('V5 Backend Schema Routes', () => {
     this.expectedData = _.merge({}, this.expected, additionalData);
     const token = await loginWithUser(this.appLib, admin);
     const res = await apiRequest(this.appLib)
-      .get('/schema/model1s')
+      .get('/app-model')
       .set('Accept', 'application/json')
       .set('Authorization', `JWT ${token}`)
       .expect('Content-Type', /json/);
     res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
     res.body.success.should.equal(true, res.body.message);
+    const { model1s } = res.body.data.models;
     assert(
-      _.isEqual(res.body.data, this.expectedData),
-      `Diff: ${JSON.stringify(diffObjects(this.expectedData, res.body.data), null, 2)}`
+      _.isEqual(model1s, this.expectedData),
+      `Diff: ${JSON.stringify(diffObjects(this.expectedData, model1s), null, 2)}`
     );
   });
 
@@ -950,15 +1026,16 @@ describe('V5 Backend Schema Routes', () => {
     this.expectedData = _.merge({}, this.expected, additionalData, this.notWritableFields);
     const token = await loginWithUser(this.appLib, admin);
     const res = await apiRequest(this.appLib)
-      .get('/schema/model1s')
+      .get('/app-model')
       .set('Accept', 'application/json')
       .set('Authorization', `JWT ${token}`)
       .expect('Content-Type', /json/);
     res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
     res.body.success.should.equal(true, res.body.message);
+    const { model1s } = res.body.data.models;
     assert(
-      _.isEqual(res.body.data, this.expectedData),
-      `Diff: ${JSON.stringify(diffObjects(this.expectedData, res.body.data), null, 2)}`
+      _.isEqual(model1s, this.expectedData),
+      `Diff: ${JSON.stringify(diffObjects(this.expectedData, model1s), null, 2)}`
     );
   });
 });

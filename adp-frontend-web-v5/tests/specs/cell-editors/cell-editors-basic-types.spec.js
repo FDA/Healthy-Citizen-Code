@@ -11,6 +11,7 @@ const {
   fillStringEditors,
   waitForGridLoaded,
   clickOutsideOfGridToTriggerSubmit,
+  clickAddRowButton,
   dataGenerators: {
     randomString,
   }
@@ -46,7 +47,7 @@ describe('Cell Editors: basic types', () => {
 
       const boolean = { boolean: 'Yes' }
 
-      await this.page.click('.dx-datagrid-addrow-button');
+      await clickAddRowButton(this.page);
 
       await fillStringEditors(record, this.page);
       await fillListEditor(boolean.boolean, 'boolean', this.page);

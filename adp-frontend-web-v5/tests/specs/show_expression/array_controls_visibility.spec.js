@@ -13,13 +13,16 @@ const {
 } = require('../../utils');
 
 const selectors = {
-  label: '[field-container="a1"] label',
-  arrayAddItemBtn: '[field-container="a1"] .js-array-add-item-btn',
+  label: '[adp-qaid-field-label="a1"]',
+  arrayAddItemBtn: '[adp-qaid-add-array-item-btn="a1"]',
 };
 
 
 const getVisibilitySnapshot = selectors => {
-  const hasDomElement = selector => document.querySelector(selector).offsetParent !== null;
+  const hasDomElement = selector => {
+    const el = document.querySelector(selector);
+    return !!el && el.offsetParent !== null;
+  };
 
   return {
     label: hasDomElement(selectors.label),

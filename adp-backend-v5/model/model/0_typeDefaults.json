@@ -11,12 +11,18 @@
       "MenuSeparator": {
         "menuOrder": 500
       },
+      "MenuDashboardLink": {
+        "menuOrder": 1
+      },
       "StaticHtml": {
         "showInForm": true,
         "showInDatatable": false,
         "showInViewDetails": true,
         "showInGraphql": false,
         "virtual": true,
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": false,
           "grouping": {
@@ -32,6 +38,9 @@
       },
       "Array": {
         "width": 200,
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -52,6 +61,9 @@
       },
       "AssociativeArray": {
         "width": 200,
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -64,6 +76,9 @@
       },
       "Object": {
         "width": 200,
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -83,6 +98,9 @@
       },
       "Mixed": {
         "width": 200,
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -90,9 +108,15 @@
           },
           "allowSearch": false,
           "maxDatagridCellHeight": 70
+        },
+        "html": {
+          "view": { "style": "overflow: auto; text-overflow: clip;" }
         }
       },
       "BloodPressure": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "grouping": {
             "allowGrouping": false
@@ -102,8 +126,10 @@
         }
       },
       "Html": {
-        "searchable": true,
         "transform": [["htmlStringToHtmlObject", "htmlObjectToHtmlString"]],
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "renderAsHtml": false,
           "maxDatagridCellHeight": 70,
@@ -118,15 +144,21 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "editor": {
             "resize_minHeight": 54
           }
+        },
+        "html": {
+          "view": { "style": "overflow: auto; text-overflow: clip;" }
         }
       },
       "Code": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
+          "searchable": true,
           "grouping": {
             "allowGrouping": false,
             "allowExpandGroup": false
@@ -138,10 +170,15 @@
           },
           "filterType": "include",
           "allowSearch": true,
-          "maxDatagridCellHeight": 70
+          "maxDatagridCellHeight": 70,
+          "html": {
+            "view": { "style": "overflow: auto; text-overflow: clip;" }
+          }
         }
       },
       "String": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "searchable": true,
         "transform": ["trim"],
         "autocomplete": "enable",
@@ -171,7 +208,10 @@
         ]
       },
       "String[]": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "autocomplete": "enable",
+        "searchable": false,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -183,14 +223,17 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "width": 150
       },
       "LookupObjectID": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "autocomplete": "enable",
         "width": 150,
+        "searchable": false,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -198,14 +241,17 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "transform": [["lookupObjectId", "stringifyLookupObjectId"]]
       },
       "LookupObjectID[]": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "autocomplete": "enable",
         "width": 150,
+        "searchable": false,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -213,21 +259,24 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "transform": [["lookupObjectId", "stringifyLookupObjectId"]]
       },
       "TreeSelector": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "autocomplete": "enable",
         "width": 150,
+        "searchable": false,
         "parameters": {
           "allowHeaderFiltering": true,
           "headerFilter": {
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "grouping": {
             "allowGrouping": true,
             "allowExpandGroup": true
@@ -237,7 +286,10 @@
         "transform": [["objectIdTreeSelector", "stringifyTreeSelector"]]
       },
       "DateTime": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "width": 150,
+        "searchable": false,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -245,8 +297,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
-          "pickerType": "rollers",
+          "allowSearch": false,
+          "pickerType": "calendar",
           "openOnFieldClick": false,
           "maxDatagridCellHeight": 70
         },
@@ -261,7 +313,10 @@
         "transform": [["dateTime", "null"]]
       },
       "Date": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "width": 150,
+        "searchable": false,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -269,8 +324,8 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
-          "pickerType": "rollers",
+          "allowSearch": false,
+          "pickerType": "calendar",
           "openOnFieldClick": false,
           "maxDatagridCellHeight": 70
         },
@@ -284,9 +339,20 @@
         ],
         "transform": [["date", "null"]]
       },
+      "Date[]": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0
+      },
+      "DateTime[]": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0
+      },
       "Time": {
         "width": 150,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "transform": [["time", "null"]],
+        "searchable": false,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -294,12 +360,15 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Number": {
         "autocomplete": "enable",
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -311,12 +380,15 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Double": {
         "autocomplete": "enable",
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -328,12 +400,15 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Int32": {
         "autocomplete": "enable",
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -345,7 +420,7 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "validate": [
@@ -360,6 +435,9 @@
       },
       "Int64": {
         "autocomplete": "enable",
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -371,7 +449,7 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "validate": [
@@ -387,6 +465,9 @@
       },
       "Decimal128": {
         "autocomplete": "enable",
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -398,7 +479,7 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "validate": [
@@ -413,6 +494,9 @@
         "transform": [["null", "decimalToString"]]
       },
       "Number[]": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -424,11 +508,14 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Double[]": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -440,12 +527,15 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Int32[]": {
         "autocomplete": "enable",
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -457,7 +547,7 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "validate": [
@@ -472,6 +562,9 @@
       },
       "Int64[]": {
         "autocomplete": "enable",
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -483,7 +576,7 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "validate": [
@@ -498,6 +591,9 @@
       },
       "Decimal128[]": {
         "autocomplete": "enable",
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -509,7 +605,7 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "validate": [
@@ -525,6 +621,9 @@
       },
       "Boolean": {
         "width": 120,
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -533,13 +632,16 @@
           },
           "allowHeaderFiltering": false,
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "validate": [{ "validator": "boolean" }]
       },
       "TriStateBoolean": {
         "width": 120,
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -551,16 +653,25 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         },
         "validate": [{ "validator": "triStateBoolean" }]
       },
       "ObjectID": {
         "width": 120,
-        "showInForm": false
+        "searchable": false,
+        "showInForm": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
+        "parameters": {
+          "allowSearch": false
+        }
       },
       "Currency": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -572,7 +683,7 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
@@ -595,7 +706,10 @@
                 "allowExpandGroup": false
               }
             },
-            "transform": [["objectId", "null"]]
+            "transform": [["objectId", "null"]],
+            "detailedViewOrder": -1000,
+            "datagridOrder": -1000,
+            "formWidth": 6
           },
           "creator": {
             "type": "LookupObjectID",
@@ -620,9 +734,11 @@
             "showInViewDetails": true,
             "showInGraphql": true,
             "parameters": {
-              "enableInCellEditing": false,
-              "visible": false
-            }
+              "enableInCellEditing": false
+            },
+            "detailedViewOrder": -1001,
+            "datagridOrder": -1001,
+            "formWidth": 6
           },
           "createdAt": {
             "type": "DateTime",
@@ -635,9 +751,11 @@
             "showInViewDetails": true,
             "showInGraphql": true,
             "parameters": {
-              "enableInCellEditing": false,
-              "visible": false
-            }
+              "enableInCellEditing": false
+            },
+            "detailedViewOrder": -1002,
+            "datagridOrder": -1002,
+            "formWidth": 6
           },
           "updatedAt": {
             "type": "DateTime",
@@ -652,7 +770,10 @@
             "parameters": {
               "enableInCellEditing": false,
               "visible": false
-            }
+            },
+            "detailedViewOrder": -1003,
+            "datagridOrder": -1003,
+            "formWidth": 6
           },
           "deletedAt": {
             "type": "DateTime",
@@ -664,19 +785,22 @@
               "generator": "scgDeletedAt"
             },
             "showInDatatable": true,
-            "showInViewDetails": true,
+            "showInViewDetails": "this.data !== '1970-01-01T00:00:00.000Z'",
             "showInGraphql": true,
             "showInForm": false,
             "parameters": {
               "enableInCellEditing": false,
               "visible": false
             },
-            "transform": [["setEpochIfNotSet", "null"]]
+            "transform": [["setEpochIfNotSet", "null"]],
+            "detailedViewOrder": -1004,
+            "datagridOrder": -1004,
+            "formWidth": 6
           },
           "generatorBatchName": {
             "type": "String",
             "showInDatatable": false,
-            "showInViewDetails": false,
+            "showInViewDetails": "this.data !== null",
             "showInForm": false,
             "showInGraphql": false,
             "searchable": false,
@@ -686,6 +810,23 @@
             "description": "Set to the ID of generator batch for synthetic records",
             "generatorSpecification": {
               "generator": "scgGeneratorBatchName"
+            },
+            "parameters": {
+              "allowSearch": false
+            },
+            "detailedViewOrder": -1005,
+            "datagridOrder": -1005,
+            "formWidth": 6
+          },
+          "systemFieldsSeparator": {
+            "type": "FormSeparator",
+            "showInDatatable": false,
+            "showInViewDetails": true,
+            "showInForm": false,
+            "showInGraphql": false,
+            "searchable": false,
+            "parameters": {
+              "height": "4px"
             }
           }
         },
@@ -1032,7 +1173,10 @@
         }
       },
       "Password": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "width": 150,
+        "searchable": false,
         "validate": [
           {
             "validator": "regex",
@@ -1058,12 +1202,15 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Email": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "width": 150,
+        "searchable": true,
         "validate": [
           {
             "validator": "regex",
@@ -1093,8 +1240,11 @@
         }
       },
       "Url": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "width": 150,
         "render": "link",
+        "searchable": true,
         "validate": [
           {
             "validator": "regex",
@@ -1124,6 +1274,8 @@
         }
       },
       "Phone": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "width": 150,
         "validate": [
           {
@@ -1138,6 +1290,7 @@
           }
         ],
         "autocomplete": "enable",
+        "searchable": true,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -1154,8 +1307,11 @@
         }
       },
       "Text": {
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "width": 180,
         "autocomplete": "enable",
+        "searchable": true,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -1169,10 +1325,16 @@
           "filterType": "include",
           "allowSearch": true,
           "maxDatagridCellHeight": 70
+        },
+        "html": {
+          "view": { "style": "overflow: auto; text-overflow: clip;" }
         }
       },
       "ImperialHeight": {
         "width": 150,
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "transform": [["heightImperialToMetric", "heightMetricToImperial"]],
         "validate": [
           {
@@ -1197,7 +1359,7 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
@@ -1205,6 +1367,9 @@
         "width": 150,
         "transform": ["trim", ["weightImperialToMetric", "weightMetricToImperial"]],
         "validate": ["min(1)", "max(1000)"],
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
+        "searchable": false,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -1216,13 +1381,16 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "ImperialWeightWithOz": {
         "width": 150,
         "transform": ["trim", ["weightImperialWithOzToMetric", "weightMetricToImperialWithOz"]],
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "validate": [
           {
             "validator": "imperialWeightWithOz",
@@ -1246,11 +1414,14 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "File": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -1267,6 +1438,9 @@
         }
       },
       "Image": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -1274,11 +1448,14 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Audio": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -1286,11 +1463,14 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Video": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -1298,11 +1478,14 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "File[]": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -1310,11 +1493,14 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Image[]": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -1322,11 +1508,14 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Audio[]": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -1334,11 +1523,14 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Video[]": {
+        "searchable": false,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "allowHeaderFiltering": true,
@@ -1346,16 +1538,19 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Blank": {
+        "searchable": false,
         "showInForm": true,
         "showInDatatable": false,
         "showInViewDetails": false,
         "showInGraphql": false,
         "virtual": true,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": false,
           "grouping": {
@@ -1370,6 +1565,7 @@
         }
       },
       "List": {
+        "searchable": false,
         "width": 150,
         "list": {
           "scopes": {
@@ -1380,6 +1576,8 @@
             }
           }
         },
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -1391,11 +1589,12 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "List[]": {
+        "searchable": false,
         "width": 150,
         "list": {
           "scopes": {
@@ -1408,6 +1607,8 @@
             }
           }
         },
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "enableInCellEditing": true,
           "grouping": {
@@ -1419,11 +1620,12 @@
             "allowSearch": true
           },
           "filterType": "include",
-          "allowSearch": true,
+          "allowSearch": false,
           "maxDatagridCellHeight": 70
         }
       },
       "Location": {
+        "searchable": false,
         "validate": [
           {
             "validator": "location",
@@ -1432,11 +1634,18 @@
             }
           }
         ],
-        "transform": ["location"]
+        "transform": ["location"],
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
+        "parameters": {
+          "allowSearch": false
+        }
       },
       "CronExpression": {
         "searchable": true,
         "transform": ["trim"],
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
         "parameters": {
           "renderAsHtml": false,
           "enableInCellEditing": true,
@@ -1465,6 +1674,31 @@
             }
           }
         ]
+      },
+      "FormSeparator": {
+        "searchable": false,
+        "showInForm": true,
+        "showInDatatable": false,
+        "showInViewDetails": true,
+        "showInGraphql": false,
+        "virtual": true,
+        "detailedViewOrder": 0,
+        "datagridOrder": 0,
+        "parameters": {
+          "height": 0,
+          "lineStyle": "",
+          "lineColor": "",
+          "lineWidth": 0,
+          "enableInCellEditing": false,
+          "grouping": {
+            "allowGrouping": false
+          },
+          "allowHeaderFiltering": false,
+          "headerFilter": {
+            "allowSearch": false
+          },
+          "allowSearch": false
+        }
       }
     }
   },

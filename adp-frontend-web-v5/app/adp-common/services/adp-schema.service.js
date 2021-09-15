@@ -56,9 +56,17 @@
     }
 
     function getSorter(attrName) {
+      var defaultOrderValue = 1000000;
+
       return function (itemA, itemB) {
-        var a = _.isUndefined(itemA[attrName]) ? 1000000 : itemA[attrName];
-        var b = _.isUndefined(itemB[attrName]) ? 1000000 : itemB[attrName];
+        var a = _.isUndefined(itemA[attrName]) ? defaultOrderValue : itemA[attrName];
+        var b = _.isUndefined(itemB[attrName]) ? defaultOrderValue : itemB[attrName];
+
+        a = parseInt(a);
+        b = parseInt(b);
+
+        a = isNaN(a) ? defaultOrderValue : a;
+        b = isNaN(b) ? defaultOrderValue : b;
 
         return a === b ? 0 : a > b ? 1 : -1;
       }

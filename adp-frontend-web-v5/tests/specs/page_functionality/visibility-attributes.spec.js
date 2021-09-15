@@ -115,8 +115,10 @@ describe('page functionality', () => {
       'Check fields visibility in datatable',
       async () => {
         await clickCreateNewButton(this.page);
-        await clickSubmit(this.page);
-        const { _id } = await getResponseForCreatedRecord('visibilityAttributes', this.page);
+        const [{_id}] = await Promise.all([
+          getResponseForCreatedRecord('visibilityAttributes', this.page),
+          clickSubmit(this.page)
+        ]);
 
         const expectedVisibility = {
           "neverVisible": false,
@@ -139,8 +141,10 @@ describe('page functionality', () => {
       'Check fields visibility in viewDetails pop up',
       async () => {
         await clickCreateNewButton(this.page);
-        await clickSubmit(this.page);
-        const { _id } = await getResponseForCreatedRecord('visibilityAttributes', this.page);
+        const [{ _id }] = await Promise.all([
+          getResponseForCreatedRecord('visibilityAttributes', this.page),
+          clickSubmit(this.page)
+        ]);
 
         const expectedVisibility = {
           "neverVisible": false,

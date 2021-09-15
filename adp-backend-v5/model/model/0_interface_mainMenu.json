@@ -85,6 +85,21 @@
               },
               "link": "/_exports"
             },
+            "_files": {
+              "type": "MenuItem",
+              "fullName": "Files",
+              "link": "/_files"
+            },
+            "_environment": {
+              "type": "MenuItem",
+              "fullName": "System Environment Variables",
+              "scopes": {
+                "view": {
+                  "permissions": [["accessSystemEnvironmentVariables", "manageSystemEnvironmentVariables"]],
+                }
+              },
+              "link": "/_environment"
+            },
             "updateTrinoSchema": {
               "type": "MenuItem",
               "fullName": "Update Trino Schema",
@@ -95,6 +110,70 @@
               },
               "action": {
                 "link": "updateTrinoSchema"
+              }
+            }
+          }
+        },
+        "user": {
+          "type": "MenuGroup",
+          "fullName": "User",
+          "icon": {
+            "type": "action",
+            "link": "avatarUrl"
+          },
+          "cssClass": "right-bound avatar-menu-item",
+          "menuOrder": 100000,
+          "scopes": {
+            "view": {
+              "permissions": "accessAsUser"
+            }
+          },
+          "fields": {
+            "hello": {
+              "type": "MenuItem",
+              "fullName": "Welcome",
+              "render": {
+                "link": "userHelloMenuItem"
+              }
+            },
+            "separatorUser1": {
+              "type": "MenuSeparator"
+            },
+            "fullScreen": {
+              "type": "MenuItem",
+              "fullName": "Fullscreen mode",
+              "action": {
+                "link": "toggleFullscreen"
+              }
+            },
+            "profile": {
+              "type": "MenuItem",
+              "fullName": "Profile",
+              "link": "/profile"
+            },
+            "usersSettings": {
+              "type": "MenuItem",
+              "fullName": "User settings",
+              "link": "/_userSettings"
+            },
+            "resetUi": {
+              "type": "MenuItem",
+              "fullName": "Reset user interface",
+              "action": {
+                "link": "resetUi"
+              }
+            },
+            "separatorUser2": {
+              "type": "MenuSeparator"
+            },
+            "logout": {
+              "type": "MenuItem",
+              "fullName": "Logout",
+              "action": {
+                "link": "userLogout"
+              },
+              "icon": {
+                "link": "sign-out"
               }
             }
           }

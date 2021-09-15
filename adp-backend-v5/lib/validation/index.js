@@ -10,7 +10,12 @@ module.exports = (appLib) => {
 
   m.validateNewItem = async (context, newItem) => {
     const { modelName, userPermissions, inlineContext, userContext } = context;
-    const listErrors = await appLib.accessUtil.validateListsValues(modelName, newItem, userPermissions, inlineContext);
+    const listErrors = await appLib.accessUtil.validateAndTransformListsValues(
+      modelName,
+      newItem,
+      userPermissions,
+      inlineContext
+    );
     if (!_.isEmpty(listErrors)) {
       throw new ValidationError(`Incorrect request: ${listErrors.join(' ')}`);
     }
@@ -22,19 +27,18 @@ module.exports = (appLib) => {
 
   m.checkIsTreeSelectorValid = async (item, modelName) => {
     const modelTreeSelectors = _.get(appLib.treeSelectorFieldsMeta, modelName);
-    const checkTreeSelectorPromises = [];
 
-    _.each(modelTreeSelectors, (treeSelectorMeta, itemPath) => {
+    const treeselectorErrors = await Promise.map(_.entries(modelTreeSelectors), ([itemPath, treeSelectorMeta]) => {
       const { jsonPath } = treeSelectorMeta.paths;
       const singleTableMeta = Object.values(treeSelectorMeta.table)[0];
-      const treeSelectorResult = JSONPath({ path: jsonPath, json: item });
+      const treeSelectorsResults = JSONPath({ path: jsonPath, json: item });
+      const { parent, isLeaf, requireLeafSelection, foreignKey, table } = singleTableMeta;
 
-      _.each(treeSelectorResult, (treeSelectorData) => {
-        const { parent, isLeaf, requireLeafSelection, foreignKey, table } = singleTableMeta;
+      return Promise.map(treeSelectorsResults, async (treeSelectorResult) => {
         const conditionForActualRecord = appLib.dba.getConditionForActualRecord(table);
-        const lastChildId = treeSelectorData[treeSelectorData.length - 1]._id;
+        const lastChildId = treeSelectorResult[treeSelectorResult.length - 1]._id;
         const [fromField, toField] = Object.entries(parent)[0];
-        const checkPromise = appLib.db
+        const docs = await appLib.db
           .collection(table)
           .aggregate([
             { $match: { ...conditionForActualRecord, [foreignKey]: lastChildId } },
@@ -49,41 +53,38 @@ module.exports = (appLib) => {
               },
             },
           ])
-          .toArray()
-          .then((docs) => {
-            if (!docs.length) {
-              return { [itemPath]: `Unable to find a chain` };
-            }
+          .toArray();
 
-            const doc = docs[0];
-            const expectedTree = treeSelectorData.slice(0, -1);
-            const expectedIds = expectedTree.map((node) =>
-              node._id.constructor.name === 'ObjectID' ? node._id.toString() : node._id
-            );
-            const realIds = doc.tree.map((node) =>
-              node._id.constructor.name === 'ObjectID' ? node._id.toString() : node._id
-            );
-            if (!_.isEqual(expectedIds, realIds)) {
-              return { [itemPath]: `Invalid chain` };
-            }
+        if (!docs.length) {
+          return { [itemPath]: `Unable to find a chain` };
+        }
 
-            if (requireLeafSelection) {
-              try {
-                if (!isLeaf.call(doc)) {
-                  return { [itemPath]: `Last element must be a leaf` };
-                }
-              } catch (e) {
-                return { [itemPath]: `Invalid leaf specification` };
-              }
-            }
-          });
+        const doc = docs[0];
+        const expectedTree = treeSelectorResult.slice(0, -1);
+        const expectedIds = expectedTree.map((node) =>
+          node._id.constructor.name === 'ObjectID' ? node._id.toString() : node._id
+        );
+        const realIds = doc.tree.map((node) =>
+          node._id.constructor.name === 'ObjectID' ? node._id.toString() : node._id
+        );
+        if (!_.isEqual(expectedIds, realIds)) {
+          return { [itemPath]: `Invalid chain` };
+        }
 
-        checkTreeSelectorPromises.push(checkPromise);
+        if (requireLeafSelection) {
+          try {
+            if (!isLeaf.call(doc)) {
+              return { [itemPath]: `Last element must be a leaf` };
+            }
+          } catch (e) {
+            return { [itemPath]: `Invalid leaf specification` };
+          }
+        }
       });
     });
 
-    const errors = await Promise.all(checkTreeSelectorPromises);
-    const fieldToErrorMap = _.merge(...errors);
+    const errorObjects = _.flattenDeep(treeselectorErrors);
+    const fieldToErrorMap = _.merge(...errorObjects);
     if (!_.isEmpty(fieldToErrorMap)) {
       const fieldToErrorMapSorted = sortObjectByKeys(fieldToErrorMap);
       const errorFields = _.map(fieldToErrorMapSorted, (error, field) => `${error} for field "${field}"`, '').join(

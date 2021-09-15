@@ -8,6 +8,7 @@
           "type": "file",
           "link": "page_force_graph3d_template.ejs"
         },
+        "cssClass":  "stick-to-screen",
         "controller": "ForceGraphController"
       },
       "dataGraphVr": {
@@ -17,6 +18,7 @@
           "type": "file",
           "link": "page_force_graph_vr_template.ejs"
         },
+        "cssClass":  "stick-to-screen",
         "controller": "ForceGraphControllerVr"
       }
     }

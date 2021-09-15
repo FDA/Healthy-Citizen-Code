@@ -3,7 +3,7 @@ const assert = require('assert');
 
 const { setAppAuthOptions, prepareEnv, getMongoConnection, apiRequest } = require('../test-util');
 
-describe('V5 Backend Authentication', function () {
+describe('V5 Backend Authentication', () => {
   before(function () {
     this.appLib = prepareEnv();
   });

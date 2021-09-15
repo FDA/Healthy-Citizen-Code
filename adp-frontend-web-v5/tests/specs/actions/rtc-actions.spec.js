@@ -1,5 +1,4 @@
 const puppeteer = require('puppeteer');
-const appConfig = require('../../app_config')();
 const fetch = require('node-fetch');
 
 const {
@@ -13,7 +12,8 @@ const PAGE_TO_TEST = 'basicTypes';
 const waitForGridLoaded = async (page) => page.waitForTimeout(2000);
 
 async function emulateSocketIoMessage(page) {
-  const endpoint = appConfig.apiUrl + '/socket-io-test';
+  const { apiUrl } = await require('../../app_config')();
+  const endpoint = apiUrl + '/socket-io-test';
   const data = {
     data: {change: 'recordcreated', collection: PAGE_TO_TEST},
     type: 'database'

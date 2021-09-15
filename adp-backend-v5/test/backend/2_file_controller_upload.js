@@ -6,6 +6,8 @@ const fs = require('fs-extra');
 const { ObjectID } = require('mongodb');
 const cookie = require('cookie');
 
+const { buildGraphQlDxQuery } = require('../graphql-util');
+
 const {
   getMongoConnection,
   setAppAuthOptions,
@@ -25,10 +27,10 @@ const getCookies = (uploadRes) => {
 const binaryParser = (res, callback) => {
   res.setEncoding('binary');
   res.data = '';
-  res.on('data', function (chunk) {
+  res.on('data', (chunk) => {
     res.data += chunk;
   });
-  res.on('end', function () {
+  res.on('end', () => {
     callback(null, Buffer.from(res.data, 'binary'));
   });
 };
@@ -45,6 +47,8 @@ function setTokenForReq(apiReq, token) {
 }
 
 async function performUploadTests(authEnabled) {
+  const selectFields = 'originalName, size, mimeType, cropped';
+
   before(async function () {
     this.appLib = prepareEnv();
     const db = await getMongoConnection(this.appLib.options.MONGODB_URI);
@@ -141,20 +145,29 @@ async function performUploadTests(authEnabled) {
       });
       const fileRecordRes = await setTokenForReq(
         apiRequest(this.appLib)
-          .get(`/${filesCollectionName}/${id}`)
+          .post('/graphql')
+          .send(
+            buildGraphQlDxQuery(filesCollectionName, `["_id", "=", "${id}"]`, undefined, `items { ${selectFields} }`)
+          )
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/),
         token
       );
-      const { filePath: relativeFilePath } = fileRecordRes.body.data;
+      const { items } = fileRecordRes.body.data[`${filesCollectionName}Dx`];
+      should(items.length).be.equal(1);
+
+      // filePath is not visible for GraphQL client, retrieving it from db
+      const { filePath: relativeFilePath } = await this.appLib.db
+        .collection(filesCollectionName)
+        .findOne({ _id: ObjectID(id) });
 
       // check original file
-      should(file.image.bitmap.width).be.equal(cropParams.canvasSize.w);
-      should(file.image.bitmap.height).be.equal(cropParams.canvasSize.h);
-      should(file.bufSize).be.equal(testFileBytesSize);
       const filePath = path.resolve(process.cwd(), relativeFilePath);
       should(await fs.exists(filePath)).be.equal(true);
       should((await fs.stat(filePath)).size).be.equal(testFileBytesSize);
+      should(file.image.bitmap.width).be.equal(cropParams.canvasSize.w);
+      should(file.image.bitmap.height).be.equal(cropParams.canvasSize.h);
+      should(file.bufSize).be.equal(testFileBytesSize);
 
       // check original image and image retrieved from endpoint
       const croppedFilePath = `${filePath}_cropped`;
@@ -223,12 +236,22 @@ async function performUploadTests(authEnabled) {
 
       const fileRecordRes = await setTokenForReq(
         apiRequest(this.appLib)
-          .get(`/${filesCollectionName}/${id}`)
+          .post('/graphql')
+          .send(
+            buildGraphQlDxQuery(filesCollectionName, `["_id", "=", "${id}"]`, undefined, `items { ${selectFields} }`)
+          )
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/),
         token
       );
-      const { filePath: relativeFilePath } = fileRecordRes.body.data;
+      const { items } = fileRecordRes.body.data[`${filesCollectionName}Dx`];
+      should(items.length).be.equal(1);
+
+      // filePath is not visible for GraphQL client, retrieving it from db
+      const { filePath: relativeFilePath } = await this.appLib.db
+        .collection(filesCollectionName)
+        .findOne({ _id: ObjectID(id) });
+
       // check original file
       const filePath = path.resolve(process.cwd(), relativeFilePath);
       should(await fs.exists(filePath)).be.equal(true);
@@ -282,12 +305,21 @@ async function performUploadTests(authEnabled) {
 
       const fileRecordRes = await setTokenForReq(
         apiRequest(this.appLib)
-          .get(`/${filesCollectionName}/${id}`)
+          .post('/graphql')
+          .send(
+            buildGraphQlDxQuery(filesCollectionName, `["_id", "=", "${id}"]`, undefined, `items { ${selectFields} }`)
+          )
           .set('Accept', 'application/json')
           .expect('Content-Type', /json/),
         token
       );
-      const { filePath: relativeFilePath } = fileRecordRes.body.data;
+      const { items } = fileRecordRes.body.data[`${filesCollectionName}Dx`];
+      should(items.length).be.equal(1);
+
+      // filePath is not visible for GraphQL client, retrieving it from db
+      const { filePath: relativeFilePath } = await this.appLib.db
+        .collection(filesCollectionName)
+        .findOne({ _id: ObjectID(id) });
 
       // check original file
       const filePath = path.resolve(process.cwd(), relativeFilePath);
@@ -299,11 +331,11 @@ async function performUploadTests(authEnabled) {
   });
 }
 
-describe('File Controller', function () {
-  describe('Upload files with requireAuthentication=true', function () {
+describe('File Controller', () => {
+  describe('Upload files with requireAuthentication=true', () => {
     performUploadTests(true);
   });
-  describe('Upload files with requireAuthentication=false', function () {
+  describe('Upload files with requireAuthentication=false', () => {
     performUploadTests(false);
   });
 });

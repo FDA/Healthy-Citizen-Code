@@ -89,7 +89,6 @@ function addFindManyByDevExtremeFilterResolver(type) {
       },
       sort: {
         type: 'String',
-        defaultValue: '{_id: 1}',
       },
       isGroupFilter: {
         type: 'Boolean',

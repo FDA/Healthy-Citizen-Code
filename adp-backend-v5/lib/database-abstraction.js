@@ -326,19 +326,14 @@ module.exports = (appLib) => {
       return fn();
     }
 
+    // Wrap withTransaction method since it does not return the result of fn
+    // More - https://jira.mongodb.org/browse/NODE-2014
     const session = await appLib.connection.startSession();
-    session.startTransaction();
-
-    try {
-      const result = await fn(session);
-      await session.commitTransaction();
-      return result;
-    } catch (e) {
-      await session.abortTransaction();
-      throw e;
-    } finally {
-      session.endSession();
-    }
+    let result;
+    await session.withTransaction(async () => {
+      result = await fn();
+    });
+    return result;
   };
 
   return m;

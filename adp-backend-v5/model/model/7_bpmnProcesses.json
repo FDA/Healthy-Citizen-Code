@@ -38,7 +38,7 @@
             },
             "action": {
               "type": "link",
-              "link": "/#/bpmnDiagramEditor/:_id"
+              "link": "/bpmnDiagramEditor/:_id"
             },
             "permissions": "accessBpmnProcesses"
           },

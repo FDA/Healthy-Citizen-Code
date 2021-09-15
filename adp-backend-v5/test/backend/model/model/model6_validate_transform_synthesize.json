@@ -147,14 +147,12 @@
           }
         },
         "height": {
-          "type": "Number",
-          "subtype": "ImperialHeight",
+          "type": "ImperialHeight",
           "fullName": "Height",
           "description": "Height"
         },
         "weight": {
-          "type": "Number",
-          "subtype": "ImperialWeight",
+          "type": "ImperialWeight",
           "fullName": "Weight",
           "description": "Weight"
         },

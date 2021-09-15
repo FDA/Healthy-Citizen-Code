@@ -34,10 +34,12 @@ body ::-webkit-scrollbar {
 }
 
 #fg3d-container {
-  position: relative;
-  width: 100%;
-  height: calc(100vh - 80px);
-  min-height: 100px;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  overflow: hidden;
   background-color: black;
 
   &.is-fullscreen {
@@ -62,20 +64,6 @@ body ::-webkit-scrollbar {
 
   .simplebar-scrollbar:before {
     background: #fff;
-  }
-}
-
-body.menu-on-top {
-  #fg3d-container {
-    height: calc(100vh - 152px);
-    min-height: 466px;
-    overflow: hidden;
-  }
-}
-
-@media (max-width: 979px) {
-  body.menu-on-top #fg3d-container {
-    height: calc(100vh - 83px);
   }
 }
 

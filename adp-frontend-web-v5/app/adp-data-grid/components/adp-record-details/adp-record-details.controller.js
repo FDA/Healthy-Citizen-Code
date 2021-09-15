@@ -15,49 +15,23 @@
   ) {
     var vm = this;
     vm.$onInit = function onInit() {
-      vm.fields = GridSchema.getFieldsForDetailedView(vm.schema);
-
-      var recordData = presetRecordWithNull(vm.data, vm.fields);
-      var filteredData = EvalShowIn.forViewDetails(unifiedArgs(recordData));
-
-      vm.templates = _.chain(vm.fields)
-        .map(function (field) {
-          return _.isUndefined(filteredData[field.fieldName]) ?
-            null :
-            getRowTemplate(field, recordData);
-        })
-        .compact()
-        .value();
+      var fields = GridSchema.getFieldsForDetailedView(vm.schema);
+      var recordData = presetRecordWithNull(vm.data, fields);
+      vm.record = EvalShowIn.forViewDetails(unifiedArgs(recordData));
+      vm.fields = GridSchema.groupFieldsIntoUiGroups(fields);
     };
 
-    vm.showClipboardBtn = function (args) {
-      return ['Code', 'Html', 'Mixed', 'Text'].includes(args.fieldSchema.type);
-    };
-
-    function getRowTemplate(field, record) {
-      var args = unifiedArgs(record, field.fieldName);
-      var fieldName = field.fieldName;
-
-      return {
-        args: args,
-        fieldName: fieldName,
-        type: field.type,
-        rowClass: [
-          'view-details-row',
-          'view-details-row-' + fieldName,
-
-        ],
-        template: template(args),
-      }
+    vm.selectColumnClass = function (field) {
+      var fieldWidth = field.formWidth || 12;
+      return ['adp-col', 'adp-col-' + fieldWidth];
     }
 
-    function unifiedArgs(formData, path) {
-      return AdpUnifiedArgs.getHelperParamsWithConfig({
-        path: path || '',
-        formData: formData,
-        action: ACTIONS.VIEW_DETAILS,
-        schema: vm.schema,
-      });
+    vm.showValue = function (field) {
+      return field.type === 'Blank' || !_.isUndefined(vm.record[field.fieldName]);
+    }
+
+    vm.showAccordion = function () {
+      return !_.isEmpty(vm.fields.groups);
     }
 
     function presetRecordWithNull(data, fields) {
@@ -67,29 +41,13 @@
       }, {});
     }
 
-     function template(args) {
-      var $wrapper = $('<div>', {
-        'class': [
-          'name-' + args.fieldSchema.fieldName,
-          'view-details-cell-type-' + args.fieldSchema.type.toLowerCase(),
-          getMixedAdditionalClassName(args),
-        ].join(' '),
+    function unifiedArgs(recordData) {
+      return AdpUnifiedArgs.getHelperParamsWithConfig({
+        path: '',
+        formData: recordData,
+        schema: vm.schema,
+        action: ACTIONS.VIEW_DETAILS,
       });
-      $wrapper.append(HtmlCellRenderer(args));
-
-      return $wrapper;
-    }
-
-    function getMixedAdditionalClassName(args) {
-      if (args.fieldSchema.type !== 'Mixed') {
-        return '';
-      }
-
-      if (_.isNil(args.data) || typeof args.data !== 'object') {
-        return 'view-details-cell-type-mixed-as-primitive'
-      }
-
-      return '';
     }
   }
 })();

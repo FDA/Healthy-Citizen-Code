@@ -3,7 +3,7 @@ const { getQuickFilterConditions } = require('../../graphql/quick-filter/util');
 
 module.exports = class DevExtremeContext extends GraphQlContext {
   async init() {
-    const { sort = {}, filter, perPage, page } = this.args;
+    const { sort, filter, perPage, page } = this.args;
     const { limit, limitPlusOne, skip } = this._getLimitSkipForPagination(perPage, page);
     const {
       filterParser: { parse },

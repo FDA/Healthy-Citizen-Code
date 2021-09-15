@@ -24,16 +24,17 @@ gulp.task('build', gulp.series(
 ));
 gulp.task('default', gulp.series('serve'));
 
-
 gulp.task('inject:main', gulp.series('sw:replace', 'clientModules:replace', 'inject', 'html:replace'));
-gulp.task('load:resources', gulp.parallel(
-  'create:config',
-  'prepare:polyfills',
-  'load:script',
-  'load:modules',
-  'load:css',
-  'load:manifest'
-  )
+gulp.task('load:resources',
+  gulp.series(
+    'create:config',
+    gulp.parallel(
+      'prepare:polyfills',
+      'load:script',
+      'load:modules',
+      'load:css',
+      'load:manifest'
+    ))
 );
 
 gulp.task(

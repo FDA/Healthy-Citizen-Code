@@ -30,7 +30,7 @@ describe("2D visualisation(WEBVOWL) page", () => {
   test(
     "should open 2d vis (webvowl) page",
     async () => {
-      const canvasSelector = ".well vowl iframe";
+      const canvasSelector = "#main vowl iframe";
 
       await this.page.waitForSelector(canvasSelector);
 

@@ -15,10 +15,11 @@ const {
   buildGraphQlUpdateOne,
   buildGraphQlLookupQuery,
   checkGraphQlInvalidRequest,
+  buildGraphQlDxQuery,
 } = require('../graphql-util');
 const { getLookupTypeName } = require('../../lib/graphql/type/lookup');
 
-describe('V5 Backend Lookups', function () {
+describe('V5 Backend Lookups', () => {
   const sampleDataModel4 = [
     // model 2 return is capped to 3 elements
     { _id: new ObjectID('587179f6ef4807703afd0df0'), name: 'name1', description: 'description1' },
@@ -97,23 +98,7 @@ describe('V5 Backend Lookups', function () {
     }
   };
 
-  describe('lookups in /routes', function () {
-    it('GET /routes contains endpoint', async function () {
-      await this.appLib.setup();
-      const res = await apiRequest(this.appLib)
-        .get('/routes')
-        .set('Accept', 'application/json')
-        .expect('Content-Type', /json/);
-      res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
-      res.body.success.should.equal(true, res.body.message);
-
-      const { getFullRoute } = this.appLib;
-      const { API_PREFIX } = this.appLib.config;
-      res.body.data.brief.should.containEql(`GET ${getFullRoute(API_PREFIX, '/lookups/model4Id/model4s')} AUTH`);
-    });
-  });
-
-  describe('lookups basics, no auth', function () {
+  describe('lookups basics, no auth', () => {
     beforeEach(function () {
       setAppAuthOptions(this.appLib, {
         requireAuthentication: false,
@@ -121,9 +106,9 @@ describe('V5 Backend Lookups', function () {
       return this.appLib.setup();
     });
 
-    describe('should write valid lookups with fixing lookup label', function () {
+    describe('should write valid lookups with fixing lookup label', () => {
       const modelName = 'model3s';
-      describe('on POST', function () {
+      describe('on POST', () => {
         const record = {
           model4Id: {
             table: 'model4s',
@@ -137,33 +122,35 @@ describe('V5 Backend Lookups', function () {
           },
         };
         const checkData = async function (id) {
+          const dxQuery = `["_id", "=", "${id}"]`;
           const res2 = await apiRequest(this.appLib)
-            .get(`/${modelName}/${id}`)
+            .post('/graphql')
+            .send(
+              buildGraphQlDxQuery(
+                modelName,
+                dxQuery,
+                undefined,
+                `items { _id, model4Id { table, label, _id }, model4IdSortBy { table, label, _id } }`
+              )
+            )
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(200);
-          const { success: success2, data } = res2.body;
-          should(success2).be.equal(true);
-          should(data.model4Id).be.deepEqual({
+          const { data, errors } = res2.body;
+          should(errors).be.undefined();
+          const item = data[`${modelName}Dx`].items[0];
+          should(item.model4Id).be.deepEqual({
             table: 'model4s',
             label: 'name1-description1',
             _id: sampleDataModel4[0]._id.toString(),
           });
-          should(data.model4IdSortBy).be.deepEqual({
+          should(item.model4IdSortBy).be.deepEqual({
             table: 'model4s',
             label: 'name1',
             _id: sampleDataModel4[0]._id.toString(),
           });
         };
-        const restSettings = {
-          makeRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
-          async checkResponse(res) {
-            const { success, id } = res.body;
-            should(success).be.equal(true);
-            return id;
-          },
-          checkData,
-        };
+
         const graphqlSettings = {
           makeRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
           async checkResponse(res) {
@@ -173,11 +160,10 @@ describe('V5 Backend Lookups', function () {
           },
           checkData,
         };
-        it(`REST: should insert valid lookups`, getTestFunc(restSettings));
         it(`GraphQL: should insert valid lookups`, getTestFunc(graphqlSettings));
       });
 
-      describe('on PUT', function () {
+      describe('on PUT', () => {
         const record = {
           model4Id: {
             table: 'model4s',
@@ -192,33 +178,35 @@ describe('V5 Backend Lookups', function () {
         };
         const docId = sampleDataModel3._id.toString();
         const checkData = async function (id) {
+          const dxQuery = `["_id", "=", "${id}"]`;
           const res2 = await apiRequest(this.appLib)
-            .get(`/${modelName}/${id}`)
+            .post('/graphql')
+            .send(
+              buildGraphQlDxQuery(
+                modelName,
+                dxQuery,
+                undefined,
+                `items { _id, model4Id { table, label, _id }, model4IdSortBy { table, label, _id } }`
+              )
+            )
             .set('Accept', 'application/json')
             .expect('Content-Type', /json/)
             .expect(200);
-          const { success, data } = res2.body;
-          should(success).be.equal(true);
-          should(data.model4Id).be.deepEqual({
+          const { data, errors } = res2.body;
+          should(errors).be.undefined();
+          const item = data[`${modelName}Dx`].items[0];
+          should(item.model4Id).be.deepEqual({
             table: 'model4s',
             label: 'name1-description1',
             _id: sampleDataModel4[0]._id.toString(),
           });
-          should(data.model4IdSortBy).be.deepEqual({
+          should(item.model4IdSortBy).be.deepEqual({
             table: 'model4s',
             label: 'name1',
             _id: sampleDataModel4[0]._id.toString(),
           });
         };
-        const restSettings = {
-          makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
-          async checkResponse(res) {
-            const { success, id } = res.body;
-            should(success).be.equal(true);
-            return id;
-          },
-          checkData,
-        };
+
         const graphqlSettings = {
           makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
           async checkResponse(res) {
@@ -228,14 +216,13 @@ describe('V5 Backend Lookups', function () {
           },
           checkData,
         };
-        it(`REST: should update valid lookups`, getTestFunc(restSettings));
         it(`GraphQL: should update valid lookups`, getTestFunc(graphqlSettings));
       });
     });
 
-    describe('should not write lookups referenced to non-existing records', function () {
+    describe('should not write lookups referenced to non-existing records', () => {
       const modelName = 'model3s';
-      describe('on POST', function () {
+      describe('on POST', () => {
         const record = {
           model4Id: {
             table: 'model4s',
@@ -248,34 +235,18 @@ describe('V5 Backend Lookups', function () {
             _id: new ObjectID(),
           },
         };
-        const restSettings = {
-          makeRequest: (r) => r.post(`/${modelName}`).send({ data: record }),
-          checkResponse: (res) => {
-            const { success, message } = res.body;
-            should(success).be.equal(false);
 
-            const [cause, fields] = message.split(':');
-            should(cause).be.equal('Found invalid lookups sent in fields');
-
-            const fieldNames = fields.trim().split(', ');
-            should(fieldNames).containDeep(['model4IdSortBy']);
-          },
-        };
         const graphqlSettings = {
           makeRequest: (r) => r.post('/graphql').send(buildGraphQlCreate(modelName, record)),
           checkResponse: checkGraphQlInvalidRequest,
         };
-        it(
-          `REST: should not insert lookups referenced to non-existing records, label fields do not matter, on POST`,
-          getTestFunc(restSettings)
-        );
         it(
           `GraphQL: should not insert lookups referenced to non-existing records, label fields do not matter, on POST`,
           getTestFunc(graphqlSettings)
         );
       });
 
-      describe('on PUT', function () {
+      describe('on PUT', () => {
         const record = {
           model4Id: {
             table: 'model4s',
@@ -289,27 +260,12 @@ describe('V5 Backend Lookups', function () {
           },
         };
         const docId = sampleDataModel3._id.toString();
-        const restSettings = {
-          makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
-          checkResponse: (res) => {
-            const { success, message } = res.body;
-            should(success).be.equal(false);
 
-            const [cause, fields] = message.split(':');
-            should(cause).be.equal('Found invalid lookups sent in fields');
-
-            const fieldNames = fields.trim().split(', ');
-            should(fieldNames).containDeep(['model4IdSortBy']);
-          },
-        };
         const graphqlSettings = {
           makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
           checkResponse: checkGraphQlInvalidRequest,
         };
-        it(
-          `REST: should not insert lookups referenced to non-existing records, label fields do not matter, on PUT`,
-          getTestFunc(restSettings)
-        );
+
         it(
           `GraphQL: should not insert lookups referenced to non-existing records, label fields do not matter, on PUT`,
           getTestFunc(graphqlSettings)
@@ -317,20 +273,11 @@ describe('V5 Backend Lookups', function () {
       });
     });
 
-    describe('returns correct results', function () {
-      describe('for search for lookup with filtering condition', function () {
+    describe('returns correct results', () => {
+      describe('for search for lookup with filtering condition', () => {
         const lookupId = 'model3LookupWithFiltering';
         const lookupTableName = `model4s`;
 
-        const restSettings = (checkData, form) => ({
-          makeRequest: (r) => r.post(`/lookups/${lookupId}/${lookupTableName}`).send(form),
-          checkResponse: (res) => {
-            res.statusCode.should.equal(200);
-            res.body.success.should.equal(true);
-            const { data } = res.body;
-            checkData(data);
-          },
-        });
         const graphqlSettings = (checkData, form) => ({
           makeRequest: (r) =>
             r.post('/graphql').send(
@@ -348,7 +295,7 @@ describe('V5 Backend Lookups', function () {
           },
         });
 
-        describe('fulfilled form', function () {
+        describe('fulfilled form', () => {
           const form = { filteringField: sampleDataModel4[1].name };
           const checkData = (results) => {
             results.length.should.equal(1);
@@ -357,41 +304,29 @@ describe('V5 Backend Lookups', function () {
           };
 
           it(
-            `REST: returns correct results for search for lookup with filtering condition, fulfilled form`,
-            getTestFunc(restSettings(checkData, form))
-          );
-          it(
             `GraphQL: returns correct results for search for lookup with filtering condition, fulfilled form`,
             getTestFunc(graphqlSettings(checkData, form))
           );
         });
 
-        describe('undefined form', function () {
+        describe('undefined form', () => {
           const form = undefined;
           const checkData = (results) => {
             results.length.should.equal(3);
           };
 
           it(
-            `REST: returns correct results for search for lookup with filtering condition, undefined form`,
-            getTestFunc(restSettings(checkData, form))
-          );
-          it(
             `GraphQL: returns correct results for search for lookup, undefined form`,
             getTestFunc(graphqlSettings(checkData, form))
           );
         });
 
-        describe('empty object form', function () {
+        describe('empty object form', () => {
           const form = {};
           const checkData = (results) => {
             results.length.should.equal(3);
           };
 
-          it(
-            `REST: returns correct results for search for lookup with filtering condition, empty object form`,
-            getTestFunc(restSettings(checkData, form))
-          );
           it(
             `GraphQL: returns correct results for search for lookup with filtering condition, empty object form`,
             getTestFunc(graphqlSettings(checkData, form))
@@ -399,7 +334,7 @@ describe('V5 Backend Lookups', function () {
         });
       });
 
-      describe('for search for lookup with data attribute', function () {
+      describe('for search for lookup with data attribute', () => {
         const lookupId = 'model4IdData';
         const lookupTableName = `model4s`;
         const q = `abc`;
@@ -428,15 +363,6 @@ describe('V5 Backend Lookups', function () {
           ]);
         };
 
-        const restSettings = {
-          makeRequest: (r) => r.get(`/lookups/${lookupId}/${lookupTableName}?q=${q}`),
-          checkResponse: (res) => {
-            res.statusCode.should.equal(200);
-            res.body.success.should.equal(true);
-            const { data } = res.body;
-            checkData(data);
-          },
-        };
         const graphqlSettings = {
           makeRequest: (r) =>
             r.post('/graphql').send(
@@ -453,11 +379,10 @@ describe('V5 Backend Lookups', function () {
             checkData(data);
           },
         };
-        it(`REST: returns correct results for search for lookup with data attribute`, getTestFunc(restSettings));
         it(`GraphQL: returns correct results for search for lookup with data attribute`, getTestFunc(graphqlSettings));
       });
 
-      describe(`for specific search with 'q'`, function () {
+      describe(`for specific search with 'q'`, () => {
         const lookupId = 'model4Id';
         const lookupTableName = `model4s`;
         const q = `abc`;
@@ -478,15 +403,6 @@ describe('V5 Backend Lookups', function () {
           ]);
         };
 
-        const restSettings = {
-          makeRequest: (r) => r.get(`/lookups/${lookupId}/${lookupTableName}?q=${q}`),
-          checkResponse: (res) => {
-            res.statusCode.should.equal(200, JSON.stringify(res, null, 4));
-            res.body.success.should.equal(true, res.body.message);
-            const { data } = res.body;
-            checkData(data);
-          },
-        };
         const graphqlSettings = {
           makeRequest: (r) =>
             r.post('/graphql').send(
@@ -503,11 +419,10 @@ describe('V5 Backend Lookups', function () {
             checkData(data);
           },
         };
-        it(`REST: returns correct results for search for specific search`, getTestFunc(restSettings));
         it(`GraphQL: returns correct results for search for specific search`, getTestFunc(graphqlSettings));
       });
 
-      describe(`for specific search when both 'dxQuery' and 'q' specified 'q' is skipped`, function () {
+      describe(`for specific search when both 'dxQuery' and 'q' specified 'q' is skipped`, () => {
         const lookupId = 'model4Id';
         const lookupTableName = `model4s`;
 
@@ -554,7 +469,7 @@ describe('V5 Backend Lookups', function () {
         );
       });
 
-      describe('with pagination, page 1', function () {
+      describe('with pagination, page 1', () => {
         const lookupId = 'model4Id';
         const lookupTableName = `model4s`;
         const q = `name`;
@@ -567,15 +482,6 @@ describe('V5 Backend Lookups', function () {
           data[2].label.should.equal('name3-description3_def');
         };
 
-        const restSettings = {
-          makeRequest: (r) => r.get(`/lookups/${lookupId}/${lookupTableName}?q=${q}&page=${page}`),
-          checkResponse: (res) => {
-            res.statusCode.should.equal(200);
-            res.body.success.should.equal(true);
-            const { data } = res.body;
-            checkData(data);
-          },
-        };
         const graphqlSettings = {
           makeRequest: (r) =>
             r.post('/graphql').send(
@@ -593,11 +499,10 @@ describe('V5 Backend Lookups', function () {
             checkData(data);
           },
         };
-        it(`REST: returns correct results with pagination, page 1`, getTestFunc(restSettings));
         it(`GraphQL: returns correct results with pagination, page 1`, getTestFunc(graphqlSettings));
       });
 
-      describe('with pagination, page 2', function () {
+      describe('with pagination, page 2', () => {
         const lookupId = 'model4Id';
         const lookupTableName = `model4s`;
         const q = `name`;
@@ -609,15 +514,6 @@ describe('V5 Backend Lookups', function () {
           data[1].label.should.equal('name1-description1');
         };
 
-        const restSettings = {
-          makeRequest: (r) => r.get(`/lookups/${lookupId}/${lookupTableName}?q=${q}&page=${page}`),
-          checkResponse: (res) => {
-            res.statusCode.should.equal(200);
-            res.body.success.should.equal(true);
-            const { data } = res.body;
-            checkData(data);
-          },
-        };
         const graphqlSettings = {
           makeRequest: (r) =>
             r.post('/graphql').send(
@@ -635,11 +531,10 @@ describe('V5 Backend Lookups', function () {
             checkData(data);
           },
         };
-        it(`REST: returns correct results with pagination, page 2`, getTestFunc(restSettings));
         it(`GraphQL: returns correct results with pagination, page 2`, getTestFunc(graphqlSettings));
       });
 
-      describe('with pagination and sortBy field, page 1', function () {
+      describe('with pagination and sortBy field, page 1', () => {
         const lookupId = 'model4IdSortBy';
         const lookupTableName = `model4s`;
         const q = `name`;
@@ -652,15 +547,6 @@ describe('V5 Backend Lookups', function () {
           data[2].label.should.equal('name3');
         };
 
-        const restSettings = {
-          makeRequest: (r) => r.get(`/lookups/${lookupId}/${lookupTableName}?q=${q}&page=${page}`),
-          checkResponse: (res) => {
-            res.statusCode.should.equal(200);
-            res.body.success.should.equal(true);
-            const { data } = res.body;
-            checkData(data);
-          },
-        };
         const graphqlSettings = {
           makeRequest: (r) =>
             r.post('/graphql').send(
@@ -678,11 +564,10 @@ describe('V5 Backend Lookups', function () {
             checkData(data);
           },
         };
-        it(`REST: returns correct results with pagination and sortBy field, page 1`, getTestFunc(restSettings));
         it(`GraphQL: returns correct results with pagination and sortBy field, page 1`, getTestFunc(graphqlSettings));
       });
 
-      describe('with pagination and sortBy field, page 2', function () {
+      describe('with pagination and sortBy field, page 2', () => {
         const lookupId = 'model4IdSortBy';
         const lookupTableName = `model4s`;
         const q = `name`;
@@ -694,15 +579,6 @@ describe('V5 Backend Lookups', function () {
           data[1].label.should.equal('name1');
         };
 
-        const restSettings = {
-          makeRequest: (r) => r.get(`/lookups/${lookupId}/${lookupTableName}?q=${q}&page=${page}`),
-          checkResponse: (res) => {
-            res.statusCode.should.equal(200);
-            res.body.success.should.equal(true);
-            const { data } = res.body;
-            checkData(data);
-          },
-        };
         const graphqlSettings = {
           makeRequest: (r) =>
             r.post('/graphql').send(
@@ -720,14 +596,13 @@ describe('V5 Backend Lookups', function () {
             checkData(data);
           },
         };
-        it(`REST: returns correct results with pagination and sortBy field, page 2`, getTestFunc(restSettings));
         it(`GraphQL: returns correct results with pagination and sortBy field, page 2`, getTestFunc(graphqlSettings));
       });
     });
   });
 
-  describe('returns correct results for lookups with scopes and enabled permissions', function () {
-    describe('should return 401 by not authenticated request', function () {
+  describe('returns correct results for lookups with scopes and enabled permissions', () => {
+    describe('should return 401 by not authenticated request', () => {
       beforeEach(function () {
         setAppAuthOptions(this.appLib, {
           requireAuthentication: true,
@@ -741,13 +616,6 @@ describe('V5 Backend Lookups', function () {
       const lookupTableName = `model4s`;
       const q = `abc`;
 
-      const restSettings = {
-        makeRequest: (r) => r.get(`/lookups/${lookupId}/${lookupTableName}?q=${q}`),
-        checkResponse: (res) => {
-          res.statusCode.should.equal(401);
-          res.body.success.should.equal(false);
-        },
-      };
       const graphqlSettings = {
         makeRequest: (r) =>
           r.post('/graphql').send(
@@ -763,11 +631,10 @@ describe('V5 Backend Lookups', function () {
           res.body.success.should.equal(false);
         },
       };
-      it(`REST: should return 401 by not authenticated request`, getTestFunc(restSettings));
       it(`GraphQL: should return 401 by not authenticated request`, getTestFunc(graphqlSettings));
     });
 
-    describe('should not return lookups to guest', function () {
+    describe('should not return lookups to guest', () => {
       beforeEach(function () {
         setAppAuthOptions(this.appLib, {
           requireAuthentication: false,
@@ -783,15 +650,6 @@ describe('V5 Backend Lookups', function () {
 
       const checkData = (data) => data.length.should.equal(0);
 
-      const restSettings = {
-        makeRequest: (r) => r.get(`/lookups/${lookupId}/${lookupTableName}?q=${q}`),
-        checkResponse: (res) => {
-          res.statusCode.should.equal(200);
-          res.body.success.should.equal(true);
-          const { data } = res.body;
-          checkData(data);
-        },
-      };
       const graphqlSettings = {
         makeRequest: (r) =>
           r.post('/graphql').send(
@@ -808,11 +666,10 @@ describe('V5 Backend Lookups', function () {
           checkData(data);
         },
       };
-      it(`REST: should not return lookups to guest`, getTestFunc(restSettings));
       it(`GraphQL: should not return lookups to guest`, getTestFunc(graphqlSettings));
     });
 
-    describe('should return lookups to admin', function () {
+    describe('should return lookups to admin', () => {
       beforeEach(async function () {
         this.token = await setupAppAndGetToken(
           this.appLib,
@@ -834,35 +691,24 @@ describe('V5 Backend Lookups', function () {
         data[1].label.should.equal('name4');
       };
 
-      const restSettings = {
-        makeRequest: (r) => r.get(`/lookups/${lookupId}/${lookupTableName}?q=${q}`),
+      const graphqlSettings = {
+        makeRequest: (r) =>
+          r.post('/graphql').send(
+            buildGraphQlLookupQuery({
+              lookupId,
+              tableName: lookupTableName,
+              q,
+              selectFields: 'items { _id label table }',
+            })
+          ),
         checkResponse: (res) => {
           res.statusCode.should.equal(200);
-          res.body.success.should.equal(true);
-          const { data } = res.body;
+          const data = res.body.data[getLookupTypeName(lookupId, lookupTableName)].items;
           checkData(data);
         },
       };
-      // const graphqlSettings = {
-      //   makeRequest: r =>
-      //     r.post('/graphql').send(
-      //       buildGraphQlLookupQuery({
-      //         lookupId,
-      //         tableName: lookupTableName,
-      //         q,
-      //         selectFields: 'items { _id label table }',
-      //       })
-      //     ),
-      //   checkResponse: res => {
-      //     res.statusCode.should.equal(200);
-      //     const data = res.body.data[getLookupTypeName(lookupId, lookupTableName)].items;
-      //     checkData(data);
-      //   },
-      // };
-      it(`REST: should return lookups to admin`, getTestFunc(restSettings));
 
-      // TODO: resolve why its passed as a single test and fails in "npm test" (issue with superAdminScope not set before creating of graphql queries)
-      // it(`GraphQL: should return lookups to admin`, getTestFunc(graphqlSettings));
+      it(`GraphQL: should return lookups to admin`, getTestFunc(graphqlSettings));
     });
   });
 });

@@ -35,8 +35,11 @@ const FIELD_NAMES = {
 const PAGE_NAME = 'imperialUnitsTypes'
 
 async function createRecordAndOpenEditForm(pageName, page) {
-  await clickSubmit(page)
-  const { _id } = await getResponseForCreatedRecord(pageName, page)
+  const [{ _id }] = await Promise.all([
+    getResponseForCreatedRecord(pageName, page),
+    clickSubmit(page),
+  ]);
+
   await clickEditButton(_id, page)
 }
 

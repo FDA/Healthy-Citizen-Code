@@ -11,11 +11,14 @@ const conf = require('../config');
 gulp.task('styles', styles);
 
 function styles() {
-  return gulp.src(path.join(conf.paths.assets, '/less/index.less'))
-    .pipe(plumber(function (err) {
-      console.log('========= Styles task error: ', err);
-      this.emit('end');
-    }))
+  return gulp
+    .src(path.join(conf.paths.assets, '/less/index.less'))
+    .pipe(
+      plumber(function (err) {
+        console.log('========= Styles task error: ', err);
+        this.emit('end');
+      })
+    )
     .pipe(sourcemaps.init())
     .pipe(less({ compress: false }))
     .pipe(postcss([autoprefixer()]))

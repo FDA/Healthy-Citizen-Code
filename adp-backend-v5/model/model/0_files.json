@@ -2,11 +2,14 @@
   "models": {
     "_files": {
       "type": "Schema",
+      "fullName": "Files",
       "description": "This collection contains list of files uploaded by users",
+      "defaultSortBy": { "createdAt": -1 },
       "fields": {
         "originalName": {
           "type": "String",
-          "description": "Original file name"
+          "description": "Original file name",
+          "width": 'null'
         },
         "size": {
           "type": "Number",
@@ -14,7 +17,8 @@
         },
         "mimeType": {
           "type": "String",
-          "description": "File MIME type"
+          "description": "File MIME type",
+          "width": 'null'
         },
         "filePath": {
           // cropped version will have filename ending with "_crop"
@@ -60,6 +64,17 @@
           },
           "create": {
             "permissions": "accessAsUser"
+          },
+          "downloadFile": {
+            "fullName": "Download file",
+            "description": "Download file",
+            "icon": {
+              "link": "download"
+            },
+            "action": {
+              "type": "action",
+              "link": "downloadFromFilesCollection"
+            }
           }
         }
       }

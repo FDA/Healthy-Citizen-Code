@@ -7,7 +7,6 @@ const {
   getMongoConnection,
   setAppAuthOptions,
   prepareEnv,
-  checkRestSuccessfulResponse,
   conditionForActualRecord,
   apiRequest,
 } = require('../test-util');
@@ -19,7 +18,7 @@ const {
   checkGraphQlErrorResponse,
 } = require('../graphql-util');
 
-describe('V5 TreeSelectors propagation (nested)', function () {
+describe('V5 TreeSelectors propagation (nested)', () => {
   const parent = {
     _id: ObjectID('5c6d437f9ea7665b9d924b00'),
     name: 'parent',
@@ -117,7 +116,7 @@ describe('V5 TreeSelectors propagation (nested)', function () {
     return this.appLib.shutdown();
   });
 
-  describe(`should update TreeSelector lookups labels and data when parent's record is updated`, function () {
+  describe(`should update TreeSelector lookups labels and data when parent's record is updated`, () => {
     const docId = parent._id.toString();
     const modelName = 'treeCollection';
     const record = {
@@ -181,11 +180,7 @@ describe('V5 TreeSelectors propagation (nested)', function () {
         },
       });
     };
-    const restSettings = {
-      makeRequest: (r) => r.put(`/${modelName}/${docId}`).send({ data: record }),
-      checkResponse: checkRestSuccessfulResponse,
-      checkTreeselectorPropagation,
-    };
+
     const graphqlSettings = {
       makeRequest: (r) => r.post('/graphql').send(buildGraphQlUpdateOne(modelName, record, docId)),
       checkResponse: checkGraphQlSuccessfulResponse,
@@ -193,15 +188,11 @@ describe('V5 TreeSelectors propagation (nested)', function () {
     };
 
     it(
-      `REST: should update TreeSelector lookups labels and data when parent's record is updated`,
-      getTestFunc(restSettings)
-    );
-    it(
       `GraphQL: should update TreeSelector lookups labels and data when parent's record is updated`,
       getTestFunc(graphqlSettings)
     );
   });
-  describe(`should handle TreeSelector lookups when leaf without record label field is deleted`, function () {
+  describe(`should handle TreeSelector lookups when leaf without record label field is deleted`, () => {
     // More info about handling here: https://confluence.conceptant.com/display/DEV/Tree+Selector+Control
     const getTestFunc = function (settings) {
       return f;
@@ -269,35 +260,6 @@ describe('V5 TreeSelectors propagation (nested)', function () {
         ],
       },
     };
-    const restSettings = {
-      delRequest: (r) => r.del(`/${treeCollectionName}/${treeDocId}`),
-      getRequest: (r) => r.get(`/${propagationCollectionName}/${nestedDocId}`),
-      checkGetResponse: (res) => {
-        res.body.success.should.equal(true);
-        const { data } = res.body;
-
-        should(data).be.deepEqual({ ...getRecord, deletedAt: new Date(0).toISOString() });
-      },
-      putRequest: (r) =>
-        r.put(`/${propagationCollectionName}/${nestedDocId}`).send({
-          data: putRecord,
-        }),
-      checkPutResponse: (res) => {
-        const { success, message } = res.body;
-        should(success).be.equal(false);
-
-        const [cause, info] = message.split(':');
-        should(cause).be.equal('Found invalid tree selector data');
-
-        const infoMessages = info.trim().split('. ');
-        should(infoMessages).containDeep([
-          'Unable to find a chain for field "nested.array1.array2.treeSelectorNotRequiredAllowedNode"',
-          'Unable to find a chain for field "nested.array1.array2.treeSelectorNotRequiredNotAllowedNode"',
-          'Unable to find a chain for field "nested.array1.array2.treeSelectorRequiredAllowedNode"',
-          'Unable to find a chain for field "nested.array1.array2.treeSelectorRequiredNotAllowedNode"',
-        ]);
-      },
-    };
 
     const lookupFields = 'table label _id';
     const selectFields = `items { _id nested { array1 { array2 { treeSelectorRequiredAllowedNode{${lookupFields}} treeSelectorRequiredNotAllowedNode{${lookupFields}} treeSelectorNotRequiredAllowedNode{${lookupFields}} treeSelectorNotRequiredNotAllowedNode{${lookupFields}} } } }}`;
@@ -313,10 +275,6 @@ describe('V5 TreeSelectors propagation (nested)', function () {
         r.post('/graphql').send(buildGraphQlUpdateOne(propagationCollectionName, putRecord, nestedDocId)),
       checkPutResponse: checkGraphQlErrorResponse,
     };
-    it(
-      `REST: should handle TreeSelector lookups when leaf without record label field is deleted`,
-      getTestFunc(restSettings)
-    );
     it(
       `GraphQL: should handle TreeSelector lookups when leaf without record label field is deleted`,
       getTestFunc(graphqlSettings)

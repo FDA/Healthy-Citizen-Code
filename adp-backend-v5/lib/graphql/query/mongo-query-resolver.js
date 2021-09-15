@@ -24,7 +24,6 @@ function addFindManyMongoQueryResolver(type) {
       },
       sort: {
         type: 'String',
-        defaultValue: '{_id: 1}',
       },
     },
     type: [type],

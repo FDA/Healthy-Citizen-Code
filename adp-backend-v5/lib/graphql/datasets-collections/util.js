@@ -94,6 +94,20 @@ async function getNewSchemeByProjections({
   newScheme.fields = _.pick(parentCollectionScheme.fields, newSchemeFields);
   newScheme.schemaName = datasetRecordSchemaName;
 
+  // skip unique indexes for non-existing fields
+  newScheme.indexes = _.filter(newScheme.indexes, (indexSpec) => {
+    const isUniqueIndex = _.get(indexSpec, 'options.unique') === true;
+    if (!isUniqueIndex) {
+      return true;
+    }
+    const indexedFieldPaths = _.keys(indexSpec.keys);
+    // It doesn't work for types with implied fields like "_id", "table" for LookupObjectID or dynamic fields like Mixed/AssociativeArray
+    // TODO: Make it work for all types
+    const indexedFieldSchemePaths = indexedFieldPaths.map((ifp) => ifp.split('.').join('.fields.'));
+    const hasFieldNotDeclaredInScheme = indexedFieldSchemePaths.find((p) => !_.has(newScheme.fields, p));
+    return !hasFieldNotDeclaredInScheme;
+  });
+
   fixLookupIdDuplicates(newScheme, [datasetRecordSchemaName]);
   return { newScheme, newSchemeFields, parentCollectionScheme };
 }

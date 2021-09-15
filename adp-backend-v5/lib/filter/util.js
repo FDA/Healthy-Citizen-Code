@@ -50,6 +50,7 @@ const typeToFilterName = {
   Currency: 'currency',
   Html: 'html',
   Code: 'string',
+  FormSeparator: 'none',
 };
 
 function getDefaultFilterName(fieldScheme) {

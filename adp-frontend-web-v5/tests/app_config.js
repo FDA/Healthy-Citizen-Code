@@ -1,20 +1,12 @@
 const dotenv = require('dotenv');
+const { buildAppConfig } = require('../gulp/config');
 
-module.exports = function () {
-  dotenv.config({path: '.env'});
-
-  const {
-    SERVER_BASE_URL,
-    API_URL,
-    API_PREFIX,
-  } = process.env;
-  const serverBaseUrl = SERVER_BASE_URL || API_URL;
-  const apiPrefix  = API_PREFIX || '';
-  const apiUrl = `${serverBaseUrl}${apiPrefix}`;
-
-  return {
-    serverBaseUrl,
-    apiPrefix,
-    apiUrl,
+let appConfig;
+module.exports = async () => {
+  if (!appConfig) {
+    dotenv.config({ path: '.env' });
+    const config = await buildAppConfig();
+    appConfig = config.runtimeConfig;
   }
+  return appConfig;
 };

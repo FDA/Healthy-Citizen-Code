@@ -75,7 +75,8 @@
         "List[]",
         "Blank",
         "StaticHtml",
-        "CronExpression"
+        "CronExpression",
+        "FormSeparator"
       ],
       "fullName": "Type",
       "description": "The type of the value. It has no default, so you always have to specify it. Also do not use schema attribute name 'type'. Some types are only available for interface elements and not the model"
@@ -542,6 +543,12 @@
       "description": "Used for _environment params."
     },
     "canBeDefinedInEnvironment": {
+      "description": "Used for _environment params."
+    },
+    "includeWithBuildSchema": {
+      "description": "Used for _environment params."
+    },
+    "group": {
       "description": "Used for _environment params."
     }
   }

@@ -2,7 +2,8 @@
   "models": {
     "_environment": {
       "type": "Schema",
-      "description": "This collection contains env variables",
+      "fullName": "System Environment Variables",
+      "description": "This collection contains the system environment variables overrides",
       "cacheOptions": {
         "enabled": false
       },
@@ -11,28 +12,34 @@
       "actions": {
         "fields": {
           "view": {
-            "permissions": [["viewEnvironment", "manageEnvironment"]]
+            "permissions": [["accessSystemEnvironmentVariables", "manageSystemEnvironmentVariables"]]
           },
           "create": {
-            "permissions": "manageEnvironment"
+            "permissions": "manageSystemEnvironmentVariables"
           },
           "update": {
-            "permissions": "manageEnvironment"
+            "permissions": "manageSystemEnvironmentVariables"
           },
           "delete": null
         }
       },
+      "parameters": {
+        "groupingType": "Grouping",
+        "fillSpace": true,
+        "autoHeight": true,
+        "multi": true
+      },
       "scopes": {
         "viewScope": {
           "permissions": {
-            "view": "viewEnvironment"
+            "view": "accessSystemEnvironmentVariables"
           }
         },
         "manageScope": {
           "permissions": {
-            "view": "manageEnvironment",
-            "create": "manageEnvironment",
-            "update": "manageEnvironment"
+            "view": "manageSystemEnvironmentVariables",
+            "create": "manageSystemEnvironmentVariables",
+            "update": "manageSystemEnvironmentVariables"
           }
         }
       }

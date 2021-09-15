@@ -2,10 +2,6 @@
   "name": "fdavip-prototype",
   "version": "0.0.1",
   "description": "fdavip-prototype",
-  "repository": {
-    "type": "git",
-    "url": "ssh://int.conceptant.com/adp/adp-test-app-model.git"
-  },
   "author": "Andrey Mikhalchuk",
   "license": "UNLICENSED",
   "dependencies": {
