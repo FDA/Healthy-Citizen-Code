@@ -68,7 +68,7 @@
     "request-promise": "^4.2.2",
     "restify": "^8.5.1",
     "restify-plugins": "^1.6.0",
-    "shelljs": "^0.8.2",
+    "shelljs": "^0.8.5",
     "stream-to-promise": "^2.2.0",
     "stream-to-string": "^1.2.0",
     "unzip": "^0.1.11",
