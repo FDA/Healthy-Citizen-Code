@@ -108,7 +108,7 @@
     "lazypipe": "^1.0.1",
     "main-bower-files": "^2.13.3",
     "minimist": "^1.2.5",
-    "node-fetch": "^2.6.0",
+    "node-fetch": "^3.1.1",
     "polyfill-library": "^3.107.1",
     "posthtml-minifier": "^0.1.0",
     "puppeteer": "^5.5.0",
