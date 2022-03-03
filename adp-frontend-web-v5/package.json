@@ -116,7 +116,7 @@
     "request": "^2.81.0",
     "stream-to-promise": "^3.0.0",
     "uglify-save-license": "^0.4.1",
-    "url-parse": "^1.4.4",
+    "url-parse": "^1.5.9",
     "uuid": "^3.3.2",
     "workbox-build": "^3.6.3"
   }
