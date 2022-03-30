@@ -107,7 +107,7 @@
     "jest-puppeteer": "^4.4.0",
     "lazypipe": "^1.0.1",
     "main-bower-files": "^2.13.3",
-    "minimist": "^1.2.5",
+    "minimist": "^1.2.6",
     "node-fetch": "^2.6.0",
     "polyfill-library": "^3.107.1",
     "posthtml-minifier": "^0.1.0",
